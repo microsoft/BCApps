@@ -94,6 +94,11 @@ codeunit 134899 "Test Sequence No. Mgt."
             Assert.AreNotEqual(ManualEntryNo1, EntryNo, 'We got an already used entry no. 1');
             Assert.AreNotEqual(ManualEntryNo2, EntryNo, 'We got an already used entry no. 2');
         end;
+
+        // Test auto-creation of NumberSequence when allocating a range (using a table ID that doesn't support numbersequences yet)
+        SequenceNoMgt.AllocateSeqNoBuffer(96, 100); // G/L Budget Entry
+        FirstNo := SequenceNoMgt.GetNextSeqNo(96);
+        Assert.IsTrue(FirstNo > 0, 'First range on a table gives wrong number');
     end;
 
     [Test]

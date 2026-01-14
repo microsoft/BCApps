@@ -7,6 +7,15 @@ namespace Microsoft.Finance.FinancialReports;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 
+/// <summary>
+/// Generates standard retained earnings statement report using predefined account schedule templates.
+/// Produces formatted statement showing changes in retained earnings and equity movements.
+/// </summary>
+/// <remarks>
+/// Template-driven retained earnings statement using standard account schedule configuration.
+/// Processes equity account balances through account schedule engine for standardized
+/// retained earnings presentation. Supports period-based analysis and equity movement tracking.
+/// </remarks>
 report 156 "Retained Earnings Statement"
 {
     AccessByPermission = TableData "G/L Account" = R;

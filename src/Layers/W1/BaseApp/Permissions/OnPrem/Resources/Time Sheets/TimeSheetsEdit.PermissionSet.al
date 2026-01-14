@@ -1,11 +1,11 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.HumanResources.Employee;
-using Microsoft.Projects.Resources.Resource;
 using Microsoft.HumanResources.Absence;
+using Microsoft.HumanResources.Employee;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Project.Ledger;
 using Microsoft.Projects.Project.Planning;
+using Microsoft.Projects.Resources.Resource;
 using Microsoft.Projects.TimeSheet;
 
 permissionset 4450 "Time Sheets - Edit"

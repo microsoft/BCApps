@@ -4,10 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.DataExchange;
 
+using Microsoft.Intercompany.GLAccount;
 using Microsoft.Intercompany.Partner;
 using System.Telemetry;
-using Microsoft.Intercompany.GLAccount;
 
+/// <summary>
+/// Job queue runner for creating new intercompany notifications and managing outgoing notification queue.
+/// Handles automatic notification generation and processing for intercompany data exchange operations.
+/// </summary>
 codeunit 533 "IC New Notification JR"
 {
     Permissions = tabledata "IC Outgoing Notification" = m;

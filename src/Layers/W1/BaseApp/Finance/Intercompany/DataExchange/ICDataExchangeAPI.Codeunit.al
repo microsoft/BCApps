@@ -5,22 +5,26 @@
 namespace Microsoft.Intercompany.DataExchange;
 
 using Microsoft.Bank.BankAccount;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
-using System.Globalization;
 using Microsoft.Foundation.Company;
+using Microsoft.Intercompany;
 using Microsoft.Intercompany.Comment;
 using Microsoft.Intercompany.Dimension;
 using Microsoft.Intercompany.GLAccount;
-using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Intercompany.Inbox;
+using Microsoft.Intercompany.Journal;
+using Microsoft.Intercompany.Outbox;
 using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
-using Microsoft.Intercompany;
-using System.Threading;
-using Microsoft.Intercompany.Outbox;
+using System.Globalization;
 using System.Telemetry;
-using Microsoft.Intercompany.Journal;
+using System.Threading;
 
+/// <summary>
+/// Implements API-based intercompany data exchange for cross-system communication between partner companies.
+/// Provides secure transaction posting, data synchronization, and notification management through web service APIs.
+/// </summary>
 codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
 {
     Permissions = tabledata "IC Inbox Transaction" = i,
@@ -58,6 +62,12 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         SentTransactionTelemetryTxt: Label 'Transaction sent to IC Partner %1 from source %2.', Comment = '%1 = Target IC Partner Code, %2 = Source IC Partner Code';
         SecurityLogResultDescriptionTxt: Label 'Mismatch between transaction source intercompany code %1 and current company intercompany code %2.', Comment = '%1 = Source IC Partner Code, %2 = Current company IC Partner Code';
 
+    /// <summary>
+    /// Retrieves intercompany G/L accounts from a partner company via API connection.
+    /// Populates temporary table with partner's G/L account structure for mapping and synchronization.
+    /// </summary>
+    /// <param name="ICPartner">Partner company to retrieve G/L accounts from</param>
+    /// <param name="TempICPartnerICGLAccount">Temporary table to populate with partner's G/L accounts</param>
     procedure GetICPartnerICGLAccount(ICPartner: Record "IC Partner"; var TempICPartnerICGLAccount: Record "IC G/L Account" temporary)
     begin
         TempICPartnerICGLAccount.Reset();
@@ -70,6 +80,12 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
             PopulateICGLAccountFromJson(SelectedToken, TempICPartnerICGLAccount);
     end;
 
+    /// <summary>
+    /// Retrieves intercompany dimensions from a partner company via API connection.
+    /// Populates temporary table with partner's dimension structure for validation and mapping.
+    /// </summary>
+    /// <param name="ICPartner">Partner company to retrieve dimensions from</param>
+    /// <param name="TempICPartnerICDimension">Temporary table to populate with partner's dimensions</param>
     procedure GetICPartnerICDimension(ICPartner: Record "IC Partner"; var TempICPartnerICDimension: Record "IC Dimension" temporary)
     begin
         TempICPartnerICDimension.Reset();
@@ -82,6 +98,12 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
             PopulateICDimensionFromJson(SelectedToken, TempICPartnerICDimension);
     end;
 
+    /// <summary>
+    /// Retrieves intercompany dimension values from a partner company via API connection.
+    /// Populates temporary table with partner's dimension values for transaction validation.
+    /// </summary>
+    /// <param name="ICPartner">Partner company to retrieve dimension values from</param>
+    /// <param name="TempICPartnerICDimensionValue">Temporary table to populate with partner's dimension values</param>
     procedure GetICPartnerICDimensionValue(ICPartner: Record "IC Partner"; var TempICPartnerICDimensionValue: Record "IC Dimension Value" temporary)
     begin
         TempICPartnerICDimensionValue.Reset();
@@ -94,6 +116,12 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
             PopulateICDimensionValueFromJson(SelectedToken, TempICPartnerICDimensionValue);
     end;
 
+    /// <summary>
+    /// Retrieves intercompany partner data from the specified partner via API call.
+    /// Uses current company's IC Partner Code for authentication and partner identification.
+    /// </summary>
+    /// <param name="ICPartner">Source intercompany partner for API connection</param>
+    /// <param name="TempRegisteredICPartner">Temporary record to store retrieved partner data</param>
     procedure GetICPartnerFromICPartner(ICPartner: Record "IC Partner"; var TempRegisteredICPartner: Record "IC Partner" temporary)
     var
         ICSetup: Record "IC Setup";
@@ -102,6 +130,13 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         GetICPartnerFromICPartner(ICPartner, ICSetup."IC Partner Code", TempRegisteredICPartner);
     end;
 
+    /// <summary>
+    /// Retrieves intercompany partner data using specified partner code for identification.
+    /// Allows cross-partner data retrieval with explicit partner code specification.
+    /// </summary>
+    /// <param name="ICPartner">Source intercompany partner for API connection</param>
+    /// <param name="ICPartnerCode">Specific partner code to identify the target partner</param>
+    /// <param name="TempRegisteredICPartner">Temporary record to store retrieved partner data</param>
     procedure GetICPartnerFromICPartner(ICPartner: Record "IC Partner"; ICPartnerCode: Code[20]; var TempRegisteredICPartner: Record "IC Partner" temporary)
     var
         TempICPartners: Record "IC Partner" temporary;
@@ -123,6 +158,11 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         TempRegisteredICPartner.Insert();
     end;
 
+    /// <summary>
+    /// Retrieves intercompany setup configuration from a partner company by name.
+    /// </summary>
+    /// <param name="ICPartnerName">Name of the intercompany partner</param>
+    /// <param name="TempICPartnerICSetup">Temporary record to store the retrieved IC setup</param>
     procedure GetICPartnerICSetup(ICPartnerName: Text; var TempICPartnerICSetup: Record "IC Setup" temporary)
     var
         ICPartner: Record "IC Partner";
@@ -134,6 +174,11 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         GetICPartnerICSetup(ICPartner, TempICPartnerICSetup);
     end;
 
+    /// <summary>
+    /// Retrieves intercompany setup configuration from a partner company.
+    /// </summary>
+    /// <param name="ICPartner">Intercompany partner record</param>
+    /// <param name="TempICPartnerICSetup">Temporary record to store the retrieved IC setup</param>
     procedure GetICPartnerICSetup(ICPartner: Record "IC Partner"; var TempICPartnerICSetup: Record "IC Setup" temporary)
     begin
         TempICPartnerICSetup.Reset();
@@ -152,6 +197,11 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         end;
     end;
 
+    /// <summary>
+    /// Retrieves general ledger setup configuration from a partner company by name.
+    /// </summary>
+    /// <param name="ICPartnerName">Name of the intercompany partner</param>
+    /// <param name="TempICPartnerGeneralLedgerSetup">Temporary record to store the retrieved G/L setup</param>
     procedure GetICPartnerGeneralLedgerSetup(ICPartnerName: Text; var TempICPartnerGeneralLedgerSetup: Record "General Ledger Setup" temporary)
     var
         ICPartner: Record "IC Partner";
@@ -163,6 +213,11 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         GetICPartnerGeneralLedgerSetup(ICPartner, TempICPartnerGeneralLedgerSetup);
     end;
 
+    /// <summary>
+    /// Retrieves general ledger setup configuration from a partner company.
+    /// </summary>
+    /// <param name="ICPartner">Intercompany partner record</param>
+    /// <param name="TempICPartnerGeneralLedgerSetup">Temporary record to store the retrieved G/L setup</param>
     procedure GetICPartnerGeneralLedgerSetup(ICPartner: Record "IC Partner"; var TempICPartnerGeneralLedgerSetup: Record "General Ledger Setup" temporary)
     begin
         TempICPartnerGeneralLedgerSetup.Reset();
@@ -181,6 +236,11 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         end;
     end;
 
+    /// <summary>
+    /// Retrieves company information from a partner company by name.
+    /// </summary>
+    /// <param name="ICPartnerName">Name of the intercompany partner</param>
+    /// <param name="TempICPartnerCompanyInformation">Temporary record to store the retrieved company information</param>
     procedure GetICPartnerCompanyInformation(ICPartnerName: Text; var TempICPartnerCompanyInformation: Record "Company Information" temporary)
     var
         ICPartner: Record "IC Partner";
@@ -192,6 +252,11 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         GetICPartnerCompanyInformation(ICPartner, TempICPartnerCompanyInformation);
     end;
 
+    /// <summary>
+    /// Retrieves company information from a partner company.
+    /// </summary>
+    /// <param name="ICPartner">Intercompany partner record</param>
+    /// <param name="TempICPartnerCompanyInformation">Temporary record to store the retrieved company information</param>
     procedure GetICPartnerCompanyInformation(ICPartner: Record "IC Partner"; var TempICPartnerCompanyInformation: Record "Company Information" temporary)
     begin
         TempICPartnerCompanyInformation.Reset();
@@ -210,6 +275,11 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         end;
     end;
 
+    /// <summary>
+    /// Retrieves bank account information from a partner company.
+    /// </summary>
+    /// <param name="ICPartner">Intercompany partner record</param>
+    /// <param name="TempICPartnerBankAccount">Temporary record to store the retrieved bank account information</param>
     procedure GetICPartnerBankAccount(ICPartner: Record "IC Partner"; var TempICPartnerBankAccount: Record "Bank Account" temporary)
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -237,6 +307,11 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         end;
     end;
 
+    /// <summary>
+    /// Retrieves intercompany inbox transactions from a partner company.
+    /// </summary>
+    /// <param name="ICPartner">Intercompany partner record</param>
+    /// <param name="TempICPartnerICInboxTransaction">Temporary record to store the retrieved inbox transactions</param>
     procedure GetICPartnerICInboxTransaction(ICPartner: Record "IC Partner"; var TempICPartnerICInboxTransaction: Record "IC Inbox Transaction" temporary)
     begin
         TempICPartnerICInboxTransaction.Reset();
@@ -249,6 +324,11 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
             PopulateICInboxTransactionFromJson(SelectedToken, TempICPartnerICInboxTransaction);
     end;
 
+    /// <summary>
+    /// Retrieves handled intercompany inbox transactions from a partner company.
+    /// </summary>
+    /// <param name="ICPartner">Intercompany partner record</param>
+    /// <param name="TempICPartnerHandledICInboxTransaction">Temporary record to store the retrieved handled inbox transactions</param>
     procedure GetICPartnerHandledICInboxTransaction(ICPartner: Record "IC Partner"; var TempICPartnerHandledICInboxTransaction: Record "Handled IC Inbox Trans." temporary)
     begin
         TempICPartnerHandledICInboxTransaction.Reset();
@@ -261,6 +341,12 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
             PopulateHandledICInboxTransactionFromJson(SelectedToken, TempICPartnerHandledICInboxTransaction);
     end;
 
+    /// <summary>
+    /// Posts intercompany transaction data to partner's inbox via API connection.
+    /// Handles secure transmission of transaction headers with proper validation and telemetry tracking.
+    /// </summary>
+    /// <param name="ICPartner">Target partner company to receive the transaction</param>
+    /// <param name="TempICPartnerICInboxTransaction">Transaction data to be posted to partner's inbox</param>
     procedure PostICTransactionToICPartnerInbox(ICPartner: Record "IC Partner"; var TempICPartnerICInboxTransaction: Record "IC Inbox Transaction" temporary)
     var
         ICSetup: Record "IC Setup";
@@ -284,6 +370,12 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         end;
     end;
 
+    /// <summary>
+    /// Posts intercompany journal line data to partner's inbox via API for transaction processing.
+    /// Transfers journal entries between partner companies using staging buffer tables.
+    /// </summary>
+    /// <param name="ICPartner">Target intercompany partner for journal line posting</param>
+    /// <param name="TempICPartnerICInboxJnlLine">Temporary journal line data to post to partner inbox</param>
     procedure PostICJournalLineToICPartnerInbox(ICPartner: Record "IC Partner"; var TempICPartnerICInboxJnlLine: Record "IC Inbox Jnl. Line" temporary)
     var
         BufferICInboxJnlLine: Record "Buffer IC Inbox Jnl. Line";
@@ -303,6 +395,12 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         end;
     end;
 
+    /// <summary>
+    /// Posts intercompany purchase header data to partner's inbox via API connection.
+    /// </summary>
+    /// <param name="ICPartner">Intercompany partner record</param>
+    /// <param name="TempICPartnerICInboxPurchaseHeader">Purchase header data to post to partner inbox</param>
+    /// <param name="RegisteredPartner">Registered partner information for vendor mapping</param>
     procedure PostICPurchaseHeaderToICPartnerInbox(ICPartner: Record "IC Partner"; var TempICPartnerICInboxPurchaseHeader: Record "IC Inbox Purchase Header" temporary; var RegisteredPartner: Record "IC Partner" temporary)
     var
         BufferICInboxPurchaseHeader: Record "Buffer IC Inbox Purch Header";
@@ -319,6 +417,11 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         end;
     end;
 
+    /// <summary>
+    /// Posts intercompany purchase line data to partner's inbox via API connection.
+    /// </summary>
+    /// <param name="ICPartner">Intercompany partner record</param>
+    /// <param name="TempICPartnerICInboxPurchaseLine">Purchase line data to post to partner inbox</param>
     procedure PostICPurchaseLineToICPartnerInbox(ICPartner: Record "IC Partner"; var TempICPartnerICInboxPurchaseLine: Record "IC Inbox Purchase Line" temporary)
     var
         BufferICInboxPurchaseLine: Record "Buffer IC Inbox Purchase Line";
@@ -332,6 +435,12 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         end;
     end;
 
+    /// <summary>
+    /// Posts intercompany sales header data to partner's inbox via API connection.
+    /// </summary>
+    /// <param name="ICPartner">Intercompany partner record</param>
+    /// <param name="TempICPartnerICInboxSalesHeader">Sales header data to post to partner inbox</param>
+    /// <param name="RegisteredPartner">Registered partner information for customer mapping</param>
     procedure PostICSalesHeaderToICPartnerInbox(ICPartner: Record "IC Partner"; var TempICPartnerICInboxSalesHeader: Record "IC Inbox Sales Header" temporary; var RegisteredPartner: Record "IC Partner" temporary)
     var
         BufferICInboxSalesHeader: Record "Buffer IC Inbox Sales Header";
@@ -348,6 +457,11 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         end;
     end;
 
+    /// <summary>
+    /// Posts intercompany sales line data to partner's inbox via API connection.
+    /// </summary>
+    /// <param name="ICPartner">Intercompany partner record</param>
+    /// <param name="TempICPartnerICInboxSalesLine">Sales line data to post to partner inbox</param>
     procedure PostICSalesLineToICPartnerInbox(ICPartner: Record "IC Partner"; var TempICPartnerICInboxSalesLine: Record "IC Inbox Sales Line" temporary)
     var
         BufferICInboxSalesLine: Record "Buffer IC Inbox Sales Line";
@@ -361,6 +475,11 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         end;
     end;
 
+    /// <summary>
+    /// Posts intercompany journal line dimension data to partner's inbox via API connection.
+    /// </summary>
+    /// <param name="ICPartner">Intercompany partner record</param>
+    /// <param name="TempICPartnerICInboxOutboxJnlLineDim">Journal line dimension data to post to partner inbox</param>
     procedure PostICJournalLineDimensionToICPartnerInbox(ICPartner: Record "IC Partner"; var TempICPartnerICInboxOutboxJnlLineDim: Record "IC Inbox/Outbox Jnl. Line Dim." temporary)
     var
         BufferICInOutJnlLineDim: Record "Buffer IC InOut Jnl. Line Dim.";
@@ -374,6 +493,11 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         end;
     end;
 
+    /// <summary>
+    /// Posts intercompany document dimension data to partner's inbox via API connection.
+    /// </summary>
+    /// <param name="ICPartner">Intercompany partner record</param>
+    /// <param name="TempICPartnerICDocDim">Document dimension data to post to partner inbox</param>
     procedure PostICDocumentDimensionToICPartnerInbox(ICPartner: Record "IC Partner"; var TempICPartnerICDocDim: Record "IC Document Dimension" temporary)
     var
         BufferICDocumentDimension: Record "Buffer IC Document Dimension";
@@ -387,6 +511,11 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         end;
     end;
 
+    /// <summary>
+    /// Posts intercompany comment line data to partner's inbox via API connection.
+    /// </summary>
+    /// <param name="ICPartner">Intercompany partner record</param>
+    /// <param name="TempICPartnerICInboxCommentLine">Comment line data to post to partner inbox</param>
     procedure PostICCommentLineToICPartnerInbox(ICPartner: Record "IC Partner"; var TempICPartnerICInboxCommentLine: Record "IC Comment Line" temporary)
     var
         BufferICCommentLine: Record "Buffer IC Comment Line";
@@ -400,6 +529,12 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         end;
     end;
 
+    /// <summary>
+    /// Enqueues auto-accepted intercompany inbox transactions for asynchronous processing via job queue.
+    /// Automatically processes transactions marked for auto-acceptance to streamline partner transaction flow.
+    /// </summary>
+    /// <param name="ICPartner">Source intercompany partner for the transaction</param>
+    /// <param name="ICInboxTransaction">Inbox transaction to auto-accept and process</param>
     procedure EnqueueAutoAcceptedICInboxTransaction(ICPartner: Record "IC Partner"; ICInboxTransaction: Record "IC Inbox Transaction")
     var
         ICSetup: Record "IC Setup";
@@ -973,6 +1108,11 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         LineJson.WriteTo(ContentJsonText);
     end;
 
+    /// <summary>
+    /// Creates and inserts a new incoming notification record for intercompany data exchange tracking.
+    /// Initializes notification status and sets up job queue processing for partner communication.
+    /// </summary>
+    /// <param name="ICIncomingNotification">Incoming notification record to insert and configure</param>
     procedure InsertICIncomingNotification(var ICIncomingNotification: Record "IC Incoming Notification")
     var
         DescriptionText: Text[250];
@@ -984,6 +1124,11 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         ScheduleCrossEnvironmentJobQueue(Codeunit::"IC Read Notification JR", JobQueueCategoryCodeReadTransactionTok, DescriptionText);
     end;
 
+    /// <summary>
+    /// Schedules cleanup of completed outgoing notification records via job queue processing.
+    /// Removes processed notifications to maintain optimal system performance and data hygiene.
+    /// </summary>
+    /// <param name="ICOutgoingNotification">Outgoing notification record to schedule for cleanup</param>
     procedure CleanupICOutgoingNotification(var ICOutgoingNotification: Record "IC Outgoing Notification")
     var
         DescriptionText: Text[250];
@@ -1210,16 +1355,35 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         Success := true;
     end;
 
+    /// <summary>
+    /// Internal event for populating transaction data from intercompany outgoing notifications.
+    /// </summary>
+    /// <param name="IndividualObject">JSON object containing transaction data</param>
+    /// <param name="Success">Indicates whether population was successful</param>
     [InternalEvent(false, true)]
     internal procedure OnPopulateTransactionDataFromICOutgoingNotification(IndividualObject: JsonObject; var Success: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting buffer IC inbox purchase header data.
+    /// </summary>
+    /// <param name="BufferICInboxPurchaseHeader">Buffer purchase header record being inserted</param>
+    /// <param name="TempICPartnerICInboxPurchaseHeader">Source purchase header data from partner</param>
+    /// <param name="ICPartner">Intercompany partner record</param>
+    /// <param name="RegisteredPartner">Registered partner information</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostICPurchaseHeaderToICPartnerInboxOnBeforeBufferICInboxPurchaseHeaderInsert(var BufferICInboxPurchaseHeader: Record "Buffer IC Inbox Purch Header"; TempICPartnerICInboxPurchaseHeader: Record "IC Inbox Purchase Header" temporary; ICPartner: Record "IC Partner"; RegisteredPartner: Record "IC Partner" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting buffer IC inbox sales header data.
+    /// </summary>
+    /// <param name="BufferICInboxSalesHeader">Buffer sales header record being inserted</param>
+    /// <param name="TempICPartnerICInboxSalesHeader">Source sales header data from partner</param>
+    /// <param name="ICPartner">Intercompany partner record</param>
+    /// <param name="RegisteredPartner">Registered partner information</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostICSalesHeaderToICPartnerInboxOnBeforeBufferICInboxSalesHeaderInsert(var BufferICInboxSalesHeader: Record "Buffer IC Inbox Sales Header"; TempICPartnerICInboxSalesHeader: Record "IC Inbox Sales Header" temporary; ICPartner: Record "IC Partner"; RegisteredPartner: Record "IC Partner" temporary)
     begin

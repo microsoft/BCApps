@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -162,13 +162,6 @@ table 6507 "Item Entry Relation"
         SetOrderInfo(TransferReceiptLine."Transfer Order No.", TransferReceiptLine."Line No.");
     end;
 
-#if not CLEAN25
-    [Obsolete('Moved to table Service Shipment Line', '25.0')]
-    procedure TransferFieldsServShptLine(var ServiceShipmentLine: Record Microsoft.Service.History."Service Shipment Line")
-    begin
-        ServiceShipmentLine.TransferToItemEntryRelation(Rec);
-    end;
-#endif
 
     procedure TransferFieldsPostedAsmHeader(var PostedAssemblyHeader: Record "Posted Assembly Header")
     begin

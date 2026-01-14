@@ -793,22 +793,29 @@ codeunit 1004 "Job Transfer Line"
     procedure FromSalesHeaderToPlanningLine(SalesLine: Record "Sales Line"; CurrencyFactor: Decimal)
     var
         JobPlanningLine: Record "Job Planning Line";
+        SalesHeader: Record "Sales Header";
     begin
         JobPlanningLine.SetCurrentKey("Job Contract Entry No.");
         JobPlanningLine.SetRange("Job Contract Entry No.", SalesLine."Job Contract Entry No.");
         if JobPlanningLine.FindFirst() then begin
             // Update Prices
             if JobPlanningLine."Currency Code" <> '' then begin
+                SalesHeader.SetLoadFields("Posting Date");
+                SalesHeader.Get(SalesLine."Document Type", SalesLine."Document No.");
+                if JobPlanningLine."Currency Date" <> SalesHeader."Posting Date" then begin
+                    JobPlanningLine."Currency Date" := SalesHeader."Posting Date";
+                    JobPlanningLine."Currency Factor" := CurrencyFactor;
+                end;
+                JobPlanningLine."Unit Price (LCY)" := SalesLine."Unit Price" / CurrencyFactor;
+                JobPlanningLine."Total Price (LCY)" := JobPlanningLine."Unit Price (LCY)" * JobPlanningLine.Quantity;
+                JobPlanningLine."Line Amount (LCY)" := JobPlanningLine."Total Price (LCY)";
+            end else begin
                 JobPlanningLine."Unit Price (LCY)" := SalesLine."Unit Price" / CurrencyFactor;
                 JobPlanningLine."Total Price (LCY)" := JobPlanningLine."Unit Price (LCY)" * JobPlanningLine.Quantity;
                 JobPlanningLine."Line Amount (LCY)" := JobPlanningLine."Total Price (LCY)";
                 JobPlanningLine."Unit Price" := JobPlanningLine."Unit Price (LCY)";
                 JobPlanningLine."Total Price" := JobPlanningLine."Total Price (LCY)";
                 JobPlanningLine."Line Amount" := JobPlanningLine."Total Price (LCY)";
-            end else begin
-                JobPlanningLine."Unit Price (LCY)" := SalesLine."Unit Price" / CurrencyFactor;
-                JobPlanningLine."Total Price (LCY)" := JobPlanningLine."Unit Price (LCY)" * JobPlanningLine.Quantity;
-                JobPlanningLine."Line Amount (LCY)" := JobPlanningLine."Total Price (LCY)";
             end;
             OnAfterFromSalesHeaderToPlanningLine(JobPlanningLine, SalesLine, CurrencyFactor);
             JobPlanningLine.Modify();

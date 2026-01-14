@@ -27,14 +27,6 @@ codeunit 132499 RunPerformanceTestPDF
     end;
 
     [Scope('OnPrem')]
-    procedure GeneratePDFTestT03(): Text[255]
-    begin
-        SetPdfFileName();
-        REPORT.SaveAsPdf(REPORT::"Trial Balance", fileName);
-        exit(fileName);
-    end;
-
-    [Scope('OnPrem')]
     procedure GeneratePDFTestT04(): Text[255]
     var
         Statement: Report Statement;
@@ -61,24 +53,6 @@ codeunit 132499 RunPerformanceTestPDF
         InventoryValuation.SetEndDate(parsedDate);
         SetPdfFileName();
         InventoryValuation.SaveAsPdf(fileName);
-        exit(fileName);
-    end;
-
-    [Scope('OnPrem')]
-    procedure GeneratePDFTestT06(): Text[255]
-    var
-        customerRecord: Record Customer;
-        AgedAccountsReceivable: Report "Aged Accounts Receivable";
-        periodLength: DateFormula;
-        parsedDate: Date;
-    begin
-        parsedDate := DMY2Date(1, 7, 2005);
-        Evaluate(periodLength, '<1M>');
-        customerRecord.SetFilter("No.", '01445544..01905893');
-        AgedAccountsReceivable.InitializeRequest(parsedDate, 0, periodLength, false, false, 0, false);
-        AgedAccountsReceivable.SetTableView(customerRecord);
-        SetPdfFileName();
-        AgedAccountsReceivable.SaveAsPdf(fileName);
         exit(fileName);
     end;
 

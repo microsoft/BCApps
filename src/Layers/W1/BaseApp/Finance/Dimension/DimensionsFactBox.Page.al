@@ -4,6 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// FactBox control displaying default dimensions and dimension values for master records.
+/// Provides read-only view of dimension configuration in a compact FactBox format for integration with other pages.
+/// </summary>
+/// <remarks>
+/// Used as a FactBox on various master record pages to show associated default dimensions without requiring navigation.
+/// Displays dimension codes and values in a repeater control optimized for space-efficient viewing.
+/// </remarks>
 page 9083 "Dimensions FactBox"
 {
     Caption = 'Dimensions';

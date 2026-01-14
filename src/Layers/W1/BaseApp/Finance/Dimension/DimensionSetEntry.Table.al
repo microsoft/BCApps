@@ -6,6 +6,15 @@ namespace Microsoft.Finance.Dimension;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 
+/// <summary>
+/// Stores individual dimension entries that form dimension sets for multi-dimensional analysis.
+/// Core table for dimension set management enabling optimized storage and retrieval of dimension combinations.
+/// </summary>
+/// <remarks>
+/// Central to dimension set architecture: dimension sets group multiple dimensions for transaction analysis.
+/// Integrates with Dimension Set Tree Node for optimized duplicate detection and dimension set creation.
+/// Extensibility: OnBeforeGetDimensionSetID and OnGetDimensionSetIDOnBeforeInsertTreeNode events for custom logic.
+/// </remarks>
 table 480 "Dimension Set Entry"
 {
     Caption = 'Dimension Set Entry';
@@ -17,10 +26,16 @@ table 480 "Dimension Set Entry"
 
     fields
     {
+        /// <summary>
+        /// Unique identifier linking multiple dimension entries into a single dimension set.
+        /// </summary>
         field(1; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
         }
+        /// <summary>
+        /// Code identifying the dimension being specified (Department, Project, etc.).
+        /// </summary>
         field(2; "Dimension Code"; Code[20])
         {
             Caption = 'Dimension Code';
@@ -37,6 +52,9 @@ table 480 "Dimension Set Entry"
                 end;
             end;
         }
+        /// <summary>
+        /// Specific value for the dimension (Sales, Marketing, Europe, etc.).
+        /// </summary>
         field(3; "Dimension Value Code"; Code[20])
         {
             Caption = 'Dimension Value Code';
@@ -52,10 +70,16 @@ table 480 "Dimension Set Entry"
                 "Dimension Value ID" := DimVal."Dimension Value ID";
             end;
         }
+        /// <summary>
+        /// Internal identifier for the dimension value used for optimized tree node operations.
+        /// </summary>
         field(4; "Dimension Value ID"; Integer)
         {
             Caption = 'Dimension Value ID';
         }
+        /// <summary>
+        /// Display name of the dimension from the Dimension table.
+        /// </summary>
         field(5; "Dimension Name"; Text[30])
         {
             CalcFormula = lookup(Dimension.Name where(Code = field("Dimension Code")));
@@ -63,6 +87,9 @@ table 480 "Dimension Set Entry"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Display name of the dimension value from the Dimension Value table.
+        /// </summary>
         field(6; "Dimension Value Name"; Text[50])
         {
             CalcFormula = lookup("Dimension Value".Name where("Dimension Code" = field("Dimension Code"),
@@ -71,6 +98,9 @@ table 480 "Dimension Set Entry"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Shortcut dimension number (3-8) for this dimension if configured in General Ledger Setup.
+        /// </summary>
         field(8; "Global Dimension No."; Integer)
         {
             Caption = 'Shortcut Dimension No.';
@@ -122,6 +152,16 @@ table 480 "Dimension Set Entry"
         DimVal: Record "Dimension Value";
         DimMgt: Codeunit DimensionManagement;
 
+    /// <summary>
+    /// Creates or retrieves the dimension set ID for a collection of dimension entries.
+    /// Uses tree structure optimization to avoid duplicate dimension sets and improve performance.
+    /// </summary>
+    /// <param name="DimSetEntry">Collection of dimension entries to process into a dimension set</param>
+    /// <returns>Dimension set ID that uniquely identifies the dimension combination</returns>
+    /// <remarks>
+    /// Core engine for dimension set creation: checks for existing combinations before creating new sets.
+    /// Integrates with Dimension Set Tree Node for optimized duplicate detection and storage.
+    /// </remarks>
     procedure GetDimensionSetID(var DimSetEntry: Record "Dimension Set Entry"): Integer
     var
         DimSetEntry2: Record "Dimension Set Entry";
@@ -191,6 +231,12 @@ table 480 "Dimension Set Entry"
             until DimSetEntry.Next() = 0;
     end;
 
+    /// <summary>
+    /// Updates the global dimension number for all entries with the specified dimension code.
+    /// Used when changing shortcut dimension assignments in General Ledger Setup.
+    /// </summary>
+    /// <param name="DimensionCode">Dimension code to update</param>
+    /// <param name="GlobalDimensionNo">New global dimension number (3-8)</param>
     procedure UpdateGlobalDimensionNo(DimensionCode: Code[20]; GlobalDimensionNo: Integer)
     var
         DimensionSetEntry: Record "Dimension Set Entry";
@@ -199,6 +245,11 @@ table 480 "Dimension Set Entry"
         DimensionSetEntry.ModifyAll("Global Dimension No.", GlobalDimensionNo);
     end;
 
+    /// <summary>
+    /// Determines the global dimension number (3-8) for the current dimension code.
+    /// Returns the shortcut dimension number configured in General Ledger Setup.
+    /// </summary>
+    /// <returns>Global dimension number (3-8) or 0 if not configured as shortcut dimension</returns>
     procedure GetGlobalDimNo(): Integer
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -218,11 +269,22 @@ table 480 "Dimension Set Entry"
             exit(8);
     end;
 
+    /// <summary>
+    /// Integration event raised before starting dimension set ID creation or retrieval process.
+    /// Enables custom preprocessing or validation of dimension entries before set processing.
+    /// </summary>
+    /// <param name="DimensionSetEntry">Dimension entries being processed into a set</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetDimensionSetID(var DimensionSetEntry: Record "Dimension Set Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting nodes into the dimension set tree structure.
+    /// Enables custom logic during tree node creation and duplicate detection process.
+    /// </summary>
+    /// <param name="DimensionSetEntry">Current dimension entry being processed</param>
+    /// <param name="Found">Whether matching tree node was found</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetDimensionSetIDOnBeforeInsertTreeNode(var DimensionSetEntry: Record "Dimension Set Entry"; var Found: Boolean)
     begin

@@ -35,11 +35,13 @@ table 5905 "Service Cost"
         }
         field(4; "Default Unit Price"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 2;
             Caption = 'Default Unit Price';
         }
         field(5; "Default Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Default Quantity';
             DecimalPlaces = 0 : 5;
         }
@@ -72,6 +74,7 @@ table 5905 "Service Cost"
         }
         field(9; "Default Unit Cost"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 2;
             Caption = 'Default Unit Cost';
         }

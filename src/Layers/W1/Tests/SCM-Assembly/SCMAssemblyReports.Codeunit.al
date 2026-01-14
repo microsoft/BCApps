@@ -4,20 +4,20 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
-using Microsoft.Sales.History;
-using Microsoft.Sales.Document;
-using System.Globalization;
-using Microsoft.Inventory.Journal;
-using Microsoft.Inventory.Tracking;
 using Microsoft.Assembly.Document;
-using Microsoft.Inventory.BOM;
-using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Location;
-using Microsoft.Sales.Setup;
 using Microsoft.Assembly.Setup;
 using Microsoft.Foundation.NoSeries;
-using Microsoft.Projects.Resources.Resource;
+using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Projects.Resources.Resource;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Setup;
+using System.Globalization;
 
 codeunit 137307 "SCM Assembly Reports"
 {

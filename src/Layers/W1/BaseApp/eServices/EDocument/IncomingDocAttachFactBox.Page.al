@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -88,24 +88,6 @@ page 193 "Incoming Doc. Attach. FactBox"
                     UploadMultipleAttachments(files);
                 end;
             }
-#if not CLEAN25
-            action(ImportNew)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'Action ImportNew is replaced by action UploadMainAttachment and UploadSupportingAttachments.';
-                ObsoleteTag = '25.0';
-                ApplicationArea = Basic, Suite;
-                Caption = 'Attach File';
-                Image = Attach;
-                ToolTip = 'Attach a file to the incoming document record.';
-                Visible = false;
-
-                trigger OnAction()
-                begin
-                    UploadSingleAttachment();
-                end;
-            }
-#endif
             action(IncomingDoc)
             {
                 ApplicationArea = Basic, Suite;

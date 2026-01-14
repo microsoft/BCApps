@@ -6,6 +6,14 @@ namespace Microsoft.Finance.Analysis;
 
 using Microsoft.Finance.GeneralLedger.Budget;
 
+/// <summary>
+/// Displays analysis view budget entries with drill-down capabilities to underlying budget entries.
+/// Provides read-only access to budget data consolidated by analysis view dimensions.
+/// </summary>
+/// <remarks>
+/// Used for reviewing budget data within analysis view context.
+/// Supports filtering by analysis view dimensions and budget name.
+/// </remarks>
 page 559 "Analysis View Budget Entries"
 {
     ApplicationArea = Dimensions;

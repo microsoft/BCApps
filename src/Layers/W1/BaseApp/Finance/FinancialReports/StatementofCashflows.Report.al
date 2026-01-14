@@ -7,6 +7,15 @@ namespace Microsoft.Finance.FinancialReports;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 
+/// <summary>
+/// Generates standard cash flow statement report using predefined account schedule templates.
+/// Produces formatted statement showing operating, investing, and financing cash flows.
+/// </summary>
+/// <remarks>
+/// Template-driven cash flow statement using standard account schedule configuration.
+/// Processes cash-related transactions through account schedule engine for standardized
+/// cash flow presentation. Supports period-based analysis and cash flow categorization.
+/// </remarks>
 report 155 "Statement of Cashflows"
 {
     AccessByPermission = TableData "G/L Account" = R;

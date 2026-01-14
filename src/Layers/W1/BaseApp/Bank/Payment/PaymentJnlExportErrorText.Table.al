@@ -206,6 +206,12 @@ table 1228 "Payment Jnl. Export Error Text"
         SetRange("Journal Batch Name", GenJnlLine."Journal Batch Name");
         SetRange("Document No.", GenJnlLine."Document No.");
         SetRange("Journal Line No.", GenJnlLine."Line No.");
+        OnAfterSetLineFilters(Rec, GenJnlLine);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSetLineFilters(var PaymentJnlExportErrorText: Record "Payment Jnl. Export Error Text"; GenJnlLine: Record "Gen. Journal Line")
+    begin
     end;
 }
 

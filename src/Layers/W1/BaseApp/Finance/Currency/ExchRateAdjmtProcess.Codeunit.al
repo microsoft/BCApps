@@ -20,13 +20,23 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.HumanResources.Employee;
+using Microsoft.HumanResources.Payables;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
-using Microsoft.HumanResources.Payables;
-using Microsoft.HumanResources.Employee;
 
+/// <summary>
+/// Manages exchange rate adjustment processing for foreign currency transactions.
+/// Provides functionality to revalue customer, vendor, bank account, and G/L account balances
+/// when exchange rates change, ensuring accurate financial reporting in the local currency.
+/// </summary>
+/// <remarks>
+/// Integrates with Customer Ledger Entries, Vendor Ledger Entries, Bank Account Ledger Entries,
+/// and G/L Entries for comprehensive currency revaluation. Supports dimension handling and
+/// generates adjustment entries through General Journal posting.
+/// </remarks>
 codeunit 699 "Exch. Rate Adjmt. Process"
 {
     EventSubscriberInstance = Manual;
@@ -910,9 +920,18 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     local procedure InsertExchRateAdjmtReg(AdjustAccType: Enum "Exch. Rate Adjmt. Account Type"; PostingGrCode: Code[20]; CurrencyCode: Code[10])
     var
         ExchRateAdjmtLedgEntry: Record "Exch. Rate Adjmt. Ledg. Entry";
+        TotalAdjustedAmount: Decimal;
     begin
         if TempCurrencyToAdjust.Code <> CurrencyCode then
             TempCurrencyToAdjust.Get(CurrencyCode);
+
+        // Calculate the total adjusted amount from ledger entries
+        TotalAdjustedAmount := 0;
+        TempExchRateAdjmtLedgEntry.Reset();
+        if TempExchRateAdjmtLedgEntry.FindFirst() then
+            repeat
+                TotalAdjustedAmount += TempExchRateAdjmtLedgEntry."Adjustment Amount";
+            until TempExchRateAdjmtLedgEntry.Next() = 0;
 
         ExchRateAdjmtReg."No." := ExchRateAdjmtReg."No." + 1;
         ExchRateAdjmtReg."Creation Date" := ExchRateAdjmtParameters."Posting Date";
@@ -922,7 +941,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         ExchRateAdjmtReg."Currency Factor" := TempCurrencyToAdjust."Currency Factor";
         ExchRateAdjmtReg."Adjusted Base" := TempExchRateAdjmtBuffer."Adjmt. Base";
         ExchRateAdjmtReg."Adjusted Base (LCY)" := TempExchRateAdjmtBuffer."Adjmt. Base (LCY)";
-        ExchRateAdjmtReg."Adjusted Amt. (LCY)" := TempExchRateAdjmtBuffer."Adjmt. Amount";
+        ExchRateAdjmtReg."Adjusted Amt. (LCY)" := TotalAdjustedAmount;
         ExchRateAdjmtReg.Insert();
 
         TempExchRateAdjmtLedgEntry.Reset();

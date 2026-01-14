@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Setup;
 
+/// <summary>
+/// VAT product posting groups list page for managing item and service VAT categorization.
+/// Provides interface to create, edit, and maintain VAT product posting groups used in VAT posting setup combinations.
+/// </summary>
+/// <remarks>
+/// Data source: VAT Product Posting Group table containing codes and descriptions for item/service VAT categories.
+/// Usage context: Administrative setup for categorizing items and services by VAT characteristics.
+/// Integration: Used in combination with VAT business posting groups to create VAT posting setups.
+/// </remarks>
 page 471 "VAT Product Posting Groups"
 {
     ApplicationArea = Basic, Suite;

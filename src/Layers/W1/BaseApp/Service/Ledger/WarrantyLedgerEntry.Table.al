@@ -138,6 +138,7 @@ table 5908 "Warranty Ledger Entry"
         }
         field(22; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
@@ -155,6 +156,7 @@ table 5908 "Warranty Ledger Entry"
         }
         field(26; Amount; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Amount';
         }

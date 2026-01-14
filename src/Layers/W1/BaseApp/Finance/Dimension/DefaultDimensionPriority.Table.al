@@ -7,6 +7,15 @@ namespace Microsoft.Finance.Dimension;
 using Microsoft.Foundation.AuditCodes;
 using System.Reflection;
 
+/// <summary>
+/// Defines priority order for default dimensions when multiple master data tables have conflicting default dimension values.
+/// Controls which table's default dimensions take precedence during dimension inheritance in posting scenarios.
+/// </summary>
+/// <remarks>
+/// Used when documents inherit dimensions from multiple sources (customer, item, location, etc.).
+/// Higher priority tables override lower priority tables when dimension conflicts occur.
+/// Essential for consistent dimension assignment in complex posting scenarios with multiple dimension sources.
+/// </remarks>
 table 354 "Default Dimension Priority"
 {
     Caption = 'Default Dimension Priority';
@@ -14,11 +23,17 @@ table 354 "Default Dimension Priority"
 
     fields
     {
+        /// <summary>
+        /// Source code identifying the posting context where this priority applies.
+        /// </summary>
         field(1; "Source Code"; Code[10])
         {
             Caption = 'Source Code';
             TableRelation = "Source Code";
         }
+        /// <summary>
+        /// Identifier of the master data table for which priority is being defined.
+        /// </summary>
         field(2; "Table ID"; Integer)
         {
             Caption = 'Table ID';
@@ -46,6 +61,9 @@ table 354 "Default Dimension Priority"
                     FieldError("Table ID");
             end;
         }
+        /// <summary>
+        /// Display name of the table for user interface presentation.
+        /// </summary>
         field(3; "Table Caption"; Text[250])
         {
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Table),
@@ -54,6 +72,9 @@ table 354 "Default Dimension Priority"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Priority level determining precedence in dimension conflict resolution. Higher values take precedence.
+        /// </summary>
         field(4; Priority; Integer)
         {
             Caption = 'Priority';
@@ -85,6 +106,14 @@ table 354 "Default Dimension Priority"
     var
         DimensionManagement: Codeunit DimensionManagement;
 
+    /// <summary>
+    /// Retrieves a list of all tables that support default dimensions.
+    /// Populates temporary buffer with table objects that can have default dimension configurations.
+    /// </summary>
+    /// <param name="TempAllObjWithCaption">Temporary buffer to populate with default dimension-enabled tables</param>
+    /// <remarks>
+    /// Extensibility: OnAfterGetDefaultDimTableList event allows customization of the table list.
+    /// </remarks>
     local procedure GetDefaultDimTableList(var TempAllObjWithCaption: Record AllObjWithCaption temporary)
     begin
         DimensionManagement.DefaultDimObjectNoList(TempAllObjWithCaption);
@@ -92,6 +121,14 @@ table 354 "Default Dimension Priority"
         OnAfterGetDefaultDimTableList(TempAllObjWithCaption);
     end;
 
+    /// <summary>
+    /// Initializes default dimension priorities for all source codes with predefined table priority orders.
+    /// Sets up standard dimension priority configurations for common posting scenarios.
+    /// </summary>
+    /// <remarks>
+    /// Extensibility: OnBeforeInitializeDefaultDimPriorities event allows custom priority configuration.
+    /// Creates standard priority settings for sales, purchase, and other common posting source codes.
+    /// </remarks>
     procedure InitializeDefaultDimPrioritiesForSourceCode()
     var
         SourceCodeSetup: Record "Source Code Setup";
@@ -126,6 +163,13 @@ table 354 "Default Dimension Priority"
         end;
     end;
 
+    /// <summary>
+    /// Creates a new default dimension priority entry if it doesn't already exist.
+    /// Inserts priority configuration for specific source code and table combination.
+    /// </summary>
+    /// <param name="SourceCode">Source code for which to set priority</param>
+    /// <param name="TableID">Table identifier for the priority setting</param>
+    /// <param name="Priority">Priority level (lower numbers indicate higher priority)</param>
     local procedure InsertDefaultDimensionPriority(SourceCode: Code[20]; TableID: Integer; Priority: Integer)
     var
         DefaultDimensionPriority: Record "Default Dimension Priority";
@@ -140,11 +184,22 @@ table 354 "Default Dimension Priority"
         DefaultDimensionPriority.Insert(true);
     end;
 
+    /// <summary>
+    /// Integration event raised before initializing default dimension priorities.
+    /// Enables custom priority configuration or skipping standard initialization logic.
+    /// </summary>
+    /// <param name="DefaultDimPriority">Default dimension priority record being processed</param>
+    /// <param name="IsHandled">Set to true to skip standard initialization</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitializeDefaultDimPriorities(var DefaultDimPriority: Record "Default Dimension Priority"; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after building the list of tables that support default dimensions.
+    /// Enables addition of custom tables to the default dimension table list.
+    /// </summary>
+    /// <param name="TempAllObjWithCaption">Temporary table containing available default dimension tables</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetDefaultDimTableList(var TempAllObjWithCaption: Record AllObjWithCaption temporary)
     begin

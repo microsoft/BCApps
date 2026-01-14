@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -102,15 +102,6 @@ codeunit 1400 DocumentNoVisibility
         exit(Result);
     end;
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit Serv. Document No. Visibility', '25.0')]
-    procedure ServiceDocumentNoIsVisible(DocType: Option Quote,"Order",Invoice,"Credit Memo",Contract; DocNo: Code[20]): Boolean
-    var
-        ServDocumentNoVisibility: Codeunit "Serv. Document No. Visibility";
-    begin
-        exit(ServDocumentNoVisibility.ServiceDocumentNoIsVisible(DocType, DocNo));
-    end;
-#endif
 
     procedure PurchaseDocumentNoIsVisible(DocType: Option Quote,"Order",Invoice,"Credit Memo","Blanket Order","Return Order"; DocNo: Code[20]): Boolean
     var
@@ -228,15 +219,6 @@ codeunit 1400 DocumentNoVisibility
         exit(ItemNoVisible);
     end;
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit Serv. Document No. Visibility', '25.0')]
-    procedure ServiceItemNoIsVisible(): Boolean
-    var
-        ServDocumentNoVisibility: Codeunit "Serv. Document No. Visibility";
-    begin
-        exit(ServDocumentNoVisibility.ServiceItemNoIsVisible());
-    end;
-#endif
 
     procedure FixedAssetNoIsVisible(): Boolean
     var
@@ -589,18 +571,6 @@ codeunit 1400 DocumentNoVisibility
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforeServiceDocumentNoIsVisible(DocType: Option; DocNo: Code[20]; var IsVisible: Boolean; var IsHandled: Boolean)
-    begin
-        OnBeforeServiceDocumentNoIsVisible(DocType, DocNo, IsVisible, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit Serv. Document No. Visibility', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeServiceDocumentNoIsVisible(DocType: Option; DocNo: Code[20]; var IsVisible: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforePurchaseDocumentNoIsVisible(DocType: Option; DocNo: Code[20]; var IsVisible: Boolean; var IsHandled: Boolean)
@@ -627,18 +597,6 @@ codeunit 1400 DocumentNoVisibility
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforeServiceItemNoIsVisible(var IsVisible: Boolean; var IsHandled: Boolean)
-    begin
-        OnBeforeServiceItemNoIsVisible(IsVisible, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit Serv. Document No. Visibility', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeServiceItemNoIsVisible(var IsVisible: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFixedAssetNoIsVisible(var IsVisible: Boolean; var IsHandled: Boolean)

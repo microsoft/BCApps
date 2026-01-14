@@ -381,22 +381,6 @@ page 446 "Finance Charge Memo"
         }
         area(reporting)
         {
-#if not CLEAN25
-            action("Finance Charge Memo Nos.")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'The action will be obsoleted.';
-                Image = "Report";
-                //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
-                //PromotedCategory = "Report";
-                RunObject = Report "Finance Charge Memo";
-                ToolTip = 'The action will be obsoleted.';
-                Visible = false;
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The related report doesn''t exist anymore.';
-                ObsoleteTag = '25.0';
-            }
-#endif
             action("Finance Charge Memo")
             {
                 ApplicationArea = Basic, Suite;
@@ -528,4 +512,3 @@ page 446 "Finance Charge Memo"
             IsPostingGroupEditable := Customer2."Allow Multiple Posting Groups";
     end;
 }
-

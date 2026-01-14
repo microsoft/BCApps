@@ -1,10 +1,10 @@
 namespace System.Security.AccessControl;
 
 using Microsoft.Assembly.Document;
+using Microsoft.Assembly.History;
 using Microsoft.Assembly.Setup;
 using Microsoft.Inventory.BOM;
 using Microsoft.Warehouse.ADCS;
-using Microsoft.Assembly.History;
 
 permissionset 6218 "D365 ASSEMBLY, EDIT"
 {

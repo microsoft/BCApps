@@ -5,8 +5,8 @@
 namespace Microsoft.Utilities;
 
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Sales.Setup;
 using Microsoft.Purchases.Setup;
+using Microsoft.Sales.Setup;
 using System.Environment.Configuration;
 
 codeunit 65 "Discount Notification Mgt."

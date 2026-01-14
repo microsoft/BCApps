@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.FinancialReports;
 
+/// <summary>
+/// Provides web service interface for financial report KPI data access by external systems.
+/// Exposes calculated KPI values from account schedules through OData endpoints for business intelligence integration.
+/// </summary>
+/// <remarks>
+/// Primary functionality: KPI data web service exposure, external system integration endpoint.
+/// Integration: Links with Account Schedule KPI Buffer and web service publishing framework.
+/// Extensibility: Standard page extension patterns for additional KPI fields and service customization.
+/// </remarks>
 page 197 "Acc. Sched. KPI Web Service"
 {
     AdditionalSearchTerms = 'financial report,business intelligence,bi,odata,account schedule kpi web service,financial reporting';

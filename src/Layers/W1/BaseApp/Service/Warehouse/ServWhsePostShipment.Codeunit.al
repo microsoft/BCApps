@@ -4,22 +4,18 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Warehouse.Posting;
 
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Posting;
 using Microsoft.Warehouse.Document;
-using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.History;
 using Microsoft.Warehouse.Journal;
-using Microsoft.Foundation.AuditCodes;
+using Microsoft.Warehouse.Setup;
 
 codeunit 5749 "Serv. Whse Post-Shipment"
 {
-#if not CLEAN25
-    var
-        WhsePostShipment: Codeunit "Whse.-Post Shipment";
-#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Shipment", 'OnGetSourceDocumentOnElseCase', '', false, false)]
     local procedure OnGetSourceDocument(var SourceHeader: Variant; var WhseShptLine: Record "Warehouse Shipment Line")
@@ -51,9 +47,6 @@ codeunit 5749 "Serv. Whse Post-Shipment"
                     ServiceHeader.Get(ServiceHeader."Document Type", ServiceHeader."No.");
                     IsHandled := false;
                     OnInitSourceDocumentHeaderOnBeforeServiceHeaderUpdatePostingDate(ServiceHeader, WhseShptHeader, WhseShptLine, ValidatePostingDate, ModifyHeader, IsHandled);
-#if not CLEAN25
-                    WhsePostShipment.RunOnInitSourceDocumentHeaderOnBeforeServiceHeaderUpdatePostingDate(ServiceHeader, WhseShptHeader, WhseShptLine, ValidatePostingDate, ModifyHeader, IsHandled);
-#endif
                     if not IsHandled then
                         if (ServiceHeader."Posting Date" = 0D) or (ServiceHeader."Posting Date" <> WhseShptHeader."Posting Date") then begin
                             ReleaseServiceDocument.SetSkipWhseRequestOperations(true);
@@ -89,9 +82,6 @@ codeunit 5749 "Serv. Whse Post-Shipment"
                         ModifyHeader := true;
                     end;
                     OnInitSourceDocumentHeaderOnBeforeServiceHeaderModify(ServiceHeader, WhseShptHeader, ModifyHeader);
-#if not CLEAN25
-                    WhsePostShipment.RunOnInitSourceDocumentHeaderOnBeforeServiceHeaderModify(ServiceHeader, WhseShptHeader, ModifyHeader);
-#endif
                     if ModifyHeader then
                         ServiceHeader.Modify();
                 end;
@@ -116,9 +106,6 @@ codeunit 5749 "Serv. Whse Post-Shipment"
     begin
         IsHandled := false;
         OnBeforeHandleServiceLine(WhseShptLine, ServiceLine, ModifyLine, IsHandled);
-#if not CLEAN25
-        WhsePostShipment.RunOnBeforeHandleServiceLine(WhseShptLine, ServiceLine, ModifyLine, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -134,9 +121,6 @@ codeunit 5749 "Serv. Whse Post-Shipment"
                             ServiceLine.Validate("Qty. to Ship", WhseShptLine."Qty. to Ship");
                             ServiceLine."Qty. to Ship (Base)" := WhseShptLine."Qty. to Ship (Base)";
                             OnHandleServiceLineOnSourceDocumentServiceOrderOnBeforeModifyLine(ServiceLine, WhseShptLine, WhsePostParameters);
-#if not CLEAN25
-                            WhsePostShipment.RunOnHandleServiceLineOnSourceDocumentServiceOrderOnBeforeModifyLine(ServiceLine, WhseShptLine, WhsePostParameters."Post Invoice");
-#endif
                             if WhsePostParameters."Post Invoice" then begin
                                 ServiceLine.Validate("Qty. to Consume", 0);
                                 ServiceLine.Validate(
@@ -159,9 +143,6 @@ codeunit 5749 "Serv. Whse Post-Shipment"
                        (ServiceLine."Qty. to Consume" <> 0) or
                        (ServiceLine."Qty. to Invoice" <> 0));
                     OnHandleServiceLineOnNonWhseLineOnAfterCalcModifyLine(ServiceLine, ModifyLine, WhseShptLine);
-#if not CLEAN25
-                    WhsePostShipment.RunOnHandleServiceLineOnNonWhseLineOnAfterCalcModifyLine(ServiceLine, ModifyLine, WhseShptLine);
-#endif
                     if ModifyLine then begin
                         if WhseShptLine."Source Document" = WhseShptLine."Source Document"::"Service Order" then
                             ServiceLine.Validate("Qty. to Ship", 0);
@@ -170,9 +151,6 @@ codeunit 5749 "Serv. Whse Post-Shipment"
                     end;
                 end;
                 OnBeforeServiceLineModify(ServiceLine, WhseShptLine, ModifyLine, WhsePostParameters);
-#if not CLEAN25
-                WhsePostShipment.RunOnBeforeServiceLineModify(ServiceLine, WhseShptLine, ModifyLine, WhsePostParameters);
-#endif
                 if ModifyLine then
                     ServiceLine.Modify();
             until ServiceLine.Next() = 0;
@@ -194,9 +172,6 @@ codeunit 5749 "Serv. Whse Post-Shipment"
                     ServicePost.SetPostingOptions(true, false, WhsePostParameters."Post Invoice");
                     ServicePost.SetSuppressCommit(WhsePostParameters."Suppress Commit");
                     OnPostSourceDocumentBeforeRunServicePost(ServiceHeader);
-#if not CLEAN25
-                    WhsePostShipment.RunOnPostSourceDocumentBeforeRunServicePost();
-#endif
                     WarehouseSetup.Get();
                     case WarehouseSetup."Shipment Posting Policy" of
                         WarehouseSetup."Shipment Posting Policy"::"Posting errors are not processed":
@@ -209,16 +184,10 @@ codeunit 5749 "Serv. Whse Post-Shipment"
                             end;
                     end;
                     OnPostSourceDocumentAfterRunServicePost(ServiceHeader);
-#if not CLEAN25
-                    WhsePostShipment.RunOnPostSourceDocumentAfterRunServicePost();
-#endif
                     if WhsePostParameters."Print Documents" then
                         if WhseShptLine."Source Document" = WhseShptLine."Source Document"::"Service Order" then begin
                             IsHandled := false;
                             OnPostSourceDocumentOnBeforePrintServiceShipment(ServiceHeader, IsHandled);
-#if not CLEAN25
-                            WhsePostShipment.RunOnPostSourceDocumentOnBeforePrintServiceShipment(ServiceHeader, IsHandled);
-#endif
                             if not IsHandled then
                                 InsertDocumentEntryToPrint(
                                     DocumentEntryToPrint,
@@ -226,9 +195,6 @@ codeunit 5749 "Serv. Whse Post-Shipment"
                             if WhsePostParameters."Post Invoice" then begin
                                 IsHandled := false;
                                 OnPostSourceDocumentOnBeforePrintServiceInvoice(ServiceHeader, IsHandled);
-#if not CLEAN25
-                                WhsePostShipment.RunOnPostSourceDocumentOnBeforePrintServiceInvoice(ServiceHeader, IsHandled);
-#endif
                                 if not IsHandled then
                                     InsertDocumentEntryToPrint(
                                         DocumentEntryToPrint,
@@ -237,9 +203,6 @@ codeunit 5749 "Serv. Whse Post-Shipment"
                         end;
 
                     OnAfterServicePost(WhseShptLine, ServiceHeader, WhsePostParameters);
-#if not CLEAN25
-                    WhsePostShipment.RunOnAfterServicePost(WhseShptLine, ServiceHeader, WhsePostParameters);
-#endif
                     Clear(ServicePost);
                 end;
         end;

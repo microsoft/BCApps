@@ -12,6 +12,10 @@ using System.Reflection;
 using System.Utilities;
 using System.Xml;
 
+/// <summary>
+/// Handles VAT registration number lookup and validation through external web services (VIES).
+/// Manages web service communication, response processing, and result logging for VAT number verification.
+/// </summary>
 codeunit 248 "VAT Lookup Ext. Data Hndl"
 {
     Permissions = TableData "VAT Registration Log" = rimd;
@@ -184,6 +188,10 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         VATRegistrationLogMgt.LogVerification(VATRegistrationLog, XMLDocOut, NamespaceTxt);
     end;
 
+    /// <summary>
+    /// Retrieves the default URL for the VAT registration number validation web service (VIES).
+    /// </summary>
+    /// <returns>Default web service URL for VAT number validation</returns>
     procedure GetVATRegNrValidationWebServiceURL(): Text[250]
     begin
         exit(VatRegNrValidationWebServiceURLTxt);
@@ -225,36 +233,85 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
                 Contact."VAT Registration No.");
     end;
 
+    /// <summary>
+    /// Integration event raised after completing VAT registration lookup from web service.
+    /// Enables custom processing of validation results and log record finalization.
+    /// </summary>
+    /// <param name="VATRegistrationLog">VAT registration log with validation results from web service</param>
+    /// <param name="RecVATRegistrationLog">Original VAT registration log record being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnAfterLookupVatRegistrationFromWebService(var VATRegistrationLog: Record "VAT Registration Log"; var RecVATRegistrationLog: Record "VAT Registration Log")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before sending request to VAT registration web service.
+    /// Enables custom modification of SOAP request configuration and body content.
+    /// </summary>
+    /// <param name="SOAPWebServiceRequestMgt">SOAP web service request management object for configuration</param>
+    /// <param name="TempBlobBody">Request body content that will be sent to the web service</param>
     [IntegrationEvent(false, false)]
     local procedure OnSendRequestToVatRegistrationServiceOnBeforeSendRequestToWebService(var SOAPWebServiceRequestMgt: Codeunit "SOAP Web Service Request Mgt."; var TempBlobBody: Codeunit "Temp Blob")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before displaying validation errors to allow custom error handling.
+    /// Enables custom error processing and messaging when VAT registration service validation fails.
+    /// </summary>
+    /// <param name="VATRegistrationLog">VAT registration log entry with validation failure information</param>
+    /// <param name="IsHandled">Set to true to skip standard error display processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnSendRequestToVATRegistrationServiceBeforeShowErrors(var VATRegistrationLog: Record "VAT Registration Log"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before setting account details in SOAP request body.
+    /// Enables custom modification of account name, street, city, and post code values sent to VAT service.
+    /// </summary>
+    /// <param name="RecordRef">Record reference containing the account data being validated</param>
+    /// <param name="VATRegistrationLog">VAT registration log entry being processed</param>
+    /// <param name="AccountName">Account name value to be included in validation request</param>
+    /// <param name="AccountStreet">Account street address to be included in validation request</param>
+    /// <param name="AccountCity">Account city to be included in validation request</param>
+    /// <param name="AccountPostCode">Account postal code to be included in validation request</param>
     [IntegrationEvent(false, false)]
     local procedure OnPrepareSOAPRequestBodyOnBeforeSetAccountDetails(var RecordRef: RecordRef; var VATRegistrationLog: Record "VAT Registration Log"; var AccountName: Text; var AccountStreet: Text; var AccountCity: Text; var AccountPostCode: Text)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after web service response logging and before database commit.
+    /// Enables custom transaction control and additional processing before finalizing validation results.
+    /// </summary>
+    /// <param name="VATRegistrationLog">VAT registration log with validation results to be committed</param>
+    /// <param name="ShowErrors">Indicates whether error messages should be displayed to user</param>
+    /// <param name="SuppressCommit">Set to true to prevent automatic database commit</param>
     [IntegrationEvent(false, false)]
     local procedure OnLookupVatRegistrationFromWebServiceOnAfterResponseLogRecordingAndBeforeCommit(VATRegistrationLog: Record "VAT Registration Log"; ShowErrors: Boolean; var SuppressCommit: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before starting VAT registration lookup from web service.
+    /// Enables custom pre-processing and validation logic before web service communication.
+    /// </summary>
+    /// <param name="VATRegistrationLogRec">Original VAT registration log record parameter</param>
+    /// <param name="VATRegistrationLog">Working VAT registration log record for validation</param>
+    /// <param name="IsHandled">Set to true to skip standard web service lookup processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforeLookupVatRegistrationFromWebService(var VATRegistrationLogRec: Record "VAT Registration Log"; var VATRegistrationLog: Record "VAT Registration Log"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before preparing SOAP request body for VAT validation.
+    /// Enables complete custom request body preparation and web service communication logic.
+    /// </summary>
+    /// <param name="TempBlob">Temporary blob for storing custom SOAP request body content</param>
+    /// <param name="VATRegistrationLog">VAT registration log entry containing validation parameters</param>
+    /// <param name="IsHandled">Set to true to skip standard SOAP request body preparation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePrepareSOAPRequestBody(var TempBlob: Codeunit "Temp Blob"; VATRegistrationLog: Record "VAT Registration Log"; var IsHandled: Boolean)
     begin

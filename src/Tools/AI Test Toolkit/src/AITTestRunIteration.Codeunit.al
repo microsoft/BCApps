@@ -23,6 +23,7 @@ codeunit 149042 "AIT Test Run Iteration"
         UpdateTestSuite: Boolean;
         RunAllTests: Boolean;
         GlobalAITokenUsedByLastTestMethodLine: Integer;
+        GlobalExternalAITokenUsedByLastTestMethodLine: Integer;
         GlobalNumberOfTurnsForLastTestMethodLine: Integer;
         GlobalNumberOfTurnsPassedForLastTestMethodLine: Integer;
         GlobalTestAccuracy: Decimal;
@@ -36,6 +37,7 @@ codeunit 149042 "AIT Test Run Iteration"
 
         NoOfInsertedLogEntries := 0;
         GlobalAITokenUsedByLastTestMethodLine := 0;
+        GlobalExternalAITokenUsedByLastTestMethodLine := 0;
         UpdateTestSuite := true;
         RunAllTests := true;
 
@@ -155,6 +157,11 @@ codeunit 149042 "AIT Test Run Iteration"
         exit(GlobalTestAccuracy);
     end;
 
+    procedure SetExternalAITokenUsedByLastTestMethodLine(TokensUsed: Integer)
+    begin
+        GlobalExternalAITokenUsedByLastTestMethodLine += TokensUsed;
+    end;
+
     [InternalEvent(false)]
     procedure OnBeforeRunIteration(var AITTestSuite: Record "AIT Test Suite"; var AITTestMethodLine: Record "AIT Test Method Line"; var RunAllTests: Boolean; var UpdateTestSuite: Boolean)
     begin
@@ -180,6 +187,7 @@ codeunit 149042 "AIT Test Run Iteration"
 
         // Update AI Token Consumption
         GlobalAITokenUsedByLastTestMethodLine := 0;
+        GlobalExternalAITokenUsedByLastTestMethodLine := 0;
 
         // Update Turns
         GlobalNumberOfTurnsPassedForLastTestMethodLine := 0;
@@ -209,7 +217,7 @@ codeunit 149042 "AIT Test Run Iteration"
         GlobalTestMethodLine := CurrentTestMethodLine;
 
         // Update AI Token Consumption
-        GlobalAITokenUsedByLastTestMethodLine := AOAIToken.GetTotalServerSessionTokensConsumed() - GlobalSessionAITokenUsed;
+        GlobalAITokenUsedByLastTestMethodLine := AOAIToken.GetTotalServerSessionTokensConsumed() - GlobalSessionAITokenUsed + GlobalExternalAITokenUsedByLastTestMethodLine;
 
         // Update Turns
         GlobalNumberOfTurnsForLastTestMethodLine := AITContextCU.GetNumberOfTurns();

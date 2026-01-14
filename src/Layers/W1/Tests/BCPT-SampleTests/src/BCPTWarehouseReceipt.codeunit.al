@@ -1,13 +1,14 @@
 namespace System.Test.Tooling;
-using Microsoft.Inventory.Location;
+
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Warehouse.Activity;
+using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Setup;
 using System.Tooling;
-using Microsoft.Warehouse.Document;
-using Microsoft.Warehouse.Activity;
 
 codeunit 149202 "BCPT Warehouse Receipt"
 {

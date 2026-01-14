@@ -7,8 +7,8 @@ namespace Microsoft.Warehouse.Document;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.Location;
 using Microsoft.Purchases.Document;
-using Microsoft.Warehouse.CrossDock;
 using Microsoft.Warehouse.Availability;
+using Microsoft.Warehouse.CrossDock;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Structure;
 

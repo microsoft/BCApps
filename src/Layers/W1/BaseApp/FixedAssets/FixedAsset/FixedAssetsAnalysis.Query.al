@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.FixedAssets.Reports;
 
-using Microsoft.FixedAssets.Ledger;
-using Microsoft.FixedAssets.Setup;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Ledger;
+using Microsoft.FixedAssets.Setup;
 
 query 123 "Fixed Assets Analysis"
 {

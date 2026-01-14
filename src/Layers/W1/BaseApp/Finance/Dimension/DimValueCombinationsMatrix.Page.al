@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Matrix page displaying dimension value combinations and their restrictions in a grid format.
+/// Provides visual representation of allowed and blocked dimension value combinations for analysis and configuration.
+/// </summary>
 page 9253 "Dim. Value Combinations Matrix"
 {
     Caption = 'Dimension Value Combinations Matrix';
@@ -492,11 +496,23 @@ page 9253 "Dim. Value Combinations Matrix"
         Field31Visible: Boolean;
         Field32Visible: Boolean;
 
+    /// <summary>
+    /// Sets the selected dimension value code for matrix row filtering.
+    /// </summary>
+    /// <param name="DimValueCode">Dimension value code to set as selected</param>
     procedure SetSelectedDimValue(DimValueCode: Code[20])
     begin
         SelectedDimValueCode := DimValueCode;
     end;
 
+    /// <summary>
+    /// Loads dimension value combination matrix data with column headers and dimension restrictions.
+    /// Populates the matrix cells with combination restriction indicators for visual display.
+    /// </summary>
+    /// <param name="MatrixColumns1">Array of column header texts for the matrix display</param>
+    /// <param name="MatrixRecords1">Array of dimension value records corresponding to matrix columns</param>
+    /// <param name="_Row">Row dimension value code being displayed</param>
+    /// <param name="CurrentNoOfMatrixColumn">Number of active matrix columns to display</param>
     procedure Load(MatrixColumns1: array[32] of Text[1024]; var MatrixRecords1: array[32] of Record "Dimension Value"; _Row: Code[20]; CurrentNoOfMatrixColumn: Integer)
     var
         IsHandled: Boolean;
@@ -607,6 +623,10 @@ page 9253 "Dim. Value Combinations Matrix"
             DimValueComb.Delete(true);
     end;
 
+    /// <summary>
+    /// Sets the visibility of matrix columns based on the current number of active columns.
+    /// Controls which matrix fields are displayed to optimize page performance and layout.
+    /// </summary>
     procedure SetColumnVisibility()
     begin
         Field1Visible := MATRIX_CurrentNoOfMatrixColumn >= 1;
@@ -643,6 +663,15 @@ page 9253 "Dim. Value Combinations Matrix"
         Field32Visible := MATRIX_CurrentNoOfMatrixColumn >= 32;
     end;
 
+    /// <summary>
+    /// Integration event raised before loading matrix data to enable custom matrix loading logic.
+    /// Allows modification of matrix parameters and handling before standard matrix population occurs.
+    /// </summary>
+    /// <param name="MatrixColumns1">Array of column header texts for the matrix</param>
+    /// <param name="MatrixRecords1">Array of dimension value records for matrix columns</param>
+    /// <param name="_Row">Row dimension value code being processed</param>
+    /// <param name="CurrentNoOfMatrixColumn">Number of active matrix columns</param>
+    /// <param name="IsHandled">Set to true to skip standard matrix loading</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLoad(MatrixColumns1: array[32] of Text[1024]; var MatrixRecords1: array[32] of Record "Dimension Value"; _Row: Code[20]; CurrentNoOfMatrixColumn: Integer; var IsHandled: Boolean)
     begin

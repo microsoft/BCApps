@@ -4,9 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.DataExchange;
 
-using System.Telemetry;
 using Microsoft.Intercompany.GLAccount;
+using System.Telemetry;
 
+/// <summary>
+/// Job queue handler for cleaning up completed intercompany synchronization data.
+/// Manages notification lifecycle and removes processed transaction buffers for system maintenance.
+/// </summary>
 codeunit 535 "IC Sync. Completed JR"
 {
     Permissions = tabledata "IC Outgoing Notification" = md,
@@ -109,6 +113,12 @@ codeunit 535 "IC Sync. Completed JR"
             ICOutgoingNotification.Delete();
     end;
 
+    /// <summary>
+    /// Integration event raised during intercompany outgoing notification cleanup processing.
+    /// Allows custom cleanup logic for completed intercompany transactions and related data.
+    /// </summary>
+    /// <param name="ICOutgoingNotification">Outgoing notification record being cleaned up</param>
+    /// <param name="Success">Indicates whether cleanup processing was successful</param>
     [InternalEvent(false, true)]
     internal procedure OnCleanupTransactionData(ICOutgoingNotification: Record "IC Outgoing Notification"; var Success: Boolean)
     begin

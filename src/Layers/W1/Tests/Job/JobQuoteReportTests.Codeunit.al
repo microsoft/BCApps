@@ -204,7 +204,6 @@ codeunit 136314 "Job Quote Report Tests"
         LibraryJob: Codeunit "Library - Job";
         LibraryERM: Codeunit "Library - ERM";
         LibraryUtility: Codeunit "Library - Utility";
-        LibraryReportDataset: Codeunit "Library - Report Dataset";
         LibraryResource: Codeunit "Library - Resource";
         LibraryRandom: Codeunit "Library - Random";
         ResQuantity: Decimal;
@@ -227,8 +226,8 @@ codeunit 136314 "Job Quote Report Tests"
         // [GIVEN] Job Planning Line:
         LibraryJob.CreateJobPlanningLine(JobPlanningLine."Line Type"::"Both Budget and Billable", JobPlanningLine.Type::Resource, JobTaskLine, JobPlanningLine);
         LibraryResource.CreateResource(Resource, '');
-        ResQuantity := LibraryRandom.RandDec(100, 2);
-        UnitPrice := 10 + LibraryRandom.RandDec(10, 2);
+        ResQuantity := LibraryRandom.RandDec(100, 0);
+        UnitPrice := 10 + LibraryRandom.RandDec(10, 0);
         DocNo := LibraryUtility.GenerateRandomCode20(JobPlanningLine.FieldNo("Document No."), Database::"Job Planning Line");
         JobPlanningLine.Validate("Document No.", DocNo);
         JobPlanningLine.Validate("No.", Resource."No.");
@@ -241,7 +240,7 @@ codeunit 136314 "Job Quote Report Tests"
         RunJobQuoteReport(Job."No.");
 
         // [THEN] Result
-        LibraryReportDataset.GetLastRow();
+        LibraryReportValidation.OpenFile();
         Assert.AreEqual(LibraryReportValidation.CheckIfDecimalValueExists(JobPlanningLine."Total Price"), true, ValueNotFoundErr);
     end;
 

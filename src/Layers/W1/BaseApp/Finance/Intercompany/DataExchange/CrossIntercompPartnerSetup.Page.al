@@ -7,7 +7,12 @@ namespace Microsoft.Intercompany.DataExchange;
 using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
 using System.Environment;
+using System.Utilities;
 
+/// <summary>
+/// Wizard page for setting up cross-environment intercompany partner connections.
+/// Guides users through API configuration, authentication setup, and partner validation for multi-environment scenarios.
+/// </summary>
 page 561 "CrossIntercomp. Partner Setup"
 {
     Caption = 'IC Partner Cross-Environment Setup';
@@ -343,6 +348,7 @@ page 561 "CrossIntercomp. Partner Setup"
         NotSetUpQst: Label 'The setup for the connection to the intercompany partner''s environment isn''t complete. If you leave this guide, your settings will be deleted.\\Are you sure you want to exit?';
         LearnMoreTok: Label 'Privacy and Cookies';
         PrivacyLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=521839';
+        UrlNotDynamicsErr: Label 'The URL provided is not in the dynamics.com domain.';
 
 
     local procedure LoadSaaSDataForCurrentCompany()
@@ -462,14 +468,41 @@ page 561 "CrossIntercomp. Partner Setup"
         FinishEnabled := true;
     end;
 
+    /// <summary>
+    /// Validates whether all required SaaS connection details are properly configured for API connectivity.
+    /// Checks partner connection URL, company ID, OAuth credentials, and token endpoint configuration.
+    /// </summary>
+    /// <returns>True if all SaaS connection details are filled and valid, false otherwise</returns>
     procedure CheckIfSaaSConnectionDetailsAreFilled(): Boolean
     var
         PartnerConnectionDetailsAreFilled: Boolean;
         OAuth2ClientIDDetailsAreFilled: Boolean;
     begin
-        PartnerConnectionDetailsAreFilled := (PartnerSaaSConnectionUrl <> '') and (not IsNullGuid(PartnerSaaSCompanyId)) and (Rec.Code <> '') and (PartnerSaaSCompanyName <> '');
+        PartnerConnectionDetailsAreFilled := (PartnerSaaSConnectionUrl <> '') and (not IsNullGuid(PartnerSaaSCompanyId)) and (Rec.Code <> '') and (PartnerSaaSCompanyName <> '') and ValidateDynamicsUrl(PartnerSaaSConnectionUrl);
         OAuth2ClientIDDetailsAreFilled := (not IsNullGuid(OAuth2ClientID)) and (OAuth2ClientSecret <> '') and (OAuth2TokenEndpoint <> '');
         exit(PartnerConnectionDetailsAreFilled and OAuth2ClientIDDetailsAreFilled);
+    end;
+
+    internal procedure ValidateDynamicsUrl(Url: Text): Boolean
+    var
+        UrlHelper: Codeunit "URL Helper";
+        UnexpectedDomain: Boolean;
+    begin
+        if Url = '' then
+            exit(true);
+
+        if not Url.StartsWith('https://') then
+            exit(false);
+
+        if UrlHelper.IsPPE() then
+            UnexpectedDomain := StrPos(LowerCase(Url), '.dynamics-tie.com') = 0;
+
+        if UrlHelper.IsPROD() then
+            UnexpectedDomain := StrPos(LowerCase(Url), '.dynamics.com') = 0;
+
+        if not UnexpectedDomain then
+            exit(true);
+        Error(UrlNotDynamicsErr);
     end;
     #endregion
 }

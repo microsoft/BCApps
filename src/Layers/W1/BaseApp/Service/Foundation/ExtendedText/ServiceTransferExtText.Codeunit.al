@@ -4,11 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.ExtendedText;
 
-using Microsoft.Service.Document;
-using Microsoft.Service.Pricing;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Inventory.Item;
 using Microsoft.Projects.Resources.Resource;
+using Microsoft.Service.Document;
+using Microsoft.Service.Pricing;
 
 codeunit 6003 "Service Transfer Ext. Text"
 {
@@ -34,9 +34,6 @@ codeunit 6003 "Service Transfer Ext. Text"
     begin
         IsHandled := false;
         OnBeforeServCheckIfAnyExtText(ServiceLine, Unconditionally, MakeUpdateRequired, AutoText, Result, IsHandled);
-#if not CLEAN25
-        TransferExtendedText.RunOnBeforeServCheckIfAnyExtText(ServiceLine, Unconditionally, MakeUpdateRequired, AutoText, Result, IsHandled);
-#endif
         if IsHandled then
             exit(Result);
 
@@ -67,9 +64,6 @@ codeunit 6003 "Service Transfer Ext. Text"
             end;
 
         OnServCheckIfAnyExtTextOnBeforeSetFilters(ServiceLine, AutoText, Unconditionally);
-#if not CLEAN25
-        TransferExtendedText.RunOnServCheckIfAnyExtTextOnBeforeSetFilters(ServiceLine, AutoText, Unconditionally);
-#endif
 
         if AutoText then begin
             case ServiceLine.Type of
@@ -113,9 +107,6 @@ codeunit 6003 "Service Transfer Ext. Text"
             end;
             ServHeader.Get(ServiceLine."Document Type", ServiceLine."Document No.");
             OnServCheckIfAnyExtTextAutoText(ExtTextHeader, ServHeader, ServiceLine, Unconditionally, MakeUpdateRequired);
-#if not CLEAN25
-            TransferExtendedText.RunOnServCheckIfAnyExtTextAutoText(ExtTextHeader, ServHeader, ServiceLine, Unconditionally, MakeUpdateRequired);
-#endif
             TransferExtendedText.SetMakeUpdateRequired(MakeUpdateRequired);
             exit(TransferExtendedText.ReadExtTextLines(ExtTextHeader, ServHeader."Order Date", ServHeader."Language Code"));
         end;
@@ -129,9 +120,6 @@ codeunit 6003 "Service Transfer Ext. Text"
         ServiceLine2.SetRange("Document No.", ServiceLine."Document No.");
         ServiceLine2.SetRange("Attached to Line No.", ServiceLine."Line No.");
         OnDeleteServiceLinesOnAfterSetFilers(ServiceLine2, ServiceLine);
-#if not CLEAN25
-        TransferExtendedText.RunOnDeleteServiceLinesOnAfterSetFilers(ServiceLine2, ServiceLine);
-#endif
         ServiceLine2 := ServiceLine;
         if ServiceLine2.Find('>') then begin
             repeat
@@ -148,9 +136,6 @@ codeunit 6003 "Service Transfer Ext. Text"
     begin
         IsHandled := false;
         OnBeforeInsertServExtText(ServiceLine, TempExtTextLine, IsHandled, MakeUpdateRequired);
-#if not CLEAN25
-        OnBeforeInsertServExtText(ServiceLine, TempExtTextLine, IsHandled, MakeUpdateRequired);
-#endif
         if IsHandled then
             exit;
 

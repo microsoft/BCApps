@@ -6,6 +6,16 @@ namespace Microsoft.Finance.GeneralLedger.Journal;
 
 using Microsoft.Sales.Customer;
 
+/// <summary>
+/// Report for bulk creation of customer journal lines from customer master data and standard journal templates.
+/// Generates journal lines for multiple customers using standard journal line templates with customer-specific account assignments.
+/// </summary>
+/// <remarks>
+/// Mass journal line creation functionality for customer-related transactions.
+/// Uses standard journal templates as the basis for line creation with automatic customer account assignment.
+/// Key features: Bulk customer processing, standard template application, customizable document types and posting dates.
+/// Integration: Creates lines in specified journal batch, applies customer posting group settings, supports filtering criteria.
+/// </remarks>
 report 8611 "Create Customer Journal Lines"
 {
     ApplicationArea = Basic, Suite;
@@ -294,6 +304,12 @@ report 8611 "Create Customer Journal Lines"
         exit(not StdGenJounalLine.IsEmpty());
     end;
 
+    /// <summary>
+    /// Initializes standard general journal and batch settings for journal line creation.
+    /// Sets up journal template context and determines the last line number for proper line sequencing.
+    /// </summary>
+    /// <param name="StdGenJnl">Standard general journal template to initialize</param>
+    /// <param name="JnlBatchName">Journal batch name for line insertion</param>
     procedure Initialize(var StdGenJnl: Record "Standard General Journal"; JnlBatchName: Code[10])
     begin
         GenJnlLine."Journal Template Name" := StdGenJnl."Journal Template Name";
@@ -346,6 +362,13 @@ report 8611 "Create Customer Journal Lines"
         LastGenJnlLine := GenJnlLine;
     end;
 
+    /// <summary>
+    /// Initializes report request parameters for document type, posting date, and document date.
+    /// Used for programmatic execution of the report with specific parameter values.
+    /// </summary>
+    /// <param name="DocumentTypesFrom">Document type option to assign to created journal lines</param>
+    /// <param name="PostingDateFrom">Posting date to apply to created journal lines</param>
+    /// <param name="DocumentDateFrom">Document date to apply to created journal lines</param>
     procedure InitializeRequest(DocumentTypesFrom: Option; PostingDateFrom: Date; DocumentDateFrom: Date)
     begin
         DocumentTypes := DocumentTypesFrom;
@@ -353,6 +376,13 @@ report 8611 "Create Customer Journal Lines"
         DocumentDate := DocumentDateFrom;
     end;
 
+    /// <summary>
+    /// Initializes journal template and batch configuration for programmatic report execution.
+    /// Sets up destination journal template, batch name, and standard journal template code.
+    /// </summary>
+    /// <param name="JournalTemplateFrom">Journal template name for line creation destination</param>
+    /// <param name="BatchNameFrom">Journal batch name for line insertion</param>
+    /// <param name="TemplateCodeFrom">Standard journal template code for line template source</param>
     procedure InitializeRequestTemplate(JournalTemplateFrom: Text[10]; BatchNameFrom: Code[10]; TemplateCodeFrom: Code[20])
     begin
         JournalTemplate := JournalTemplateFrom;
@@ -360,6 +390,11 @@ report 8611 "Create Customer Journal Lines"
         TemplateCode := TemplateCodeFrom;
     end;
 
+    /// <summary>
+    /// Sets default document number for created journal lines when no document number is specified.
+    /// Provides fallback document numbering for batch journal line creation operations.
+    /// </summary>
+    /// <param name="NewDocumentNo">Default document number to assign to journal lines</param>
     procedure SetDefaultDocumentNo(NewDocumentNo: Code[20])
     begin
         DocumentNo := NewDocumentNo;

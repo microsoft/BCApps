@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
-using System.Automation;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
+using System.Automation;
 
 table 6757 "Create Reminders Setup"
 {

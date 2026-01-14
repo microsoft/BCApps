@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Interactive worksheet for configuring allowed dimension values per account basis.
+/// Enables users to specify which dimension values are permitted for specific accounts, customers, vendors, or items.
+/// </summary>
+/// <remarks>
+/// Used in dimension value restrictions where certain accounts should only allow specific dimension values.
+/// Provides bulk operations to set allowed/disallowed status for multiple dimension values simultaneously.
+/// Integrates with default dimension setup to enforce dimension value constraints during posting operations.
+/// </remarks>
 page 546 "Dim. Allowed Values per Acc."
 {
     Caption = 'Allowed Dimension Values';
@@ -136,6 +145,11 @@ page 546 "Dim. Allowed Values per Acc."
         NameIndent := Rec.Indentation;
     end;
 
+    /// <summary>
+    /// Populates the page buffer with dimension value per account data for display in the worksheet.
+    /// Transfers data from temporary records to the page's record structure for proper display formatting.
+    /// </summary>
+    /// <param name="TempDimValuePerAccount">Temporary buffer containing dimension value restriction data to display</param>
     procedure SetBufferData(var TempDimValuePerAccount: Record "Dim. Value per Account" temporary)
     begin
         if TempDimValuePerAccount.FindSet() then
@@ -145,6 +159,11 @@ page 546 "Dim. Allowed Values per Acc."
             until TempDimValuePerAccount.Next() = 0;
     end;
 
+    /// <summary>
+    /// Retrieves modified dimension value allowance data from the page buffer back to temporary records.
+    /// Updates the temporary buffer with changes made through the worksheet interface.
+    /// </summary>
+    /// <param name="TempDimValuePerAccount">Temporary buffer to update with modified allowance settings</param>
     procedure GetBufferData(var TempDimValuePerAccount: Record "Dim. Value per Account" temporary)
     begin
         Rec.Reset();

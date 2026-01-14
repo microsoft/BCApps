@@ -8,6 +8,15 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Utilities;
 using System.Visualization;
 
+/// <summary>
+/// Manages aged accounts payable analysis and chart generation for vendor aging reports.
+/// Provides business chart data for visualizing vendor payment aging and overdue amounts.
+/// </summary>
+/// <remarks>
+/// Core engine for vendor aging analysis with configurable period lengths and drill-down capabilities.
+/// Calculates overdue amounts by vendor and period for business intelligence dashboards.
+/// Supports both summary and per-vendor aging analysis with chart visualization integration.
+/// </remarks>
 codeunit 764 "Aged Acc. Payable"
 {
 
@@ -19,6 +28,12 @@ codeunit 764 "Aged Acc. Payable"
         ChartDescriptionMsg: Label 'Shows pending payment amounts to vendors summed for a period that you select.\\The first column shows the amount on pending payments that are not past the due date. The following column or columns show overdue amounts within the selected period from the payment due date. The chart shows overdue payment amounts going back up to five years from today''s date depending on the period that you select.';
         ChartPerVendorDescriptionMsg: Label 'Shows pending payment amount to the vendor summed for a period that you select.\The first column shows the amount on pending payments that are not past the due date. The following column or columns show overdue amounts within the selected period from the payment due date. The chart shows overdue payment amounts going back up to five years from today''s date depending on the period that you select.';
 
+    /// <summary>
+    /// Updates business chart data with aged accounts payable information.
+    /// Calculates vendor aging amounts by period and populates chart buffer for visualization.
+    /// </summary>
+    /// <param name="BusChartBuf">Business chart buffer to populate with aging data</param>
+    /// <param name="TempEntryNoAmountBuf">Temporary buffer for entry number and amount calculations</param>
     procedure UpdateData(var BusChartBuf: Record "Business Chart Buffer"; var TempEntryNoAmountBuf: Record "Entry No. Amount Buffer" temporary)
     var
         PeriodIndex: Integer;
@@ -148,6 +163,13 @@ codeunit 764 "Aged Acc. Payable"
         exit(AgedAccReceivable.FormatColumnName(Index, PeriodLength, NoOfColumns, Period));
     end;
 
+    /// <summary>
+    /// Provides drill-down functionality for aged accounts payable chart data.
+    /// Opens vendor ledger entries filtered by vendor and aging period for detailed analysis.
+    /// </summary>
+    /// <param name="BusChartBuf">Business chart buffer containing chart configuration</param>
+    /// <param name="VendorNo">Vendor number to filter drill-down data</param>
+    /// <param name="TempEntryNoAmountBuf">Entry buffer containing period and amount data</param>
     procedure DrillDown(var BusChartBuf: Record "Business Chart Buffer"; VendorNo: Code[20]; var TempEntryNoAmountBuf: Record "Entry No. Amount Buffer" temporary)
     var
         MeasureName: Text;
@@ -163,6 +185,12 @@ codeunit 764 "Aged Acc. Payable"
             DrillDownVendLedgEntries(VendorNo, TempEntryNoAmountBuf."Start Date", TempEntryNoAmountBuf."End Date");
     end;
 
+    /// <summary>
+    /// Provides drill-down functionality for aged accounts payable by vendor group.
+    /// Opens aggregated vendor ledger entries for the selected aging period.
+    /// </summary>
+    /// <param name="BusChartBuf">Business chart buffer containing chart configuration</param>
+    /// <param name="TempEntryNoAmountBuf">Entry buffer containing period and amount data</param>
     procedure DrillDownByGroup(var BusChartBuf: Record "Business Chart Buffer"; var TempEntryNoAmountBuf: Record "Entry No. Amount Buffer" temporary)
     begin
         DrillDown(BusChartBuf, '', TempEntryNoAmountBuf);
@@ -185,6 +213,12 @@ codeunit 764 "Aged Acc. Payable"
         PAGE.Run(PAGE::"Vendor Ledger Entries", VendLedgEntry);
     end;
 
+    /// <summary>
+    /// Returns description text for aged accounts payable charts.
+    /// Provides different descriptions for per-vendor and summary aging analysis.
+    /// </summary>
+    /// <param name="PerVendor">True for per-vendor description, false for summary description</param>
+    /// <returns>Descriptive text explaining the chart purpose and data</returns>
     procedure Description(PerVendor: Boolean): Text
     begin
         if PerVendor then
@@ -192,6 +226,12 @@ codeunit 764 "Aged Acc. Payable"
         exit(ChartDescriptionMsg);
     end;
 
+    /// <summary>
+    /// Updates status text for the business chart display.
+    /// Provides current status information for chart visualization.
+    /// </summary>
+    /// <param name="BusChartBuf">Business chart buffer containing chart data</param>
+    /// <returns>Status text for chart display</returns>
     procedure UpdateStatusText(BusChartBuf: Record "Business Chart Buffer"): Text
     var
         AgedAccReceivable: Codeunit "Aged Acc. Receivable";
@@ -199,6 +239,11 @@ codeunit 764 "Aged Acc. Payable"
         exit(AgedAccReceivable.UpdateStatusText(BusChartBuf));
     end;
 
+    /// <summary>
+    /// Saves user settings for aged accounts payable chart configuration.
+    /// Persists period length and other chart preferences for future sessions.
+    /// </summary>
+    /// <param name="BusChartBuf">Business chart buffer containing settings to save</param>
     procedure SaveSettings(BusChartBuf: Record "Business Chart Buffer")
     var
         BusChartUserSetup: Record "Business Chart User Setup";
@@ -228,6 +273,11 @@ codeunit 764 "Aged Acc. Payable"
         exit(AgedAccReceivable.AmountText());
     end;
 
+    /// <summary>
+    /// Integration event raised after filtering vendor ledger entries during aged accounts payable calculation.
+    /// Enables custom filtering logic and additional entry selection criteria.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry record with applied filters</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalculateAgedAccPayableOnAfterFilterVendLedgEntry(var VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin

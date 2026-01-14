@@ -1,20 +1,20 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.Warehouse.Structure;
-using Microsoft.Foundation.Comment;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.RateChange;
+using Microsoft.Finance.VAT.Reporting;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.Comment;
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
-using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Document;
-using Microsoft.Foundation.AuditCodes;
-using Microsoft.Foundation.UOM;
-using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.VAT.RateChange;
-using Microsoft.Finance.VAT.Reporting;
+using Microsoft.Warehouse.Structure;
 
 permissionset 5401 "Consumption Journals - Edit"
 {

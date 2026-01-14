@@ -6,6 +6,15 @@ namespace Microsoft.Finance.Dimension.Correction;
 
 using System.Threading;
 
+/// <summary>
+/// Validates dimension correction operations for both draft and undo scenarios.
+/// Provides validation logic for dimension correction processes through job queue integration.
+/// </summary>
+/// <remarks>
+/// Implements job queue processing for dimension correction validation operations.
+/// Supports validation of both new corrections and undo operations for completed corrections.
+/// Integrates with the dimension correction framework to ensure data integrity before processing.
+/// </remarks>
 codeunit 2583 "Dim Correction Validate"
 {
     TableNo = "Job Queue Entry";
@@ -22,6 +31,11 @@ codeunit 2583 "Dim Correction Validate"
             ValidateDraftCorrection(DimensionCorrection);
     end;
 
+    /// <summary>
+    /// Validates a draft dimension correction before it can be processed or completed.
+    /// Performs comprehensive validation of dimension sets and dimension changes.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction record to validate</param>
     procedure ValidateDraftCorrection(var DimensionCorrection: Record "Dimension Correction")
     var
         TempDimCorrectionSetBuffer: Record "Dim Correction Set Buffer" temporary;
@@ -47,6 +61,11 @@ codeunit 2583 "Dim Correction Validate"
         Session.LogMessage('0000ELA', StrSubstNo(CompletedValidateDimensionCorrectionJobLbl, DimensionCorrection."Entry No."), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', DimensionCorrectionTok);
     end;
 
+    /// <summary>
+    /// Validates an undo operation for a completed dimension correction.
+    /// Verifies that the correction can be safely undone and reverted.
+    /// </summary>
+    /// <param name="DimensionCorrection">Completed dimension correction record to validate for undo</param>
     procedure ValidateUndoCorrection(var DimensionCorrection: Record "Dimension Correction")
     var
         TempDimCorrectionSetBuffer: Record "Dim Correction Set Buffer" temporary;

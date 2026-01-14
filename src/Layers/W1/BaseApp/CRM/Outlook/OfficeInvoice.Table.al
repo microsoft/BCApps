@@ -5,8 +5,8 @@
 namespace Microsoft.CRM.Outlook;
 
 using Microsoft.Sales.Document;
-using Microsoft.Utilities;
 using Microsoft.Sales.History;
+using Microsoft.Utilities;
 
 table 1606 "Office Invoice"
 {

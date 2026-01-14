@@ -14,6 +14,16 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.Period;
 using System.Utilities;
 
+/// <summary>
+/// Imports consolidation data from subsidiary companies through direct database connections within the same environment.
+/// Executes database-based consolidation data extraction for traditional on-premises consolidation scenarios.
+/// </summary>
+/// <remarks>
+/// Core database import report for same-environment consolidation leveraging direct database connectivity.
+/// Retrieves G/L entries, account structures, dimensions, and exchange rates from subsidiary databases.
+/// Alternative to file-based or API-based consolidation for environments with shared database access.
+/// Integrates with consolidation engine for seamless multi-company data processing.
+/// </remarks>
 report 90 "Import Consolidation from DB"
 {
     Caption = 'Consolidation Report (same environment)';
@@ -566,6 +576,13 @@ report 90 "Import Consolidation from DB"
                 Error(Text030);
     end;
 
+    /// <summary>
+    /// Integration event raised before confirming consolidation dates during database import validation.
+    /// Enables custom date validation logic and confirmation handling during consolidation processing.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to bypass standard date confirmation processing</param>
+    /// <param name="StartDate">Starting date for consolidation period validation</param>
+    /// <param name="EndDate">Ending date for consolidation period validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckConsolidDatesOnBeforeConfirmConsolidationDates(var IsHandled: Boolean; StartDate: Date; EndDate: Date)
     begin

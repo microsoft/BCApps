@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.GLAccount;
 
+/// <summary>
+/// List interface for browsing and selecting intercompany G/L accounts.
+/// Provides read-only view of IC accounts with navigation to detailed card page.
+/// </summary>
 page 607 "IC G/L Account List"
 {
     Caption = 'Intercompany G/L Account List';

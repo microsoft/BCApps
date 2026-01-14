@@ -5,8 +5,10 @@
 namespace Microsoft.Service.Test;
 
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
@@ -1097,6 +1099,79 @@ codeunit 136119 "Service Standard Codes"
             ExpectedQuantity,
             ServiceLine."Reserved Qty. (Base)",
             StrSubstNo(ValueMustBeEqualErr, ServiceLine.FieldCaption("Reserved Qty. (Base)"), ExpectedQuantity, ServiceLine.TableCaption()));
+    end;
+
+    [Test]
+    [HandlerFunctions('ModalFormHandlerServItemGroup')]
+    procedure ServiceInvoiceStdCodeDimensionSync()
+    var
+        DefaultDimension: Record "Default Dimension";
+        Dimension: array[2] of Record Dimension;
+        DimensionValue: array[2] of Record "Dimension Value";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        Item: Record Item;
+        ServiceHeader: Record "Service Header";
+        ServiceItemGroup: Record "Service Item Group";
+        ServiceLine: Record "Service Line";
+        StandardServiceCode: Record "Standard Service Code";
+        StandardServiceLine: Record "Standard Service Line";
+        LibraryDimension: Codeunit "Library - Dimension";
+    begin
+        // [SCENARIO 615214] Verify Dimension Set ID and dimension values are synchronized when applying Standard Service Code to Service Invoice.
+        Initialize();
+
+        // [GIVEN] Create Global Dimensions.
+        GeneralLedgerSetup.Get();
+        Dimension[1].Get(GeneralLedgerSetup."Global Dimension 1 Code");
+        Dimension[2].Get(GeneralLedgerSetup."Global Dimension 2 Code");
+
+        LibraryDimension.FindDimensionValue(DimensionValue[1], Dimension[1].Code);
+        LibraryDimension.FindDimensionValue(DimensionValue[2], Dimension[2].Code);
+
+        // [GIVEN] Create Item with default dimensions.
+        LibraryInventory.CreateItem(Item);
+        LibraryDimension.CreateDefaultDimension(DefaultDimension, DATABASE::Item, Item."No.", Dimension[1].Code, DimensionValue[1].Code);
+        LibraryDimension.CreateDefaultDimension(DefaultDimension, DATABASE::Item, Item."No.", Dimension[2].Code, DimensionValue[2].Code);
+
+        // [GIVEN] Create Standard Service Code with different dimensions.
+        LibraryService.CreateStandardServiceCode(StandardServiceCode);
+        LibraryService.CreateStandardServiceLine(StandardServiceLine, StandardServiceCode.Code);
+        StandardServiceLine.Validate(Type, StandardServiceLine.Type::Item);
+        StandardServiceLine.Validate("No.", Item."No.");
+        StandardServiceLine.Validate(Quantity, 1);
+
+        // [GIVEN] Get a different dimension value for the standard code.
+        DimensionValue[1].Next();
+        DimensionValue[2].Next();
+
+        // [GIVEN] Assign dimension value on standard service line.
+        StandardServiceLine.Validate("Shortcut Dimension 1 Code", DimensionValue[1].Code);
+        StandardServiceLine.Validate("Shortcut Dimension 2 Code", DimensionValue[2].Code);
+        StandardServiceLine.Modify(true);
+
+        // [WHEN] Create Service Invoice and apply Standard Service Code.
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Invoice, LibrarySales.CreateCustomerNo());
+        StandardServiceCode2 := StandardServiceCode.Code;
+        LibraryService.CreateServiceItemGroup(ServiceItemGroup);
+        ServiceItemGroupCode2 := ServiceItemGroup.Code;
+        StandardServiceCode.InsertServiceLines(ServiceHeader);
+
+        // [THEN] Verify Service Line has correct Dimension Set ID and matching shortcut dimension codes.
+        ServiceLine.SetRange("Document Type", ServiceHeader."Document Type");
+        ServiceLine.SetRange("Document No.", ServiceHeader."No.");
+        ServiceLine.FindFirst();
+
+        Assert.AreEqual(StandardServiceLine."Dimension Set ID",
+            ServiceLine."Dimension Set ID",
+            StrSubstNo(ValueMustBeEqualErr, StandardServiceLine.FieldCaption("Dimension Set ID"), ServiceLine.FieldCaption("Dimension Set ID"), ServiceLine.TableCaption()));
+
+        Assert.AreEqual(DimensionValue[1].Code,
+            ServiceLine."Shortcut Dimension 1 Code",
+            StrSubstNo(ValueMustBeEqualErr, DimensionValue[1].code, ServiceLine.FieldCaption("Shortcut Dimension 1 Code"), ServiceLine.TableCaption()));
+
+        Assert.AreEqual(DimensionValue[2].Code,
+            ServiceLine."Shortcut Dimension 2 Code",
+            StrSubstNo(ValueMustBeEqualErr, DimensionValue[2].code, ServiceLine.FieldCaption("Shortcut Dimension 2 Code"), ServiceLine.TableCaption()));
     end;
 
     local procedure Initialize()

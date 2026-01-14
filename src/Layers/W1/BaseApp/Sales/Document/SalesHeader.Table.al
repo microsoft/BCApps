@@ -33,11 +33,13 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.BatchProcessing;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.ExtendedText;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Integration.D365Sales;
 using Microsoft.Integration.Dataverse;
+using Microsoft.Integration.Graph;
 using Microsoft.Intercompany;
 using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
@@ -68,14 +70,13 @@ using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Request;
 using System;
 using System.Automation;
+using System.Email;
+using System.Environment.Configuration;
 using System.Globalization;
 using System.Reflection;
-using System.Utilities;
-using Microsoft.Foundation.NoSeries;
-using System.Threading;
-using System.Email;
 using System.Security.User;
-using System.Environment.Configuration;
+using System.Threading;
+using System.Utilities;
 
 table 36 "Sales Header"
 {
@@ -699,6 +700,7 @@ table 36 "Sales Header"
         }
         field(25; "Payment Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Payment Discount %';
             ToolTip = 'Specifies the payment discount percentage that is granted if the customer pays on or before the date entered in the Pmt. Discount Date field. The discount percentage is specified in the Payment Terms Code field.';
             DecimalPlaces = 0 : 5;
@@ -848,6 +850,7 @@ table 36 "Sales Header"
         }
         field(33; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
             Editable = false;
@@ -1933,6 +1936,7 @@ table 36 "Sales Header"
         }
         field(119; "VAT Base Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT Base Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -1978,6 +1982,7 @@ table 36 "Sales Header"
         }
         field(122; "Invoice Discount Value"; Decimal)
         {
+            AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Invoice Discount Value';
             Editable = false;
@@ -2033,6 +2038,7 @@ table 36 "Sales Header"
         }
         field(130; "Prepayment %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Prepayment %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -2195,6 +2201,7 @@ table 36 "Sales Header"
         }
         field(140; "Prepmt. Payment Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Prepmt. Payment Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -2402,16 +2409,19 @@ table 36 "Sales Header"
         }
         field(300; "Amt. Ship. Not Inv. (LCY)"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Sales Line"."Shipped Not Invoiced (LCY)" where("Document Type" = field("Document Type"),
                                                                                "Document No." = field("No.")));
             Caption = 'Amount Shipped Not Invoiced (LCY) Incl. VAT';
             ToolTip = 'Specifies the sum, in LCY, for items that have been shipped but not yet been invoiced. The amount is calculated as Amount Including VAT x Qty. Shipped Not Invoiced / Quantity.';
             Editable = false;
             FieldClass = FlowField;
-            AutoFormatType = 1;
         }
         field(301; "Amt. Ship. Not Inv. (LCY) Base"; Decimal)
         {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = sum("Sales Line"."Shipped Not Inv. (LCY) No VAT" where("Document Type" = field("Document Type"),
                                                                                   "Document No." = field("No.")));
             Caption = 'Amount Shipped Not Invoiced (LCY)';
@@ -2466,6 +2476,7 @@ table 36 "Sales Header"
         }
         field(1305; "Invoice Discount Amount"; Decimal)
         {
+            AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             CalcFormula = sum("Sales Line"."Inv. Discount Amount" where("Document No." = field("No."),
                                                                          "Document Type" = field("Document Type")));
@@ -2760,6 +2771,8 @@ table 36 "Sales Header"
                 UpdateShipToAddress();
 
                 CreateDimFromDefaultDim(Rec.FieldNo("Responsibility Center"));
+
+                OnValidateResponsibilityCenterOnBeforeRecreateSalesLines(Rec, CurrFieldNo);
 
                 if xRec."Responsibility Center" <> "Responsibility Center" then begin
                     RecreateSalesLines(FieldCaption("Responsibility Center"));
@@ -3090,6 +3103,7 @@ table 36 "Sales Header"
         ArchiveManagement: Codeunit ArchiveManagement;
         CRMIntTableSubscriber: Codeunit "CRM Int. Table. Subscriber";
         ShowPostedDocsToPrint: Boolean;
+        DisableAggregateTableUpdate: Codeunit "Disable Aggregate Table Update";
     begin
         if not UserSetupMgt.CheckRespCenter(0, "Responsibility Center") then
             Error(
@@ -3113,7 +3127,9 @@ table 36 "Sales Header"
 
         DeleteWarehouseRequest();
 
+        SetupDisableAggregateTableUpdate(DisableAggregateTableUpdate);
         DeleteAllSalesLines();
+        EnableAggregateTableUpdate(DisableAggregateTableUpdate);
 
         ShowPostedDocsToPrint := (SalesShptHeader."No." <> '') or
            (SalesInvHeader."No." <> '') or
@@ -4911,29 +4927,6 @@ table 36 "Sales Header"
             end;
     end;
 
-#if not CLEAN25
-    /// <summary>
-    /// Recreates requisition lines linked to a sales line, either shifting them to a temporary table or
-    /// back based on the provided ToTemp flag, updating the order promising line ID in the process.
-    /// </summary>
-    /// <remarks>
-    /// Temporary requisition line table is defined as a local variable and the caller has no way to pass in / retrieve lines.
-    /// Old requisition lines after recreation are deleted.
-    /// </remarks>
-    /// <param name="OldSalesLine">Sales line that is associated with the requisition lines that need to be recreated.</param>
-    /// <param name="NewSourceRefNo">New order promising line ID that should be assigned to the requisition lines when they are moved back from the temporary table to the main table.</param>
-    /// <param name="ToTemp">
-    /// If true, the procedure moves the requisition lines to a temporary table,
-    /// otherwise it moves the requisition lines back from the temporary table to the main table.
-    /// </param>
-    [Obsolete('Use RecreateReqLine with TempReqLine parameter instead.', '25.0')]
-    procedure RecreateReqLine(OldSalesLine: Record "Sales Line"; NewSourceRefNo: Integer; ToTemp: Boolean)
-    var
-        TempReqLine: Record "Requisition Line" temporary;
-    begin
-        RecreateReqLine(TempReqLine, OldSalesLine, NewSourceRefNo, ToTemp);
-    end;
-#endif
 
     procedure TestPostingDate(BatchPost: Boolean)
     begin
@@ -5483,7 +5476,7 @@ table 36 "Sales Header"
                 "Ship-to Contact" := CompanyInfo."Ship-to Contact";
             end;
 
-        OnAfterUpdateShipToAddress(Rec, xRec, CurrFieldNo);
+        OnAfterUpdateShipToAddress(Rec, xRec, CurrFieldNo, Location, CompanyInfo);
     end;
 
     local procedure SetRcvdFromCountry(RcvdFromCountryRegionCode: Code[10])
@@ -5716,23 +5709,6 @@ table 36 "Sales Header"
     /// Returns customer global location number. Currently defined to return an empty value.
     /// </summary>
     /// <returns>Empty text.</returns>
-#if not CLEAN25
-    [Obsolete('The procedure is not used and will be obsoleted.', '25.0')]
-    procedure GetCustomerGlobalLocationNumber(): Text
-    begin
-        exit('');
-    end;
-
-    /// <summary>
-    /// Returns customer global location number caption. Currently defined to return an empty value.
-    /// </summary>
-    /// <returns>Empty text.</returns>
-    [Obsolete('The procedure is not used and will be obsoleted.', '25.0')]
-    procedure GetCustomerGlobalLocationNumberLbl(): Text
-    begin
-        exit('');
-    end;
-#endif
 
     /// <summary>
     /// Returns document status field style expression based on the status of the sales header.
@@ -9268,6 +9244,24 @@ table 36 "Sales Header"
             until SalesHeader.Next() = 0;
     end;
 
+    local procedure SetupDisableAggregateTableUpdate(var DisableAggregateTableUpdate: Codeunit "Disable Aggregate Table Update")
+    var
+        AggregateTableID: Integer;
+    begin
+        AggregateTableID := DisableAggregateTableUpdate.GetAggregateTableIDFromSalesHeader(Rec);
+        if not (AggregateTableID > 0) then
+            exit;
+
+        DisableAggregateTableUpdate.SetAggregateTableIDDisabled(AggregateTableID);
+        DisableAggregateTableUpdate.SetTableSystemIDDisabled(SystemId);
+        BindSubscription(DisableAggregateTableUpdate);
+    end;
+
+    local procedure EnableAggregateTableUpdate(var DisableAggregateTableUpdate: Codeunit "Disable Aggregate Table Update")
+    begin
+        if UnbindSubscription(DisableAggregateTableUpdate) then;
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterAssignDefaultVATBusPostingGroup(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; GenBusinessPostingGroup: Record "Gen. Business Posting Group")
     begin
@@ -9439,7 +9433,7 @@ table 36 "Sales Header"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterUpdateShipToAddress(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; CurrentFieldNo: Integer)
+    local procedure OnAfterUpdateShipToAddress(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; CurrentFieldNo: Integer; Location: Record Location; CompanyInformation: Record "Company Information")
     begin
     end;
 
@@ -10272,6 +10266,11 @@ table 36 "Sales Header"
 
     [IntegrationEvent(false, false)]
     local procedure OnValidateBilltoCustomerTemplCodeOnBeforeRecreateSalesLines(var SalesHeader: Record "Sales Header"; CallingFieldNo: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateResponsibilityCenterOnBeforeRecreateSalesLines(var SalesHeader: Record "Sales Header"; CallingFieldNo: Integer)
     begin
     end;
 

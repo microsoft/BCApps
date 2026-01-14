@@ -11,6 +11,10 @@ using Microsoft.Foundation.Navigate;
 using Microsoft.Utilities;
 using System.Utilities;
 
+/// <summary>
+/// Provides posting preview functionality for bank account reconciliation.
+/// Allows users to preview reconciliation effects before committing changes.
+/// </summary>
 codeunit 373 "Bank. Acc. Recon. Post Preview"
 {
 

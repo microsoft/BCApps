@@ -6,6 +6,15 @@ namespace Microsoft.Intercompany.Outbox;
 
 using Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Intercompany outbox purchase lines interface for viewing and managing line details of outbound purchase transactions.
+/// Provides detailed line-level view for purchase document lines pending transmission to intercompany partners.
+/// </summary>
+/// <remarks>
+/// Primary data source: IC Outbox Purchase Line. Used as part of purchase document review and management workflow.
+/// Navigation: Purchase line list part → Line details, dimensions, and transaction information.
+/// Extensible via page extensions for additional purchase line fields and custom validation logic.
+/// </remarks>
 page 639 "IC Outbox Purchase Lines"
 {
     Caption = 'Lines';

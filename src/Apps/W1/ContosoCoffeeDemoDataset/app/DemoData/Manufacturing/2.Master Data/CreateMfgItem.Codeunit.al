@@ -5,12 +5,12 @@
 
 namespace Microsoft.DemoData.Manufacturing;
 
-using Microsoft.Inventory.Item;
-using Microsoft.DemoTool.Helpers;
 using Microsoft.DemoData.Common;
-using Microsoft.Manufacturing.StandardCost;
+using Microsoft.DemoTool.Helpers;
 using Microsoft.Inventory.Costing;
+using Microsoft.Inventory.Item;
 using Microsoft.Manufacturing.Setup;
+using Microsoft.Manufacturing.StandardCost;
 
 codeunit 4770 "Create Mfg Item"
 {

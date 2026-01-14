@@ -23,8 +23,6 @@ codeunit 134988 "ERM Purchase Reports III"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryJournals: Codeunit "Library - Journals";
         LibraryReportValidation: Codeunit "Library - Report Validation";
-        LibraryXPathXMLReader: Codeunit "Library - XPath XML Reader";
-        CodeCoverageMgt: Codeunit "Code Coverage Mgt.";
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         isInitialized: Boolean;
@@ -35,7 +33,6 @@ codeunit 134988 "ERM Purchase Reports III"
         ValidationErr: Label '%1 must be %2 in Report.', Comment = '%1 = Element, %2 = Value';
         HeaderDimensionTxt: Label '%1 - %2', Comment = '%1 = Dimension Code, %2 = Dimension Value Code';
         VendorInvoiceNoErr: Label 'Vendor Invoice No. must be specified.';
-        SameAmountErr: Label 'Amount must be same.';
         AssignedQuantityErr: Label 'Incorrect Assigned Quantity in report.';
         PstDatePurchInvHeaderLbl: Label 'PstDate_PurchInvHeader';
         PstDatePurchCrMemoHeaderLbl: Label 'PstDate_PurchCrMemoHeader';
@@ -43,15 +40,9 @@ codeunit 134988 "ERM Purchase Reports III"
         VALExchRateTok: Label 'VALExchRate';
         WrongExchRateErr: Label 'Wrong exchange rate.';
         VATIdentifierTok: Label 'VATAmountLine__VAT_Identifier__Control245';
-        EnterDateFormulaErr: Label 'Enter a date formula in the Period Length field.';
-        AgingBy: Option "Due Date","Posting Date","Document Date";
-        HeadingType: Option "Date Interval","Number of Days";
         RowVisibilityErr: Label 'Analysis row must only be visible in Purchase Analysis Matrix when Show <> No.';
         ColumnVisibilityErr: Label 'Analysis column must only be visible in Purchase Analysis Matrix when Show <> Never.';
         ColumnDoesNotExistErr: Label 'Analysis column does not exist in Analysis Column Template and therefore must not be visible.';
-        DocumentNoLbl: Label 'Document No.';
-        ExternalDocNoLbl: Label 'External Document No.';
-        ReportDatasetEmptyErr: Label 'Report Dataset should be empty.';
 
     [Test]
     [HandlerFunctions('RHPurchasePrepmtDocTest')]
@@ -165,49 +156,6 @@ codeunit 134988 "ERM Purchase Reports III"
     end;
 
     [Test]
-    [HandlerFunctions('RHPaymentsOnHold')]
-    [Scope('OnPrem')]
-    procedure PaymentsOnHoldDueDate()
-    var
-        VendorLedgerEntry: Record "Vendor Ledger Entry";
-        GenJournalBatch: Record "Gen. Journal Batch";
-        GenJournalLine: Record "Gen. Journal Line";
-        PaymentsOnHold: Report "Payments on Hold";
-    begin
-        // Check Payment On Hold Report with Due Date Filter.
-
-        // Setup: Create and Post General Line with Modify Random On Hold field and Amount.
-        Initialize();
-        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
-        LibraryERM.ClearGenJournalLines(GenJournalBatch);
-        CreateGenJnlLine(GenJournalLine, GenJournalBatch, GenJournalLine."Document Type"::Invoice,
-          GenJournalLine."Account Type"::Vendor, CreateVendor(), -LibraryRandom.RandDec(100, 2)); // Take Random Amount.
-        GenJournalLine.Validate("On Hold", Format(LibraryRandom.RandInt(100)));
-        GenJournalLine.Modify(true);
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-
-        // Exercise.
-        Clear(PaymentsOnHold);
-        VendorLedgerEntry.SetRange("Buy-from Vendor No.", GenJournalLine."Account No.");
-        VendorLedgerEntry.SetRange("Due Date", GenJournalLine."Posting Date");
-        PaymentsOnHold.SetTableView(VendorLedgerEntry);
-        PaymentsOnHold.Run();
-
-        // Verify: Verify Saved Report Data.
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.SetRange('Vendor_Ledger_Entry__Due_Date_', Format(GenJournalLine."Posting Date"));
-        if not LibraryReportDataset.GetNextRow() then
-            Error(RowNotFoundErr, 'Vendor_Ledger_Entry__Due_Date_', Format(GenJournalLine."Posting Date"));
-        LibraryReportDataset.AssertCurrentRowValueEquals('Vendor_Ledger_Entry__Posting_Date_', Format(GenJournalLine."Posting Date"));
-        LibraryReportDataset.AssertCurrentRowValueEquals('Vendor_Ledger_Entry__Document_No__', GenJournalLine."Document No.");
-        LibraryReportDataset.AssertCurrentRowValueEquals('Vendor_Ledger_Entry_Description', GenJournalLine.Description);
-        LibraryReportDataset.AssertCurrentRowValueEquals('Vendor_Ledger_Entry__Vendor_No__', GenJournalLine."Account No.");
-        LibraryReportDataset.AssertCurrentRowValueEquals('Vendor_Ledger_Entry__Remaining_Amount_', GenJournalLine.Amount);
-        LibraryReportDataset.AssertCurrentRowValueEquals('Vendor_Ledger_Entry__On_Hold_', GenJournalLine."On Hold");
-        LibraryReportDataset.AssertCurrentRowValueEquals('Vendor_Ledger_Entry__Remaining_Amt___LCY__', GenJournalLine.Amount);
-    end;
-
-    [Test]
     [HandlerFunctions('RHPurchaseDocumentTest')]
     [Scope('OnPrem')]
     procedure PurchaseInvoiceNoWarning()
@@ -273,56 +221,6 @@ codeunit 134988 "ERM Purchase Reports III"
         // Verify: Verify No Warning message on Report.
         LibraryReportDataset.LoadDataSetFile();
         asserterror LibraryReportDataset.AssertElementWithValueExists('', StrSubstNo(VendorInvoiceNoErr));
-    end;
-
-    [Test]
-    [HandlerFunctions('PostAndApplyVendPageHandler,PostApplicationPageHandler,MessageHandler,RHAgedAccountsPayable')]
-    [Scope('OnPrem')]
-    procedure AgedAccountPayableReport()
-    var
-        GenJournalBatch: Record "Gen. Journal Batch";
-        GenJournalLine: Record "Gen. Journal Line";
-        Vendor: Record Vendor;
-        PeriodLength: DateFormula;
-        VendorNo: Code[20];
-    begin
-        // [FEATURE] [Aged Accounts Payable]
-        // Verify that program filter data correctly by date in Aged Accounts Payable report and verify the report.
-
-        // Setup: Create Vendor,Post Invoice and Payment and apply it.
-        Initialize();
-        VendorNo := CreateVendor();
-        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
-        LibraryERM.ClearGenJournalLines(GenJournalBatch);
-        CreateGenJnlLine(GenJournalLine, GenJournalBatch, GenJournalLine."Document Type"::Invoice,
-          GenJournalLine."Account Type"::Vendor, VendorNo, -LibraryRandom.RandDec(100, 2)); // Take Random Amount.
-
-        // In Bug 215283,Invoice should be made before the Payment is posted.Hence, taking Random Date before the workdate.
-        GenJournalLine.Validate(
-          "Posting Date", CalcDate('<-' + Format(LibraryRandom.RandInt(5)) + 'D>', WorkDate()));
-        GenJournalLine.Modify(true);
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-
-        // Make Payment by dividing Invoice amount from Random no.
-        CreateGenJnlLine(GenJournalLine, GenJournalBatch, GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Vendor,
-          VendorNo, -GenJournalLine.Amount / LibraryRandom.RandIntInRange(2, 5)); // Take Random Amount.
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-        ApplyVendLedgerEntry(GenJournalLine."Document Type", GenJournalLine."Account No.");
-        Commit();
-        Vendor.Get(VendorNo);
-        Vendor.CalcFields(Balance);
-
-        // Exercise: Save Aged Accounts Payable Report.
-        Vendor.SetRecFilter();
-        Evaluate(PeriodLength, '<' + Format(LibraryRandom.RandInt(5)) + 'M>'); // Take Random value for Period length.
-        SaveAgedAccountsPayable(Vendor, AgingBy::"Due Date", HeadingType::"Date Interval", PeriodLength, false, false);
-
-        // Verify: Verify the Balance in the report.
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.SetRange('No_Vendor', VendorNo);
-        if not LibraryReportDataset.GetNextRow() then
-            Error(RowNotFoundErr, 'No_Vendor', VendorNo);
-        LibraryReportDataset.AssertCurrentRowValueEquals('AgedVendLedgEnt2RemAmtLCY', -Vendor.Balance);
     end;
 
     [Test]
@@ -468,120 +366,6 @@ codeunit 134988 "ERM Purchase Reports III"
         // Verify: Verify that Saved files have some data.
         LibraryReportDataset.LoadDataSetFile();
         LibraryUtilityOnPrem.CheckFileNotEmpty(LibraryReportDataset.GetFileName());
-    end;
-
-    [Test]
-    [HandlerFunctions('RHVendorSummaryAging')]
-    [Scope('OnPrem')]
-    procedure VendorSummaryAgingWithMultiplePurchaseOrder()
-    var
-        GenJournalBatch: Record "Gen. Journal Batch";
-        Vendor: Record Vendor;
-        PurchaseLine: Record "Purchase Line";
-        GenJournalLine: Record "Gen. Journal Line";
-        VendorSummaryAging: Report "Vendor - Summary Aging";
-        VendorNo1: Code[20];
-        VendorNo2: Code[20];
-        VendorNo3: Code[20];
-        InvoiceAmountVendor1: Decimal;
-        InvoiceAmountVendor2: Decimal;
-        InvoiceAmountVendor3: Decimal;
-        PostingDate2: Date;
-        PostingDate3: Date;
-        PaidAmountVendor2: Decimal;
-        PaidAmountVendor3: Decimal;
-        RemainingAmountVendor2: Decimal;
-        RemainingAmountVendor3: Decimal;
-    begin
-        // Check Vendor Summary Aging Report with Multiple Vendor Invoice and Payment Posting.
-
-        // Setup: Create and Post Three Purchase Order with Due Date. Take difference with 1 Month on Due Date.
-        Initialize();
-        PostingDate2 := CalculatePostingDate(WorkDate());
-        PostingDate3 := CalculatePostingDate(PostingDate2);
-        InvoiceAmountVendor1 := CreateAndPostPurchaseDocument(PurchaseLine, WorkDate());
-        VendorNo1 := PurchaseLine."Buy-from Vendor No.";
-        InvoiceAmountVendor2 := CreateAndPostPurchaseDocument(PurchaseLine, PostingDate2);
-        VendorNo2 := PurchaseLine."Buy-from Vendor No.";
-        InvoiceAmountVendor3 := CreateAndPostPurchaseDocument(PurchaseLine, PostingDate3);
-        VendorNo3 := PurchaseLine."Buy-from Vendor No.";
-
-        // Partial Payment of Posted Invoice through General Line with Due Date same as Posted Purchase order.
-
-        SelectGenJournalBatch(GenJournalBatch);
-        PaidAmountVendor2 := Round(InvoiceAmountVendor2 / 2, LibraryERM.GetAmountRoundingPrecision());
-        PaidAmountVendor3 := Round(InvoiceAmountVendor3 / 3, LibraryERM.GetAmountRoundingPrecision());
-        CreateAndModifyGeneralLine(GenJournalLine, GenJournalBatch, VendorNo1, WorkDate(), InvoiceAmountVendor1);
-        CreateAndModifyGeneralLine(GenJournalLine, GenJournalBatch, VendorNo2, PostingDate2, PaidAmountVendor2);
-        CreateAndModifyGeneralLine(GenJournalLine, GenJournalBatch, VendorNo3, PostingDate3, PaidAmountVendor3);
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-
-        RemainingAmountVendor2 := InvoiceAmountVendor2 - PaidAmountVendor2;
-        RemainingAmountVendor3 := InvoiceAmountVendor3 - PaidAmountVendor3;
-
-        // Exercise: Run and Save Report for Vendor Summary Aging. 1M is required to generate Date for 1 month difference.
-        Clear(VendorSummaryAging);
-        Vendor.SetFilter("No.", '%1|%2|%3', VendorNo1, VendorNo2, VendorNo3);
-        VendorSummaryAging.SetTableView(Vendor);
-        VendorSummaryAging.InitializeRequest(GenJournalLine."Due Date", '<1M>', false);
-        Commit();
-        VendorSummaryAging.Run();
-
-        // Verify: Verify Saved Report Data.
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.SetRange('Vendor__No__', VendorNo2);
-        if not LibraryReportDataset.GetNextRow() then
-            Error(RowNotFoundErr, 'Vendor__No__', VendorNo2);
-        LibraryReportDataset.AssertCurrentRowValueEquals('VendBalanceDueLCY_1_', -RemainingAmountVendor2);
-        LibraryReportDataset.Reset();
-        LibraryReportDataset.SetRange('Vendor__No__', VendorNo3);
-        if not LibraryReportDataset.GetNextRow() then
-            Error(RowNotFoundErr, 'Vendor__No__', VendorNo3);
-        LibraryReportDataset.AssertCurrentRowValueEquals('VendBalanceDueLCY_2_', -RemainingAmountVendor3);
-        LibraryReportDataset.Reset();
-        Assert.AreNearlyEqual(
-          -RemainingAmountVendor2 - RemainingAmountVendor3, LibraryReportDataset.Sum('TotalVendAmtDueLCY'),
-          LibraryERM.GetAmountRoundingPrecision(), SameAmountErr);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHVendorSummaryAging')]
-    [Scope('OnPrem')]
-    procedure VendorSummaryAgingWithShowAmountsInLCYTRUE()
-    begin
-        // Check the Value of Total(LCY) in Vendor Summary Aging Report when Show Amounts LCY is TRUE.
-        VendorSummaryAgingReport(true);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHVendorSummaryAging')]
-    [Scope('OnPrem')]
-    procedure VendorSummaryAgingWithShowAmountsInLCYFALSE()
-    begin
-        // Check the Value of Total(LCY) in Vendor Summary Aging Report when Show Amounts LCY is TRUE.
-        VendorSummaryAgingReport(false);
-    end;
-
-    local procedure VendorSummaryAgingReport(ShowAmountsInLCY: Boolean)
-    var
-        GenJournalBatch: Record "Gen. Journal Batch";
-        Vendor: Record Vendor;
-        Amount: Decimal;
-    begin
-        // Create a Vendor and Post General Journal Lines without Currency and with Currency.
-        Initialize();
-        LibraryPurchase.CreateVendor(Vendor);
-        SelectGenJournalBatch(GenJournalBatch);
-        Amount := -1 * LibraryRandom.RandDec(1000, 2);
-        CreateAndPostGeneralJournalLine(GenJournalBatch, Vendor."No.", '', Amount);
-        CreateAndPostGeneralJournalLine(GenJournalBatch, Vendor."No.", CreateCurrency(), Amount);
-
-        // Exercise: Run the Vendor Summary Aging Report.
-        RunVendorSummaryAgingReport(Vendor."No.", ShowAmountsInLCY);
-
-        // Verify: Check that the value of Total(LCY) in Vendor Summary Aging Report is equal to Vendor."Balance (LCY)".
-        LibraryReportDataset.LoadDataSetFile();
-        VerifyTotalLCYOnVendorSummaryAgingReport(Vendor);
     end;
 
     [Test]
@@ -1126,91 +910,6 @@ codeunit 134988 "ERM Purchase Reports III"
     end;
 
     [Test]
-    [HandlerFunctions('RHAgedAccountsPayableEmptyPeriodLength')]
-    [Scope('OnPrem')]
-    procedure AgedAccountsPayablePeriodLengthError()
-    var
-        Vendor: Record Vendor;
-        AgedAccountsPayable: Report "Aged Accounts Payable";
-        PeriodLength: DateFormula;
-    begin
-        // [FEATURE] [UT] [Aged Accounts Payable]
-        // [SCENARIO 202767] Aged Accounts Payables report gives 'Enter a date formula in the Period Length field.' error when "Period Length" is empty
-        Initialize();
-
-        LibraryPurchase.CreateVendor(Vendor);
-        Vendor.SetRecFilter();
-        Clear(AgedAccountsPayable);
-        AgedAccountsPayable.SetTableView(Vendor);
-        AgedAccountsPayable.InitializeRequest(WorkDate(), 0, PeriodLength, false, false, 0, false);
-        Commit();
-        asserterror AgedAccountsPayable.Run();
-        Assert.ExpectedError(EnterDateFormulaErr);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHAgedAccountsPayableDefaultPeriodLength')]
-    [Scope('OnPrem')]
-    procedure AgedAccountsPayableDefaultPeriodLength()
-    var
-        Vendor: Record Vendor;
-        PeriodLength: DateFormula;
-        ExpectedPeriodLength: DateFormula;
-    begin
-        // [FEATURE] [UT] [Aged Accounts Payable]
-        // [SCENARIO 232335] Aged Accounts Payables report has '<1M>' as default Period Length
-        Initialize();
-
-        Clear(PeriodLength);
-        LibraryPurchase.CreateVendor(Vendor);
-        Vendor.SetRecFilter();
-
-        Commit();
-        SaveAgedAccountsPayable(Vendor, AgingBy::"Due Date", HeadingType::"Date Interval", PeriodLength, false, false);
-
-        Evaluate(PeriodLength, LibraryVariableStorage.DequeueText());
-        Evaluate(ExpectedPeriodLength, '<1M>');
-        Assert.AreEqual(ExpectedPeriodLength, PeriodLength, 'Incorrect Period Length');
-    end;
-
-    [Test]
-    [HandlerFunctions('RHAgedAccountsPayable')]
-    [Scope('OnPrem')]
-    procedure AgedAccountsPayableTimestampForUserTimezone()
-    var
-        Vendor: Record Vendor;
-        GenJournalBatch: Record "Gen. Journal Batch";
-        GenJournalLine: Record "Gen. Journal Line";
-        ExpectedTimeStamp: Text;
-        PeriodLength: DateFormula;
-    begin
-        // [FEATURE] [UT] [Aged Accounts Payable] [Date-Time] [Time Zone]
-        // [SCENARIO 232056] Timestamp in report "Aged Accounts Payable" is calculated via CurrentDateTime().
-        Initialize();
-
-        // [GIVEN] Posted Purchase Invoice
-        LibraryPurchase.CreateVendor(Vendor);
-        LibraryJournals.CreateGenJournalBatch(GenJournalBatch);
-        LibraryJournals.CreateGenJournalLine(
-          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::Invoice,
-          GenJournalLine."Account Type"::Vendor, Vendor."No.", GenJournalLine."Bal. Account Type"::"G/L Account",
-          LibraryERM.CreateGLAccountNo(), -LibraryRandom.RandIntInRange(1000, 2000));
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-
-        // [GIVEN] ExpectedTimestamp string acquired via function GetFormattedCurrentDateTimeInUserTimeZone in codeunit "Type Helper"
-        ExpectedTimeStamp := Format(CurrentDateTime());
-
-        // [WHEN] Run report "Aged Accounts Payable"
-        Vendor.SetRecFilter();
-        Evaluate(PeriodLength, '<1M>');
-        SaveAgedAccountsPayable(Vendor, AgingBy::"Posting Date", HeadingType::"Date Interval", PeriodLength, false, false);
-
-        // [THEN] ExpectedTimestamp is found in XML under <TodayFormatted>
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementTagWithValueExists('TodayFormatted', ExpectedTimeStamp);
-    end;
-
-    [Test]
     [Scope('OnPrem')]
     procedure PurchaseOrderReportWithPrepmtAndTwoLines()
     var
@@ -1417,42 +1116,6 @@ codeunit 134988 "ERM Purchase Reports III"
     end;
 
     [Test]
-    [HandlerFunctions('RHAgedAccountsPayable')]
-    [Scope('OnPrem')]
-    procedure AgedAccountsPayableTimestampAndCompanyDisplayNameCalledOnce()
-    var
-        GenJournalBatch: Record "Gen. Journal Batch";
-        GenJournalLine: Record "Gen. Journal Line";
-        Vendor: Record Vendor;
-        PeriodLength: DateFormula;
-        I: Integer;
-    begin
-        // [FEATURE] [Performance] [Aged Accounts Payable] [Date-Time] [Time Zone]
-        // [SCENARIO 235531] COMPANYPROPERTY.DisplayName() are called once for Aged Accounts Payable report when multiple entries are processed
-        Initialize();
-
-        // [GIVEN] Post 2 Purchase Invoices
-        LibraryPurchase.CreateVendor(Vendor);
-        LibraryJournals.CreateGenJournalBatch(GenJournalBatch);
-        for I := 1 to 2 do
-            LibraryJournals.CreateGenJournalLine(
-              GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::Invoice,
-              GenJournalLine."Account Type"::Vendor, Vendor."No.", GenJournalLine."Bal. Account Type"::"G/L Account",
-              LibraryERM.CreateGLAccountNo(), -LibraryRandom.RandIntInRange(1000, 2000));
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-
-        // [WHEN] Run Aged Accounts Payable
-        Vendor.SetRecFilter();
-        Evaluate(PeriodLength, '<1M>');
-        CodeCoverageMgt.StartApplicationCoverage();
-        SaveAgedAccountsPayable(Vendor, AgingBy::"Posting Date", HeadingType::"Date Interval", PeriodLength, false, false);
-        CodeCoverageMgt.StopApplicationCoverage();
-
-        // [THEN] COMPANYPROPERTY.DisplayName() is called once
-        VerifyAgedAccountsPayableNoOfHitsCodeCoverage('COMPANYPROPERTY.DISPLAYNAME', 1);
-    end;
-
-    [Test]
     [HandlerFunctions('RHVendorBalanceToDateEnableShowEntriesWithZeroBalance')]
     [Scope('OnPrem')]
     procedure VendorBalanceToDateShowEntriesWithZeroBalance()
@@ -1534,80 +1197,6 @@ codeunit 134988 "ERM Purchase Reports III"
     end;
 
     [Test]
-    [HandlerFunctions('RHAgedAccountsPayable')]
-    [Scope('OnPrem')]
-    procedure AgedAccPayableReportConsidersGlobalDimensionFiltersWhenReportOpenLedgEntries()
-    var
-        Vendor: Record Vendor;
-        GenJournalLine: Record "Gen. Journal Line";
-        AgingBy: Option "Due Date","Posting Date","Document Date";
-        HeadingType: Option "Date Interval","Number of Days";
-        PeriodLength: DateFormula;
-        i: Integer;
-    begin
-        // [FEATURE] [Aged Accounts Payable] [Dimension]
-        // [SCENARIO 284398] Aged Account Payable Report considers global dimension filters
-
-        Initialize();
-
-        LibraryPurchase.CreateVendor(Vendor);
-
-        // [GIVEN] Two posted invoices
-        // [GIVEN] Invoice "A" with Amount = 100, "Global Dimension 1 Code" = "X1", "Global Dimension 2 Code" = "X2"
-        // [GIVEN] Invoice "B" with Amount = 200, "Global Dimension 1 Code" = "X2", "Global Dimension 2 Code" = "Y2"
-        for i := 1 to 2 do
-            PostInvoiceWithDimensions(GenJournalLine, Vendor."No.");
-        PrepareAgedAccPayableReportForDimRun(
-          Vendor, PeriodLength, GenJournalLine."Shortcut Dimension 1 Code", GenJournalLine."Shortcut Dimension 2 Code");
-
-        // [WHEN] Run Aged Account Payable Report with "Global Dimension 1 Filter" = "X2" and "Global Dimension 2 Filter" = "Y2"
-        SaveAgedAccountsPayable(
-          Vendor, AgingBy::"Posting Date", HeadingType::"Date Interval", PeriodLength, false, false);
-
-        // [THEN] Total amount in exported XML file of report is 200
-        VerifyXMLReport('No_Vendor', Vendor."No.", 'GrandTotalVLE1RemAmtLCY', GenJournalLine."Amount (LCY)");
-    end;
-
-    [Test]
-    [HandlerFunctions('PostAndApplyVendPageHandler,PostApplicationPageHandler,MessageHandler,RHAgedAccountsPayable')]
-    [Scope('OnPrem')]
-    procedure AgedAccPayableReportConsidersGlobalDimensionFiltersWhenReportClosedLedgEntries()
-    var
-        Vendor: Record Vendor;
-        GenJournalLine: Record "Gen. Journal Line";
-        AgingBy: Option "Due Date","Posting Date","Document Date";
-        PeriodLength: DateFormula;
-        i: Integer;
-    begin
-        // [FEATURE] [Aged Accounts Receivable] [Dimension]
-        // [SCENARIO 284398] Aged Account Payable Report considers global dimension filters
-
-        Initialize();
-
-        LibraryPurchase.CreateVendor(Vendor);
-
-        // [GIVEN] Two posted invoices fully applied by payments
-        // [GIVEN] Invoice "A" with Amount = 100, "Global Dimension 1 Code" = "X1", "Global Dimension 2 Code" = "X2"
-        // [GIVEN] Invoice "B" with Amount = 200, "Global Dimension 1 Code" = "X2", "Global Dimension 2 Code" = "Y2"
-        for i := 1 to 2 do begin
-            PostInvoiceWithDimensions(GenJournalLine, Vendor."No.");
-            PostApplyPaymentWithDimensions(
-              GenJournalLine, Vendor."No.", GenJournalLine."Posting Date" + 1, -GenJournalLine.Amount,
-              GenJournalLine."Shortcut Dimension 1 Code", GenJournalLine."Shortcut Dimension 2 Code");
-        end;
-        PrepareAgedAccPayableReportForDimRun(
-          Vendor, PeriodLength, GenJournalLine."Shortcut Dimension 1 Code", GenJournalLine."Shortcut Dimension 2 Code");
-        Commit();
-
-        // [WHEN] Run Aged Account Payable Report with "Global Dimension 1 Filter" = "X2" and "Global Dimension 2 Filter" = "Y2"
-        SaveAgedAccountsPayable(
-          Vendor, AgingBy::"Posting Date", HeadingType::"Date Interval", PeriodLength, false, false);
-
-        // [THEN] Total amount in exported XML file of report is 200
-        VerifyXMLReport('No_Vendor', Vendor."No.", 'GrandTotalVLE1RemAmtLCY', -GenJournalLine."Amount (LCY)");
-    end;
-
-    [Test]
     [HandlerFunctions('RHVendorBalanceToDate')]
     [Scope('OnPrem')]
     procedure VendorBalanceToDateRemainingAmount()
@@ -1650,94 +1239,6 @@ codeunit 134988 "ERM Purchase Reports III"
     end;
 
     [Test]
-    [HandlerFunctions('AgedAccountsReceivableReportRequestPageHandler')]
-    procedure AgedAccPayableVendorPhoneNoAndContact()
-    var
-        Vendor: Record Vendor;
-    begin
-        // [FEATURE] [Aged Accounts Payable]
-        // [SCENARIO 290824] Aged Accounts Payable report prints vendor phone number and contact when Print Details = "Yes"
-        Initialize();
-
-        // [GIVEN] Create and post invoice for vendor "VEND", with Amount = "100", "Posting Date" = "01.01.2019" and "Due Date" = "01.02.2019"
-        LibraryPurchase.CreateVendor(Vendor);
-        Vendor.Validate("Phone No.",
-          CopyStr(
-            LibraryUtility.GenerateRandomNumericText(MaxStrLen(Vendor."Phone No.")),
-            1,
-            MaxStrLen(Vendor."Phone No.")));
-        Vendor.Validate(Contact,
-          CopyStr(
-            LibraryUtility.GenerateRandomAlphabeticText(MaxStrLen(Vendor.Contact), 0),
-            1,
-            MaxStrLen(Vendor.Contact)));
-        Vendor.Modify();
-        CreatePostPurchaseInvoiceWithDueDateCalc(Vendor."No.");
-
-        // [WHEN] Run report Aged Accounts Payable with "Print Details" = "Yes"
-        RunAgedAccountsPayableWithParameters(Vendor, CalcDate('<2M>', WorkDate()), false);
-
-        // [THEN] Vendor "VEND" printed with Not Due amount = "100"
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists('VendorNo', Vendor."No.");
-        LibraryReportDataset.AssertElementWithValueExists('VendorPhoneNo', Vendor."Phone No.");
-        LibraryReportDataset.AssertElementWithValueExists('VendorContactName', Vendor.Contact);
-    end;
-
-    [Test]
-    [HandlerFunctions('AgedAccountsReceivableReportRequestPageHandler')]
-    procedure AgedAccPayableUseExternalDocNoYes()
-    var
-        Vendor: Record Vendor;
-        PurchInvHeader: Record "Purch. Inv. Header";
-    begin
-        // [FEATURE] [Aged Accounts Payable]
-        // [SCENARIO 290824] Aged Accounts Payable report prints external document number when "Use External Doc. No." = "Yes"
-        Initialize();
-
-        // [GIVEN] Create and post invoice for vendor "VEND", with "Vendor Invoice No." = "XXX", "Posting Date" = "01.01.2019" and "Due Date" = "01.02.2019"
-        LibraryPurchase.CreateVendor(Vendor);
-        CreatePostPurchaseInvoiceWithDueDateCalc(Vendor."No.");
-        FindPostedInvoiceHeader(PurchInvHeader, Vendor."No.");
-
-        // [WHEN] Run report Aged Accounts Payable with "Print Details" = "Yes", "Use External Doc. No." = "Yes"
-        RunAgedAccountsPayableWithParameters(Vendor, CalcDate('<2M>', WorkDate()), true);
-
-        // [THEN] Document number label = "External Document No."
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists('DocumentNoCaption', ExternalDocNoLbl);
-        // [THEN] Invoice printed with document number = "XXX"
-        LibraryReportDataset.AssertElementWithValueExists('VendLedgEntryEndDtDocNo', PurchInvHeader."Vendor Invoice No.");
-    end;
-
-    [Test]
-    [HandlerFunctions('AgedAccountsReceivableReportRequestPageHandler')]
-    procedure AgedAccPayableUseExternalDocNoNo()
-    var
-        Vendor: Record Vendor;
-        PurchInvHeader: Record "Purch. Inv. Header";
-    begin
-        // [FEATURE] [Aged Accounts Payable]
-        // [SCENARIO 290824] Aged Accounts Payable report prints document number when "Use External Doc. No." = "No"
-        Initialize();
-
-        // [GIVEN] Create and post invoice for vendor "VEND", with "Posting Date" = "01.01.2019" and "Due Date" = "01.02.2019"
-        LibraryPurchase.CreateVendor(Vendor);
-        CreatePostPurchaseInvoiceWithDueDateCalc(Vendor."No.");
-        // [GIVEN] Posted purchase invoice document number = "YYY"
-        FindPostedInvoiceHeader(PurchInvHeader, Vendor."No.");
-
-        // [WHEN] Run report Aged Accounts Payable with "Print Details" = "Yes", "Use External Doc. No." = "No"
-        RunAgedAccountsPayableWithParameters(Vendor, CalcDate('<2M>', WorkDate()), false);
-
-        LibraryReportDataset.LoadDataSetFile();
-        // [THEN] Document number label = "Document No."
-        LibraryReportDataset.AssertElementWithValueExists('DocumentNoCaption', DocumentNoLbl);
-        // [THEN] Invoice printed with document number = "YYY"
-        LibraryReportDataset.AssertElementWithValueExists('VendLedgEntryEndDtDocNo', PurchInvHeader."No.");
-    end;
-
-    [Test]
     [HandlerFunctions('StandardPurchaseOrderRequestPageHandler')]
     procedure StandardPurchaseOrderReceiptDates()
     var
@@ -1760,272 +1261,6 @@ codeunit 134988 "ERM Purchase Reports III"
 
         // [THEN] Report dataset has Planned/Expected/Promised/Requested Receipt Dates = 01.01, 02.01, 03.01, 04.01
         VerifyStandardPurchaseOrderReceiptDates(PurchaseLine);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHAgedAccountsPayableFileName')]
-    procedure AgedAccountsPayableCurrencyFilterNotSet()
-    var
-        Vendor: Record Vendor;
-        PurchaseHeader: Record "Purchase Header";
-        CurrencyCode: array[2] of Code[10];
-        DocumentNo: Code[20];
-        PeriodLength: DateFormula;
-        Filters: Text;
-        AmountFCY: array[2] of Decimal;
-        AmountLCY: array[2] of Decimal;
-    begin
-        // [FEATURE] [Aged Accounts Payable]
-        // [SCENARIO 397446] Run Aged Accounts Payable report for Purchase Documents with different currencies when Currency Filter is not set.
-        Initialize();
-
-        // [GIVEN] Posted Purchase Invoice with Currency "C1". Posted Purchase Invoice with Currency "C2".
-        LibraryPurchase.CreateVendor(Vendor);
-        CurrencyCode[1] := LibraryERM.CreateCurrencyWithRandomExchRates();
-        CurrencyCode[2] := LibraryERM.CreateCurrencyWithRandomExchRates();
-        DocumentNo := CreateAndPostPurchaseDocumentWithCurrency(Vendor."No.", PurchaseHeader."Document Type"::Invoice, CurrencyCode[1]);
-        GetPurchaseDocAmounts(PurchaseHeader."Document Type"::Invoice, DocumentNo, AmountFCY[1], AmountLCY[1]);
-        DocumentNo := CreateAndPostPurchaseDocumentWithCurrency(Vendor."No.", PurchaseHeader."Document Type"::Invoice, CurrencyCode[2]);
-        GetPurchaseDocAmounts(PurchaseHeader."Document Type"::Invoice, DocumentNo, AmountFCY[2], AmountLCY[2]);
-
-        // [WHEN] Run report Aged Accounts Payable. "Currency Filter" is not set in "Filter Totals by" section in Vendor block.
-        Evaluate(PeriodLength, StrSubstNo('<%1M>', LibraryRandom.RandInt(5)));
-        Vendor.SetRecFilter();
-        SaveAgedAccountsPayable(Vendor, AgingBy::"Due Date", HeadingType::"Date Interval", PeriodLength, false, false);
-
-        // [THEN] Lines for currencies "C1" and "C2" are shown. Totals are equal to sum of Amount(LCY) of Invoices.
-        LibraryXPathXMLReader.Initialize(LibraryVariableStorage.DequeueText(), '');
-        VerifyCurrencyAgedAccountsPayable(CurrencyCode[1], AmountFCY[1], AmountLCY[1], 0);
-        VerifyCurrencyAgedAccountsPayable(CurrencyCode[2], AmountFCY[2], AmountLCY[2], 1);
-        VerifyTotalLCYAgedAccountsPayable(AmountLCY[1] + AmountLCY[2]);
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('//Result/CurrCode_TempVenLedgEntryLoop', 2);
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('//Result/TempCurrency2Code', 2);
-
-        // [THEN] Filter on the report page does not contain "Currency Filter".
-        Filters := LibraryXPathXMLReader.GetNodeInnerTextByXPathWithIndex('//Result/VendorFilter', 0);
-        asserterror Assert.ExpectedMessage('Currency Filter', Filters);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHAgedAccountsPayableFileName')]
-    procedure AgedAccountsPayableCurrencyFilterSetOneCurrency()
-    var
-        Vendor: Record Vendor;
-        PurchaseHeader: Record "Purchase Header";
-        CurrencyCode: array[2] of Code[10];
-        DocumentNo: Code[20];
-        PeriodLength: DateFormula;
-        Filters: Text;
-        AmountFCY: Decimal;
-        AmountLCY: Decimal;
-    begin
-        // [FEATURE] [Aged Accounts Payable]
-        // [SCENARIO 397446] Run Aged Accounts Payable report for Purchase Documents with different currencies when Currency Filter is set to one currency.
-        Initialize();
-
-        // [GIVEN] Posted Purchase Invoice with Currency "C1". Posted Purchase Invoice with Currency "C2".
-        LibraryPurchase.CreateVendor(Vendor);
-        CurrencyCode[1] := LibraryERM.CreateCurrencyWithRandomExchRates();
-        CurrencyCode[2] := LibraryERM.CreateCurrencyWithRandomExchRates();
-        CreateAndPostPurchaseDocumentWithCurrency(Vendor."No.", PurchaseHeader."Document Type"::Invoice, CurrencyCode[1]);
-        DocumentNo := CreateAndPostPurchaseDocumentWithCurrency(Vendor."No.", PurchaseHeader."Document Type"::Invoice, CurrencyCode[2]);
-        GetPurchaseDocAmounts(PurchaseHeader."Document Type"::Invoice, DocumentNo, AmountFCY, AmountLCY);
-
-        // [WHEN] Run report Aged Accounts Payable. Set "Currency Filter" = "C2" in "Filter Totals by" section in Vendor block.
-        Evaluate(PeriodLength, StrSubstNo('<%1M>', LibraryRandom.RandInt(5)));
-        Vendor.SetRecFilter();
-        Vendor.SetRange("Currency Filter", CurrencyCode[2]);
-        SaveAgedAccountsPayable(Vendor, AgingBy::"Due Date", HeadingType::"Date Interval", PeriodLength, false, false);
-
-        // [THEN] Only line for currency "C2" is shown. Totals are equal to corresponding values of the posted Invoice with Currency "C2".
-        LibraryXPathXMLReader.Initialize(LibraryVariableStorage.DequeueText(), '');
-        VerifyCurrencyAgedAccountsPayable(CurrencyCode[2], AmountFCY, AmountLCY, 0);
-        VerifyTotalLCYAgedAccountsPayable(AmountLCY);
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('//Result/CurrCode_TempVenLedgEntryLoop', 1);
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('//Result/TempCurrency2Code', 1);
-
-        // [THEN] Filter on the report page contains "Currency Filter: C2".
-        Filters := LibraryXPathXMLReader.GetNodeInnerTextByXPathWithIndex('//Result/VendorFilter', 0);
-        Assert.ExpectedMessage(StrSubstNo('Currency Filter: %1', CurrencyCode[2]), Filters);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHAgedAccountsPayableFileName')]
-    procedure AgedAccountsPayableCurrencyFilterSetTwoCurrencies()
-    var
-        Vendor: Record Vendor;
-        PurchaseHeader: Record "Purchase Header";
-        CurrencyCode: array[2] of Code[10];
-        DocumentNo: Code[20];
-        PeriodLength: DateFormula;
-        Filters: Text;
-        AmountFCY: array[2] of Decimal;
-        AmountLCY: array[2] of Decimal;
-    begin
-        // [FEATURE] [Aged Accounts Payable]
-        // [SCENARIO 397446] Run Aged Accounts Payable report for Purchase Documents with different currencies when Currency Filter is set for two currencies.
-        Initialize();
-
-        // [GIVEN] Posted Purchase Invoice with Currency "C1". Posted Purchase Invoice with Currency "C2".
-        LibraryPurchase.CreateVendor(Vendor);
-        CurrencyCode[1] := LibraryERM.CreateCurrencyWithRandomExchRates();
-        CurrencyCode[2] := LibraryERM.CreateCurrencyWithRandomExchRates();
-        DocumentNo := CreateAndPostPurchaseDocumentWithCurrency(Vendor."No.", PurchaseHeader."Document Type"::Invoice, CurrencyCode[1]);
-        GetPurchaseDocAmounts(PurchaseHeader."Document Type"::Invoice, DocumentNo, AmountFCY[1], AmountLCY[1]);
-        DocumentNo := CreateAndPostPurchaseDocumentWithCurrency(Vendor."No.", PurchaseHeader."Document Type"::Invoice, CurrencyCode[2]);
-        GetPurchaseDocAmounts(PurchaseHeader."Document Type"::Invoice, DocumentNo, AmountFCY[2], AmountLCY[2]);
-
-        // [WHEN] Run report Aged Accounts Payable. Set "Currency Filter" = "C1|C2" in "Filter Totals by" section in Vendor block.
-        Evaluate(PeriodLength, StrSubstNo('<%1M>', LibraryRandom.RandInt(5)));
-        Vendor.SetRecFilter();
-        Vendor.SetFilter("Currency Filter", '%1|%2', CurrencyCode[1], CurrencyCode[2]);
-        SaveAgedAccountsPayable(Vendor, AgingBy::"Due Date", HeadingType::"Date Interval", PeriodLength, false, false);
-
-        // [THEN] Lines for currencies "C1" and "C2" are shown. Totals are equal to sum of Amount(LCY) of Invoices.
-        LibraryXPathXMLReader.Initialize(LibraryVariableStorage.DequeueText(), '');
-        VerifyCurrencyAgedAccountsPayable(CurrencyCode[1], AmountFCY[1], AmountLCY[1], 0);
-        VerifyCurrencyAgedAccountsPayable(CurrencyCode[2], AmountFCY[2], AmountLCY[2], 1);
-        VerifyTotalLCYAgedAccountsPayable(AmountLCY[1] + AmountLCY[2]);
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('//Result/CurrCode_TempVenLedgEntryLoop', 2);
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('//Result/TempCurrency2Code', 2);
-
-        // [THEN] Filter on the report page contains "Currency Filter: C1|C2".
-        Filters := LibraryXPathXMLReader.GetNodeInnerTextByXPathWithIndex('//Result/VendorFilter', 0);
-        Assert.ExpectedMessage(StrSubstNo('Currency Filter: %1|%2', CurrencyCode[1], CurrencyCode[2]), Filters);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHAgedAccountsPayable')]
-    [Scope('OnPrem')]
-    procedure AgedAccountPayableReportByDocumentDate()
-    var
-        GenJournalBatch: Record "Gen. Journal Batch";
-        GenJournalLine: Record "Gen. Journal Line";
-        Vendor: Record Vendor;
-        PeriodLength: DateFormula;
-        VendorNo: Code[20];
-        RecordExist: Boolean;
-    begin
-        // [SCENARIO 435424] To check if Aged Account Payable report is not showing Invoices if Posting date is not in range even if Document date is in range
-
-        // [GIVEN] Create Vendor,Post Invoice
-        Initialize();
-        VendorNo := CreateVendor();
-        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
-        LibraryERM.ClearGenJournalLines(GenJournalBatch);
-        CreateGenJnlLine(GenJournalLine, GenJournalBatch, GenJournalLine."Document Type"::Invoice,
-          GenJournalLine."Account Type"::Vendor, VendorNo, -LibraryRandom.RandDec(100, 2)); // Take Random Amount.
-
-        GenJournalLine.Validate(
-          "Posting Date", CalcDate('<-' + Format(LibraryRandom.RandInt(5)) + 'D>', WorkDate()));
-        GenJournalLine.Validate("Document Date", CalcDate('<-1D>', GenJournalLine."Posting Date"));
-        GenJournalLine.Modify(true);
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-
-        // [WHEN] Save Aged Accounts Payable Report with AgingBy Document Date option
-        Vendor.SetRecFilter();
-        Evaluate(PeriodLength, '<' + Format(LibraryRandom.RandInt(5)) + 'M>'); // Take Random value for Period length.
-        SaveAgedAccPayable(Vendor, AgingBy::"Document Date", HeadingType::"Date Interval", PeriodLength, false, false, GenJournalLine."Document Date");
-
-        // [THEN] No Record should be found as Posting date is not in range.
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.SetRange('No_Vendor', VendorNo);
-        RecordExist := LibraryReportDataset.GetNextRow();
-
-        Assert.AreEqual(RecordExist, false, ReportDatasetEmptyErr);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHAgedAccountsPayable')]
-    [Scope('OnPrem')]
-    procedure AmountInAgedAccountsPayablesReportHasDecimalPlacesDefinedInCurrency()
-    var
-        Vendor: Record Vendor;
-        Currency: Record Currency;
-        PeriodLength: DateFormula;
-    begin
-        // [SCENARIO 543167] Amount in Aged Accounts Payable report is displayed with
-        // Decimal places defined in the Currency of that Vendor Ledger Entry.
-        Initialize();
-
-        // [GIVEN] Create a Currency with Exchange Rates.
-        CreateCurrencyWithExchangeRates(Currency);
-
-        // [GIVEN] Create a Vendor and Validate Currency Code.
-        LibraryPurchase.CreateVendor(Vendor);
-        Vendor.Validate("Currency Code", Currency.Code);
-        Vendor.Modify(true);
-
-        // [GIVEN] Create and Post Gen Journal Line.
-        CreateAndPostGenJnlLine(Vendor, Currency.Code, 1.234);
-
-        // [WHEN] Run Aged Accounts Payable report.
-        Evaluate(PeriodLength, '<1M>');
-        SaveAgedAccPayable(Vendor, AgingBy::"Posting Date", HeadingType::"Date Interval", PeriodLength, false, false, WorkDate());
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.SetRange('TempCurrency2Code', Currency.Code);
-
-        // [THEN] AgedVendLedgEnt6RemAmtLCY5 have value 1.234 in Aged Accounts Payable report.
-        LibraryReportDataset.AssertElementWithValueExists('AgedVendLedgEnt6RemAmtLCY5', 1.234);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHAgedAccountsPayable')]
-    [Scope('OnPrem')]
-    procedure AgedAccountReceivablesAndPayableReportsPrioritizeMostRecentPostingCausingFaultyReports()
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-        Vendor: Record Vendor;
-        VendorLedgerEntry: Record "Vendor Ledger Entry";
-        LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
-        PeriodLength: DateFormula;
-        DocumentNo: Code[20];
-        Amount: Decimal;
-        ReportEndingDate: Date;
-        PostingDate: Date;
-        EarlyPostingDate: Date;
-        LaterPostingDate: Date;
-    begin
-        //[SCENARIO 574822] Aged Account Receivables and Aged Account Payable Reports Prioritize Most Recent Posting Date Rather than Posting Date on Latest Entry Causing Faulty Reports
-
-        Initialize();
-
-        // [GIVEN] Create Vendor
-        LibraryPurchase.CreateVendor(Vendor);
-
-        // [GIVEN] Posting Dates and Report Ending Date
-        PostingDate := WorkDate();
-        EarlyPostingDate := CalcDate('<-1M>', PostingDate);
-        LaterPostingDate := CalcDate('<+1M>', PostingDate);
-        ReportEndingDate := DMY2Date(31, 12, Date2DMY(LaterPostingDate, 3));
-
-        //[GIVEN] Create and Post Purchase Invoice
-        Amount := 12000;
-        DocumentNo := CreateAndPostPurchaseInvoiceWithOneLine(Vendor."No.", 'Test', Amount, 1, 0D, EarlyPostingDate);
-
-        // [GIVEN] Create Payment Journal and post for Purchase Invoice
-        CreateGeneralJournalLine(GenJournalLine, 1, Vendor."No.", GenJournalLine."Document Type"::Payment, Amount);
-        GenJournalLine.Validate("Posting Date", PostingDate);
-        UpdateGenJournalLine(GenJournalLine, '', DocumentNo, Amount);
-        LibraryLowerPermissions.SetAccountPayables();
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-
-        // [GIVEN] Unapply The Payment for Purchase Invoice
-        LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, VendorLedgerEntry."Document Type"::Payment, DocumentNo);
-        UnapplyVendorLedgerEntry(VendorLedgerEntry, LaterPostingDate);
-
-        // [GIVEN] apply the payment again for the Purchase Invoice
-        CreateGeneralJournalLine(GenJournalLine, 1, Vendor."No.", GenJournalLine."Document Type"::Payment, Amount);
-        GenJournalLine.Validate("Posting Date", PostingDate);
-        UpdateGenJournalLine(GenJournalLine, '', DocumentNo, Amount);
-        LibraryLowerPermissions.SetAccountPayables();
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-
-        //[WHEN] Run Aged Account Payble Report
-        SaveAgedAccPayable(Vendor, AgingBy::"Posting Date", HeadingType::"Date Interval", PeriodLength, false, true, ReportEndingDate);
-
-        //[THEN] Check These  Entries should not be there.
-        LibraryReportDataset.AssertElementWithValueNotExist('VendLedgEntryEndDtPostgDt', PostingDate);
     end;
 
     local procedure Initialize()
@@ -2063,16 +1298,6 @@ codeunit 134988 "ERM Purchase Reports III"
         GeneralLedgerSetup.Modify(true);
     end;
 
-    local procedure SaveAgedAccountsPayable(var Vendor: Record Vendor; AgingBy: Option; HeadingType: Option; PeriodLength: DateFormula; AmountLCY: Boolean; PrintDetails: Boolean)
-    var
-        AgedAccountsPayable: Report "Aged Accounts Payable";
-    begin
-        Clear(AgedAccountsPayable);
-        AgedAccountsPayable.SetTableView(Vendor);
-        AgedAccountsPayable.InitializeRequest(WorkDate(), AgingBy, PeriodLength, AmountLCY, PrintDetails, HeadingType, false);
-        AgedAccountsPayable.Run();
-    end;
-
     local procedure AssignedQuantityOnPurchaseDocumentTestReport(DocumentType: Enum "Purchase Document Type")
     var
         PurchaseHeader: Record "Purchase Header";
@@ -2108,15 +1333,6 @@ codeunit 134988 "ERM Purchase Reports III"
         exit(Vendor."No.");
     end;
 
-    local procedure CreateAndModifyGeneralLine(var GenJournalLine: Record "Gen. Journal Line"; GenJournalBatch: Record "Gen. Journal Batch"; AccountNo: Code[20]; DueDate: Date; Amount: Decimal)
-    begin
-        LibraryERM.CreateGeneralJnlLine(
-          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::Payment,
-          GenJournalLine."Account Type"::Vendor, AccountNo, Amount);
-        GenJournalLine.Validate("Due Date", DueDate);
-        GenJournalLine.Modify(true);
-    end;
-
     local procedure CreateAndPostItemJournalLine(var ItemJournalLine: Record "Item Journal Line"; LocationCode: Code[10])
     var
         ItemJournalBatch: Record "Item Journal Batch";
@@ -2130,22 +1346,6 @@ codeunit 134988 "ERM Purchase Reports III"
         ItemJournalLine.Validate("Location Code", LocationCode);
         ItemJournalLine.Modify(true);
         LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
-    end;
-
-    local procedure CreateAndPostPurchaseDocument(var PurchaseLine: Record "Purchase Line"; DueDate: Date) Amount: Decimal
-    var
-        PurchaseHeader: Record "Purchase Header";
-    begin
-        // Take Random values for Quantity and Unit cost.
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, CreateVendor());
-        PurchaseHeader.Validate("Due Date", DueDate);
-        PurchaseHeader.Modify(true);
-        LibraryPurchase.CreatePurchaseLine(
-          PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, LibraryInventory.CreateItemNo(), LibraryRandom.RandDec(10, 2));
-        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDec(100, 2));
-        PurchaseLine.Modify(true);
-        Amount := PurchaseLine."Amount Including VAT";
-        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
     end;
 
     local procedure CreateAndSetupPurchaseDocument(var PurchaseHeader: Record "Purchase Header"; DocumentType: Enum "Purchase Document Type")
@@ -2204,18 +1404,6 @@ codeunit 134988 "ERM Purchase Reports III"
         LibraryWarehouse.ReleaseWarehouseShipment(WarehouseShipmentHeader);
         LibraryWarehouse.PostWhseShipment(WarehouseShipmentHeader, false);  // Post as Ship.
         exit(PurchaseHeader."No.");
-    end;
-
-    local procedure CreateAndPostGeneralJournalLine(GenJournalBatch: Record "Gen. Journal Batch"; AccountNo: Code[20]; CurrencyCode: Code[10]; Amount: Decimal)
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-    begin
-        LibraryERM.CreateGeneralJnlLine(
-          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::Invoice,
-          GenJournalLine."Account Type"::Vendor, AccountNo, Amount);
-        GenJournalLine.Validate("Currency Code", CurrencyCode);
-        GenJournalLine.Modify(true);
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
     end;
 
     local procedure CreateAndPostGeneralJournalLineWithDimensions(AccountNo: Code[20]; GlobalDim1Value: Code[20]; GlobalDim2Value: Code[20]): Decimal
@@ -2289,36 +1477,6 @@ codeunit 134988 "ERM Purchase Reports III"
           PurchaseHeader, DocumentType, '', LibraryInventory.CreateItemNo(), CreateVendor(), LocationCode);  // Blank value for Currency Code.
         CreatePurchaseLine(PurchaseHeader, LocationCode, LibraryInventory.CreateItemNo());
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
-    end;
-
-    local procedure CreatePostPurchaseInvoiceWithDueDateCalc(VendorNo: Code[20]): Decimal
-    var
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        PurchInvHeader: Record "Purch. Inv. Header";
-    begin
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo);
-        PurchaseHeader.Validate("Due Date", CalcDate('<1M>', PurchaseHeader."Posting Date"));
-        PurchaseHeader.Modify();
-        LibraryPurchase.CreatePurchaseLine(
-          PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, LibraryInventory.CreateItemNo(), LibraryRandom.RandDec(10, 2));
-        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDec(100, 2));
-        PurchaseLine.Modify(true);
-        PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
-        PurchInvHeader.CalcFields("Amount Including VAT");
-        exit(PurchInvHeader."Amount Including VAT");
-    end;
-
-    local procedure CreateAndPostPurchaseDocumentWithCurrency(VendorNo: Code[20]; DocumentType: Enum "Purchase Document Type"; CurrencyCode: Code[10]): Code[20]
-    var
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-    begin
-        LibraryPurchase.CreateFCYPurchaseDocumentWithItem(
-          PurchaseHeader, PurchaseLine, DocumentType, VendorNo, '', LibraryRandom.RandDecInRange(10, 20, 2), '', WorkDate(), CurrencyCode);
-        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(100, 200, 2));
-        PurchaseLine.Modify(true);
-        exit(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
     end;
 
     local procedure CreatePurchaseDocSaveReport(VendorInvoiceNo: Code[20]; DocumentType: Enum "Purchase Document Type")
@@ -2486,11 +1644,6 @@ codeunit 134988 "ERM Purchase Reports III"
         exit(PurchaseHeader."Amount Including VAT");
     end;
 
-    local procedure CalculatePostingDate(DeltaDate: Date): Date
-    begin
-        exit(CalcDate('<' + Format(LibraryRandom.RandInt(5)) + 'M>', DeltaDate));
-    end;
-
     local procedure CreateVendor(): Code[20]
     var
         Vendor: Record Vendor;
@@ -2648,16 +1801,6 @@ codeunit 134988 "ERM Purchase Reports III"
         LibraryERM.ClearGenJournalLines(GenJournalBatch)
     end;
 
-    local procedure ApplyVendLedgerEntry(DocumentType: Enum "Gen. Journal Document Type"; VendorNo: Code[20])
-    var
-        VendorLedgerEntries: TestPage "Vendor Ledger Entries";
-    begin
-        VendorLedgerEntries.OpenView();
-        VendorLedgerEntries.FILTER.SetFilter("Document Type", Format(DocumentType));
-        VendorLedgerEntries.FILTER.SetFilter("Vendor No.", VendorNo);
-        VendorLedgerEntries.ActionApplyEntries.Invoke();
-    end;
-
     local procedure FindPurchaseLine(var PurchaseLine: Record "Purchase Line"; DocumentNo: Code[20])
     begin
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Quote);
@@ -2681,27 +1824,6 @@ codeunit 134988 "ERM Purchase Reports III"
         AmountColumn :=
           LibraryReportValidation.FindColumnNoFromColumnCaptionInsideArea(
             'Amount', StrSubstNo('>%1', PrepaymentSpecificationHeaderRowNo), '');
-    end;
-
-    local procedure FindPostedInvoiceHeader(var PurchInvHeader: Record "Purch. Inv. Header"; VendorNo: Code[20])
-    begin
-        PurchInvHeader.SetRange("Buy-from Vendor No.", VendorNo);
-        PurchInvHeader.FindLast();
-    end;
-
-    local procedure FormatDecimalXML(DecimalValue: Decimal): Text
-    begin
-        exit(Format(DecimalValue, 0, '<Precision,0:2><Standard Format,9>'));
-    end;
-
-    local procedure GetPurchaseDocAmounts(DocumentType: Enum "Gen. Journal Document Type"; DocumentNo: Code[20]; var Amount: Decimal; var AmountLCY: Decimal)
-    var
-        VendorLedgerEntry: Record "Vendor Ledger Entry";
-    begin
-        LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, DocumentType, DocumentNo);
-        VendorLedgerEntry.CalcFields(Amount, "Amount (LCY)");
-        Amount := VendorLedgerEntry.Amount;
-        AmountLCY := VendorLedgerEntry."Amount (LCY)";
     end;
 
     local procedure ModifyCurrencyCodeOnPurchaseHeader(var PurchaseHeader: Record "Purchase Header")
@@ -2741,18 +1863,6 @@ codeunit 134988 "ERM Purchase Reports III"
         ItemJournalLine.Validate("Journal Batch Name", ItemJournalBatch.Name);
         LibraryInventory.CalculateInventoryForSingleItem(ItemJournalLine, ItemNo, WorkDate(), true, false);
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
-    end;
-
-    local procedure RunVendorSummaryAgingReport(VendorNo: Code[20]; ShowAmountsInLCY: Boolean)
-    var
-        Vendor: Record Vendor;
-        VendorSummaryAging: Report "Vendor - Summary Aging";
-    begin
-        Clear(VendorSummaryAging);
-        Vendor.SetRange("No.", VendorNo);
-        VendorSummaryAging.InitializeRequest(WorkDate(), StrSubstNo('<%1M>', LibraryRandom.RandInt(5)), ShowAmountsInLCY);
-        VendorSummaryAging.SetTableView(Vendor);
-        VendorSummaryAging.Run();
     end;
 
     local procedure RunPurchaseDocumentTestReport(var PurchaseHeader: Record "Purchase Header")
@@ -2809,20 +1919,6 @@ codeunit 134988 "ERM Purchase Reports III"
         Order.InitializeRequest(0, ShowInternalInfo, false, false);
         Order.UseRequestPage(false);
         Order.SaveAsExcel(LibraryReportValidation.GetFileName());
-    end;
-
-    local procedure RunAgedAccountsPayableWithParameters(Vendor: Record Vendor; AgedAsOfDate: Date; UseExternalDocNo: Boolean)
-    var
-        AgedAccountsPayable: Report "Aged Accounts Payable";
-    begin
-        Clear(AgedAccountsPayable);
-
-        LibraryVariableStorage.Enqueue(AgedAsOfDate);
-        LibraryVariableStorage.Enqueue(UseExternalDocNo);
-
-        Vendor.SetRecFilter();
-        AgedAccountsPayable.SetTableView(Vendor);
-        AgedAccountsPayable.Run();
     end;
 
     local procedure SetupPrepaymentPurchaseDoc(var PurchaseLine: Record "Purchase Line"; VendorNo: Code[20])
@@ -2980,51 +2076,6 @@ codeunit 134988 "ERM Purchase Reports III"
         PurchaseDocumentTest.Run();
     end;
 
-    local procedure PostInvoiceWithDimensions(var GenJournalLine: Record "Gen. Journal Line"; VendNo: Code[20])
-    var
-        GeneralLedgerSetup: Record "General Ledger Setup";
-        GenJournalBatch: Record "Gen. Journal Batch";
-        DimensionValue: array[2] of Record "Dimension Value";
-    begin
-        GeneralLedgerSetup.Get();
-        LibraryDimension.CreateDimensionValue(DimensionValue[1], GeneralLedgerSetup."Global Dimension 1 Code");
-        LibraryDimension.CreateDimensionValue(DimensionValue[2], GeneralLedgerSetup."Global Dimension 2 Code");
-        LibraryJournals.CreateGenJournalBatch(GenJournalBatch);
-        LibraryJournals.CreateGenJournalLine(
-          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::Invoice,
-          GenJournalLine."Account Type"::Vendor, VendNo, GenJournalLine."Bal. Account Type"::"G/L Account",
-          LibraryERM.CreateGLAccountNo(), -LibraryRandom.RandIntInRange(1000, 2000));
-        GenJournalLine.Validate("Shortcut Dimension 1 Code", DimensionValue[1].Code);
-        GenJournalLine.Validate("Shortcut Dimension 2 Code", DimensionValue[2].Code);
-        GenJournalLine.Modify(true);
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-    end;
-
-    local procedure PostApplyPaymentWithDimensions(var GenJournalLine: Record "Gen. Journal Line"; VendNo: Code[20]; PostingDate: Date; Amount: Decimal; ShortcutDimension1Code: Code[20]; ShortcutDimension2Code: Code[20])
-    var
-        GenJournalBatch: Record "Gen. Journal Batch";
-    begin
-        LibraryJournals.CreateGenJournalBatch(GenJournalBatch);
-        LibraryJournals.CreateGenJournalLine(
-          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::Payment,
-          GenJournalLine."Account Type"::Vendor, VendNo, GenJournalLine."Bal. Account Type"::"G/L Account",
-          LibraryERM.CreateGLAccountNo(), Amount);
-        GenJournalLine.Validate("Posting Date", PostingDate);
-        GenJournalLine.Validate("Shortcut Dimension 1 Code", ShortcutDimension1Code);
-        GenJournalLine.Validate("Shortcut Dimension 2 Code", ShortcutDimension2Code);
-        GenJournalLine.Modify(true);
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-        ApplyVendLedgerEntry(GenJournalLine."Document Type", GenJournalLine."Account No.");
-    end;
-
-    local procedure PrepareAgedAccPayableReportForDimRun(var Vendor: Record Vendor; var PeriodLength: DateFormula; ShortcutDimension1Code: Code[20]; ShortcutDimension2Code: Code[20])
-    begin
-        Evaluate(PeriodLength, '<' + Format(LibraryRandom.RandInt(5)) + 'M>');
-        Vendor.SetFilter("Global Dimension 1 Filter", ShortcutDimension1Code);
-        Vendor.SetFilter("Global Dimension 2 Filter", ShortcutDimension2Code);
-        Vendor.SetRecFilter();
-    end;
-
     local procedure VerifyAmountOnDocumentEntryReport(RowCaption: Text[50]; ColumnCaption: Text[50]; Amount: Decimal)
     begin
         LibraryReportDataset.SetRange(RowCaption, Format(WorkDate()));
@@ -3075,15 +2126,6 @@ codeunit 134988 "ERM Purchase Reports III"
             LibraryReportDataset.AssertElementWithValueExists('LineNo_PurchCrMemoLine', PurchCrMemoLine."Line No.");
             LibraryReportDataset.AssertElementWithValueExists('No_PurchCrMemoLine', PurchCrMemoLine."No.");
         until PurchCrMemoLine.Next() = 0;
-    end;
-
-    local procedure VerifyTotalLCYOnVendorSummaryAgingReport(Vendor: Record Vendor)
-    begin
-        Vendor.CalcFields("Balance (LCY)");
-        LibraryReportDataset.SetRange('Vendor__No__', Vendor."No.");
-        if not LibraryReportDataset.GetNextRow() then
-            Error(RowNotFoundErr, 'Vendor__No__', Vendor."No.");
-        LibraryReportDataset.AssertCurrentRowValueEquals('VendBalanceDueLCY_2_', -1 * Vendor."Balance (LCY)");  // As Balance (LCY) shows Reverse sign of Vendor Ledger Entries, So we have applied reverse sign on TotalLCY.
     end;
 
     local procedure VerifyVariousEntriesOnDocEntriesReport(DocumentNo: Code[20])
@@ -3341,59 +2383,6 @@ codeunit 134988 "ERM Purchase Reports III"
           LibraryReportValidation.FormatDecimalValue(LinePrepmtAmountValue[1] + LinePrepmtAmountValue[2]));
     end;
 
-    local procedure VerifyAgedAccountsPayableNoOfHitsCodeCoverage(CodeLine: Text; NoOfHits: Integer)
-    var
-        CodeCoverage: Record "Code Coverage";
-    begin
-        Assert.AreEqual(
-          NoOfHits,
-          CodeCoverageMgt.GetNoOfHitsCoverageForObject(CodeCoverage."Object Type"::Report, REPORT::"Aged Accounts Payable", CodeLine),
-          StrSubstNo('%1 must be called %2 times when Aged Accounts Payable is run', CodeLine, NoOfHits));
-    end;
-
-    local procedure VerifyCurrencyAgedAccountsPayable(CurrencyCode: Code[10]; Amount: Decimal; AmountLCY: Decimal; NodeIndex: Integer)
-    begin
-        LibraryXPathXMLReader.VerifyNodeValueByXPathWithIndex('//Result/CurrCode_TempVenLedgEntryLoop', CurrencyCode, NodeIndex);
-        LibraryXPathXMLReader.VerifyNodeValueByXPathWithIndex('//Result/TempCurrency2Code', CurrencyCode, NodeIndex);
-        VeryXmlNodeWithDecimalValue('//Result/VLEEndingDateRemAmt', NodeIndex, Amount);
-        VeryXmlNodeWithDecimalValue('//Result/VLEEndingDateRemAmtLCY', NodeIndex, AmountLCY);
-    end;
-
-    local procedure VeryXmlNodeWithDecimalValue(NodeXPath: Text; NodeIndex: Integer; ExpectedValue: Decimal)
-    var
-        NodeList: DotNet XmlNodeList;
-        Node: DotNet XmlNode;
-        NodeCount: Integer;
-        ActualValue: Decimal;
-    begin
-        LibraryXPathXMLReader.GetNodeList(NodeXPath, NodeList);
-        NodeCount := NodeList.Count();
-        Assert.AreNotEqual(0, NodeCount, 'Xml Node has not been found by xPath = ' + NodeXPath);
-        Node := NodeList.Item(NodeIndex);
-        if IsNull(Node) then
-            Assert.Fail(StrSubstNo('Node is not found by path: %1, index: %2', NodeXPath, NodeIndex));
-        Evaluate(ActualValue, Node.InnerText);
-        Assert.AreEqual(ExpectedValue, ActualValue, 'Xml Node value');
-    end;
-
-    local procedure VerifyTotalLCYAgedAccountsPayable(TotalLCY: Decimal)
-    var
-        nodeList: DotNet XmlNodeList;
-        TotalLastIndex: Integer;
-    begin
-        LibraryXPathXMLReader.GetNodeList('//Result/GrandTotalVLE1AmtLCY', nodeList);
-        TotalLastIndex := nodeList.Count - 1; // index of the last node that contains Total(LCY) value
-        LibraryXPathXMLReader.VerifyNodeValueByXPathWithIndex('//Result/GrandTotalVLE1AmtLCY', FormatDecimalXML(TotalLCY), TotalLastIndex);
-    end;
-
-    local procedure VerifyXMLReport(XmlElementCaption: Text; XmlValue: Text; ValidateCaption: Text; ValidateValue: Decimal)
-    begin
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.SetRange(XmlElementCaption, XmlValue);
-        LibraryReportDataset.GetLastRow();
-        LibraryReportDataset.AssertCurrentRowValueEquals(ValidateCaption, ValidateValue);
-    end;
-
     local procedure VerifyStandardPurchaseOrderReceiptDates(PurchaseLine: Record "Purchase Line")
     begin
         LibraryReportDataset.LoadDataSetFile();
@@ -3401,16 +2390,6 @@ codeunit 134988 "ERM Purchase Reports III"
         LibraryReportDataset.AssertElementWithValueExists('ExpectedReceiptDate', Format(PurchaseLine."Expected Receipt Date", 0, 4));
         LibraryReportDataset.AssertElementWithValueExists('PromisedReceiptDate', Format(PurchaseLine."Promised Receipt Date", 0, 4));
         LibraryReportDataset.AssertElementWithValueExists('RequestedReceiptDate', Format(PurchaseLine."Requested Receipt Date", 0, 4));
-    end;
-
-    local procedure SaveAgedAccPayable(var Vendor: Record Vendor; AgingBy: Option; HeadingType: Option; PeriodLength: DateFormula; AmountLCY: Boolean; PrintDetails: Boolean; EndingDate: Date)
-    var
-        AgedAccountsPayable: Report "Aged Accounts Payable";
-    begin
-        Clear(AgedAccountsPayable);
-        AgedAccountsPayable.SetTableView(Vendor);
-        AgedAccountsPayable.InitializeRequest(EndingDate, AgingBy, PeriodLength, AmountLCY, PrintDetails, HeadingType, false);
-        AgedAccountsPayable.Run();
     end;
 
     [ModalPageHandler]
@@ -3474,115 +2453,6 @@ codeunit 134988 "ERM Purchase Reports III"
         REPORT.Run(REPORT::"Purchase - Credit Memo", true, false, PurchCrMemoHdr);
     end;
 
-    local procedure CreateCurrencyWithExchangeRates(var Currency: Record Currency)
-    var
-        CurrencyCode: Code[10];
-    begin
-        CurrencyCode := LibraryERM.CreateCurrencyWithRandomExchRates();
-        Currency.Get(CurrencyCode);
-        Currency.Validate("Amount Rounding Precision", 0.001);
-        Currency.Validate("Amount Decimal Places", '3:3');
-        Currency.Modify(true);
-    end;
-
-    local procedure CreateAndPostGenJnlLine(Vendor: Record Vendor; CurrencyCode: Code[10]; Amount: Decimal)
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-    begin
-        LibraryJournals.CreateGenJournalLineWithBatch(
-            GenJournalLine,
-            GenJournalLine."Document Type"::Payment,
-            GenJournalLine."Account Type"::Vendor,
-            Vendor."No.",
-            Amount);
-
-        GenJournalLine.Validate("Currency Code", CurrencyCode);
-        GenJournalLine.Modify(true);
-
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-    end;
-
-    local procedure UnapplyVendorLedgerEntry(VendorLedgerEntry: Record "Vendor Ledger Entry"; PostingDate: Date)
-    var
-        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
-        GenJournalLine: Record "Gen. Journal Line";
-        SourceCodeSetup: Record "Source Code Setup";
-        GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
-    begin
-        DetailedVendorLedgEntry.SetRange("Entry Type", DetailedVendorLedgEntry."Entry Type"::Application);
-        DetailedVendorLedgEntry.SetRange("Vendor No.", VendorLedgerEntry."Vendor No.");
-        DetailedVendorLedgEntry.SetRange("Document No.", VendorLedgerEntry."Document No.");
-        DetailedVendorLedgEntry.SetRange("Vendor Ledger Entry No.", VendorLedgerEntry."Entry No.");
-        DetailedVendorLedgEntry.SetRange(Unapplied, false);
-        DetailedVendorLedgEntry.FindFirst();
-        SourceCodeSetup.Get();
-        VendorLedgerEntry.Get(DetailedVendorLedgEntry."Vendor Ledger Entry No.");
-        GenJournalLine.Validate("Document No.", DetailedVendorLedgEntry."Document No.");
-        GenJournalLine.Validate("Posting Date", PostingDate);
-        GenJournalLine.Validate("Account Type", GenJournalLine."Account Type"::Vendor);
-        GenJournalLine.Validate("Account No.", DetailedVendorLedgEntry."Vendor No.");
-        GenJournalLine.Validate(Correction, true);
-        GenJournalLine.Validate("Document Type", GenJournalLine."Document Type"::" ");
-        GenJournalLine.Validate(Description, VendorLedgerEntry.Description);
-        GenJournalLine.Validate("Shortcut Dimension 1 Code", VendorLedgerEntry."Global Dimension 1 Code");
-        GenJournalLine.Validate("Shortcut Dimension 2 Code", VendorLedgerEntry."Global Dimension 2 Code");
-        GenJournalLine.Validate("Posting Group", VendorLedgerEntry."Vendor Posting Group");
-        GenJournalLine.Validate("Source Type", GenJournalLine."Source Type"::Vendor);
-        GenJournalLine.Validate("Source No.", DetailedVendorLedgEntry."Vendor No.");
-        GenJournalLine.Validate("Source Code", SourceCodeSetup."Unapplied Purch. Entry Appln.");
-        GenJournalLine.Validate("Source Currency Code", DetailedVendorLedgEntry."Currency Code");
-        GenJournalLine.Validate("System-Created Entry", true);
-        GenJnlPostLine.UnapplyVendLedgEntry(GenJournalLine, DetailedVendorLedgEntry);
-    end;
-
-    local procedure CreateGeneralJournalLine(var GenJournalLine: Record "Gen. Journal Line"; NoOfLine: Integer; VendorNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type"; Amount: Decimal)
-    var
-        GenJournalBatch: Record "Gen. Journal Batch";
-        Counter: Integer;
-    begin
-        SelectGenJournalBatch(GenJournalBatch);
-        for Counter := 1 to NoOfLine do
-            LibraryERM.CreateGeneralJnlLine(
-              GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, DocumentType,
-              GenJournalLine."Account Type"::Vendor, VendorNo, Amount);
-    end;
-
-    local procedure UpdateGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; CurrencyCode: Code[10]; AppliestoDocNo: Code[20]; Amount: Decimal)
-    begin
-        GenJournalLine.Validate("Currency Code", CurrencyCode);
-        GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
-        GenJournalLine.Validate("Applies-to Doc. No.", AppliestoDocNo);
-        GenJournalLine.Validate("Document No.", AppliestoDocNo);
-        GenJournalLine.Validate(Amount, Amount);
-        GenJournalLine.Modify(true);
-    end;
-
-    local procedure CreateAndPostPurchaseInvoiceWithOneLine(VendorNo: Code[20]; ExtDocNo: Code[20]; Amount: Decimal; Quantity: Decimal; DueDate: Date; PostingDate: Date): Code[20]
-    var
-        Item: Record Item;
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-    begin
-        CreateItem(Item, Amount);
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo);
-        PurchaseHeader.Validate("Vendor Invoice No.", ExtDocNo);
-        if DueDate <> 0D then
-            PurchaseHeader.Validate("Due Date", DueDate);
-        PurchaseHeader."Posting Date" := PostingDate;
-
-        PurchaseHeader.Modify(true);
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", Quantity);
-        exit(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
-    end;
-
-    local procedure CreateItem(var Item: Record Item; Amount: Decimal)
-    begin
-        LibraryInventory.CreateItem(Item);
-        Item.Validate("Unit Price", Amount);
-        Item.Validate("Last Direct Cost", Amount);
-        Item.Modify(true);
-    end;
-
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure PurchaseInvoiceRequestPageHandler(var PurchaseInvoice: TestRequestPage "Purchase - Invoice")
@@ -3614,51 +2484,10 @@ codeunit 134988 "ERM Purchase Reports III"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure RHPaymentsOnHold(var PaymentsOnHold: TestRequestPage "Payments on Hold")
-    begin
-        PaymentsOnHold.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure RHPurchaseDocumentTest(var PurchaseDocumentTest: TestRequestPage "Purchase Document - Test")
     begin
         PurchaseDocumentTest.ShowItemChargeAssignment.SetValue(true);
         PurchaseDocumentTest.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure RHAgedAccountsPayable(var AgedAccountsPayable: TestRequestPage "Aged Accounts Payable")
-    begin
-        AgedAccountsPayable.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure RHAgedAccountsPayableFileName(var AgedAccountsPayable: TestRequestPage "Aged Accounts Payable")
-    var
-        FileName: Text;
-    begin
-        FileName := LibraryReportDataset.GetFileName();
-        LibraryVariableStorage.Enqueue(FileName);
-        AgedAccountsPayable.SaveAsXml(LibraryReportDataset.GetParametersFileName(), FileName);
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure RHAgedAccountsPayableEmptyPeriodLength(var AgedAccountsPayable: TestRequestPage "Aged Accounts Payable")
-    begin
-        AgedAccountsPayable.PeriodLength.SetValue('');
-        AgedAccountsPayable.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure RHAgedAccountsPayableDefaultPeriodLength(var AgedAccountsPayable: TestRequestPage "Aged Accounts Payable")
-    begin
-        LibraryVariableStorage.Enqueue(AgedAccountsPayable.PeriodLength.Value);
-        AgedAccountsPayable.Cancel().Invoke();
     end;
 
     [RequestPageHandler]
@@ -3684,13 +2513,6 @@ codeunit 134988 "ERM Purchase Reports III"
     procedure RHOrder(var "Order": TestRequestPage "Order")
     begin
         Order.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure RHVendorSummaryAging(var VendorSummaryAging: TestRequestPage "Vendor - Summary Aging")
-    begin
-        VendorSummaryAging.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
     [RequestPageHandler]
@@ -3802,16 +2624,6 @@ codeunit 134988 "ERM Purchase Reports III"
     procedure StandardPurchaseOrderRequestPageHandler(var StandardPurchaseOrder: TestRequestPage "Standard Purchase - Order")
     begin
         StandardPurchaseOrder.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure AgedAccountsReceivableReportRequestPageHandler(var AgedAccountsPayable: TestRequestPage "Aged Accounts Payable")
-    begin
-        AgedAccountsPayable.AgedAsOf.SetValue(LibraryVariableStorage.DequeueDate());
-        AgedAccountsPayable.PrintDetails.SetValue(true);
-        AgedAccountsPayable.UseExternalDocNo.SetValue(LibraryVariableStorage.DequeueBoolean());
-        AgedAccountsPayable.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
     [RequestPageHandler]

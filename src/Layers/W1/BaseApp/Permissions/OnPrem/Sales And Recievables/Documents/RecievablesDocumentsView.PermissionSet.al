@@ -1,16 +1,16 @@
 namespace System.Security.AccessControl;
 
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Inventory.Item.Catalog;
-using Microsoft.Inventory.Tracking;
-using Microsoft.Sales.History;
-using Microsoft.Sales.Comment;
 using Microsoft.Finance.SalesTax;
-using System.Security.User;
-using Microsoft.Foundation.Reporting;
-using Microsoft.Finance.VAT.Setup;
 using Microsoft.Finance.VAT.RateChange;
 using Microsoft.Finance.VAT.Reporting;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Reporting;
+using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Sales.Comment;
+using Microsoft.Sales.History;
+using System.Security.User;
 
 permissionset 312 "Recievables Documents - View"
 {

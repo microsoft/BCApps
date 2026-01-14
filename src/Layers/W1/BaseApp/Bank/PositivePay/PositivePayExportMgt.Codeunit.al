@@ -129,6 +129,13 @@ codeunit 1711 "Positive Pay Export Mgt"
         end;
     end;
 
+    /// <summary>
+    /// Processes column mapping by transforming source data according to field mapping rules and placing it in data exchange fields.
+    /// </summary>
+    /// <param name="DataExch">The data exchange record being processed.</param>
+    /// <param name="RecRef">Record reference containing the source data.</param>
+    /// <param name="LineNo">Line number in the data exchange structure.</param>
+    /// <param name="TableID">Table ID of the source record.</param>
     local procedure ProcessColumnMapping(var DataExch: Record "Data Exch."; RecRef: RecordRef; LineNo: Integer; TableID: Integer)
     var
         DataExchDef: Record "Data Exch. Def";
@@ -184,6 +191,13 @@ codeunit 1711 "Positive Pay Export Mgt"
         until DataExchFieldMapping.Next() = 0;
     end;
 
+    /// <summary>
+    /// Pre-populates data exchange fields with empty values based on the column definitions for the export format.
+    /// </summary>
+    /// <param name="DataExchDef">Data exchange definition containing the format structure.</param>
+    /// <param name="DataExchLineDefCode">Line definition code for the specific record type.</param>
+    /// <param name="DataExchEntryNo">Entry number of the data exchange record.</param>
+    /// <param name="DataExchLineNo">Line number within the data exchange entry.</param>
     local procedure PrepopulateColumns(DataExchDef: Record "Data Exch. Def"; DataExchLineDefCode: Code[20]; DataExchEntryNo: Integer; DataExchLineNo: Integer)
     var
         DataExchField: Record "Data Exch. Field";
@@ -213,6 +227,11 @@ codeunit 1711 "Positive Pay Export Mgt"
         end;
     end;
 
+    /// <summary>
+    /// Validates that optional fields can be empty while required fields must have values.
+    /// </summary>
+    /// <param name="Optional">Whether the field is marked as optional in the export definition.</param>
+    /// <param name="FieldRef">Reference to the field being validated.</param>
     local procedure CheckOptional(Optional: Boolean; FieldRef: FieldRef)
     var
         Value: Variant;
@@ -230,6 +249,13 @@ codeunit 1711 "Positive Pay Export Mgt"
             FieldRef.TestField();
     end;
 
+    /// <summary>
+    /// Converts source values to the appropriate destination data types based on column definitions.
+    /// </summary>
+    /// <param name="DestinationValue">The converted value in the target data type.</param>
+    /// <param name="SourceValue">The original value to be converted.</param>
+    /// <param name="DataExchColumnDef">Column definition containing data type and formatting rules.</param>
+    /// <param name="Multiplier">Numeric multiplier to apply to decimal values.</param>
     local procedure CastToDestinationType(var DestinationValue: Variant; SourceValue: Variant; DataExchColumnDef: Record "Data Exch. Column Def"; Multiplier: Decimal)
     var
         ValueAsDecimal: Decimal;
@@ -275,6 +301,13 @@ codeunit 1711 "Positive Pay Export Mgt"
         end;
     end;
 
+    /// <summary>
+    /// Formats values to text according to data exchange column definition settings and file format requirements.
+    /// </summary>
+    /// <param name="ValueToFormat">The value to be formatted as text.</param>
+    /// <param name="DataExchDef">Data exchange definition containing file format settings.</param>
+    /// <param name="DataExchColumnDef">Column definition with formatting rules and data format specifications.</param>
+    /// <returns>Formatted text value ready for export.</returns>
     local procedure FormatToText(ValueToFormat: Variant; DataExchDef: Record "Data Exch. Def"; DataExchColumnDef: Record "Data Exch. Column Def"): Text[250]
     begin
         case true of
@@ -291,6 +324,13 @@ codeunit 1711 "Positive Pay Export Mgt"
         end;
     end;
 
+    /// <summary>
+    /// Validates that field values meet the length requirements specified in the data exchange column definition.
+    /// </summary>
+    /// <param name="Value">The text value to validate.</param>
+    /// <param name="FieldRef">Reference to the source field for error reporting.</param>
+    /// <param name="DataExchDef">Data exchange definition containing validation rules.</param>
+    /// <param name="DataExchColumnDef">Column definition with length constraints.</param>
     local procedure CheckLength(Value: Text; FieldRef: FieldRef; DataExchDef: Record "Data Exch. Def"; DataExchColumnDef: Record "Data Exch. Column Def")
     var
         DataExchDefCode: Code[20];
@@ -308,6 +348,11 @@ codeunit 1711 "Positive Pay Export Mgt"
               DataExchColumnDef.Length, StrLen(Value), Value);
     end;
 
+    /// <summary>
+    /// Retrieves the type description for a data exchange definition.
+    /// </summary>
+    /// <param name="DataExchDefCode">Code of the data exchange definition.</param>
+    /// <returns>Type description as text.</returns>
     local procedure GetType(DataExchDefCode: Code[20]): Text
     var
         DataExchDef: Record "Data Exch. Def";

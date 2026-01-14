@@ -18,6 +18,15 @@ using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
 using System.IO;
 
+/// <summary>
+/// Primary interface for creating, viewing, and editing general ledger account master data.
+/// Provides comprehensive account setup including posting groups, dimensions, and financial reporting classifications.
+/// </summary>
+/// <remarks>
+/// Key functionality: Account configuration, posting setup validation, dimension assignment, balance inquiry.
+/// User workflow: Chart of Accounts → Account Card → Account configuration and analysis.
+/// Extensible via page extensions for additional fields, actions, and validation logic.
+/// </remarks>
 page 17 "G/L Account Card"
 {
     Caption = 'G/L Account Card';
@@ -237,44 +246,29 @@ page 17 "G/L Account Card"
             group(Revaluation)
             {
                 Caption = 'Revaluation';
-#if not CLEAN25
-                Visible = SourceCurrencyVisible;
-#endif
                 field("Source Currency Posting"; Rec."Source Currency Posting")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Source Currency Posting';
                     ToolTip = 'Specifies how the system will validate posting of entries containing currencies. Blank will allow all currencies to be posted to the account. Same Code will only allow the currency specified in Source Currency Code. Multiple currencies will allow only posting of currencies selected in Source currency code. Local currency only allow posting without a Currency code.';
-#if not CLEAN25
-                    Visible = SourceCurrencyVisible;
-#endif
                 }
                 field("Source Currency Code"; Rec."Source Currency Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Source Currency Code';
                     ToolTip = 'Specifies the source currency code which can be posted to this account, if Source Currency Posting is set as Same Code.';
-#if not CLEAN25
-                    Visible = SourceCurrencyVisible;
-#endif
                 }
                 field("Source Currency Revaluation"; Rec."Source Currency Revaluation")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Source Currency Revaluation';
                     ToolTip = 'Specifies if source currency revaluation should be done for this account.';
-#if not CLEAN25
-                    Visible = SourceCurrencyVisible;
-#endif
                 }
                 field("Unrealized Revaluation"; Rec."Unrealized Revaluation")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Unrealized Revaluation';
                     ToolTip = 'Specifies if revaluation should be posted to currency realized or unrealized gains and losses accounts.';
-#if not CLEAN25
-                    Visible = SourceCurrencyVisible;
-#endif
                 }
             }
             group(Consolidation)
@@ -342,9 +336,6 @@ page 17 "G/L Account Card"
                               "Global Dimension 1 Filter" = field("Global Dimension 1 Filter"),
                               "Global Dimension 2 Filter" = field("Global Dimension 2 Filter"),
                               "Date Filter" = field("Date Filter");
-#if not CLEAN25
-                Visible = SourceCurrencyVisible;
-#endif
             }
             systempart(Control1900383207; Links)
             {
@@ -535,16 +526,21 @@ page 17 "G/L Account Card"
                 RunObject = Report "Detail Trial Balance";
                 ToolTip = 'View detail general ledger account balances and activities for all the selected accounts, one transaction per line.';
             }
+#if not CLEAN28
             action("Trial Balance")
             {
                 ApplicationArea = Suite;
-                Caption = 'Trial Balance';
+                Caption = 'Trial Balance (Obsolete)';
                 Image = "Report";
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Trial Balance";
                 ToolTip = 'View general ledger account balances and activities for all the selected accounts, one transaction per line.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report has been replaced by the report Trial Balance (Excel). This report will be removed in a future release.';
+                ObsoleteTag = '28.0';
             }
+#endif
             action("Trial Balance by Period")
             {
                 ApplicationArea = Basic, Suite;
@@ -724,9 +720,6 @@ page 17 "G/L Account Card"
 
     var
         ExtendedPriceEnabled: Boolean;
-#if not CLEAN25
-        SourceCurrencyVisible: Boolean;
-#endif
         SubCategoryDescription: Text[80];
 
     local procedure UpdateAccountSubcategoryDescription()
@@ -738,19 +731,7 @@ page 17 "G/L Account Card"
     local procedure SetControlVisibility()
     var
         PriceCalculationMgt: Codeunit "Price Calculation Mgt.";
-#if not CLEAN25
-        FeatureKeyManagement: Codeunit System.Environment.Configuration."Feature Key Management";
-        ClientTypeManagement: Codeunit System.Environment."Client Type Management";
-#endif
     begin
         ExtendedPriceEnabled := PriceCalculationMgt.IsExtendedPriceCalculationEnabled();
-#if not CLEAN25
-        if ClientTypeManagement.GetCurrentClientType() in [CLIENTTYPE::SOAP, CLIENTTYPE::OData, CLIENTTYPE::ODataV4, ClientType::Api]
-then
-            SourceCurrencyVisible := false
-        else
-            SourceCurrencyVisible := FeatureKeyManagement.IsGLCurrencyRevaluationEnabled();
-#endif
     end;
 }
-

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,31 +32,38 @@ table 5222 "Employee Ledger Entry"
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the entry number that is assigned to the entry.';
         }
         field(3; "Employee No."; Code[20])
         {
             Caption = 'Employee No.';
+            ToolTip = 'Specifies the number of the employee that the entry is linked to.';
             TableRelation = Employee;
         }
         field(4; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the employee entry''s posting date.';
         }
         field(5; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the document type that the employee entry belongs to.';
         }
         field(6; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the employee entry''s document number.';
         }
         field(7; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the employee entry.';
         }
         field(11; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency code for the amount on the line.';
             TableRelation = Currency;
         }
         field(13; Amount; Decimal)
@@ -67,6 +74,7 @@ table 5222 "Employee Ledger Entry"
                                                                              "Employee Ledger Entry No." = field("Entry No."),
                                                                              "Posting Date" = field("Date Filter")));
             Caption = 'Amount';
+            ToolTip = 'Specifies the amount of the entry.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -77,6 +85,7 @@ table 5222 "Employee Ledger Entry"
             CalcFormula = sum("Detailed Employee Ledger Entry".Amount where("Employee Ledger Entry No." = field("Entry No."),
                                                                              "Posting Date" = field("Date Filter")));
             Caption = 'Remaining Amount';
+            ToolTip = 'Specifies the amount that remains to be applied to before the entry is totally applied to.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -118,22 +127,26 @@ table 5222 "Employee Ledger Entry"
         {
             CaptionClass = '1,1,1';
             Caption = 'Global Dimension 1 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         field(24; "Global Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,1,2';
             Caption = 'Global Dimension 2 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         field(25; "Salespers./Purch. Code"; Code[20])
         {
             Caption = 'Salespers./Purch. Code';
+            ToolTip = 'Specifies which purchaser is assigned to the employee.';
             TableRelation = "Salesperson/Purchaser";
         }
         field(27; "User ID"; Code[50])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
         }
@@ -153,10 +166,12 @@ table 5222 "Employee Ledger Entry"
         field(36; Open; Boolean)
         {
             Caption = 'Open';
+            ToolTip = 'Specifies whether the amount on the entry has been fully paid or there is still a remaining amount that must be applied to.';
         }
         field(43; Positive; Boolean)
         {
             Caption = 'Positive';
+            ToolTip = 'Specifies if the entry to be applied is positive.';
         }
         field(44; "Closed by Entry No."; Integer)
         {
@@ -172,10 +187,12 @@ table 5222 "Employee Ledger Entry"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Closed by Amount';
+            ToolTip = 'Specifies the amount that the entry was finally applied to (closed) with.';
         }
         field(47; "Applies-to ID"; Code[50])
         {
             Caption = 'Applies-to ID';
+            ToolTip = 'Specifies the ID of entries that will be applied to when you choose the Apply Entries action.';
 
             trigger OnValidate()
             begin
@@ -199,10 +216,12 @@ table 5222 "Employee Ledger Entry"
         field(51; "Bal. Account Type"; Enum "Gen. Journal Account Type")
         {
             Caption = 'Bal. Account Type';
+            ToolTip = 'Specifies the type of balancing account that is used for the entry.';
         }
         field(52; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
+            ToolTip = 'Specifies the number of the balancing account that is used for the entry.';
             TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
             else
             if ("Bal. Account Type" = const(Customer)) Customer
@@ -231,6 +250,7 @@ table 5222 "Employee Ledger Entry"
                                                                                      "Employee Ledger Entry No." = field("Entry No."),
                                                                                      "Posting Date" = field("Date Filter")));
             Caption = 'Debit Amount';
+            ToolTip = 'Specifies the total of the ledger entries that represent debits.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -243,6 +263,7 @@ table 5222 "Employee Ledger Entry"
                                                                                       "Employee Ledger Entry No." = field("Entry No."),
                                                                                       "Posting Date" = field("Date Filter")));
             Caption = 'Credit Amount';
+            ToolTip = 'Specifies the total of the ledger entries that represent credits.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -276,6 +297,7 @@ table 5222 "Employee Ledger Entry"
         field(65; "Closed by Currency Code"; Code[10])
         {
             Caption = 'Closed by Currency Code';
+            ToolTip = 'Specifies the currency code of the entry that was applied to (and closed) this employee ledger entry.';
             TableRelation = Currency;
         }
         field(66; "Closed by Currency Amount"; Decimal)
@@ -284,6 +306,7 @@ table 5222 "Employee Ledger Entry"
             AutoFormatExpression = "Closed by Currency Code";
             AutoFormatType = 1;
             Caption = 'Closed by Currency Amount';
+            ToolTip = 'Specifies the amount that was finally applied to (and closed) this employee ledger entry.';
         }
         field(73; "Adjusted Currency Factor"; Decimal)
         {
@@ -303,6 +326,7 @@ table 5222 "Employee Ledger Entry"
                                                                              "Entry Type" = filter("Initial Entry"),
                                                                              "Posting Date" = field("Date Filter")));
             Caption = 'Original Amount';
+            ToolTip = 'Specifies the amount of the original entry.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -316,6 +340,7 @@ table 5222 "Employee Ledger Entry"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Amount to Apply';
+            ToolTip = 'Specifies the amount to apply.';
 
             trigger OnValidate()
             begin
@@ -332,6 +357,7 @@ table 5222 "Employee Ledger Entry"
         field(86; "Applying Entry"; Boolean)
         {
             Caption = 'Applying Entry';
+            ToolTip = 'Specifies whether the entry will be applied to when you choose the Apply Entries action.';
         }
         field(87; Reversed; Boolean)
         {
@@ -359,6 +385,7 @@ table 5222 "Employee Ledger Entry"
         field(171; "Payment Reference"; Code[50])
         {
             Caption = 'Payment Reference';
+            ToolTip = 'Specifies the payment to the employee.';
             trigger OnValidate()
             begin
                 if "Payment Reference" <> '' then
@@ -368,6 +395,7 @@ table 5222 "Employee Ledger Entry"
         field(172; "Payment Method Code"; Code[10])
         {
             Caption = 'Payment Method Code';
+            ToolTip = 'Specifies the payment method that was used to make the payment that resulted in the entry.';
             TableRelation = "Payment Method";
 
             trigger OnValidate()
@@ -378,6 +406,7 @@ table 5222 "Employee Ledger Entry"
         field(289; "Message to Recipient"; Text[140])
         {
             Caption = 'Message to Recipient';
+            ToolTip = 'Specifies the message exported to the payment file when you use the Export Payments to File function in the Payment Journal window.';
 
             trigger OnValidate()
             begin
@@ -387,6 +416,7 @@ table 5222 "Employee Ledger Entry"
         field(290; "Exported to Payment File"; Boolean)
         {
             Caption = 'Exported to Payment File';
+            ToolTip = 'Specifies that the entry was created as a result of exporting a payment journal line.';
             Editable = false;
         }
         field(480; "Dimension Set ID"; Integer)
@@ -404,6 +434,7 @@ table 5222 "Employee Ledger Entry"
         {
             CaptionClass = '1,2,3';
             Caption = 'Shortcut Dimension 3 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 3, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -413,6 +444,7 @@ table 5222 "Employee Ledger Entry"
         {
             CaptionClass = '1,2,4';
             Caption = 'Shortcut Dimension 4 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 4, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -422,6 +454,7 @@ table 5222 "Employee Ledger Entry"
         {
             CaptionClass = '1,2,5';
             Caption = 'Shortcut Dimension 5 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 5, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -431,6 +464,7 @@ table 5222 "Employee Ledger Entry"
         {
             CaptionClass = '1,2,6';
             Caption = 'Shortcut Dimension 6 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 6, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -440,6 +474,7 @@ table 5222 "Employee Ledger Entry"
         {
             CaptionClass = '1,2,7';
             Caption = 'Shortcut Dimension 7 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 7, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -449,6 +484,7 @@ table 5222 "Employee Ledger Entry"
         {
             CaptionClass = '1,2,8';
             Caption = 'Shortcut Dimension 8 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 8, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),

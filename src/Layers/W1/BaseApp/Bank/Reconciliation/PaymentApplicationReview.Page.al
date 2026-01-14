@@ -8,6 +8,10 @@ using Microsoft.Bank.Statement;
 using Microsoft.Finance.GeneralLedger.Journal;
 using System.IO;
 
+/// <summary>
+/// Review page for payment applications before posting.
+/// Displays applied payments for final validation and approval.
+/// </summary>
 page 1287 "Payment Application Review"
 {
     PageType = Card;

@@ -392,6 +392,12 @@ page 26 "Vendor Card"
                     ApplicationArea = VAT;
                     ToolTip = 'Specifies if the Unit Price and Line Amount fields on document lines should be shown with or without VAT.';
                 }
+                field("Self-Billing Agreement"; Rec."Self-Billing Agreement")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Importance = Additional;
+                    ToolTip = 'Specifies the value of the Self-Billing Agreement field.';
+                }
                 field("Price Calculation Method"; Rec."Price Calculation Method")
                 {
                     Visible = ExtendedPriceEnabled;
@@ -588,19 +594,6 @@ page 26 "Vendor Card"
                 SubPageLink = "No." = field("No.");
                 Visible = not IsOfficeAddin;
             }
-#if not CLEAN25
-            part("Attached Documents"; "Document Attachment Factbox")
-            {
-                ObsoleteTag = '25.0';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The "Document Attachment FactBox" has been replaced by "Doc. Attachment List Factbox", which supports multiple files upload.';
-                ApplicationArea = All;
-                Visible = false;
-                Caption = 'Attachments';
-                SubPageLink = "Table ID" = const(Database::Vendor),
-                              "No." = field("No.");
-            }
-#endif
             part("Attached Documents List"; "Doc. Attachment List Factbox")
             {
                 ApplicationArea = All;
@@ -1566,18 +1559,23 @@ page 26 "Vendor Card"
         }
         area(reporting)
         {
+#if not CLEAN28
             action("Vendor - Summary Aging")
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Vendor - Summary Aging';
+                Caption = 'Vendor - Summary Aging (Obsolete)';
                 Image = "Report";
                 ToolTip = 'View a summary of the payables owed to each vendor, divided into three time periods.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report is obsolete and will be removed in a future release. See the documentation for alternative options.';
+                ObsoleteTag = '28.0';
 
                 trigger OnAction()
                 begin
                     RunReport(REPORT::"Vendor - Summary Aging");
                 end;
             }
+#endif
             action("Vendor - Labels")
             {
                 ApplicationArea = Basic, Suite;
@@ -1760,9 +1758,14 @@ page 26 "Vendor Card"
                 actionref("Vendor - Balance to Date_Promoted"; "Vendor - Balance to Date")
                 {
                 }
+#if not CLEAN28
                 actionref("Vendor - Summary Aging_Promoted"; "Vendor - Summary Aging")
                 {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report is obsolete and will be removed in a future release. See the documentation for alternative options.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
                 actionref(Purchases_Promoted; Purchases)
                 {
                 }

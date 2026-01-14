@@ -1,7 +1,7 @@
 namespace System.Security.AccessControl;
 
-using System.Reflection;
 using System.Environment.Configuration;
+using System.Reflection;
 using System.Tooling;
 
 permissionset 6607 "Role Configuration - Edit"

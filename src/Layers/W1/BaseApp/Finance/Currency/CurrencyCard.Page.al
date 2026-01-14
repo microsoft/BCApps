@@ -7,9 +7,19 @@ namespace Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Reports;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Integration.Dataverse;
+#if not CLEAN28
 using Microsoft.Purchases.Reports;
 using Microsoft.Sales.Reports;
+#endif
 
+/// <summary>
+/// Provides a detailed card interface for managing currency configuration and settings.
+/// Supports currency setup, exchange rate management, rounding configurations, and G/L account mappings.
+/// </summary>
+/// <remarks>
+/// Source Table: Currency (4). Key features include currency definition, rounding precision settings,
+/// exchange rate access, and G/L account configuration for currency gains/losses posting.
+/// </remarks>
 page 495 "Currency Card"
 {
     Caption = 'Currency Card';
@@ -250,30 +260,41 @@ page 495 "Currency Card"
                 RunObject = Report "Foreign Currency Balance";
                 ToolTip = 'View the balances for all customers and vendors in both foreign currencies and in local currency (LCY). The report displays two LCY balances. One is the foreign currency balance converted to LCY by using the exchange rate at the time of the transaction. The other is the foreign currency balance converted to LCY by using the exchange rate of the work date.';
             }
+#if not CLEAN28
             action("Aged Accounts Receivable")
             {
                 ApplicationArea = Suite;
-                Caption = 'Aged Accounts Receivable';
+                Caption = 'Aged Accounts Receivable (Obsolete)';
                 Image = "Report";
                 RunObject = Report "Aged Accounts Receivable";
                 ToolTip = 'View an overview of when customer payments are due or overdue, divided into four periods. You must specify the date you want aging calculated from and the length of the period that each column will contain data for.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report has been replaced by the report Aged Accounts Receivable (Excel). This report will be removed in a future release.';
+                ObsoleteTag = '28.0';
             }
             action("Aged Accounts Payable")
             {
                 ApplicationArea = Suite;
-                Caption = 'Aged Accounts Payable';
+                Caption = 'Aged Accounts Payable (Obsolete)';
                 Image = "Report";
                 RunObject = Report "Aged Accounts Payable";
                 ToolTip = 'View an overview of when your payables to vendors are due or overdue (divided into four periods). You must specify the date you want aging calculated from and the length of the period that each column will contain data for.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report has been replaced by the report Aged Accounts Payable (Excel). This report will be removed in a future release.';
+                ObsoleteTag = '28.0';
             }
             action("Trial Balance")
             {
                 ApplicationArea = Suite;
-                Caption = 'Trial Balance';
+                Caption = 'Trial Balance (Obsolete)';
                 Image = "Report";
                 RunObject = Report "Trial Balance";
                 ToolTip = 'View a detailed trial balance for selected currency.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report has been replaced by the report Trial Balance (Excel). This report will be removed in a future release.';
+                ObsoleteTag = '28.0';
             }
+#endif
         }
         area(navigation)
         {
@@ -405,15 +426,26 @@ page 495 "Currency Card"
                 actionref("Foreign Currency Balance_Promoted"; "Foreign Currency Balance")
                 {
                 }
+#if not CLEAN28
                 actionref("Aged Accounts Receivable_Promoted"; "Aged Accounts Receivable")
                 {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the report Aged Accounts Receivable (Excel). This report will be removed in a future release.';
+                    ObsoleteTag = '28.0';
                 }
                 actionref("Aged Accounts Payable_Promoted"; "Aged Accounts Payable")
                 {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the report Aged Accounts Payable (Excel). This report will be removed in a future release.';
+                    ObsoleteTag = '28.0';
                 }
                 actionref("Trial Balance_Promoted"; "Trial Balance")
                 {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the report Trial Balance (Excel). This report will be removed in a future release.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
             }
             group(Category_Synchronize)
             {

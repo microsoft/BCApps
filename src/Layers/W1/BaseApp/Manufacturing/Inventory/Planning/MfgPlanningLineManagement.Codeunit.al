@@ -4,16 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Planning;
 
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
-using Microsoft.Foundation.UOM;
 using Microsoft.Manufacturing.Setup;
-using Microsoft.Manufacturing.MachineCenter;
 
 codeunit 99000819 "Mfg. Planning Line Management"
 {

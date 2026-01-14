@@ -5,6 +5,9 @@
 
 namespace System.Agents;
 
+using System.Environment;
+using System.Environment.Configuration;
+
 codeunit 4310 "Agent Task Builder Impl."
 {
     Access = Internal;
@@ -27,12 +30,14 @@ codeunit 4310 "Agent Task Builder Impl."
     end;
 
     [Scope('OnPrem')]
-    procedure Create(SetTaskStatusToReady: Boolean): Record "Agent Task"
+    procedure Create(SetTaskStatusToReady: Boolean; RequiresMessage: Boolean): Record "Agent Task"
     var
         AgentTaskRecord: Record "Agent Task";
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
         VerifyMandatoryFieldsSet();
+        VerifyTaskCanBeCreated(RequiresMessage);
+
         AgentTaskImpl.CreateTask(GlobalAgentUserSecurityId, GlobalTaskTitle, GlobalExternalID, AgentTaskRecord);
         if MessageSet then begin
             GlobalAgentTaskMessageBuilder.SetAgentTask(AgentTaskRecord);
@@ -103,4 +108,42 @@ codeunit 4310 "Agent Task Builder Impl."
         CodingErrorInfo.ErrorType := ErrorType::Internal;
         Error(CodingErrorInfo);
     end;
+
+    local procedure VerifyTaskCanBeCreated(RequiresMessage: Boolean)
+    var
+        AllowedCompanies: Text;
+    begin
+        if RequiresMessage and not MessageSet then
+            // 1. Tasks without messages cannot be set to ready to enforce a user intervention to approve the message/task.
+            // This temporary restriction ensures that the user reviews the message/task at least once.
+            Error(TaskCannotBeSetToReadyWithoutMessagesErr);
+
+        // 2. Tasks cannot be set to ready if the agent has no access controls in the current company.
+        if not CheckCurrentCompanyAccessForAgent(AllowedCompanies) then
+            Error(TaskCannotBeSetToReadyWithoutAccessControlErr, CompanyName(), AllowedCompanies);
+    end;
+
+    local procedure CheckCurrentCompanyAccessForAgent(var AllowedCompaniesText: Text): Boolean
+    var
+        TempCompany: Record Company temporary;
+        UserSettings: Codeunit "User Settings";
+    begin
+        UserSettings.GetAllowedCompaniesForUser(GlobalAgentUserSecurityId, TempCompany);
+
+        // Build list of allowed companies
+        AllowedCompaniesText := '';
+        if TempCompany.FindSet() then
+            repeat
+                if AllowedCompaniesText <> '' then
+                    AllowedCompaniesText += ', ';
+                AllowedCompaniesText += TempCompany.Name;
+            until TempCompany.Next() = 0;
+
+        TempCompany.SetRange(Name, CompanyName());
+        exit(not TempCompany.IsEmpty());
+    end;
+
+    var
+        TaskCannotBeSetToReadyWithoutMessagesErr: Label 'The task cannot be set to ready because it has no messages. Add at least one message to the task before setting it to ready.';
+        TaskCannotBeSetToReadyWithoutAccessControlErr: Label 'The task cannot be set to ready because the agent has no access control permissions in the %1 company. The agent has permissions in the following companies: %2. Grant the agent permissions in this company before setting the task to ready.', Comment = '%1 - Company Name, %2 - List of allowed companies';
 }

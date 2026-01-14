@@ -58,6 +58,7 @@ table 7014 "Purchase Line Discount"
         }
         field(5; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Line Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;

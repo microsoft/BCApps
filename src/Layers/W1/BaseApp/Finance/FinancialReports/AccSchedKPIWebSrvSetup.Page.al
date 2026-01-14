@@ -6,6 +6,15 @@ namespace Microsoft.Finance.FinancialReports;
 
 using System.Integration;
 
+/// <summary>
+/// Setup page for configuring account schedule KPI web service parameters and publication settings.
+/// Provides interface for data refresh configuration, period settings, forecasting options, and web service management.
+/// </summary>
+/// <remarks>
+/// Single-record configuration page for KPI web service setup including data time-to-live settings,
+/// G/L budget integration, period definitions, and automated web service publication controls.
+/// Supports external KPI consumption through RESTful web service endpoints.
+/// </remarks>
 page 195 "Acc. Sched. KPI Web Srv. Setup"
 {
     AdditionalSearchTerms = 'financial report setup,business intelligence setup,bi setup,odata setup,account schedule kpi web service setup,financial reporting';

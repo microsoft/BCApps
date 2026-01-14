@@ -7,11 +7,11 @@ using Microsoft.Manufacturing.Family;
 using Microsoft.Manufacturing.Forecast;
 using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Reports;
 using Microsoft.Manufacturing.RoleCenters;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Manufacturing.Reports;
 
 permissionsetextension 99000761 "MFG D365 INTELLIGENT CLOUD" extends "INTELLIGENT CLOUD"
 {

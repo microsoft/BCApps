@@ -1,8 +1,8 @@
 ﻿namespace System.Tooling;
 
 using System.Apps;
-using System.Reflection;
 using System.Integration;
+using System.Reflection;
 
 codeunit 5378 "Page Inspection VS Code Helper"
 {

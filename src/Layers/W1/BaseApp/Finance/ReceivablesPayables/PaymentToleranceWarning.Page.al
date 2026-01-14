@@ -4,6 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.ReceivablesPayables;
 
+/// <summary>
+/// Warning dialog page for handling payment tolerance situations during payment application.
+/// Provides user options for managing balance amounts when payments exceed or fall short of invoice amounts within tolerance limits.
+/// </summary>
+/// <remarks>
+/// Interactive confirmation dialog presented when payment applications result in balance amounts within payment tolerance thresholds.
+/// Offers options to post balance as payment tolerance or leave as remaining amount for future application.
+/// Displays detailed calculation breakdown showing applied amounts, tolerance calculations, and resulting balances.
+/// Integrates with payment tolerance management system for consistent handling across application scenarios.
+/// </remarks>
 page 591 "Payment Tolerance Warning"
 {
     Caption = 'Payment Tolerance Warning';
@@ -138,6 +148,16 @@ page 591 "Payment Tolerance Warning"
         DocNo: Code[20];
         CurrencyCode: Code[10];
 
+    /// <summary>
+    /// Sets the display values for the payment tolerance warning dialog.
+    /// </summary>
+    /// <param name="ShowPostingDate">Posting date for the transaction</param>
+    /// <param name="ShowCustVendNo">Customer or vendor number</param>
+    /// <param name="ShowDocNo">Document number</param>
+    /// <param name="ShowCurrencyCode">Currency code for amounts</param>
+    /// <param name="ShowAmount">Original applying amount</param>
+    /// <param name="ShowAppliedAmount">Original applied amount</param>
+    /// <param name="ShowBalance">Balance amount requiring tolerance decision</param>
     procedure SetValues(ShowPostingDate: Date; ShowCustVendNo: Code[20]; ShowDocNo: Code[20]; ShowCurrencyCode: Code[10]; ShowAmount: Decimal; ShowAppliedAmount: Decimal; ShowBalance: Decimal)
     var
         BalAmount: Decimal;
@@ -152,11 +172,19 @@ page 591 "Payment Tolerance Warning"
         BalAmount := ShowBalance;
     end;
 
+    /// <summary>
+    /// Sets the account name displayed in the payment tolerance warning dialog.
+    /// </summary>
+    /// <param name="NewAccountName">Account name to display</param>
     procedure SetAccountName(NewAccountName: Text)
     begin
         AccountName := NewAccountName;
     end;
 
+    /// <summary>
+    /// Returns the user's posting action selection from the payment tolerance warning dialog.
+    /// </summary>
+    /// <param name="PostingAction">Selected posting action (1=Payment Tolerance, 2=Remaining Amount, 3=Cancel)</param>
     procedure GetValues(var PostingAction: Integer)
     begin
         PostingAction := NewPostingAction
@@ -176,6 +204,10 @@ page 591 "Payment Tolerance Warning"
         NewPostingAction := 3;
     end;
 
+    /// <summary>
+    /// Initializes the posting action option value for the payment tolerance warning dialog.
+    /// </summary>
+    /// <param name="OptionValue">Initial posting action option value</param>
     procedure InitializeOption(OptionValue: Integer)
     begin
         NewPostingAction := OptionValue;
@@ -204,7 +236,11 @@ page 591 "Payment Tolerance Warning"
         end;
     end;
 
-    [IntegrationEvent(false,false)]
+    /// <summary>
+    /// Integration event raised before updating amounts on page open for payment tolerance processing.
+    /// </summary>
+    /// <param name="Posting">Posting option value for tolerance handling</param>
+    [IntegrationEvent(false, false)]
     local procedure OnOpenPageOnBeforeUpdateAmounts(var Posting: Option " ","Payment Tolerance Accounts","Remaining Amount")
     begin
     end;

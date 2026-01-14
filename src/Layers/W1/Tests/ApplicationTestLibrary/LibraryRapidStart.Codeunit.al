@@ -1,7 +1,8 @@
+/// <summary>
+/// Provides utility functions for creating and managing Rapid Implementation Methodology (RapidStart) configurations in test scenarios.
+/// </summary>
 codeunit 131903 "Library - Rapid Start"
 {
-    // Contains all utility functions related to Rapid Implementation Methodology.
-
 
     trigger OnRun()
     begin

@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Account;
 
+/// <summary>
+/// Buffer table for tracking the usage frequency of accounts across various setup tables.
+/// Stores account numbers and their usage counts for analysis and where-used functionality.
+/// </summary>
 table 63 "Account Use Buffer"
 {
     Caption = 'Account Use Buffer';
@@ -12,11 +16,17 @@ table 63 "Account Use Buffer"
 
     fields
     {
+        /// <summary>
+        /// The G/L account number for which usage is being tracked.
+        /// </summary>
         field(1; "Account No."; Code[20])
         {
             Caption = 'Account No.';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// The number of times this account is being used across different setup tables.
+        /// </summary>
         field(2; "No. of Use"; Integer)
         {
             Caption = 'No. of Use';
@@ -39,6 +49,12 @@ table 63 "Account Use Buffer"
     {
     }
 
+    /// <summary>
+    /// Updates the buffer with usage counts for accounts found in the specified record reference.
+    /// Scans through all records and counts how many times each account appears in the specified field.
+    /// </summary>
+    /// <param name="RecRef">Record reference to scan for account usage</param>
+    /// <param name="AccountFieldNo">Field number of the account field to analyze</param>
     procedure UpdateBuffer(var RecRef: RecordRef; AccountFieldNo: Integer)
     var
         FieldRef: FieldRef;

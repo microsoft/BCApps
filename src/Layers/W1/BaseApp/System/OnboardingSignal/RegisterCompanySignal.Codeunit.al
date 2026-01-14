@@ -1,7 +1,7 @@
 namespace System.Feedback;
 
-using System.Environment;
 using Microsoft.Foundation.Company;
+using System.Environment;
 
 codeunit 7582 "Register Company Signal"
 {

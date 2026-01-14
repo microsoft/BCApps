@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Setup;
 
-using Microsoft.Foundation.Company;
 using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Sales.Peppol;
 

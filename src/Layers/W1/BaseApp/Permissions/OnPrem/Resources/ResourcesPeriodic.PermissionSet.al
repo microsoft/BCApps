@@ -1,17 +1,17 @@
 namespace System.Security.AccessControl;
 
 using Microsoft.Finance.Currency;
+using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.Period;
+using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
-using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.Source;
 using Microsoft.Pricing.Worksheet;
 using Microsoft.Projects.Resources.Ledger;
-using Microsoft.Projects.Resources.Resource;
 using Microsoft.Projects.Resources.Pricing;
-using Microsoft.Foundation.Period;
+using Microsoft.Projects.Resources.Resource;
 using Microsoft.Utilities;
-using Microsoft.Foundation.AuditCodes;
 
 permissionset 9338 "Resources - Periodic"
 {

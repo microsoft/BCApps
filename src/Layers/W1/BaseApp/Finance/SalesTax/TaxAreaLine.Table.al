@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.SalesTax;
 
+/// <summary>
+/// Stores individual tax jurisdiction assignments within tax areas.
+/// Defines the calculation sequence and jurisdiction relationships for multi-tier tax scenarios.
+/// </summary>
 table 319 "Tax Area Line"
 {
     Caption = 'Tax Area Line';
@@ -11,24 +15,37 @@ table 319 "Tax Area Line"
 
     fields
     {
+        /// <summary>
+        /// Tax area code that contains this jurisdiction line.
+        /// </summary>
         field(1; "Tax Area"; Code[20])
         {
             Caption = 'Tax Area';
             TableRelation = "Tax Area";
         }
+        /// <summary>
+        /// Unique identifier for the tax jurisdiction within this area.
+        /// </summary>
         field(2; "Tax Jurisdiction Code"; Code[10])
         {
             Caption = 'Tax Jurisdiction Code';
             NotBlank = true;
             TableRelation = "Tax Jurisdiction";
         }
+        /// <summary>
+        /// Descriptive name of the tax jurisdiction retrieved from Tax Jurisdiction table.
+        /// </summary>
         field(3; "Jurisdiction Description"; Text[100])
         {
-            CalcFormula = lookup ("Tax Jurisdiction".Description where(Code = field("Tax Jurisdiction Code")));
+            CalcFormula = lookup("Tax Jurisdiction".Description where(Code = field("Tax Jurisdiction Code")));
             Caption = 'Jurisdiction Description';
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Sequence order for tax calculation when multiple jurisdictions apply.
+        /// Lower numbers are calculated first for tax-on-tax scenarios.
+        /// </summary>
         field(4; "Calculation Order"; Integer)
         {
             Caption = 'Calculation Order';

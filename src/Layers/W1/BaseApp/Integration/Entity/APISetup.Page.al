@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Integration.Entity;
 
+using Microsoft.API.Upgrade;
 using Microsoft.Integration.Graph;
 using System.IO;
 using System.Reflection;
-using Microsoft.API.Upgrade;
 using System.Telemetry;
 
 page 5469 "API Setup"

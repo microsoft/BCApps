@@ -33,7 +33,7 @@ pageextension 711 "Activity Log Extension" extends "Activity Log"
         {
             action(OpenRelatedRecord)
             {
-                ApplicationArea = Invoicing, Suite;
+                ApplicationArea = Suite;
                 Caption = 'Open Related Record';
                 Image = View;
                 ToolTip = 'Open the record that is associated with this activity.';

@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Test;
 
-using Microsoft.Manufacturing.Document;
 using Microsoft.Inventory.Item;
+using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Setup;
 
 codeunit 137111 "SCM Production Backlog Chart"

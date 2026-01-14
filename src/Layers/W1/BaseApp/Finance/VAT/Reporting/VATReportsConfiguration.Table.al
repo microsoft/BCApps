@@ -6,6 +6,10 @@ namespace Microsoft.Finance.VAT.Reporting;
 
 using System.Reflection;
 
+/// <summary>
+/// Configures VAT report types with associated codeunit handlers for processing and submission workflows.
+/// Defines the framework for extensible VAT reporting with customizable processing logic.
+/// </summary>
 table 746 "VAT Reports Configuration"
 {
     Caption = 'VAT Reports Configuration';
@@ -13,19 +17,31 @@ table 746 "VAT Reports Configuration"
 
     fields
     {
+        /// <summary>
+        /// Type of VAT report defining the processing framework and submission requirements.
+        /// </summary>
         field(1; "VAT Report Type"; Enum "VAT Report Configuration")
         {
             Caption = 'VAT Report Type';
         }
+        /// <summary>
+        /// Version identifier for VAT report configuration allowing multiple versions per type.
+        /// </summary>
         field(2; "VAT Report Version"; Code[10])
         {
             Caption = 'VAT Report Version';
         }
+        /// <summary>
+        /// Codeunit ID responsible for suggesting VAT statement lines for report generation.
+        /// </summary>
         field(3; "Suggest Lines Codeunit ID"; Integer)
         {
             Caption = 'Suggest Lines Codeunit ID';
             TableRelation = "CodeUnit Metadata".ID;
         }
+        /// <summary>
+        /// Display caption of the suggest lines codeunit for user identification.
+        /// </summary>
         field(4; "Suggest Lines Codeunit Caption"; Text[250])
         {
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Codeunit),
@@ -34,11 +50,17 @@ table 746 "VAT Reports Configuration"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Codeunit ID responsible for generating report content and formatting.
+        /// </summary>
         field(5; "Content Codeunit ID"; Integer)
         {
             Caption = 'Content Codeunit ID';
             TableRelation = "CodeUnit Metadata".ID;
         }
+        /// <summary>
+        /// Display caption of the content codeunit for user identification.
+        /// </summary>
         field(6; "Content Codeunit Caption"; Text[250])
         {
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Codeunit),
@@ -47,11 +69,17 @@ table 746 "VAT Reports Configuration"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Codeunit ID responsible for submitting VAT reports to tax authorities.
+        /// </summary>
         field(7; "Submission Codeunit ID"; Integer)
         {
             Caption = 'Submission Codeunit ID';
             TableRelation = "CodeUnit Metadata".ID;
         }
+        /// <summary>
+        /// Display caption of the submission codeunit for user identification.
+        /// </summary>
         field(8; "Submission Codeunit Caption"; Text[250])
         {
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Codeunit),
@@ -60,11 +88,17 @@ table 746 "VAT Reports Configuration"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Codeunit ID responsible for handling responses from tax authority submissions.
+        /// </summary>
         field(9; "Response Handler Codeunit ID"; Integer)
         {
             Caption = 'Response Handler Codeunit ID';
             TableRelation = "CodeUnit Metadata".ID;
         }
+        /// <summary>
+        /// Display caption of the response handler codeunit for user identification.
+        /// </summary>
         field(10; "Resp. Handler Codeunit Caption"; Text[250])
         {
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Codeunit),
@@ -73,11 +107,17 @@ table 746 "VAT Reports Configuration"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Codeunit ID responsible for validating VAT report data before submission.
+        /// </summary>
         field(11; "Validate Codeunit ID"; Integer)
         {
             Caption = 'Validate Codeunit ID';
             TableRelation = "CodeUnit Metadata".ID;
         }
+        /// <summary>
+        /// Display caption of the validate codeunit for user identification.
+        /// </summary>
         field(12; "Validate Codeunit Caption"; Text[250])
         {
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Codeunit),
@@ -86,11 +126,17 @@ table 746 "VAT Reports Configuration"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// VAT statement template used as the basis for generating report lines.
+        /// </summary>
         field(13; "VAT Statement Template"; Code[10])
         {
             Caption = 'VAT Statement Template';
             TableRelation = "VAT Statement Template".Name;
         }
+        /// <summary>
+        /// VAT statement name within the template used for report line generation.
+        /// </summary>
         field(14; "VAT Statement Name"; Code[10])
         {
             Caption = 'VAT Statement Name';

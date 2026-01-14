@@ -78,14 +78,36 @@ page 30163 "Shpfy Metafields"
 
                 trigger OnAction()
                 var
-                    MetafieldAPI: Codeunit "Shpfy Metafield API";
+                    Metafields: Codeunit "Shpfy Metafields";
                     ParentTableNo: Integer;
                     OwnerId: BigInteger;
                 begin
                     Evaluate(ParentTableNo, Rec.GetFilter("Parent Table No."));
                     Evaluate(OwnerId, Rec.GetFilter("Owner Id"));
-                    MetafieldAPI.SetShop(Shop);
-                    MetafieldAPI.GetMetafieldDefinitions(ParentTableNo, OwnerId);
+                    Metafields.GetMetafieldDefinitions(ParentTableNo, OwnerId, Shop.Code);
+                end;
+            }
+            action(SyncToShopify)
+            {
+                ApplicationArea = All;
+                Caption = 'Sync to Shopify';
+                Image = Export;
+                ToolTip = 'Send the selected metafields to Shopify.';
+                Visible = IsPageEditable;
+                Promoted = true;
+                PromotedOnly = true;
+                PromotedCategory = Process;
+
+                trigger OnAction()
+                var
+                    Metafield: Record "Shpfy Metafield";
+                    Metafields: Codeunit "Shpfy Metafields";
+                begin
+                    CurrPage.SetSelectionFilter(Metafield);
+                    if Metafield.FindSet() then
+                        repeat
+                            Metafields.SyncMetafieldToShopify(Metafield, Shop.Code);
+                        until Metafield.Next() = 0;
                 end;
             }
         }
@@ -113,18 +135,19 @@ page 30163 "Shpfy Metafields"
         Rec.TestField(Name);
         Rec.Validate(Value);
 
-        Rec.Id := SendMetafieldToShopify();
+        Rec.Id := Metafields.SyncMetafieldToShopify(Rec, Shop.Code);
     end;
 
     trigger OnModifyRecord(): Boolean
     begin
         if Rec.Id < 0 then
             if xRec.Value <> Rec.Value then
-                Rec.Rename(SendMetafieldToShopify());
+                Rec.Rename(Metafields.SyncMetafieldToShopify(Rec, Shop.Code));
     end;
 
     var
         Shop: Record "Shpfy Shop";
+        Metafields: Codeunit "Shpfy Metafields";
         IsPageEditable: Boolean;
         IsValueEditable: Boolean;
 
@@ -148,30 +171,5 @@ page 30163 "Shpfy Metafields"
 
         CurrPage.SetTableView(Metafield);
         CurrPage.RunModal();
-    end;
-
-    local procedure SendMetafieldToShopify(): BigInteger
-    var
-        JsonHelper: Codeunit "Shpfy Json Helper";
-        MetafieldAPI: Codeunit "Shpfy Metafield API";
-        UserErrorOnShopifyErr: Label 'Something went wrong while sending the metafield to Shopify. Check Shopify Log Entries for more details.';
-        GraphQuery: TextBuilder;
-        JResponse: JsonToken;
-        JMetafields: JsonArray;
-        JUserErrors: JsonArray;
-        JItem: JsonToken;
-    begin
-        MetafieldAPI.SetShop(Shop);
-        MetafieldAPI.CreateMetafieldQuery(Rec, GraphQuery);
-        JResponse := MetafieldAPI.UpdateMetafields(GraphQuery.ToText());
-
-        JsonHelper.GetJsonArray(JResponse, JUserErrors, 'data.metafieldsSet.userErrors');
-
-        if JUserErrors.Count() = 0 then begin
-            JsonHelper.GetJsonArray(JResponse, JMetafields, 'data.metafieldsSet.metafields');
-            JMetafields.Get(0, JItem);
-            exit(JsonHelper.GetValueAsBigInteger(JItem, 'legacyResourceId'));
-        end else
-            Error(UserErrorOnShopifyErr);
     end;
 }

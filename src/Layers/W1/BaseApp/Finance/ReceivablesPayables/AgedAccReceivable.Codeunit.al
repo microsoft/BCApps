@@ -11,6 +11,16 @@ using Microsoft.Sales.Receivables;
 using Microsoft.Utilities;
 using System.Visualization;
 
+/// <summary>
+/// Provides aged accounts receivable analysis and chart generation for customer outstanding balances.
+/// Calculates aging periods, generates business chart data, and supports drill-down functionality for receivables management.
+/// </summary>
+/// <remarks>
+/// Generates aging analysis using customer ledger entries with configurable period lengths and aging intervals.
+/// Supports both summary view across all customers and detailed per-customer aging analysis.
+/// Integrates with business chart controls for visual representation of aged receivables data.
+/// Chart generation includes period-based aging buckets and overdue amount calculations.
+/// </remarks>
 codeunit 763 "Aged Acc. Receivable"
 {
 
@@ -78,12 +88,27 @@ codeunit 763 "Aged Acc. Receivable"
     end;
 
 
+    /// <summary>
+    /// Updates business chart buffer with aged receivable data for a specific customer.
+    /// Generates aging analysis with default initialization settings.
+    /// </summary>
+    /// <param name="BusChartBuf">Business chart buffer to populate with aging data</param>
+    /// <param name="CustomerNo">Customer number for aging analysis</param>
+    /// <param name="TempEntryNoAmountBuf">Temporary buffer for amount calculations</param>
     [Scope('OnPrem')]
     procedure UpdateDataPerCustomer(var BusChartBuf: Record "Business Chart Buffer"; CustomerNo: Code[20]; var TempEntryNoAmountBuf: Record "Entry No. Amount Buffer" temporary)
     begin
         UpdateDataPerCustomer(BusChartBuf, CustomerNo, TempEntryNoAmountBuf, false);
     end;
 
+    /// <summary>
+    /// Updates business chart buffer with aged receivable data for a specific customer with initialization control.
+    /// Configures chart structure and calculates aging buckets based on period settings.
+    /// </summary>
+    /// <param name="BusChartBuf">Business chart buffer to populate with aging data</param>
+    /// <param name="CustomerNo">Customer number for aging analysis</param>
+    /// <param name="TempEntryNoAmountBuf">Temporary buffer for amount calculations</param>
+    /// <param name="AlreadyInitialized">Whether chart parameters are already initialized</param>
     [Scope('OnPrem')]
     procedure UpdateDataPerCustomer(var BusChartBuf: Record "Business Chart Buffer"; CustomerNo: Code[20]; var TempEntryNoAmountBuf: Record "Entry No. Amount Buffer" temporary; AlreadyInitialized: Boolean)
     var
@@ -110,6 +135,12 @@ codeunit 763 "Aged Acc. Receivable"
             until TempEntryNoAmountBuf.Next() = 0
     end;
 
+    /// <summary>
+    /// Updates business chart buffer with aged receivable data grouped by customer posting groups.
+    /// Creates stacked column chart showing aging distribution across posting groups.
+    /// </summary>
+    /// <param name="BusChartBuf">Business chart buffer to populate with grouped aging data</param>
+    /// <param name="TempEntryNoAmountBuf">Temporary buffer for amount calculations by group</param>
     procedure UpdateDataPerGroup(var BusChartBuf: Record "Business Chart Buffer"; var TempEntryNoAmountBuf: Record "Entry No. Amount Buffer" temporary)
     var
         CustPostingGroup: Record "Customer Posting Group";
@@ -210,6 +241,16 @@ codeunit 763 "Aged Acc. Receivable"
             until CustPostingGroup.Next() = 0;
     end;
 
+    /// <summary>
+    /// Generates date filter string for aging period based on index and period settings.
+    /// Calculates appropriate date ranges for not due and overdue amounts.
+    /// </summary>
+    /// <param name="Index">Period index for aging bucket calculation</param>
+    /// <param name="StartDate">Starting date for aging calculation</param>
+    /// <param name="PeriodLength">Period length code for aging intervals</param>
+    /// <param name="NoOfPeriods">Total number of aging periods</param>
+    /// <param name="EndDate">Calculated end date for the period</param>
+    /// <returns>Date filter string for the aging period</returns>
     procedure DateFilterByAge(Index: Integer; var StartDate: Date; PeriodLength: Text[1]; NoOfPeriods: Integer; var EndDate: Date): Text
     begin
         if Index = 0 then // First period - Not due remaining amounts
@@ -224,6 +265,16 @@ codeunit 763 "Aged Acc. Receivable"
         exit(StrSubstNo('%1..%2', StartDate, EndDate));
     end;
 
+    /// <summary>
+    /// Inserts calculated amount data into temporary buffer for aging period.
+    /// Creates buffer entry with period information and calculated amounts.
+    /// </summary>
+    /// <param name="Index">Period index for the aging bucket</param>
+    /// <param name="BussUnitCode">Business unit code for grouping</param>
+    /// <param name="AmountLCY">Amount in local currency for the period</param>
+    /// <param name="StartDate">Period start date</param>
+    /// <param name="EndDate">Period end date</param>
+    /// <param name="TempEntryNoAmountBuffer">Temporary buffer to insert data into</param>
     procedure InsertAmountBuffer(Index: Integer; BussUnitCode: Code[20]; AmountLCY: Decimal; StartDate: Date; EndDate: Date; var TempEntryNoAmountBuffer: Record "Entry No. Amount Buffer" temporary)
     begin
         TempEntryNoAmountBuffer.Init();
@@ -235,12 +286,27 @@ codeunit 763 "Aged Acc. Receivable"
         TempEntryNoAmountBuffer.Insert();
     end;
 
+    /// <summary>
+    /// Initializes aging parameters from business chart buffer settings.
+    /// Extracts period length and number of periods for aging calculation.
+    /// </summary>
+    /// <param name="BusChartBuf">Business chart buffer with parameter settings</param>
+    /// <param name="PeriodLength">Extracted period length for aging intervals</param>
+    /// <param name="NoOfPeriods">Extracted number of aging periods</param>
     procedure InitParameters(BusChartBuf: Record "Business Chart Buffer"; var PeriodLength: Text[1]; var NoOfPeriods: Integer)
     begin
         PeriodLength := GetPeriod(BusChartBuf);
         NoOfPeriods := GetNoOfPeriods(BusChartBuf);
     end;
 
+    /// <summary>
+    /// Initializes aging parameters and clears temporary buffer for fresh calculation.
+    /// Prepares buffer and extracts period settings from chart configuration.
+    /// </summary>
+    /// <param name="BusChartBuf">Business chart buffer with parameter settings</param>
+    /// <param name="PeriodLength">Extracted period length for aging intervals</param>
+    /// <param name="NoOfPeriods">Extracted number of aging periods</param>
+    /// <param name="TempEntryNoAmountBuf">Temporary buffer to clear and initialize</param>
     procedure InitParameters(BusChartBuf: Record "Business Chart Buffer"; var PeriodLength: Text[1]; var NoOfPeriods: Integer; var TempEntryNoAmountBuf: Record "Entry No. Amount Buffer" temporary)
     begin
         TempEntryNoAmountBuf.DeleteAll();
@@ -275,6 +341,15 @@ codeunit 763 "Aged Acc. Receivable"
         exit(NoOfPeriods);
     end;
 
+    /// <summary>
+    /// Formats column name for aging chart based on period index and settings.
+    /// Generates appropriate labels for aging buckets and periods.
+    /// </summary>
+    /// <param name="Index">Period index for the aging bucket</param>
+    /// <param name="PeriodLength">Period length code for aging intervals</param>
+    /// <param name="NoOfColumns">Total number of aging columns</param>
+    /// <param name="Period">Period option for formatting</param>
+    /// <returns>Formatted column name for the aging period</returns>
     procedure FormatColumnName(Index: Integer; PeriodLength: Text[1]; NoOfColumns: Integer; Period: Option): Text
     var
         BusChartBuf: Record "Business Chart Buffer";
@@ -294,6 +369,13 @@ codeunit 763 "Aged Acc. Receivable"
         exit(StrSubstNo('%1%2', Index, DelChr(Format(PeriodDateFormula), '=', '1')));
     end;
 
+    /// <summary>
+    /// Handles drill-down navigation from aging chart to detailed customer ledger entries.
+    /// Opens customer ledger entries filtered by aging period and customer.
+    /// </summary>
+    /// <param name="BusChartBuf">Business chart buffer with drill-down context</param>
+    /// <param name="CustomerNo">Customer number for filtering entries</param>
+    /// <param name="TempEntryNoAmountBuf">Temporary buffer with aging period data</param>
     procedure DrillDown(var BusChartBuf: Record "Business Chart Buffer"; CustomerNo: Code[20]; var TempEntryNoAmountBuf: Record "Entry No. Amount Buffer" temporary)
     var
         MeasureName: Text;
@@ -309,11 +391,25 @@ codeunit 763 "Aged Acc. Receivable"
             DrillDownCustLedgEntries(CustomerNo, CustomerGroupCode, TempEntryNoAmountBuf."Start Date", TempEntryNoAmountBuf."End Date");
     end;
 
+    /// <summary>
+    /// Handles drill-down navigation from grouped aging chart to detailed entries.
+    /// Opens customer ledger entries filtered by aging period and posting group.
+    /// </summary>
+    /// <param name="BusChartBuf">Business chart buffer with drill-down context</param>
+    /// <param name="TempEntryNoAmountBuf">Temporary buffer with aging period data by group</param>
     procedure DrillDownByGroup(var BusChartBuf: Record "Business Chart Buffer"; var TempEntryNoAmountBuf: Record "Entry No. Amount Buffer" temporary)
     begin
         DrillDown(BusChartBuf, '', TempEntryNoAmountBuf);
     end;
 
+    /// <summary>
+    /// Opens customer ledger entries page with filters for aging period and customer/group.
+    /// Provides detailed view of entries contributing to aging amounts.
+    /// </summary>
+    /// <param name="CustomerNo">Customer number filter for entries</param>
+    /// <param name="CustomerGroupCode">Customer posting group filter for entries</param>
+    /// <param name="StartDate">Start date for aging period filter</param>
+    /// <param name="EndDate">End date for aging period filter</param>
     procedure DrillDownCustLedgEntries(CustomerNo: Code[20]; CustomerGroupCode: Code[20]; StartDate: Date; EndDate: Date)
     var
         CustLedgEntry: Record "Cust. Ledger Entry";
@@ -333,6 +429,12 @@ codeunit 763 "Aged Acc. Receivable"
         PAGE.Run(PAGE::"Customer Ledger Entries", CustLedgEntry);
     end;
 
+    /// <summary>
+    /// Returns appropriate description text for aging chart based on analysis scope.
+    /// Provides different descriptions for per-customer vs. summary analysis.
+    /// </summary>
+    /// <param name="PerCustomer">Whether analysis is per customer or summary</param>
+    /// <returns>Description text for the aging chart</returns>
     procedure Description(PerCustomer: Boolean): Text
     begin
         if PerCustomer then
@@ -340,6 +442,12 @@ codeunit 763 "Aged Acc. Receivable"
         exit(ChartDescriptionMsg);
     end;
 
+    /// <summary>
+    /// Generates status text for aging chart based on period settings and analysis type.
+    /// Creates descriptive status showing period length and aging configuration.
+    /// </summary>
+    /// <param name="BusChartBuf">Business chart buffer with period settings</param>
+    /// <returns>Formatted status text for the chart</returns>
     procedure UpdateStatusText(BusChartBuf: Record "Business Chart Buffer"): Text
     var
         OfficeMgt: Codeunit "Office Management";
@@ -377,6 +485,11 @@ codeunit 763 "Aged Acc. Receivable"
         exit(StatusText);
     end;
 
+    /// <summary>
+    /// Saves user-specific chart settings for aging analysis preferences.
+    /// Persists period length and chart configuration to user setup.
+    /// </summary>
+    /// <param name="BusChartBuf">Business chart buffer with settings to save</param>
     procedure SaveSettings(BusChartBuf: Record "Business Chart Buffer")
     var
         BusChartUserSetup: Record "Business Chart User Setup";
@@ -385,6 +498,12 @@ codeunit 763 "Aged Acc. Receivable"
         BusChartUserSetup.SaveSetupCU(BusChartUserSetup, CODEUNIT::"Aged Acc. Receivable");
     end;
 
+    /// <summary>
+    /// Calculates average payment days for customer invoices for performance analysis.
+    /// Provides rounded average days between invoice and payment dates.
+    /// </summary>
+    /// <param name="CustomerNo">Customer number for payment days calculation</param>
+    /// <returns>Average payment days rounded to nearest whole number</returns>
     procedure InvoicePaymentDaysAverage(CustomerNo: Code[20]): Decimal
     begin
         exit(Round(CalcInvPmtDaysAverage(CustomerNo), 1));
@@ -422,6 +541,11 @@ codeunit 763 "Aged Acc. Receivable"
         exit(PaymentDays / InvoiceCount);
     end;
 
+    /// <summary>
+    /// Rounds amount to the precision defined in General Ledger Setup.
+    /// </summary>
+    /// <param name="Amount">Amount to round</param>
+    /// <returns>Rounded amount using G/L amount rounding precision</returns>
     procedure RoundAmount(Amount: Decimal): Decimal
     begin
         if not GLSetupLoaded then begin
@@ -432,11 +556,19 @@ codeunit 763 "Aged Acc. Receivable"
         exit(Round(Amount, GeneralLedgerSetup."Amount Rounding Precision"));
     end;
 
+    /// <summary>
+    /// Returns the localized text for overdue amounts in aged analysis reports.
+    /// </summary>
+    /// <returns>Overdue label text for display in charts and reports</returns>
     procedure OverDueText(): Text
     begin
         exit(OverdueTxt);
     end;
 
+    /// <summary>
+    /// Returns the localized text for amount labels in aged analysis reports.
+    /// </summary>
+    /// <returns>Amount label text for display in charts and reports</returns>
     procedure AmountText(): Text
     begin
         exit(AmountTxt);

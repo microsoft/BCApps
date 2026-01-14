@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Page for editing dimension set entries in a temporary context.
+/// Provides interface for modifying dimension combinations and generating updated dimension set IDs.
+/// </summary>
+/// <remarks>
+/// Uses temporary table source to allow dimension editing without immediate database persistence.
+/// Supports dynamic form captions and integrates with dimension management for dimension set creation.
+/// Returns updated dimension set ID upon page closure for use in calling processes.
+/// </remarks>
 page 480 "Edit Dimension Set Entries"
 {
     Caption = 'Edit Dimension Set Entries';
@@ -67,11 +76,29 @@ page 480 "Edit Dimension Set Entries"
         DimSetID: Integer;
         FormCaption: Text[250];
 
+    /// <summary>
+    /// Retrieves the current dimension set ID after dimension editing operations.
+    /// Returns the dimension set ID generated from the edited dimension entries.
+    /// </summary>
+    /// <returns>Dimension set ID representing the current dimension combination</returns>
+    /// <remarks>
+    /// Used by calling processes to obtain the updated dimension set ID after dimension editing.
+    /// The ID is generated when the page closes through dimension management integration.
+    /// </remarks>
     procedure GetDimensionID(): Integer
     begin
         exit(DimSetID);
     end;
 
+    /// <summary>
+    /// Sets a custom caption for the dimension editing form.
+    /// Allows contextual form titles to indicate the source or purpose of dimension editing.
+    /// </summary>
+    /// <param name="NewFormCaption">Custom caption text to be combined with the default page caption</param>
+    /// <remarks>
+    /// Combines the provided caption with the default page caption using a separator.
+    /// Applied when the page opens to provide context-specific titles for dimension editing scenarios.
+    /// </remarks>
     procedure SetFormCaption(NewFormCaption: Text[250])
     begin
         FormCaption := CopyStr(NewFormCaption + ' - ' + CurrPage.Caption, 1, MaxStrLen(FormCaption));

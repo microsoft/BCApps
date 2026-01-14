@@ -6,6 +6,16 @@ namespace Microsoft.Finance.GeneralLedger.Journal;
 
 using Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Provides user interface for defining dimension-based filtering criteria for general journal line analysis.
+/// Enables users to specify multiple dimension filters for advanced journal line querying and reporting.
+/// </summary>
+/// <remarks>
+/// Dimension filtering configuration page for journal line analysis. Supports multi-dimensional filtering scenarios
+/// where users need to analyze journal entries based on specific dimension value combinations.
+/// Key features: Multiple dimension filter definition, dimension value lookup, filter expression support.
+/// Integration: Works with journal reporting tools and dimension analysis functions for enhanced filtering capabilities.
+/// </remarks>
 page 482 "Gen. Jnl. Dim. Filters"
 {
     Caption = 'Gen. Jnl. Dim. Filters';
@@ -79,6 +89,11 @@ page 482 "Gen. Jnl. Dim. Filters"
     var
         GenJournalLine: Record "Gen. Journal Line";
 
+    /// <summary>
+    /// Sets the journal line context for dimension filter operations.
+    /// Establishes the journal line reference used for filter persistence and context.
+    /// </summary>
+    /// <param name="NewGenJournalLine">Journal line record to use as context for dimension filtering.</param>
     procedure SetGenJnlLine(var NewGenJournalLine: Record "Gen. Journal Line")
     begin
         GenJournalLine.Copy(NewGenJournalLine);

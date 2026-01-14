@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Warehouse.Activity;
 
-using Microsoft.Inventory.Tracking;
-using Microsoft.Warehouse.Structure;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Warehouse.Structure;
 codeunit 7388 "Scan Warehouse Activity Line"
 {
     var

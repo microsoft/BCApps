@@ -52,6 +52,7 @@ table 5809 "Item Charge Assignment (Sales)"
         }
         field(8; "Qty. to Assign"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Qty. to Assign';
             DecimalPlaces = 0 : 5;
@@ -76,6 +77,7 @@ table 5809 "Item Charge Assignment (Sales)"
         }
         field(9; "Qty. Assigned"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Qty. Assigned';
             DecimalPlaces = 0 : 5;
@@ -83,6 +85,7 @@ table 5809 "Item Charge Assignment (Sales)"
         }
         field(10; "Unit Cost"; Decimal)
         {
+            AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 2;
             Caption = 'Unit Cost';
 
@@ -93,6 +96,7 @@ table 5809 "Item Charge Assignment (Sales)"
         }
         field(11; "Amount to Assign"; Decimal)
         {
+            AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Amount to Assign';
 
@@ -145,6 +149,7 @@ table 5809 "Item Charge Assignment (Sales)"
         }
         field(15; "Applies-to Doc. Line Amount"; Decimal)
         {
+            AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Applies-to Doc. Line Amount';
         }
@@ -163,6 +168,7 @@ table 5809 "Item Charge Assignment (Sales)"
         }
         field(17; "Amount to Handle"; Decimal)
         {
+            AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Amount to Handle';
 
@@ -215,6 +221,12 @@ table 5809 "Item Charge Assignment (Sales)"
             Currency.InitRoundingPrecision();
     end;
 
+    local procedure GetCurrencyCode(): Code[10]
+    begin
+        if SalesLine.Get("Document Type", "Document No.", "Document Line No.") then
+            exit(SalesLine."Currency Code");
+    end;
+
     procedure SalesLineInvoiced() Result: Boolean
     begin
         if "Applies-to Doc. Type" <> "Document Type" then
@@ -240,4 +252,3 @@ table 5809 "Item Charge Assignment (Sales)"
     begin
     end;
 }
-

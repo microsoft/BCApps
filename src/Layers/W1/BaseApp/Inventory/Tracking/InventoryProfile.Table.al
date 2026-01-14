@@ -348,35 +348,8 @@ table 99000853 "Inventory Profile"
         OnAfterTransferFromItemLedgerEntry(Rec, ItemLedgerEntry);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure TransferInventoryProfileFromSalesLine in codeunit Sales Line-Invt. Profile', '25.0')]
-    procedure TransferFromSalesLine(var SalesLine: Record Microsoft.Sales.Document."Sales Line"; var TrackingReservationEntry: Record "Reservation Entry")
-    var
-        SalesLineInvtProfile: Codeunit Microsoft.Sales.Document."Sales Line Invt. Profile";
-    begin
-        SalesLineInvtProfile.TransferInventoryProfileFromSalesLine(Rec, SalesLine, TrackingReservationEntry);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure TransferInventoryProfileFromProdOrderComp in codeunit Prod. Order Comp.-Invt. Profile', '25.0')]
-    procedure TransferFromComponent(var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var TrackingReservationEntry: Record "Reservation Entry")
-    var
-        ProdOrderCompInvtProfile: Codeunit Microsoft.Manufacturing.Document."Prod. Order Comp. Invt.Profile";
-    begin
-        ProdOrderCompInvtProfile.TransferInventoryProfileFromProdOrderComponent(Rec, ProdOrderComponent, TrackingReservationEntry);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure TransferInventoryProfileFromPlanComponent in codeunit Plng. Component-Invt. Profile', '25.0')]
-    procedure TransferFromPlanComponent(var PlanningComponent: Record Microsoft.Inventory.Planning."Planning Component"; var TrackingReservationEntry: Record "Reservation Entry")
-    var
-        PlngComponentInvtProfile: Codeunit Microsoft.Inventory.Planning."Plng. Component Invt. Profile";
-    begin
-        PlngComponentInvtProfile.TransferInventoryProfileFromPlanComponent(Rec, PlanningComponent, TrackingReservationEntry);
-    end;
-#endif
 
     procedure CalcReservedQty(var ReservationEntry: Record "Reservation Entry"; var ReservedQty: Decimal)
     var
@@ -412,55 +385,10 @@ table 99000853 "Inventory Profile"
             end;
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure TransferInventoryProfileFromPurchaseLine in codeunit Purch. Line-Invt. Profile', '25.0')]
-    procedure TransferFromPurchaseLine(var PurchaseLine: Record Microsoft.Purchases.Document."Purchase Line"; var TrackingReservationEntry: Record "Reservation Entry")
-    var
-        PurchaseLineInvtProfile: Codeunit Microsoft.Purchases.Document."Purchase Line Invt. Profile";
-    begin
-        PurchaseLineInvtProfile.TransferInventoryProfileFromPurchaseLine(Rec, PurchaseLine, TrackingReservationEntry);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure TransferInventoryProfileFromProdOrderLine in codeunit Prod. Order Line Reserve', '25.0')]
-    procedure TransferFromProdOrderLine(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var TrackingReservationEntry: Record "Reservation Entry")
-    var
-        ProdOrderLineReserve: Codeunit Microsoft.Manufacturing.Document."Prod. Order Line-Reserve";
-    begin
-        ProdOrderLineReserve.TransferInventoryProfileFromProdOrderLine(Rec, ProdOrderLine, TrackingReservationEntry);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure TransferInventoryProfileFromAssemblyLine in codeunit Assembly Line Invt. Profile', '25.0')]
-    procedure TransferFromAsmLine(var AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line"; var TrackingReservationEntry: Record "Reservation Entry")
-    var
-        AssemblyLineInvtProfile: Codeunit Microsoft.Assembly.Document."Assembly Line Invt. Profile";
-    begin
-        AssemblyLineInvtProfile.TransferInventoryProfileFromAsmLine(Rec, AssemblyLine, TrackingReservationEntry);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure TransferInventoryProfileFromAssemblyHeader in codeunit Assembly Header Invt. Profile', '25.0')]
-    procedure TransferFromAsmHeader(var AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header"; var TrackingReservationEntry: Record "Reservation Entry")
-    var
-        AssemblyHeaderInvtProfile: Codeunit Microsoft.Assembly.Document."Assembly Header Invt. Profile";
-    begin
-        AssemblyHeaderInvtProfile.TransferInventoryProfileFromAssemblyHeader(Rec, AssemblyHeader, TrackingReservationEntry);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure TransferInventoryProfileFromRequisitionLine in codeunit Req. Line-Reserve', '25.0')]
-    procedure TransferFromRequisitionLine(var RequisitionLine: Record "Requisition Line"; var TrackingReservationEntry: Record "Reservation Entry")
-    var
-        ReqLineReserve: Codeunit "Req. Line-Reserve";
-    begin
-        ReqLineReserve.TransferInventoryProfileFromRequisitionLine(Rec, RequisitionLine, TrackingReservationEntry);
-    end;
-#endif
 
     procedure TransferFromOutboundTransfPlan(var RequisitionLine: Record "Requisition Line"; var TrackingReservationEntry: Record "Reservation Entry")
     var
@@ -586,25 +514,7 @@ table 99000853 "Inventory Profile"
         OnAfterTransferFromInboundTransfer(Rec, TransferLine);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure TransferInventoryProfileFromServLine in codeunit Service Line Invt. Profile', '25.0')]
-    procedure TransferFromServLine(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var TrackingReservationEntry: Record "Reservation Entry")
-    var
-        ServiceLineInvtProfile: Codeunit Microsoft.Service.Document."Service Line Invt. Profile";
-    begin
-        ServiceLineInvtProfile.TransferInventoryProfileFromServLine(Rec, ServiceLine, TrackingReservationEntry);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure TransferInventoryProfileFromJobPlanningLine in codeunit Job Planning Invt. Profile', '25.0')]
-    procedure TransferFromJobPlanningLine(var JobPlanningLine: Record Microsoft.Projects.Project.Planning."Job Planning Line"; var TrackingReservationEntry: Record "Reservation Entry")
-    var
-        JobPlanningInvtProfile: Codeunit Microsoft.Projects.Project.Planning."Job Planning Invt. Profile";
-    begin
-        JobPlanningInvtProfile.TransferInventoryProfileFromJobPlanningLine(Rec, JobPlanningLine, TrackingReservationEntry);
-    end;
-#endif
 
     procedure TransferBindings(var ReservationEntry: Record "Reservation Entry"; var TrackingReservationEntry: Record "Reservation Entry"): Decimal
     var
@@ -926,109 +836,13 @@ table 99000853 "Inventory Profile"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnAfterTransferFromSalesLine(var InventoryProfile: Record "Inventory Profile"; SalesLine: Record Microsoft.Sales.Document."Sales Line")
-    begin
-        OnAfterTransferFromSalesLine(InventoryProfile, SalesLine);
-    end;
 
-    [Obsolete('Replaced by event OnAfterTransferInventoryProfileFromSalesLine in codeunit Sales Line-Invt. Profile', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTransferFromSalesLine(var InventoryProfile: Record "Inventory Profile"; SalesLine: Record Microsoft.Sales.Document."Sales Line")
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnAfterTransferFromComponent(var InventoryProfile: Record "Inventory Profile"; ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-        OnAfterTransferFromComponent(InventoryProfile, ProdOrderComp);
-    end;
 
-    [Obsolete('Replaced by event OnAfterTransferInventoryProfileFromProdOrderComponent in codeunit Prod. Order Comp.-Invt. Profile', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTransferFromComponent(var InventoryProfile: Record "Inventory Profile"; ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnAfterTransferFromPlanComponent(var InventoryProfile: Record "Inventory Profile"; PlanningComponent: Record Microsoft.Inventory.Planning."Planning Component")
-    begin
-        OnAfterTransferFromPlanComponent(InventoryProfile, PlanningComponent);
-    end;
 
-    [Obsolete('Replaced by event OnAfterTransferInventoryProfileFromPlnanningComponent in codeunit Plng. Component-Invt. Profile', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTransferFromPlanComponent(var InventoryProfile: Record "Inventory Profile"; PlanningComponent: Record Microsoft.Inventory.Planning."Planning Component")
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnAfterTransferFromPurchaseLine(var InventoryProfile: Record "Inventory Profile"; PurchaseLine: Record Microsoft.Purchases.Document."Purchase Line")
-    begin
-        OnAfterTransferFromPurchaseLine(InventoryProfile, PurchaseLine);
-    end;
 
-    [Obsolete('Replaced by event OnAfterTransferInventoryProfileFromProdOrderLine in codeunit Purch. Line-Invt. Profile', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTransferFromPurchaseLine(var InventoryProfile: Record "Inventory Profile"; PurchaseLine: Record Microsoft.Purchases.Document."Purchase Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnAfterTransferFromProdOrderLine(var InventoryProfile: Record "Inventory Profile"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line")
-    begin
-        OnAfterTransferFromProdOrderLine(InventoryProfile, ProdOrderLine);
-    end;
-
-    [Obsolete('Replaced by event OnAfterTransferInventoryProfileFromProdOrderLine in codeunit Prod. Order Line-Reserve', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTransferFromProdOrderLine(var InventoryProfile: Record "Inventory Profile"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnAfterTransferFromAsmLine(var InventoryProfile: Record "Inventory Profile"; AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line")
-    begin
-        OnAfterTransferFromAsmLine(InventoryProfile, AssemblyLine);
-    end;
-
-    [Obsolete('Replaced by event OnAfterTransferInventoryProfileFromAssemblyLine  in codeunit Assembly Line-Invt. Profile', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTransferFromAsmLine(var InventoryProfile: Record "Inventory Profile"; AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnAfterTransferFromAsmHeader(var InventoryProfile: Record "Inventory Profile"; AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header")
-    begin
-        OnAfterTransferFromAsmHeader(InventoryProfile, AssemblyHeader);
-    end;
-
-    [Obsolete('Replaced by event OnAfterTransferInventoryProfileFromAssemblyHeader in codeunit Assembly Header-Invt. Profile', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTransferFromAsmHeader(var InventoryProfile: Record "Inventory Profile"; AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnAfterTransferFromRequisitionLine(var InventoryProfile: Record "Inventory Profile"; RequisitionLine: Record "Requisition Line")
-    begin
-        OnAfterTransferFromRequisitionLine(InventoryProfile, RequisitionLine);
-    end;
-
-    [Obsolete('Replaced by event OnAfterTransferInventoryProfileFromRequisitionLine in codeunit Req. Line-Reserve', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTransferFromRequisitionLine(var InventoryProfile: Record "Inventory Profile"; RequisitionLine: Record "Requisition Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterTransferFromInboundTransfer(var InventoryProfile: Record "Inventory Profile"; TransLine: Record "Transfer Line")
@@ -1045,31 +859,7 @@ table 99000853 "Inventory Profile"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnAfterTransferFromServLine(var InventoryProfile: Record "Inventory Profile"; ServiceLine: Record Microsoft.Service.Document."Service Line")
-    begin
-        OnAfterTransferFromServLine(InventoryProfile, ServiceLine);
-    end;
 
-    [Obsolete('Replaced by event OnAfterTransferInventoryProfileFromServiceLine in codeunit Service Line-Invt. Profile', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTransferFromServLine(var InventoryProfile: Record "Inventory Profile"; ServiceLine: Record Microsoft.Service.Document."Service Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnAfterTransferFromJobPlanningLine(var InventoryProfile: Record "Inventory Profile"; JobPlanningLine: Record Microsoft.Projects.Project.Planning."Job Planning Line")
-    begin
-        OnAfterTransferFromJobPlanningLine(InventoryProfile, JobPlanningLine);
-    end;
-
-    [Obsolete('Replaced by event OnAfterTransferInventoryProfileFromServiceLine in codeunit Job Planning Invt. Profile', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTransferFromJobPlanningLine(var InventoryProfile: Record "Inventory Profile"; JobPlanningLine: Record Microsoft.Projects.Project.Planning."Job Planning Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterTransferToTrackingEntry(var ReservationEntry: Record "Reservation Entry"; InventoryProfile: Record "Inventory Profile"; UseSecondaryFields: Boolean)
@@ -1126,4 +916,3 @@ table 99000853 "Inventory Profile"
     begin
     end;
 }
-

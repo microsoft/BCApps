@@ -13,6 +13,10 @@ using Microsoft.Intercompany.Setup;
 using System.IO;
 using System.Telemetry;
 
+/// <summary>
+/// Handles import of intercompany transactions from external sources into the IC inbox.
+/// Processes outbox transactions from partner companies and converts them to inbox transactions for acceptance and processing.
+/// </summary>
 codeunit 435 "IC Inbox Import"
 {
     TableNo = "IC Inbox Transaction";
@@ -201,11 +205,31 @@ codeunit 435 "IC Inbox Import"
         FromICPartnerCode := ICOutboxImpExpXML.GetFromICPartnerCode();
     end;
 
+    /// <summary>
+    /// Integration event raised before importing inbox transaction data to allow custom import handling.
+    /// </summary>
+    /// <param name="ICSetup">IC Setup record with configuration</param>
+    /// <param name="IStream">Input stream containing transaction data</param>
+    /// <param name="TempICOutboxTransaction">Temporary outbox transaction records</param>
+    /// <param name="TempICOutboxJnlLine">Temporary outbox journal line records</param>
+    /// <param name="TempICInboxOutboxJnlLineDim">Temporary dimension records</param>
+    /// <param name="TempICOutboxSalesHeader">Temporary sales header records</param>
+    /// <param name="TempICOutboxSalesLine">Temporary sales line records</param>
+    /// <param name="TempICOutboxPurchaseHeader">Temporary purchase header records</param>
+    /// <param name="TempICOutboxPurchaseLine">Temporary purchase line records</param>
+    /// <param name="TempICDocDim">Temporary document dimension records</param>
+    /// <param name="FromICPartnerCode">IC partner code sending the data</param>
+    /// <param name="IsHandled">Set to true to skip standard import processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeImportInboxTransactionProcedure(ICSetup: Record "IC Setup"; var IStream: InStream; var TempICOutboxTransaction: Record "IC Outbox Transaction" temporary; var TempICOutboxJnlLine: Record "IC Outbox Jnl. Line" temporary; var TempICInboxOutboxJnlLineDim: Record "IC Inbox/Outbox Jnl. Line Dim." temporary; var TempICOutboxSalesHeader: Record "IC Outbox Sales Header" temporary; var TempICOutboxSalesLine: Record "IC Outbox Sales Line" temporary; var TempICOutboxPurchaseHeader: Record "IC Outbox Purchase Header" temporary; var TempICOutboxPurchaseLine: Record "IC Outbox Purchase Line" temporary; var TempICDocDim: Record "IC Document Dimension" temporary; var FromICPartnerCode: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after processing each outbox transaction during import to allow custom actions.
+    /// </summary>
+    /// <param name="IcInboxTransaction">IC Inbox Transaction record created from the outbox transaction</param>
+    /// <param name="IcOutBoxTransaction">IC Outbox Transaction record that was processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnAfterTempICOutboxTransLoop(var IcInboxTransaction: Record "IC Inbox Transaction"; var IcOutBoxTransaction: Record "IC Outbox Transaction")
     begin

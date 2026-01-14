@@ -69,11 +69,18 @@ page 9023 "Accounting Services RC"
                 RunObject = Page "Item List";
                 ToolTip = 'View or edit detailed information for the products that you trade in. The item card can be of type Inventory or Service to specify if the item is a physical unit or a labor time unit. Here you also define if items in inventory or on incoming orders are automatically reserved for outbound documents and whether order tracking links are created between demand and supply to reflect planning actions.';
             }
+#if not CLEAN28
+#pragma warning disable AL0551
             separator(History)
             {
                 Caption = 'History';
                 IsHeader = true;
+                ObsoleteReason = 'The action area ''Embedding'' can only contain actions';
+                ObsoleteState = Pending;
+                ObsoleteTag = '28.0';
             }
+#pragma warning restore AL0551
+#endif
             action("Navi&gate")
             {
                 ApplicationArea = Basic, Suite;
@@ -93,4 +100,3 @@ page 9023 "Accounting Services RC"
         }
     }
 }
-

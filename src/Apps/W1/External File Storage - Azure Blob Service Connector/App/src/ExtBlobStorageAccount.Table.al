@@ -71,7 +71,8 @@ table 4560 "Ext. Blob Storage Account"
     trigger OnDelete()
     begin
         if not IsNullGuid(Rec."Secret Key") then
-            if IsolatedStorage.Delete(Rec."Secret Key") then;
+            if IsolatedStorage.Contains(Rec."Secret Key", DataScope::Company) then
+                IsolatedStorage.Delete(Rec."Secret Key", DataScope::Company);
     end;
 
     procedure SetSecret(Secret: SecretText)

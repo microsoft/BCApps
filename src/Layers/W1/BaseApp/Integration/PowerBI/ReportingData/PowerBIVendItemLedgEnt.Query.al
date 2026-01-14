@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Integration.PowerBI;
 
-using Microsoft.Purchases.Vendor;
 using Microsoft.Inventory.Ledger;
+using Microsoft.Purchases.Vendor;
 
 query 65 "Power BI Vend. Item Ledg. Ent."
 {

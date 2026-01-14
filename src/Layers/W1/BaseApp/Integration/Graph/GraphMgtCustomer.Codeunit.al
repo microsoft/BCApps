@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Integration.Graph;
 
-using Microsoft.Sales.Customer;
 using Microsoft.API.Upgrade;
+using Microsoft.Sales.Customer;
 
 codeunit 5471 "Graph Mgt - Customer"
 {

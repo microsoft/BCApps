@@ -6,6 +6,16 @@ namespace Microsoft.Finance.GeneralLedger.Journal;
 
 using System.Reflection;
 
+/// <summary>
+/// Provides a list view of general journal templates for selection and basic template information display.
+/// Enables users to browse available journal templates and select appropriate templates for journal creation.
+/// </summary>
+/// <remarks>
+/// Read-only list page for journal template selection. Used primarily as a lookup page for template selection
+/// during journal batch creation and configuration processes.
+/// Key features: Template browsing, template information display, template selection for batch creation.
+/// Integration: Used by journal batch setup processes and template lookup functions throughout the journal system.
+/// </remarks>
 page 250 "General Journal Template List"
 {
     Caption = 'General Journal Template List';

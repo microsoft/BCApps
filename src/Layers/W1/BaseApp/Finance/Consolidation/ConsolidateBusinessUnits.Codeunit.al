@@ -6,10 +6,19 @@ namespace Microsoft.Finance.Consolidation;
 
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
-using System.Threading;
 using Microsoft.Foundation.Period;
+using System.Threading;
 using System.Utilities;
 
+/// <summary>
+/// Manages the consolidation workflow for multiple business units with validation, process orchestration, and job queue integration.
+/// Coordinates the consolidation process across multiple business units with proper validation and error handling.
+/// </summary>
+/// <remarks>
+/// Primary orchestrator for multi-business unit consolidation operations supporting both interactive and background processing.
+/// Integrates with Job Queue system for scheduled consolidation operations and provides comprehensive validation.
+/// Extensibility: Integration events for custom validation, pre/post consolidation processing, and business unit selection.
+/// </remarks>
 codeunit 110 "Consolidate Business Units"
 {
     Permissions = tabledata "Job Queue Entry" = rid;

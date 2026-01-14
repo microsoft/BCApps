@@ -11,15 +11,15 @@ tableextension 20406 "Qlty. Serial No. Information" extends "Serial No. Informat
 {
     fields
     {
-        field(20400; "Qlty. Inspection Test Count"; Integer)
+        field(20400; "Qlty. Inspection Count"; Integer)
         {
-            Caption = 'Quality Inspection Test Count';
-            ToolTip = 'Specifies the count of available quality inspection tests for the serial number.';
+            Caption = 'Quality Inspection Count';
+            ToolTip = 'Specifies the count of available quality inspections for the serial number.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("Qlty. Inspection Test Header" where("Source Item No." = field("Item No."),
-                                                                     "Source Variant Code" = field("Variant Code"),
-                                                                     "Source Serial No." = field("Serial No.")));
+            CalcFormula = count("Qlty. Inspection Header" where("Source Item No." = field("Item No."),
+                                                                "Source Variant Code" = field("Variant Code"),
+                                                                "Source Serial No." = field("Serial No.")));
         }
     }
 }

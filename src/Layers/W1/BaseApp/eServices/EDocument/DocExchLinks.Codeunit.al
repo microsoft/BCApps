@@ -66,27 +66,7 @@ codeunit 1411 "Doc. Exch. Links"
         end;
     end;
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit ServDocExchangeMgt', '25.0')]
-    [Scope('OnPrem')]
-    procedure CheckAndUpdateDocExchServiceInvoiceStatus(var ServiceInvoiceHeader: Record Microsoft.Service.History."Service Invoice Header")
-    var
-        ServDocExchangeMgt: Codeunit "Serv. Doc. Exchange Mgt.";
-    begin
-        ServDocExchangeMgt.CheckAndUpdateDocExchServiceInvoiceStatus(ServiceInvoiceHeader);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit ServDocExchangeMgt', '25.0')]
-    [Scope('OnPrem')]
-    procedure CheckAndUpdateDocExchServiceCrMemoStatus(var ServiceCrMemoHeader: Record Microsoft.Service.History."Service Cr.Memo Header")
-    var
-        ServDocExchangeMgt: Codeunit "Serv. Doc. Exchange Mgt.";
-    begin
-        ServDocExchangeMgt.CheckAndUpdateDocExchServiceCrMemoStatus(ServiceCrMemoHeader);
-    end;
-#endif
 
     local procedure SetInvoiceDocSent(DocRecRef: RecordRef; DocIdentifier: Text; DocOriginalIdentifier: Text)
     var
@@ -147,4 +127,3 @@ codeunit 1411 "Doc. Exch. Links"
     begin
     end;
 }
-

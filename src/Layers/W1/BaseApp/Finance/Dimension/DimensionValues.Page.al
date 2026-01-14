@@ -4,6 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// List page for managing dimension values within a specific dimension.
+/// Provides comprehensive interface for creating, editing, and organizing dimension values with hierarchical support.
+/// </summary>
+/// <remarks>
+/// Supports hierarchical dimension value structures with Begin-Total and End-Total types for reporting and analysis.
+/// Includes functionality for dimension value indentation, translation management, and bulk operations.
+/// </remarks>
 page 537 "Dimension Values"
 {
     Caption = 'Dimension Values';

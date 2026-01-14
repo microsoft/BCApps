@@ -10,6 +10,15 @@ using Microsoft.Finance.Analysis;
 using Microsoft.Finance.Consolidation;
 using Microsoft.Finance.GeneralLedger.Account;
 
+/// <summary>
+/// Temporary buffer table for dimension selection operations in analysis views and reporting scenarios.
+/// Manages dimension selection state, filters, and level settings for analysis view configuration and dimension-based reporting.
+/// </summary>
+/// <remarks>
+/// Used in analysis view setup, dimension selection pages, and reporting scenarios requiring dynamic dimension filtering.
+/// Supports multiple selection types including multiple selection, change selection, and level-based selection.
+/// Integrates with analysis views, G/L accounts, and cash flow accounts for comprehensive dimension management.
+/// </remarks>
 table 368 "Dimension Selection Buffer"
 {
     Caption = 'Dimension Selection Buffer';
@@ -18,16 +27,25 @@ table 368 "Dimension Selection Buffer"
 
     fields
     {
+        /// <summary>
+        /// Code identifying the dimension or special analysis element being selected.
+        /// </summary>
         field(1; "Code"; Text[30])
         {
             Caption = 'Code';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Descriptive name of the dimension or analysis element for user interface display.
+        /// </summary>
         field(2; Description; Text[30])
         {
             Caption = 'Description';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Indicates whether this dimension is selected for inclusion in analysis or reporting.
+        /// </summary>
         field(3; Selected; Boolean)
         {
             Caption = 'Selected';
@@ -40,6 +58,9 @@ table 368 "Dimension Selection Buffer"
                 Level := Level::" ";
             end;
         }
+        /// <summary>
+        /// New dimension value code for dimension change operations and value substitutions.
+        /// </summary>
         field(4; "New Dimension Value Code"; Code[20])
         {
             Caption = 'New Dimension Value Code';
@@ -55,6 +76,9 @@ table 368 "Dimension Selection Buffer"
                 Selected := true;
             end;
         }
+        /// <summary>
+        /// Filter expression for dimension values used in analysis and reporting operations.
+        /// </summary>
         field(5; "Dimension Value Filter"; Code[250])
         {
             Caption = 'Dimension Value Filter';
@@ -78,6 +102,9 @@ table 368 "Dimension Selection Buffer"
                     Selected := true;
             end;
         }
+        /// <summary>
+        /// Analysis level classification for hierarchical dimension analysis and level-based filtering.
+        /// </summary>
         field(6; Level; Option)
         {
             Caption = 'Level';
@@ -93,6 +120,9 @@ table 368 "Dimension Selection Buffer"
                     Selected := true;
             end;
         }
+        /// <summary>
+        /// Table number for filter lookup operations, determining the source table for dimension value filtering.
+        /// </summary>
         field(7; "Filter Lookup Table No."; Integer)
         {
             Caption = 'Filter Lookup Table No.';
@@ -125,6 +155,17 @@ table 368 "Dimension Selection Buffer"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 
+    /// <summary>
+    /// Opens dimension selection page for multiple dimension selection and updates the selected dimension text.
+    /// Allows users to select multiple dimensions for analysis views and reporting scenarios.
+    /// </summary>
+    /// <param name="ObjectType">Type of object for which dimensions are being selected</param>
+    /// <param name="ObjectID">ID of the object for which dimensions are being selected</param>
+    /// <param name="SelectedDimText">Text containing the selected dimension codes, updated after selection</param>
+    /// <remarks>
+    /// Extensibility: OnBeforeInsertDimSelBufForDimSelectionMultiple event allows custom dimension buffer setup.
+    /// Used in analysis view configuration and reporting scenarios requiring multiple dimension selection.
+    /// </remarks>
     procedure SetDimSelectionMultiple(ObjectType: Integer; ObjectID: Integer; var SelectedDimText: Text[250])
     var
         Dim: Record Dimension;
@@ -156,6 +197,17 @@ table 368 "Dimension Selection Buffer"
         DimSelectionMultiple.InsertDimSelBuf(SelectedDim.Get(UserId, ObjectType, ObjectID, '', Dimension.Code), Dimension.Code, Dimension.GetMLName(GlobalLanguage));
     end;
 
+    /// <summary>
+    /// Opens a dimension selection page allowing users to change dimension selections for a specific object.
+    /// Updates the selected dimensions text based on user choices and commits changes to the selected dimensions table.
+    /// </summary>
+    /// <param name="ObjectType">Type of object for which dimensions are being selected</param>
+    /// <param name="ObjectID">ID of the object for which dimensions are being selected</param>
+    /// <param name="SelectedDimText">Text representation of currently selected dimensions, updated with new selections</param>
+    /// <remarks>
+    /// Uses modal page interaction to present available dimensions and capture user selections.
+    /// Integrates with Selected Dimension table for persistence and provides extensibility through integration events.
+    /// </remarks>
     procedure SetDimSelectionChange(ObjectType: Integer; ObjectID: Integer; var SelectedDimText: Text[250])
     var
         Dim: Record Dimension;
@@ -193,6 +245,19 @@ table 368 "Dimension Selection Buffer"
           SelectedDim."Dimension Value Filter");
     end;
 
+    /// <summary>
+    /// Compares current dimension selection text with stored dimension selections to ensure data consistency.
+    /// Validates that the provided dimension text matches the dimensions stored in the Selected Dimension table.
+    /// </summary>
+    /// <param name="ObjectType">Type of object for which dimensions are being compared</param>
+    /// <param name="ObjectID">ID of the object for which dimensions are being compared</param>
+    /// <param name="AnalysisViewCode">Analysis view code for context-specific dimension validation</param>
+    /// <param name="SelectedDimText">Current dimension text to be validated</param>
+    /// <param name="DimTextFieldName">Name of the field containing dimension text for error messages</param>
+    /// <remarks>
+    /// Throws error if dimension text does not match stored selections, ensuring data integrity across dimension operations.
+    /// Supports analysis view specific validation and provides extensibility through integration events.
+    /// </remarks>
     procedure CompareDimText(ObjectType: Integer; ObjectID: Integer; AnalysisViewCode: Code[10]; SelectedDimText: Text[250]; DimTextFieldName: Text[100])
     var
         SelectedDim: Record "Selected Dimension";
@@ -226,6 +291,19 @@ table 368 "Dimension Selection Buffer"
                     Text := StrSubstNo('%1;...', Text)
     end;
 
+    /// <summary>
+    /// Updates dimension selections for a specific object based on user choices from the dimension selection buffer.
+    /// Replaces existing selections with new ones and updates the dimension text representation.
+    /// </summary>
+    /// <param name="ObjectType">Type of object for which dimensions are being set</param>
+    /// <param name="ObjectID">ID of the object for which dimensions are being set</param>
+    /// <param name="AnalysisViewCode">Analysis view code for context-specific dimension management</param>
+    /// <param name="SelectedDimText">Text representation of selected dimensions, updated to reflect new selections</param>
+    /// <param name="DimSelectionBuf">Buffer containing dimension selections to be applied</param>
+    /// <remarks>
+    /// Clears existing selections and creates new Selected Dimension records based on buffer contents.
+    /// Provides extensibility through integration events for validation and custom processing.
+    /// </remarks>
     procedure SetDimSelection(ObjectType: Integer; ObjectID: Integer; AnalysisViewCode: Code[10]; var SelectedDimText: Text[250]; var DimSelectionBuf: Record "Dimension Selection Buffer")
     var
         SelectedDim: Record "Selected Dimension";
@@ -253,6 +331,18 @@ table 368 "Dimension Selection Buffer"
         end;
     end;
 
+    /// <summary>
+    /// Sets dimension selection level for G/L Account based analysis with manual dimension selection.
+    /// Provides G/L Account specific dimension management without automatic dimension assignment.
+    /// </summary>
+    /// <param name="ObjectType">Type of object for which dimensions are being set</param>
+    /// <param name="ObjectID">ID of the object for which dimensions are being set</param>
+    /// <param name="AnalysisViewCode">Analysis view code for G/L Account dimension analysis</param>
+    /// <param name="SelectedDimText">Text representation of selected dimensions, updated with new selections</param>
+    /// <remarks>
+    /// Specialized for G/L Account analysis scenarios with manual dimension control.
+    /// Delegates to SetDimSelectionLevelWithAutoSet with G/L Account context and AutoSet disabled.
+    /// </remarks>
     procedure SetDimSelectionLevelGLAcc(ObjectType: Integer; ObjectID: Integer; AnalysisViewCode: Code[10]; var SelectedDimText: Text[250])
     var
         GLAcc: Record "G/L Account";
@@ -260,6 +350,18 @@ table 368 "Dimension Selection Buffer"
         SetDimSelectionLevelWithAutoSet(ObjectType, ObjectID, AnalysisViewCode, SelectedDimText, GLAcc.TableCaption(), false);
     end;
 
+    /// <summary>
+    /// Sets dimension selection level for G/L Account based analysis with automatic dimension assignment.
+    /// Provides G/L Account specific dimension management with automatic dimension selection based on analysis view configuration.
+    /// </summary>
+    /// <param name="ObjectType">Type of object for which dimensions are being set</param>
+    /// <param name="ObjectID">ID of the object for which dimensions are being set</param>
+    /// <param name="AnalysisViewCode">Analysis view code for G/L Account dimension analysis</param>
+    /// <param name="SelectedDimText">Text representation of selected dimensions, updated with automatic selections</param>
+    /// <remarks>
+    /// Specialized for G/L Account analysis scenarios with automatic dimension assignment.
+    /// Delegates to SetDimSelectionLevelWithAutoSet with G/L Account context and AutoSet enabled.
+    /// </remarks>
     procedure SetDimSelectionLevelGLAccAutoSet(ObjectType: Integer; ObjectID: Integer; AnalysisViewCode: Code[10]; var SelectedDimText: Text[250])
     var
         GLAcc: Record "G/L Account";
@@ -267,6 +369,18 @@ table 368 "Dimension Selection Buffer"
         SetDimSelectionLevelWithAutoSet(ObjectType, ObjectID, AnalysisViewCode, SelectedDimText, GLAcc.TableCaption(), true);
     end;
 
+    /// <summary>
+    /// Sets dimension selection level for Cash Flow Account based analysis with manual dimension selection.
+    /// Provides Cash Flow Account specific dimension management without automatic dimension assignment.
+    /// </summary>
+    /// <param name="ObjectType">Type of object for which dimensions are being set</param>
+    /// <param name="ObjectID">ID of the object for which dimensions are being set</param>
+    /// <param name="AnalysisViewCode">Analysis view code for Cash Flow Account dimension analysis</param>
+    /// <param name="SelectedDimText">Text representation of selected dimensions, updated with new selections</param>
+    /// <remarks>
+    /// Specialized for Cash Flow Account analysis scenarios with manual dimension control.
+    /// Delegates to SetDimSelectionLevelWithAutoSet with Cash Flow Account context and AutoSet disabled.
+    /// </remarks>
     procedure SetDimSelectionLevelCFAcc(ObjectType: Integer; ObjectID: Integer; AnalysisViewCode: Code[10]; var SelectedDimText: Text[250])
     var
         CFAcc: Record "Cash Flow Account";
@@ -342,6 +456,18 @@ table 368 "Dimension Selection Buffer"
         end;
     end;
 
+    /// <summary>
+    /// Retrieves the text representation of currently selected dimensions for a specific object and analysis view.
+    /// Builds dimension code list from Selected Dimension table records.
+    /// </summary>
+    /// <param name="ObjectType">Type of object for which dimension text is being retrieved</param>
+    /// <param name="ObjectID">ID of the object for which dimension text is being retrieved</param>
+    /// <param name="AnalysisViewCode">Analysis view code for context-specific dimension retrieval</param>
+    /// <returns>Semicolon-separated text representation of selected dimension codes</returns>
+    /// <remarks>
+    /// Constructs dimension text by concatenating dimension codes from Selected Dimension records.
+    /// Used for display purposes and dimension selection validation across analysis operations.
+    /// </remarks>
     procedure GetDimSelectionText(ObjectType: Integer; ObjectID: Integer; AnalysisViewCode: Code[10]): Text[250]
     var
         SelectedDim: Record "Selected Dimension";
@@ -364,31 +490,76 @@ table 368 "Dimension Selection Buffer"
         SelectedDim.SetRange("Analysis View Code", AnalysisViewCode);
     end;
 
+    /// <summary>
+    /// Integration event raised after completing dimension selection change operations.
+    /// Provides extensibility for custom processing after dimension selection modifications.
+    /// </summary>
+    /// <param name="DimensionSelectionBuffer">Current dimension selection buffer record context</param>
+    /// <param name="TheDimSelectionBuf">Temporary dimension selection buffer with updated selections</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetDimSelectionChange(var DimensionSelectionBuffer: Record "Dimension Selection Buffer"; var TheDimSelectionBuf: Record "Dimension Selection Buffer" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting dimension selection buffer records for dimension selection change operations.
+    /// Allows custom validation and preprocessing before dimension buffer creation.
+    /// </summary>
+    /// <param name="DimSelectionChange">Dimension Selection-Change page instance</param>
+    /// <param name="Dimension">Dimension record being processed</param>
+    /// <param name="ObjectType">Type of object for dimension selection</param>
+    /// <param name="ObjectID">ID of object for dimension selection</param>
+    /// <param name="IsHandled">Set to true to skip standard processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertDimSelBufForDimSelectionChange(var DimSelectionChange: Page "Dimension Selection-Change"; Dimension: Record Dimension; ObjectType: Integer; ObjectID: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting dimension selection buffer records for multiple dimension selection operations.
+    /// Allows custom validation and preprocessing before dimension buffer creation in multiple selection scenarios.
+    /// </summary>
+    /// <param name="DimSelectionMultiple">Dimension Selection-Multiple page instance</param>
+    /// <param name="Dimension">Dimension record being processed</param>
+    /// <param name="ObjectType">Type of object for dimension selection</param>
+    /// <param name="ObjectID">ID of object for dimension selection</param>
+    /// <param name="IsHandled">Set to true to skip standard processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertDimSelBufForDimSelectionMultiple(var DimSelectionMultiple: Page "Dimension Selection-Multiple"; Dimension: Record Dimension; ObjectType: Integer; ObjectID: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised in CompareDimText before searching Selected Dimension records.
+    /// Enables custom filtering and validation before dimension text comparison operations.
+    /// </summary>
+    /// <param name="SelectedDimension">Selected Dimension record with applied filters</param>
+    /// <param name="ObjectType">Type of object for dimension comparison</param>
+    /// <param name="ObjectID">ID of object for dimension comparison</param>
     [IntegrationEvent(false, false)]
     local procedure OnCompareDimTextOnBeforeSelectedDimFind(var SelectedDimension: Record "Selected Dimension"; ObjectType: Integer; ObjectID: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting default range on Selected Dimension table during SetDimSelection operations.
+    /// Allows additional filtering and validation before dimension selection processing.
+    /// </summary>
+    /// <param name="SelectedDimension">Selected Dimension record with default range applied</param>
+    /// <param name="ObjectType">Type of object for dimension selection</param>
+    /// <param name="ObjectID">ID of object for dimension selection</param>
     [IntegrationEvent(false, false)]
     local procedure OnSetDimSelectionOnAfterSetDefaultRangeOnSelectedDimTable(var SelectedDimension: Record "Selected Dimension"; ObjectType: Integer; ObjectID: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting Selected Dimension records during SetDimSelection operations.
+    /// Enables custom validation and modification of dimension selection data before persistence.
+    /// </summary>
+    /// <param name="SelectedDimension">Selected Dimension record to be inserted</param>
+    /// <param name="ObjectType">Type of object for dimension selection</param>
+    /// <param name="ObjectID">ID of object for dimension selection</param>
     [IntegrationEvent(false, false)]
     local procedure OnSetDimSelectionOnBeforeSelectedDimInsert(var SelectedDimension: Record "Selected Dimension"; ObjectType: Integer; ObjectID: Integer)
     begin

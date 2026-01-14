@@ -4,22 +4,22 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.Security.AccessControl;
 
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.BOM;
-using Microsoft.Sales.Customer;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Projects.Resources.Resource;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
 using Microsoft.Service.Archive;
-using Microsoft.Service.Resources;
 using Microsoft.Service.Comment;
 using Microsoft.Service.Contract;
-using Microsoft.Service.Item;
 using Microsoft.Service.Document;
+using Microsoft.Service.Item;
 using Microsoft.Service.Ledger;
-using Microsoft.Service.Setup;
 using Microsoft.Service.Maintenance;
-using Microsoft.Inventory.Ledger;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Foundation.UOM;
+using Microsoft.Service.Resources;
+using Microsoft.Service.Setup;
 
 permissionset 4339 "Service Items - Edit"
 {

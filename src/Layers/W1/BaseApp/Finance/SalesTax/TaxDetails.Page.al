@@ -6,6 +6,10 @@ namespace Microsoft.Finance.SalesTax;
 
 using Microsoft.Finance.VAT.Ledger;
 
+/// <summary>
+/// Configuration page for detailed tax rate settings by jurisdiction and tax group.
+/// Provides interface for setting tax percentages, thresholds, and effective dates.
+/// </summary>
 page 468 "Tax Details"
 {
     ApplicationArea = SalesTax;

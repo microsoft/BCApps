@@ -14,13 +14,22 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Budget;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.Period;
 using System.IO;
 using System.Telemetry;
 using System.Text;
 using System.Utilities;
-using Microsoft.Foundation.Enums;
 
+/// <summary>
+/// Generates financial reports based on account schedules and column layouts with flexible filtering and formatting options.
+/// Primary reporting engine for balance sheets, income statements, and custom financial analysis reports.
+/// </summary>
+/// <remarks>
+/// Integrates with G/L entries, budgets, cost accounting, and cash flow forecasts for comprehensive financial reporting.
+/// Supports multiple output formats, custom column layouts, and dimension-based filtering for detailed financial analysis.
+/// Extensibility: OnAfterSetFilters, OnAfterTransferValues, OnAfterFormatZeroAmount events for custom formatting and processing.
+/// </remarks>
 report 25 "Account Schedule"
 {
     AdditionalSearchTerms = 'financial reporting,income statement,balance sheet';
@@ -360,7 +369,7 @@ report 25 "Account Schedule"
     requestpage
     {
         AboutTitle = 'About Run Financial Report';
-        AboutText = 'Specify the Financial Report you want to run (to get a pdf or to print) and the date range for the data to be included. You can also Specifies additional display options and filters for dimensions and budgets (choose "Show more" in the Options pane to see all options).';
+        AboutText = 'Specify the Financial Report you want to run (to get a pdf or to print) and the date range for the data to be included. You can also specify additional display options and filters for dimensions and budgets (choose "Show more" in the Options pane to see all options).';
         SaveValues = true;
 
         layout
@@ -471,27 +480,26 @@ report 25 "Account Schedule"
                                 RequestOptionsPage.Update();
                             end;
                         }
-                        field(SheetDefNameField; SheetDefNameText)
+                        field(DimPerspectiveNameField; DimPerspectiveNameText)
                         {
                             ApplicationArea = Basic, Suite;
-                            Caption = 'Sheet Definition';
+                            Caption = 'Dimension Perspective';
                             Editable = AccSchedNameEditable;
                             Importance = Additional;
-                            ShowMandatory = true;
-                            TableRelation = "Sheet Definition Name";
-                            ToolTip = 'Specifies the name (code) of the sheet definition to be used for the report (default is the one used in the report definition, but you can override this here).';
+                            TableRelation = "Dimension Perspective Name";
+                            ToolTip = 'Specifies the name (code) of the dimension perspective to be used for the report (default is the one used in the report definition, but you can override this here).';
 
                             trigger OnAfterLookup(Selected: RecordRef)
                             var
-                                SheetDefName: Record "Sheet Definition Name";
+                                DimPerspectiveName: Record "Dimension Perspective Name";
                             begin
-                                SheetDefName := Selected;
-                                SheetDefNameText := SheetDefName.Name;
+                                DimPerspectiveName := Selected;
+                                DimPerspectiveNameText := DimPerspectiveName.Name;
                             end;
 
                             trigger OnValidate()
                             begin
-                                SheetDefNameTextHidden := '';
+                                DimPerspectiveNameTextHidden := '';
                                 RequestOptionsPage.Update();
                             end;
                         }
@@ -808,7 +816,7 @@ report 25 "Account Schedule"
             GLSetup.Get();
             AccSchedName := '';
             ColumnLayoutName := '';
-            SheetDefNameText := '';
+            DimPerspectiveNameText := '';
             TransferValues();
             ContextInitialized := true;
             if AccSchedName <> '' then
@@ -854,35 +862,35 @@ report 25 "Account Schedule"
 
     trigger OnPreRendering(var RenderingPayload: JsonObject)
     var
-        SheetDefName: Record "Sheet Definition Name";
-        TempSheetDefLine: Record "Sheet Definition Line" temporary;
+        DimPerspectiveName: Record "Dimension Perspective Name";
+        TempDimPerspectiveLine: Record "Dimension Perspective Line" temporary;
         AccountSchedule: Report "Account Schedule";
         PDFDocument: Codeunit "PDF Document";
-        SheetDefAccSchMgtHandler: Codeunit SheetDefAccSchMgtHandler;
+        DimPerspectiveAccSchMgtHandler: Codeunit DimPerspectiveAccSchMgtHandler;
         TempBlob: Codeunit "Temp Blob";
-        ISheetDefinition: Interface ISheetDefinition;
+        IDimPerspective: Interface IDimensionPerspective;
         OutStream: OutStream;
         Instream: InStream;
         IsHandled: Boolean;
     begin
-        if SheetDefNameText = '' then
+        if DimPerspectiveNameText = '' then
             exit;
-        if FilteredBySheetDef then
+        if FilteredByDimPerspective then
             exit;
 
-        SheetDefName.Get(SheetDefNameText);
+        DimPerspectiveName.Get(DimPerspectiveNameText);
 
-        AccSchedManagement.CheckSheetAnalysisView(AccSchedName, SheetDefName.Name);
+        AccSchedManagement.CheckPerspectiveAnalysisView(AccSchedName, DimPerspectiveName.Name);
 
         PDFDocument.Initialize();
 
-        ISheetDefinition := SheetDefName."Sheet Type";
-        ISheetDefinition.PopulateLineBufferForReporting(SheetDefName, TempSheetDefLine);
-        if TempSheetDefLine.FindSet() then begin
-            BindSubscription(SheetDefAccSchMgtHandler);
-            SheetDefAccSchMgtHandler.SetSheetDefName(SheetDefName);
+        IDimPerspective := DimPerspectiveName."Perspective Type";
+        IDimPerspective.PopulateLineBufferForReporting(DimPerspectiveName, TempDimPerspectiveLine);
+        if TempDimPerspectiveLine.FindSet() then begin
+            BindSubscription(DimPerspectiveAccSchMgtHandler);
+            DimPerspectiveAccSchMgtHandler.SetDimPerspectiveName(DimPerspectiveName);
             repeat
-                SheetDefAccSchMgtHandler.SetSheetDefLine(TempSheetDefLine);
+                DimPerspectiveAccSchMgtHandler.SetDimPerspectiveLine(TempDimPerspectiveLine);
 
                 Clear(AccountSchedule);
                 if FinancialReportName <> '' then
@@ -894,20 +902,20 @@ report 25 "Account Schedule"
                 AccountSchedule.SetFilters(
                     DateFilter, GLBudgetFilter, CostBudgetFilter, BusinessUnitFilter,
                     Dim1Filter, Dim2Filter, Dim3Filter, Dim4Filter, CashFlowFilter, NegativeAmountFormat);
-                AccountSchedule.SetFilteredBySheetDef(true);
+                AccountSchedule.SetFilteredByDimPerspective(true);
                 AccountSchedule.SetBudgetFilterEnable();
 
                 TempBlob.CreateOutStream(OutStream);
-                AccountSchedule.SetFinancialReportDescription(TempSheetDefLine."Sheet Header");
+                AccountSchedule.SetFinancialReportDescription(TempDimPerspectiveLine."Perspective Header");
                 IsHandled := false;
-                OnBeforeSaveSheetDefinitionReport(AccountSchedule, TempSheetDefLine, OutStream, IsHandled);
+                OnBeforeSaveDimPerspectiveReport(AccountSchedule, TempDimPerspectiveLine, OutStream, IsHandled);
                 if not IsHandled then
                     AccountSchedule.SaveAs('', ReportFormat::Pdf, OutStream);
                 TempBlob.CreateInStream(Instream);
                 PDFDocument.AddStreamToAppend(Instream);
 
-            until TempSheetDefLine.Next() = 0;
-            UnbindSubscription(SheetDefAccSchMgtHandler);
+            until TempDimPerspectiveLine.Next() = 0;
+            UnbindSubscription(DimPerspectiveAccSchMgtHandler);
         end;
 
         PDFDocument.ToJson(RenderingPayload);
@@ -923,7 +931,7 @@ report 25 "Account Schedule"
         FinancialReportDescription: Text;
         FinancialReportDescHidden: Text;
         ColumnLayoutNameHidden: Code[10];
-        SheetDefNameTextHidden: Code[10];
+        DimPerspectiveNameTextHidden: Code[10];
         GLBudgetName: Code[10];
         StartDateEnabled: Boolean;
         StartDate: Date;
@@ -940,13 +948,9 @@ report 25 "Account Schedule"
         CostBudgetFilterHidden: Text;
         BusinessUnitFilter: Text;
         BusinessUnitFilterHidden: Text;
-        Dim1Filter: Text;
         Dim1FilterHidden: Text;
-        Dim2Filter: Text;
         Dim2FilterHidden: Text;
-        Dim3Filter: Text;
         Dim3FilterHidden: Text;
-        Dim4Filter: Text;
         Dim4FilterHidden: Text;
         CostCenterFilter: Text;
         CostObjectFilter: Text;
@@ -994,7 +998,7 @@ report 25 "Account Schedule"
         DateFilterDisabled: Boolean;
         UseHiddenDateFilter: Boolean;
         RunForExport: Boolean;
-        FilteredBySheetDef: Boolean;
+        FilteredByDimPerspective: Boolean;
 
 #pragma warning disable AA0074
         Text000: Label '(Thousands)';
@@ -1029,7 +1033,11 @@ report 25 "Account Schedule"
         LineSkipped: Boolean;
         UseAmtsInAddCurr: Boolean;
         NegativeAmountFormat: Enum "Analysis Negative Format";
-        SheetDefNameText: Code[10];
+        DimPerspectiveNameText: Code[10];
+        Dim1Filter: Text;
+        Dim2Filter: Text;
+        Dim3Filter: Text;
+        Dim4Filter: Text;
 
     local procedure CalcColumnValueAsText(var AccScheduleLine: Record "Acc. Schedule Line"; var ColumnLayout: Record "Column Layout"; var ColumnHeader: Text; var ValueIsEmpty: Boolean): Text[30]
     var
@@ -1142,6 +1150,14 @@ report 25 "Account Schedule"
                 MaxStrLen(ColumnValuesAsText));
     end;
 
+    /// <summary>
+    /// Initializes account schedule report with filters and date calculations for financial report generation.
+    /// Sets up G/L budget, cost budget, business unit, and dimension filters based on current report configuration.
+    /// </summary>
+    /// <remarks>
+    /// Calculates fiscal start date, period text, and column layout rounding settings.
+    /// Applies all hidden filters and prepares data for report processing.
+    /// </remarks>
     procedure InitAccSched()
     var
         ColumnLayout: Record "Column Layout";
@@ -1182,24 +1198,44 @@ report 25 "Account Schedule"
         ShowRoundingHeader := not ColumnLayout.IsEmpty();
     end;
 
+    /// <summary>
+    /// Sets the account schedule name for report processing and enables editing mode.
+    /// Configures the report to use the specified account schedule with editable name field.
+    /// </summary>
+    /// <param name="NewAccSchedName">Account schedule name to use for report generation</param>
     procedure SetAccSchedName(NewAccSchedName: Code[10])
     begin
         AccSchedNameHidden := NewAccSchedName;
         AccSchedNameEditable := true;
     end;
 
+    /// <summary>
+    /// Sets the account schedule name for report processing and disables editing mode.
+    /// Configures the report to use the specified account schedule with non-editable name field.
+    /// </summary>
+    /// <param name="NewAccSchedName">Account schedule name to use for report generation</param>
     procedure SetAccSchedNameNonEditable(NewAccSchedName: Code[10])
     begin
         SetAccSchedName(NewAccSchedName);
         AccSchedNameEditable := false;
     end;
 
+    /// <summary>
+    /// Sets the financial report name for report processing and disables editing mode.
+    /// Links the report to a specific financial report configuration with non-editable settings.
+    /// </summary>
+    /// <param name="NewAccSchedName">Financial report name to use for report generation</param>
     procedure SetFinancialReportNameNonEditable(NewAccSchedName: Code[10])
     begin
         SetFinancialReportName(NewAccSchedName);
         AccSchedNameEditable := false;
     end;
 
+    /// <summary>
+    /// Sets the financial report name and retrieves associated account schedule configuration.
+    /// Links to financial report master data and configures account schedule row group automatically.
+    /// </summary>
+    /// <param name="NewFinancialReportName">Financial report name to configure for report processing</param>
     procedure SetFinancialReportName(NewFinancialReportName: Code[10])
     var
         FinancialReportLocal: Record "Financial Report";
@@ -1211,6 +1247,11 @@ report 25 "Account Schedule"
         end;
     end;
 
+    /// <summary>
+    /// Sets the column layout name for report formatting and column structure configuration.
+    /// Defines how financial data will be presented in columns across the report output.
+    /// </summary>
+    /// <param name="ColLayoutName">Column layout name to use for report column formatting</param>
     procedure SetColumnLayoutName(ColLayoutName: Code[10])
     begin
         ColumnLayoutNameHidden := ColLayoutName;
@@ -1233,14 +1274,14 @@ report 25 "Account Schedule"
         StartDateEnabled := true;
     end;
 
-    procedure SetSheetDefName(SheetDefName: Code[10])
+    procedure SetDimPerspectiveName(DimPerspectiveName: Code[10])
     begin
-        SheetDefNameTextHidden := SheetDefName;
+        DimPerspectiveNameTextHidden := DimPerspectiveName;
     end;
 
-    procedure SetFilteredBySheetDef(IsFiltered: Boolean)
+    procedure SetFilteredByDimPerspective(IsFiltered: Boolean)
     begin
-        FilteredBySheetDef := IsFiltered;
+        FilteredByDimPerspective := IsFiltered;
     end;
 
     procedure SetFinancialReportDescription(NewDescription: Text)
@@ -1248,6 +1289,18 @@ report 25 "Account Schedule"
         FinancialReportDescHidden := NewDescription;
     end;
 
+    /// <summary>
+    /// Sets comprehensive filters for financial report data including date, budget, business unit, and dimension filters.
+    /// Configures hidden filter values and triggers extensibility events for custom filter processing.
+    /// </summary>
+    /// <param name="NewDateFilter">Date range filter for G/L entries and budget data</param>
+    /// <param name="NewBudgetFilter">G/L budget name filter for budget comparison</param>
+    /// <param name="NewCostBudgetFilter">Cost accounting budget filter for cost analysis</param>
+    /// <param name="NewBusUnitFilter">Business unit filter for consolidated reporting</param>
+    /// <param name="NewDim1Filter">Dimension 1 filter for detailed analysis</param>
+    /// <param name="NewDim2Filter">Dimension 2 filter for detailed analysis</param>
+    /// <param name="NewDim3Filter">Dimension 3 filter for detailed analysis</param>
+    /// <param name="NewDim4Filter">Dimension 4 filter for detailed analysis</param>
     procedure SetFilters(NewDateFilter: Text; NewBudgetFilter: Text; NewCostBudgetFilter: Text; NewBusUnitFilter: Text; NewDim1Filter: Text; NewDim2Filter: Text; NewDim3Filter: Text; NewDim4Filter: Text)
     begin
         DateFilterHidden := NewDateFilter;
@@ -1263,11 +1316,38 @@ report 25 "Account Schedule"
         OnAfterSetFilters(AccScheduleName, CostCenterFilter, CostObjectFilter, CashFlowFilter, CurrReport.UseRequestPage());
     end;
 
+    /// <summary>
+    /// Sets comprehensive filters including cash flow filter for financial report data processing.
+    /// Extends basic filter configuration with cash flow forecasting capabilities.
+    /// </summary>
+    /// <param name="NewDateFilter">Date range filter for G/L entries and budget data</param>
+    /// <param name="NewBudgetFilter">G/L budget name filter for budget comparison</param>
+    /// <param name="NewCostBudgetFilter">Cost accounting budget filter for cost analysis</param>
+    /// <param name="NewBusUnitFilter">Business unit filter for consolidated reporting</param>
+    /// <param name="NewDim1Filter">Dimension 1 filter for detailed analysis</param>
+    /// <param name="NewDim2Filter">Dimension 2 filter for detailed analysis</param>
+    /// <param name="NewDim3Filter">Dimension 3 filter for detailed analysis</param>
+    /// <param name="NewDim4Filter">Dimension 4 filter for detailed analysis</param>
+    /// <param name="CashFlowFilter">Cash flow forecast filter for liquidity analysis</param>
     procedure SetFilters(NewDateFilter: Text; NewBudgetFilter: Text; NewCostBudgetFilter: Text; NewBusUnitFilter: Text; NewDim1Filter: Text; NewDim2Filter: Text; NewDim3Filter: Text; NewDim4Filter: Text; CashFlowFilter: Text)
     begin
         SetFilters(NewDateFilter, NewBudgetFilter, NewCostBudgetFilter, NewBusUnitFilter, NewDim1Filter, NewDim2Filter, NewDim3Filter, NewDim4Filter, CashFlowFilter, NegativeAmountFormat);
     end;
 
+    /// <summary>
+    /// Sets comprehensive filters with cash flow and negative amount formatting for advanced financial report configuration.
+    /// Calculates date ranges automatically and configures negative amount display preferences.
+    /// </summary>
+    /// <param name="NewDateFilter">Date range filter for G/L entries and budget data</param>
+    /// <param name="NewBudgetFilter">G/L budget name filter for budget comparison</param>
+    /// <param name="NewCostBudgetFilter">Cost accounting budget filter for cost analysis</param>
+    /// <param name="NewBusUnitFilter">Business unit filter for consolidated reporting</param>
+    /// <param name="NewDim1Filter">Dimension 1 filter for detailed analysis</param>
+    /// <param name="NewDim2Filter">Dimension 2 filter for detailed analysis</param>
+    /// <param name="NewDim3Filter">Dimension 3 filter for detailed analysis</param>
+    /// <param name="NewDim4Filter">Dimension 4 filter for detailed analysis</param>
+    /// <param name="CashFlowFilter">Cash flow forecast filter for liquidity analysis</param>
+    /// <param name="NewNegativeAmountFormat">Format preference for displaying negative amounts (parentheses, minus sign, etc.)</param>
     procedure SetFilters(NewDateFilter: Text; NewBudgetFilter: Text; NewCostBudgetFilter: Text; NewBusUnitFilter: Text; NewDim1Filter: Text; NewDim2Filter: Text; NewDim3Filter: Text; NewDim4Filter: Text; CashFlowFilter: Text; NewNegativeAmountFormat: Enum "Analysis Negative Format")
     begin
         DateFilterHidden := NewDateFilter;
@@ -1289,6 +1369,13 @@ report 25 "Account Schedule"
         OnAfterSetFilters(AccScheduleName, CostCenterFilter, CostObjectFilter, CashFlowFilter, CurrReport.UseRequestPage());
     end;
 
+    /// <summary>
+    /// Determines whether an account schedule line should be displayed based on formatting and totaling type criteria.
+    /// Evaluates line visibility rules including bold/italic formatting and totaling type restrictions.
+    /// </summary>
+    /// <param name="Bold">Whether to show lines marked as bold formatting</param>
+    /// <param name="Italic">Whether to show lines marked as italic formatting</param>
+    /// <returns>True if the line should be displayed according to the formatting criteria, false otherwise</returns>
     procedure ShowLine(Bold: Boolean; Italic: Boolean): Boolean
     begin
         if "Acc. Schedule Line"."Totaling Type" = "Acc. Schedule Line"."Totaling Type"::"Set Base For Percent" then
@@ -1384,9 +1471,9 @@ report 25 "Account Schedule"
                 AccSchedName := AccSchedNameHidden;
             if ColumnLayoutNameHidden <> '' then
                 ColumnLayoutName := ColumnLayoutNameHidden;
-            SheetDefNameText := '';
-            if SheetDefNameTextHidden <> '' then
-                SheetDefNameText := SheetDefNameTextHidden;
+            DimPerspectiveNameText := '';
+            if DimPerspectiveNameTextHidden <> '' then
+                DimPerspectiveNameText := DimPerspectiveNameTextHidden;
             if DateFilterHidden <> '' then
                 DateFilter := DateFilterHidden;
             if GLBudgetFilterHidden <> '' then
@@ -1420,8 +1507,8 @@ report 25 "Account Schedule"
             AccSchedName := FinancialReportLocal."Financial Report Row Group";
         if ColumnLayoutName = '' then
             ColumnLayoutName := FinancialReportLocal."Financial Report Column Group";
-        if SheetDefNameText = '' then
-            SheetDefNameText := FinancialReportLocal.SheetDefinition;
+        if DimPerspectiveNameText = '' then
+            DimPerspectiveNameText := FinancialReportLocal.DimPerspective;
 
         if AccSchedName <> '' then
             if not AccScheduleName.Get(AccSchedName) then
@@ -1576,29 +1663,58 @@ report 25 "Account Schedule"
         FeatureTelemetry.LogUsage('0000O76', 'Financial Report', StrSubstNo(ReportRunEventTxt, FinancialReportName), TelemetryDimensions);
     end;
 
+    /// <summary>
+    /// Integration event raised after transferring date filter values to allow custom date range processing.
+    /// Enables modification of start date, end date, and date filter text for custom reporting scenarios.
+    /// </summary>
+    /// <param name="StartDate">Report start date for the current period</param>
+    /// <param name="EndDate">Report end date for the current period</param>
+    /// <param name="DateFilterHidden">Hidden date filter text used for internal processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterTransferValues(var StartDate: Date; var EndDate: Date; var DateFilterHidden: Text);
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after formatting zero amounts to allow custom zero value display logic.
+    /// Enables modification of how zero amounts are presented in financial reports based on account schedule and column layout context.
+    /// </summary>
+    /// <param name="AccScheduleLine">Account schedule line being processed for zero amount formatting</param>
+    /// <param name="ColumnLayout">Column layout configuration affecting the zero amount display</param>
+    /// <param name="Result">Formatted text result for the zero amount display</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFormatZeroAmount(var AccScheduleLine: Record "Acc. Schedule Line"; var ColumnLayout: Record "Column Layout"; var Result: Text[30])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting report filters to allow custom filter validation and processing.
+    /// Enables extension of filter logic with cost center, cost object, and cash flow filter processing.
+    /// </summary>
+    /// <param name="AccScheduleName">Account schedule name record with applied filters</param>
+    /// <param name="CostCenterFilter">Cost center filter applied to the report</param>
+    /// <param name="CostObjectFilter">Cost object filter applied to the report</param>
+    /// <param name="CashFlowFilter">Cash flow forecast filter applied to the report</param>
+    /// <param name="UseReqPage">Whether the report request page is being used for filter input</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetFilters(var AccScheduleName: Record "Acc. Schedule Name"; CostCenterFilter: Text; CostObjectFilter: Text; CashFlowFilter: Text; UseReqPage: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after checking if a column layout line should be skipped during report processing.
+    /// Enables custom logic for determining when account schedule lines should be excluded from report output.
+    /// </summary>
+    /// <param name="AccScheduleLine">Account schedule line being evaluated for inclusion</param>
+    /// <param name="ValueIsEmpty">Whether the calculated value for this line is empty</param>
+    /// <param name="IsLineSkipped">Whether this line should be skipped in the report output</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetColumnLayoutOnAfteCheckIsLineSkipped(var AccScheduleLine: Record "Acc. Schedule Line"; var ValueIsEmpty: Boolean; var IsLineSkipped: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeSaveSheetDefinitionReport(var AccountSchedule: Report "Account Schedule"; SheetDefLine: Record "Sheet Definition Line"; var OutStr: OutStream; var IsHandled: Boolean)
+    local procedure OnBeforeSaveDimPerspectiveReport(var AccountSchedule: Report "Account Schedule"; DimPerspectiveLine: Record "Dimension Perspective Line"; var OutStr: OutStream; var IsHandled: Boolean)
     begin
     end;
 }
-

@@ -9,9 +9,6 @@ codeunit 6488 "Serv. Undo Sales Shipment Line"
 {
     var
         ServiceItem: Record "Service Item";
-#if not CLEAN25
-        UndoSalesShipmentLine: Codeunit "Undo Sales Shipment Line";
-#endif
         DeleteServiceItemsQst: Label 'Some shipment lines may have unused service items. Do you want to delete them?';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Undo Sales Shipment Line", 'OnAfterCheckSalesShipmentLines', '', false, false)]
@@ -29,9 +26,6 @@ codeunit 6488 "Serv. Undo Sales Shipment Line"
     begin
         IsHandled := false;
         OnBeforeGetDeleteServItems(SalesShipmentLine, ServiceItem, UndoSalesShptLineParams."Hide Dialog", Result, IsHandled);
-#if not CLEAN25
-        UndoSalesShipmentLine.RunOnBeforeGetDeleteServItems(SalesShipmentLine, ServiceItem, UndoSalesShptLineParams."Hide Dialog", Result, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -55,9 +49,6 @@ codeunit 6488 "Serv. Undo Sales Shipment Line"
     begin
         IsHandled := false;
         OnBeforeDeleteSalesShptLineServItems(SalesShipmentLine2, IsHandled);
-#if not CLEAN25
-        UndoSalesShipmentLine.RunOnBeforeDeleteSalesShptLineServItems(SalesShipmentLine2, IsHandled);
-#endif
         if IsHandled then
             exit;
 

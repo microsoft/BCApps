@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Analysis;
 
+/// <summary>
+/// Lists all analysis views with quick access to analysis view cards and matrix reporting.
+/// Provides overview of analysis view configurations and enables launching analysis reports.
+/// </summary>
 page 556 "Analysis View List"
 {
     ApplicationArea = Dimensions;

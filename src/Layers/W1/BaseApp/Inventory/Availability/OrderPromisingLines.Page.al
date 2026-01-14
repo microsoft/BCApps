@@ -242,38 +242,8 @@ page 99000959 "Order Promising Lines"
         Text000: Label 'The order promising lines are already calculated. You must close and open the window again to perform a new calculation.';
 #pragma warning restore AA0074
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit Sales Availability Mgt.', '25.0')]
-    procedure SetSalesHeader(var CrntSalesHeader: Record Microsoft.Sales.Document."Sales Header")
-    begin
-        AvailabilityMgt.SetSourceRecord(Rec, CrntSalesHeader);
 
-        CrntSourceType := CrntSourceType::Sales;
-        CrntSourceID := CrntSalesHeader."No.";
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit Serv. Availability Mgt.', '25.0')]
-    procedure SetServHeader(var CrntServHeader: Record Microsoft.Service.Document."Service Header")
-    begin
-        AvailabilityMgt.SetSourceRecord(Rec, CrntServHeader);
-
-        CrntSourceType := CrntSourceType::"Service Order";
-        CrntSourceID := CrntServHeader."No.";
-    end;
-#endif
-
-#if not CLEAN25
-    [Obsolete('Moved to codeunit Serv. Availability Mgt.', '25.0')]
-    procedure SetJob(var CrntJob: Record Microsoft.Projects.Project.Job.Job)
-    begin
-        AvailabilityMgt.SetSourceRecord(Rec, CrntJob);
-
-        CrntSourceType := CrntSourceType::Job;
-        CrntSourceID := CrntJob."No.";
-    end;
-#endif
 
     procedure SetSource(SourceType: Enum "Order Promising Line Source Type")
     begin
@@ -297,4 +267,3 @@ page 99000959 "Order Promising Lines"
     begin
     end;
 }
-

@@ -7,9 +7,9 @@ namespace Microsoft.Integration.SyncEngine;
 using Microsoft.Integration.D365Sales;
 using Microsoft.Integration.Dataverse;
 using Microsoft.Sales.Document;
+using System.Globalization;
 using System.Reflection;
 using System.Threading;
-using System.Globalization;
 
 page 5335 "Integration Table Mapping List"
 {
@@ -138,26 +138,6 @@ page 5335 "Integration Table Mapping List"
                     Editable = false;
                     ToolTip = 'Specifies the type of the field in the integration table to map to the Business Central table.';
                 }
-#if not CLEAN25            
-                field("Table Config Template Code"; Rec."Table Config Template Code")
-                {
-                    ApplicationArea = Suite;
-                    ToolTip = 'Specifies a configuration template to use when creating new records in the Business Central table (specified by the Table ID field) during synchronization.';
-                    Visible = false;
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'Replaced with Table Config Templates field';
-                    ObsoleteTag = '25.0';
-                }
-                field("Int. Tbl. Config Template Code"; Rec."Int. Tbl. Config Template Code")
-                {
-                    ApplicationArea = Suite;
-                    ToolTip = 'Specifies a configuration template to use for creating new records in the integration table.';
-                    Visible = false;
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'Replaced with Table Config Templates field';
-                    ObsoleteTag = '25.0';
-                }
-#endif
                 field("Table Config Templates"; TableConfigTemplates)
                 {
                     ApplicationArea = Suite;
@@ -717,4 +697,3 @@ page 5335 "Integration Table Mapping List"
             end;
     end;
 }
-

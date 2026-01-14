@@ -27,6 +27,7 @@ codeunit 137502 "SCM Dedicated Bins"
         CfmBinDedicated: Label 'The bin B1 is Dedicated.\Do you still want to use this bin?';
         VSTF190324Msg1: Label 'There is nothing to create.';
         MSG_INVT_PICK_CREATED: Label 'Number of Invt. Pick activities created: 1 out of a total of 1.';
+        LocationSetErr: Label 'Location code should have been set already';
 
     [Normal]
     local procedure Initialize()
@@ -132,7 +133,6 @@ codeunit 137502 "SCM Dedicated Bins"
     end;
 
     [Test]
-    [HandlerFunctions('ConsumptionBinsConfirmHndl')]
     [Scope('OnPrem')]
     procedure ConsumptionBins()
     begin
@@ -598,7 +598,7 @@ codeunit 137502 "SCM Dedicated Bins"
         AssertBinCodesOnComponents(ProdOrderComponent, ChildItem3."No.", '200', ProdOrderComponent."Flushing Method"::Backward,
           Location.Code, WorkCenter1."Open Shop Floor Bin Code");
         AssertBinCodesOnComponents(ProdOrderComponent, ChildItem3."No.", '300', ProdOrderComponent."Flushing Method"::"Pick + Manual",
-          Location.Code, Location."To-Production Bin Code");
+          Location.Code, 'DUMMY');
 
         // refresh prod. order by ONLY calc. components
         LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, false, false, true, false);
@@ -1140,7 +1140,8 @@ codeunit 137502 "SCM Dedicated Bins"
         ProdOrderRtngLine.SetRange("Operation No.");
     end;
 
-    local procedure AssertBinCodesOnComponents(var ProdOrderComponent: Record "Prod. Order Component"; ItemNo: Code[20]; RoutingLinkCode: Code[10]; FlushingMethod: Enum "Flushing Method"; LocationCode: Code[10]; BinCode: Code[20])
+    local procedure AssertBinCodesOnComponents(var ProdOrderComponent: Record "Prod. Order Component"; ItemNo: Code[20]; RoutingLinkCode: Code[10]; FlushingMethod: Enum "Flushing Method"; LocationCode: Code[10];
+                                                                                                                                                                        BinCode: Code[20])
     begin
         ProdOrderComponent.SetRange("Item No.", ItemNo);
         ProdOrderComponent.SetRange("Routing Link Code", RoutingLinkCode);
@@ -1361,6 +1362,286 @@ codeunit 137502 "SCM Dedicated Bins"
         // calculate consumption and post
         LibraryManufacturing.CalculateConsumptionForJournal(ProductionOrder, ProdOrderComp, WorkDate(), false);
         LibraryManufacturing.PostConsumptionJournal();
+    end;
+
+    [Test]
+    procedure ChangingWorkCenterInRoutingChangesBinsInComponentLines()
+    var
+        WorkCenter: array[2] of Record "Work Center";
+        MachineCenter: array[3] of Record "Machine Center";
+        ChildItem: array[3] of Record Item;
+        ParentItem: Record Item;
+        Location: Record Location;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+    begin
+        // [SCENARIO 611890] When Changing the work center in the routing all Bins in Component lines will not be changed
+        Initialize();
+
+        // [GIVEN] Create Work Centers and Machine Centers
+        CreateWorkCentersAndMachineCenters(WorkCenter, MachineCenter);
+
+        // [GIVEN] Create Items
+        CreateItems(ParentItem, ChildItem);
+
+        // [GIVEN] Create BOM and Routing with multiple child items
+        CreateBOMForMultipleChildItem(ParentItem, ChildItem, WorkCenter, MachineCenter);
+
+        // [GIVEN] Create Location and Bins
+        CreateLocationAndUpdateBins(Location);
+
+        // [GIVEN] Set default bins on resources
+        SetBinAndResource(Location, WorkCenter, MachineCenter);
+
+        // [WHEN] Create released prod order
+        LibraryManufacturing.CreateProductionOrder(ProductionOrder, ProductionOrder.Status::Released,
+          ProductionOrder."Source Type"::Item, ParentItem."No.", 1);
+        ProductionOrder.Validate("Location Code", Location.Code);
+        ProductionOrder.Modify(true);
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+
+        //[THEN] - routing lines bin codes
+        ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        AssertBinCodesOnProdRtngs(ProdOrderRoutingLine, '10', 'WC1-OSFB', 'WC1-IB');
+        AssertBinCodesOnProdRtngs(ProdOrderRoutingLine, '20', 'MC1-OSFB', 'MC1-IB');
+        AssertBinCodesOnProdRtngs(ProdOrderRoutingLine, '30', 'MC2-OSFB', 'MC2-IB');
+        AssertBinCodesOnProdRtngs(ProdOrderRoutingLine, '40', 'WC1-OSFB', 'WC1-IB');
+        AssertBinCodesOnProdRtngs(ProdOrderRoutingLine, '50', '', '');
+
+        // [THEN] - component lines bin codes
+        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        AssertBinCodesOnComponents(ProdOrderComponent, ChildItem[1]."No.", '', ChildItem[1]."Flushing Method", Location.Code, 'WC1-IB');
+        AssertBinCodesOnComponents(ProdOrderComponent, ChildItem[2]."No.", '100', ChildItem[2]."Flushing Method", Location.Code, 'MC1-IB');
+        AssertBinCodesOnComponents(ProdOrderComponent, ChildItem[3]."No.", '200', ChildItem[3]."Flushing Method", Location.Code, 'WC1-OSFB');
+
+        // [WHEN] - Set flushing method = Forward for X-CHILD1
+        SetFlushingMethodForwardForXCHILD1(ProductionOrder, ChildItem, WorkCenter, MachineCenter, Location);
+
+        // [THEN] - Refresh prod. order by ONLY calc. components
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, false, false, true, false);
+        AssertBinCodesOnComponents(ProdOrderComponent, ChildItem[1]."No.", '', ChildItem[1]."Flushing Method", Location.Code, 'WC1-IB');
+        AssertBinCodesOnComponents(ProdOrderComponent, ChildItem[2]."No.", '100', ChildItem[2]."Flushing Method", Location.Code, 'MC1-IB');
+        AssertBinCodesOnComponents(ProdOrderComponent, ChildItem[3]."No.", '200', ChildItem[3]."Flushing Method", Location.Code, 'WC1-OSFB');
+    end;
+
+    local procedure CreateWorkCentersAndMachineCenters(var WorkCenter: array[2] of Record "Work Center"; var MachineCenter: array[3] of Record "Machine Center")
+    begin
+        LibraryManufacturing.CreateWorkCenter(WorkCenter[1]);
+        LibraryManufacturing.CreateMachineCenter(MachineCenter[1], WorkCenter[1]."No.", 1);
+        LibraryManufacturing.CreateMachineCenter(MachineCenter[2], WorkCenter[1]."No.", 1);
+        LibraryManufacturing.CreateMachineCenter(MachineCenter[3], WorkCenter[1]."No.", 1);
+        LibraryManufacturing.CreateWorkCenter(WorkCenter[2]);
+    end;
+
+    local procedure CreateItems(var ParentItem: Record Item; var ChildItem: array[3] of Record Item)
+    begin
+        CreateItem(ParentItem);
+        ParentItem.Validate("Replenishment System", ParentItem."Replenishment System"::"Prod. Order");
+        ParentItem.Modify(true);
+        CreateItem(ChildItem[1]);
+        CreateItem(ChildItem[2]);
+        CreateItem(ChildItem[3]);
+        ChildItem[3].Validate("Flushing Method", ChildItem[3]."Flushing Method"::Backward);
+        ChildItem[3].Modify(true);
+    end;
+
+    local procedure CreateBOMForMultipleChildItem(var ParentItem: Record Item; var ChildItem: array[3] of Record Item; var WorkCenter: array[2] of Record "Work Center"; var MachineCenter: array[3] of Record "Machine Center")
+    var
+        ProdBOMHeader: Record "Production BOM Header";
+        ProdBOMLine: Record "Production BOM Line";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+    begin
+        LibraryManufacturing.CreateProductionBOMHeader(ProdBOMHeader, ParentItem."Base Unit of Measure");
+        LibraryManufacturing.CreateProductionBOMLine(
+          ProdBOMHeader, ProdBOMLine, '', ProdBOMLine.Type::Item, ChildItem[1]."No.", 1);
+        LibraryManufacturing.CreateProductionBOMLine(
+          ProdBOMHeader, ProdBOMLine, '', ProdBOMLine.Type::Item, ChildItem[2]."No.", 1);
+        ProdBOMLine.Validate("Routing Link Code", '100');
+        ProdBOMLine.Modify(true);
+
+        LibraryManufacturing.CreateProductionBOMLine(
+          ProdBOMHeader, ProdBOMLine, '', ProdBOMLine.Type::Item, ChildItem[3]."No.", 1);
+        ProdBOMLine.Validate("Routing Link Code", '200');
+        ProdBOMLine.Modify(true);
+
+        ProdBOMHeader.Validate(Status, ProdBOMHeader.Status::Certified);
+        ProdBOMHeader.Modify(true);
+        ParentItem.Validate("Production BOM No.", ProdBOMHeader."No.");
+        // create routing
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLine(
+          RoutingHeader, RoutingLine, '', '10', RoutingLine.Type::"Work Center", WorkCenter[1]."No.");
+        LibraryManufacturing.CreateRoutingLine(
+          RoutingHeader, RoutingLine, '', '20', RoutingLine.Type::"Machine Center", MachineCenter[1]."No.");
+        RoutingLine.Validate("Routing Link Code", '100');
+        RoutingLine.Modify(true);
+        LibraryManufacturing.CreateRoutingLine(
+          RoutingHeader, RoutingLine, '', '30', RoutingLine.Type::"Machine Center", MachineCenter[2]."No.");
+        LibraryManufacturing.CreateRoutingLine(
+          RoutingHeader, RoutingLine, '', '40', RoutingLine.Type::"Machine Center", MachineCenter[3]."No.");
+        RoutingLine.Validate("Routing Link Code", '200');
+        RoutingLine.Modify(true);
+        LibraryManufacturing.CreateRoutingLine(
+          RoutingHeader, RoutingLine, '', '50', RoutingLine.Type::"Work Center", WorkCenter[2]."No.");
+        RoutingLine.Validate("Routing Link Code", '300');
+        RoutingLine.Modify(true);
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+        ParentItem.Validate("Routing No.", RoutingHeader."No.");
+        ParentItem.Modify(true);
+    end;
+
+    local procedure CreateLocationandUpdateBins(var Location: Record Location)
+    var
+        Bin: Record Bin;
+    begin
+        CreateLocation(Location);
+        Location.Validate("Bin Mandatory", true);
+        Location.Validate("Require Pick", true);
+        Location.Modify(true);
+        LibraryWarehouse.CreateBin(Bin, Location.Code, 'WC1-OSFB', '', '');
+        LibraryWarehouse.CreateBin(Bin, Location.Code, 'WC1-IB', '', '');
+        LibraryWarehouse.CreateBin(Bin, Location.Code, 'MC1-OSFB', '', '');
+        LibraryWarehouse.CreateBin(Bin, Location.Code, 'MC1-IB', '', '');
+        LibraryWarehouse.CreateBin(Bin, Location.Code, 'MC2-OSFB', '', '');
+        LibraryWarehouse.CreateBin(Bin, Location.Code, 'MC2-IB', '', '');
+        LibraryWarehouse.CreateBin(Bin, Location.Code, 'LOC-OSFB', '', '');
+        LibraryWarehouse.CreateBin(Bin, Location.Code, 'LOC-IB', '', '');
+        LibraryWarehouse.CreateBin(Bin, Location.Code, 'DUMMY', '', '');
+        Location.Validate("Open Shop Floor Bin Code", 'LOC-OSFB');
+        Location.Validate("To-Production Bin Code", 'LOC-IB');
+        Location.Modify(true);
+    end;
+
+    local procedure SetBinAndResource(Location: Record Location; var WorkCenter: array[2] of Record "Work Center"; var MachineCenter: array[3] of Record "Machine Center")
+    begin
+        WorkCenter[1].Validate("Location Code", Location.Code);
+        WorkCenter[1].Validate("Open Shop Floor Bin Code", 'WC1-OSFB');
+        WorkCenter[1].Validate("To-Production Bin Code", 'WC1-IB');
+        WorkCenter[1].Modify(true);
+        MachineCenter[1].Get(MachineCenter[1]."No.");
+        Assert.AreEqual(WorkCenter[1]."Location Code", MachineCenter[1]."Location Code", LocationSetErr);
+        MachineCenter[1].Validate("Open Shop Floor Bin Code", 'MC1-OSFB');
+        MachineCenter[1].Validate("To-Production Bin Code", 'MC1-IB');
+        MachineCenter[1].Modify(true);
+        MachineCenter[2].Get(MachineCenter[2]."No.");
+        Assert.AreEqual(WorkCenter[1]."Location Code", MachineCenter[2]."Location Code", LocationSetErr);
+        MachineCenter[2].Validate("Open Shop Floor Bin Code", 'MC2-OSFB');
+        MachineCenter[2].Validate("To-Production Bin Code", 'MC2-IB');
+        MachineCenter[2].Modify(true);
+    end;
+
+    local procedure SetFlushingMethodForwardForXCHILD1(
+      ProductionOrder: Record "Production Order";
+      ChildItem: array[3] of Record Item;
+      WorkCenter: array[2] of Record "Work Center";
+      MachineCenter: array[3] of Record "Machine Center";
+      Location: Record Location)
+    var
+        Bin: Record Bin;
+        Location2: Record Location;
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderComponent: array[2] of Record "Prod. Order Component";
+    begin
+        ManufacturingSetup.Get();
+        ProdOrderComponent[1].SetRange("Item No.", ChildItem[1]."No.");
+        ProdOrderComponent[1].FindFirst();
+        ProdOrderComponent[1].Validate("Flushing Method", ProdOrderComponent[1]."Flushing Method"::Forward);
+        ProdOrderComponent[1].Modify(true);
+        AssertBinCodesOnComponents(ProdOrderComponent[1],
+          ChildItem[1]."No.",
+          '',
+          ProdOrderComponent[1]."Flushing Method"::Forward,
+          Location.Code,
+          WorkCenter[1]."Open Shop Floor Bin Code");
+        ProdOrderComponent[1].Validate("Item No.");
+        ProdOrderComponent[1].Modify(true);
+        AssertBinCodesOnComponents(ProdOrderComponent[1],
+          ChildItem[1]."No.",
+          '',
+          ManufacturingSetup."Default Flushing Method",
+          Location.Code,
+          WorkCenter[1]."To-Production Bin Code");
+
+        // create new location & bins
+        CreateLocation(Location2);
+        LibraryWarehouse.CreateBin(Bin, Location2.Code, 'X', '', '');
+        LibraryWarehouse.CreateBin(Bin, Location2.Code, 'Y', '', '');
+        Location2.Validate("Bin Mandatory", true);
+        Location2.Modify(true);
+        Location2.Validate("Open Shop Floor Bin Code", 'X');
+        Location2.Validate("To-Production Bin Code", 'Y');
+        Location2.Modify(true);
+
+        // create a new component line and verify filled in bin code
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        LibraryManufacturing.CreateProductionOrderComponent(
+          ProdOrderComponent[2], ProdOrderLine.Status, ProdOrderLine."Prod. Order No.", ProdOrderLine."Line No.");
+        ProdOrderComponent[2].Validate("Item No.", ChildItem[3]."No.");
+        ProdOrderComponent[2].Validate("Quantity per", 1);
+        ProdOrderComponent[2].Validate("Location Code", Location2.Code);
+        ProdOrderComponent[2].Modify(true);
+        AssertBinCodesOnComponents(ProdOrderComponent[1],
+          ChildItem[3]."No.", '', ChildItem[3]."Flushing Method", Location2.Code, Location2."Open Shop Floor Bin Code");
+
+        // refresh prod. order - calculate only routing
+        RefreshProdOrderAndCalculateOnlyRouting(ProductionOrder, ProdOrderComponent[1], ChildItem, WorkCenter, MachineCenter[1], Location, Location2);
+
+        // change the bin code on this component line and refresh (only calc. routing)
+        ProdOrderComponent[1].Validate("Bin Code", 'DUMMY');
+        ProdOrderComponent[1].Modify(true);
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, false, true, false, false);
+        AssertBinCodesOnComponents(ProdOrderComponent[1], ChildItem[1]."No.", '', ManufacturingSetup."Default Flushing Method",
+          Location.Code, WorkCenter[1]."To-Production Bin Code");
+        AssertBinCodesOnComponents(ProdOrderComponent[1], ChildItem[2]."No.", '100', ManufacturingSetup."Default Flushing Method",
+          Location.Code, MachineCenter[1]."To-Production Bin Code");
+        AssertBinCodesOnComponents(ProdOrderComponent[1], ChildItem[3]."No.", '200', ProdOrderComponent[1]."Flushing Method"::Backward,
+          Location.Code, WorkCenter[1]."Open Shop Floor Bin Code");
+        AssertBinCodesOnComponents(ProdOrderComponent[1], ChildItem[3]."No.", '300', ProdOrderComponent[1]."Flushing Method"::"Pick + Manual",
+          Location.Code, 'DUMMY');
+    end;
+
+    local procedure RefreshProdOrderAndCalculateOnlyRouting(
+      var ProductionOrder: Record "Production Order";
+      var ProdOrderComponent: Record "Prod. Order Component";
+      var ChildItem: array[3] of Record Item;
+      var WorkCenter: array[2] of Record "Work Center";
+      var MachineCenter: Record "Machine Center";
+      var Location: Record Location;
+      Location2: Record Location)
+    var
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ManufacturingSetup: Record "Manufacturing Setup";
+    begin
+        FindItemJournal(ItemJournalTemplate, ItemJournalBatch);
+        LibraryInventory.PostItemJournalLine(ItemJournalTemplate.Name, ItemJournalBatch.Name);
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, false, true, false, false);
+        AssertBinCodesOnComponents(ProdOrderComponent, ChildItem[1]."No.", '', ManufacturingSetup."Default Flushing Method",
+          Location.Code, WorkCenter[1]."To-Production Bin Code");
+        AssertBinCodesOnComponents(ProdOrderComponent, ChildItem[2]."No.", '100', ChildItem[2]."Flushing Method",
+          Location.Code, MachineCenter."To-Production Bin Code");
+        AssertBinCodesOnComponents(ProdOrderComponent, ChildItem[3]."No.", '200', ChildItem[3]."Flushing Method",
+          Location.Code, WorkCenter[1]."Open Shop Floor Bin Code");
+        AssertBinCodesOnComponents(ProdOrderComponent, ChildItem[3]."No.", '', ChildItem[3]."Flushing Method",
+          Location2.Code, Location2."Open Shop Floor Bin Code");
+
+        // change last line for X-CHILD3 to have Routing Link Code and Manual Flushing and location as first one
+        ProdOrderComponent.SetRange("Item No.", ChildItem[3]."No.");
+        ProdOrderComponent.FindLast();
+        ProdOrderComponent.Validate("Location Code", Location.Code);
+        ProdOrderComponent.Validate("Routing Link Code", '300');
+        ProdOrderComponent.Validate("Flushing Method", ProdOrderComponent."Flushing Method"::"Pick + Manual");
+        ProdOrderComponent.Modify(true);
+        AssertBinCodesOnComponents(ProdOrderComponent, ChildItem[3]."No.", '300', ProdOrderComponent."Flushing Method"::"Pick + Manual",
+          Location.Code, Location."To-Production Bin Code");
     end;
 
     [MessageHandler]

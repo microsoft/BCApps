@@ -6,6 +6,14 @@ namespace Microsoft.Finance.VAT.Calculation;
 
 using Microsoft.Finance.Currency;
 
+/// <summary>
+/// Displays and allows editing of VAT amount lines for document processing and validation.
+/// Provides user interface for reviewing and adjusting VAT calculations, differences, and amounts.
+/// </summary>
+/// <remarks>
+/// Used in sales, purchase, and service documents for VAT amount review and adjustment.
+/// Supports VAT difference validation and currency-specific formatting.
+/// </remarks>
 page 9401 "VAT Amount Lines"
 {
     Caption = 'VAT Amount Lines';
@@ -252,6 +260,10 @@ page 9401 "VAT Amount Lines"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 
+    /// <summary>
+    /// Sets the temporary VAT amount line buffer with data from the provided VAT amount line record set.
+    /// </summary>
+    /// <param name="NewVATAmountLine">VAT amount line record set to copy into temporary buffer</param>
     procedure SetTempVATAmountLine(var NewVATAmountLine: Record "VAT Amount Line")
     begin
         TempVATAmountLine.DeleteAll();
@@ -262,6 +274,10 @@ page 9401 "VAT Amount Lines"
             until NewVATAmountLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Retrieves the current temporary VAT amount line buffer data into the provided VAT amount line record set.
+    /// </summary>
+    /// <param name="NewVATAmountLine">VAT amount line record set to receive the temporary buffer data</param>
     procedure GetTempVATAmountLine(var NewVATAmountLine: Record "VAT Amount Line")
     begin
         NewVATAmountLine.DeleteAll();
@@ -272,6 +288,15 @@ page 9401 "VAT Amount Lines"
             until TempVATAmountLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Initializes page global variables for VAT amount line processing and display control.
+    /// </summary>
+    /// <param name="NewCurrencyCode">Currency code for amount formatting and calculations</param>
+    /// <param name="NewAllowVATDifference">Whether VAT differences are allowed for modification</param>
+    /// <param name="NewAllowVATDifferenceOnThisTab">Whether VAT differences are allowed on current tab</param>
+    /// <param name="NewPricesIncludingVAT">Whether prices include VAT or VAT is calculated on top</param>
+    /// <param name="NewAllowInvDisc">Whether invoice discount is allowed</param>
+    /// <param name="NewVATBaseDiscPct">VAT base discount percentage from document header</param>
     procedure InitGlobals(NewCurrencyCode: Code[10]; NewAllowVATDifference: Boolean; NewAllowVATDifferenceOnThisTab: Boolean; NewPricesIncludingVAT: Boolean; NewAllowInvDisc: Boolean; NewVATBaseDiscPct: Decimal)
     begin
         CurrencyCode := NewCurrencyCode;
@@ -314,6 +339,12 @@ page 9401 "VAT Amount Lines"
         TempVATAmountLine.Modify();
     end;
 
+    /// <summary>
+    /// Integration event raised before performing VAT difference validation on the form.
+    /// Enables custom VAT difference validation logic or bypassing standard validation.
+    /// </summary>
+    /// <param name="VATAmountLine">VAT amount line being validated</param>
+    /// <param name="IsHandled">Set to true to skip standard VAT difference validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFormCheckVATDifference(VATAmountLine: Record "VAT Amount Line"; var IsHandled: Boolean)
     begin

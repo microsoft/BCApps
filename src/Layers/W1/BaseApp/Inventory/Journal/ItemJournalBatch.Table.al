@@ -6,6 +6,7 @@ namespace Microsoft.Inventory.Journal;
 
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
+using System.Automation;
 
 table 233 "Item Journal Batch"
 {
@@ -133,6 +134,8 @@ table 233 "Item Journal Batch"
 
     trigger OnDelete()
     begin
+        ApprovalsMgmt.PreventDeletingRecordWithOpenApprovalEntry(Rec);
+
         ItemJnlLine.SetRange("Journal Template Name", "Journal Template Name");
         ItemJnlLine.SetRange("Journal Batch Name", Name);
         ItemJnlLine.DeleteAll(true);
@@ -144,8 +147,15 @@ table 233 "Item Journal Batch"
         ItemJnlTemplate.Get("Journal Template Name");
     end;
 
+    trigger OnModify()
+    begin
+        ApprovalsMgmt.PreventModifyRecIfOpenApprovalEntryExistForCurrentUser(Rec);
+    end;
+
     trigger OnRename()
     begin
+        ApprovalsMgmt.OnRenameRecordInApprovalRequest(xRec.RecordId, RecordId);
+
         ItemJnlLine.SetRange("Journal Template Name", xRec."Journal Template Name");
         ItemJnlLine.SetRange("Journal Batch Name", xRec.Name);
         while ItemJnlLine.FindFirst() do
@@ -155,6 +165,7 @@ table 233 "Item Journal Batch"
     var
         ItemJnlTemplate: Record "Item Journal Template";
         ItemJnlLine: Record "Item Journal Line";
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
 
 #pragma warning disable AA0074
 #pragma warning disable AA0470
@@ -177,6 +188,20 @@ table 233 "Item Journal Batch"
             "Reason Code" := ItemJnlTemplate."Reason Code";
         end;
         OnAfterSetupNewBatch(Rec, ItemJnlTemplate);
+    end;
+
+    internal procedure SetApprovalStateForBatch(ItemJournalBatch: Record "Item Journal Batch"; ItemJournalLine: Record "Item Journal Line"; var OpenApprovalEntriesExistForCurrentUser: Boolean; var OpenApprovalEntriesOnJournalBatchExist: Boolean; var CanCancelApprovalForJournalBatch: Boolean; var LocalCanRequestFlowApprovalForBatch: Boolean; var LocalCanCancelFlowApprovalForBatch: Boolean; var LocalApprovalEntriesExistSentByCurrentUser: Boolean; var EnabledItemJournalBatchWorkflowsExist: Boolean)
+    var
+        WorkflowWebhookManagement: Codeunit "Workflow Webhook Management";
+        WorkflowEventHandling: Codeunit "Workflow Event Handling";
+        WorkflowManagement: Codeunit "Workflow Management";
+    begin
+        OpenApprovalEntriesExistForCurrentUser := OpenApprovalEntriesExistForCurrentUser or ApprovalsMgmt.HasOpenApprovalEntriesForCurrentUser(ItemJournalBatch.RecordId());
+        OpenApprovalEntriesOnJournalBatchExist := ApprovalsMgmt.HasOpenApprovalEntries(ItemJournalBatch.RecordId());
+        CanCancelApprovalForJournalBatch := ApprovalsMgmt.CanCancelApprovalForRecord(ItemJournalBatch.RecordId());
+        WorkflowWebhookManagement.GetCanRequestAndCanCancel(ItemJournalBatch.RecordId(), LocalCanRequestFlowApprovalForBatch, LocalCanCancelFlowApprovalForBatch);
+        LocalApprovalEntriesExistSentByCurrentUser := ApprovalsMgmt.HasApprovalEntriesSentByCurrentUser(ItemJournalBatch.RecordId());
+        EnabledItemJournalBatchWorkflowsExist := WorkflowManagement.EnabledWorkflowExist(Database::"Item Journal Batch", WorkflowEventHandling.RunWorkflowOnSendItemJournalBatchForApprovalCode());
     end;
 
     [IntegrationEvent(false, false)]

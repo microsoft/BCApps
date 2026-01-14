@@ -1,3 +1,6 @@
+/// <summary>
+/// Provides handler functions for managing dialog messages and prompts in automated test scenarios.
+/// </summary>
 codeunit 131005 "Library - Dialog Handler"
 {
     var

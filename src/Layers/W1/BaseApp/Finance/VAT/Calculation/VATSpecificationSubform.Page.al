@@ -6,6 +6,14 @@ namespace Microsoft.Finance.VAT.Calculation;
 
 using Microsoft.Finance.Currency;
 
+/// <summary>
+/// Subform displaying VAT specification lines with detailed VAT breakdown and calculation information.
+/// Provides read-only view of VAT amounts, bases, and percentages for document analysis and reporting.
+/// </summary>
+/// <remarks>
+/// Used as part page in various document forms to show VAT details.
+/// Supports integration with sales, purchase, and service documents for VAT transparency.
+/// </remarks>
 page 576 "VAT Specification Subform"
 {
     Caption = 'Lines';
@@ -223,6 +231,10 @@ page 576 "VAT Specification Subform"
         AllowVATDifferenceOnThisTab: Boolean;
         CurrencyCode: Code[10];
 
+    /// <summary>
+    /// Sets the VAT amount line data for display in the specification subform.
+    /// </summary>
+    /// <param name="NewVATAmountLine">VAT amount line record set to display in the subform</param>
     procedure SetTempVATAmountLine(var NewVATAmountLine: Record "VAT Amount Line")
     begin
         Rec.DeleteAll();
@@ -234,6 +246,10 @@ page 576 "VAT Specification Subform"
         CurrPage.Update(false);
     end;
 
+    /// <summary>
+    /// Retrieves the current VAT amount line data from the specification subform.
+    /// </summary>
+    /// <param name="NewVATAmountLine">VAT amount line record set to receive the subform data</param>
     procedure GetTempVATAmountLine(var NewVATAmountLine: Record "VAT Amount Line")
     begin
         NewVATAmountLine.DeleteAll();
@@ -244,6 +260,15 @@ page 576 "VAT Specification Subform"
             until Rec.Next() = 0;
     end;
 
+    /// <summary>
+    /// Initializes global variables for VAT specification subform display and behavior control.
+    /// </summary>
+    /// <param name="NewCurrencyCode">Currency code for amount formatting</param>
+    /// <param name="NewAllowVATDifference">Whether VAT differences are allowed</param>
+    /// <param name="NewAllowVATDifferenceOnThisTab">Whether VAT differences are allowed on current tab</param>
+    /// <param name="NewPricesIncludingVAT">Whether prices include VAT</param>
+    /// <param name="NewAllowInvDisc">Whether invoice discount is allowed</param>
+    /// <param name="NewVATBaseDiscPct">VAT base discount percentage</param>
     procedure InitGlobals(NewCurrencyCode: Code[10]; NewAllowVATDifference: Boolean; NewAllowVATDifferenceOnThisTab: Boolean; NewPricesIncludingVAT: Boolean; NewAllowInvDisc: Boolean; NewVATBaseDiscPct: Decimal)
     begin
         OnBeforeInitGlobals(NewCurrencyCode, NewAllowVATDifference, NewAllowVATDifferenceOnThisTab, NewPricesIncludingVAT, NewAllowInvDisc, NewVATBaseDiscPct);
@@ -296,25 +321,29 @@ page 576 "VAT Specification Subform"
             OnAfterModifyRec(SourceHeader, Rec, ParentControl, CurrentTabNo);
     end;
 
+    /// <summary>
+    /// Sets the parent control identifier for the VAT specification subform.
+    /// </summary>
+    /// <param name="ID">Parent control identifier for form integration</param>
     procedure SetParentControl(ID: Integer)
     begin
         ParentControl := ID;
         OnAfterSetParentControl(ParentControl);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure SetSourceHeader', '25.0')]
-    procedure SetServHeader(ServiceHeader: Record Microsoft.Service.Document."Service Header")
-    begin
-        SourceHeader := ServiceHeader;
-    end;
-#endif
-
+    /// <summary>
+    /// Sets the source header record for VAT specification context and integration.
+    /// </summary>
+    /// <param name="NewSourceHeader">Source header record (sales, purchase, or service header)</param>
     procedure SetSourceHeader(NewSourceHeader: Variant)
     begin
         SourceHeader := NewSourceHeader;
     end;
 
+    /// <summary>
+    /// Sets the current tab number for context-aware VAT processing and validation.
+    /// </summary>
+    /// <param name="TabNo">Tab number identifier for form navigation context</param>
     procedure SetCurrentTabNo(TabNo: Integer)
     begin
         CurrentTabNo := TabNo;
@@ -345,4 +374,3 @@ page 576 "VAT Specification Subform"
     begin
     end;
 }
-

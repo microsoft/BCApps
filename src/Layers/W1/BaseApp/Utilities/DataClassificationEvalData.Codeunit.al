@@ -35,8 +35,8 @@ using Microsoft.Finance.Analysis;
 using Microsoft.Finance.Consolidation;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Deferral;
-using Microsoft.Finance.Dimension.Correction;
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.Dimension.Correction;
 using Microsoft.Finance.FinancialReports;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Budget;
@@ -44,8 +44,8 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Reversal;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.Payroll;
+using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.RoleCenters;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Calculation;
@@ -97,13 +97,14 @@ using Microsoft.Intercompany.Inbox;
 using Microsoft.Intercompany.Outbox;
 using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
+using Microsoft.Inventory.Analysis;
 using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
 using Microsoft.Pricing.Source;
 using Microsoft.Pricing.Worksheet;
-using Microsoft.Purchases.Vendor;
 using Microsoft.Purchases.Analysis;
+using Microsoft.Purchases.Vendor;
 using Microsoft.RoleCenters;
 using System.Agents;
 using System.AI;
@@ -113,15 +114,16 @@ using System.Azure.Identity;
 using System.DataAdministration;
 using System.Device;
 using System.Diagnostics;
-using System.Reflection;
 using System.EMail;
 using System.Environment;
 using System.Environment.Configuration;
+using System.Globalization;
 using System.Integration;
 using System.Integration.PowerBI;
 using System.IO;
+using System.PerformanceProfile;
 using System.Privacy;
-using System.Globalization;
+using System.Reflection;
 using System.Security;
 using System.Security.AccessControl;
 using System.Security.Authentication;
@@ -132,10 +134,9 @@ using System.TestTools.TestRunner;
 using System.Text;
 using System.Threading;
 using System.Tooling;
-using System.Visualization;
 using System.Utilities;
+using System.Visualization;
 using System.Xml;
-using System.PerformanceProfile;
 
 codeunit 1751 "Data Classification Eval. Data"
 {
@@ -396,8 +397,8 @@ codeunit 1751 "Data Classification Eval. Data"
         SetTableFieldsToNormal(Database::"Financial Report Recipient");
         SetTableFieldsToNormal(Database::"Financial Report User Filters");
         SetTableFieldsToNormal(Database::"Fin. Report Excel Template");
-        SetTableFieldsToNormal(Database::"Sheet Definition Name");
-        SetTableFieldsToNormal(Database::"Sheet Definition Line");
+        SetTableFieldsToNormal(Database::"Dimension Perspective Name");
+        SetTableFieldsToNormal(Database::"Dimension Perspective Line");
         SetFieldToPersonal(Database::"Financial Report User Filters", FinancialReportUserFilters.FieldNo("User ID"));
     end;
 
@@ -991,6 +992,7 @@ codeunit 1751 "Data Classification Eval. Data"
         SetTableFieldsToNormal(Database::"Buffer IC InOut Jnl. Line Dim.");
         SetTableFieldsToNormal(Database::"IC Incoming Notification");
         SetTableFieldsToNormal(Database::"IC Outgoing Notification");
+        SetTableFieldsToNormal(Database::"Item Statistics Cache");
     end;
 
     procedure SetTableFieldsToNormal(TableNo: Integer)
@@ -3818,6 +3820,8 @@ codeunit 1751 "Data Classification Eval. Data"
         SetTableFieldsToNormal(6928); // ExpensePostingGroup
         SetTableFieldsToNormal(6929); // ExpenseSubcategory
         SetTableFieldsToNormal(6930); // ExpenseAgentSetup
+        SetTableFieldsToNormal(6931); // ExpenseTeam
+        SetTableFieldsToNormal(6932); // ExpenseApprovalSetup
     end;
 
     local procedure ClassifyAgents()
@@ -3895,6 +3899,8 @@ codeunit 1751 "Data Classification Eval. Data"
         SetTableFieldsToNormal(4302); // "Agent Message Template"
         SetTableFieldsToNormal(4315); // "Developer Agent"
         SetFieldToCompanyConfidential(4315, 2); // Instructions
+        SetTableFieldsToNormal(4316); // "Custom Agent Instructions Log"
+        SetFieldToCompanyConfidential(4316, 3); // Instructions
 
         // No-code agent 
         SetTableFieldsToNormal(4387); // No-Code Agent Setup
@@ -3941,6 +3947,10 @@ codeunit 1751 "Data Classification Eval. Data"
         SetFieldToCompanyConfidential(2000000281, 6); // Description
         SetFieldToCompanyConfidential(2000000281, 8); // Page Caption
         SetFieldToCompanyConfidential(2000000281, 9); // Client Context
+
+        SetTableFieldsToNormal(2000000298); // Agent Troubleshoot Info Data table
+        SetFieldToCompanyConfidential(2000000298, 4); // Troubleshooting Info
+        SetFieldToPersonal(2000000298, 5); // Agent User Security Id
     end;
 
     local procedure ClasifyScheduledPerformanceProfiling()

@@ -4,15 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Utilities;
 
-using System.Environment.Configuration;
-using System.Privacy;
+using Microsoft.CRM.Contact;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+using Microsoft.HumanResources.Employee;
+using Microsoft.Projects.Resources.Resource;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
-using Microsoft.CRM.Contact;
-using Microsoft.Projects.Resources.Resource;
-using Microsoft.HumanResources.Employee;
+using System.Environment.Configuration;
+using System.Privacy;
 
 codeunit 1756 "Data Class. Notification Mgt."
 {

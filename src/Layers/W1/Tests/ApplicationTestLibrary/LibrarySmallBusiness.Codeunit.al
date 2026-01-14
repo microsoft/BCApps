@@ -1,3 +1,6 @@
+/// <summary>
+/// Provides utility functions for small business scenarios in test cases, including simplified setup and common operations.
+/// </summary>
 codeunit 132213 "Library - Small Business"
 {
 

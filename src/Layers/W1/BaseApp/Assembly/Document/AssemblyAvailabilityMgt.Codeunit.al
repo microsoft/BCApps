@@ -328,9 +328,6 @@ codeunit 99000874 "Assembly Availability Mgt."
         ItemAvailabilityFormsMgt.FilterItem(Item, AsmHeader."Location Code", AsmHeader."Variant Code", AsmHeader."Due Date");
 
         OnBeforeShowItemAvailFromAsmHeader(Item, AsmHeader);
-#if not CLEAN25
-        ItemAvailabilityFormsMgt.RunOnBeforeShowItemAvailFromAsmHeader(Item, AsmHeader);
-#endif
         case AvailabilityType of
             AvailabilityType::Period:
                 if ItemAvailabilityFormsMgt.ShowItemAvailabilityByPeriod(
@@ -388,9 +385,6 @@ codeunit 99000874 "Assembly Availability Mgt."
         ItemAvailabilityFormsMgt.FilterItem(Item, AsmLine."Location Code", AsmLine."Variant Code", AsmLine."Due Date");
 
         OnBeforeShowItemAvailFromAsmLine(Item, AsmLine);
-#if not CLEAN25
-        ItemAvailabilityFormsMgt.RunOnBeforeShowItemAvailFromAsmLine(Item, AsmLine);
-#endif
         case AvailabilityType of
             AvailabilityType::Period:
                 if ItemAvailabilityFormsMgt.ShowItemAvailabilityByPeriod(
@@ -565,9 +559,6 @@ codeunit 99000874 "Assembly Availability Mgt."
         InventoryEventBuffer.Positive := not (InventoryEventBuffer."Remaining Quantity (Base)" < 0);
 
         OnAfterTransferFromAsmOrder(InventoryEventBuffer, AssemblyHeader);
-#if not CLEAN25
-        InventoryEventBuffer.RunOnAfterTransferFromAsmOrder(InventoryEventBuffer, AssemblyHeader);
-#endif
     end;
 
     procedure TransferFromAsmOrderLine(var InventoryEventBuffer: Record "Inventory Event Buffer"; AssemblyLine: Record "Assembly Line")
@@ -588,9 +579,6 @@ codeunit 99000874 "Assembly Availability Mgt."
         InventoryEventBuffer.Positive := not (InventoryEventBuffer."Remaining Quantity (Base)" < 0);
 
         OnAfterTransferFromAsmOrderLine(InventoryEventBuffer, AssemblyLine);
-#if not CLEAN25
-        InventoryEventBuffer.RunOnAfterTransferFromAsmOrderLine(InventoryEventBuffer, AssemblyLine);
-#endif
     end;
 
     [IntegrationEvent(false, false)]

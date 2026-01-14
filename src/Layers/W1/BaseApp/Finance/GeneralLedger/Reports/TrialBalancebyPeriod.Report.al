@@ -11,6 +11,15 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.Period;
 using System.Utilities;
 
+/// <summary>
+/// Generates trial balance report with period-by-period breakdown across multiple accounting periods.
+/// Displays account balances across consecutive periods for trend analysis and period-to-period comparison.
+/// </summary>
+/// <remarks>
+/// Data sources: G/L Account and Accounting Period tables with multi-period balance calculations.
+/// Supports configurable rounding factors, indentation levels, and comprehensive dimension filtering.
+/// Used for multi-period financial analysis, trend reporting, and management dashboard requirements.
+/// </remarks>
 report 38 "Trial Balance by Period"
 {
     DefaultLayout = RDLC;
@@ -410,6 +419,12 @@ report 38 "Trial Balance by Period"
         OnAfterCalcNetChange(GLAccount);
     end;
 
+    /// <summary>
+    /// Formats decimal amounts according to the specified rounding factor for multi-period trial balance display.
+    /// Utilizes Matrix Management codeunit for consistent amount formatting across period columns.
+    /// </summary>
+    /// <param name="Value">Decimal amount to be formatted</param>
+    /// <returns>Formatted amount as text with appropriate rounding applied</returns>
     procedure RoundAmount(Value: Decimal): Text[30]
     begin
         exit(MatrixMgt.FormatAmount(Value, RoundingFactor, false));

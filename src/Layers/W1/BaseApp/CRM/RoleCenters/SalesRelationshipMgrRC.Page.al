@@ -13,6 +13,7 @@ using Microsoft.CRM.Segment;
 using Microsoft.CRM.Team;
 using Microsoft.EServices.EDocument;
 using Microsoft.Foundation.Navigate;
+using Microsoft.Foundation.Task;
 using Microsoft.Integration.D365Sales;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
@@ -30,7 +31,6 @@ using Microsoft.Sales.Reports;
 using System.Automation;
 using System.Email;
 using System.Integration.PowerBI;
-using Microsoft.Foundation.Task;
 using System.Threading;
 using System.Visualization;
 
@@ -115,14 +115,19 @@ page 9026 "Sales & Relationship Mgr. RC"
                 RunObject = Report "Customer - Order Summary";
                 ToolTip = 'View the quantity not yet shipped for each customer in three periods of 30 days each, starting from a selected date. There are also columns with orders to be shipped before and after the three periods and a column with the total order detail for each customer. The report can be used to analyze a company''s expected sales volume.';
             }
+#if not CLEAN28
             action("Customer - &Top 10 List")
             {
                 ApplicationArea = RelationshipMgmt;
-                Caption = 'Customer - &Top 10 List';
+                Caption = 'Customer - &Top 10 List (Obsolete)';
                 Image = "Report";
                 RunObject = Report "Customer - Top 10 List";
                 ToolTip = 'View which customers purchase the most or owe the most in a selected period. Only customers that have either purchases during the period or a balance at the end of the period will be included.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report has been replaced by the report Customer - Top List (Excel). This report will be removed in a future release.';
+                ObsoleteTag = '28.0';
             }
+#endif
             separator(Action17)
             {
             }

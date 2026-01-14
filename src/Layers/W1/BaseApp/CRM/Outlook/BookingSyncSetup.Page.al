@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEAN28
 namespace Microsoft.Booking;
 
 using Microsoft.CRM.Outlook;
@@ -17,6 +18,9 @@ page 6702 "Booking Sync. Setup"
     LinksAllowed = false;
     PageType = Card;
     SourceTable = "Booking Sync";
+    ObsoleteReason = 'Booking sync is no longer part of Business Central 365.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
 
     layout
     {
@@ -328,3 +332,4 @@ page 6702 "Booking Sync. Setup"
         NewCustTemplateCodeVisible := not GraphSyncEnabled;
     end;
 }
+#endif

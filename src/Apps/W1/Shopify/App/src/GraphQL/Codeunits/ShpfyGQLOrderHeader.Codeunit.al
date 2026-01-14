@@ -16,6 +16,6 @@ codeunit 30207 "Shpfy GQL OrderHeader" implements "Shpfy IGraphQL"
 
     procedure GetExpectedCost(): Integer
     begin
-        exit(68);
+        exit(35);
     end;
 }

@@ -8,9 +8,11 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Setup;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
+using Microsoft.Warehouse.Ledger;
 using System.IO;
 using System.Reflection;
 using System.Utilities;
@@ -109,6 +111,7 @@ codeunit 1336 "Item Templ. Mgt."
         EmptyItemTemplRecRef.Init();
         OnInitFromTemplateOnAfterPrepareEmptyItemTemplRecordRef(EmptyItemTemplRecRef, ItemTempl, UpdateExistingValues);
 
+        AddItemTrackingCodeToExclusionListIfNoRelatedILECreated(Item, FieldExclusionList);
         FillFieldExclusionList(FieldExclusionList);
 
         for i := 3 to ItemTemplRecRef.FieldCount do begin
@@ -144,6 +147,32 @@ codeunit 1336 "Item Templ. Mgt."
         if ShouldUpdateItemCategoryCode(Item, ItemTempl, UpdateExistingValues) then
             Item.Validate("Item Category Code", ItemTempl."Item Category Code");
         Item.Validate("Indirect Cost %", ItemTempl."Indirect Cost %");
+    end;
+
+    local procedure AddItemTrackingCodeToExclusionListIfNoRelatedILECreated(Item: Record Item; var FieldExclusionList: List of [Integer])
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ItemTempl: Record "Item Templ.";
+    begin
+        if Item."No." = '' then
+            exit;
+
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        if ItemLedgerEntry.IsEmpty() then
+            if NoWarehouseEntriesExist(Item."No.") then
+                exit;
+
+        FieldExclusionList.Add(ItemTempl.FieldNo("Item Tracking Code"));
+        FieldExclusionList.Add(ItemTempl.FieldNo("Lot Nos."));
+        FieldExclusionList.Add(ItemTempl.FieldNo("Serial Nos."));
+    end;
+
+    local procedure NoWarehouseEntriesExist(ItemNo: Code[20]): Boolean
+    var
+        WarehouseEntry: Record "Warehouse Entry";
+    begin
+        WarehouseEntry.SetRange("Item No.", ItemNo);
+        exit(WarehouseEntry.IsEmpty());
     end;
 
     local procedure DoUpdateValue(ItemFldRef: FieldRef; EmptyItemFldRef: FieldRef; ItemTemplFldRef: FieldRef; EmptyItemTemplFldRef: FieldRef; UpdateExistingValues: Boolean): Boolean

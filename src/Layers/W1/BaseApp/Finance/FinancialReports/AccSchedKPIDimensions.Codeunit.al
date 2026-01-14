@@ -14,6 +14,15 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Budget;
 using Microsoft.Finance.GeneralLedger.Ledger;
 
+/// <summary>
+/// Processes account schedule KPI calculations with dimension filtering and analysis capabilities.
+/// Handles complex financial data aggregation across multiple ledger types with dimension support.
+/// </summary>
+/// <remarks>
+/// Primary functionality: KPI calculation with dimensions, multi-ledger data aggregation, filter processing.
+/// Integration: Links with G/L, Cost, Cash Flow systems, Analysis Views, and Dimension Management.
+/// Extensibility: Integration events for custom calculation logic and dimension handling.
+/// </remarks>
 codeunit 9 "Acc. Sched. KPI Dimensions"
 {
     TableNo = "Acc. Schedule Line";
@@ -40,6 +49,13 @@ codeunit 9 "Acc. Sched. KPI Dimensions"
         ColumnErr: Label 'Acc. Sched. Column: Column No. = %1, Line No. = %2, Formula  = %3', Comment = '%1 = Column No., %2= Line No., %3 = Formula';
         CircularRefErr: Label 'Because of circular references, the program cannot calculate a formula.';
 
+    /// <summary>
+    /// Calculates and populates KPI buffer with cell data including dimension filtering and analysis.
+    /// Processes account schedule line and column layout intersection with comprehensive dimension support.
+    /// </summary>
+    /// <param name="AccSchedLine">Account schedule line record defining row calculation parameters</param>
+    /// <param name="ColumnLayout">Column layout record defining column calculation parameters and data source</param>
+    /// <param name="TempAccSchedKPIBuffer2">Temporary KPI buffer to populate with calculated cell values</param>
     procedure GetCellDataWithDimensions(var AccSchedLine: Record "Acc. Schedule Line"; var ColumnLayout: Record "Column Layout"; var TempAccSchedKPIBuffer2: Record "Acc. Sched. KPI Buffer" temporary)
     var
         LastDataLineNo: Integer;
@@ -742,6 +758,14 @@ codeunit 9 "Acc. Sched. KPI Dimensions"
           StrSubstNo(ColumnErr, ColumnLayout."Column No.", ColumnLayout."Line No.", ColumnLayout.Formula));
     end;
 
+    /// <summary>
+    /// Determines if there is a conflict between account schedule line and column layout amount types.
+    /// Resolves amount type conflicts and returns the appropriate amount type for calculations.
+    /// </summary>
+    /// <param name="AccSchedLine">Account schedule line with amount type configuration</param>
+    /// <param name="ColumnLayoutAmtType">Column layout amount type to compare against</param>
+    /// <param name="AmountType">Variable to receive the resolved amount type for calculations</param>
+    /// <returns>True if there is a conflict that requires resolution, false if amount types are compatible</returns>
     procedure ConflictAmountType(AccSchedLine: Record "Acc. Schedule Line"; ColumnLayoutAmtType: Enum "Account Schedule Amount Type"; var AmountType: Enum "Account Schedule Amount Type"): Boolean
     begin
         if (ColumnLayoutAmtType = AccSchedLine."Amount Type") or
@@ -756,6 +780,14 @@ codeunit 9 "Acc. Sched. KPI Dimensions"
         exit(false);
     end;
 
+    /// <summary>
+    /// Combines two filter text parts using the specified combination symbol for complex filtering.
+    /// Prepares and merges filter expressions with proper formatting and logical operators.
+    /// </summary>
+    /// <param name="FilterPart1">First filter text part to combine</param>
+    /// <param name="FilterPart2">Second filter text part to combine</param>
+    /// <param name="CombineSymbol">Logical operator symbol to use for combination (e.g., '&amp;', '|')</param>
+    /// <returns>Combined filter text with proper formatting and logical operators</returns>
     procedure CombineFilters(FilterPart1: Text; FilterPart2: Text; CombineSymbol: Text[1]): Text
     begin
         PrepareFilterPart(FilterPart1);
@@ -773,6 +805,11 @@ codeunit 9 "Acc. Sched. KPI Dimensions"
         exit('');
     end;
 
+    /// <summary>
+    /// Prepares filter text part by trimming spaces and adding parentheses for proper logical grouping.
+    /// Ensures filter expressions are properly formatted for combination with other filter parts.
+    /// </summary>
+    /// <param name="FilterText">Filter text to prepare and format for logical operations</param>
     procedure PrepareFilterPart(var FilterText: Text)
     begin
         FilterText := DelChr(FilterText, '<>', ' ');
@@ -824,6 +861,13 @@ codeunit 9 "Acc. Sched. KPI Dimensions"
         TempAccSchedKPIBufferResulting.SetRange("Dimension Set ID");
     end;
 
+    /// <summary>
+    /// Post-processes calculated amount based on account schedule line configuration.
+    /// Applies sign reversal if specified in the account schedule line settings.
+    /// </summary>
+    /// <param name="AccSchedLine">Account schedule line record containing processing configuration</param>
+    /// <param name="Amount">Calculated amount to post-process</param>
+    /// <returns>Processed amount with appropriate sign adjustment applied</returns>
     procedure PostProcessAmount(AccSchedLine: Record "Acc. Schedule Line"; Amount: Decimal): Decimal
     begin
         if AccSchedLine."Show Opposite Sign" then
@@ -831,6 +875,13 @@ codeunit 9 "Acc. Sched. KPI Dimensions"
         exit(Amount);
     end;
 
+    /// <summary>
+    /// Determines whether a calculated balance passes the display criteria based on account schedule line show option.
+    /// Evaluates balance against positive/negative/zero conditions for conditional display logic.
+    /// </summary>
+    /// <param name="AccSchedLineShow">Show option enum defining the display condition criteria</param>
+    /// <param name="Balance">Calculated balance amount to evaluate against display criteria</param>
+    /// <returns>True if balance meets the display criteria, false if it should be hidden</returns>
     procedure PassToResult(AccSchedLineShow: Enum "Acc. Schedule Line Show"; Balance: Decimal) BalanceIsOK: Boolean
     begin
         BalanceIsOK := true;
@@ -875,11 +926,26 @@ codeunit 9 "Acc. Sched. KPI Dimensions"
             AccSchedManagement.GetDimTotalingFilter(4, AccScheduleLine2."Dimension 4 Totaling"), '&'));
     end;
 
+    /// <summary>
+    /// Sets the temporary KPI buffer for dimension calculations and data aggregation.
+    /// Copies the provided buffer to the internal temporary buffer for processing operations.
+    /// </summary>
+    /// <param name="NewTempAccSchedKPIBuffer">Temporary KPI buffer to copy for dimension calculations</param>
     procedure SetTempAccSchedKPIBuffer(var NewTempAccSchedKPIBuffer: Record "Acc. Sched. KPI Buffer" temporary)
     begin
         TempAccSchedKPIBuffer.Copy(NewTempAccSchedKPIBuffer, true);
     end;
 
+    /// <summary>
+    /// Integration event raised before adding cost type dimensions to KPI calculations.
+    /// Enables custom handling of cost type dimension processing and calculation logic.
+    /// </summary>
+    /// <param name="CostType">Cost type record being processed for dimension analysis</param>
+    /// <param name="AccSchedLine">Account schedule line record defining calculation parameters</param>
+    /// <param name="ColumnLayout">Column layout record providing calculation context</param>
+    /// <param name="AccSchedKPIBuffer">KPI buffer record to populate with calculated values</param>
+    /// <param name="IsHandled">Set to true to skip standard cost type dimension processing</param>
+    /// <param name="TempAccSchedKPIBuffer">Temporary KPI buffer for intermediate calculations</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAddCostTypeDimensions(var CostType: Record "Cost Type"; var AccSchedLine: Record "Acc. Schedule Line"; ColumnLayout: Record "Column Layout"; var AccSchedKPIBuffer: Record "Acc. Sched. KPI Buffer"; var IsHandled: Boolean; var TempAccSchedKPIBuffer: Record "Acc. Sched. KPI Buffer" temporary)
     begin

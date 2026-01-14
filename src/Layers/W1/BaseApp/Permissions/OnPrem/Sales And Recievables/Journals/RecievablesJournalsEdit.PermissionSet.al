@@ -1,23 +1,23 @@
 namespace System.Security.AccessControl;
 
 using Microsoft.Bank.BankAccount;
-using Microsoft.Foundation.Comment;
+using Microsoft.CRM.Team;
 using Microsoft.Finance.Currency;
-using Microsoft.Sales.FinanceCharge;
-using Microsoft.Sales.Receivables;
-using Microsoft.Sales.Customer;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
-using Microsoft.Foundation.AuditCodes;
-using Microsoft.CRM.Team;
-using Microsoft.Finance.VAT.Setup;
+using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.RateChange;
 using Microsoft.Finance.VAT.Reporting;
-using Microsoft.Finance.VAT.Calculation;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.Comment;
+using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.FinanceCharge;
+using Microsoft.Sales.Receivables;
 
 permissionset 8785 "Recievables Journals - Edit"
 {

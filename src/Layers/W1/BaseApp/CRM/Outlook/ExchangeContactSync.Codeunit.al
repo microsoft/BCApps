@@ -2,12 +2,17 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEAN28
 namespace Microsoft.CRM.Outlook;
 
 using Microsoft.CRM.Contact;
 
 codeunit 6703 "Exchange Contact Sync."
 {
+
+    ObsoleteReason = 'Contact sync is now moved to assisted setup experience with new Graph based implementation.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
 
     trigger OnRun()
     var
@@ -191,3 +196,4 @@ codeunit 6703 "Exchange Contact Sync."
     end;
 }
 
+#endif

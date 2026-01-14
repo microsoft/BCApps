@@ -6,6 +6,10 @@ namespace Microsoft.Bank.Reconciliation;
 
 using System.Reflection;
 
+/// <summary>
+/// Displays detailed matching information for payment reconciliation entries.
+/// Shows match criteria, confidence levels, and potential matching candidates.
+/// </summary>
 page 1286 "Payment Rec Match Details"
 {
     Caption = 'Match Details';

@@ -16,6 +16,6 @@ codeunit 30208 "Shpfy GQL OrderLines" implements "Shpfy IGraphQL"
 
     procedure GetExpectedCost(): Integer
     begin
-        exit(65)
+        exit(23)
     end;
 }

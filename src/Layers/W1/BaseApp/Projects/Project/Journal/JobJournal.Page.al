@@ -228,17 +228,6 @@ page 201 "Job Journal"
                     ToolTip = 'Specifies the quantity of the resource or item that remains to complete a project. The remaining quantity is calculated as the difference between Quantity and Qty. Posted. You can modify this field to indicate the quantity you want to remain on the project planning line after you post usage.';
                     Visible = false;
                 }
-#if not CLEAN25
-                field(QuantityToTransferToInvoice; Rec."Qty. to Transfer to Invoice")
-                {
-                    ApplicationArea = Jobs;
-                    Visible = false;
-                    ToolTip = 'Specifies the number of units of the project journal''s No. field, that is, either the resource, item, or G/L account number, that applies. If you later change the value in the No. field, the quantity does not change on the journal line.';
-                    ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-                }
-#endif
                 field("Direct Unit Cost (LCY)"; Rec."Direct Unit Cost (LCY)")
                 {
                     ApplicationArea = Jobs;
@@ -1025,17 +1014,17 @@ page 201 "Job Journal"
         ClientTypeManagement: Codeunit "Client Type Management";
         JobJournalErrorsMgt: Codeunit "Job Journal Errors Mgt.";
         JobJnlReconcile: Page "Job Journal Reconcile";
-        JobDescription: Text[100];
-        AccName: Text[100];
         NumberOfRecords: Integer;
-        CurrentJnlBatchName: Code[10];
         ExtendedPriceEnabled: Boolean;
         IsSaaSExcelAddinEnabled: Boolean;
         BackgroundErrorCheck: Boolean;
         ShowAllLinesEnabled: Boolean;
 
     protected var
+        CurrentJnlBatchName: Code[10];
         ShortcutDimCode: array[8] of Code[20];
+        JobDescription: Text[100];
+        AccName: Text[100];
         DimVisible1: Boolean;
         DimVisible2: Boolean;
         DimVisible3: Boolean;
@@ -1131,4 +1120,3 @@ page 201 "Job Journal"
     begin
     end;
 }
-

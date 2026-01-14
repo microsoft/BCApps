@@ -10,6 +10,15 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using System.IO;
 using System.Utilities;
 
+/// <summary>
+/// Tests and validates consolidation file structure and data integrity for subsidiary data imports.
+/// Analyzes consolidation files to identify data inconsistencies and format compatibility issues.
+/// </summary>
+/// <remarks>
+/// File validation report for consolidation imports ensuring data quality and structural compatibility.
+/// Validates G/L account mappings, dimension consistency, and currency exchange rate availability.
+/// Critical for maintaining data integrity in multi-company consolidation processes.
+/// </remarks>
 report 15 "Consolidation - Test File"
 {
     DefaultLayout = RDLC;
@@ -444,6 +453,12 @@ report 15 "Consolidation - Test File"
             FileName := Text039
     end;
 
+    /// <summary>
+    /// Integration event raised after processing each G/L account during consolidation file testing.
+    /// Enables custom processing of temporary G/L entries and text line data during validation.
+    /// </summary>
+    /// <param name="TempGLEntry">Temporary G/L Entry record processed during validation</param>
+    /// <param name="TextLine">Text line from consolidation file being analyzed</param>
     [IntegrationEvent(false, false)]
     local procedure OnGLAccountOnPostDataItemOnAfterLoopIteration(var TempGLEntry: Record "G/L Entry" temporary; TextLine: Text[250])
     begin

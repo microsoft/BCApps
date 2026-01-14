@@ -267,18 +267,6 @@ page 99000822 "Order Tracking"
         UntrackedButtonEnable: Boolean;
         SuppliedByIndent: Integer;
 
-#if not CLEAN25
-    [Obsolete('Replaced by SetVariantRec()', '25.0')]
-    procedure SetSalesLine(var CurrentSalesLine: Record Microsoft.Sales.Document."Sales Line")
-    begin
-        OrderTrackingMgt.SetSalesLine(CurrentSalesLine);
-
-        CurrItemNo := CurrentSalesLine."No.";
-        CurrQuantity := CurrentSalesLine."Outstanding Qty. (Base)";
-        StartingDate := CurrentSalesLine."Shipment Date";
-        EndingDate := CurrentSalesLine."Shipment Date";
-    end;
-#endif
 
     procedure SetReqLine(var CurrentReqLine: Record "Requisition Line")
     begin
@@ -294,70 +282,10 @@ page 99000822 "Order Tracking"
             PlanningTransparency.SetCurrReqLine(CurrentReqLine);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by SetVariantRec()', '25.0')]
-    procedure SetPurchLine(var CurrentPurchLine: Record Microsoft.Purchases.Document."Purchase Line")
-    begin
-        OrderTrackingMgt.SetPurchLine(CurrentPurchLine);
 
-        CurrItemNo := CurrentPurchLine."No.";
-        CurrQuantity := CurrentPurchLine."Outstanding Qty. (Base)";
-        StartingDate := CurrentPurchLine."Expected Receipt Date";
-        EndingDate := CurrentPurchLine."Expected Receipt Date";
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by SetVariantRec()', '25.0')]
-    procedure SetProdOrderLine(var CurrentProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line")
-    begin
-        OrderTrackingMgt.SetProdOrderLine(CurrentProdOrderLine);
 
-        CurrItemNo := CurrentProdOrderLine."Item No.";
-        CurrQuantity := CurrentProdOrderLine."Remaining Qty. (Base)";
-        StartingDate := CurrentProdOrderLine."Starting Date";
-        EndingDate := CurrentProdOrderLine."Ending Date";
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by SetVariantRec()', '25.0')]
-    procedure SetProdOrderComponent(var CurrentProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-        OrderTrackingMgt.SetProdOrderComp(CurrentProdOrderComp);
-
-        CurrItemNo := CurrentProdOrderComp."Item No.";
-        CurrQuantity := CurrentProdOrderComp."Remaining Qty. (Base)";
-        StartingDate := CurrentProdOrderComp."Due Date";
-        EndingDate := CurrentProdOrderComp."Due Date";
-    end;
-#endif
-
-#if not CLEAN25
-    [Obsolete('Replaced by SetVariantRec()', '25.0')]
-    procedure SetAsmHeader(var CurrentAsmHeader: Record Microsoft.Assembly.Document."Assembly Header")
-    begin
-        OrderTrackingMgt.SetAsmHeader(CurrentAsmHeader);
-
-        CurrItemNo := CurrentAsmHeader."Item No.";
-        CurrQuantity := CurrentAsmHeader."Remaining Quantity (Base)";
-        StartingDate := CurrentAsmHeader."Due Date";
-        EndingDate := CurrentAsmHeader."Due Date";
-    end;
-#endif
-
-#if not CLEAN25
-    [Obsolete('Replaced by SetVariantRec()', '25.0')]
-    procedure SetAsmLine(var CurrentAsmLine: Record Microsoft.Assembly.Document."Assembly Line")
-    begin
-        OrderTrackingMgt.SetAsmLine(CurrentAsmLine);
-
-        CurrItemNo := CurrentAsmLine."No.";
-        CurrQuantity := CurrentAsmLine."Remaining Quantity (Base)";
-        StartingDate := CurrentAsmLine."Due Date";
-        EndingDate := CurrentAsmLine."Due Date";
-    end;
-#endif
 
     procedure SetPlanningComponent(var CurrentPlanningComponent: Record "Planning Component")
     begin
@@ -395,31 +323,7 @@ page 99000822 "Order Tracking"
         EndingDate := TempItemLedgEntry."Posting Date";
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by SetVariantRec()', '25.0')]
-    procedure SetServLine(var CurrentServLine: Record Microsoft.Service.Document."Service Line")
-    begin
-        OrderTrackingMgt.SetServLine(CurrentServLine);
 
-        CurrItemNo := CurrentServLine."No.";
-        CurrQuantity := CurrentServLine."Outstanding Qty. (Base)";
-        StartingDate := CurrentServLine."Needed by Date";
-        EndingDate := CurrentServLine."Needed by Date";
-    end;
-#endif
-
-#if not CLEAN25
-    [Obsolete('Replaced by SetVariantRec()', '25.0')]
-    procedure SetJobPlanningLine(var CurrentJobPlanningLine: Record Microsoft.Projects.Project.Planning."Job Planning Line")
-    begin
-        OrderTrackingMgt.SetJobPlanningLine(CurrentJobPlanningLine);
-
-        CurrItemNo := CurrentJobPlanningLine."No.";
-        CurrQuantity := CurrentJobPlanningLine."Remaining Qty. (Base)";
-        StartingDate := CurrentJobPlanningLine."Planning Date";
-        EndingDate := CurrentJobPlanningLine."Planning Date";
-    end;
-#endif
 
     procedure SetVariantRec(SourceRecordVar: Variant; NewItemNo: Code[20]; NewQuantity: Decimal; NewStartingDate: Date; NewEndingDate: Date)
     begin
@@ -450,4 +354,3 @@ page 99000822 "Order Tracking"
         SuppliedByIndent := Rec.Level - 1;
     end;
 }
-

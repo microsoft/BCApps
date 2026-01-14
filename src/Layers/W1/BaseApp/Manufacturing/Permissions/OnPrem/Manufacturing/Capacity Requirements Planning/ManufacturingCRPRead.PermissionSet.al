@@ -1,15 +1,15 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.Manufacturing.Capacity;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Manufacturing.MachineCenter;
-using Microsoft.Manufacturing.Comment;
 using Microsoft.Inventory.Planning;
-using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Comment;
 using Microsoft.Manufacturing.Document;
-using Microsoft.Purchases.Vendor;
+using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Purchases.Vendor;
 
 permissionset 5058 "Manufacturing CRP - Read"
 {

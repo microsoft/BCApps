@@ -47,6 +47,7 @@ table 5968 "Service Contract Template"
         }
         field(4; "Max. Labor Unit Price"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 2;
             BlankZero = true;
             Caption = 'Max. Labor Unit Price';
@@ -80,6 +81,7 @@ table 5968 "Service Contract Template"
         }
         field(9; "Default Response Time (Hours)"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Default Response Time (Hours)';
             DecimalPlaces = 0 : 5;
@@ -174,10 +176,10 @@ table 5968 "Service Contract Template"
         ServMgtSetup.Get();
         if "No." = '' then begin
             ServMgtSetup.TestField("Contract Template Nos.");
-                "No. Series" := ServMgtSetup."Contract Template Nos.";
-                if NoSeries.AreRelated("No. Series", xRec."No. Series") then
-                    "No. Series" := xRec."No. Series";
-                "No." := NoSeries.GetNextNo("No. Series");
+            "No. Series" := ServMgtSetup."Contract Template Nos.";
+            if NoSeries.AreRelated("No. Series", xRec."No. Series") then
+                "No. Series" := xRec."No. Series";
+            "No." := NoSeries.GetNextNo("No. Series");
         end;
     end;
 

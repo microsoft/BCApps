@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Page displaying dimension values per account with mandatory posting rules.
+/// Shows default dimensions configured for specific accounts where dimension values are required during posting.
+/// </summary>
+/// <remarks>
+/// Filtered to show only default dimensions with "Code Mandatory" value posting, ensuring dimension values are required.
+/// Provides account-specific dimension configuration with allowed values management and validation.
+/// Used for reviewing and managing mandatory dimension requirements at the account level.
+/// </remarks>
 page 545 "Dim. Values per Account"
 {
     Caption = 'Dimension Values per Account';

@@ -6,6 +6,15 @@ namespace Microsoft.Finance.Dimension;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 
+/// <summary>
+/// Header table for storing global dimension change configuration parameters.
+/// Controls the settings and parameters for changing global dimensions across all Business Central tables.
+/// </summary>
+/// <remarks>
+/// Single-record table that stores configuration for global dimension change operations.
+/// Supports both sequential and parallel processing modes with change type tracking.
+/// Integrates with Change Global Dimensions functionality to update dimension references system-wide.
+/// </remarks>
 table 484 "Change Global Dim. Header"
 {
     Caption = 'Change Global Dim. Header';
@@ -13,24 +22,36 @@ table 484 "Change Global Dim. Header"
 
     fields
     {
+        /// <summary>
+        /// Primary key field for the single configuration record.
+        /// </summary>
         field(1; "Primary Key"; Code[10])
         {
             AllowInCustomizations = Never;
             Caption = 'Primary Key';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Previous global dimension 1 code before the change operation.
+        /// </summary>
         field(2; "Old Global Dimension 1 Code"; Code[20])
         {
             Caption = 'Old Global Dimension 1 Code';
             DataClassification = SystemMetadata;
             TableRelation = Dimension;
         }
+        /// <summary>
+        /// Previous global dimension 2 code before the change operation.
+        /// </summary>
         field(3; "Old Global Dimension 2 Code"; Code[20])
         {
             Caption = 'Old Global Dimension 2 Code';
             DataClassification = SystemMetadata;
             TableRelation = Dimension;
         }
+        /// <summary>
+        /// New global dimension 1 code to be set after the change operation.
+        /// </summary>
         field(4; "Global Dimension 1 Code"; Code[20])
         {
             Caption = 'Global Dimension 1 Code';
@@ -47,6 +68,9 @@ table 484 "Change Global Dim. Header"
                 CalcChangeType("Change Type 1", "Global Dimension 1 Code", "Old Global Dimension 1 Code", "Old Global Dimension 2 Code");
             end;
         }
+        /// <summary>
+        /// New global dimension 2 code to be set after the change operation.
+        /// </summary>
         field(5; "Global Dimension 2 Code"; Code[20])
         {
             Caption = 'Global Dimension 2 Code';
@@ -63,11 +87,17 @@ table 484 "Change Global Dim. Header"
                 CalcChangeType("Change Type 2", "Global Dimension 2 Code", "Old Global Dimension 2 Code", "Old Global Dimension 1 Code");
             end;
         }
+        /// <summary>
+        /// Enables parallel processing for dimension change operations to improve performance.
+        /// </summary>
         field(6; "Parallel Processing"; Boolean)
         {
             Caption = 'Parallel Processing';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Type of change operation for global dimension 1 (None, Blank, Replace, or New).
+        /// </summary>
         field(7; "Change Type 1"; Option)
         {
             Caption = 'Change Type 1';
@@ -75,6 +105,9 @@ table 484 "Change Global Dim. Header"
             OptionCaption = 'None,Blank,Replace,New';
             OptionMembers = "None",Blank,Replace,New;
         }
+        /// <summary>
+        /// Type of change operation for global dimension 2 (None, Blank, Replace, or New).
+        /// </summary>
         field(8; "Change Type 2"; Option)
         {
             Caption = 'Change Type 2';
@@ -114,6 +147,10 @@ table 484 "Change Global Dim. Header"
                     ChangeType := ChangeType::New
     end;
 
+    /// <summary>
+    /// Refreshes the dimension change configuration by loading current GL setup values.
+    /// Resets change types to None for both global dimensions.
+    /// </summary>
     procedure Refresh()
     begin
         RefreshCurrentDimCodes();
@@ -123,6 +160,9 @@ table 484 "Change Global Dim. Header"
         "Change Type 2" := "Change Type 2"::None;
     end;
 
+    /// <summary>
+    /// Refreshes the old dimension codes by retrieving current values from General Ledger Setup.
+    /// </summary>
     procedure RefreshCurrentDimCodes()
     begin
         GeneralLedgerSetup.Get();

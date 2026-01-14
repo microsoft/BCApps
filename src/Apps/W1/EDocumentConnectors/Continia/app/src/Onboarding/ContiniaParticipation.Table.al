@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Continia;
 
-using System.Email;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Foundation.Address;
+using System.Email;
 
 table 6391 "Continia Participation"
 {

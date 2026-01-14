@@ -643,6 +643,7 @@ table 5965 "Service Contract Header"
         }
         field(40; "Calcd. Annual Amount"; Decimal)
         {
+            AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             CalcFormula = sum("Service Contract Line"."Line Amount" where("Contract Type" = field("Contract Type"),
                                                                            "Contract No." = field("Contract No.")));
@@ -652,6 +653,7 @@ table 5965 "Service Contract Header"
         }
         field(42; "Annual Amount"; Decimal)
         {
+            AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Annual Amount';
@@ -667,6 +669,7 @@ table 5965 "Service Contract Header"
         }
         field(43; "Amount per Period"; Decimal)
         {
+            AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Amount per Period';
@@ -761,12 +764,14 @@ table 5965 "Service Contract Header"
         }
         field(53; "Last Price Update %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Last Price Update %';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(55; "Response Time (Hours)"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Response Time (Hours)';
             DecimalPlaces = 0 : 5;
@@ -999,6 +1004,7 @@ table 5965 "Service Contract Header"
         }
         field(83; Probability; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Probability';
             DecimalPlaces = 0 : 5;
             InitValue = 100;
@@ -1130,6 +1136,7 @@ table 5965 "Service Contract Header"
         }
         field(100; "Contract Invoice Amount"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             CalcFormula = - sum("Service Ledger Entry"."Amount (LCY)" where("Service Contract No." = field("Contract No."),
                                                                             "Entry Type" = const(Sale),
@@ -1143,6 +1150,7 @@ table 5965 "Service Contract Header"
         }
         field(101; "Contract Prepaid Amount"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             CalcFormula = - sum("Service Ledger Entry"."Amount (LCY)" where("Service Contract No." = field("Contract No."),
                                                                             "Entry Type" = const(Sale),
@@ -1157,6 +1165,7 @@ table 5965 "Service Contract Header"
         }
         field(102; "Contract Discount Amount"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             CalcFormula = sum("Service Ledger Entry"."Contract Disc. Amount" where("Service Contract No." = field("Contract No."),
                                                                                     "Entry Type" = const(Sale),
@@ -1170,6 +1179,7 @@ table 5965 "Service Contract Header"
         }
         field(103; "Contract Cost Amount"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             CalcFormula = sum("Service Ledger Entry"."Cost Amount" where("Service Contract No." = field("Contract No."),
                                                                           "Entry Type" = const(Usage),
@@ -1183,6 +1193,7 @@ table 5965 "Service Contract Header"
         }
         field(104; "Contract Gain/Loss Amount"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             CalcFormula = sum("Contract Gain/Loss Entry".Amount where("Contract No." = field("Contract No."),
                                                                        "Reason Code" = field("Reason Code Filter"),
@@ -1934,9 +1945,9 @@ table 5965 "Service Contract Header"
         if "Contract No." = '' then begin
             ServMgtSetup.TestField("Service Contract Nos.");
             "No. Series" := GetServiceContractNos();
-                if NoSeries.AreRelated("No. Series", xRec."No. Series") then
-                    "No. Series" := xRec."No. Series";
-                "Contract No." := NoSeries.GetNextNo("No. Series");
+            if NoSeries.AreRelated("No. Series", xRec."No. Series") then
+                "No. Series" := xRec."No. Series";
+            "Contract No." := NoSeries.GetNextNo("No. Series");
 
         end;
     end;

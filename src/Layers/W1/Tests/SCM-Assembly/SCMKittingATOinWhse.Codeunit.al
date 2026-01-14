@@ -4,21 +4,21 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
-using Microsoft.Inventory.Journal;
-using Microsoft.Inventory.Location;
+using Microsoft.Assembly.Document;
 using Microsoft.Assembly.Setup;
+using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Projects.Resources.Resource;
+using Microsoft.Purchases.Document;
+using Microsoft.Sales.Document;
 using Microsoft.Sales.Setup;
+using Microsoft.Utilities;
 using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
-using Microsoft.Inventory.Item;
-using Microsoft.Projects.Resources.Resource;
-using Microsoft.Inventory.BOM;
-using Microsoft.Sales.Document;
-using Microsoft.Purchases.Document;
-using Microsoft.Utilities;
-using Microsoft.Assembly.Document;
-using Microsoft.Inventory.Tracking;
-using Microsoft.Inventory.Ledger;
 
 codeunit 137102 "SCM Kitting ATO in Whse"
 {

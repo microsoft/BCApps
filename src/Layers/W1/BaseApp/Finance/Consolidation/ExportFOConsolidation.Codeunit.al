@@ -10,6 +10,10 @@ using Microsoft.Finance.GeneralLedger.Budget;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 
+/// <summary>
+/// Exports consolidation data in Finance and Operations (F&amp;O) format for external system integration.
+/// Handles G/L entry processing, dimension management, and F&amp;O-specific data formatting requirements.
+/// </summary>
 codeunit 439 "Export F/O Consolidation"
 {
     trigger OnRun()
@@ -32,11 +36,21 @@ codeunit 439 "Export F/O Consolidation"
         GLEntryLineTok: Label '2,"%1","%2",%3,"%4",%5,%6,%7,%8,%9', Comment = '%3, %5, %6, %7, %8, %9 - numbers, %1,%4 - text value, %2 - date';
         GLAccountLineTok: Label '1,"%1","%2",%3', Comment = '%1, %2 - text value, %3 - number';
 
+    /// <summary>
+    /// Sets the Finance and Operations Legal Entity ID for consolidation export processing.
+    /// </summary>
+    /// <param name="NewFOLegalEntityID">Legal Entity ID for F&amp;O system integration</param>
     procedure SetFOLegalEntityID(NewFOLegalEntityID: Code[4])
     begin
         FOLegalEntityID := NewFOLegalEntityID;
     end;
 
+    /// <summary>
+    /// Inserts G/L Entry record into temporary processing table for F&amp;O consolidation export.
+    /// Creates entry with sequential numbering and validates account configuration.
+    /// </summary>
+    /// <param name="NewGLEntry">G/L Entry record to insert for consolidation export</param>
+    /// <returns>Entry number assigned to the inserted G/L entry</returns>
     procedure InsertGLEntry(NewGLEntry: Record "G/L Entry"): Integer
     var
         GLAccount: Record "G/L Account";
@@ -75,6 +89,12 @@ codeunit 439 "Export F/O Consolidation"
         end;
     end;
 
+    /// <summary>
+    /// Inserts entry dimension into temporary dimension buffer with conflict validation.
+    /// Validates dimension consistency and creates dimension buffer entries for GL entry processing.
+    /// </summary>
+    /// <param name="NewDimBuf">Dimension buffer record containing dimension data to insert</param>
+    /// <param name="GLEntryNo">G/L Entry number for dimension association</param>
     procedure InsertEntryDim(NewDimBuf: Record "Dimension Buffer"; GLEntryNo: Integer)
     begin
         if TempDimBuf.Get(NewDimBuf."Table ID", GLEntryNo, NewDimBuf."Dimension Code") then begin
@@ -106,6 +126,13 @@ codeunit 439 "Export F/O Consolidation"
             until TempDimBuf.Next() = 0;
     end;
 
+    /// <summary>
+    /// Processes G/L budget entries for specified account and date range during consolidation export.
+    /// Creates temporary budget entry records for Finance &amp; Operations consolidation format.
+    /// </summary>
+    /// <param name="AccountNo">G/L Account number to process budget entries</param>
+    /// <param name="StartDate">Starting date for budget entry processing range</param>
+    /// <param name="EndDate">Ending date for budget entry processing range</param>
     procedure ProcessGLBugdetEntries(AccountNo: Code[20]; StartDate: Date; EndDate: Date)
     var
         GLBudgetEntry: Record "G/L Budget Entry";

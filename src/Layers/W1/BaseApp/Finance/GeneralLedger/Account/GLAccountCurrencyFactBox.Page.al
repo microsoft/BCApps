@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Account;
 
+/// <summary>
+/// A FactBox page displaying source currency information for a G/L account.
+/// This page shows the balances and currency details for different currencies in which entries have been posted to the account.
+/// </summary>
 page 590 "G/L Account Currency FactBox"
 {
     Caption = 'Source Currencies';

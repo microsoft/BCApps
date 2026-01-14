@@ -8,8 +8,8 @@ using System.Automation;
 
 enumextension 20401 "Qlty. Approval Document Type" extends "Approval Document Type"
 {
-    value(20400; "Quality Inspection Test")
+    value(20400; "Quality Inspection")
     {
-        Caption = 'Quality Inspection Test';
+        Caption = 'Quality Inspection';
     }
 }

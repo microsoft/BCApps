@@ -73,6 +73,7 @@ table 5989 "Service Shipment Item Line"
         }
         field(11; "Response Time (Hours)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Response Time (Hours)';
             DecimalPlaces = 0 : 5;
         }
@@ -123,13 +124,15 @@ table 5989 "Service Shipment Item Line"
         }
         field(22; "Warranty % (Parts)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Warranty % (Parts)';
-            DecimalPlaces = 0 : 5;
+            DecimalPlaces = 0 : 2;
         }
         field(23; "Warranty % (Labor)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Warranty % (Labor)';
-            DecimalPlaces = 0 : 5;
+            DecimalPlaces = 0 : 2;
         }
         field(24; "Warranty Starting Date (Labor)"; Date)
         {

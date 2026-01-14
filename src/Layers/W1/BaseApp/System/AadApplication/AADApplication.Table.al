@@ -1,10 +1,10 @@
 ﻿namespace System.Environment.Configuration;
 
+using System;
 using System.Apps;
 using System.Security.AccessControl;
 using System.Security.User;
 using System.Utilities;
-using System;
 
 table 9012 "AAD Application"
 {
@@ -26,12 +26,12 @@ table 9012 "AAD Application"
             OptionCaption = 'Enabled,Disabled';
             OptionMembers = Enabled,Disabled;
             InitValue = Disabled;
+
             trigger OnValidate()
             var
                 User: Record User;
                 UserPermission: codeunit "User Permissions";
                 ConfirmManagement: Codeunit "Confirm Management";
-                ErrorTxt: Text;
                 ConfirmQuestion: Text;
             begin
                 if xRec.State = state then
@@ -51,9 +51,8 @@ table 9012 "AAD Application"
                             error('');
                 end;
                 User.Get("User Id");
-                ErrorTxt := StrSubstNo(NoPermissionToChangeUserErr, SuperPermissionSetTxt, SECURITYPermissionSetTxt);
                 if not UserPermission.CanManageUsersOnTenant(UserSecurityId()) then
-                    Error(ErrorTxt);
+                    Error(NoPermissionToChangeUserErr, SuperPermissionSetTxt, SECURITYPermissionSetTxt);
                 if State = State::Enabled then
                     User.State := User.State::Enabled
                 else
@@ -64,6 +63,7 @@ table 9012 "AAD Application"
         field(5; "App ID"; Guid)
         {
             Caption = 'App ID';
+
             trigger OnLookup()
             var
                 PublishedApplication: Record "Published Application";
@@ -123,7 +123,6 @@ table 9012 "AAD Application"
     var
         User: Record User;
         NavUserAccountHelper: DotNet NavUserAccountHelper;
-        ErrText: Text;
     begin
         Rec.TestField(Description);
         if UserExists() then begin
@@ -132,13 +131,12 @@ table 9012 "AAD Application"
             User.Modify();
             exit;
         end;
+
         // The "AAD Application" have been removed earlier and id being recreated now
         User.SetRange("License Type", User."License Type"::"Full User");
         User.SetRange(State, User.State::Enabled);
-        if User.IsEmpty() then begin
-            ErrText := StrSubstNo(UserMustExistErr, Rec.TableCaption());
-            Error(ErrText);
-        end;
+        if User.IsEmpty() then
+            Error(UserMustExistErr, Rec.TableCaption());
 
         "User Id" := NavUserAccountHelper.CreateApplicationRegistration(Description, "Client Id");
         Modify();
@@ -203,10 +201,9 @@ table 9012 "AAD Application"
         AADApplicationSetup: Codeunit "AAD Application Setup";
         CannotRenameErr: Label 'You cannot rename a %1.', Comment = '%1 Table name';
         UserMustExistErr: Label 'Register a user before enabling the %1', Comment = '%1 Table AAD Application';
-        NoPermissionToChangeUserErr: Label 'You need to have either %1 or %2 privileges in the user permission set to update the state.', Comment = '%1 = SUPER; %2 = SECURITY';
+        NoPermissionToChangeUserErr: Label 'You need to have either %1 or %2 permission set to update the state of the application.', Comment = '%1,%2: permission set names, such as "SECURITY" and "SUPER"';
         SECURITYPermissionSetTxt: Label 'SECURITY', Locked = true;
-        SuperPermissionSetTxt: Label 'SECURITY', Locked = true;
+        SuperPermissionSetTxt: Label 'SUPER', Locked = true;
         UserNameCannotbeChangedQst: Label 'A user named %1 will be created. Do you want to continue?', Comment = '%1 a user name eq. xxx yyyyyy';
 }
-
 

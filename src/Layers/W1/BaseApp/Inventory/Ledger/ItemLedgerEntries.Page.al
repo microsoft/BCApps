@@ -190,6 +190,12 @@ page 38 "Item Ledger Entries"
                     ToolTip = 'Specifies the quantity in the Quantity field that remains to be processed.';
                     Visible = true;
                 }
+                field("Remaining Qty. by Date"; Rec."Remaining Qty. by Date")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the remaining quantity for the item ledger entry as of the date specified in the Date Filter field.';
+                    Visible = false;
+                }
                 field("Shipped Qty. Not Returned"; Rec."Shipped Qty. Not Returned")
                 {
                     ApplicationArea = Basic, Suite;

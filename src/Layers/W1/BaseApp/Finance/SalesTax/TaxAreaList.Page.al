@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.SalesTax;
 
+/// <summary>
+/// List page displaying all configured tax areas with lookup and selection capabilities.
+/// Provides overview of tax area codes and descriptions for user selection.
+/// </summary>
 page 469 "Tax Area List"
 {
     ApplicationArea = SalesTax;

@@ -5,9 +5,9 @@
 namespace Microsoft.Sales.History;
 
 using Microsoft.Finance.Dimension;
-using Microsoft.Utilities;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
+using Microsoft.Utilities;
 
 page 6667 "Return Receipt Lines"
 {

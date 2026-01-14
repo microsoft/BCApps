@@ -5,24 +5,24 @@
 namespace Microsoft.Assembly.Test;
 
 using Microsoft.Assembly.Document;
-using System.Environment.Configuration;
-using Microsoft.Sales.Document;
-using Microsoft.Utilities;
-using Microsoft.Inventory.Location;
-using Microsoft.Warehouse.Structure;
-using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.Dimension;
-using Microsoft.Inventory.Item;
-using Microsoft.Projects.Resources.Resource;
-using Microsoft.Inventory.BOM;
-using Microsoft.Sales.Setup;
-using Microsoft.Assembly.Setup;
-using Microsoft.Inventory.Journal;
-using Microsoft.Foundation.NoSeries;
-using Microsoft.Sales.History;
 using Microsoft.Assembly.History;
-using Microsoft.Inventory.Setup;
+using Microsoft.Assembly.Setup;
+using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.NoSeries;
+using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Setup;
+using Microsoft.Projects.Resources.Resource;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Setup;
+using Microsoft.Utilities;
+using Microsoft.Warehouse.Structure;
+using System.Environment.Configuration;
 
 codeunit 137927 "SCM Assembly Copy"
 {

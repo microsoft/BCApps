@@ -1,8 +1,8 @@
 namespace Microsoft.Test.Foundation.NoSeries;
 
-using System.TestLibraries.Utilities;
-using Microsoft.TestLibraries.Foundation.NoSeries;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.TestLibraries.Foundation.NoSeries;
+using System.TestLibraries.Utilities;
 
 codeunit 134374 "No. Series Check Tests"
 {

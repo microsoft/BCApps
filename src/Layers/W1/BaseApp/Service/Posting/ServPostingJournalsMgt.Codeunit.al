@@ -358,6 +358,11 @@ codeunit 5987 "Serv-Posting Journals Mgt."
         InvoicePostingInterface.PostLines(ServiceHeader, GenJnlPostLine, Window, TotalAmount);
     end;
 
+    procedure PostSalesTaxLines(var ServHeader: Record "Service Header"; var TotalServiceLineLCY: Record "Service Line"; InvoicePostingParameters: Record "Invoice Posting Parameters")
+    begin
+        OnPostSalesTaxLines(ServHeader, TotalServiceLineLCY, InvoicePostingParameters, GenJnlPostLine, Invoice);
+    end;
+
     procedure PostLedgerEntry(ServiceHeader: Record "Service Header"; var InvoicePostingInterface: Interface "Invoice Posting")
     begin
         InvoicePostingInterface.PostLedgerEntry(ServiceHeader, GenJnlPostLine);
@@ -649,7 +654,6 @@ codeunit 5987 "Serv-Posting Journals Mgt."
     end;
 #endif
 
-
     [IntegrationEvent(false, false)]
     local procedure OnAfterTransferValuesToJobJnlLine(var JobJournalLine: Record "Job Journal Line"; ServiceLine: Record "Service Line")
     begin
@@ -709,6 +713,11 @@ codeunit 5987 "Serv-Posting Journals Mgt."
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostResJnlLineConsume(var ServiceLine: Record "Service Line"; var ServiceShipmentHeader: Record "Service Shipment Header"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [InternalEvent(false)]
+    local procedure OnPostSalesTaxLines(var ServHeader: Record "Service Header"; var TotalServiceLineLCY: Record "Service Line"; InvoicePostingParameters: Record "Invoice Posting Parameters"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; Invoice: Boolean)
     begin
     end;
 }

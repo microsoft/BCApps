@@ -5,10 +5,10 @@
 namespace Microsoft.Warehouse.Ledger;
 
 using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Journal;
 using Microsoft.Utilities;
 using System.Security.AccessControl;
-using Microsoft.Foundation.NoSeries;
 
 table 7313 "Warehouse Register"
 {

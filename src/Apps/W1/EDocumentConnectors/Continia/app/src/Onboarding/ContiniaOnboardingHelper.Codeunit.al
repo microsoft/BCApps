@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Continia;
 
+using Microsoft.eServices.EDocument;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
-using Microsoft.eServices.EDocument;
 using System.Utilities;
 
 codeunit 6394 "Continia Onboarding Helper"

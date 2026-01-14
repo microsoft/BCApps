@@ -6,6 +6,10 @@ namespace Microsoft.Finance.VAT.Reporting;
 
 using Microsoft.Foundation.Reporting;
 
+/// <summary>
+/// Master data interface for managing VAT statement name configurations within templates.
+/// Enables creation and maintenance of named VAT statement configurations with descriptions and reporting options.
+/// </summary>
 page 320 "VAT Statement Names"
 {
     Caption = 'VAT Statement Names';

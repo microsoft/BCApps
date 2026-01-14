@@ -1,7 +1,9 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.RateChange;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Period;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Project.Journal;
@@ -9,8 +11,6 @@ using Microsoft.Projects.Project.Ledger;
 using Microsoft.Projects.Project.Planning;
 using Microsoft.Projects.Project.WIP;
 using Microsoft.Projects.TimeSheet;
-using Microsoft.Finance.VAT.RateChange;
-using Microsoft.Finance.VAT.Setup;
 
 permissionset 3414 "Jobs Journals - Post"
 {

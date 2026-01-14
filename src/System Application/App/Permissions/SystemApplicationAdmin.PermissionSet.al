@@ -13,6 +13,7 @@ using System.ExternalFileStorage;
 using System.Integration;
 using System.Integration.Excel;
 using System.Privacy;
+using System.SFTPClient;
 
 permissionset 154 "System Application - Admin"
 {
@@ -35,6 +36,7 @@ permissionset 154 "System Application - Admin"
                              "Retention Policy - Admin",
                              "PageScripting - Play",
                              "Page Summary - Admin",
+                             "SFTP - Admin",
                              "TROUBLESHOOT TOOLS",
                              "VSC Intgr. - Admin";
 }

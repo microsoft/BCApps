@@ -9,8 +9,8 @@ using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Service.Contract;
 using Microsoft.Service.Document;
-using Microsoft.Service.Loaner;
 using Microsoft.Service.History;
+using Microsoft.Service.Loaner;
 using System.IO;
 
 codeunit 6473 "Serv. Item Track Navigate Mgt"

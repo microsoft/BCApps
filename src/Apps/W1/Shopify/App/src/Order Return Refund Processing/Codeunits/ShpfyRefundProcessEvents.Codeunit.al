@@ -30,7 +30,7 @@ codeunit 30247 "Shpfy Refund Process Events"
     begin
     end;
 
-    [InternalEvent(false)]
+    [IntegrationEvent(false, false)]
     internal procedure OnBeforeCreateItemSalesLine(RefundHeader: Record "Shpfy Refund Header"; RefundLine: Record "Shpfy Refund Line"; SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var NextLineNo: Integer; var Handled: Boolean)
     begin
     end;

@@ -6,6 +6,15 @@ namespace Microsoft.Finance.Consolidation;
 
 using System.Environment;
 
+/// <summary>
+/// Company selection page for choosing companies in multi-company consolidation scenarios.
+/// Provides read-only list of available companies for consolidation business unit assignment.
+/// </summary>
+/// <remarks>
+/// List page for company selection during consolidation setup and business unit configuration.
+/// Displays available companies in the database for association with consolidation business units.
+/// Essential for multi-company consolidation scenarios enabling company-to-business-unit mapping.
+/// </remarks>
 page 244 "Company Selector"
 {
     Caption = 'Companies';

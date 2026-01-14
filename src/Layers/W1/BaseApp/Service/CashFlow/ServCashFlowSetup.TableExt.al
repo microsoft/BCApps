@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.CashFlow;
 
-using Microsoft.CashFlow.Setup;
 using Microsoft.CashFlow.Account;
+using Microsoft.CashFlow.Setup;
 using Microsoft.Service.Document;
 
 tableextension 6471 "Serv. Cash Flow Setup" extends "Cash Flow Setup"

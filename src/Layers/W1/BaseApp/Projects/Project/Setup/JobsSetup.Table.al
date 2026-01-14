@@ -6,13 +6,13 @@ namespace Microsoft.Projects.Project.Setup;
 
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
+using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Project.WIP;
 using Microsoft.Purchases.Pricing;
 using Microsoft.Sales.Pricing;
 using System.Telemetry;
-using Microsoft.Pricing.Calculation;
 
 table 315 "Jobs Setup"
 {

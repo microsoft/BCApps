@@ -4,11 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.Security.Encryption;
 
-using System.Utilities;
+using System;
 using System.IO;
 using System.Security.AccessControl;
 using System.Text;
-using System;
+using System.Utilities;
 
 codeunit 1259 "Certificate Management"
 {
@@ -211,13 +211,29 @@ codeunit 1259 "Certificate Management"
         DotNet_X509Certificate2.X509Certificate2(DotNet_Array, Password.Unwrap(), DotNet_X509KeyStorageFlags);
     end;
 
+    [Scope('OnPrem')]
+    [NonDebuggable]
+    [TryFunction]
+    procedure ReadCertFromStream(Password: SecretText; var InStr: InStream)
+    var
+        DotNet_X509KeyStorageFlags: Codeunit DotNet_X509KeyStorageFlags;
+        DotNet_Array: Codeunit DotNet_Array;
+        Base64Convert: Codeunit "Base64 Convert";
+        Convert: DotNet Convert;
+    begin
+        DotNet_Array.SetArray(Convert.FromBase64String(Base64Convert.ToBase64(InStr)));
+        DotNet_X509KeyStorageFlags.Exportable();
+        DotNet_X509Certificate2.X509Certificate2(DotNet_Array, Password.Unwrap(), DotNet_X509KeyStorageFlags);
+    end;
+
     local procedure GetIssuer(Issuer: Text): Text
     begin
         if StrPos(Issuer, 'CN=') <> 0 then
             exit(SelectStr(1, CopyStr(Issuer, StrPos(Issuer, 'CN=') + 3)));
     end;
 
-    local procedure ValidateCertFields(var IsolatedCertificate: Record "Isolated Certificate")
+    [Scope('OnPrem')]
+    procedure ValidateCertFields(var IsolatedCertificate: Record "Isolated Certificate")
     begin
         IsolatedCertificate.Validate("Expiry Date", DotNet_X509Certificate2.ExpirationLocalTime());
         IsolatedCertificate.Validate("Has Private Key", DotNet_X509Certificate2.HasPrivateKey());

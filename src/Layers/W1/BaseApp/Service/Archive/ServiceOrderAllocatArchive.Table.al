@@ -6,8 +6,8 @@ namespace Microsoft.Service.Archive;
 
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Projects.Resources.Resource;
-using Microsoft.Service.Item;
 using Microsoft.Service.Document;
+using Microsoft.Service.Item;
 
 table 6014 "Service Order Allocat. Archive"
 {
@@ -56,6 +56,7 @@ table 6014 "Service Order Allocat. Archive"
         }
         field(8; "Allocated Hours"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Allocated Hours';
             DecimalPlaces = 0 : 5;
         }

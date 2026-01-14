@@ -1476,6 +1476,188 @@
       </Page>
     </ReportSection>
   </ReportSections>
+  <ReportParameters>
+    <ReportParameter Name="InventoryTop10ListLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InventoryTop10ListLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InventoryTop10ListLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InventoryTop10ListPrintLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InventoryTop10ListPrintLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InventoryTop10ListPrintLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InventoryTop10ListAnalysisLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InventoryTop10ListAnalysisLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InventoryTop10ListAnalysisLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="DataRetrievedLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>DataRetrievedLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>DataRetrievedLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="RankLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>RankLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>RankLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="RankAccordingToLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>RankAccordingToLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>RankAccordingToLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="TotalSalesLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>TotalSalesLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>TotalSalesLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="PercentOfTotalSalesLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>PercentOfTotalSalesLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>PercentOfTotalSalesLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="IncludeNonInventoryItemsLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>IncludeNonInventoryItemsLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>IncludeNonInventoryItemsLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="AboutTheReportLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>AboutTheReportLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>AboutTheReportLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="EnvironmentLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>EnvironmentLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>EnvironmentLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="CompanyLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>CompanyLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>CompanyLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="UserLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>UserLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>UserLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="RunOnLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>RunOnLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>RunOnLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ReportNameLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ReportNameLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ReportNameLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="DocumentationLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>DocumentationLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>DocumentationLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="Item__No__Caption">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>Item__No__Caption</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>Item__No__Caption</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="Item_DescriptionCaption">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>Item_DescriptionCaption</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>Item_DescriptionCaption</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="Item__Sales__LCY__Caption">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>Item__Sales__LCY__Caption</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>Item__Sales__LCY__Caption</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="Item_InventoryCaption">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>Item_InventoryCaption</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>Item_InventoryCaption</Prompt>
+    </ReportParameter>
+  </ReportParameters>
   <Code>Public Function BlankZero(ByVal Value As Decimal)
     if Value = 0 then
         Return ""
@@ -1529,26 +1711,8 @@ End Function
   <DataSets>
     <DataSet Name="DataSet_Result">
       <Fields>
-        <Field Name="STRSUBSTNO_Text001_ItemDateFilter_">
-          <DataField>STRSUBSTNO_Text001_ItemDateFilter_</DataField>
-        </Field>
-        <Field Name="COMPANYNAME">
-          <DataField>COMPANYNAME</DataField>
-        </Field>
-        <Field Name="STRSUBSTNO_Text002_Sequence_Heading_">
-          <DataField>STRSUBSTNO_Text002_Sequence_Heading_</DataField>
-        </Field>
         <Field Name="PrintAlsoIfZero">
           <DataField>PrintAlsoIfZero</DataField>
-        </Field>
-        <Field Name="STRSUBSTNO___1___2__Item_TABLECAPTION_ItemFilter_">
-          <DataField>STRSUBSTNO___1___2__Item_TABLECAPTION_ItemFilter_</DataField>
-        </Field>
-        <Field Name="ItemFilter">
-          <DataField>ItemFilter</DataField>
-        </Field>
-        <Field Name="STRSUBSTNO_Text003_Heading_">
-          <DataField>STRSUBSTNO_Text003_Heading_</DataField>
         </Field>
         <Field Name="Integer_Number">
           <DataField>Integer_Number</DataField>
@@ -1571,15 +1735,6 @@ End Function
         <Field Name="Item_InventoryFormat">
           <DataField>Item_InventoryFormat</DataField>
         </Field>
-        <Field Name="BarText">
-          <DataField>BarText</DataField>
-        </Field>
-        <Field Name="Item__Sales__LCY___Control24">
-          <DataField>Item__Sales__LCY___Control24</DataField>
-        </Field>
-        <Field Name="Item__Sales__LCY___Control24Format">
-          <DataField>Item__Sales__LCY___Control24Format</DataField>
-        </Field>
         <Field Name="ItemSales">
           <DataField>ItemSales</DataField>
         </Field>
@@ -1592,18 +1747,6 @@ End Function
         <Field Name="QtyOnHandFormat">
           <DataField>QtyOnHandFormat</DataField>
         </Field>
-        <Field Name="SalesAmountPct">
-          <DataField>SalesAmountPct</DataField>
-        </Field>
-        <Field Name="SalesAmountPctFormat">
-          <DataField>SalesAmountPctFormat</DataField>
-        </Field>
-        <Field Name="QtyOnHandPct">
-          <DataField>QtyOnHandPct</DataField>
-        </Field>
-        <Field Name="QtyOnHandPctFormat">
-          <DataField>QtyOnHandPctFormat</DataField>
-        </Field>
         <Field Name="TotalItemBalance">
           <DataField>TotalItemBalance</DataField>
         </Field>
@@ -1615,6 +1758,45 @@ End Function
         </Field>
         <Field Name="TotalItemSalesFormat">
           <DataField>TotalItemSalesFormat</DataField>
+        </Field>
+        <Field Name="STRSUBSTNO_Text001_ItemDateFilter_">
+          <DataField>STRSUBSTNO_Text001_ItemDateFilter_</DataField>
+        </Field>
+        <Field Name="COMPANYNAME">
+          <DataField>COMPANYNAME</DataField>
+        </Field>
+        <Field Name="STRSUBSTNO_Text002_Sequence_Heading_">
+          <DataField>STRSUBSTNO_Text002_Sequence_Heading_</DataField>
+        </Field>
+        <Field Name="STRSUBSTNO___1___2__Item_TABLECAPTION_ItemFilter_">
+          <DataField>STRSUBSTNO___1___2__Item_TABLECAPTION_ItemFilter_</DataField>
+        </Field>
+        <Field Name="ItemFilter">
+          <DataField>ItemFilter</DataField>
+        </Field>
+        <Field Name="STRSUBSTNO_Text003_Heading_">
+          <DataField>STRSUBSTNO_Text003_Heading_</DataField>
+        </Field>
+        <Field Name="BarText">
+          <DataField>BarText</DataField>
+        </Field>
+        <Field Name="Item__Sales__LCY___Control24">
+          <DataField>Item__Sales__LCY___Control24</DataField>
+        </Field>
+        <Field Name="Item__Sales__LCY___Control24Format">
+          <DataField>Item__Sales__LCY___Control24Format</DataField>
+        </Field>
+        <Field Name="SalesAmountPct">
+          <DataField>SalesAmountPct</DataField>
+        </Field>
+        <Field Name="SalesAmountPctFormat">
+          <DataField>SalesAmountPctFormat</DataField>
+        </Field>
+        <Field Name="QtyOnHandPct">
+          <DataField>QtyOnHandPct</DataField>
+        </Field>
+        <Field Name="QtyOnHandPctFormat">
+          <DataField>QtyOnHandPctFormat</DataField>
         </Field>
         <Field Name="Inventory___Top_10_ListCaption">
           <DataField>Inventory___Top_10_ListCaption</DataField>

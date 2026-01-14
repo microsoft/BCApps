@@ -11,6 +11,16 @@ using Microsoft.Warehouse.Document;
 using System.Security.User;
 using System.Utilities;
 
+/// <summary>
+/// Manages user selection dialogs and confirmation prompts for document posting operations.
+/// Provides standardized posting option selection for sales and purchase documents with print and email capabilities.
+/// </summary>
+/// <remarks>
+/// Central posting selection engine handling user confirmation dialogs for various document posting scenarios.
+/// Supports sales and purchase document posting with options for shipping, receiving, invoicing, printing, and emailing.
+/// Integrates with user setup management for posting policy validation and restriction enforcement.
+/// Provides extensible confirmation framework for custom posting scenarios and workflow integration.
+/// </remarks>
 codeunit 99 "Posting Selection Management"
 {
     trigger OnRun()
@@ -39,6 +49,14 @@ codeunit 99 "Posting Selection Management"
         ReceiveInvoiceConfirmQst: Label 'Do you want to post the receipt and invoice?';
         PostingInvoiceProhibitedErr: Label 'You cannot post the invoice because %1 is %2 in %3.', Comment = '%1 = Invoice Posting Policy, %2 = Prohibited, %3 = User Setup';
 
+    /// <summary>
+    /// Displays confirmation dialog for sales document posting with user selection options.
+    /// </summary>
+    /// <param name="SalesHeaderToPost">Sales header to post</param>
+    /// <param name="DefaultOption">Default posting option (1=Ship, 2=Invoice, 3=Ship and Invoice)</param>
+    /// <param name="WithPrint">Whether printing option is available</param>
+    /// <param name="WithEmail">Whether email option is available</param>
+    /// <returns>True if user confirmed posting, false if cancelled</returns>
     procedure ConfirmPostSalesDocument(var SalesHeaderToPost: Record "Sales Header"; DefaultOption: Integer; WithPrint: Boolean; WithEmail: Boolean) Result: Boolean
     var
         SalesHeader: Record "Sales Header";
@@ -120,6 +138,14 @@ codeunit 99 "Posting Selection Management"
         exit(true);
     end;
 
+    /// <summary>
+    /// Displays confirmation dialog for purchase document posting with user selection options.
+    /// </summary>
+    /// <param name="PurchaseHeaderToPost">Purchase header to post</param>
+    /// <param name="DefaultOption">Default posting option (1=Receive, 2=Invoice, 3=Receive and Invoice)</param>
+    /// <param name="WithPrint">Whether printing option is available</param>
+    /// <param name="WithEmail">Whether email option is available</param>
+    /// <returns>True if user confirmed posting, false if cancelled</returns>
     procedure ConfirmPostPurchaseDocument(var PurchaseHeaderToPost: Record "Purchase Header"; DefaultOption: Integer; WithPrint: Boolean; WithEmail: Boolean) Result: Boolean
     var
         PurchaseHeader: Record "Purchase Header";
@@ -201,16 +227,15 @@ codeunit 99 "Posting Selection Management"
         exit(true);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by same procedure in codeunit Serv. Posting Selection Mgt.', '25.0')]
-    procedure ConfirmPostServiceDocument(var ServiceHeaderToPost: Record Microsoft.Service.Document."Service Header"; var Ship: Boolean; var Consume: Boolean; var Invoice: Boolean; DefaultOption: Integer; WithPrint: Boolean; WithEmail: Boolean; PreviewMode: Boolean) Result: Boolean
-    var
-        ServPostingSelectionMgt: Codeunit Microsoft.Service.Document."Serv. Posting Selection Mgt.";
-    begin
-        exit(ServPostingSelectionMgt.ConfirmPostServiceDocument(ServiceHeaderToPost, Ship, Consume, Invoice, DefaultOption, WithPrint, WithEmail, PreviewMode));
-    end;
-#endif
 
+    /// <summary>
+    /// Displays confirmation dialog for warehouse activity posting with user selection options.
+    /// </summary>
+    /// <param name="WarehouseActivityLine">Warehouse activity line to post</param>
+    /// <param name="Selection">Selected posting option returned to caller</param>
+    /// <param name="DefaultOption">Default posting option</param>
+    /// <param name="WithPrint">Whether printing option is available</param>
+    /// <returns>True if user confirmed posting, false if cancelled</returns>
     procedure ConfirmPostWarehouseActivity(var WarehouseActivityLine: Record "Warehouse Activity Line"; var Selection: Integer; DefaultOption: Integer; WithPrint: Boolean) Result: Boolean
     var
         ConfirmManagement: Codeunit "Confirm Management";
@@ -249,6 +274,12 @@ codeunit 99 "Posting Selection Management"
         exit(true);
     end;
 
+    /// <summary>
+    /// Displays confirmation dialog for warehouse shipment posting with user selection options.
+    /// </summary>
+    /// <param name="WarehouseShipmentLine">Warehouse shipment line to post</param>
+    /// <param name="Selection">Selected posting option returned to caller</param>
+    /// <returns>True if user confirmed posting, false if cancelled</returns>
     procedure ConfirmPostWhseShipment(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var Selection: Integer) Result: Boolean
     var
         DefaultOption: Integer;
@@ -258,6 +289,9 @@ codeunit 99 "Posting Selection Management"
         exit(Result);
     end;
 
+    /// <summary>
+    /// Verifies that the current user has permission to invoice sales documents.
+    /// </summary>
     procedure CheckUserCanInvoiceSales()
     var
         UserSetup: Record "User Setup";
@@ -273,6 +307,9 @@ codeunit 99 "Posting Selection Management"
               UserSetup.TableCaption);
     end;
 
+    /// <summary>
+    /// Verifies that the current user has permission to invoice purchase documents.
+    /// </summary>
     procedure CheckUserCanInvoicePurchase()
     var
         UserSetup: Record "User Setup";
@@ -298,15 +335,6 @@ codeunit 99 "Posting Selection Management"
         exit(Receive and Invoice);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by same procedure in codeunit Serv. Posting Selection Mgt.', '25.0')]
-    procedure CheckUserCanInvoiceService()
-    var
-        ServPostingSelectionMgt: Codeunit Microsoft.Service.Document."Serv. Posting Selection Mgt.";
-    begin
-        ServPostingSelectionMgt.CheckUserCanInvoiceService();
-    end;
-#endif
 
     local procedure GetShipInvoiceSelectionForWhseActivity(SourceDocument: Enum "Warehouse Activity Source Document"; DefaultOption: Integer; var Selection: Integer): Boolean
     var
@@ -384,6 +412,13 @@ codeunit 99 "Posting Selection Management"
         exit(true);
     end;
 
+    /// <summary>
+    /// Returns confirmation message text for posting operations with print and email options.
+    /// </summary>
+    /// <param name="What">Document type or operation description</param>
+    /// <param name="WithPrint">Whether printing option is included</param>
+    /// <param name="WithEmail">Whether email option is included</param>
+    /// <returns>Formatted confirmation message text</returns>
     procedure GetPostConfirmationMessage(What: Text; WithPrint: Boolean; WithEmail: Boolean): Text
     begin
         if WithPrint then
@@ -395,6 +430,13 @@ codeunit 99 "Posting Selection Management"
         exit(StrSubstNo(PostDocConfirmQst, What));
     end;
 
+    /// <summary>
+    /// Returns confirmation message text for invoice posting operations with print and email options.
+    /// </summary>
+    /// <param name="IsInvoice">Whether operation is invoicing</param>
+    /// <param name="WithPrint">Whether printing option is included</param>
+    /// <param name="WithEmail">Whether email option is included</param>
+    /// <returns>Formatted confirmation message text</returns>
     procedure GetPostConfirmationMessage(IsInvoice: Boolean; WithPrint: Boolean; WithEmail: Boolean): Text
     begin
         if IsInvoice then begin
@@ -416,16 +458,28 @@ codeunit 99 "Posting Selection Management"
         end;
     end;
 
+    /// <summary>
+    /// Returns confirmation message text for shipping operations.
+    /// </summary>
+    /// <returns>Ship confirmation message text</returns>
     procedure GetShipConfirmationMessage(): Text
     begin
         exit(ShipConfirmQst);
     end;
 
+    /// <summary>
+    /// Returns confirmation message text for ship and invoice operations.
+    /// </summary>
+    /// <returns>Ship and invoice confirmation message text</returns>
     procedure GetShipInvoiceConfirmationMessage(): Text
     begin
         exit(ShipInvoiceConfirmQst);
     end;
 
+    /// <summary>
+    /// Returns confirmation message text for receiving operations.
+    /// </summary>
+    /// <returns>Receive confirmation message text</returns>
     procedure GetReceiveConfirmationMessage(): Text
     begin
         exit(ReceiveConfirmQst);
@@ -436,6 +490,10 @@ codeunit 99 "Posting Selection Management"
         exit(ReceiveInvoiceConfirmQst);
     end;
 
+    /// <summary>
+    /// Returns error message text for prohibited invoice posting.
+    /// </summary>
+    /// <returns>Posting invoice prohibited error message text</returns>
     procedure GetPostingInvoiceProhibitedErr(): Text
     begin
         exit(PostingInvoiceProhibitedErr);
@@ -465,41 +523,91 @@ codeunit 99 "Posting Selection Management"
         Selection := StrMenu(ReceiveInvoiceOptionsQst, DefaultOption);
     end;
 
+    /// <summary>
+    /// Integration event raised before getting sales invoice posting policy for sales orders.
+    /// </summary>
+    /// <param name="SalesHeader">Sales header for policy determination</param>
+    /// <param name="IsHandled">Set to true to skip standard policy processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnConfirmPostSalesDocumentOnBeforeSalesOrderGetSalesInvoicePostingPolicy(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before getting sales invoice posting policy for sales return orders.
+    /// </summary>
+    /// <param name="SalesHeader">Sales header for policy determination</param>
+    /// <param name="IsHandled">Set to true to skip standard policy processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnConfirmPostSalesDocumentOnBeforeSalesOrderReturnGetSalesInvoicePostingPolicy(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before getting purchase invoice posting policy for purchase orders.
+    /// </summary>
+    /// <param name="PurchaseHeader">Purchase header for policy determination</param>
+    /// <param name="IsHandled">Set to true to skip standard policy processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnConfirmPostPurchaseDocumentOnBeforePurchaseOrderGetPurchaseInvoicePostingPolicy(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before getting purchase invoice posting policy for purchase return orders.
+    /// </summary>
+    /// <param name="PurchaseHeader">Purchase header for policy determination</param>
+    /// <param name="IsHandled">Set to true to skip standard policy processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnConfirmPostPurchaseDocumentOnBeforePurchaseReturnOrderGetPurchaseInvoicePostingPolicy(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before getting ship/invoice selection for warehouse activities.
+    /// </summary>
+    /// <param name="DefaultOption">Default posting option</param>
+    /// <param name="Selection">Selected posting option to return</param>
+    /// <param name="IsHandled">Set to true to skip standard selection processing</param>
+    /// <param name="Result">Result to return if handled</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetShipInvoiceSelectionForWhseActivity(var DefaultOption: Integer; var Selection: Integer; var IsHandled: Boolean; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after determining invoice posting policy for warehouse activities.
+    /// Enables customization of posting policy decisions based on warehouse source documents.
+    /// </summary>
+    /// <param name="SourceDocument">Warehouse activity source document type</param>
+    /// <param name="Ship">Whether shipping should be performed</param>
+    /// <param name="Invoice">Whether invoicing should be performed</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetInvoicePostingPolicy(SourceDocument: Enum "Warehouse Activity Source Document"; var Ship: Boolean; var Invoice: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before determining sales order posting selection.
+    /// Enables custom logic for posting option selection and validation.
+    /// </summary>
+    /// <param name="SalesHeader">Sales order header being processed</param>
+    /// <param name="DefaultOption">Default posting option to display</param>
+    /// <param name="IsHandled">Set to true to skip standard posting selection logic</param>
+    /// <param name="Selection">Selected posting option result</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetSalesOrderPostingSelection(var SalesHeader: Record "Sales Header"; DefaultOption: Integer; var IsHandled: Boolean; var Selection: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before determining purchase order posting selection.
+    /// Enables custom logic for posting option selection and validation.
+    /// </summary>
+    /// <param name="PurchaseHeader">Purchase order header being processed</param>
+    /// <param name="DefaultOption">Default posting option to display</param>
+    /// <param name="IsHandled">Set to true to skip standard posting selection logic</param>
+    /// <param name="Selection">Selected posting option result</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetPurchaseOrderPostingSelection(var PurchaseHeader: Record "Purchase Header"; DefaultOption: Integer; var IsHandled: Boolean; var Selection: Integer)
     begin

@@ -4,6 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Clause;
 
+/// <summary>
+/// Stores document-type-specific descriptions for VAT clauses enabling customized text per document scenario.
+/// Allows different VAT clause descriptions for invoices, credit memos, reminders, and finance charge memos.
+/// </summary>
+/// <remarks>
+/// Enables document-type-specific VAT clause variations for business and regulatory requirements.
+/// Provides specialized VAT clause text based on the type of document being processed.
+/// </remarks>
 table 562 "VAT Clause by Doc. Type"
 {
     Caption = 'VAT Clause by Document Type';
@@ -11,22 +19,34 @@ table 562 "VAT Clause by Doc. Type"
 
     fields
     {
+        /// <summary>
+        /// Reference to the VAT clause for which document-specific description is defined.
+        /// </summary>
         field(1; "VAT Clause Code"; Code[20])
         {
             Caption = 'VAT Clause Code';
             TableRelation = "VAT Clause";
             DataClassification = CustomerContent;
         }
+        /// <summary>
+        /// Document type for which specialized VAT clause description applies.
+        /// </summary>
         field(2; "Document Type"; Enum "VAT Clause Document Type")
         {
             Caption = 'Document Type';
             DataClassification = CustomerContent;
         }
+        /// <summary>
+        /// Document-specific description text for the VAT clause to be printed on the specified document type.
+        /// </summary>
         field(3; Description; Text[250])
         {
             Caption = 'Description';
             DataClassification = CustomerContent;
         }
+        /// <summary>
+        /// Additional description text for extended VAT clause information on the specified document type.
+        /// </summary>
         field(4; "Description 2"; Text[250])
         {
             Caption = 'Description 2';

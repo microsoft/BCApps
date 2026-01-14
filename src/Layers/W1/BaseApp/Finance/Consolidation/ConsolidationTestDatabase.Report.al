@@ -11,6 +11,15 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Projects.Project.Job;
 using System.Utilities;
 
+/// <summary>
+/// Tests and validates consolidation database connectivity and data consistency within the same environment.
+/// Analyzes database consolidation setup to identify configuration issues and data availability problems.
+/// </summary>
+/// <remarks>
+/// Database connectivity validation report for same-environment consolidation ensuring proper setup and access.
+/// Validates G/L account availability, dimension consistency, and exchange rate configuration.
+/// Critical for ensuring database-based consolidation processes can access required subsidiary data.
+/// </remarks>
 report 14 "Consolidation - Test Database"
 {
     DefaultLayout = RDLC;

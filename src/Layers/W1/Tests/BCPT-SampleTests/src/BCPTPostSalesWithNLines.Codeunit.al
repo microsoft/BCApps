@@ -2,8 +2,8 @@ namespace System.Test.Tooling;
 
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
-using Microsoft.Sales.Document;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
 using Microsoft.Sales.Posting;
 using Microsoft.Sales.Setup;
 using System.Tooling;

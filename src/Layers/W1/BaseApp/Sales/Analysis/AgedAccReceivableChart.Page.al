@@ -5,9 +5,9 @@
 namespace Microsoft.Sales.Analysis;
 
 using Microsoft.Finance.ReceivablesPayables;
-using System.Integration;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
+using System.Integration;
 using System.Visualization;
 
 page 768 "Aged Acc. Receivable Chart"

@@ -21,6 +21,16 @@ using System.Environment.Configuration;
 using System.Integration;
 using System.Threading;
 
+/// <summary>
+/// Sales journal page for entering sales transactions and customer-related general journal entries.
+/// Provides specialized interface for sales postings with customer account focus and simplified data entry.
+/// </summary>
+/// <remarks>
+/// Specialized sales journal with customer-focused transaction entry interface.
+/// Features dual view modes: simple view (customer-focused) and detailed view (full general journal functionality).
+/// Key capabilities: Customer payment processing, sales invoice corrections, customer adjustments, VAT handling.
+/// Integration: Direct posting to customer ledger entries, automatic account validation, dimension processing.
+/// </remarks>
 page 253 "Sales Journal"
 {
     // // This page has two view modes based on global variable 'IsSimplePage' as :-
@@ -1684,11 +1694,21 @@ page 253 "Sales Journal"
         JobQueuesUsed := GeneralLedgerSetup.JobQueueActive();
     end;
 
+    /// <summary>
+    /// Sets the current journal batch name for the sales journal page.
+    /// Updates the active batch context for journal processing and display.
+    /// </summary>
+    /// <param name="NewCurrentJnlBatchName">Journal batch name to set as current active batch.</param>
     procedure SetCurrentJnlBatchName(NewCurrentJnlBatchName: code[10])
     begin
         CurrentJnlBatchName := NewCurrentJnlBatchName;
     end;
 
+    /// <summary>
+    /// Retrieves the current journal batch name from the sales journal page.
+    /// Returns the active batch name currently being used for journal processing.
+    /// </summary>
+    /// <returns>Current journal batch name code.</returns>
     procedure GetCurrentJnlBatchName(): Code[10]
     begin
         exit(CurrentJnlBatchName);
@@ -1740,26 +1760,60 @@ page 253 "Sales Journal"
         EnabledGeneralJournalBatchWorkflowsExist := WorkflowManagement.EnabledWorkflowExist(DATABASE::"Gen. Journal Batch", WorkflowEventHandling.RunWorkflowOnSendGeneralJournalBatchForApprovalCode());
     end;
 
+    /// <summary>
+    /// Integration event raised after validating shortcut dimension code changes for sales journal lines.
+    /// Enables custom processing after dimension validation and dimension set updates.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record for which shortcut dimension was validated.</param>
+    /// <param name="ShortcutDimCode">Array of shortcut dimension codes with updated values.</param>
+    /// <param name="DimIndex">Index indicating which shortcut dimension was validated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateShortcutDimCode(var GenJournalLine: Record "Gen. Journal Line"; var ShortcutDimCode: array[8] of Code[20]; DimIndex: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting dimension field visibility for sales journal.
+    /// Enables custom control of dimension field display based on setup and context.
+    /// </summary>
     [IntegrationEvent(true, false)]
     local procedure OnAfterSetDimensionsVisibility()
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after opening the sales journal page.
+    /// Enables custom initialization and setup logic after standard page opening procedures.
+    /// </summary>
+    /// <param name="CurrentJnlBatchName">Current journal batch name that was opened.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterOpenPage(var CurrentJnlBatchName: Code[10])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before template selection during sales journal opening.
+    /// Enables custom template selection logic and override of standard template handling.
+    /// </summary>
+    /// <param name="CurrentJnlBatchName">Current journal batch name being processed.</param>
+    /// <param name="GenJnlManagement">Journal management codeunit handling template operations.</param>
+    /// <param name="IsHandled">Set to true to skip standard template selection logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnOpenPageOnBeforeTemplateSelection(var CurrentJnlBatchName: Code[10]; GenJnlManagement: Codeunit GenJnlManagement; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating balance calculations for sales journal.
+    /// Enables custom balance calculation logic and modification of balance values.
+    /// </summary>
+    /// <param name="GenJournalLine">Current journal line record for balance calculation.</param>
+    /// <param name="xGenJournalLine">Previous version of journal line record for comparison.</param>
+    /// <param name="Balance">Current balance amount (can be modified).</param>
+    /// <param name="TotalBalance">Total balance amount (can be modified).</param>
+    /// <param name="ShowBalance">Boolean indicating if balance should be shown (can be modified).</param>
+    /// <param name="ShowTotalBalance">Boolean indicating if total balance should be shown (can be modified).</param>
+    /// <param name="IsHandled">Set to true to skip standard balance update logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateBalance(var GenJournalLine: Record "Gen. Journal Line"; xGenJournalLine: Record "Gen. Journal Line"; var Balance: Decimal; var TotalBalance: Decimal; var ShowBalance: Boolean; var ShowTotalBalance: Boolean; var IsHandled: Boolean)
     begin

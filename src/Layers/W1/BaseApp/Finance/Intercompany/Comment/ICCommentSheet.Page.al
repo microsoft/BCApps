@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.Comment;
 
+/// <summary>
+/// List interface for managing comments on intercompany transactions.
+/// Provides collaborative annotation capabilities for transaction communication between partner companies.
+/// </summary>
 page 620 "IC Comment Sheet"
 {
     AutoSplitKey = true;

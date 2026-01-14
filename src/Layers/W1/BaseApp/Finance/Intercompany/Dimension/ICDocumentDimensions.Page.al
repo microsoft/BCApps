@@ -6,6 +6,10 @@ namespace Microsoft.Intercompany.Dimension;
 
 using System.Globalization;
 
+/// <summary>
+/// Displays and manages intercompany document dimensions for specific transactions.
+/// Provides detailed view of dimension assignments on intercompany document lines.
+/// </summary>
 page 652 "IC Document Dimensions"
 {
     Caption = 'Intercompany Document Dimensions';

@@ -9,6 +9,15 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 using System.Environment;
 
+/// <summary>
+/// Defines business units for consolidation processes with subsidiary companies and foreign currency handling.
+/// Contains configuration for currency conversion factors, exchange rate accounts, and data import methods.
+/// </summary>
+/// <remarks>
+/// Core table for multi-company consolidation supporting database and API-based data import.
+/// Integrates with G/L Account structure for exchange rate handling and residual account management.
+/// Extensibility: OnBeforeValidate and OnAfterModify events available for custom business logic.
+/// </remarks>
 table 220 "Business Unit"
 {
     Caption = 'Business Unit';
@@ -17,16 +26,25 @@ table 220 "Business Unit"
 
     fields
     {
+        /// <summary>
+        /// Unique identifier for the business unit used across consolidation processes.
+        /// </summary>
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
             NotBlank = true;
         }
+        /// <summary>
+        /// Determines whether this business unit should be included in consolidation runs.
+        /// </summary>
         field(2; Consolidate; Boolean)
         {
             Caption = 'Consolidate';
             InitValue = true;
         }
+        /// <summary>
+        /// Percentage of ownership to consolidate for this business unit, typically 100% for full consolidation.
+        /// </summary>
         field(3; "Consolidation %"; Decimal)
         {
             AutoFormatType = 0;
@@ -36,14 +54,23 @@ table 220 "Business Unit"
             MaxValue = 100;
             MinValue = 0;
         }
+        /// <summary>
+        /// Start date for the consolidation period for this business unit.
+        /// </summary>
         field(4; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
         }
+        /// <summary>
+        /// End date for the consolidation period for this business unit.
+        /// </summary>
         field(5; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
         }
+        /// <summary>
+        /// Exchange rate factor used for converting income statement amounts from subsidiary currency.
+        /// </summary>
         field(6; "Income Currency Factor"; Decimal)
         {
             AutoFormatType = 0;
@@ -53,6 +80,9 @@ table 220 "Business Unit"
             InitValue = 1;
             MinValue = 0;
         }
+        /// <summary>
+        /// Exchange rate factor used for converting balance sheet amounts from subsidiary currency.
+        /// </summary>
         field(7; "Balance Currency Factor"; Decimal)
         {
             AutoFormatType = 0;
@@ -62,6 +92,9 @@ table 220 "Business Unit"
             InitValue = 1;
             MinValue = 0;
         }
+        /// <summary>
+        /// G/L Account for posting exchange rate losses during consolidation currency conversion.
+        /// </summary>
         field(8; "Exch. Rate Losses Acc."; Code[20])
         {
             Caption = 'Exch. Rate Losses Acc.';
@@ -72,6 +105,9 @@ table 220 "Business Unit"
                 CheckGLAcc("Exch. Rate Losses Acc.");
             end;
         }
+        /// <summary>
+        /// G/L Account for posting exchange rate gains during consolidation currency conversion.
+        /// </summary>
         field(9; "Exch. Rate Gains Acc."; Code[20])
         {
             Caption = 'Exch. Rate Gains Acc.';
@@ -82,6 +118,9 @@ table 220 "Business Unit"
                 CheckGLAcc("Exch. Rate Gains Acc.");
             end;
         }
+        /// <summary>
+        /// G/L Account for posting residual amounts that cannot be allocated during consolidation.
+        /// </summary>
         field(10; "Residual Account"; Code[20])
         {
             Caption = 'Residual Account';
@@ -92,6 +131,9 @@ table 220 "Business Unit"
                 CheckGLAcc("Residual Account");
             end;
         }
+        /// <summary>
+        /// Balance currency factor from the previous consolidation run for comparison purposes.
+        /// </summary>
         field(11; "Last Balance Currency Factor"; Decimal)
         {
             AutoFormatType = 0;
@@ -100,10 +142,16 @@ table 220 "Business Unit"
             Editable = false;
             InitValue = 1;
         }
+        /// <summary>
+        /// Descriptive name for the business unit for identification purposes.
+        /// </summary>
         field(12; Name; Text[100])
         {
             Caption = 'Name';
         }
+        /// <summary>
+        /// Name of the company that corresponds to this business unit in database-based imports.
+        /// </summary>
         field(13; "Company Name"; Text[30])
         {
             Caption = 'Company Name';
@@ -118,6 +166,9 @@ table 220 "Business Unit"
                 Rec.Name := Rec."Company Name";
             end;
         }
+        /// <summary>
+        /// Currency code used by the subsidiary business unit for currency conversion during consolidation.
+        /// </summary>
         field(14; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
@@ -137,6 +188,9 @@ table 220 "Business Unit"
                 "Balance Currency Factor" := CurrencyFactor;
             end;
         }
+        /// <summary>
+        /// G/L Account for posting exchange rate gains on comprehensive income accounts during consolidation.
+        /// </summary>
         field(15; "Comp. Exch. Rate Gains Acc."; Code[20])
         {
             Caption = 'Comp. Exch. Rate Gains Acc.';
@@ -147,6 +201,9 @@ table 220 "Business Unit"
                 CheckGLAcc("Comp. Exch. Rate Gains Acc.");
             end;
         }
+        /// <summary>
+        /// G/L Account for posting exchange rate losses on comprehensive income accounts during consolidation.
+        /// </summary>
         field(16; "Comp. Exch. Rate Losses Acc."; Code[20])
         {
             Caption = 'Comp. Exch. Rate Losses Acc.';
@@ -157,6 +214,9 @@ table 220 "Business Unit"
                 CheckGLAcc("Comp. Exch. Rate Losses Acc.");
             end;
         }
+        /// <summary>
+        /// G/L Account for posting exchange rate gains on equity accounts during consolidation.
+        /// </summary>
         field(17; "Equity Exch. Rate Gains Acc."; Code[20])
         {
             Caption = 'Equity Exch. Rate Gains Acc.';
@@ -167,6 +227,9 @@ table 220 "Business Unit"
                 CheckGLAcc("Equity Exch. Rate Gains Acc.");
             end;
         }
+        /// <summary>
+        /// G/L Account for posting exchange rate losses on equity accounts during consolidation.
+        /// </summary>
         field(18; "Equity Exch. Rate Losses Acc."; Code[20])
         {
             Caption = 'Equity Exch. Rate Losses Acc.';
@@ -177,6 +240,9 @@ table 220 "Business Unit"
                 CheckGLAcc("Equity Exch. Rate Losses Acc.");
             end;
         }
+        /// <summary>
+        /// G/L Account for posting exchange rate gains on minority interest accounts during consolidation.
+        /// </summary>
         field(19; "Minority Exch. Rate Gains Acc."; Code[20])
         {
             Caption = 'Minority Exch. Rate Gains Acc.';
@@ -187,6 +253,9 @@ table 220 "Business Unit"
                 CheckGLAcc("Minority Exch. Rate Gains Acc.");
             end;
         }
+        /// <summary>
+        /// G/L Account for posting exchange rate losses on minority interest accounts during consolidation.
+        /// </summary>
         field(20; "Minority Exch. Rate Losses Acc"; Code[20])
         {
             Caption = 'Minority Exch. Rate Losses Acc';
@@ -197,6 +266,9 @@ table 220 "Business Unit"
                 CheckGLAcc("Minority Exch. Rate Losses Acc");
             end;
         }
+        /// <summary>
+        /// Determines whether to use local currency exchange rates or business unit specific rates for conversion.
+        /// </summary>
         field(21; "Currency Exchange Rate Table"; Option)
         {
             AccessByPermission = TableData Currency = R;
@@ -209,20 +281,32 @@ table 220 "Business Unit"
                 Validate("Currency Code");
             end;
         }
+        /// <summary>
+        /// Specifies whether to consolidate using local currency or additional reporting currency amounts.
+        /// </summary>
         field(22; "Data Source"; Option)
         {
             Caption = 'Data Source';
             OptionCaption = 'Local Curr. (LCY),Add. Rep. Curr. (ACY)';
             OptionMembers = "Local Curr. (LCY)","Add. Rep. Curr. (ACY)";
         }
+        /// <summary>
+        /// File format used for importing consolidation data from external files.
+        /// </summary>
         field(23; "File Format"; Enum "Business Unit File Format")
         {
             Caption = 'File Format';
         }
+        /// <summary>
+        /// Date of the last consolidation run executed for this business unit.
+        /// </summary>
         field(24; "Last Run"; Date)
         {
             Caption = 'Last Run';
         }
+        /// <summary>
+        /// Default method for importing consolidation data, either from database or API endpoint.
+        /// </summary>
         field(25; "Default Data Import Method"; Option)
         {
             Caption = 'Default Data Import Method';
@@ -230,21 +314,33 @@ table 220 "Business Unit"
             OptionMembers = "Database","API";
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// URL endpoint for the Business Central API when using API-based data import method.
+        /// </summary>
         field(26; "BC API URL"; Text[2048])
         {
             Caption = 'BC API URL', Comment = 'URL of the API of the external Business Central instance';
             DataClassification = OrganizationIdentifiableInformation;
         }
+        /// <summary>
+        /// Microsoft Entra tenant identifier for authenticating API connections to external Business Central.
+        /// </summary>
         field(27; "AAD Tenant ID"; Guid)
         {
             Caption = 'Microsoft Entra tenant ID';
             DataClassification = OrganizationIdentifiableInformation;
         }
+        /// <summary>
+        /// Unique identifier of the external company when using API-based consolidation import.
+        /// </summary>
         field(28; "External Company Id"; Guid)
         {
             Caption = 'External Company Id';
             DataClassification = OrganizationIdentifiableInformation;
         }
+        /// <summary>
+        /// Name of the external company corresponding to this business unit for API-based imports.
+        /// </summary>
         field(29; "External Company Name"; Text[1024])
         {
             Caption = 'External Company Name';
@@ -258,6 +354,9 @@ table 220 "Business Unit"
                 Rec.Name := CopyStr(Rec."External Company Name", 1, MaxStrLen(Rec.Name));
             end;
         }
+        /// <summary>
+        /// Enables logging of API requests for debugging and audit purposes during consolidation data import.
+        /// </summary>
         field(30; "Log Requests"; Boolean)
         {
             Caption = 'Log Requests';
@@ -285,6 +384,10 @@ table 220 "Business Unit"
         UnsupportedDataImportMethodErr: Label 'Unsupported data import method.';
         DifferentCurrenciesHaveBeenUsedInPreviousConsolidationsForBusinessUnitsErr: Label 'Different currencies have been used in previous consolidations for this business unit. Changing it may have an impact in currency adjustments. Do you want to continue?';
 
+    /// <summary>
+    /// Validates that the specified G/L Account exists and is properly configured for consolidation use.
+    /// </summary>
+    /// <param name="AccNo">G/L Account number to validate</param>
     procedure CheckGLAcc(AccNo: Code[20])
     var
         GLAcc: Record "G/L Account";

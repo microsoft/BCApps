@@ -1,10 +1,8 @@
+/// <summary>
+/// Provides utility functions for unapplying customer and vendor ledger entries in test scenarios. This is an extension library for Library - ERM.
+/// </summary>
 codeunit 131301 "Library - ERM Unapply"
 {
-    // Branching extension library for CU131300: Library - ERM
-    // 
-    // Encapsulates functionality for unapplying customer and vendor ledger entries because the function
-    // GenJnlPostLine.UnapplyVendLedgEntry has different signatures in AU,NZ builds.
-
 
     trigger OnRun()
     begin

@@ -33,36 +33,49 @@ table 931 "Service Item Trend Buffer"
         }
         field(10; "Prepaid Income"; Decimal)
         {
+            AutoFormatExpression = '';
+            AutoFormatType = 1;
             Caption = 'Prepaid Income';
             DataClassification = SystemMetadata;
         }
         field(11; "Posted Income"; Decimal)
         {
+            AutoFormatExpression = '';
+            AutoFormatType = 1;
             Caption = 'Posted Income';
             DataClassification = SystemMetadata;
         }
         field(12; "Parts Used"; Decimal)
         {
+            AutoFormatExpression = '';
+            AutoFormatType = 1;
             Caption = 'Parts Used';
             DataClassification = SystemMetadata;
         }
         field(13; "Resources Used"; Decimal)
         {
+            AutoFormatExpression = '';
+            AutoFormatType = 1;
             Caption = 'Resources Used';
             DataClassification = SystemMetadata;
         }
         field(14; "Cost Used"; Decimal)
         {
+            AutoFormatExpression = '';
+            AutoFormatType = 1;
             Caption = 'Cost Used';
             DataClassification = SystemMetadata;
         }
         field(15; Profit; Decimal)
         {
+            AutoFormatExpression = '';
+            AutoFormatType = 1;
             Caption = 'Profit';
             DataClassification = SystemMetadata;
         }
         field(16; "Profit %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Profit %';
             DataClassification = SystemMetadata;
         }

@@ -21,6 +21,15 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.Period;
 using System.Utilities;
 
+/// <summary>
+/// Central engine for account schedule management, calculation, and financial report generation.
+/// Handles complex financial calculations including G/L accounts, cash flow forecasts, cost accounting, and budget analysis.
+/// </summary>
+/// <remarks>
+/// Core calculation engine for financial reporting with support for formulas, operators, and multi-dimensional analysis.
+/// Integrates with Analysis Views, G/L entries, budget entries, and cash flow forecasts for comprehensive financial analysis.
+/// Extensibility: Multiple integration events for custom calculation logic and filter processing.
+/// </remarks>
 codeunit 8 AccSchedManagement
 {
     TableNo = "Acc. Schedule Line";
@@ -52,7 +61,7 @@ codeunit 8 AccSchedManagement
         MatrixMgt: Codeunit "Matrix Management";
         AccountingPeriodMgt: Codeunit "Accounting Period Mgt.";
         AnalysisViewRead: Boolean;
-        SheetDefinitionRead: Boolean;
+        DimPerspectiveRead: Boolean;
         StartDate: Date;
         EndDate: Date;
         FiscalStartDate: Date;
@@ -89,13 +98,25 @@ codeunit 8 AccSchedManagement
         WeekTxt: Label 'W%1', Comment = '%1 = Week number';
         Recalculate: Boolean;
         SystemGeneratedAccSchedQst: Label 'This account schedule may be automatically updated by the system, so any changes you make may be lost. Do you want to make a copy?';
-        SheetDimensionMismatchErr: Label 'The %1 on %2 must be one of the dimension codes specified on the %3 %4.', Comment = '%1 = Sheet Type, %2 = Sheet Definition Name, %3 = Analysis View, %4 = Analysis View Name';
+        PerspectiveDimensionMismatchErr: Label 'The %1 on %2 must be one of the dimension codes specified on the %3 %4.', Comment = '%1 = Perspective Type, %2 = Dimension Perspective Name, %3 = Analysis View, %4 = Analysis View Name';
 
+    /// <summary>
+    /// Opens and initializes account schedule lines for the specified schedule name with proper template validation.
+    /// Ensures the schedule exists and applies appropriate filters for schedule line processing.
+    /// </summary>
+    /// <param name="CurrentSchedName">Account schedule name to open and validate</param>
+    /// <param name="AccSchedLine">Account schedule line record to configure with filters and settings</param>
     procedure OpenSchedule(var CurrentSchedName: Code[10]; var AccSchedLine: Record "Acc. Schedule Line")
     begin
         CheckTemplateAndSetFilter(CurrentSchedName, AccSchedLine);
     end;
 
+    /// <summary>
+    /// Opens account schedule with validation and system-generated schedule protection logic.
+    /// Prompts user to copy system-generated schedules before modification to preserve integrity.
+    /// </summary>
+    /// <param name="CurrentSchedName">Account schedule name to open and validate</param>
+    /// <param name="AccSchedLine">Account schedule line record to configure with filters and settings</param>
     procedure OpenAndCheckSchedule(var CurrentSchedName: Code[10]; var AccSchedLine: Record "Acc. Schedule Line")
     var
         AccScheduleName: Record "Acc. Schedule Name";
@@ -179,6 +200,11 @@ codeunit 8 AccSchedManagement
         OnAfterCheckTemplateName(CurrentSchedName);
     end;
 
+    /// <summary>
+    /// Validates that the specified account schedule name exists in the database.
+    /// Raises error if account schedule name is not found.
+    /// </summary>
+    /// <param name="CurrentSchedName">Account schedule name to validate existence for</param>
     procedure CheckName(CurrentSchedName: Code[10])
     var
         AccSchedName: Record "Acc. Schedule Name";
@@ -187,6 +213,12 @@ codeunit 8 AccSchedManagement
         OnAfterCheckName(CurrentSchedName);
     end;
 
+    /// <summary>
+    /// Sets the account schedule name filter on account schedule lines for data filtering and processing.
+    /// Configures account schedule line record to work with the specified schedule.
+    /// </summary>
+    /// <param name="CurrentSchedName">Account schedule name to set as filter</param>
+    /// <param name="AccSchedLine">Account schedule line record to configure with the schedule name filter</param>
     procedure SetName(CurrentSchedName: Code[10]; var AccSchedLine: Record "Acc. Schedule Line")
     begin
         AccSchedLine.FilterGroup(2);
@@ -195,6 +227,20 @@ codeunit 8 AccSchedManagement
         if AccSchedLine.Find('-') then;
     end;
 
+    /// <summary>
+    /// Opens account schedule name lookup dialog and returns the selected schedule name.
+    /// Enables interactive selection of account schedules for financial reporting.
+    /// </summary>
+    /// <param name="CurrentSchedName">Currently selected account schedule name for initial positioning</param>
+    /// <param name="EntrdSchedName">Selected account schedule name returned from lookup</param>
+    /// <returns>True if user selected a schedule name, false if cancelled</returns>
+    /// <summary>
+    /// Opens a lookup dialog for account schedule names and returns the selected schedule name.
+    /// Provides user interface for selecting from available account schedule templates.
+    /// </summary>
+    /// <param name="CurrentSchedName">Current account schedule name to initialize lookup selection</param>
+    /// <param name="EntrdSchedName">Variable to receive the selected account schedule name</param>
+    /// <returns>True if user selected a schedule name, false if canceled</returns>
     procedure LookupName(CurrentSchedName: Code[10]; var EntrdSchedName: Text[10]): Boolean
     var
         AccSchedName: Record "Acc. Schedule Name";
@@ -207,6 +253,12 @@ codeunit 8 AccSchedManagement
         exit(true);
     end;
 
+    /// <summary>
+    /// Opens and initializes column layout lines for the specified column layout name with proper template validation.
+    /// Ensures the column layout exists and applies appropriate filters for column layout processing.
+    /// </summary>
+    /// <param name="CurrentColumnName">Column layout name to open and validate</param>
+    /// <param name="ColumnLayout">Column layout record to configure with filters and settings</param>
     procedure OpenColumns(var CurrentColumnName: Code[10]; var ColumnLayout: Record "Column Layout")
     begin
         CheckColumnTemplateName(CurrentColumnName);
@@ -242,6 +294,11 @@ codeunit 8 AccSchedManagement
         end;
     end;
 
+    /// <summary>
+    /// Validates that the specified column layout name exists in the database.
+    /// Raises error if column layout name is not found.
+    /// </summary>
+    /// <param name="CurrentColumnName">Column layout name to validate existence for</param>
     procedure CheckColumnName(CurrentColumnName: Code[10])
     var
         ColumnLayoutName: Record "Column Layout Name";
@@ -250,6 +307,12 @@ codeunit 8 AccSchedManagement
         OnAfterCheckColumnName(CurrentColumnName);
     end;
 
+    /// <summary>
+    /// Sets the column layout name filter on column layout lines for data filtering and processing.
+    /// Configures column layout record to work with the specified column layout name.
+    /// </summary>
+    /// <param name="CurrentColumnName">Column layout name to set as filter</param>
+    /// <param name="ColumnLayout">Column layout record to configure with the column layout name filter</param>
     procedure SetColumnName(CurrentColumnName: Code[10]; var ColumnLayout: Record "Column Layout")
     begin
         ColumnLayout.Reset();
@@ -258,6 +321,12 @@ codeunit 8 AccSchedManagement
         ColumnLayout.FilterGroup(0);
     end;
 
+    /// <summary>
+    /// Copies column layout lines to temporary table for processing and manipulation.
+    /// Enables temporary column layout processing without affecting the original data.
+    /// </summary>
+    /// <param name="NewColumnName">Column layout name to copy from</param>
+    /// <param name="TempColumnLayout">Temporary column layout record to copy data to</param>
     procedure CopyColumnsToTemp(NewColumnName: Code[10]; var TempColumnLayout: Record "Column Layout")
     var
         ColumnLayout: Record "Column Layout";
@@ -281,6 +350,12 @@ codeunit 8 AccSchedManagement
         if TempColumnLayout.Find('-') then;
     end;
 
+    /// <summary>
+    /// Opens column layout name lookup window and returns selected column name.
+    /// </summary>
+    /// <param name="CurrentColumnName">Current column layout name to use as default selection</param>
+    /// <param name="EntrdColumnName">Selected column layout name returned from lookup</param>
+    /// <returns>True if column layout was selected, false if lookup was cancelled</returns>
     procedure LookupColumnName(CurrentColumnName: Code[10]; var EntrdColumnName: Text[10]) Result: Boolean
     var
         ColumnLayoutName: Record "Column Layout Name";
@@ -299,11 +374,29 @@ codeunit 8 AccSchedManagement
         exit(true);
     end;
 
+    /// <summary>
+    /// Sets the analysis view read status flag.
+    /// </summary>
+    /// <param name="Value">Analysis view read status - true if analysis view data has been read</param>
     procedure SetAnalysisViewRead(Value: Boolean)
     begin
         AnalysisViewRead := Value;
     end;
 
+    /// <summary>
+    /// Validates analysis view consistency across account schedule and column layout configuration.
+    /// Ensures analysis view setup is compatible with financial reporting requirements.
+    /// </summary>
+    /// <param name="CurrentSchedName">Account schedule name to validate analysis view for</param>
+    /// <param name="CurrentColumnName">Column layout name to validate analysis view for</param>
+    /// <param name="TestColumnName">Whether to validate column layout analysis view settings</param>
+    /// <summary>
+    /// Validates and configures analysis view settings for account schedule and column layout compatibility.
+    /// Ensures proper dimension setup and analysis view consistency across schedule and columns.
+    /// </summary>
+    /// <param name="CurrentSchedName">Account schedule name to validate against analysis view</param>
+    /// <param name="CurrentColumnName">Column layout name for analysis view configuration</param>
+    /// <param name="TestColumnName">Whether to validate column layout name consistency</param>
     procedure CheckAnalysisView(CurrentSchedName: Code[10]; CurrentColumnName: Code[10]; TestColumnName: Boolean)
     var
         ColumnLayout2: Record "Column Layout";
@@ -354,19 +447,19 @@ codeunit 8 AccSchedManagement
         OnAfterCheckAnalysisView(AccSchedName, ColumnLayoutName, AnalysisView);
     end;
 
-    procedure CheckSheetAnalysisView(CurrentSchedName: Code[10]; CurrentSheetName: Code[10])
+    procedure CheckPerspectiveAnalysisView(CurrentSchedName: Code[10]; CurrentPerspectiveName: Code[10])
     var
-        SheetDefName: Record "Sheet Definition Name";
-        SheetDefLine: Record "Sheet Definition Line";
-        AnySheetDimensions: Boolean;
+        DimPerspectiveName: Record "Dimension Perspective Name";
+        DimPerspectiveLine: Record "Dimension Perspective Line";
+        AnyPerspectiveDimensions: Boolean;
     begin
-        if not SheetDefinitionRead then begin
-            SheetDefinitionRead := true;
+        if not DimPerspectiveRead then begin
+            DimPerspectiveRead := true;
             if CurrentSchedName <> AccSchedName.Name then begin
                 CheckTemplateName(CurrentSchedName);
                 AccSchedName.Get(CurrentSchedName);
             end;
-            SheetDefName.Get(CurrentSheetName);
+            DimPerspectiveName.Get(CurrentPerspectiveName);
             if AccSchedName."Analysis View Name" = '' then begin
                 GetGLSetup();
                 AnalysisView.Init();
@@ -375,47 +468,55 @@ codeunit 8 AccSchedManagement
             end else
                 AnalysisView.Get(AccSchedName."Analysis View Name");
 
-            if AccSchedName."Analysis View Name" <> SheetDefName."Analysis View Name" then begin
-                SheetDefLine.SetRange(Name, CurrentSheetName);
-                if SheetDefLine.FindSet() then
+            if AccSchedName."Analysis View Name" <> DimPerspectiveName."Analysis View Name" then begin
+                DimPerspectiveLine.SetRange(Name, CurrentPerspectiveName);
+                if DimPerspectiveLine.FindSet() then
                     repeat
-                        AnySheetDimensions :=
-                          (SheetDefLine."Dimension 1 Totaling" <> '') or
-                          (SheetDefLine."Dimension 2 Totaling" <> '') or
-                          (SheetDefLine."Dimension 3 Totaling" <> '') or
-                          (SheetDefLine."Dimension 4 Totaling" <> '');
-                    until AnySheetDimensions or (SheetDefLine.Next() = 0);
-                if AnySheetDimensions then
+                        AnyPerspectiveDimensions :=
+                          (DimPerspectiveLine."Dimension 1 Totaling" <> '') or
+                          (DimPerspectiveLine."Dimension 2 Totaling" <> '') or
+                          (DimPerspectiveLine."Dimension 3 Totaling" <> '') or
+                          (DimPerspectiveLine."Dimension 4 Totaling" <> '');
+                    until AnyPerspectiveDimensions or (DimPerspectiveLine.Next() = 0);
+                if AnyPerspectiveDimensions then
                     Error(
                       Text024,
                       AccSchedName.FieldCaption("Analysis View Name"),
                       AccSchedName.TableCaption(),
                       AccSchedName."Analysis View Name",
-                      SheetDefName.FieldCaption("Analysis View Name"),
-                      SheetDefName.TableCaption(),
-                      SheetDefName."Analysis View Name",
-                      SheetDefLine.TableCaption());
+                      DimPerspectiveName.FieldCaption("Analysis View Name"),
+                      DimPerspectiveName.TableCaption(),
+                      DimPerspectiveName."Analysis View Name",
+                      DimPerspectiveLine.TableCaption());
             end;
 
-            if (SheetDefName."Sheet Type" <> SheetDefName."Sheet Type"::Custom) and
-                (SheetDefName."Analysis View Name" <> '')
+            if (DimPerspectiveName."Perspective Type" <> DimPerspectiveName."Perspective Type"::Custom) and
+                (DimPerspectiveName."Analysis View Name" <> '')
             then
-                case SheetDefName."Sheet Type" of
-                    "Sheet Type"::Dimension5,
-                    "Sheet Type"::Dimension6,
-                    "Sheet Type"::Dimension7,
-                    "Sheet Type"::Dimension8,
-                    "Sheet Type"::BusinessUnit:
+                case DimPerspectiveName."Perspective Type" of
+                    "Dimension Perspective Type"::Dimension5,
+                    "Dimension Perspective Type"::Dimension6,
+                    "Dimension Perspective Type"::Dimension7,
+                    "Dimension Perspective Type"::Dimension8,
+                    "Dimension Perspective Type"::BusinessUnit:
                         Error(
-                            SheetDimensionMismatchErr,
-                            SheetDefName.FieldCaption("Sheet Type"),
-                            SheetDefName.TableCaption(),
-                            SheetDefName.FieldCaption("Analysis View Name"),
-                            SheetDefName."Analysis View Name");
+                            PerspectiveDimensionMismatchErr,
+                            DimPerspectiveName.FieldCaption("Perspective Type"),
+                            DimPerspectiveName.TableCaption(),
+                            DimPerspectiveName.FieldCaption("Analysis View Name"),
+                            DimPerspectiveName."Analysis View Name");
                 end;
         end;
     end;
 
+    /// <summary>
+    /// Calculates accounting period start and end dates based on column layout comparison period formula.
+    /// Handles period formulas for historical, current, and future period comparisons.
+    /// </summary>
+    /// <param name="ColumnLayout">Column layout containing comparison period formula configuration</param>
+    /// <param name="Date">Base date to calculate period range from</param>
+    /// <param name="StartDate">Calculated period start date returned</param>
+    /// <param name="EndDate">Calculated period end date returned</param>
     procedure AccPeriodStartEnd(ColumnLayout: Record "Column Layout"; Date: Date; var StartDate: Date; var EndDate: Date)
     var
         PeriodFormulaParser: Codeunit "Period Formula Parser";
@@ -494,9 +595,13 @@ codeunit 8 AccSchedManagement
 
     /// <summary>
     /// Calculates the cell for the specified Acc. Schedule Line and Column Layout combination. 
-    ///
-    /// An additional currency can be calculated using the CalcAddCurr parameter, but this parameter may be ignored if the Column Layout's Show in ACY field is set to true.
+    /// An additional currency can be calculated using the CalcAddCurr parameter, but this parameter may be ignored if the Column Layout's Show in ACY field is set to true.    
+    /// Core calculation engine handling formulas, totaling, and various source systems.
     /// </summary>
+    /// <param name="AccSchedLine">Account schedule line defining row calculation logic</param>
+    /// <param name="ColumnLayout">Column layout defining period and calculation parameters</param>
+    /// <param name="CalcAddCurr">Whether to calculate in additional reporting currency</param>
+    /// <returns>Calculated financial value for the line/column intersection</returns>
     procedure CalcCell(var AccSchedLine: Record "Acc. Schedule Line"; var ColumnLayout: Record "Column Layout"; CalcAddCurr: Boolean) Result: Decimal
     var
         IsHandled: Boolean;
@@ -544,6 +649,14 @@ codeunit 8 AccSchedManagement
         OnBeforeCalcCellExit(AccSchedLine, ColumnLayout, CalcAddCurr, Result);
     end;
 
+    /// <summary>
+    /// Applies display formatting rules to calculated financial values.
+    /// Handles positive/negative value display options and rounding specifications.
+    /// </summary>
+    /// <param name="AccSchedLine">Account schedule line containing formatting preferences</param>
+    /// <param name="ColumnLayout">Column layout containing show and rounding options</param>
+    /// <param name="CalcAddCurr">Whether calculation uses additional reporting currency</param>
+    /// <param name="Result">Financial value to format, modified according to display rules</param>
     procedure FormatCellResult(AccSchedLine: Record "Acc. Schedule Line"; ColumnLayout: Record "Column Layout"; CalcAddCurr: Boolean; var Result: Decimal)
     var
         IsHandled: Boolean;
@@ -576,6 +689,14 @@ codeunit 8 AccSchedManagement
             Result := -Result;
     end;
 
+    /// <summary>
+    /// Evaluates financial value for specific account schedule line and column layout combination.
+    /// Handles various source systems including G/L accounts, cost accounting, cash flow, and budgets.
+    /// </summary>
+    /// <param name="AccSchedLine">Account schedule line containing totaling and calculation rules</param>
+    /// <param name="ColumnLayout">Column layout defining period, formula, and display parameters</param>
+    /// <param name="CalcAddCurr">Whether to calculate amounts in additional reporting currency</param>
+    /// <returns>Calculated financial value from specified sources and formulas</returns>
     procedure CalcCellValue(AccSchedLine: Record "Acc. Schedule Line"; ColumnLayout: Record "Column Layout"; CalcAddCurr: Boolean) Result: Decimal
     var
         GLAcc: Record "G/L Account";
@@ -727,6 +848,15 @@ codeunit 8 AccSchedManagement
         OnCalcCellValueOnBeforeExit(AccSchedLine, ColumnLayout, CalcAddCurr, StartDate, EndDate, Result);
     end;
 
+    /// <summary>
+    /// Calculates G/L account values for account schedule line and column intersection.
+    /// Handles various amount types, entry types, and currency calculations with filter support.
+    /// </summary>
+    /// <param name="GLAcc">G/L Account record for calculation with applied filters</param>
+    /// <param name="AccSchedLine">Account schedule line containing totaling configuration and filters</param>
+    /// <param name="ColumnLayout">Column layout defining calculation parameters and date ranges</param>
+    /// <param name="CalcAddCurr">Whether to calculate using additional currency amounts</param>
+    /// <returns>Calculated decimal amount for the account schedule cell</returns>
     procedure CalcGLAcc(var GLAcc: Record "G/L Account"; var AccSchedLine: Record "Acc. Schedule Line"; var ColumnLayout: Record "Column Layout"; CalcAddCurr: Boolean) ColValue: Decimal
     var
         [SecurityFiltering(SecurityFilter::Filtered)]
@@ -932,6 +1062,14 @@ codeunit 8 AccSchedManagement
         exit(ColValue);
     end;
 
+    /// <summary>
+    /// Calculates cash flow account values for account schedule line and column intersection.
+    /// Processes cash flow forecast entries with support for various amount types and filtering.
+    /// </summary>
+    /// <param name="CFAccount">Cash Flow Account record for calculation with applied filters</param>
+    /// <param name="AccSchedLine">Account schedule line containing cash flow totaling configuration</param>
+    /// <param name="ColumnLayout">Column layout defining calculation parameters and date ranges</param>
+    /// <returns>Calculated decimal amount for the cash flow account schedule cell</returns>
     procedure CalcCFAccount(var CFAccount: Record "Cash Flow Account"; var AccSchedLine: Record "Acc. Schedule Line"; var ColumnLayout: Record "Column Layout") ColValue: Decimal
     var
         CFForecastEntry: Record "Cash Flow Forecast Entry";
@@ -1035,6 +1173,12 @@ codeunit 8 AccSchedManagement
                 ShowError(Text013, AccSchedLine, SourceColumnLayout);
     end;
 
+    /// <summary>
+    /// Applies row-level filters to G/L Account based on account schedule line totaling configuration.
+    /// Sets appropriate account number and account type filters for posting or total accounts.
+    /// </summary>
+    /// <param name="GLAcc">G/L Account record to apply filters to</param>
+    /// <param name="AccSchedLine2">Account schedule line containing totaling type and range specification</param>
     procedure SetGLAccRowFilters(var GLAcc: Record "G/L Account"; var AccSchedLine2: Record "Acc. Schedule Line")
     var
         IsHandled: Boolean;
@@ -1060,6 +1204,16 @@ codeunit 8 AccSchedManagement
         OnAfterSetGLAccRowFilters(GLAcc, AccSchedLine2);
     end;
 
+    /// <summary>
+    /// Applies comprehensive filters to G/L Entry records for account schedule calculations.
+    /// Handles account filters, date ranges, business unit filters, and dimension filters.
+    /// </summary>
+    /// <param name="GLAcc">G/L Account record with applied account filters</param>
+    /// <param name="GLEntry">G/L Entry record to apply calculation filters to</param>
+    /// <param name="AccSchedLine">Account schedule line containing filter specifications</param>
+    /// <param name="ColumnLayout">Column layout containing date and dimension filter criteria</param>
+    /// <param name="UseBusUnitFilter">Whether to apply business unit filtering</param>
+    /// <param name="UseDimFilter">Whether to apply dimension filtering</param>
     procedure SetGLAccGLEntryFilters(var GLAcc: Record "G/L Account"; var GLEntry: Record "G/L Entry"; var AccSchedLine: Record "Acc. Schedule Line"; var ColumnLayout: Record "Column Layout"; UseBusUnitFilter: Boolean; UseDimFilter: Boolean)
     var
         IsHandled: Boolean;
@@ -1102,6 +1256,16 @@ codeunit 8 AccSchedManagement
         OnAfterSetGLAccGLEntryFilters(GLAcc, GLEntry, AccSchedLine, ColumnLayout, UseBusUnitFilter, UseDimFilter);
     end;
 
+    /// <summary>
+    /// Applies comprehensive filters to G/L Budget Entry records for account schedule budget calculations.
+    /// Configures account filters, date ranges, business unit filters, and dimension filters for budget analysis.
+    /// </summary>
+    /// <param name="GLAcc">G/L Account record with applied account filters</param>
+    /// <param name="GLBudgetEntry">G/L Budget Entry record to apply calculation filters to</param>
+    /// <param name="AccSchedLine">Account schedule line containing filter specifications</param>
+    /// <param name="ColumnLayout">Column layout containing date and dimension filter criteria</param>
+    /// <param name="UseBusUnitFilter">Whether to apply business unit filtering</param>
+    /// <param name="UseDimFilter">Whether to apply dimension filtering</param>
     procedure SetGLAccGLBudgetEntryFilters(var GLAcc: Record "G/L Account"; var GLBudgetEntry: Record "G/L Budget Entry"; var AccSchedLine: Record "Acc. Schedule Line"; var ColumnLayout: Record "Column Layout"; UseBusUnitFilter: Boolean; UseDimFilter: Boolean)
     var
         IsHandled: Boolean;
@@ -1145,6 +1309,14 @@ codeunit 8 AccSchedManagement
         OnAfterSetGLAccGLBudgetEntryFilters(GLAcc, GLBudgetEntry, AccSchedLine, ColumnLayout, UseBusUnitFilter, UseDimFilter);
     end;
 
+    /// <summary>
+    /// Configures Analysis View Budget Entry filters for multi-dimensional budget analysis calculations.
+    /// Applies account filters, analysis view settings, budget name filters, and comprehensive dimension filtering.
+    /// </summary>
+    /// <param name="GLAcc">G/L Account record with applied account filters and totaling configuration</param>
+    /// <param name="AnalysisViewBudgetEntry">Analysis View Budget Entry record to apply calculation filters to</param>
+    /// <param name="AccSchedLine">Account schedule line containing dimension totaling and filter specifications</param>
+    /// <param name="ColumnLayout">Column layout containing budget name and additional filter criteria</param>
     procedure SetGLAccAnalysisViewBudgetEntries(var GLAcc: Record "G/L Account"; var AnalysisViewBudgetEntry: Record "Analysis View Budget Entry"; var AccSchedLine: Record "Acc. Schedule Line"; var ColumnLayout: Record "Column Layout")
     begin
         if GLAcc.Totaling = '' then
@@ -1178,6 +1350,14 @@ codeunit 8 AccSchedManagement
         OnAfterSetGLAccAnalysisViewBudgetEntries(GLAcc, AnalysisViewBudgetEntry, AccSchedLine, ColumnLayout);
     end;
 
+    /// <summary>
+    /// Configures Analysis View Entry filters for multi-dimensional G/L analysis calculations.
+    /// Applies account source settings, account filters, analysis view configuration, and dimension filtering.
+    /// </summary>
+    /// <param name="GLAcc">G/L Account record with applied account filters and totaling configuration</param>
+    /// <param name="AnalysisViewEntry">Analysis View Entry record to apply calculation filters to</param>
+    /// <param name="AccSchedLine">Account schedule line containing dimension totaling and filter specifications</param>
+    /// <param name="ColumnLayout">Column layout containing additional filter criteria for analysis view processing</param>
     procedure SetGLAccAnalysisViewEntryFilters(var GLAcc: Record "G/L Account"; var AnalysisViewEntry: Record "Analysis View Entry"; var AccSchedLine: Record "Acc. Schedule Line"; var ColumnLayout: Record "Column Layout")
     begin
         AnalysisViewEntry.SetRange("Analysis View Code", AccSchedName."Analysis View Name");
@@ -1209,6 +1389,12 @@ codeunit 8 AccSchedManagement
         OnAfterSetGLAccAnalysisViewEntryFilters(GLAcc, AnalysisViewEntry, AccSchedLine, ColumnLayout);
     end;
 
+    /// <summary>
+    /// Applies row-level filters to Cash Flow Account based on account schedule line configuration.
+    /// Sets cash flow forecast filters and account number filters for cash flow entry account calculations.
+    /// </summary>
+    /// <param name="CFAccount">Cash Flow Account record to apply filters to</param>
+    /// <param name="AccSchedLine2">Account schedule line containing cash flow totaling and filter specifications</param>
     procedure SetCFAccRowFilter(var CFAccount: Record "Cash Flow Account"; var AccSchedLine2: Record "Acc. Schedule Line")
     var
         IsHandled: Boolean;
@@ -1236,6 +1422,13 @@ codeunit 8 AccSchedManagement
         OnAfterSetCFAccRowFilter(CFAccount, AccSchedLine2);
     end;
 
+    /// <summary>
+    /// Applies column-level date filters to G/L Account based on column layout and row type configuration.
+    /// Handles net change, beginning balance, and balance at date calculations with proper date range filtering.
+    /// </summary>
+    /// <param name="GLAcc">G/L Account record to apply column-based date filters to</param>
+    /// <param name="AccSchedLine2">Account schedule line containing row type specification for date filter logic</param>
+    /// <param name="ColumnLayout">Column layout containing column type and date calculation parameters</param>
     procedure SetGLAccColumnFilters(var GLAcc: Record "G/L Account"; AccSchedLine2: Record "Acc. Schedule Line"; var ColumnLayout: Record "Column Layout")
     var
         FromDate: Date;
@@ -1314,6 +1507,13 @@ codeunit 8 AccSchedManagement
         OnAfterSetGLAccColumnFilters(GLAcc, AccSchedLine2, ColumnLayout, StartDate, EndDate);
     end;
 
+    /// <summary>
+    /// Applies column-level date filters to Cash Flow Account based on column layout and row type configuration.
+    /// Handles cash flow forecast date range filtering for different row types and column calculations.
+    /// </summary>
+    /// <param name="CFAccount">Cash Flow Account record to apply column-based date filters to</param>
+    /// <param name="AccSchedLine2">Account schedule line containing row type specification for date filter logic</param>
+    /// <param name="ColumnLayout2">Column layout containing column type and date calculation parameters</param>
     procedure SetCFAccColumnFilter(var CFAccount: Record "Cash Flow Account"; AccSchedLine2: Record "Acc. Schedule Line"; var ColumnLayout2: Record "Column Layout")
     var
         FromDate: Date;
@@ -1443,6 +1643,15 @@ codeunit 8 AccSchedManagement
         OnAfterSetCFAnalysisViewEntryFilters(AnalysisViewEntry, AccSchedLine, ColumnLayout);
     end;
 
+    /// <summary>
+    /// Applies mathematical operators to two decimal values with division error handling.
+    /// Supports addition, subtraction, multiplication, and division operations for account schedule formula calculations.
+    /// </summary>
+    /// <param name="LeftResult">Left operand decimal value for calculation</param>
+    /// <param name="RightResult">Right operand decimal value for calculation</param>
+    /// <param name="Operator">Mathematical operator character (+, -, *, /)</param>
+    /// <param name="DivisionError">Returns true if division by zero error occurred</param>
+    /// <returns>Calculated result of applying the operator to the two operands</returns>
     procedure ApplyOperator(LeftResult: Decimal; RightResult: Decimal; Operator: Char; var DivisionError: Boolean) Result: Decimal
     begin
         case Operator of
@@ -1469,6 +1678,13 @@ codeunit 8 AccSchedManagement
         end;
     end;
 
+    /// <summary>
+    /// Parses mathematical expressions to identify operator positions and validate expression structure.
+    /// Handles parentheses nesting and operator precedence for account schedule formula parsing.
+    /// </summary>
+    /// <param name="Expression">Mathematical expression text to parse for operators and structure</param>
+    /// <param name="i">Returns the position of the identified operator in the expression</param>
+    /// <returns>True if a valid expression structure with operators was found</returns>
     procedure ParseExpression(Expression: Text; var i: Integer) IsExpression: Boolean
     var
         Parantheses: Integer;
@@ -1497,6 +1713,16 @@ codeunit 8 AccSchedManagement
         until (OperatorNo > StrLen(Operators)) or IsExpression;
     end;
 
+    /// <summary>
+    /// Evaluates complex mathematical expressions for account schedule calculations.
+    /// Processes formulas with operators, parentheses, and cell references for financial reporting.
+    /// </summary>
+    /// <param name="IsAccSchedLineExpression">True if expression references account schedule line cells, false for column layout cells</param>
+    /// <param name="Expression">Mathematical expression text containing operators and cell references</param>
+    /// <param name="AccSchedLine">Account schedule line context for cell value calculations</param>
+    /// <param name="ColumnLayout">Column layout context for cell value calculations</param>
+    /// <param name="CalcAddCurr">Whether to calculate using additional currency amounts</param>
+    /// <returns>Calculated decimal result of the evaluated expression</returns>
     procedure EvaluateExpression(IsAccSchedLineExpression: Boolean; Expression: Text; AccSchedLine: Record "Acc. Schedule Line"; ColumnLayout: Record "Column Layout"; CalcAddCurr: Boolean): Decimal
     var
         AccSchedLine2: Record "Acc. Schedule Line";
@@ -1578,6 +1804,14 @@ codeunit 8 AccSchedManagement
         exit(Result);
     end;
 
+    /// <summary>
+    /// Formats decimal values as text for display in account schedule reports with proper rounding and currency formatting.
+    /// Applies rounding factors, currency symbols, and percentage formatting based on column layout configuration.
+    /// </summary>
+    /// <param name="ColumnLayout2">Column layout containing formatting parameters including rounding factor and formula</param>
+    /// <param name="Value">Decimal value to format for display</param>
+    /// <param name="CalcAddCurr">Whether to apply additional currency formatting</param>
+    /// <returns>Formatted text representation of the value with applied formatting rules</returns>
     procedure FormatCellAsText(var ColumnLayout2: Record "Column Layout"; Value: Decimal; CalcAddCurr: Boolean) ValueAsText: Text[30]
     var
         IsHandled: Boolean;
@@ -1598,16 +1832,33 @@ codeunit 8 AccSchedManagement
         OnAfterFormatCellAsText(ColumnLayout2, ValueAsText, Value);
     end;
 
+    /// <summary>
+    /// Returns the current division error status indicating if division by zero occurred during calculations.
+    /// Used for error handling and validation in account schedule formula processing.
+    /// </summary>
+    /// <returns>True if division by zero error was encountered, false otherwise</returns>
     procedure GetDivisionError(): Boolean
     begin
         exit(DivisionError);
     end;
 
+    /// <summary>
+    /// Returns the current period error status indicating if invalid date calculations occurred.
+    /// Used for error handling and validation in account schedule period processing.
+    /// </summary>
+    /// <returns>True if period calculation error was encountered, false otherwise</returns>
     procedure GetPeriodError(): Boolean
     begin
         exit(PeriodError);
     end;
 
+    /// <summary>
+    /// Displays detailed error messages for account schedule calculation failures with context information.
+    /// Shows the problematic account schedule line and column layout details to assist in debugging.
+    /// </summary>
+    /// <param name="MessageLine">Primary error message text describing the calculation failure</param>
+    /// <param name="AccSchedLine">Account schedule line context where the error occurred</param>
+    /// <param name="ColumnLayout">Column layout context where the error occurred</param>
     procedure ShowError(MessageLine: Text; var AccSchedLine: Record "Acc. Schedule Line"; var ColumnLayout: Record "Column Layout")
     begin
         AccSchedLine.SetRange("Schedule Name", AccSchedLine."Schedule Name");
@@ -1623,6 +1874,11 @@ codeunit 8 AccSchedManagement
           StrSubstNo(Text019Txt, ColumnLayout."Column No.", ColumnLayout."Line No.", ColumnLayout.Formula));
     end;
 
+    /// <summary>
+    /// Opens G/L account selection dialog and inserts selected accounts as new account schedule lines.
+    /// Creates multiple lines based on user selection and maintains line numbering sequence.
+    /// </summary>
+    /// <param name="AccSchedLine">Account schedule line to use as insertion point for new G/L account lines</param>
     procedure InsertGLAccounts(var AccSchedLine: Record "Acc. Schedule Line")
     var
         GLAcc: Record "G/L Account";
@@ -1672,6 +1928,11 @@ codeunit 8 AccSchedManagement
         OnAfterInsertGLAccounts(AccSchedLine);
     end;
 
+    /// <summary>
+    /// Opens cash flow account selection dialog and inserts selected accounts as new account schedule lines.
+    /// Creates multiple cash flow lines based on user selection with proper line numbering.
+    /// </summary>
+    /// <param name="AccSchedLine">Account schedule line to use as insertion point for new cash flow account lines</param>
     procedure InsertCFAccounts(var AccSchedLine: Record "Acc. Schedule Line")
     var
         CashFlowAcc: Record "Cash Flow Account";
@@ -1710,6 +1971,11 @@ codeunit 8 AccSchedManagement
         end;
     end;
 
+    /// <summary>
+    /// Opens cost type selection dialog and inserts selected cost types as new account schedule lines.
+    /// Creates multiple cost accounting lines based on user selection with appropriate totaling setup.
+    /// </summary>
+    /// <param name="AccSchedLine">Account schedule line to use as insertion point for new cost type lines</param>
     procedure InsertCostTypes(var AccSchedLine: Record "Acc. Schedule Line")
     var
         CostType: Record "Cost Type";
@@ -1748,6 +2014,12 @@ codeunit 8 AccSchedManagement
         end;
     end;
 
+    /// <summary>
+    /// Determines if an expression contains filter characters and should be processed as a filter rather than a direct value.
+    /// Checks for range operators, wildcards, and logical operators to identify filter expressions.
+    /// </summary>
+    /// <param name="Expression">Text expression to analyze for filter character patterns</param>
+    /// <returns>True if expression contains filter operators and should be treated as a filter</returns>
     procedure IsExpressionFilter(Expression: Text) Result: Boolean
     var
         IsHandled: Boolean;
@@ -1775,11 +2047,23 @@ codeunit 8 AccSchedManagement
             CurrExchRate.ExchangeRate(WorkDate(), GLSetup."Additional Reporting Currency")));
     end;
 
+    /// <summary>
+    /// Sets the current account schedule name for processing and calculations.
+    /// Updates the internal account schedule name reference used across calculation procedures.
+    /// </summary>
+    /// <param name="NewAccSchedName">Account schedule name record to set as current working schedule</param>
     procedure SetAccSchedName(var NewAccSchedName: Record "Acc. Schedule Name")
     begin
         AccSchedName := NewAccSchedName;
     end;
 
+    /// <summary>
+    /// Converts dimension totaling expressions into proper filter text for dimension filtering.
+    /// Processes dimension codes and totaling ranges to create valid dimension value filters.
+    /// </summary>
+    /// <param name="DimNo">Dimension number (1-4) to process totaling for</param>
+    /// <param name="DimTotaling">Dimension totaling expression containing codes and ranges</param>
+    /// <returns>Formatted filter text for dimension value filtering</returns>
     procedure GetDimTotalingFilter(DimNo: Integer; DimTotaling: Text[250]): Text[1024]
     var
         DimTotaling2: Text[250];
@@ -1881,6 +2165,15 @@ codeunit 8 AccSchedManagement
         if CostAccSetup.Get() then;
     end;
 
+    /// <summary>
+    /// Calculates cost type values for account schedule line and column intersection with cost accounting integration.
+    /// Handles cost entry calculations, cost budget entries, and various amount types for cost accounting analysis.
+    /// </summary>
+    /// <param name="CostType">Cost Type record for calculation with applied filters</param>
+    /// <param name="AccSchedLine">Account schedule line containing cost type totaling configuration</param>
+    /// <param name="ColumnLayout">Column layout defining calculation parameters and date ranges</param>
+    /// <param name="CalcAddCurr">Whether to calculate using additional currency amounts</param>
+    /// <returns>Calculated decimal amount for the cost type account schedule cell</returns>
     procedure CalcCostType(var CostType: Record "Cost Type"; var AccSchedLine: Record "Acc. Schedule Line"; var ColumnLayout: Record "Column Layout"; CalcAddCurr: Boolean) ColValue: Decimal
     var
         CostEntry: Record "Cost Entry";
@@ -2035,6 +2328,13 @@ codeunit 8 AccSchedManagement
         OnAfterSetCostBudgetEntryFilters(CostType, CostBudgetEntry, AccSchedLine, ColumnLayout);
     end;
 
+    /// <summary>
+    /// Applies row-level filters to Cost Type record based on account schedule line configuration.
+    /// Sets cost type number filters, type filters, and cost center/object filters for cost accounting calculations.
+    /// </summary>
+    /// <param name="CostType">Cost Type record to apply filters to</param>
+    /// <param name="AccSchedLine2">Account schedule line containing cost type totaling and filter specifications</param>
+    /// <param name="ColumnLayout">Column layout containing additional cost accounting filter parameters</param>
     procedure SetCostTypeRowFilters(var CostType: Record "Cost Type"; var AccSchedLine2: Record "Acc. Schedule Line"; var ColumnLayout: Record "Column Layout")
     begin
         case AccSchedLine2."Totaling Type" of
@@ -2058,6 +2358,13 @@ codeunit 8 AccSchedManagement
         OnAfterSetCostTypeRowFilters(CostType, AccSchedLine2);
     end;
 
+    /// <summary>
+    /// Applies column-level date filters to Cost Type record based on column layout and row type configuration.
+    /// Handles cost accounting date range filtering for different column types and row calculations.
+    /// </summary>
+    /// <param name="CostType">Cost Type record to apply column-based date filters to</param>
+    /// <param name="AccSchedLine2">Account schedule line containing row type specification for date filter logic</param>
+    /// <param name="ColumnLayout">Column layout containing column type and date calculation parameters</param>
     procedure SetCostTypeColumnFilters(var CostType: Record "Cost Type"; AccSchedLine2: Record "Acc. Schedule Line"; var ColumnLayout: Record "Column Layout")
     var
         FromDate: Date;
@@ -2131,6 +2438,13 @@ codeunit 8 AccSchedManagement
         OnAfterSetCostTypeColumnFilters(CostType, AccSchedLine2, ColumnLayout);
     end;
 
+    /// <summary>
+    /// Determines if dimension filtering is active on either account schedule line or column layout.
+    /// Checks dimension totaling fields and dimension filters to identify multi-dimensional analysis requirements.
+    /// </summary>
+    /// <param name="AccSchedLine">Account schedule line to check for dimension totaling and filters</param>
+    /// <param name="ColumnLayout">Column layout to check for dimension totaling specifications</param>
+    /// <returns>True if any dimension filtering is configured, false if no dimensional analysis is required</returns>
     procedure HasDimFilter(var AccSchedLine: Record "Acc. Schedule Line"; var ColumnLayout: Record "Column Layout") Result: Boolean
     begin
 
@@ -2166,6 +2480,14 @@ codeunit 8 AccSchedManagement
           (AccSchedLine.GetFilter("Cost Object Filter") <> ''));
     end;
 
+    /// <summary>
+    /// Calculates date ranges for column layout based on comparison date formulas and period formulas.
+    /// Processes relative date calculations and fiscal period adjustments for financial reporting.
+    /// </summary>
+    /// <param name="ColumnLayout">Column layout containing date calculation formulas and parameters</param>
+    /// <param name="FromDate">Calculated start date returned for the column period</param>
+    /// <param name="ToDate">Calculated end date returned for the column period</param>
+    /// <param name="FiscalStartDate2">Fiscal year start date used for period calculations</param>
     procedure CalcColumnDates(ColumnLayout: Record "Column Layout"; var FromDate: Date; var ToDate: Date; var FiscalStartDate2: Date)
     var
         ComparisonDateFormula: DateFormula;
@@ -2196,6 +2518,12 @@ codeunit 8 AccSchedManagement
         OnAfterCalcColumnDates(ColumnLayout, FromDate, ToDate, FiscalStartDate2, PeriodError);
     end;
 
+    /// <summary>
+    /// Moves account schedule lines within a schedule to create space for insertions or reorganization.
+    /// Adjusts line numbers by shifting subsequent lines to maintain proper ordering.
+    /// </summary>
+    /// <param name="AccSchedLine">Account schedule line record used to identify the schedule and position</param>
+    /// <param name="Place">Number of line positions to shift (positive moves lines down, negative moves up)</param>
     procedure MoveAccSchedLines(var AccSchedLine: Record "Acc. Schedule Line"; Place: Integer)
     var
         AccSchedLineNo: Integer;
@@ -2216,18 +2544,38 @@ codeunit 8 AccSchedManagement
             until (I <= AccSchedLineNo) or (AccSchedLine.Next(-1) = 0);
     end;
 
+    /// <summary>
+    /// Sets the global start and end date range for account schedule calculations.
+    /// Updates the internal date variables used across all calculation procedures.
+    /// </summary>
+    /// <param name="NewStartDate">Start date for the calculation period</param>
+    /// <param name="NewEndDate">End date for the calculation period</param>
     procedure SetStartDateEndDate(NewStartDate: Date; NewEndDate: Date)
     begin
         StartDate := NewStartDate;
         EndDate := NewEndDate;
     end;
 
+    /// <summary>
+    /// Retrieves the current global start and end date range used for account schedule calculations.
+    /// Returns the internal date variables set through SetStartDateEndDate procedure.
+    /// </summary>
+    /// <param name="OutputStartDate">Returns the current calculation period start date</param>
+    /// <param name="OutputEndDate">Returns the current calculation period end date</param>
     procedure GetStartDateEndDate(var OutputStartDate: Date; var OutputEndDate: Date)
     begin
         OutputStartDate := StartDate;
         OutputEndDate := EndDate;
     end;
 
+    /// <summary>
+    /// Determines if there is a conflict between account schedule line and column layout amount types.
+    /// Resolves amount type precedence and returns the effective amount type for calculations.
+    /// </summary>
+    /// <param name="AccSchedLine">Account schedule line with specified amount type configuration</param>
+    /// <param name="ColumnLayoutAmtType">Column layout amount type to compare and resolve conflicts with</param>
+    /// <param name="AmountType">Returns the resolved amount type to use for calculations</param>
+    /// <returns>True if there was a conflict that prevents calculation, false if amount types are compatible</returns>
     procedure ConflictAmountType(AccSchedLine: Record "Acc. Schedule Line"; ColumnLayoutAmtType: Enum "Account Schedule Amount Type"; var AmountType: Enum "Account Schedule Amount Type"): Boolean
     begin
         if (ColumnLayoutAmtType = AccSchedLine."Amount Type") or
@@ -2242,6 +2590,13 @@ codeunit 8 AccSchedManagement
         exit(false);
     end;
 
+    /// <summary>
+    /// Opens drill-down detail view for account schedule line and column intersection.
+    /// Navigates to appropriate ledger entries or detail pages based on source type.
+    /// </summary>
+    /// <param name="TempColumnLayout">Column layout containing period and display parameters</param>
+    /// <param name="AccScheduleLine">Account schedule line containing totaling and filter settings</param>
+    /// <param name="PeriodLength">Period length option for date calculations</param>
     procedure DrillDown(TempColumnLayout: Record "Column Layout" temporary; var AccScheduleLine: Record "Acc. Schedule Line"; PeriodLength: Option)
     var
         AccScheduleOverview: Page "Acc. Schedule Overview";
@@ -2292,6 +2647,13 @@ codeunit 8 AccSchedManagement
         end;
     end;
 
+    /// <summary>
+    /// Handles drill-down navigation from account schedule overview page.
+    /// Provides formula information display or navigates to detailed data views.
+    /// </summary>
+    /// <param name="TempColumnLayout">Column layout containing formula and display configuration</param>
+    /// <param name="AccScheduleLine">Account schedule line with totaling type and calculation settings</param>
+    /// <param name="PeriodLength">Period length option for date range calculations</param>
     procedure DrillDownFromOverviewPage(TempColumnLayout: Record "Column Layout" temporary; var AccScheduleLine: Record "Acc. Schedule Line"; PeriodLength: Option)
     var
         IsHandled: Boolean;
@@ -2312,6 +2674,12 @@ codeunit 8 AccSchedManagement
                 DrillDown(TempColumnLayout, AccScheduleLine, PeriodLength);
     end;
 
+    /// <summary>
+    /// Generates formatted text representation of G/L Account Categories for account schedule line totaling.
+    /// Creates pipe-separated list of account category descriptions for display and reporting purposes.
+    /// </summary>
+    /// <param name="AccScheduleLine">Account schedule line containing G/L account category totaling</param>
+    /// <returns>Formatted text containing account category names separated by pipe characters</returns>
     procedure GLAccCategoryText(AccScheduleLine: Record "Acc. Schedule Line"): Text[250]
     var
         GLAccountCategory: Record "G/L Account Category";
@@ -2421,7 +2789,8 @@ codeunit 8 AccSchedManagement
                 GLAcc.SetFilter("Business Unit Filter", TempColumnLayout."Business Unit Totaling");
                 GLAcc.SetFilter("Global Dimension 1 Filter", GetDimTotalingFilter(1, TempColumnLayout."Dimension 1 Totaling"));
                 GLAcc.SetFilter("Global Dimension 2 Filter", GetDimTotalingFilter(2, TempColumnLayout."Dimension 2 Totaling"));
-                GLAcc.SetFilter("No.", TempColumnLayout."G/L Account Totaling");
+                if TempColumnLayout."G/L Account Totaling" <> '' then
+                    GLAcc.SetFilter("No.", TempColumnLayout."G/L Account Totaling");
                 if SubcategoryEntryFilter <> '' then begin
                     GlAcc.SetRange("Account Type", GlAcc."Account Type"::Posting);
                     GLAcc.SetFilter("Account Subcategory Entry No.", SubcategoryEntryFilter);
@@ -2446,7 +2815,8 @@ codeunit 8 AccSchedManagement
                   GetDimTotalingFilter(3, TempColumnLayout."Dimension 3 Totaling"),
                   GetDimTotalingFilter(4, TempColumnLayout."Dimension 4 Totaling"));
                 GLAccAnalysisView.SetFilter("Business Unit Filter", TempColumnLayout."Business Unit Totaling");
-                GLAcc.SetFilter("No.", TempColumnLayout."G/L Account Totaling");
+                if TempColumnLayout."G/L Account Totaling" <> '' then
+                    GLAcc.SetFilter("No.", TempColumnLayout."G/L Account Totaling");
                 if SubcategoryEntryFilter <> '' then begin
                     GlAcc.SetRange("Account Type", GlAcc."Account Type"::Posting);
                     GLAcc.SetFilter("Account Subcategory Entry No.", SubcategoryEntryFilter);
@@ -2461,11 +2831,23 @@ codeunit 8 AccSchedManagement
     end;
 
 
+    /// <summary>
+    /// Opens drill-down view for G/L account totaling in account schedule line.
+    /// Navigates to General Ledger Entries filtered by account schedule parameters.
+    /// </summary>
+    /// <param name="TempColumnLayout">Column layout containing period and filter settings</param>
+    /// <param name="AccScheduleLine">Account schedule line containing G/L account totaling</param>
     procedure DrillDownOnGLAccount(TempColumnLayout: Record "Column Layout" temporary; var AccScheduleLine: Record "Acc. Schedule Line")
     begin
         DrillDownOnGLAccCatFilter(TempColumnLayout, AccScheduleLine, '');
     end;
 
+    /// <summary>
+    /// Opens drill-down view for cash flow account totaling in account schedule line.
+    /// Navigates to Cash Flow Ledger Entries filtered by account schedule parameters.
+    /// </summary>
+    /// <param name="TempColumnLayout">Column layout containing period and filter settings</param>
+    /// <param name="AccScheduleLine">Account schedule line containing cash flow account totaling</param>
     procedure DrillDownOnCFAccount(TempColumnLayout: Record "Column Layout" temporary; var AccScheduleLine: Record "Acc. Schedule Line")
     var
         CFAccount: Record "Cash Flow Account";
@@ -2513,6 +2895,13 @@ codeunit 8 AccSchedManagement
         end;
     end;
 
+    /// <summary>
+    /// Navigates to a specific period within account schedule lines based on search text and period type.
+    /// Updates the date filter on the account schedule line to match the found period.
+    /// </summary>
+    /// <param name="AccScheduleLine">Account schedule line to update with period date filter</param>
+    /// <param name="SearchText">Navigation text ('+', '-', or specific date pattern) for period search</param>
+    /// <param name="PeriodType">Type of period for navigation (Day, Week, Month, Quarter, Year)</param>
     procedure FindPeriod(var AccScheduleLine: Record "Acc. Schedule Line"; SearchText: Text[3]; PeriodType: Enum "Analysis Period Type")
     var
         Calendar: Record Date;
@@ -2530,6 +2919,13 @@ codeunit 8 AccSchedManagement
             AccScheduleLine.SetRange("Date Filter", AccScheduleLine.GetRangeMin("Date Filter"));
     end;
 
+    /// <summary>
+    /// Determines calculation error type for specific account schedule cell intersection.
+    /// Checks for division by zero errors and period calculation problems.
+    /// </summary>
+    /// <param name="ErrorType">Error type found in cell calculation returned as option value</param>
+    /// <param name="RowNo">Account schedule line number to check for errors</param>
+    /// <param name="ColumnNo">Column layout line number to check for errors</param>
     procedure CalcFieldError(var ErrorType: Option "None","Division by Zero","Period Error",Both; RowNo: Integer; ColumnNo: Integer)
     begin
         TempAccSchedCellValue.SetRange("Row No.", RowNo);
@@ -2549,11 +2945,22 @@ codeunit 8 AccSchedManagement
         TempAccSchedCellValue.SetRange("Column No.");
     end;
 
+    /// <summary>
+    /// Forces recalculation of account schedule values by setting the recalculate flag.
+    /// Controls whether cached values should be refreshed for financial reporting calculations.
+    /// </summary>
+    /// <param name="NewRecalculate">True to force recalculation of cached values, false to use existing cache</param>
     procedure ForceRecalculate(NewRecalculate: Boolean)
     begin
         Recalculate := NewRecalculate;
     end;
 
+    /// <summary>
+    /// Converts local currency amounts to additional currency amounts for multi-currency reporting.
+    /// Uses exchange rates and additional reporting currency setup from general ledger configuration.
+    /// </summary>
+    /// <param name="ColValue">Amount in local currency to convert</param>
+    /// <returns>Converted amount in additional reporting currency</returns>
     procedure CalcLCYToACY(ColValue: Decimal): Decimal
     begin
         if GetGLSetup() then
@@ -2564,16 +2971,33 @@ codeunit 8 AccSchedManagement
         exit(0);
     end;
 
+    /// <summary>
+    /// Sets the fiscal year start date for financial period calculations and reporting.
+    /// Used to align account schedule calculations with company fiscal calendar.
+    /// </summary>
+    /// <param name="NewFiscalStartDate">Fiscal year start date to set for period calculations</param>
     procedure SetFiscalStartDate(NewFiscalStartDate: Date)
     begin
         FiscalStartDate := NewFiscalStartDate;
     end;
 
+    /// <summary>
+    /// Retrieves the currently set fiscal year start date used for period calculations.
+    /// Returns the fiscal start date for account schedule reporting and analysis.
+    /// </summary>
+    /// <returns>Current fiscal year start date</returns>
     procedure GetFiscalStartDate(): Date
     begin
         exit(FiscalStartDate);
     end;
 
+    /// <summary>
+    /// Calculates the column header text for account schedule reports based on column layout configuration.
+    /// Generates dynamic headers incorporating dates, periods, and custom formatting.
+    /// </summary>
+    /// <param name="AccSchedLine">Account schedule line providing context for header calculation</param>
+    /// <param name="ColumnLayout">Column layout record defining header format and calculation rules</param>
+    /// <returns>Formatted column header text for display in account schedule reports</returns>
     procedure CalcColumnHeader(var AccSchedLine: Record "Acc. Schedule Line"; ColumnLayout: Record "Column Layout") NewColumnHeader: Text
     var
         DateText: Text;
@@ -2624,56 +3048,130 @@ codeunit 8 AccSchedManagement
             NewColumnHeader := StrSubstNo(ColumnHeaderTxt, ColumnLayout."Column Header", DateText);
     end;
 
+    /// <summary>
+    /// Integration event raised before calculating column header text in account schedule reports.
+    /// Enables custom header calculation logic and formatting based on column layout configuration.
+    /// </summary>
+    /// <param name="AccSchedLine">Account schedule line providing context for header calculation</param>
+    /// <param name="ColumnLayout">Column layout record defining header format and calculation rules</param>
+    /// <param name="NewColumnHeader">Variable to receive custom column header text</param>
+    /// <param name="IsHandled">Set to true to skip standard header calculation processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcColumnHeader(var AccSchedLine: Record "Acc. Schedule Line"; ColumnLayout: Record "Column Layout"; var NewColumnHeader: Text; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised for custom date formatting in column headers when standard formats don't apply.
+    /// Enables custom date text generation for specialized column header requirements.
+    /// </summary>
+    /// <param name="AccSchedLine">Account schedule line providing context for date formatting</param>
+    /// <param name="ColumnLayout">Column layout record defining date format requirements</param>
+    /// <param name="FromDate">Start date of the period for header text generation</param>
+    /// <param name="ToDate">End date of the period for header text generation</param>
+    /// <param name="DateText">Variable to receive custom formatted date text</param>
+    /// <param name="IsHandled">Set to true to skip standard date text formatting</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcColumnHeaderElseCase(var AccSchedLine: Record "Acc. Schedule Line"; ColumnLayout: Record "Column Layout"; FromDate: Date; ToDate: Date; var DateText: Text; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting a new account schedule line.
+    /// Enables custom processing and validation when account schedule lines are created.
+    /// </summary>
+    /// <param name="AccSchedLine">Newly inserted account schedule line record</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAccSchedLineInsert(var AccSchedLine: Record "Acc. Schedule Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after calculating cell values in account schedule reports.
+    /// Enables custom cell value processing and result modification for specialized calculations.
+    /// </summary>
+    /// <param name="AccSchedLine">Account schedule line used in calculation</param>
+    /// <param name="ColumnLayout">Column layout record defining calculation parameters</param>
+    /// <param name="Result">Calculated decimal result value</param>
+    /// <param name="SourceAccScheduleLine">Source account schedule line for calculation context</param>
+    /// <param name="GLAcc">G/L Account record used in calculation</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterCalcCellValue(var AccSchedLine: Record "Acc. Schedule Line"; var ColumnLayout: Record "Column Layout"; var Result: Decimal; var SourceAccScheduleLine: Record "Acc. Schedule Line"; var GLAcc: Record "G/L Account")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating analysis view compatibility with account schedule configuration.
+    /// Enables custom analysis view processing and dimension validation logic.
+    /// </summary>
+    /// <param name="AccSchedName">Account schedule name record for analysis view validation</param>
+    /// <param name="ColumnLayoutName">Column layout name record for analysis view configuration</param>
+    /// <param name="AnalysisView">Analysis view record used for validation and processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckAnalysisView(AccSchedName: Record "Acc. Schedule Name"; ColumnLayoutName: Record "Column Layout Name"; var AnalysisView: Record "Analysis View")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating and checking account schedule name.
+    /// Enables custom processing and validation logic after account schedule name verification.
+    /// </summary>
+    /// <param name="CurrentScheduleName">Account schedule name that was validated</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckName(CurrentScheduleName: Code[10])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating and checking column layout name.
+    /// Enables custom processing and validation logic after column layout name verification.
+    /// </summary>
+    /// <param name="CurrentColumnName">Column layout name that was validated</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckColumnName(CurrentColumnName: Code[10])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after checking account schedule template and setting filters.
+    /// Enables custom template validation and filter modification after standard processing.
+    /// </summary>
+    /// <param name="CurrentScheduleName">Account schedule name being processed</param>
+    /// <param name="AccScheduleLine">Account schedule line record with applied filters</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckTemplateAndSetFilter(var CurrentScheduleName: Code[10]; var AccScheduleLine: Record "Acc. Schedule Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after determining whether dimension filtering is active.
+    /// Enables custom dimension filter detection logic and result modification.
+    /// </summary>
+    /// <param name="AccScheduleLine">Account schedule line checked for dimension filters</param>
+    /// <param name="ColumnLayout">Column layout checked for dimension filters</param>
+    /// <param name="Result">Variable indicating whether dimension filtering is active</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterHasDimFilter(var AccScheduleLine: Record "Acc. Schedule Line"; var ColumnLayout: Record "Column Layout"; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after formatting decimal cell values to text representation.
+    /// Enables custom cell text formatting and display logic for account schedule reports.
+    /// </summary>
+    /// <param name="ColumnLayout2">Column layout containing formatting specifications</param>
+    /// <param name="ValueAsText">Formatted text representation of the cell value</param>
+    /// <param name="Value">Original decimal value being formatted</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFormatCellAsText(var ColumnLayout2: Record "Column Layout"; var ValueAsText: Text[30]; Value: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting G/L accounts into account schedule lines.
+    /// Enables custom processing and validation after account insertion operations.
+    /// </summary>
+    /// <param name="AccScheduleLine">Account schedule line record after G/L account insertion</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertGLAccounts(var AccScheduleLine: Record "Acc. Schedule Line")
     begin

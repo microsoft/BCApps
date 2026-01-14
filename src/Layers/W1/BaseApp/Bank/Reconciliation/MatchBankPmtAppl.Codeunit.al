@@ -6,6 +6,10 @@ namespace Microsoft.Bank.Reconciliation;
 
 using System.IO;
 
+/// <summary>
+/// Handles automatic matching for bank payment applications.
+/// Integrates with payment matching algorithms for reconciliation processing.
+/// </summary>
 codeunit 1254 "Match Bank Pmt. Appl."
 {
     TableNo = "Bank Acc. Reconciliation";

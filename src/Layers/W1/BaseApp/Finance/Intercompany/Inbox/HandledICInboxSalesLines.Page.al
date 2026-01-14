@@ -6,6 +6,10 @@ namespace Microsoft.Intercompany.Inbox;
 
 using Microsoft.Finance.Dimension;
 
+/// <summary>
+/// List part page for displaying handled intercompany inbox sales document lines.
+/// Shows detailed line information including items, quantities, prices, and dimensions for processed sales transactions.
+/// </summary>
 page 649 "Handled IC Inbox Sales Lines"
 {
     Caption = 'Lines';

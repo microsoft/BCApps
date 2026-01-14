@@ -27,6 +27,15 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 using System.Utilities;
 
+/// <summary>
+/// Handles reversal of posted general journal entries and related ledger entries.
+/// Provides comprehensive reversal functionality for G/L, customer, vendor, employee, and bank account transactions.
+/// </summary>
+/// <remarks>
+/// Core reversal engine that creates offsetting entries to reverse the effects of posted transactions.
+/// Supports reversal of entire registers or individual transactions with proper audit trail maintenance.
+/// Integrates with G/L, customer ledger, vendor ledger, employee ledger, bank account ledger, and VAT systems.
+/// </remarks>
 codeunit 17 "Gen. Jnl.-Post Reverse"
 {
     Permissions = TableData "G/L Entry" = rm,
@@ -54,6 +63,17 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         CannotReverseErr: Label 'You cannot reverse the transaction, because it has already been reversed.';
         DimCombBlockedErr: Label 'The combination of dimensions used in general ledger entry %1 is blocked. %2.', Comment = '%1 - entry no, %2 - error text';
 
+    /// <summary>
+    /// Executes the reversal process for specified entries and creates offsetting transactions.
+    /// Handles complete reversal workflow including G/L entries, subsidiary ledgers, and VAT entries.
+    /// </summary>
+    /// <param name="ReversalEntry">Reversal entry record containing entries to be reversed</param>
+    /// <param name="ReversalEntry2">Working copy of reversal entries for processing</param>
+    /// <remarks>
+    /// Creates offsetting entries with opposite amounts and links them to original entries.
+    /// Updates reversal flags and maintains audit trail for all affected ledger entries.
+    /// Supports both register-based and transaction-based reversal modes.
+    /// </remarks>
     procedure Reverse(var ReversalEntry: Record "Reversal Entry"; var ReversalEntry2: Record "Reversal Entry")
     var
         SourceCodeSetup: Record "Source Code Setup";
@@ -515,6 +535,13 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
             NewEmployeeLedgerEntry, EmployeeLedgerEntry, DetailedEmployeeLedgerEntry, NewEmployeeLedgerEntry."Entry No.", NextDtldEmplLedgEntryNo);
     end;
 
+    /// <summary>
+    /// Creates a reversal entry for a bank account ledger entry with opposite amounts and signs.
+    /// Handles bank account transaction reversal and maintains proper audit trail.
+    /// </summary>
+    /// <param name="BankAccountLedgerEntry">Original bank account ledger entry to reverse</param>
+    /// <param name="NewEntryNo">Entry number for the new reversal entry</param>
+    /// <param name="SourceCode">Source code to assign to the reversal entry</param>
     procedure ReverseBankAccLedgEntry(BankAccountLedgerEntry: Record "Bank Account Ledger Entry"; NewEntryNo: Integer; SourceCode: Code[10])
     var
         NewBankAccountLedgerEntry: Record "Bank Account Ledger Entry";
@@ -553,6 +580,12 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         NewBankAccountLedgerEntry.Insert(true);
     end;
 
+    /// <summary>
+    /// Reverses VAT entries associated with a G/L entry by creating offsetting VAT transactions.
+    /// Handles VAT reversal logic including unrealized VAT and non-deductible VAT amounts.
+    /// </summary>
+    /// <param name="GLEntry">G/L entry whose associated VAT entries should be reversed</param>
+    /// <param name="SourceCode">Source code to assign to the reversal VAT entries</param>
     procedure ReverseVAT(GLEntry: Record "G/L Entry"; SourceCode: Code[10])
     var
         VATEntry: Record "VAT Entry";
@@ -704,6 +737,16 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         NewDetailedEmployeeLedgerEntry.Insert(true);
     end;
 
+    /// <summary>
+    /// Validates dimension combinations for reversal entries to ensure posting compliance.
+    /// Checks both dimension set validity and dimension value posting restrictions.
+    /// </summary>
+    /// <param name="EntryNo">Entry number being validated for error reporting</param>
+    /// <param name="DimSetID">Dimension set ID to validate</param>
+    /// <param name="TableID1">Primary table ID for dimension validation</param>
+    /// <param name="AccNo1">Primary account number for dimension validation</param>
+    /// <param name="TableID2">Secondary table ID for dimension validation</param>
+    /// <param name="AccNo2">Secondary account number for dimension validation</param>
     procedure CheckDimComb(EntryNo: Integer; DimSetID: Integer; TableID1: Integer; AccNo1: Code[20]; TableID2: Integer; AccNo2: Code[20])
     var
         DimensionManagement: Codeunit DimensionManagement;
@@ -773,6 +816,12 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
             until BankAccountLedgerEntry.Next() = 0;
     end;
 
+    /// <summary>
+    /// Sets the description for a reversal entry based on the configured reversal entry description.
+    /// Retrieves description from corresponding reversal entry record for the source record.
+    /// </summary>
+    /// <param name="RecVariant">Source record variant to find matching reversal entry description</param>
+    /// <param name="Description">Description field to be updated with reversal description</param>
     procedure SetReversalDescription(RecVariant: Variant; var Description: Text[100])
     var
         ReversalEntry: Record "Reversal Entry";
@@ -893,256 +942,554 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         ReversalEntry.DeleteAll();
     end;
 
+    /// <summary>
+    /// Integration event raised after setting reversal entry filters to allow additional filter customization.
+    /// </summary>
+    /// <param name="ReversalEntry">Reversal entry record with applied filters</param>
+    /// <param name="RecVar">Source record variant used for filtering</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFilterReversalEntry(var ReversalEntry: Record "Reversal Entry"; RecVar: Variant)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after starting the reversal posting process.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line used for posting</param>
+    /// <param name="GenJnlPostLine">General journal posting codeunit</param>
+    /// <param name="GLRegister">G/L register for the reversal</param>
+    /// <param name="GLRegister2">Original G/L register being reversed</param>
     [IntegrationEvent(true, false)]
     local procedure OnReverseOnAfterStartPosting(var GenJournalLine: Record "Gen. Journal Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var GLRegister: Record "G/L Register"; var GLRegister2: Record "G/L Register")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after completing the entire reversal process.
+    /// </summary>
+    /// <param name="GLRegister">G/L register created for the reversal</param>
+    /// <param name="GLRegister2">Original G/L register that was reversed</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterReverse(GLRegister: Record "G/L Register"; var GLRegister2: Record "G/L Register")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after reversing a G/L entry to allow additional processing.
+    /// </summary>
+    /// <param name="GLEntry">G/L entry that was reversed</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterReverseGLEntry(var GLEntry: Record "G/L Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before starting the reversal process to allow custom validation or preprocessing.
+    /// </summary>
+    /// <param name="ReversalEntry">Reversal entries to be processed</param>
+    /// <param name="ReversalEntry2">Working copy of reversal entries</param>
+    /// <param name="IsHandled">Set to true to skip standard reversal processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReverse(var ReversalEntry: Record "Reversal Entry"; var ReversalEntry2: Record "Reversal Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating dimension combinations to allow custom dimension validation logic.
+    /// </summary>
+    /// <param name="EntryNo">Entry number being validated</param>
+    /// <param name="DimSetID">Dimension set ID to validate</param>
+    /// <param name="TableID1">Primary table ID for dimension validation</param>
+    /// <param name="AccNo1">Primary account number for dimension validation</param>
+    /// <param name="TableID2">Secondary table ID for dimension validation</param>
+    /// <param name="AccNo2">Secondary account number for dimension validation</param>
+    /// <param name="IsHandled">Set to true to skip standard dimension validation</param>
+    /// <param name="DimensionManagement">Dimension management codeunit for validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckDimComb(EntryNo: Integer; DimSetID: Integer; TableID1: Integer; AccNo1: Code[20]; TableID2: Integer; AccNo2: Code[20]; var IsHandled: Boolean; var DimensionManagement: Codeunit DimensionManagement)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting a reversed G/L entry.
+    /// </summary>
+    /// <param name="GLEntry">New G/L entry created for reversal</param>
+    /// <param name="GenJnlLine">General journal line used for posting</param>
+    /// <param name="GLEntry2">Original G/L entry being reversed</param>
+    /// <param name="GenJnlPostLine">General journal posting codeunit</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseGLEntryOnAfterInsertGLEntry(var GLEntry: Record "G/L Entry"; GenJnlLine: Record "Gen. Journal Line"; GLEntry2: Record "G/L Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting a reversed G/L entry to allow modification.
+    /// </summary>
+    /// <param name="GLEntry">New G/L entry to be created for reversal</param>
+    /// <param name="GenJnlLine">General journal line used for posting</param>
+    /// <param name="GLEntry2">Original G/L entry being reversed</param>
+    /// <param name="GenJnlPostLine">General journal posting codeunit</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseGLEntryOnBeforeInsertGLEntry(var GLEntry: Record "G/L Entry"; GenJnlLine: Record "Gen. Journal Line"; GLEntry2: Record "G/L Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before processing each G/L entry in the reversal loop.
+    /// </summary>
+    /// <param name="GLEntry">G/L entry being processed for reversal</param>
+    /// <param name="GenJournalLine">General journal line used for posting</param>
+    /// <param name="GenJnlPostLine">General journal posting codeunit</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseGLEntryOnBeforeLoop(var GLEntry: Record "G/L Entry"; var GenJournalLine: Record "Gen. Journal Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when G/L entry reversal encounters an unhandled ledger entry type.
+    /// </summary>
+    /// <param name="GLEntry2">Original G/L entry being processed</param>
+    /// <param name="GLEntry">New reversal G/L entry</param>
+    /// <param name="GenJournalLine">General journal line used for posting</param>
+    /// <param name="GenJnlPostLine">General journal posting codeunit</param>
+    /// <param name="TempBankAccountLedgerEntry">Temporary bank account ledger entry for processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseGLEntryOnCaseElse(GLEntry2: Record "G/L Entry"; GLEntry: Record "G/L Entry"; GenJournalLine: Record "Gen. Journal Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var TempBankAccountLedgerEntry: Record "Bank Account Ledger Entry" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters on detailed customer ledger entries for reversal processing.
+    /// </summary>
+    /// <param name="DtldCustLedgEntry">Detailed customer ledger entry with applied filters</param>
+    /// <param name="NextDtldCustLedgEntryEntryNo">Next entry number for detailed customer ledger entries</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseCustLedgEntryOnAfterDtldCustLedgEntrySetFilters(var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; NextDtldCustLedgEntryEntryNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting a reversed customer ledger entry.
+    /// </summary>
+    /// <param name="NewCustLedgerEntry">New customer ledger entry created for reversal</param>
+    /// <param name="CustLedgerEntry">Original customer ledger entry being reversed</param>
+    /// <param name="GenJnlPostLine">General journal posting codeunit</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseCustLedgEntryOnAfterInsertCustLedgEntry(var NewCustLedgerEntry: Record "Cust. Ledger Entry"; CustLedgerEntry: Record "Cust. Ledger Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting a reversed customer ledger entry to allow modification.
+    /// </summary>
+    /// <param name="NewCustLedgerEntry">New customer ledger entry to be created for reversal</param>
+    /// <param name="CustLedgerEntry">Original customer ledger entry being reversed</param>
+    /// <param name="GenJnlPostLine">General journal posting codeunit</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseCustLedgEntryOnBeforeInsertCustLedgEntry(var NewCustLedgerEntry: Record "Cust. Ledger Entry"; CustLedgerEntry: Record "Cust. Ledger Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying a VAT entry during reversal processing.
+    /// </summary>
+    /// <param name="VATEntry">VAT entry being modified for reversal</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseVATOnBeforeVATEntryModify(var VATEntry: Record "VAT Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying a reversed VAT entry during reversal of reversal processing.
+    /// </summary>
+    /// <param name="ReversedVATEntry">Previously reversed VAT entry being restored</param>
+    /// <param name="VATEntry">Current VAT entry being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseVATOnBeforeReversedVATEntryModify(var ReversedVATEntry: Record "VAT Entry"; var VATEntry: Record "VAT Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters on detailed vendor ledger entries for reversal processing.
+    /// </summary>
+    /// <param name="DtldVendLedgEntry">Detailed vendor ledger entry with applied filters</param>
+    /// <param name="NextDtldVendLedgEntryEntryNo">Next entry number for detailed vendor ledger entries</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseVendLedgEntryOnAfterDtldVendLedgEntrySetFilters(var DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; NextDtldVendLedgEntryEntryNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting a reversed vendor ledger entry to allow modification.
+    /// </summary>
+    /// <param name="NewVendLedgEntry">New vendor ledger entry to be created for reversal</param>
+    /// <param name="VendLedgEntry">Original vendor ledger entry being reversed</param>
+    /// <param name="GenJnlPostLine">General journal posting codeunit</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseVendLedgEntryOnBeforeInsertVendLedgEntry(var NewVendLedgEntry: Record "Vendor Ledger Entry"; VendLedgEntry: Record "Vendor Ledger Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting a reversed vendor ledger entry.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">New vendor ledger entry created for reversal</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseVendLedgEntryOnAfterInsertVendLedgEntry(var VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting a reversed employee ledger entry to allow modification.
+    /// </summary>
+    /// <param name="NewEmployeeLedgerEntry">New employee ledger entry to be created for reversal</param>
+    /// <param name="EmployeeLedgerEntry">Original employee ledger entry being reversed</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseEmplLedgEntryOnBeforeInsertEmplLedgEntry(var NewEmployeeLedgerEntry: Record "Employee Ledger Entry"; EmployeeLedgerEntry: Record "Employee Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting a reversed bank account ledger entry to allow modification.
+    /// </summary>
+    /// <param name="NewBankAccLedgEntry">New bank account ledger entry to be created for reversal</param>
+    /// <param name="BankAccLedgEntry">Original bank account ledger entry being reversed</param>
+    /// <param name="GenJnlPostLine">General journal posting codeunit</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseBankAccLedgEntryOnBeforeInsert(var NewBankAccLedgEntry: Record "Bank Account Ledger Entry"; BankAccLedgEntry: Record "Bank Account Ledger Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting a detailed customer ledger entry during reversal processing.
+    /// </summary>
+    /// <param name="NewDtldCustLedgEntry">New detailed customer ledger entry to be inserted</param>
+    /// <param name="DtldCustLedgEntry">Original detailed customer ledger entry being reversed</param>
+    /// <param name="IsHandled">Set to true to skip standard insertion processing</param>
+    /// <param name="NewCustLedgerEntry">New customer ledger entry for the reversal</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseCustLedgEntryOnBeforeInsertDtldCustLedgEntry(var NewDtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var IsHandled: Boolean; NewCustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting a detailed vendor ledger entry during reversal processing.
+    /// </summary>
+    /// <param name="NewDtldVendLedgEntry">New detailed vendor ledger entry to be inserted</param>
+    /// <param name="DtldVendLedgEntry">Original detailed vendor ledger entry being reversed</param>
+    /// <param name="IsHandled">Set to true to skip standard insertion processing</param>
+    /// <param name="NewVendorLedgerEntry">New vendor ledger entry for the reversal</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseVendLedgEntryOnBeforeInsertDtldVendLedgEntry(var NewDtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; var IsHandled: Boolean; NewVendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting a detailed employee ledger entry during reversal processing.
+    /// </summary>
+    /// <param name="NewDetailedEmployeeLedgerEntry">New detailed employee ledger entry to be inserted</param>
+    /// <param name="DetailedEmployeeLedgerEntry">Original detailed employee ledger entry being reversed</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseEmplLedgEntryOnBeforeInsertDtldEmplLedgEntry(var NewDetailedEmployeeLedgerEntry: Record "Detailed Employee Ledger Entry"; DetailedEmployeeLedgerEntry: Record "Detailed Employee Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting a reversed VAT entry to allow modification.
+    /// </summary>
+    /// <param name="NewVATEntry">New VAT entry to be created for reversal</param>
+    /// <param name="VATEntry">Original VAT entry being reversed</param>
+    /// <param name="GenJnlPostLine">General journal posting codeunit</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseVATEntryOnBeforeInsert(var NewVATEntry: Record "VAT Entry"; VATEntry: Record "VAT Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before finishing the posting process in reversal to allow final modifications.
+    /// </summary>
+    /// <param name="ReversalEntry">Original reversal entry records</param>
+    /// <param name="ReversalEntry2">Working copy of reversal entries</param>
+    /// <param name="GenJnlPostLine">General journal posting codeunit</param>
+    /// <param name="GLRegister">G/L register for the reversal</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseOnBeforeFinishPosting(var ReversalEntry: Record "Reversal Entry"; var ReversalEntry2: Record "Reversal Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var GLRegister: Record "G/L Register")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before starting the posting process in reversal to allow preparation.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line to be used for posting</param>
+    /// <param name="ReversalEntry">Reversal entry records being processed</param>
+    /// <param name="GLEntry">G/L entry context for posting</param>
+    /// <param name="GenJnlPostLine">General journal posting codeunit</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseOnBeforeStartPosting(var GenJournalLine: Record "Gen. Journal Line"; var ReversalEntry: Record "Reversal Entry"; var GLEntry: Record "G/L Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before reversing G/L entries to allow preprocessing of the reversal operation.
+    /// </summary>
+    /// <param name="ReversalEntry2">Working copy of reversal entries</param>
+    /// <param name="GenJnlPostLine">General journal posting codeunit</param>
+    /// <param name="GenJournalLine">General journal line for posting</param>
+    /// <param name="TempRevertTransactionNo">Temporary integer record for transaction numbers</param>
+    /// <param name="GLEntry2">G/L entry records to be reversed</param>
+    /// <param name="GLRegister">G/L register for the reversal</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseOnBeforeReverseGLEntry(var ReversalEntry2: Record "Reversal Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var GenJournalLine: Record "Gen. Journal Line"; TempRevertTransactionNo: record "Integer"; var GLEntry2: Record "G/L Entry"; GLRegister: Record "G/L Register")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting a detailed customer ledger entry during customer application by reversal.
+    /// </summary>
+    /// <param name="NewDtldCustLedgEntry">New detailed customer ledger entry for application</param>
+    /// <param name="DtldCustLedgEntry">Source detailed customer ledger entry</param>
+    /// <param name="IsHandled">Set to true to skip standard insertion processing</param>
+    /// <param name="GenJnlPostLine">General journal posting codeunit</param>
+    /// <param name="NextDtldCustLedgEntryEntryNo">Next entry number for detailed customer ledger entries</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyCustLedgEntryByReversalOnBeforeInsertDtldCustLedgEntry(var NewDtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var IsHandled: Boolean; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var NextDtldCustLedgEntryEntryNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after modifying a customer ledger entry during application by reversal.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Customer ledger entry that was modified</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyCustLedgEntryByReversalOnAfterCustLedgEntryModify(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting a detailed vendor ledger entry during vendor application by reversal.
+    /// </summary>
+    /// <param name="NewDtldVendLedgEntry">New detailed vendor ledger entry for application</param>
+    /// <param name="DtldVendLedgEntry">Source detailed vendor ledger entry</param>
+    /// <param name="IsHandled">Set to true to skip standard insertion processing</param>
+    /// <param name="GenJnlPostLine">General journal posting codeunit</param>
+    /// <param name="NextDtldVendLedgEntryEntryNo">Next entry number for detailed vendor ledger entries</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyVendLedgEntryByReversalOnBeforeInsertDtldVendLedgEntry(var NewDtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; var IsHandled: Boolean; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var NextDtldVendLedgEntryEntryNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after modifying a vendor ledger entry during application by reversal.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry that was modified</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyVendLedgEntryByReversalOnAfterVendLedgEntryModify(VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting a detailed employee ledger entry during employee application by reversal.
+    /// </summary>
+    /// <param name="NewDetailedEmployeeLedgerEntry">New detailed employee ledger entry for application</param>
+    /// <param name="DetailedEmployeeLedgerEntry">Source detailed employee ledger entry</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyEmplLedgEntryByReversalOnBeforeInsertDtldEmplLedgEntry(var NewDetailedEmployeeLedgerEntry: Record "Detailed Employee Ledger Entry"; DetailedEmployeeLedgerEntry: Record "Detailed Employee Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after finishing the posting process in reversal operation.
+    /// </summary>
+    /// <param name="ReversalEntry2">Working copy of reversal entries</param>
+    /// <param name="GenJnlPostLine">General journal posting codeunit</param>
+    /// <param name="GLRegister">G/L register created for the reversal</param>
+    /// <param name="GLRegister2">Original G/L register being reversed</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseOnAfterFinishPosting(var ReversalEntry2: Record "Reversal Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var GLRegister: Record "G/L Register"; GLRegister2: Record "G/L Register")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking Fixed Asset reversal entries to allow custom validation.
+    /// </summary>
+    /// <param name="FALedgerEntry">Fixed Asset ledger entry being validated</param>
+    /// <param name="FAInsertLedgerEntry">Fixed Asset insertion codeunit</param>
+    /// <param name="ReversalEntry2">Working copy of reversal entries</param>
+    /// <param name="GenJnlPostLine">General journal posting codeunit</param>
+    /// <param name="IsHandled">Set to true to skip standard Fixed Asset reversal validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseOnBeforeCheckFAReverseEntry(var FALedgerEntry: Record "FA Ledger Entry"; var FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry"; var ReversalEntry2: Record "Reversal Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting a detailed vendor ledger entry during reversal processing.
+    /// </summary>
+    /// <param name="NewDetailedVendorLedgEntry">New detailed vendor ledger entry that was inserted</param>
+    /// <param name="DetailedVendorLedgEntry">Original detailed vendor ledger entry</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseVendLedgEntryOnAfterInsertDtldVendLedgEntry(var NewDetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry"; DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before determining transaction key for reversal processing.
+    /// </summary>
+    /// <param name="ReversalEntry2">Working copy of reversal entries</param>
+    /// <param name="TempIntegerAsRevertTransactionNo">Temporary integer record for transaction numbers</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseOnBeforeGetTransactionKey(var ReversalEntry2: Record "Reversal Entry"; var TempIntegerAsRevertTransactionNo: Record "Integer" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after reversing vendor ledger entry in G/L entry processing.
+    /// </summary>
+    /// <param name="TempVendorLedgerEntry">Temporary vendor ledger entry that was processed</param>
+    /// <param name="GLEntry">New G/L entry created for reversal</param>
+    /// <param name="GLEntry2">Original G/L entry being reversed</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseGLEntryOnAfterReverseVendLedgEntry(var TempVendorLedgerEntry: Record "Vendor Ledger Entry" temporary; var GLEntry: Record "G/L Entry"; GLEntry2: Record "G/L Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating analysis views to allow custom analysis view handling.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip standard analysis view update</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseOnBeforeUpdateAnalysisView(var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after reversing VAT entries in G/L entry processing.
+    /// </summary>
+    /// <param name="GLEntry2">Original G/L entry being reversed</param>
+    /// <param name="GLEntry">New G/L entry created for reversal</param>
+    /// <param name="GenJnlPostLine">General journal posting codeunit</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseGLEntryOnAfterReverseVAT(GLEntry2: Record "G/L Entry"; GLEntry: Record "G/L Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after reversing customer ledger entry in G/L entry processing.
+    /// </summary>
+    /// <param name="TempCustLedgerEntry">Temporary customer ledger entry that was processed</param>
+    /// <param name="GLEntry">New G/L entry created for reversal</param>
+    /// <param name="GLEntry2">Original G/L entry being reversed</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseGLEntryOnAfterReverseCustLedgEntry(var TempCustLedgerEntry: Record "Cust. Ledger Entry" temporary; var GLEntry: Record "G/L Entry"; GLEntry2: Record "G/L Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting a detailed customer ledger entry during reversal processing.
+    /// </summary>
+    /// <param name="NewDetailedCustLedgEntry">New detailed customer ledger entry that was inserted</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseCustLedgEntryOnAfterInsertDtldCustLedgEntry(var NewDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting a detailed customer ledger entry during customer application by reversal.
+    /// </summary>
+    /// <param name="NewDetailedCustLedgEntry">New detailed customer ledger entry that was inserted</param>
+    /// <param name="CustLedgerEntry2">Customer ledger entry context</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyCustLedgEntryByReversalOnAfterInsertDtldCustLedgEntry(var NewDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; CustLedgerEntry2: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after completing dimension combination validation.
+    /// </summary>
+    /// <param name="DimensionManagement">Dimension management codeunit used for validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckDimComb(var DimensionManagement: Codeunit DimensionManagement)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before saving reversal entries to allow custom save processing.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip standard save processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSaveReversalEntries(var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before deleting reversal entries to allow custom deletion processing.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip standard deletion processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDeleteReversalEntries(var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting a detailed vendor ledger entry during vendor application by reversal.
+    /// </summary>
+    /// <param name="NewDetailedVendorLedgEntry">New detailed vendor ledger entry that was inserted</param>
+    /// <param name="VendorLedgerEntry2">Vendor ledger entry context</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyVendLedgEntryByReversalOnAfterInsertDtldVendLedgEntry(var NewDetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry"; VendorLedgerEntry2: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting a reversed VAT entry.
+    /// </summary>
+    /// <param name="NewVATEntry">New VAT entry that was inserted</param>
+    /// <param name="VATEntry">Original VAT entry being reversed</param>
+    /// <param name="GenJnlPostLine">General journal posting codeunit</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseVATEntryOnAfterInsert(var NewVATEntry: Record "VAT Entry"; VATEntry: Record "VAT Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before finding the last detailed customer ledger entry to allow custom entry number handling.
+    /// </summary>
+    /// <param name="DetailedCustLedgEntry">Detailed customer ledger entry record for finding last entry</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseCustLedgEntryOnBeforeFindLastDetailedCustLedgEntry(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after assigning the next detailed customer ledger entry number.
+    /// </summary>
+    /// <param name="DetailedCustLedgEntry">Detailed customer ledger entry record context</param>
+    /// <param name="NextDtldCustLedgEntryEntryNo">Next entry number that was assigned</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseCustLedgEntryOnAfterAssignNextDtldCustLedgEntryEntryNo(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var NextDtldCustLedgEntryEntryNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking dimension combinations for temporary customer ledger entry.
+    /// </summary>
+    /// <param name="GLEntry">G/L entry context for dimension validation</param>
+    /// <param name="TempCustLedgerEntry">Temporary customer ledger entry being validated</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseGLEntryOnBeforeTempCustLedgEntryCheckDimComb(var GLEntry: Record "G/L Entry"; var TempCustLedgerEntry: Record "Cust. Ledger Entry" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before applying customer ledger entry by reversal to allow custom application logic.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Customer ledger entry being applied</param>
+    /// <param name="CustLedgerEntry2">Customer ledger entry to apply against</param>
+    /// <param name="DetailedCustLedgEntry2">Detailed customer ledger entry context</param>
+    /// <param name="AppliedEntryNo">Entry number being applied</param>
+    /// <param name="NextDtldCustLedgEntryEntryNo">Next detailed entry number</param>
+    /// <param name="GenJnlPostLine">General journal posting codeunit</param>
+    /// <param name="IsHandled">Set to true to skip standard application processing</param>
 #pragma warning disable AS0077
     [IntegrationEvent(false, false)]
     local procedure OnBeforeApplyCustLedgEntryByReversal(CustLedgerEntry: Record "Cust. Ledger Entry"; CustLedgerEntry2: Record "Cust. Ledger Entry"; DetailedCustLedgEntry2: Record "Detailed Cust. Ledg. Entry"; AppliedEntryNo: Integer; var NextDtldCustLedgEntryEntryNo: Integer; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var IsHandled: Boolean)
@@ -1150,6 +1497,11 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     end;
 #pragma warning restore AS0077
 
+    /// <summary>
+    /// Integration event raised before modifying a customer ledger entry during reversal processing.
+    /// </summary>
+    /// <param name="NewCustLedgerEntry">New customer ledger entry for reversal</param>
+    /// <param name="CustLedgerEntry">Original customer ledger entry being modified</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseCustLedgEntryOnBeforeModifyCustLedgerEntry(NewCustLedgerEntry: Record "Cust. Ledger Entry"; var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin

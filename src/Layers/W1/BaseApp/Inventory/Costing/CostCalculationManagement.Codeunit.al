@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -569,15 +569,6 @@ codeunit 5836 "Cost Calculation Management"
         exit(ValueEntry."Cost Amount (Non-Invtbl.)");
     end;
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit Serv. Cost Calculation Mgt.', '25.0')]
-    procedure CalcServCrMemoLineCostLCY(ServCrMemoLine: Record Microsoft.Service.History."Service Cr.Memo Line") AdjCostLCY: Decimal
-    var
-        ServCostCalculationMgt: Codeunit "Serv. Cost Calculation Mgt.";
-    begin
-        exit(ServCostCalculationMgt.CalcServCrMemoLineCostLCY(ServCrMemoLine));
-    end;
-#endif
 
     procedure CalcCustLedgAdjmtCostLCY(CustLedgEntry: Record "Cust. Ledger Entry"): Decimal
     var
@@ -717,25 +708,7 @@ codeunit 5836 "Cost Calculation Management"
         end;
     end;
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit Serv. Cost Calculation Mgt.', '25.0')]
-    procedure CalcServLineCostLCY(ServLine: Record Microsoft.Service.Document."Service Line"; QtyType: Option General,Invoicing,Shipping,Consuming,ServLineItems,ServLineResources,ServLineCosts) TotalAdjCostLCY: Decimal
-    var
-        ServCostCalculationMgt: Codeunit "Serv. Cost Calculation Mgt.";
-    begin
-        exit(ServCostCalculationMgt.CalcServLineCostLCY(ServLine, QtyType));
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit Serv. Cost Calculation Mgt.', '25.0')]
-    procedure CalcServInvLineCostLCY(ServInvLine: Record Microsoft.Service.History."Service Invoice Line") AdjCostLCY: Decimal
-    var
-        ServCostCalculationMgt: Codeunit "Serv. Cost Calculation Mgt.";
-    begin
-        exit(ServCostCalculationMgt.CalcServInvLineCostLCY(ServInvLine));
-    end;
-#endif
 
     procedure AdjustForRevNegCon(var ActMatCost: Decimal; var ActMatCostCostACY: Decimal; var ItemLedgEntry: Record "Item Ledger Entry")
     var
@@ -1131,4 +1104,3 @@ codeunit 5836 "Cost Calculation Management"
     begin
     end;
 }
-

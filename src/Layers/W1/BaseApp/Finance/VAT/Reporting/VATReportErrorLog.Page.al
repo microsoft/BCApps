@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+/// <summary>
+/// Displays validation errors encountered during VAT report processing and submission.
+/// Provides read-only view of error log entries for troubleshooting VAT report issues.
+/// </summary>
 page 745 "VAT Report Error Log"
 {
     Caption = 'VAT Report Error Log';

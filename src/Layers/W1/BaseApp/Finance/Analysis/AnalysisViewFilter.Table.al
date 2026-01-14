@@ -6,6 +6,14 @@ namespace Microsoft.Finance.Analysis;
 
 using Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Stores dimension filter definitions for analysis views to restrict data analysis to specific dimension values.
+/// Enables analysis views to include only relevant dimension combinations for focused reporting.
+/// </summary>
+/// <remarks>
+/// Each filter record represents a dimension-specific filter for an analysis view.
+/// Analysis view updates apply these filters to include only matching dimension set entries.
+/// </remarks>
 table 364 "Analysis View Filter"
 {
     Caption = 'Analysis View Filter';
@@ -13,18 +21,30 @@ table 364 "Analysis View Filter"
 
     fields
     {
+        /// <summary>
+        /// Analysis view code that this filter applies to.
+        /// Links to the Analysis View table for filter association.
+        /// </summary>
         field(1; "Analysis View Code"; Code[10])
         {
             Caption = 'Analysis View Code';
             NotBlank = true;
             TableRelation = "Analysis View";
         }
+        /// <summary>
+        /// Dimension code that this filter constrains (e.g., DEPARTMENT, PROJECT).
+        /// Specifies which dimension to apply the value filter to during analysis view processing.
+        /// </summary>
         field(2; "Dimension Code"; Code[20])
         {
             Caption = 'Dimension Code';
             NotBlank = true;
             TableRelation = Dimension;
         }
+        /// <summary>
+        /// Dimension value filter expression to restrict analysis view data.
+        /// Supports standard filter expressions including ranges and wildcards for dimension value selection.
+        /// </summary>
         field(3; "Dimension Value Filter"; Code[250])
         {
             Caption = 'Dimension Value Filter';

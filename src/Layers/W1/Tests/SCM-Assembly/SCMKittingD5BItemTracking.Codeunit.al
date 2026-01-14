@@ -4,18 +4,18 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
-using Microsoft.Assembly.Setup;
 using Microsoft.Assembly.Document;
+using Microsoft.Assembly.History;
+using Microsoft.Assembly.Setup;
+using Microsoft.Foundation.Navigate;
+using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
-using Microsoft.Sales.Document;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Projects.Resources.Resource;
-using Microsoft.Inventory.Ledger;
+using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using Microsoft.Foundation.Navigate;
-using Microsoft.Inventory.Journal;
-using Microsoft.Assembly.History;
-using Microsoft.Inventory.BOM;
 
 codeunit 137098 "SCM Kitting-D5B-ItemTracking"
 {

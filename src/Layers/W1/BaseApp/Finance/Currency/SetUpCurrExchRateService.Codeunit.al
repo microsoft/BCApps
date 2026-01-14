@@ -7,6 +7,16 @@ namespace Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using System.IO;
 
+/// <summary>
+/// Provides automatic setup and configuration for currency exchange rate services.
+/// Initializes default exchange rate service connections and data exchange definitions
+/// based on local currency configuration and regional requirements.
+/// </summary>
+/// <remarks>
+/// Automatically configures European Central Bank (ECB) services for EUR-based companies.
+/// Creates data exchange definitions and service setup records for immediate use.
+/// Supports extensibility for additional regional exchange rate service providers.
+/// </remarks>
 codeunit 1242 "Set Up Curr Exch Rate Service"
 {
 

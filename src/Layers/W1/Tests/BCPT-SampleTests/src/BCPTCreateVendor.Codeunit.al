@@ -1,14 +1,14 @@
 namespace System.Test.Tooling;
 
-using System.Tooling;
-using Microsoft.Purchases.Setup;
-using Microsoft.Foundation.NoSeries;
-using Microsoft.Purchases.Vendor;
+using Microsoft.Bank.BankAccount;
 using Microsoft.CRM.BusinessRelation;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
-using Microsoft.Bank.BankAccount;
+using Microsoft.Purchases.Setup;
+using Microsoft.Purchases.Vendor;
+using System.Tooling;
 
 codeunit 149125 "BCPT Create Vendor" implements "BCPT Test Param. Provider"
 {

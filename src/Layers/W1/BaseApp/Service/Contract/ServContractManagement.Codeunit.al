@@ -3066,13 +3066,6 @@ codeunit 5940 ServContractManagement
     begin
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by event OnChangeCustNoOnServContractOnAfterGetCustomer', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnChangeCustNoOnServContractOnAfterGetCust(Customer: Record Customer; var ServiceContractHeader: Record "Service Contract Header"; var CustCheckCrLimit: Codeunit "Cust-Check Cr. Limit"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnChangeCustNoOnServContractOnAfterGetCustomer(Customer: Record Customer; var ServiceContractHeader: Record "Service Contract Header"; var ServCheckCreditLimit: Codeunit "Serv. Check Credit Limit"; var IsHandled: Boolean)

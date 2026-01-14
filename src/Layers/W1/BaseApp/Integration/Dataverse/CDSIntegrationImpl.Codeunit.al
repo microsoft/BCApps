@@ -2225,18 +2225,6 @@ codeunit 7201 "CDS Integration Impl."
         UnregisterTableConnection(TableConnectionType::CRM, TempConnectionName);
     end;
 
-#if not CLEAN25
-    [Obsolete('Use the procedure that receives AdminPassword and AccessToken as SecretText instead.', '25.0')]
-    [NonDebuggable]
-    procedure CheckIntegrationUserPrerequisites(var CDSConnectionSetup: Record "CDS Connection Setup"; AdminUserName: text; AdminPassword: Text; AccessToken: Text; AdminADDomain: Text)
-    var
-        SecretAdminPassword, SecretAccessToken : SecretText;
-    begin
-        SecretAdminPassword := AdminPassword;
-        SecretAccessToken := AccessToken;
-        CheckIntegrationUserPrerequisites(CDSConnectionSetup, AdminUserName, SecretAdminPassword, SecretAccessToken, AdminADDomain);
-    end;
-#endif
 
     [Scope('OnPrem')]
     [NonDebuggable]
@@ -3371,17 +3359,6 @@ codeunit 7201 "CDS Integration Impl."
         end;
     end;
 
-#if not CLEAN25
-    [Obsolete('Use the procedure that receives NewPassword as SecretText and returns a SecretText instead', '25.0')]
-    [NonDebuggable]
-    procedure ReplaceUserNamePasswordInConnectionString(CDSConnectionSetup: Record "CDS Connection Setup"; NewUserName: Text; NewPassword: Text): Text
-    var
-        SecretNewPassword: SecretText;
-    begin
-        SecretNewPassword := NewPassword;
-        exit(ReplaceUserNamePasswordInConnectionString(CDSConnectionSetup, NewUserName, SecretNewPassword).Unwrap());
-    end;
-#endif
 
     local procedure ReplaceUserNameInConnectionString(CDSConnectionSetup: Record "CDS Connection Setup"; NewUserName: Text): Text
     var
@@ -3422,17 +3399,6 @@ codeunit 7201 "CDS Integration Impl."
         exit(NewConnectionString);
     end;
 
-#if not CLEAN25
-    [NonDebuggable]
-    [Obsolete('Use the procedure that receives AccessToken as SecretText instead.', '25.0')]
-    procedure GetAccessToken(ResourceURL: Text; GetTokenFromCache: Boolean; var AccessToken: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        GetAccessToken(ResourceURL, GetTokenFromCache, SecretAccessToken);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure GetAccessToken(ResourceURL: Text; GetTokenFromCache: Boolean; var AccessToken: SecretText)

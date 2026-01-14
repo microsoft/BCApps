@@ -11,9 +11,18 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
-using System.Utilities;
 using System.Globalization;
+using System.Utilities;
 
+/// <summary>
+/// Reconciles customer and vendor account balances with corresponding G/L account balances for audit and validation purposes.
+/// Provides detailed analysis of posting group account mappings and identifies balance discrepancies between subsidiary and general ledgers.
+/// </summary>
+/// <remarks>
+/// Data sources: G/L Account, Customer/Vendor Posting Groups, Currency, and CV Ledger Entry tables.
+/// Analyzes receivables accounts, payables accounts, payment discount accounts, tolerance accounts, and rounding accounts.
+/// Critical for month-end reconciliation procedures, audit preparation, and maintaining subsidiary ledger integrity.
+/// </remarks>
 report 33 "Reconcile Cust. and Vend. Accs"
 {
     DefaultLayout = RDLC;
@@ -560,33 +569,25 @@ report 33 "Reconcile Cust. and Vend. Accs"
 
     local procedure CalcCurrGainLossAmount(CurrencyCode: Code[20]; EntryType: Enum "Detailed CV Ledger Entry Type"): Decimal
     var
-        Cust: Record Customer;
         DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        Vend: Record Vendor;
         DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry";
         CurrGainLossAmount: Decimal;
     begin
-        if Cust.Find('-') then
-            repeat
-                DtldCustLedgEntry.SetCurrentKey("Customer No.", "Posting Date", "Entry Type", "Currency Code");
-                DtldCustLedgEntry.SetRange("Customer No.", Cust."No.");
-                DtldCustLedgEntry.SetRange("Entry Type", EntryType);
-                DtldCustLedgEntry.SetRange("Currency Code", CurrencyCode);
-                "G/L Account".CopyFilter("Date Filter", DtldCustLedgEntry."Posting Date");
-                DtldCustLedgEntry.CalcSums("Amount (LCY)");
-                CurrGainLossAmount := CurrGainLossAmount + DtldCustLedgEntry."Amount (LCY)";
-            until Cust.Next() = 0;
+        DtldCustLedgEntry.SetCurrentKey("Customer No.", "Posting Date", "Entry Type", "Currency Code");
+        DtldCustLedgEntry.SetFilter("Customer No.", '<> %1', '');
+        DtldCustLedgEntry.SetRange("Entry Type", EntryType);
+        DtldCustLedgEntry.SetRange("Currency Code", CurrencyCode);
+        "G/L Account".CopyFilter("Date Filter", DtldCustLedgEntry."Posting Date");
+        DtldCustLedgEntry.CalcSums("Amount (LCY)");
+        CurrGainLossAmount := CurrGainLossAmount + DtldCustLedgEntry."Amount (LCY)";
 
-        if Vend.Find('-') then
-            repeat
-                DtldVendLedgEntry.SetCurrentKey("Vendor No.", "Posting Date", "Entry Type", "Currency Code");
-                DtldVendLedgEntry.SetRange("Vendor No.", Vend."No.");
-                DtldVendLedgEntry.SetRange("Entry Type", EntryType);
-                DtldVendLedgEntry.SetRange("Currency Code", CurrencyCode);
-                "G/L Account".CopyFilter("Date Filter", DtldVendLedgEntry."Posting Date");
-                DtldVendLedgEntry.CalcSums("Amount (LCY)");
-                CurrGainLossAmount := CurrGainLossAmount + DtldVendLedgEntry."Amount (LCY)";
-            until Vend.Next() = 0;
+        DtldVendLedgEntry.SetCurrentKey("Vendor No.", "Posting Date", "Entry Type", "Currency Code");
+        DtldVendLedgEntry.SetFilter("Vendor No.", '<> %1', '');
+        DtldVendLedgEntry.SetRange("Entry Type", EntryType);
+        DtldVendLedgEntry.SetRange("Currency Code", CurrencyCode);
+        "G/L Account".CopyFilter("Date Filter", DtldVendLedgEntry."Posting Date");
+        DtldVendLedgEntry.CalcSums("Amount (LCY)");
+        CurrGainLossAmount := CurrGainLossAmount + DtldVendLedgEntry."Amount (LCY)";
 
         exit(-CurrGainLossAmount);
     end;

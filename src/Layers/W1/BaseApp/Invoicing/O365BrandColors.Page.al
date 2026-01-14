@@ -19,12 +19,12 @@ page 2158 "O365 Brand Colors"
             {
                 field(Name; Rec.Name)
                 {
-                    ApplicationArea = Invoicing, Basic, Suite;
+                    ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the name.';
                 }
                 field("Sample Picture"; Rec."Sample Picture")
                 {
-                    ApplicationArea = Invoicing, Basic, Suite;
+                    ApplicationArea = Basic, Suite;
                 }
             }
         }
@@ -47,4 +47,3 @@ page 2158 "O365 Brand Colors"
             O365BrandColor.CreateDefaultBrandColors();
     end;
 }
-

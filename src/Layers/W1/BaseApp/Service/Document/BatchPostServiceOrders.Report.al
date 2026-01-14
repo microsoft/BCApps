@@ -5,9 +5,9 @@
 namespace Microsoft.Service.Document;
 
 using Microsoft.Sales.Setup;
-using System.Security.User;
 using Microsoft.Service.Posting;
 using System.Environment;
+using System.Security.User;
 
 report 6001 "Batch Post Service Orders"
 {

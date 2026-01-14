@@ -14,13 +14,8 @@ table 6400 "FS Work Order"
     Description = 'Work orders store all information about the job performed for an account. Stores incident details, resource, expenses, tasks, communications, billing and more';
     DataClassification = SystemMetadata;
     ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-#if not CLEAN25
-    ObsoleteState = Pending;
-    ObsoleteTag = '25.0';
-#else
     ObsoleteState = Removed;
     ObsoleteTag = '28.0';
-#endif
 
     fields
     {
@@ -458,9 +453,6 @@ table 6400 "FS Work Order"
             ExternalType = 'Lookup';
             Description = 'Unique identifier for Work Order associated with Work Order.';
             Caption = 'Parent Work Order';
-#if not CLEAN25
-            TableRelation = "FS Work Order".WorkOrderId;
-#endif
             DataClassification = SystemMetadata;
         }
         field(72; PostalCode; Text[20])
@@ -720,9 +712,6 @@ table 6400 "FS Work Order"
         field(128; ParentWorkOrderName; Text[100])
         {
             FieldClass = FlowField;
-#if not CLEAN25
-            CalcFormula = lookup("FS Work Order".Name where(WorkOrderId = field(ParentWorkOrder)));
-#endif
             ExternalName = 'msdyn_parentworkordername';
             ExternalType = 'String';
             ExternalAccess = Read;

@@ -1,7 +1,8 @@
 namespace System.Integration.PowerBI;
-using System.Telemetry;
+
 using System.Environment.Configuration;
 using System.Globalization;
+using System.Telemetry;
 
 page 6324 "Power BI Element Addin Host"
 {

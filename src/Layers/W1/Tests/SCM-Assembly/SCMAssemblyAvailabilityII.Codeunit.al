@@ -4,17 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
-using System.Environment.Configuration;
-using Microsoft.Inventory.Item;
 using Microsoft.Assembly.Document;
-using Microsoft.Inventory.Location;
-using Microsoft.Inventory.BOM;
 using Microsoft.Assembly.Setup;
-using Microsoft.Warehouse.Structure;
 using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
-using Microsoft.Purchases.Document;
+using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Setup;
+using Microsoft.Purchases.Document;
+using Microsoft.Warehouse.Structure;
+using System.Environment.Configuration;
 
 codeunit 137912 "SCM Assembly Availability II"
 {

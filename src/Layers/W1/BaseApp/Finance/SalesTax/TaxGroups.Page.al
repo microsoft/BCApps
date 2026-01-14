@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.SalesTax;
 
+/// <summary>
+/// List page for managing tax group classifications and descriptions.
+/// Provides interface for creating and maintaining item tax categorizations.
+/// </summary>
 page 467 "Tax Groups"
 {
     ApplicationArea = SalesTax;

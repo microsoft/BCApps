@@ -12,6 +12,16 @@ using Microsoft.HumanResources.Payables;
 using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Receivables;
 
+/// <summary>
+/// Displays ledger entries related to general journal line accounts for transaction history and verification.
+/// Shows appropriate ledger entries based on account type including G/L, customer, vendor, bank, and fixed asset entries.
+/// </summary>
+/// <remarks>
+/// Core functionality for viewing historical ledger entries associated with journal line accounts.
+/// Account type-specific entry display: G/L entries, customer ledger entries, vendor ledger entries, bank entries, FA entries.
+/// Key features: Account-filtered entry display, most recent entry positioning, extensible via integration events.
+/// Integration: Provides seamless navigation from journal lines to corresponding posted ledger entries.
+/// </remarks>
 codeunit 14 "Gen. Jnl.-Show Entries"
 {
     TableNo = "Gen. Journal Line";
@@ -106,41 +116,95 @@ codeunit 14 "Gen. Jnl.-Show Entries"
         Text001: Label 'Intercompany partners do not have ledger entries.';
 #pragma warning restore AA0074
 
+    /// <summary>
+    /// Integration event raised after completing ledger entry display operations.
+    /// Enables custom processing after standard ledger entry display logic completes.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line context that triggered entry display</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterRun(GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before displaying G/L entries for G/L account type journal lines.
+    /// Enables custom handling or bypassing of G/L entry display functionality.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line with G/L account context</param>
+    /// <param name="GLEntry">G/L entry record positioned for display</param>
+    /// <param name="IsHandled">Set to true to skip standard G/L entry display processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowGLEntries(GenJournalLine: Record "Gen. Journal Line"; var GLEntry: Record "G/L Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before displaying customer ledger entries for customer account type journal lines.
+    /// Enables custom handling or bypassing of customer ledger entry display functionality.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line with customer account context</param>
+    /// <param name="CustLedgEntry">Customer ledger entry record positioned for display</param>
+    /// <param name="IsHandled">Set to true to skip standard customer ledger entry display processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowCustomerLedgerEntries(GenJournalLine: Record "Gen. Journal Line"; var CustLedgEntry: Record "Cust. Ledger Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before displaying vendor ledger entries for vendor account type journal lines.
+    /// Enables custom handling or bypassing of vendor ledger entry display functionality.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line with vendor account context</param>
+    /// <param name="VendLedgEntry">Vendor ledger entry record positioned for display</param>
+    /// <param name="IsHandled">Set to true to skip standard vendor ledger entry display processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowVendorLedgerEntries(GenJournalLine: Record "Gen. Journal Line"; var VendLedgEntry: Record "Vendor Ledger Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before displaying employee ledger entries for employee account type journal lines.
+    /// Enables custom handling or bypassing of employee ledger entry display functionality.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line with employee account context</param>
+    /// <param name="EmplLedgEntry">Employee ledger entry record positioned for display</param>
+    /// <param name="IsHandled">Set to true to skip standard employee ledger entry display processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowEmployeeLedgerEntries(GenJournalLine: Record "Gen. Journal Line"; var EmplLedgEntry: Record "Employee Ledger Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before displaying bank account ledger entries for bank account type journal lines.
+    /// Enables custom handling or bypassing of bank account ledger entry display functionality.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line with bank account context</param>
+    /// <param name="BankAccLedgEntry">Bank account ledger entry record positioned for display</param>
+    /// <param name="IsHandled">Set to true to skip standard bank account ledger entry display processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowBankAccountLedgerEntries(GenJournalLine: Record "Gen. Journal Line"; var BankAccLedgEntry: Record "Bank Account Ledger Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before displaying fixed asset ledger entries for fixed asset account type journal lines.
+    /// Enables custom handling or bypassing of fixed asset ledger entry display functionality.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line with fixed asset account context</param>
+    /// <param name="FALedgEntry">Fixed asset ledger entry record positioned for display</param>
+    /// <param name="IsHandled">Set to true to skip standard FA ledger entry display processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowFALedgerEntries(GenJournalLine: Record "Gen. Journal Line"; var FALedgEntry: Record "FA Ledger Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before displaying maintenance ledger entries for fixed asset maintenance journal lines.
+    /// Enables custom handling or bypassing of maintenance ledger entry display functionality.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line with fixed asset maintenance context</param>
+    /// <param name="MaintenanceLedgEntry">Maintenance ledger entry record positioned for display</param>
+    /// <param name="IsHandled">Set to true to skip standard maintenance ledger entry display processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowMaintenanceLedgerEntries(GenJournalLine: Record "Gen. Journal Line"; var MaintenanceLedgEntry: Record "Maintenance Ledger Entry"; var IsHandled: Boolean)
     begin

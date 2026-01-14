@@ -49,6 +49,7 @@ codeunit 99000757 "Update Prod. Order Cost"
         ReservEntry: Record "Reservation Entry";
         TotalCostQty: Decimal;
         TotalUnitCost: Decimal;
+        TotalFinishedQty: Decimal;
         UnitCost: Decimal;
         IsHandled: Boolean;
     begin
@@ -107,9 +108,12 @@ codeunit 99000757 "Update Prod. Order Cost"
                 ProdOrderLine.Quantity);
 
         OnUpdateUnitCostOnProdOrderOnBeforeValidateUnitCost(ProdOrderLine);
+        TotalFinishedQty := ProdOrderLine.Quantity;
+        if ProdOrderLine."Finished Quantity" <> 0 then
+            TotalFinishedQty := ProdOrderLine."Finished Quantity";
         ProdOrderLine.Validate(
           "Unit Cost",
-          (ProdOrderLine."Expected Operation Cost Amt." + ProdOrderLine."Expected Component Cost Amt.") / ProdOrderLine.Quantity);
+          (ProdOrderLine."Expected Operation Cost Amt." + ProdOrderLine."Expected Component Cost Amt.") / TotalFinishedQty);
 
         OnUpdateUnitCostOnProdOrderOnAfterValidateUnitCost(ProdOrderLine);
 

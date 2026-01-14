@@ -1,8 +1,8 @@
 namespace System.Azure.Identity;
 
 using Microsoft.Utilities;
-using System.Security.Authentication;
 using System.Environment;
+using System.Security.Authentication;
 
 page 6302 "Azure AD Access Dialog"
 {
@@ -98,15 +98,6 @@ page 6302 "Azure AD Access Dialog"
         CloseWindowMsg: Label 'Authorization sucessful. Close the window to proceed.';
         LinkNameTxt: Label 'Authorize Azure Services';
         LinkTooltipTxt: Label 'You will be redirected to the authorization provider in a different browser instance.';
-#if not CLEAN25
-
-    [NonDebuggable]
-    [Obsolete('Replaced by GetAuthorizationCodeAsSecretText', '25.0')]
-    procedure GetAuthorizationCode(Resource: Text; ResourceName: Text): Text
-    begin
-        exit(GetAuthorizationCodeAsSecretText(Resource, ResourceName).Unwrap());
-    end;
-#endif
 
     procedure GetAuthorizationCodeAsSecretText(Resource: Text; ResourceName: Text): SecretText
     var
@@ -139,4 +130,3 @@ page 6302 "Azure AD Access Dialog"
     begin
     end;
 }
-

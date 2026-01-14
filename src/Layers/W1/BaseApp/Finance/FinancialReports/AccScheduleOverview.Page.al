@@ -15,6 +15,15 @@ using System.Reflection;
 using System.Telemetry;
 using System.Text;
 
+/// <summary>
+/// Provides comprehensive account schedule overview interface with matrix-style financial data presentation.
+/// Supports interactive financial reporting with multi-column layouts, drill-down capabilities, and dynamic filtering.
+/// </summary>
+/// <remarks>
+/// Primary interface for account schedule analysis with integrated column layout display.
+/// Supports financial report configuration, period-based analysis, dimension filtering, and export capabilities.
+/// Matrix-style presentation with configurable columns and real-time calculation updates.
+/// </remarks>
 page 490 "Acc. Schedule Overview"
 {
     AboutTitle = 'About financial report';
@@ -139,21 +148,21 @@ page 490 "Acc. Schedule Overview"
                         CurrentColumnNameOnAfterValidate();
                     end;
                 }
-                field(SheetDefinitionName; TempFinancialReport.SheetDefinition)
+                field(DimPerspectiveName; TempFinancialReport.DimPerspective)
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Sheet Definition';
+                    Caption = 'Dimension Perspective';
                     Editable = (not ViewOnlyMode or (ViewLayout = "Financial Report View Layout"::"Show All"));
                     Importance = Additional;
-                    TableRelation = "Sheet Definition Name";
-                    ToolTip = 'Specifies the name (code) of the sheet definition to be used for the report.';
+                    TableRelation = "Dimension Perspective Name";
+                    ToolTip = 'Specifies the name (code) of the dimension perspective to be used for the report.';
 
                     trigger OnAfterLookup(Selected: RecordRef)
                     var
-                        SheetDefName: Record "Sheet Definition Name";
+                        DimPerspectiveName: Record "Dimension Perspective Name";
                     begin
-                        SheetDefName := Selected;
-                        TempFinancialReport.SheetDefinition := SheetDefName.Name;
+                        DimPerspectiveName := Selected;
+                        TempFinancialReport.DimPerspective := DimPerspectiveName.Name;
                         if not ViewOnlyMode then
                             SaveStateToFinancialReport();
                     end;
@@ -906,8 +915,8 @@ page 490 "Acc. Schedule Overview"
                         AccSched.SetAccSchedName(TempFinancialReport."Financial Report Row Group");
                     if TempFinancialReport."Financial Report Column Group" <> '' then
                         AccSched.SetColumnLayoutName(TempFinancialReport."Financial Report Column Group");
-                    if TempFinancialReport.SheetDefinition <> '' then
-                        AccSched.SetSheetDefName(TempFinancialReport.SheetDefinition);
+                    if TempFinancialReport.DimPerspective <> '' then
+                        AccSched.SetDimPerspectiveName(TempFinancialReport.DimPerspective);
                     DateFilter2 := Rec.GetFilter("Date Filter");
                     GLBudgetFilter2 := Rec.GetFilter("G/L Budget Filter");
                     CostBudgetFilter2 := Rec.GetFilter("Cost Budget Filter");
@@ -1044,20 +1053,20 @@ page 490 "Acc. Schedule Overview"
                     ColumnLayout.Run();
                 end;
             }
-            action(EditSheetDefinition)
+            action(EditDimPerspective)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Edit sheet definition';
+                Caption = 'Edit dimension perspective';
                 Image = Edit;
-                ToolTip = 'Edit the sheet definition of this financial report.';
+                ToolTip = 'Edit the dimension perspective of this financial report.';
 
                 trigger OnAction()
                 var
-                    SheetDefLine: Record "Sheet Definition Line";
+                    DimPerspectiveLine: Record "Dimension Perspective Line";
                 begin
-                    TempFinancialReport.TestField(SheetDefinition);
-                    SheetDefLine.SetRange(Name, TempFinancialReport.SheetDefinition);
-                    Page.Run(0, SheetDefLine);
+                    TempFinancialReport.TestField(DimPerspective);
+                    DimPerspectiveLine.SetRange(Name, TempFinancialReport.DimPerspective);
+                    Page.Run(0, DimPerspectiveLine);
                 end;
             }
             action(EditIntroductoryClosingParagraph)
@@ -1163,7 +1172,7 @@ page 490 "Acc. Schedule Overview"
                         begin
                             ExportAccSchedToExcel.SetOptions(
                                 Rec, TempFinancialReport."Financial Report Column Group", TempFinancialReport.UseAmountsInAddCurrency,
-                                TempFinancialReport.Name, TempFinancialReport.SheetDefinition);
+                                TempFinancialReport.Name, TempFinancialReport.DimPerspective);
                             if TempFinancialReport."Excel Template Code" <> '' then begin
                                 FinReportExcelTemplate.Get(TempFinancialReport.Name, TempFinancialReport."Excel Template Code");
                                 ExportAccSchedToExcel.SetUseExistingTemplate(FinReportExcelTemplate);
@@ -1203,7 +1212,7 @@ page 490 "Acc. Schedule Overview"
                         begin
                             ExportAccSchedToExcel.SetOptions(
                                 Rec, TempFinancialReport."Financial Report Column Group", TempFinancialReport.UseAmountsInAddCurrency,
-                                TempFinancialReport.Name, TempFinancialReport.SheetDefinition);
+                                TempFinancialReport.Name, TempFinancialReport.DimPerspective);
                             ExportAccSchedToExcel.Run();
                         end;
                     }
@@ -1223,7 +1232,7 @@ page 490 "Acc. Schedule Overview"
                         begin
                             ExportAccSchedToExcel.SetOptions(
                                 Rec, TempFinancialReport."Financial Report Column Group", TempFinancialReport.UseAmountsInAddCurrency,
-                                TempFinancialReport.Name, TempFinancialReport.SheetDefinition);
+                                TempFinancialReport.Name, TempFinancialReport.DimPerspective);
                             ExportAccSchedToExcel.SetUpdateExistingWorksheet(true);
                             ExportAccSchedToExcel.Run();
                         end;
@@ -1321,7 +1330,7 @@ page 490 "Acc. Schedule Overview"
                 actionref(EditColumnDefinition_Promoted; EditColumnDefinition)
                 {
                 }
-                actionref(EditSheetDefinition_Promoted; EditSheetDefinition)
+                actionref(EditDimPerspective_Promoted; EditDimPerspective)
                 {
                 }
                 actionref(EditIntroductoryClosingParagraph_Promoted; EditIntroductoryClosingParagraph)
@@ -1466,26 +1475,51 @@ page 490 "Acc. Schedule Overview"
         ModifiedPeriodType: Enum "Analysis Period Type";
         ViewOnlyMode: Boolean;
 
+    /// <summary>
+    /// Sets the financial report code for the overview page initialization.
+    /// Configures the primary financial report context for display and analysis.
+    /// </summary>
+    /// <param name="NewFinancialReport">Financial report code to set as default</param>
     procedure SetFinancialReportName(NewFinancialReport: Code[10])
     begin
         FinancialReportCode := NewFinancialReport;
     end;
 
+    /// <summary>
+    /// Sets the column definition for the overview page layout.
+    /// Configures the column layout name for matrix display initialization.
+    /// </summary>
+    /// <param name="ColumnLayoutName">Column layout name to set as default</param>
     procedure SetColumnDefinition(ColumnLayoutName: Code[10])
     begin
         NewCurrentColumnName := ColumnLayoutName;
     end;
 
+    /// <summary>
+    /// Sets the account schedule name for the overview page context.
+    /// Configures the row definition for financial report display initialization.
+    /// </summary>
+    /// <param name="NewAccSchedName">Account schedule name to set as default</param>
     procedure SetAccSchedName(NewAccSchedName: Code[10])
     begin
         NewCurrentSchedName := NewAccSchedName;
     end;
 
+    /// <summary>
+    /// Sets the period type for the overview page analysis.
+    /// Configures the temporal analysis scope for financial data presentation.
+    /// </summary>
+    /// <param name="NewPeriodType">Period type option to set for analysis</param>
     procedure SetPeriodType(NewPeriodType: Option)
     begin
         ModifiedPeriodType := "Analysis Period Type".FromInteger(NewPeriodType);
     end;
 
+    /// <summary>
+    /// Sets the view-only mode for the overview page interface.
+    /// Controls whether the page allows editing or provides read-only access to financial data.
+    /// </summary>
+    /// <param name="NewViewOnlyMode">True for read-only mode, false for editing capabilities</param>
     procedure SetViewOnlyMode(NewViewOnlyMode: Boolean)
     begin
         ViewOnlyMode := NewViewOnlyMode;
@@ -1871,6 +1905,12 @@ page 490 "Acc. Schedule Overview"
         ValidateCostObjectFilter();
     end;
 
+    /// <summary>
+    /// Sets dimension filters for the specified dimension number in financial analysis.
+    /// Applies dimensional filtering to account schedule calculations and reporting.
+    /// </summary>
+    /// <param name="DimNo">Dimension number (1-8) to set filter for</param>
+    /// <param name="DimValueFilter">Dimension value filter expression to apply</param>
     procedure SetDimFilters(DimNo: Integer; DimValueFilter: Text)
     var
         CurrentCostCenterFilter: Text;
@@ -2261,6 +2301,12 @@ page 490 "Acc. Schedule Overview"
             SaveStateToFinancialReport();
     end;
 
+    /// <summary>
+    /// Formats column values according to column layout formatting specifications.
+    /// Returns formatted string representation of financial data for display purposes.
+    /// </summary>
+    /// <param name="ColumnNo">Column number to format</param>
+    /// <returns>Formatted string value for the specified column</returns>
     procedure FormatStr(ColumnNo: Integer): Text
     var
         AddCurrency: Boolean;
@@ -2275,6 +2321,13 @@ page 490 "Acc. Schedule Overview"
         exit(MatrixMgt.FormatRoundingFactor(ColumnLayoutArr[ColumnNo]."Rounding Factor", UseAmtsInAddCurr, TempFinancialReport.GetEffectiveNegativeAmountFormat()));
     end;
 
+    /// <summary>
+    /// Applies rounding to decimal values based on specified rounding factor.
+    /// Returns either original value or rounded value depending on factor configuration.
+    /// </summary>
+    /// <param name="Value">Decimal value to potentially round</param>
+    /// <param name="RoundingFactor">Rounding factor enum determining rounding behavior</param>
+    /// <returns>Value rounded according to specified factor, or original value if None</returns>
     procedure RoundIfNotNone(Value: Decimal; RoundingFactor: Enum "Analysis Rounding Factor"): Decimal
     begin
         if RoundingFactor <> RoundingFactor::None then
@@ -2352,56 +2405,141 @@ page 490 "Acc. Schedule Overview"
         FeatureTelemetry.LogUsage('0000OKU', 'Financial Report', StrSubstNo(PageRunEventTxt, TempFinancialReport.Name), TelemetryDimensions);
     end;
 
+    /// <summary>
+    /// Integration event raised after setting dimension filters for account schedule lines.
+    /// Enables custom dimension filter processing and validation in account schedule overview.
+    /// </summary>
+    /// <param name="AccScheduleLine">Account schedule line record for dimension filter application</param>
+    /// <param name="DimNo">Dimension number being processed for filtering</param>
+    /// <param name="DimValueFilter">Dimension value filter text to apply</param>
+    /// <param name="CostCenterFilter">Cost center filter for cost accounting integration</param>
+    /// <param name="CostObjectFilter">Cost object filter for cost accounting integration</param>
+    /// <param name="CurrentCostBudgetFilter">Current cost budget filter for budget analysis</param>
+    /// <param name="CurrentGLBudgetFilter">Current G/L budget filter for budget analysis</param>
+    /// <param name="CurrentCashFlowFilter">Current cash flow filter for cash flow analysis</param>
+    /// <param name="AnalysisView">Analysis view record for dimension validation</param>
+    /// <param name="TempFinancialReport">Temporary financial report record for context</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetDimFilters(var AccScheduleLine: Record "Acc. Schedule Line"; var DimNo: Integer; var DimValueFilter: Text; var CostCenterFilter: Text; var CostObjectFilter: Text; var CurrentCostBudgetFilter: Text; var CurrentGLBudgetFilter: Text; var CurrentCashFlowFilter: Text; AnalysisView: Record "Analysis View"; var TempFinancialReport: Record "Financial Report" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating cost center filter in account schedule overview.
+    /// Enables custom cost center filter validation and dimension synchronization.
+    /// </summary>
+    /// <param name="AccScheduleLine">Account schedule line record for cost center validation</param>
+    /// <param name="CostCenterFilter">Cost center filter text being validated</param>
+    /// <param name="Dim1Filter">Dimension 1 filter synchronized with cost center</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateCostCenterFilter(var AccScheduleLine: Record "Acc. Schedule Line"; var CostCenterFilter: Text; var Dim1Filter: Text)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating cost object filter in account schedule overview.
+    /// Enables custom cost object filter validation and dimension synchronization.
+    /// </summary>
+    /// <param name="AccScheduleLine">Account schedule line record for cost object validation</param>
+    /// <param name="CostObjectFilter">Cost object filter text being validated</param>
+    /// <param name="Dim2Filter">Dimension 2 filter synchronized with cost object</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateCostObjectFilter(var AccScheduleLine: Record "Acc. Schedule Line"; var CostObjectFilter: Text; var Dim2Filter: Text)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after updating dimension filter controls in account schedule overview.
+    /// Enables custom control state management for dimension filtering interface.
+    /// </summary>
+    /// <param name="Dim4FilterEnable">Variable to control Dimension 4 filter control enablement</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterUpdateDimFilterControls(var Dim4FilterEnable: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after drill-down operation in account schedule overview.
+    /// Enables custom drill-down processing and navigation logic for account schedule data.
+    /// </summary>
+    /// <param name="ColumnNo">Column number where drill-down was triggered</param>
+    /// <param name="TempColumnLayout">Temporary column layout record for drill-down context</param>
+    /// <param name="PeriodType">Period type option for drill-down data filtering</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterDrillDown(ColumnNo: Integer; var TempColumnLayout: Record "Column Layout" temporary; var PeriodType: Option)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after opening account schedule overview page.
+    /// Enables custom page initialization and data setup logic.
+    /// </summary>
+    /// <param name="AccScheduleLine">Account schedule line record for page initialization</param>
+    /// <param name="CurrentColumnName">Current column layout name for page setup</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterOnOpenPage(var AccScheduleLine: Record "Acc. Schedule Line"; var CurrentColumnName: Code[10])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after assigning column values in account schedule overview record processing.
+    /// Enables custom column value calculation and formatting logic.
+    /// </summary>
+    /// <param name="ColumnValues">Array of decimal values for account schedule columns</param>
+    /// <param name="ColumnNo">Current column number being processed</param>
+    /// <param name="ColumnOffset">Column offset for array positioning</param>
+    /// <param name="TempColumnLayout">Temporary column layout record for value calculation</param>
+    /// <param name="UseAmtsInAddCurr">Whether to use amounts in additional currency</param>
     [IntegrationEvent(true, false)]
     local procedure OnOnAfterGetRecordOnAfterAssignColumnValue(var ColumnValues: array[15] of Decimal; var ColumnNo: Integer; var ColumnOffset: Integer; var TempColumnLayout: Record "Column Layout" temporary; var UseAmtsInAddCurr: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before printing account schedule reports from overview page.
+    /// Enables custom print preparation and report parameter validation.
+    /// </summary>
+    /// <param name="AccScheduleLine">Account schedule line record for print operation</param>
+    /// <param name="ColumnLayoutName">Column layout name for report printing</param>
+    /// <param name="IsHandled">Set to true to skip standard print processing</param>
+    /// <param name="TempFinancialReport">Temporary financial report record for print context</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePrint(var AccScheduleLine: Record "Acc. Schedule Line"; ColumnLayoutName: Code[10]; var IsHandled: Boolean; var TempFinancialReport: Record "Financial Report" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating column name changes in account schedule overview.
+    /// Enables custom column name validation and pre-processing logic.
+    /// </summary>
+    /// <param name="CurrentColumnName">Column layout name being validated</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCurrentColumnNameOnAfterValidate(var CurrentColumnName: Code[10])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before getting caption class for dimension controls in account schedule overview.
+    /// Enables custom caption generation for dimension filter controls.
+    /// </summary>
+    /// <param name="AnalysisView">Analysis view record for caption context</param>
+    /// <param name="DimNo">Dimension number for caption generation</param>
+    /// <param name="Result">Variable to receive custom caption class text</param>
+    /// <param name="IsHandled">Set to true to skip standard caption class processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetCaptionClass(AnalysisView: Record "Analysis View"; DimNo: Integer; var Result: Text[250]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating column captions in account schedule overview.
+    /// Enables custom column caption generation and formatting logic.
+    /// </summary>
+    /// <param name="ColumnCaptions">Array of column caption texts to update</param>
+    /// <param name="ColumnOffset">Column offset for caption array positioning</param>
+    /// <param name="TempColumnLayout">Temporary column layout record for caption generation</param>
+    /// <param name="NoOfColumns">Number of columns to process for caption update</param>
+    /// <param name="IsHandled">Set to true to skip standard caption update processing</param>
     [IntegrationEvent(false, false)]
 #if not CLEAN27
     [Obsolete('The ColumnCaptions parameter will be changed to array[15] of Text in a future release.', '27.0')]
@@ -2412,21 +2550,57 @@ page 490 "Acc. Schedule Overview"
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating dimension filter controls in account schedule overview.
+    /// Enables custom dimension filter control state management and validation.
+    /// </summary>
+    /// <param name="AccScheduleLine">Account schedule line record for dimension filter setup</param>
+    /// <param name="AnalysisView">Analysis view record for dimension control configuration</param>
+    /// <param name="IsHandled">Set to true to skip standard dimension filter control update</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateDimFilterControls(var AccScheduleLine: Record "Acc. Schedule Line"; AnalysisView: Record "Analysis View"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before assigning column style in account schedule overview display formatting.
+    /// Enables custom styling and conditional formatting for account schedule columns.
+    /// </summary>
+    /// <param name="AccScheduleLine">Account schedule line record for style determination</param>
+    /// <param name="ColumnNo">Column number being styled</param>
+    /// <param name="RowLineNo">Row line number for style context</param>
+    /// <param name="ColumnLineNo">Column line number for style context</param>
+    /// <param name="ColumnStyle">Variable to receive custom column style</param>
+    /// <param name="ColumnValues">Array of column values for conditional formatting</param>
     [IntegrationEvent(true, false)]
     local procedure OnGetStyleOnBeforeAssignColumnStyle(AccScheduleLine: Record "Acc. Schedule Line"; ColumnNo: Integer; RowLineNo: Integer; ColumnLineNo: Integer; var ColumnStyle: Text; ColumnValues: array[15] of Decimal);
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after formatting decimal values to text in account schedule overview.
+    /// Enables custom number formatting and display logic for account schedule columns.
+    /// </summary>
+    /// <param name="ColumnLayoutArr">Array of column layout records for formatting context</param>
+    /// <param name="UseAmtsInAddCurr">Whether amounts are displayed in additional currency</param>
+    /// <param name="ColumnNo">Column number being formatted</param>
+    /// <param name="NegativeAmountFormatting">Negative amount formatting enumeration option</param>
+    /// <param name="Result">Variable to receive custom formatted text result</param>
+    /// <param name="IsHandled">Set to true to skip standard formatting processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFormatStr(ColumnLayoutArr: array[15] of Record "Column Layout"; UseAmtsInAddCurr: Boolean; ColumnNo: Integer; NegativeAmountFormatting: Enum "Analysis Negative Format"; var Result: Text; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before copying columns to temporary table during page state loading.
+    /// Enables custom column layout processing and filtering during page initialization.
+    /// </summary>
+    /// <param name="CurrentColumnName">Current column layout name for page initialization</param>
+    /// <param name="TempColumnLayout">Temporary column layout record for data copying</param>
+    /// <param name="CurrentSchedName">Current account schedule name for context</param>
+    /// <param name="AccScheduleLine">Account schedule line record for initialization</param>
+    /// <param name="IsHandled">Set to true to skip standard column copying processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnLoadPageStateOnBeforeCopyColumnsToTemp(CurrentColumnName: Code[10]; var TempColumnLayout: Record "Column Layout" temporary; var CurrentSchedName: Code[10]; var AccScheduleLine: Record "Acc. Schedule Line"; var IsHandled: Boolean)
     begin

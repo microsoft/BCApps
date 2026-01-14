@@ -6,6 +6,10 @@ namespace Microsoft.Bank.Reconciliation;
 
 using Microsoft.Bank.Statement;
 
+/// <summary>
+/// Handles user confirmation dialog for bank account reconciliation posting.
+/// Provides interactive posting workflow with user confirmation prompts.
+/// </summary>
 codeunit 371 "Bank Acc. Recon. Post (Yes/No)"
 {
     TableNo = "Bank Acc. Reconciliation";
@@ -21,6 +25,13 @@ codeunit 371 "Bank Acc. Recon. Post (Yes/No)"
         PostPaymentsAndReconcileQst: Label 'Do you want to post the payments and reconcile the bank account?';
         OpenPostedBankReconciliationQst: Label 'The reconciliation was posted for bank account %1 with statement number %2. The reconciliation was moved to the Bank Account Statement List window.\\Do you want to open the bank account statement?', Comment = '%1 = bank account no., %2 = bank account statement number';
 
+    /// <summary>
+    /// Prompts user for confirmation and posts bank account reconciliation if confirmed.
+    /// Displays appropriate confirmation dialog based on reconciliation type (payments only vs. full reconciliation)
+    /// and handles posting execution with error handling and optional post-posting navigation.
+    /// </summary>
+    /// <param name="BankAccReconciliation">Bank account reconciliation record to post after user confirmation.</param>
+    /// <returns>True if user confirmed and posting completed successfully; false if cancelled or failed.</returns>
     procedure BankAccReconPostYesNo(var BankAccReconciliation: Record "Bank Acc. Reconciliation") Result: Boolean
     var
         BankAccRecon: Record "Bank Acc. Reconciliation";

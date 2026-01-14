@@ -6,13 +6,10 @@
 
 namespace Microsoft.Integration.SyncEngine;
 
+using Microsoft.Integration.Dataverse;
+using System.Environment;
 using System.Reflection;
 using System.Utilities;
-using System.Environment;
-#if not CLEAN25
-using System.IO;
-#endif
-using Microsoft.Integration.Dataverse;
 
 page 5384 "CDS New Man. Int. Table Wizard"
 {
@@ -252,46 +249,6 @@ page 5384 "CDS New Man. Int. Table Wizard"
                             end;
                         end;
                     }
-#if not CLEAN25
-                    field(TableConfigTemplateCode; TableConfigTemplateCode)
-                    {
-                        Caption = 'Table Config. Template Code';
-                        ToolTip = 'Specifies a configuration template to use when creating new records in the Business Central table (specified by the Table ID field) during synchronization.';
-                        Lookup = true;
-                        Visible = false;
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'Replaced with Table Config Templates field';
-                        ObsoleteTag = '25.0';
-
-                        trigger OnLookup(var Text: Text): Boolean
-                        var
-                            ConfigTemplateHeader: Record "Config. Template Header";
-                        begin
-                            ConfigTemplateHeader.SetRange("Table ID", IntegrationMappingTableId);
-                            if Page.RunModal(Page::"Config. Template List", ConfigTemplateHeader) = Action::LookupOK then
-                                TableConfigTemplateCode := ConfigTemplateHeader.Code;
-                        end;
-                    }
-                    field(IntTableConfigTemplateCode; IntTableConfigTemplateCode)
-                    {
-                        Caption = 'Int. Tbl. Config Template Code';
-                        ToolTip = 'Specifies a configuration template to use for creating new records in the integration table.';
-                        Lookup = true;
-                        Visible = false;
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'Replaced with Table Config Templates field';
-                        ObsoleteTag = '25.0';
-
-                        trigger OnLookup(var Text: Text): Boolean
-                        var
-                            ConfigTemplateHeader: Record "Config. Template Header";
-                        begin
-                            ConfigTemplateHeader.SetRange("Table ID", IntegrationMappingIntTableId);
-                            if Page.RunModal(Page::"Config. Template List", ConfigTemplateHeader) = Action::LookupOK then
-                                TableConfigTemplateCode := ConfigTemplateHeader.Code;
-                        end;
-                    }
-#endif
                     field("Table Config Templates"; TableConfigTemplates)
                     {
                         Caption = 'Table Config Templates';
@@ -488,10 +445,6 @@ page 5384 "CDS New Man. Int. Table Wizard"
         AdvancedVisible: Boolean;
         FailedFields: Boolean;
         IntegrationMappingName: Code[20];
-#if not CLEAN25
-        TableConfigTemplateCode: Code[20];
-        IntTableConfigTemplateCode: Code[20];
-#endif
         TableConfigTemplates: Text;
         IntTableConfigTemplates: Text;
         IntegrationMappingTableId: Integer;

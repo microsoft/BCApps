@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.Automation;
 
-using System.Threading;
 using System.Azure.Identity;
 using System.Telemetry;
+using System.Threading;
 
 pageextension 9806 "Approval Job Queue Entry Card" extends "Job Queue Entry Card"
 {

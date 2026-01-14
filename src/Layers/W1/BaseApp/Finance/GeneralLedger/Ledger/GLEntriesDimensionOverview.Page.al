@@ -8,6 +8,15 @@ using Microsoft.Finance.Analysis;
 using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Enums;
 
+/// <summary>
+/// Overview page for analyzing G/L entries by dimensions using matrix view.
+/// Provides dimensional analysis capabilities with configurable column sets and matrix display.
+/// </summary>
+/// <remarks>
+/// PageType = Card. Data source: G/L Entry table. Non-editable overview page.
+/// Supports matrix view for dimensional analysis with configurable column ranges.
+/// Used for multi-dimensional financial analysis and reporting with drill-down capabilities.
+/// </remarks>
 page 563 "G/L Entries Dimension Overview"
 {
     Caption = 'G/L Entries Dimension Overview';
@@ -118,6 +127,10 @@ page 563 "G/L Entries Dimension Overview"
         MATRIX_CaptionRange: Text;
         MATRIX_CurrSetLength: Integer;
 
+    /// <summary>
+    /// Sets up the page to run on temporary G/L entry records instead of the main table.
+    /// </summary>
+    /// <param name="NewGLEntry">G/L Entry records to copy to temporary table for dimension analysis.</param>
     procedure SetTempGLEntry(var NewGLEntry: Record "G/L Entry")
     begin
         RunOnTempRec := true;

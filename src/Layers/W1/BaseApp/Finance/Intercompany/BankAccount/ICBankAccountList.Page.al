@@ -7,6 +7,10 @@ namespace Microsoft.Intercompany.BankAccount;
 using Microsoft.Intercompany.GLAccount;
 using Microsoft.Intercompany.Partner;
 
+/// <summary>
+/// List interface for managing intercompany bank accounts across partner companies.
+/// Provides bank account overview and synchronization capabilities for intercompany transactions.
+/// </summary>
 page 697 "IC Bank Account List"
 {
     ApplicationArea = Intercompany;

@@ -639,11 +639,8 @@ codeunit 30161 "Shpfy Import Order"
         Currency: Record Currency;
         GeneralLedgerSetup: Record "General Ledger Setup";
         CurrencyCode: Code[10];
-        IsHandled: Boolean;
     begin
-        OrderEvents.OnBeforeTranslateCurrencyCode(ShopifyCurrencyCode, CurrencyCode, IsHandled);
-        if not IsHandled then
-            Currency.SetLoadFields(Code);
+        Currency.SetLoadFields(Code);
         Currency.SetRange("ISO Code", CopyStr(ShopifyCurrencyCode, 1, 3));
         if Currency.FindFirst() then
             CurrencyCode := Currency.Code;

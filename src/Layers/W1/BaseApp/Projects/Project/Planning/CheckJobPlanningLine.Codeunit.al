@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,9 +23,6 @@ codeunit 9135 "Check Job Planning Line"
     begin
         IsHandled := false;
         OnBeforeCheckJobPlanningLines(Item, CurrentFieldNo, CheckFieldNo, CheckFieldCaption, IsHandled);
-#if not CLEAN25
-        Item.RunOnBeforeCheckJobPlanningLine(Item, CurrentFieldNo, CheckFieldNo, CheckFieldCaption, IsHandled);
-#endif
         if IsHandled then
             exit;
 

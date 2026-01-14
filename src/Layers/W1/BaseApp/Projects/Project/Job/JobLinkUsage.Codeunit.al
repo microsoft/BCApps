@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Projects.Project.Job;
 
+using Microsoft.Assembly.History;
 using Microsoft.Foundation.UOM;
 using Microsoft.Projects.Project.Journal;
-using Microsoft.Assembly.History;
 using Microsoft.Projects.Project.Ledger;
 using Microsoft.Projects.Project.Planning;
 using Microsoft.Projects.Project.Posting;

@@ -29,6 +29,7 @@ codeunit 7350 "Mfg. Put Away Helper"
         ProdOrderRoutingLine.SetRange("Routing No.", ProdOrderLine."Routing No.");
         ProdOrderRoutingLine.SetRange(Type, ItemJnlLine.Type);
         ProdOrderRoutingLine.SetRange("No.", ItemJnlLine."No.");
+        ProdOrderRoutingLine.SetRange("Operation No.", ItemJnlLine."Operation No.");
         if ProdOrderRoutingLine.FindFirst() then
             exit(ProdOrderRoutingLine."Next Operation No." = '')
         else

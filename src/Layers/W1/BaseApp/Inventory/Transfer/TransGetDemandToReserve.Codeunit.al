@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Tracking;
 
-using Microsoft.Inventory.Transfer;
 using Microsoft.Foundation.Enums;
+using Microsoft.Inventory.Transfer;
 
 codeunit 99000846 "Trans. Get Demand To Reserve"
 {

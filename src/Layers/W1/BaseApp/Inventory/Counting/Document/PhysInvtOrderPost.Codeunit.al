@@ -347,6 +347,7 @@ codeunit 5884 "Phys. Invt. Order-Post"
         ItemJnlLine.Validate("Unit Cost", PhysInvtOrderLine."Unit Cost");
         ItemJnlLine."Phys Invt Counting Period Code" := PhysInvtOrderLine."Phys Invt Counting Period Code";
         ItemJnlLine."Phys Invt Counting Period Type" := PhysInvtOrderLine."Phys Invt Counting Period Type";
+        OnPostItemJnlLineOnBeforeTransferResEntry(ItemJnlLine, PhysInvtOrderLine, Qty, Positive);
         PhysInvtTrackingMgt.TransferResEntryToItemJnlLine(PhysInvtOrderLine, ItemJnlLine, Qty, Positive);
 
         OnBeforeItemJnlPostLine(ItemJnlLine, PhysInvtOrderLine, ItemJnlPostLine, Positive);
@@ -660,6 +661,11 @@ codeunit 5884 "Phys. Invt. Order-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeItemJnlPostLine(var ItemJournalLine: Record "Item Journal Line"; PhysInvtOrderLine: Record "Phys. Invt. Order Line"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; Positive: Boolean);
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPostItemJnlLineOnBeforeTransferResEntry(var ItemJournalLine: Record "Item Journal Line"; PhysInvtOrderLine: Record "Phys. Invt. Order Line"; Qty: Decimal; Positive: Boolean)
     begin
     end;
 

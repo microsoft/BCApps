@@ -10,6 +10,16 @@ using Microsoft.HumanResources.Payables;
 using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Receivables;
 
+/// <summary>
+/// Displays credit transfer entries related to general journal lines for payment processing and electronic banking.
+/// Shows credit transfer registration entries filtered by account type, document application, and currency matching.
+/// </summary>
+/// <remarks>
+/// Specialized functionality for viewing credit transfer entries associated with journal line payments.
+/// Supports customer, vendor, and employee account types with document application matching.
+/// Key filtering: Account type matching, document application (by doc no. or applies-to ID), currency filtering.
+/// Integration: Links journal lines to corresponding credit transfer entries for payment traceability.
+/// </remarks>
 codeunit 16 "Gen. Jnl.-Show CT Entries"
 {
     TableNo = "Gen. Journal Line";
@@ -36,6 +46,12 @@ codeunit 16 "Gen. Jnl.-Show CT Entries"
     var
         CreditTransferEntry: Record "Credit Transfer Entry";
 
+    /// <summary>
+    /// Sets appropriate filters on credit transfer entries based on journal line account type and application details.
+    /// Configures filters for account type, applies-to information, currency code, and ledger entry matching.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line providing filter criteria</param>
+    /// <param name="CreditTransferEntry">Credit transfer entry record to apply filters to</param>
     procedure SetFiltersOnCreditTransferEntry(var GenJournalLine: Record "Gen. Journal Line"; var CreditTransferEntry: Record "Credit Transfer Entry")
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -112,11 +128,24 @@ codeunit 16 "Gen. Jnl.-Show CT Entries"
         CreditTransferEntry.SetRange(Canceled, false);
     end;
 
+    /// <summary>
+    /// Integration event raised before executing the main credit transfer entry display logic.
+    /// Enables custom handling or bypassing of credit transfer entry display functionality.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line context for credit transfer display</param>
+    /// <param name="IsHandled">Set to true to skip standard credit transfer entry display processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnRun(var GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised for custom account types not handled by standard customer, vendor, or employee logic.
+    /// Enables extension of credit transfer entry filtering for additional account types.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line providing account and application context</param>
+    /// <param name="CreditTransferEntry">Credit transfer entry record to apply custom filters to</param>
+    /// <param name="FoundCorrespondingLedgerEntry">Set to true if custom logic found corresponding ledger entry</param>
     [IntegrationEvent(false, false)]
     local procedure OnSetFiltersOnCreditTransferEntryOnCaseElse(var GenJournalLine: Record "Gen. Journal Line"; var CreditTransferEntry: Record "Credit Transfer Entry"; var FoundCorrespondingLedgerEntry: Boolean)
     begin

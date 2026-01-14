@@ -10,6 +10,10 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.Period;
 using System.Utilities;
 
+/// <summary>
+/// Displays G/L account balance analysis across periods with debit/credit breakdown.
+/// Provides period-based balance analysis with configurable amount types and closing entry handling.
+/// </summary>
 page 416 "G/L Account Balance Lines"
 {
     Caption = 'Lines';
@@ -137,6 +141,14 @@ page 416 "G/L Account Balance Lines"
         ClosingEntryFilter: Option Include,Exclude;
         DebitCreditTotals: Boolean;
 
+    /// <summary>
+    /// Configures the page with G/L account data and analysis parameters for balance display across periods.
+    /// </summary>
+    /// <param name="NewGLAcc">G/L account record containing the accounts to analyze</param>
+    /// <param name="NewPeriodType">Period type for analysis breakdown (Day, Week, Month, Quarter, Year)</param>
+    /// <param name="NewAmountType">Amount type for balance calculation (Net Change, Balance at Date)</param>
+    /// <param name="NewClosingEntryFilter">Whether to include or exclude closing entries in balance calculation</param>
+    /// <param name="NewDebitCreditTotals">Whether to show separate debit and credit totals</param>
     procedure SetLines(var NewGLAcc: Record "G/L Account"; NewPeriodType: Enum "Analysis Period Type"; NewAmountType: Enum "Analysis Amount Type"; NewClosingEntryFilter: Option Include,Exclude; NewDebitCreditTotals: Boolean)
     begin
         GLAcc.Copy(NewGLAcc);
@@ -224,16 +236,36 @@ page 416 "G/L Account Balance Lines"
         OnAfterCalcLine(GLAcc, Rec, ClosingEntryFilter, DebitCreditTotals);
     end;
 
+    /// <summary>
+    /// Integration event for custom logic before balance drill-down operations.
+    /// </summary>
+    /// <param name="GLAccount">G/L account being analyzed</param>
+    /// <param name="GLPeriodLength">Period type for analysis breakdown</param>
+    /// <param name="AmountType">Amount type for balance calculation</param>
+    /// <param name="ClosingEntryFilter">Closing entry filter setting</param>
+    /// <param name="DebitCreditTotals">Whether debit/credit totals are shown separately</param>
+    /// <param name="IsHandled">Set to true to skip standard drill-down logic</param>
+    /// <param name="DateRec">Date record for period context</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeBalanceDrillDown(var GLAccount: Record "G/L Account"; GLPeriodLength: Enum "Analysis Period Type"; AmountType: Enum "Analysis Amount Type"; ClosingEntryFilter: Option Include,Exclude; DebitCreditTotals: Boolean; var IsHandled: Boolean; DateRec: Record Date)
     begin
     end;
 
+    /// <summary>
+    /// Integration event for custom calculation logic after computing line amounts.
+    /// </summary>
+    /// <param name="GLAccount">G/L account with calculated amounts</param>
+    /// <param name="GLAccBalanceBuffer">Balance buffer record with computed values</param>
+    /// <param name="ClosingEntryFilter">Closing entry filter setting</param>
+    /// <param name="DebitCreditTotals">Whether debit/credit totals are shown separately</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcLine(var GLAccount: Record "G/L Account"; var GLAccBalanceBuffer: Record "G/L Acc. Balance Buffer"; ClosingEntryFilter: Option Include,Exclude; DebitCreditTotals: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event for custom logic after setting line parameters but before updating the page.
+    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetLinesOnBeforeUpdate()
     begin

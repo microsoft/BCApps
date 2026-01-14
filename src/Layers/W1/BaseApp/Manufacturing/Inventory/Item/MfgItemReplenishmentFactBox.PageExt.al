@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Item;
 
-using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Routing;
 
 pageextension 99000758 "Mfg. ItemReplenishmentFactBox" extends "Item Replenishment FactBox"
 {

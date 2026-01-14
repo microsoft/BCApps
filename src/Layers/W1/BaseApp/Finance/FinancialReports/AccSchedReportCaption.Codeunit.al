@@ -8,6 +8,14 @@ using System;
 using System.Threading;
 using System.Xml;
 
+/// <summary>
+/// Provides custom report captions for account schedule reports in the report scheduling system.
+/// Enhances report descriptions by retrieving account schedule names from XML request parameters.
+/// </summary>
+/// <remarks>
+/// Integrates with Schedule a Report page to display meaningful report descriptions
+/// instead of generic report names when scheduling account schedule reports.
+/// </remarks>
 codeunit 583 "Acc. Sched. Report Caption"
 {
 

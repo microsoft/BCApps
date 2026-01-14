@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Integration.Graph;
 
+using Microsoft.API.Upgrade;
 using Microsoft.Integration.Entity;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
@@ -11,7 +12,6 @@ using Microsoft.Sales.Posting;
 using Microsoft.Sales.Receivables;
 using Microsoft.Utilities;
 using System.Reflection;
-using Microsoft.API.Upgrade;
 
 codeunit 5508 "Graph Mgt - Sal. Cr. Memo Buf."
 {

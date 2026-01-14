@@ -4,6 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Displays log entries for global dimension change operations showing processing status and progress.
+/// Provides read-only view of table-by-table processing status during global dimension updates.
+/// </summary>
+/// <remarks>
+/// Shows progress tracking for background dimension change jobs with status information per table.
+/// Supports monitoring of global dimension change operations for large data volumes and error tracking.
+/// </remarks>
 page 578 "Change Global Dim. Log Entries"
 {
     Caption = 'Log Entries';

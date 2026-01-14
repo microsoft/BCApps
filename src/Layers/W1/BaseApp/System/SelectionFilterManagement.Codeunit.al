@@ -1,4 +1,4 @@
-﻿namespace System.Text;
+namespace System.Text;
 
 using Microsoft.CashFlow.Account;
 using Microsoft.CashFlow.Forecast;
@@ -182,15 +182,6 @@ codeunit 46 SelectionFilterManagement
         exit(GetSelectionFilter(RecRef, Item.FieldNo("No.")));
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by same procedure in codeunit Serv. Selection Filter Mgt.', '25.0')]
-    procedure GetSelectionFilterForServiceItem(var ServiceItem: Record Microsoft.Service.Item."Service Item"): Text
-    var
-        ServSelectionFilterMgt: Codeunit "Serv. Selection Filter Mgt.";
-    begin
-        exit(ServSelectionFilterMgt.GetSelectionFilterForServiceItem(ServiceItem));
-    end;
-#endif
 
     procedure GetSelectionFilterForDimensionValue(var DimVal: Record "Dimension Value"): Text
     var
@@ -619,14 +610,4 @@ codeunit 46 SelectionFilterManagement
         exit(2000);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by same procedure in codeunit Serv. Selection Filter Mgt.', '25.0')]
-    procedure GetSelectionFilterForServiceHeader(var ServiceHeader: Record Microsoft.Service.Document."Service Header"): Text
-    var
-        ServSelectionFilterMgt: Codeunit "Serv. Selection Filter Mgt.";
-    begin
-        exit(ServSelectionFilterMgt.GetSelectionFilterForServiceHeader(ServiceHeader));
-    end;
-#endif
 }
-

@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Analysis;
 
+/// <summary>
+/// Defines company size categories for financial analysis and reporting classification.
+/// Used to categorize companies for comparative analysis and benchmarking purposes.
+/// </summary>
 table 532 "Company Size"
 {
     LookupPageId = "Company Sizes";
@@ -12,7 +16,13 @@ table 532 "Company Size"
 
     fields
     {
+        /// <summary>
+        /// Unique code identifying the company size category.
+        /// </summary>
         field(1; Code; Code[20]) { }
+        /// <summary>
+        /// Descriptive name for the company size category.
+        /// </summary>
         field(2; Description; Text[100]) { }
     }
 

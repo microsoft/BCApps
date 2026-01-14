@@ -1,6 +1,9 @@
+/// <summary>
+/// Provides utility functions for creating and managing price calculation setup and testing various pricing scenarios.
+/// </summary>
 codeunit 130510 "Library - Price Calculation"
 {
-    // Contains all utility functions related to price calculation.
+
     EventSubscriberInstance = Manual;
 
     trigger OnRun()

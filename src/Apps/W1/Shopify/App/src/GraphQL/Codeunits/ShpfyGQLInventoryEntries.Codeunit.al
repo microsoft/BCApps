@@ -27,7 +27,7 @@ codeunit 30133 "Shpfy GQL InventoryEntries" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(403);
+        exit(48);
     end;
 
 }

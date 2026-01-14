@@ -14,13 +14,8 @@ table 6402 "FS Work Order Product"
     Description = 'In this entity you record all the products proposed and used for a work order';
     DataClassification = SystemMetadata;
     ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-#if not CLEAN25
-    ObsoleteState = Pending;
-    ObsoleteTag = '25.0';
-#else
     ObsoleteState = Removed;
     ObsoleteTag = '28.0';
-#endif
 
     fields
     {

@@ -1,11 +1,11 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.Bank.Setup;
-using Microsoft.Bank.Reconciliation;
-using System.IO;
 using Microsoft.Bank.BankAccount;
-using System.Xml;
 using Microsoft.Bank.Payment;
+using Microsoft.Bank.Reconciliation;
+using Microsoft.Bank.Setup;
+using System.IO;
+using System.Xml;
 
 permissionset 3439 "SEPA Credit Transfers - Edit"
 {

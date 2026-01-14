@@ -19,6 +19,7 @@ using Microsoft.Service.History;
 using Microsoft.Service.Item;
 using Microsoft.Service.Ledger;
 using Microsoft.Service.Pricing;
+using Microsoft.Utilities;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Journal;
@@ -26,7 +27,6 @@ using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
-using Microsoft.Utilities;
 
 codeunit 136140 "Service Order Release"
 {

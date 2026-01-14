@@ -7,6 +7,15 @@ namespace Microsoft.Finance.VAT.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 
+/// <summary>
+/// Temporary table used during VAT Setup Wizard to manage VAT business posting group selections and defaults.
+/// Stores user selections and configuration options for creating VAT business posting groups during assisted setup.
+/// </summary>
+/// <remarks>
+/// Usage context: VAT Setup Wizard temporary data storage and user interaction management.
+/// Lifecycle: Created and populated during wizard execution, not persisted in database.
+/// Integration: Works with VAT Setup Wizard to create permanent VAT business posting groups.
+/// </remarks>
 table 1879 "VAT Assisted Setup Bus. Grp."
 {
     Caption = 'VAT Assisted Setup Bus. Grp.';
@@ -14,19 +23,31 @@ table 1879 "VAT Assisted Setup Bus. Grp."
 
     fields
     {
+        /// <summary>
+        /// VAT business posting group code for wizard selection and configuration.
+        /// </summary>
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
             NotBlank = true;
         }
+        /// <summary>
+        /// Descriptive text explaining the VAT business posting group's purpose.
+        /// </summary>
         field(2; Description; Text[100])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// User selection indicator for including this VAT business posting group in setup.
+        /// </summary>
         field(3; Selected; Boolean)
         {
             Caption = 'Selected';
         }
+        /// <summary>
+        /// Indicates whether this VAT business posting group is the default selection.
+        /// </summary>
         field(4; Default; Boolean)
         {
             Caption = 'Default';
@@ -53,6 +74,10 @@ table 1879 "VAT Assisted Setup Bus. Grp."
         Text002Txt: Label 'Customers and vendors in EU';
         Text003Txt: Label 'Other customers and vendors (not EU)';
 
+    /// <summary>
+    /// Populates the table with standard VAT business posting groups for wizard selection.
+    /// Creates default entries for Domestic, EU, and Export VAT business posting groups.
+    /// </summary>
     procedure PopulateVATBusGrp()
     begin
         SetRange(Default, false);
@@ -69,6 +94,13 @@ table 1879 "VAT Assisted Setup Bus. Grp."
         until Next() = 0;
     end;
 
+    /// <summary>
+    /// Inserts a VAT business posting group entry for wizard selection with specified parameters.
+    /// Creates temporary record for user selection during VAT setup wizard process.
+    /// </summary>
+    /// <param name="GrpCode">VAT business posting group code</param>
+    /// <param name="GrpDesc">Descriptive text for the VAT business posting group</param>
+    /// <param name="IsDefault">Whether this is a default template entry</param>
     procedure InsertBusPostingGrp(GrpCode: Code[20]; GrpDesc: Text[100]; IsDefault: Boolean)
     var
         VATAssistedSetupBusGrp: Record "VAT Assisted Setup Bus. Grp.";
@@ -81,6 +113,11 @@ table 1879 "VAT Assisted Setup Bus. Grp."
         VATAssistedSetupBusGrp.Insert();
     end;
 
+    /// <summary>
+    /// Validates that at least one VAT business posting group is selected for creation.
+    /// Checks user selections to ensure wizard can proceed with VAT business posting group setup.
+    /// </summary>
+    /// <returns>True if at least one non-default VAT business posting group is selected</returns>
     procedure ValidateVATBusGrp(): Boolean
     begin
         SetRange(Selected, true);
@@ -88,6 +125,12 @@ table 1879 "VAT Assisted Setup Bus. Grp."
         exit(not IsEmpty);
     end;
 
+    /// <summary>
+    /// Checks whether customers or vendors already exist with the specified VAT business posting group.
+    /// Validates data dependencies before allowing VAT business posting group modifications.
+    /// </summary>
+    /// <param name="VATBusPostingGroupCode">VAT business posting group code to check</param>
+    /// <returns>True if customers or vendors use the specified VAT business posting group</returns>
     procedure CheckExistingCustomersAndVendorsWithVAT(VATBusPostingGroupCode: Code[20]): Boolean
     var
         Customer: Record Customer;

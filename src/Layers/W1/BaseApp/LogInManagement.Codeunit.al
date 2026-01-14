@@ -15,9 +15,9 @@ using Microsoft.Sales.Customer;
 using System.Azure.Identity;
 using System.Environment.Configuration;
 using System.Globalization;
+using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.User;
-using System.Reflection;
 
 codeunit 40 LogInManagement
 {

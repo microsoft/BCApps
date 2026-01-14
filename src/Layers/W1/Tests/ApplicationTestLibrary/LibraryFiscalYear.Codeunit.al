@@ -1,7 +1,8 @@
+/// <summary>
+/// Provides utility functions for creating, managing, and closing fiscal years in test scenarios.
+/// </summary>
 codeunit 131302 "Library - Fiscal Year"
 {
-    // Library Functions related to Fiscal Year.
-
 
     trigger OnRun()
     begin

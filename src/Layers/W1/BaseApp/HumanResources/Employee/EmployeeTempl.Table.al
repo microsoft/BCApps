@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,15 +22,18 @@ table 1384 "Employee Templ."
         field(1; Code; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code of the template.';
             NotBlank = true;
         }
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the template.';
         }
         field(10; City; Text[30])
         {
             Caption = 'City';
+            ToolTip = 'Specifies the city of the address.';
 
             trigger OnLookup()
             var
@@ -53,6 +56,7 @@ table 1384 "Employee Templ."
         field(11; "Post Code"; Code[20])
         {
             Caption = 'Post Code';
+            ToolTip = 'Specifies the postal code.';
 
             trigger OnLookup()
             var
@@ -76,14 +80,17 @@ table 1384 "Employee Templ."
         {
             CaptionClass = '5,1,' + "Country/Region Code";
             Caption = 'County';
+            ToolTip = 'Specifies the county of the employee.';
         }
         field(24; Gender; Enum "Employee Gender")
         {
             Caption = 'Gender';
+            ToolTip = 'Specifies the employee''s gender.';
         }
         field(25; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';
+            ToolTip = 'Specifies the country/region of the address.';
             TableRelation = "Country/Region";
 
             trigger OnValidate()
@@ -110,6 +117,7 @@ table 1384 "Employee Templ."
         field(28; "Statistics Group Code"; Code[10])
         {
             Caption = 'Statistics Group Code';
+            ToolTip = 'Specifies a statistics group code to assign to the employee for statistical purposes.';
             TableRelation = "Employee Statistics Group";
         }
         field(36; "Global Dimension 1 Code"; Code[20])
@@ -153,16 +161,19 @@ table 1384 "Employee Templ."
         field(53; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
+            ToolTip = 'Specifies the number series that will be used to assign numbers to employees.';
             TableRelation = "No. Series";
         }
         field(55; "Employee Posting Group"; Code[20])
         {
             Caption = 'Employee Posting Group';
+            ToolTip = 'Specifies the employee''s type to link business transactions made for the employee with the appropriate account in the general ledger.';
             TableRelation = "Employee Posting Group";
         }
         field(80; "Application Method"; Enum "Application Method")
         {
             Caption = 'Application Method';
+            ToolTip = 'Specifies how to apply payments to entries for this employee.';
         }
         field(175; "Allow Multiple Posting Groups"; Boolean)
         {

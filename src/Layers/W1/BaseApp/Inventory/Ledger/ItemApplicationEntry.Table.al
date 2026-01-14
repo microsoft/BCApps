@@ -4,13 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Ledger;
 
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Costing;
+using Microsoft.Inventory.Setup;
 using Microsoft.Utilities;
+using System.Globalization;
 using System.Security.AccessControl;
 using System.Utilities;
-using System.Globalization;
-using Microsoft.Foundation.NoSeries;
-using Microsoft.Inventory.Setup;
 
 table 339 "Item Application Entry"
 {
@@ -208,6 +208,8 @@ table 339 "Item Application Entry"
         exit(FindSet());
     end;
 
+#if not CLEAN28
+    [Obsolete('Replaced with namesake procedure with "Item Application Entries Outb." as parameter.', '28.0')]
     procedure AppliedOutbndEntryExists(var ItemApplicationEntries: Query "Item Application Entries"; InbndItemLedgEntryNo: Integer; IsCostApplication: Boolean; FilterOnOnlyCostNotAdjusted: Boolean): Boolean
     begin
         ItemApplicationEntries.SetRange(Inbound_Item_Entry_No, InbndItemLedgEntryNo);
@@ -220,6 +222,21 @@ table 339 "Item Application Entry"
 
         ItemApplicationEntries.Open();
         exit(ItemApplicationEntries.Read());
+    end;
+#endif
+
+    procedure AppliedOutbndEntryExists(var ItemApplicationEntriesOutb: Query "Item Application Entries Outb."; InbndItemLedgEntryNo: Integer; IsCostApplication: Boolean; FilterOnOnlyCostNotAdjusted: Boolean): Boolean
+    begin
+        ItemApplicationEntriesOutb.SetRange(Inbound_Item_Entry_No, InbndItemLedgEntryNo);
+        ItemApplicationEntriesOutb.SetFilter(Item_Ledger_Entry_No, '<>%1', InbndItemLedgEntryNo);
+        ItemApplicationEntriesOutb.SetFilter(Outbound_Item_Entry_No, '<>0');
+        if IsCostApplication then
+            ItemApplicationEntriesOutb.SetRange(Cost_Application, true);
+        if FilterOnOnlyCostNotAdjusted then
+            ItemApplicationEntriesOutb.SetRange(Outbound_Entry_is_Updated, false);
+
+        ItemApplicationEntriesOutb.Open();
+        exit(ItemApplicationEntriesOutb.Read());
     end;
 
     procedure AppliedInbndTransEntryExists(InbndItemLedgEntryNo: Integer; IsCostApplication: Boolean): Boolean
@@ -266,6 +283,8 @@ table 339 "Item Application Entry"
         exit(FindSet());
     end;
 
+#if not CLEAN28
+    [Obsolete('Replaced with namesake procedure with "Item Application Entries Inb." as parameter.', '28.0')]
     procedure AppliedInbndEntryExists(var ItemApplicationEntries: Query "Item Application Entries"; OutbndItemLedgEntryNo: Integer; IsCostApplication: Boolean): Boolean
     begin
         ItemApplicationEntries.SetRange(Outbound_Item_Entry_No, OutbndItemLedgEntryNo);
@@ -276,6 +295,19 @@ table 339 "Item Application Entry"
 
         ItemApplicationEntries.Open();
         exit(ItemApplicationEntries.Read());
+    end;
+#endif
+
+    procedure AppliedInbndEntryExists(var ItemApplicationEntriesInb: Query "Item Application Entries Inb."; OutbndItemLedgEntryNo: Integer; IsCostApplication: Boolean): Boolean
+    begin
+        ItemApplicationEntriesInb.SetRange(Outbound_Item_Entry_No, OutbndItemLedgEntryNo);
+        ItemApplicationEntriesInb.SetFilter(Item_Ledger_Entry_No, '<>%1', OutbndItemLedgEntryNo);
+        ItemApplicationEntriesInb.SetRange(Transferred_from_Entry_No, 0);
+        if IsCostApplication then
+            ItemApplicationEntriesInb.SetRange(Cost_Application, true);
+
+        ItemApplicationEntriesInb.Open();
+        exit(ItemApplicationEntriesInb.Read());
     end;
 
     procedure AppliedFromEntryExists(InbndItemLedgEntryNo: Integer): Boolean
@@ -507,20 +539,20 @@ table 339 "Item Application Entry"
 
     local procedure CheckCyclicFwdToAppliedOutbnds(CheckItemLedgerEntry: Record "Item Ledger Entry"; EntryNo: Integer): Boolean
     var
-        ItemApplicationEntries: Query "Item Application Entries";
+        ItemApplicationEntriesOutb: Query "Item Application Entries Outb.";
     begin
-        if AppliedOutbndEntryExists(ItemApplicationEntries, EntryNo, false, false) then
-            exit(CheckCyclicFwdToAppliedEntries(CheckItemLedgerEntry, ItemApplicationEntries, EntryNo, true));
+        if AppliedOutbndEntryExists(ItemApplicationEntriesOutb, EntryNo, false, false) then
+            exit(CheckCyclicFwdToAppliedOutbEntries(CheckItemLedgerEntry, ItemApplicationEntriesOutb, EntryNo, true));
 
         exit(false);
     end;
 
     local procedure CheckCyclicFwdToAppliedInbnds(CheckItemLedgerEntry: Record "Item Ledger Entry"; EntryNo: Integer): Boolean
     var
-        ItemApplicationEntries: Query "Item Application Entries";
+        ItemApplicationEntriesInb: Query "Item Application Entries Inb.";
     begin
-        if AppliedInbndEntryExists(ItemApplicationEntries, EntryNo, false) then
-            exit(CheckCyclicFwdToAppliedEntries(CheckItemLedgerEntry, ItemApplicationEntries, EntryNo, false));
+        if AppliedInbndEntryExists(ItemApplicationEntriesInb, EntryNo, false) then
+            exit(CheckCyclicFwdToAppliedInbEntries(CheckItemLedgerEntry, ItemApplicationEntriesInb, EntryNo, false));
 
         exit(false);
     end;
@@ -556,7 +588,6 @@ table 339 "Item Application Entry"
     local procedure CheckCyclicFwdToAppliedEntries(CheckItemLedgerEntry: Record "Item Ledger Entry"; var ItemApplicationEntries: Query "Item Application Entries"; FromEntryNo: Integer; IsPositiveToNegativeFlow: Boolean): Boolean
     var
         ToEntryNo: Integer;
-        IsCyclicalLoop: Boolean;
     begin
         if EntryIsVisited(FromEntryNo) then
             exit(false);
@@ -567,37 +598,89 @@ table 339 "Item Application Entry"
             else
                 ToEntryNo := ItemApplicationEntries.Inbound_Item_Entry_No;
 
-            if CheckLatestItemLedgerEntryValuationDate(ItemApplicationEntries.Item_Ledger_Entry_No, MaxValuationDate) then begin
-                if TrackChain then begin
-                    TempItemLedgerEntryInChainNo.Number := ToEntryNo;
-                    if TempItemLedgerEntryInChainNo.Insert() then;
-                end;
-
-                if ToEntryNo = CheckItemLedgerEntry."Entry No." then
-                    exit(true);
-
-                if not IsPositiveToNegativeFlow then begin
-                    if CheckCyclicFwdToAppliedOutbnds(CheckItemLedgerEntry, ToEntryNo) then
-                        exit(true);
-                end else begin
-                    if CheckCyclicFwdToAppliedInbnds(CheckItemLedgerEntry, ToEntryNo) then
-                        exit(true);
-                    if CheckCyclicFwdToProdOutput(CheckItemLedgerEntry, ToEntryNo) then
-                        exit(true);
-                    if CheckCyclicFwdToAsmOutput(CheckItemLedgerEntry, ToEntryNo) then
-                        exit(true);
-                end;
-
-                IsCyclicalLoop := false;
-                OnCheckCyclicFwdToAppliedEntriesOnAfterCheckItemApplicationEntry(CheckItemLedgerEntry, ToEntryNo, IsPositiveToNegativeFlow, IsCyclicalLoop);
-                if IsCyclicalLoop then
-                    exit(true);
-            end;
+            if CheckCyclicFwdToSingleAppliedEntry(CheckItemLedgerEntry, ToEntryNo, ItemApplicationEntries.Item_Ledger_Entry_No, IsPositiveToNegativeFlow) then
+                exit(true);
         until not ItemApplicationEntries.Read();
 
         if IsPositiveToNegativeFlow then
             exit(CheckCyclicFwdToInbndTransfers(CheckItemLedgerEntry, FromEntryNo));
         exit(false);
+    end;
+
+    local procedure CheckCyclicFwdToAppliedInbEntries(CheckItemLedgerEntry: Record "Item Ledger Entry"; var ItemApplicationEntriesInb: Query "Item Application Entries Inb."; FromEntryNo: Integer; IsPositiveToNegativeFlow: Boolean): Boolean
+    var
+        ToEntryNo: Integer;
+    begin
+        if EntryIsVisited(FromEntryNo) then
+            exit(false);
+
+        repeat
+            if IsPositiveToNegativeFlow then
+                ToEntryNo := ItemApplicationEntriesInb.Outbound_Item_Entry_No
+            else
+                ToEntryNo := ItemApplicationEntriesInb.Inbound_Item_Entry_No;
+
+            if CheckCyclicFwdToSingleAppliedEntry(CheckItemLedgerEntry, ToEntryNo, ItemApplicationEntriesInb.Item_Ledger_Entry_No, IsPositiveToNegativeFlow) then
+                exit(true);
+        until not ItemApplicationEntriesInb.Read();
+
+        if IsPositiveToNegativeFlow then
+            exit(CheckCyclicFwdToInbndTransfers(CheckItemLedgerEntry, FromEntryNo));
+        exit(false);
+    end;
+
+    local procedure CheckCyclicFwdToAppliedOutbEntries(CheckItemLedgerEntry: Record "Item Ledger Entry"; var ItemApplicationEntriesOutb: Query "Item Application Entries Outb."; FromEntryNo: Integer; IsPositiveToNegativeFlow: Boolean): Boolean
+    var
+        ToEntryNo: Integer;
+    begin
+        if EntryIsVisited(FromEntryNo) then
+            exit(false);
+
+        repeat
+            if IsPositiveToNegativeFlow then
+                ToEntryNo := ItemApplicationEntriesOutb.Outbound_Item_Entry_No
+            else
+                ToEntryNo := ItemApplicationEntriesOutb.Inbound_Item_Entry_No;
+
+            if CheckCyclicFwdToSingleAppliedEntry(CheckItemLedgerEntry, ToEntryNo, ItemApplicationEntriesOutb.Item_Ledger_Entry_No, IsPositiveToNegativeFlow) then
+                exit(true);
+        until not ItemApplicationEntriesOutb.Read();
+
+        if IsPositiveToNegativeFlow then
+            exit(CheckCyclicFwdToInbndTransfers(CheckItemLedgerEntry, FromEntryNo));
+        exit(false);
+    end;
+
+    local procedure CheckCyclicFwdToSingleAppliedEntry(CheckItemLedgerEntry: Record "Item Ledger Entry"; ToEntryNo: Integer; ItemLedgerEntryNo: Integer; IsPositiveToNegativeFlow: Boolean): Boolean
+    var
+        IsCyclicalLoop: Boolean;
+    begin
+        if not CheckLatestItemLedgerEntryValuationDate(ItemLedgerEntryNo, MaxValuationDate) then
+            exit(false);
+
+        if TrackChain then begin
+            TempItemLedgerEntryInChainNo.Number := ToEntryNo;
+            if TempItemLedgerEntryInChainNo.Insert() then;
+        end;
+
+        if ToEntryNo = CheckItemLedgerEntry."Entry No." then
+            exit(true);
+
+        if not IsPositiveToNegativeFlow then begin
+            if CheckCyclicFwdToAppliedOutbnds(CheckItemLedgerEntry, ToEntryNo) then
+                exit(true);
+        end else begin
+            if CheckCyclicFwdToAppliedInbnds(CheckItemLedgerEntry, ToEntryNo) then
+                exit(true);
+            if CheckCyclicFwdToProdOutput(CheckItemLedgerEntry, ToEntryNo) then
+                exit(true);
+            if CheckCyclicFwdToAsmOutput(CheckItemLedgerEntry, ToEntryNo) then
+                exit(true);
+        end;
+
+        IsCyclicalLoop := false;
+        OnCheckCyclicFwdToAppliedEntriesOnAfterCheckItemApplicationEntry(CheckItemLedgerEntry, ToEntryNo, IsPositiveToNegativeFlow, IsCyclicalLoop);
+        exit(IsCyclicalLoop);
     end;
 
     local procedure EntryIsVisited(EntryNo: Integer): Boolean
@@ -626,7 +709,7 @@ table 339 "Item Application Entry"
     begin
         MaxValuationDate := 0D;
         if WithinValuationDate then begin
-            ValueEntry.SetCurrentKey("Item Ledger Entry No.", "Valuation Date");
+            ValueEntry.SetCurrentKey("Item Ledger Entry No.", "Valuation Date", "SystemCreatedAt");
             ValueEntry.SetRange("Item Ledger Entry No.", FromItemLedgEntry."Entry No.");
             ValueEntry.SetLoadFields("Valuation Date");
             ValueEntry.FindLast();
@@ -806,7 +889,7 @@ table 339 "Item Application Entry"
     begin
         if MaxDate = 0D then
             exit(true);
-        ValueEntry.SetCurrentKey("Item Ledger Entry No.", "Valuation Date");
+        ValueEntry.SetCurrentKey("Item Ledger Entry No.", "Valuation Date", SystemCreatedAt);
         ValueEntry.SetRange("Item Ledger Entry No.", ItemLedgerEntryNo);
         ValueEntry.SetLoadFields("Valuation Date");
         ValueEntry.FindLast();

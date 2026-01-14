@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+/// <summary>
+/// List view of all available VAT statement templates for selection and management.
+/// Provides read-only access to template configurations with navigation to detailed setup.
+/// </summary>
 page 319 "VAT Statement Template List"
 {
     Caption = 'VAT Statement Template List';

@@ -236,7 +236,7 @@ codeunit 63 "Sales-Explode BOM"
         if TransferExtendedText.SalesCheckIfAnyExtText(ToSalesLine, false) then
             TransferExtendedText.InsertSalesExtText(ToSalesLine);
 
-        OnAfterExplodeBOMCompLines(SalesLine, Selection, LineSpacing);
+        OnAfterExplodeBOMCompLines(SalesLine, Selection, LineSpacing, ToSalesLine);
     end;
 
     local procedure CheckSalesLine(SalesLine: Record "Sales Line")
@@ -276,7 +276,7 @@ codeunit 63 "Sales-Explode BOM"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterExplodeBOMCompLines(var SalesLine: Record "Sales Line"; Selection: Integer; LineSpacing: Integer)
+    local procedure OnAfterExplodeBOMCompLines(var SalesLine: Record "Sales Line"; Selection: Integer; LineSpacing: Integer; var ToSalesLine: Record "Sales Line")
     begin
     end;
 

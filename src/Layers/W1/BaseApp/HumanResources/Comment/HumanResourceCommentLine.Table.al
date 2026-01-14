@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ table 5208 "Human Resource Comment Line"
         field(2; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             TableRelation = if ("Table Name" = const(Employee)) Employee."No."
             else
             if ("Table Name" = const("Alternative Address")) "Alternative Address"."Employee No."
@@ -54,14 +55,17 @@ table 5208 "Human Resource Comment Line"
         field(7; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies the date the comment was created.';
         }
         field(8; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code for the comment.';
         }
         field(9; Comment; Text[80])
         {
             Caption = 'Comment';
+            ToolTip = 'Specifies the comment itself.';
         }
     }
 

@@ -18,6 +18,7 @@ codeunit 134276 "Currency Exch. Rate Unit Tests"
         LibraryERM: Codeunit "Library - ERM";
         LibraryRandom: Codeunit "Library - Random";
         LibraryJobQueue: Codeunit "Library - Job Queue";
+        LibraryApplicationArea: Codeunit "Library - Application Area";
         Initialized: Boolean;
         LongURLExampleTxt: Label 'http://query.yahooapis.com/v1/public/yql?q=select * from yahoo.finance.xchange where pair in ("USDEUR", "USDJPY", "USDBGN", "USDCZK", "USDDKK", "USDGBP", "USDHUF", "USDLTL", "USDLVL", "USDPLN", "USDRON", "USDSEK", "USDCHF", "USDNOK", "USDHRK", "USDRUB", "USDTRY", "USDAUD", "USDBRL", "USDCAD", "USDCNY", "USDHKD", "USDIDR", "USDILS", "USDINR", "USDKRW", "USDMXN", "USDMYR", "USDNZD", "USDPHP", "USDSGD", "USDTHB", "USDZAR", "USDISK")&env=store://datatables.org/alltableswithkeys', Locked = true;
         URLWithLocalCharactersExampleTxt: Label 'http://ko.wikipedia.org/wiki/%EC%9C%84%ED%82%A4%EB%B0%B1%EA%B3%BC%3a%EB%8C%80%EB%AC%B8', Locked = true;
@@ -598,6 +599,8 @@ codeunit 134276 "Currency Exch. Rate Unit Tests"
         if Initialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"Currency Exch. Rate Unit Tests");
+        LibraryApplicationArea.DisableApplicationAreaSetup();
+        LibraryApplicationArea.EnableFoundationSetup();
 
         BindSubscription(LibraryJobQueue);
         LibraryERMCountryData.CreateVATData();

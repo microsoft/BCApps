@@ -2,6 +2,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+
+/// <summary>
+/// Table Dimension (ID 348).
+/// This table stores the master data for dimensions, which are used to analyze transactions and provide additional insight into business data.
+/// Dimensions allow for multi-dimensional analysis of financial data and can be used in analysis views, budgets, and reporting.
+/// </summary>
 namespace Microsoft.Finance.Dimension;
 
 using Microsoft.Finance.Analysis;
@@ -15,6 +21,11 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using System.Globalization;
 
+/// <summary>
+/// Table Dimension (ID 348).
+/// Stores the master data for dimensions used for financial analysis.
+/// Dimensions provide a way to analyze business transactions across different business criteria.
+/// </summary>
 table 348 Dimension
 {
     Caption = 'Dimension';
@@ -25,6 +36,10 @@ table 348 Dimension
 
     fields
     {
+        /// <summary>
+        /// The unique code that identifies the dimension.
+        /// This field cannot be blank and cannot use reserved system names.
+        /// </summary>
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
@@ -50,31 +65,58 @@ table 348 Dimension
                 UpdateText(Code, Text009, "Filter Caption");
             end;
         }
+        /// <summary>
+        /// The descriptive name of the dimension that appears in the user interface.
+        /// This name should clearly describe what the dimension represents.
+        /// </summary>
         field(2; Name; Text[30])
         {
             Caption = 'Name';
         }
+        /// <summary>
+        /// The caption used for dimension code fields in forms and reports.
+        /// If not specified, defaults to the dimension code with proper formatting.
+        /// </summary>
         field(3; "Code Caption"; Text[80])
         {
             Caption = 'Code Caption';
         }
+        /// <summary>
+        /// The caption used for dimension filter fields in forms and reports.
+        /// If not specified, defaults to "Filter" appended to the dimension code.
+        /// </summary>
         field(4; "Filter Caption"; Text[80])
         {
             Caption = 'Filter Caption';
         }
+        /// <summary>
+        /// Extended description of the dimension providing additional context about its purpose and usage.
+        /// </summary>
         field(5; Description; Text[100])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// Indicates whether the dimension is blocked from being used in new transactions.
+        /// Blocked dimensions cannot be selected in new documents but existing data remains unchanged.
+        /// </summary>
         field(6; Blocked; Boolean)
         {
             Caption = 'Blocked';
         }
+        /// <summary>
+        /// The consolidation code used when consolidating financial data across business units.
+        /// Links this dimension to corresponding dimensions in subsidiary companies.
+        /// </summary>
         field(7; "Consolidation Code"; Code[20])
         {
             AccessByPermission = TableData "Business Unit" = R;
             Caption = 'Consolidation Code';
         }
+        /// <summary>
+        /// Maps this dimension to an intercompany dimension for transactions between related companies.
+        /// When set, all dimension values are automatically mapped to the corresponding IC dimension.
+        /// </summary>
         field(8; "Map-to IC Dimension Code"; Code[20])
         {
             Caption = 'Map-to IC Dimension Code';
@@ -91,6 +133,10 @@ table 348 Dimension
                 end;
             end;
         }
+        /// <summary>
+        /// System field that tracks when the dimension record was last modified.
+        /// Used for synchronization and audit purposes.
+        /// </summary>
         field(8001; "Last Modified Date Time"; DateTime)
         {
             Caption = 'Last Modified Date Time';
@@ -115,6 +161,10 @@ table 348 Dimension
         }
     }
 
+    /// <summary>
+    /// Validates whether a dimension can be deleted by checking for usage in posted entries, budgets, and setup.
+    /// Prevents deletion of dimensions that are actively used in the system.
+    /// </summary>
     trigger OnDelete()
     var
         GLSetup: Record "General Ledger Setup";
@@ -173,16 +223,26 @@ table 348 Dimension
         RemoveICDimensionMappings();
     end;
 
+    /// <summary>
+    /// Sets the last modified date time when a new dimension is created.
+    /// </summary>
     trigger OnInsert()
     begin
         SetLastModifiedDateTime();
     end;
 
+    /// <summary>
+    /// Updates the last modified date time when dimension data is changed.
+    /// </summary>
     trigger OnModify()
     begin
         SetLastModifiedDateTime();
     end;
 
+    /// <summary>
+    /// Handles dimension code changes by updating related dimension value per account records.
+    /// Also updates the last modified date time.
+    /// </summary>
     trigger OnRename()
     var
         DimValuePerAccount: Record "Dim. Value per Account";
@@ -265,6 +325,16 @@ table 348 Dimension
         OnAfterDeleteRelatedRecords(DimensionCode);
     end;
 
+    /// <summary>
+    /// Checks if a dimension is being used in various system setups, posted entries, or budgets.
+    /// This comprehensive check prevents deletion of dimensions that would cause data integrity issues.
+    /// </summary>
+    /// <param name="DimChecked">The dimension code to check for usage.</param>
+    /// <param name="DimTypeChecked">The specific dimension type context to check (Global, Shortcut, Budget, etc.).</param>
+    /// <param name="BudgetNameChecked">The budget name to check if budget-specific validation is needed.</param>
+    /// <param name="AnalysisViewChecked">The analysis view to check if analysis-specific validation is needed.</param>
+    /// <param name="AnalysisAreaChecked">The analysis area (Sales/Purchase) for item-related checks.</param>
+    /// <returns>True if the dimension is used and cannot be deleted; false otherwise.</returns>
     procedure CheckIfDimUsed(DimChecked: Code[20]; DimTypeChecked: Option " ",Global1,Global2,Shortcut3,Shortcut4,Shortcut5,Shortcut6,Shortcut7,Shortcut8,Budget1,Budget2,Budget3,Budget4,Analysis1,Analysis2,Analysis3,Analysis4,ItemBudget1,ItemBudget2,ItemBudget3,ItemAnalysis1,ItemAnalysis2,ItemAnalysis3; BudgetNameChecked: Code[10]; AnalysisViewChecked: Code[10]; AnalysisAreaChecked: Integer): Boolean
     var
         GLSetup: Record "General Ledger Setup";
@@ -430,6 +500,10 @@ table 348 Dimension
         exit(false);
     end;
 
+    /// <summary>
+    /// Checks if a dimension is used in analysis views and updates the usage flags accordingly.
+    /// This is a helper procedure for the main CheckIfDimUsed function.
+    /// </summary>
     local procedure CheckIfDimUsedAsAnalysisViewDim(AnalysisView: Record "Analysis View"; DimChecked: Code[20]; DimTypeChecked: Option " ",Global1,Global2,Shortcut3,Shortcut4,Shortcut5,Shortcut6,Shortcut7,Shortcut8,Budget1,Budget2,Budget3,Budget4,Analysis1,Analysis2,Analysis3,Analysis4,ItemBudget1,ItemBudget2,ItemBudget3,ItemAnalysis1,ItemAnalysis2,ItemAnalysis3; CheckAllDim: Boolean; CheckAnalysisViewDim: Boolean; AnalysisViewChecked: Code[10])
     var
         IsHandled: Boolean;
@@ -482,29 +556,58 @@ table 348 Dimension
         CheckDimErr := CopyStr(CheckDimErr, 1, StrLen(CheckDimErr) - 2) + '.';
     end;
 
+    /// <summary>
+    /// Returns the formatted error message indicating where the dimension is being used.
+    /// Used in conjunction with CheckIfDimUsed to provide detailed error information.
+    /// </summary>
+    /// <returns>The formatted error message detailing dimension usage.</returns>
     procedure GetCheckDimErr(): Text[250]
     begin
         exit(CheckDimErr);
     end;
 
+    /// <summary>
+    /// Retrieves the multilanguage name for the dimension in the specified language.
+    /// Falls back to the default name if no translation exists.
+    /// </summary>
+    /// <param name="LanguageID">The language ID for the requested translation.</param>
+    /// <returns>The dimension name in the specified language.</returns>
     procedure GetMLName(LanguageID: Integer): Text[30]
     begin
         GetDimTrans(LanguageID);
         exit(DimTrans.Name);
     end;
 
+    /// <summary>
+    /// Retrieves the multilanguage code caption for the dimension in the specified language.
+    /// Falls back to the default code caption if no translation exists.
+    /// </summary>
+    /// <param name="LanguageID">The language ID for the requested translation.</param>
+    /// <returns>The dimension code caption in the specified language.</returns>
     procedure GetMLCodeCaption(LanguageID: Integer): Text[80]
     begin
         GetDimTrans(LanguageID);
         exit(DimTrans."Code Caption");
     end;
 
+    /// <summary>
+    /// Retrieves the multilanguage filter caption for the dimension in the specified language.
+    /// Falls back to the default filter caption if no translation exists.
+    /// </summary>
+    /// <param name="LanguageID">The language ID for the requested translation.</param>
+    /// <returns>The dimension filter caption in the specified language.</returns>
     procedure GetMLFilterCaption(LanguageID: Integer): Text[80]
     begin
         GetDimTrans(LanguageID);
         exit(DimTrans."Filter Caption");
     end;
 
+    /// <summary>
+    /// Sets the multilanguage name for the dimension in the specified language.
+    /// Updates either the main record or creates/updates a translation record.
+    /// </summary>
+    /// <param name="NewMLName">The new name to set for the dimension.</param>
+    /// <param name="LanguageID">The language ID for the translation.</param>
     procedure SetMLName(NewMLName: Text[30]; LanguageID: Integer)
     begin
         if IsApplicationLanguage(LanguageID) then begin
@@ -521,6 +624,12 @@ table 348 Dimension
         end;
     end;
 
+    /// <summary>
+    /// Sets the multilanguage code caption for the dimension in the specified language.
+    /// Updates either the main record or creates/updates a translation record.
+    /// </summary>
+    /// <param name="NewMLCodeCaption">The new code caption to set for the dimension.</param>
+    /// <param name="LanguageID">The language ID for the translation.</param>
     procedure SetMLCodeCaption(NewMLCodeCaption: Text[80]; LanguageID: Integer)
     begin
         if IsApplicationLanguage(LanguageID) then begin
@@ -537,6 +646,12 @@ table 348 Dimension
         end;
     end;
 
+    /// <summary>
+    /// Sets the multilanguage filter caption for the dimension in the specified language.
+    /// Updates either the main record or creates/updates a translation record.
+    /// </summary>
+    /// <param name="NewMLFilterCaption">The new filter caption to set for the dimension.</param>
+    /// <param name="LanguageID">The language ID for the translation.</param>
     procedure SetMLFilterCaption(NewMLFilterCaption: Text[80]; LanguageID: Integer)
     begin
         if IsApplicationLanguage(LanguageID) then begin
@@ -553,6 +668,12 @@ table 348 Dimension
         end;
     end;
 
+    /// <summary>
+    /// Sets the multilanguage description for the dimension in the specified language.
+    /// Currently only creates the translation record structure without storing the description value.
+    /// </summary>
+    /// <param name="NewMLDescription">The new description to set for the dimension.</param>
+    /// <param name="LanguageID">The language ID for the translation.</param>
     procedure SetMLDescription(NewMLDescription: Text[100]; LanguageID: Integer)
     begin
         if IsApplicationLanguage(LanguageID) then begin
@@ -625,21 +746,53 @@ table 348 Dimension
         end;
     end;
 
+    /// <summary>
+    /// Integration event raised after deleting records related to a dimension being deleted.
+    /// Enables cleanup of custom dimension-related data when a dimension is removed.
+    /// </summary>
+    /// <param name="DimensionCode">Code of the dimension that was deleted</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterDeleteRelatedRecords(DimensionCode: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before deleting records related to a dimension being deleted.
+    /// Enables validation or preparation before dimension-related data cleanup occurs.
+    /// </summary>
+    /// <param name="DimensionCode">Code of the dimension being deleted</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDeleteRelatedRecords(DimensionCode: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking if a dimension is used in custom scenarios.
+    /// Enables custom validation of dimension usage beyond standard Business Central checks.
+    /// </summary>
+    /// <param name="DimChecked">Dimension code being checked for usage</param>
+    /// <param name="DimTypeChecked">Type of dimension being checked (Global, Shortcut, Budget, Analysis, etc.)</param>
+    /// <param name="UsedAsCustomDim">Set to true if dimension is used in custom scenarios</param>
+    /// <param name="CustomDimErr">Error message to display if dimension is used</param>
+    /// <param name="AnalysisViewChecked">Analysis view code being checked</param>
+    /// <param name="AnalysisAreaChecked">Analysis area being checked</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckIfDimUsed(DimChecked: Code[20]; DimTypeChecked: Option " ",Global1,Global2,Shortcut3,Shortcut4,Shortcut5,Shortcut6,Shortcut7,Shortcut8,Budget1,Budget2,Budget3,Budget4,Analysis1,Analysis2,Analysis3,Analysis4,ItemBudget1,ItemBudget2,ItemBudget3,ItemAnalysis1,ItemAnalysis2,ItemAnalysis3; var UsedAsCustomDim: Boolean; var CustomDimErr: Text; AnalysisViewChecked: Code[10]; AnalysisAreaChecked: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking if a dimension is used as an analysis view dimension.
+    /// Enables custom logic for determining dimension usage in analysis views and related scenarios.
+    /// </summary>
+    /// <param name="AnalysisView">Analysis view record being checked</param>
+    /// <param name="DimChecked">Dimension code being checked</param>
+    /// <param name="DimTypeChecked">Type of dimension being checked</param>
+    /// <param name="CheckAllDim">Whether to check all dimensions</param>
+    /// <param name="CheckAnalysisViewDim">Whether to check analysis view dimensions</param>
+    /// <param name="AnalysisViewChecked">Analysis view code being checked</param>
+    /// <param name="UsedAsAnalysisViewDim">Set to true if dimension is used as analysis view dimension</param>
+    /// <param name="IsHandled">Set to true to skip standard analysis view dimension checking</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckIfDimUsedAsAnalysisViewDim(AnalysisView: Record "Analysis View"; DimChecked: Code[20]; DimTypeChecked: Option " ",Global1,Global2,Shortcut3,Shortcut4,Shortcut5,Shortcut6,Shortcut7,Shortcut8,Budget1,Budget2,Budget3,Budget4,Analysis1,Analysis2,Analysis3,Analysis4,ItemBudget1,ItemBudget2,ItemBudget3,ItemAnalysis1,ItemAnalysis2,ItemAnalysis3; CheckAllDim: Boolean; CheckAnalysisViewDim: Boolean; AnalysisViewChecked: Code[10]; var UsedAsAnalysisViewDim: Boolean; var IsHandled: Boolean)
     begin

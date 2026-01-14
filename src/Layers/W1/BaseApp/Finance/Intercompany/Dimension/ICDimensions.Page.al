@@ -9,6 +9,10 @@ using Microsoft.Intercompany.Setup;
 using System.IO;
 using System.Telemetry;
 
+/// <summary>
+/// Manages intercompany dimensions for cross-company dimension mapping and synchronization.
+/// Provides functionality to create, edit, import, and export intercompany dimension definitions.
+/// </summary>
 page 600 "IC Dimensions"
 {
     ApplicationArea = Dimensions;

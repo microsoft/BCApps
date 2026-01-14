@@ -12,15 +12,6 @@ enumextension 2611 "Feature To Update - BaseApp" extends "Feature To Update"
     {
         Implementation = "Feature Data Update" = "Feature - Price Calculation";
     }
-#if not CLEAN25
-    value(5878; GLCurrencyRevaluation)
-    {
-        Implementation = "Feature Data Update" = "Feature-GLCurrencyRevaluation";
-        ObsoleteState = Pending;
-        ObsoleteReason = 'Feature G/L Currency REvaluation will be enabled by default in version 27.0.';
-        ObsoleteTag = '24.0';
-    }
-#endif
 #if not CLEAN26
     value(5892; Manufacturing_FlushingMethod_ActivateManualWoPick)
     {

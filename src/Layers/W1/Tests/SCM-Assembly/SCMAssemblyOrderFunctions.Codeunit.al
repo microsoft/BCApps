@@ -4,20 +4,20 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
-using System.Environment.Configuration;
-using System.TestLibraries.Utilities;
 using Microsoft.Assembly.Document;
+using Microsoft.Assembly.Setup;
+using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
-using Microsoft.Finance.Dimension;
-using Microsoft.Assembly.Setup;
 using Microsoft.Inventory.Item.Substitution;
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
-using Microsoft.Finance.GeneralLedger.Setup;
+using System.Environment.Configuration;
+using System.TestLibraries.Utilities;
 
 codeunit 137907 "SCM Assembly Order Functions"
 {

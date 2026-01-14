@@ -1,3 +1,4 @@
+#if not CLEAN28
 namespace Microsoft.Booking;
 
 using Microsoft.Sales.Document;
@@ -6,7 +7,9 @@ using Microsoft.Sales.History;
 codeunit 6724 "Booking Appointment - Modify"
 {
     TableNo = "Invoiced Booking Item";
-
+    obsoleteReason = 'Bookings is no longer part of Business Central 365.';
+    obsoleteState = pending;
+    obsoleteTag = '28.0';
     trigger OnRun()
     var
         InvoicedBookingItem: Record "Invoiced Booking Item";
@@ -85,3 +88,4 @@ codeunit 6724 "Booking Appointment - Modify"
     end;
 }
 
+#endif

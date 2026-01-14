@@ -6,6 +6,14 @@ namespace Microsoft.Intercompany.Outbox;
 
 using Microsoft.Finance.Dimension;
 
+/// <summary>
+/// List part page for displaying handled intercompany outbox sales line details.
+/// Provides line-level view of processed sales document items, quantities, prices, and IC partner references for historical analysis.
+/// </summary>
+/// <remarks>
+/// Read-only interface for viewing completed sales transaction lines sent to IC partners.
+/// Supports dimension analysis and detailed line item review for audit and reconciliation purposes.
+/// </remarks>
 page 641 "Handled IC Outbox Sales Lines"
 {
     Caption = 'Lines';

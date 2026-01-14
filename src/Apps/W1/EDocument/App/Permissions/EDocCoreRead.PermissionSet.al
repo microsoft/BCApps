@@ -49,11 +49,12 @@ permissionset 6101 "E-Doc. Core - Read"
         tabledata "E-Doc. Vendor Assign. History" = R,
         tabledata "E-Doc. Purchase Line History" = R,
         tabledata "ED Purchase Line Field Setup" = R,
-        #if not CLEAN28
-        #pragma warning disable AL0432
+        tabledata "E-Doc Sample Purch. Inv File" = R,
+#if not CLEAN28
+#pragma warning disable AL0432
         tabledata "EDoc Historical Matching Setup" = R,
-        #pragma warning restore AL0432
-        #endif
+#pragma warning restore AL0432
+#endif
         tabledata "E-Doc. Record Link" = R;
     #endregion Purchase draft        
 }

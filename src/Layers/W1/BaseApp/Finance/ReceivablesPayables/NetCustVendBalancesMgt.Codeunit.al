@@ -10,6 +10,15 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 
+/// <summary>
+/// Manages the netting of customer and vendor balances for linked business partners.
+/// Calculates net amounts, creates offsetting journal entries, and handles application logic.
+/// </summary>
+/// <remarks>
+/// Core processing engine for Net Customer/Vendor Balances functionality.
+/// Identifies customer-vendor relationships, calculates remaining amounts, and generates journal entries.
+/// Provides extensibility through integration events for custom processing logic.
+/// </remarks>
 codeunit 108 "Net Cust/Vend Balances Mgt."
 {
     var
@@ -30,6 +39,12 @@ codeunit 108 "Net Cust/Vend Balances Mgt."
             Comment = '%1 - document no., %2 - template name, %3 - batch name, %4 - document type, %5 - document no.';
         CustomerBlockedErr: Label 'Customer %1 is blocked', Comment = '%1 - customer no.';
 
+    /// <summary>
+    /// Processes vendors to identify linked customers and creates netted balance journal entries.
+    /// Calculates net amounts between customer and vendor balances for the same business partner.
+    /// </summary>
+    /// <param name="Vendor">Vendor record set to process for netting operations</param>
+    /// <param name="NewNetBalancesParameters">Parameters controlling posting date, document numbering, and journal settings</param>
     procedure NetCustVendBalances(var Vendor: Record Vendor; NewNetBalancesParameters: Record "Net Balances Parameters")
     var
         Customer: Record Customer;
@@ -328,6 +343,11 @@ codeunit 108 "Net Cust/Vend Balances Mgt."
         end;
     end;
 
+    /// <summary>
+    /// Sets the general journal line template for both vendor and customer journal entries.
+    /// Copies line information to be used for creating netted balance entries.
+    /// </summary>
+    /// <param name="NewGenJnlLine">General journal line to use as template for new entries</param>
     procedure SetGenJnlLine(NewGenJnlLine: Record "Gen. Journal Line");
     begin
         VendorGenJnlLine := NewGenJnlLine;
@@ -511,51 +531,113 @@ codeunit 108 "Net Cust/Vend Balances Mgt."
         exit(VendLedgEntry.FindSet());
     end;
 
+    /// <summary>
+    /// Integration event raised after initializing a general journal line from vendor ledger entry data.
+    /// Enables custom modifications to journal line fields during net balance processing.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line being initialized</param>
+    /// <param name="VendLedgEntry">Source vendor ledger entry providing data</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitGenJnlLine(var GenJnlLine: Record "Gen. Journal Line"; VendLedgEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after filling general journal line from customer ledger entry.
+    /// Allows customization of journal line fields based on customer ledger entry data.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line being populated</param>
+    /// <param name="CustLedgEntry">Source customer ledger entry providing data</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFillGenJnlLineFromCustLedgEntry(var GenJnlLine: Record "Gen. Journal Line"; CustLedgEntry: Record "Cust. Ledger Entry");
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after filling general journal line from vendor ledger entry.
+    /// Enables modification of journal line fields derived from vendor ledger entry data.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line being populated</param>
+    /// <param name="VendLedgEntry">Source vendor ledger entry providing data</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFillGenJnlLineFromVendLedgEntry(var GenJnlLine: Record "Gen. Journal Line"; VendLedgEntry: Record "Vendor Ledger Entry");
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after calculating partial net amounts and setting document type.
+    /// Allows custom logic for determining net amounts and handling special document type scenarios.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry being processed</param>
+    /// <param name="CustLedgerEntry">Customer ledger entry being processed</param>
+    /// <param name="VendNetAmount">Calculated vendor net amount</param>
+    /// <param name="CustNetAmount">Calculated customer net amount</param>
+    /// <param name="DocType">Document type for the journal entries</param>
+    /// <param name="IsHandled">Set to true to skip standard calculation logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcPartNetAmountAfterSetDocumentType(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var CustLedgerEntry: Record "Cust. Ledger Entry"; var VendNetAmount: Decimal; var CustNetAmount: Decimal; DocType: Enum "Gen. Journal Document Type"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating amount on journal line created from customer ledger entry.
+    /// Enables custom amount calculation or validation logic for customer entries.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Customer ledger entry being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnFillGenJnlLineFromCustledgEntryBeforeValidateAmount(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating amount on journal line created from vendor ledger entry.
+    /// Allows custom amount calculation or validation logic for vendor entries.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnFillGenJnlLineFromVendLedgEntryBeforeValidateAmount(var VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before setting customer remaining amount during net balance processing.
+    /// Enables custom logic for determining customer remaining amount calculations.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Customer ledger entry being evaluated</param>
     [IntegrationEvent(false, false)]
     local procedure OnNetBalancesBeforeSetCustomerRemainingAmount(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before setting vendor remaining amount during net balance processing.
+    /// Allows custom logic for determining vendor remaining amount calculations.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry being evaluated</param>
     [IntegrationEvent(false, false)]
     local procedure OnNetBalancesBeforeSetVendorRemainingAmount(var VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before calculating the sum of customer remaining amounts.
+    /// Enables custom calculation logic for customer remaining amount totals.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Customer ledger entry being summed</param>
+    /// <param name="Result">Calculated result amount</param>
+    /// <param name="IsHandled">Set to true to use custom calculation result</param>
     [IntegrationEvent(false, false)]
     local procedure OnSumCustomerRemainingAmountBeforeCalcResult(var CustLedgerEntry: Record "Cust. Ledger Entry"; var Result: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before calculating the sum of vendor remaining amounts.
+    /// Allows custom calculation logic for vendor remaining amount totals.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry being summed</param>
+    /// <param name="Result">Calculated result amount</param>
+    /// <param name="IsHandled">Set to true to use custom calculation result</param>
     [IntegrationEvent(false, false)]
     local procedure OnSumVendorRemainingAmountBeforeCalcResult(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var Result: Decimal; var IsHandled: Boolean)
     begin

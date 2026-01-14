@@ -9,6 +9,10 @@ using Microsoft.Intercompany.DataExchange;
 using Microsoft.Intercompany.GLAccount;
 using Microsoft.Intercompany.Partner;
 
+/// <summary>
+/// Validates intercompany setup configuration and generates diagnostic reports for configuration issues.
+/// Performs partner validation, mapping verification, and setup completeness checks.
+/// </summary>
 codeunit 440 "IC Setup Diagnostics"
 {
     var
@@ -28,11 +32,21 @@ codeunit 440 "IC Setup Diagnostics"
         MappingSetupNoGLAccountWithICErr: Label 'No G/L Account has configured an IC G/L Account';
 
 
+    /// <summary>
+    /// Returns the identifier used for partner setup diagnostic category.
+    /// </summary>
+    /// <returns>Partner setup diagnostic category identifier</returns>
     procedure GetPartnerSetupId(): Code[20]
     begin
         exit(PartnerSetupIdTok);
     end;
 
+    /// <summary>
+    /// Validates intercompany partner configuration and generates diagnostic findings.
+    /// Checks partner setup completeness and configuration consistency.
+    /// </summary>
+    /// <param name="TempParentSetupDiagnostic">Parent diagnostic record for summary results</param>
+    /// <param name="TempChildrenSetupDiagnostic">Child diagnostic records for detailed findings</param>
     procedure InsertPartnerSetupDiagnostics(var TempParentSetupDiagnostic: Record "Intercompany Setup Diagnostic" temporary; var TempChildrenSetupDiagnostic: Record "Intercompany Setup Diagnostic" temporary)
     var
         ICSetup: Record "IC Setup";
@@ -56,6 +70,13 @@ codeunit 440 "IC Setup Diagnostics"
         InsertPartnerSetupParentDiagnostic(TempParentSetupDiagnostic, Status);
     end;
 
+    /// <summary>
+    /// Validates specific intercompany partner configuration and generates diagnostic findings.
+    /// Checks partner account setup, connection details, and configuration consistency.
+    /// </summary>
+    /// <param name="ICPartner">Intercompany partner record to validate</param>
+    /// <param name="TempChildrenSetupDiagnostic">Diagnostic records for validation findings</param>
+    /// <param name="Status">Overall validation status updated based on findings</param>
     procedure InsertICPartnerPartnerSetupDiagnostics(ICPartner: Record "IC Partner"; var TempChildrenSetupDiagnostic: Record "Intercompany Setup Diagnostic" temporary; var Status: Option)
     var
         TempICSetup: Record "IC Setup" temporary;
@@ -101,11 +122,21 @@ codeunit 440 "IC Setup Diagnostics"
         InsertDiagnostic(TempIntercompanySetupDiagnostic, PartnerSetupIdTok, Description, Status);
     end;
 
+    /// <summary>
+    /// Returns the identifier used for mapping setup diagnostic category.
+    /// </summary>
+    /// <returns>Mapping setup diagnostic category identifier</returns>
     procedure GetMappingSetupId(): Code[20]
     begin
         exit(MappingSetupIdTok);
     end;
 
+    /// <summary>
+    /// Validates intercompany chart of accounts and G/L account mappings.
+    /// Checks mapping completeness and configuration requirements for account synchronization.
+    /// </summary>
+    /// <param name="ParentSetupDiagnostic">Parent diagnostic record for summary results</param>
+    /// <param name="ChildrenSetupDiagnostic">Child diagnostic records for detailed findings</param>
     procedure InsertMappingSetupDiagnostics(var ParentSetupDiagnostic: Record "Intercompany Setup Diagnostic" temporary; var ChildrenSetupDiagnostic: Record "Intercompany Setup Diagnostic" temporary)
     var
         ICGLAccount: Record "IC G/L Account";
@@ -145,6 +176,12 @@ codeunit 440 "IC Setup Diagnostics"
         TempIntercompanySetupDiagnostic.Insert();
     end;
 
+    /// <summary>
+    /// Updates diagnostic status with higher severity level when new issues are found.
+    /// Ensures overall status reflects most severe diagnostic finding.
+    /// </summary>
+    /// <param name="OldStatus">Current status level to be updated</param>
+    /// <param name="NewStatus">New status level for comparison and potential update</param>
     procedure UpdateStatus(var OldStatus: Option; NewStatus: Option)
     var
         IntercompanySetupDiagnostic: Record "Intercompany Setup Diagnostic";

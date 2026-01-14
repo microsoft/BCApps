@@ -5,8 +5,8 @@
 namespace Microsoft.Warehouse.Activity;
 
 using Microsoft.Assembly.Document;
-using Microsoft.Warehouse.Request;
 using Microsoft.Inventory.Tracking;
+using Microsoft.Warehouse.Request;
 
 codeunit 939 "Asm. Whse.-Activity-Register"
 {

@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Configuration page for setting up default dimensions for master record entities.
+/// Enables users to define automatic dimension assignments for customers, vendors, items, and other master data.
+/// </summary>
+/// <remarks>
+/// Central interface for default dimension management: defines dimension values automatically applied to transactions.
+/// Supports various posting rules including mandatory, same code, and blocked dimension value enforcements.
+/// Used across all areas where master records require consistent dimension assignment for reporting and analysis.
+/// </remarks>
 page 540 "Default Dimensions"
 {
     Caption = 'Default Dimensions';

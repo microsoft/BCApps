@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -8,21 +8,21 @@ using Microsoft.Bank.Setup;
 using Microsoft.CostAccounting.Account;
 using Microsoft.CRM.Team;
 using Microsoft.EServices.OnlineMap;
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.Period;
 using Microsoft.HumanResources.Absence;
 using Microsoft.HumanResources.Comment;
 using Microsoft.HumanResources.Payables;
-using Microsoft.Foundation.Period;
 using Microsoft.HumanResources.Setup;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Projects.Resources.Setup;
 using System.Email;
-using Microsoft.Finance.Currency;
-using Microsoft.Finance.GeneralLedger.Setup;
 
 
 table 5200 Employee
@@ -38,6 +38,7 @@ table 5200 Employee
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
             trigger OnValidate()
             begin
@@ -51,18 +52,22 @@ table 5200 Employee
         field(2; "First Name"; Text[30])
         {
             Caption = 'First Name';
+            ToolTip = 'Specifies the employee''s first name.';
         }
         field(3; "Middle Name"; Text[30])
         {
             Caption = 'Middle Name';
+            ToolTip = 'Specifies the employee''s middle name.';
         }
         field(4; "Last Name"; Text[30])
         {
             Caption = 'Last Name';
+            ToolTip = 'Specifies the employee''s last name.';
         }
         field(5; Initials; Text[30])
         {
             Caption = 'Initials';
+            ToolTip = 'Specifies the employee''s initials.';
 
             trigger OnValidate()
             begin
@@ -73,10 +78,12 @@ table 5200 Employee
         field(6; "Job Title"; Text[30])
         {
             Caption = 'Job Title';
+            ToolTip = 'Specifies the employee''s job title.';
         }
         field(7; "Search Name"; Code[250])
         {
             Caption = 'Search Name';
+            ToolTip = 'Specifies an alternate name that you can use to search for the record in question when you cannot remember the value in the Name field.';
 
             trigger OnValidate()
             begin
@@ -87,14 +94,17 @@ table 5200 Employee
         field(8; Address; Text[100])
         {
             Caption = 'Address';
+            ToolTip = 'Specifies the employee''s address.';
         }
         field(9; "Address 2"; Text[50])
         {
             Caption = 'Address 2';
+            ToolTip = 'Specifies additional address information.';
         }
         field(10; City; Text[30])
         {
             Caption = 'City';
+            ToolTip = 'Specifies the city of the address.';
             TableRelation = if ("Country/Region Code" = const('')) "Post Code".City
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Country/Region Code"));
@@ -118,6 +128,7 @@ table 5200 Employee
         field(11; "Post Code"; Code[20])
         {
             Caption = 'Post Code';
+            ToolTip = 'Specifies the postal code.';
             TableRelation = if ("Country/Region Code" = const('')) "Post Code"
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Country/Region Code"));
@@ -142,20 +153,24 @@ table 5200 Employee
         {
             CaptionClass = '5,1,' + "Country/Region Code";
             Caption = 'County';
+            ToolTip = 'Specifies the county of the employee.';
         }
         field(13; "Phone No."; Text[30])
         {
             Caption = 'Phone No.';
+            ToolTip = 'Specifies the employee''s telephone number.';
             ExtendedDatatype = PhoneNo;
         }
         field(14; "Mobile Phone No."; Text[30])
         {
             Caption = 'Mobile Phone No.';
+            ToolTip = 'Specifies the employee''s private telephone number.';
             ExtendedDatatype = PhoneNo;
         }
         field(15; "E-Mail"; Text[80])
         {
             Caption = 'Email';
+            ToolTip = 'Specifies the employee''s private email address.';
             ExtendedDatatype = EMail;
 
             trigger OnValidate()
@@ -168,40 +183,49 @@ table 5200 Employee
         field(16; "Alt. Address Code"; Code[10])
         {
             Caption = 'Alt. Address Code';
+            ToolTip = 'Specifies a code for an alternate address.';
             TableRelation = "Alternative Address".Code where("Employee No." = field("No."));
         }
         field(17; "Alt. Address Start Date"; Date)
         {
             Caption = 'Alt. Address Start Date';
+            ToolTip = 'Specifies the starting date when the alternate address is valid.';
         }
         field(18; "Alt. Address End Date"; Date)
         {
             Caption = 'Alt. Address End Date';
+            ToolTip = 'Specifies the last day when the alternate address is valid.';
         }
         field(20; "Birth Date"; Date)
         {
             Caption = 'Birth Date';
+            ToolTip = 'Specifies the employee''s date of birth.';
         }
         field(21; "Social Security No."; Text[30])
         {
             Caption = 'Social Security No.';
+            ToolTip = 'Specifies the social security number of the employee.';
         }
         field(22; "Union Code"; Code[10])
         {
             Caption = 'Union Code';
+            ToolTip = 'Specifies the employee''s labor union membership code.';
             TableRelation = Union;
         }
         field(23; "Union Membership No."; Text[30])
         {
             Caption = 'Union Membership No.';
+            ToolTip = 'Specifies the employee''s labor union membership number.';
         }
         field(24; Gender; Enum "Employee Gender")
         {
             Caption = 'Gender';
+            ToolTip = 'Specifies the gender with which the employee identifies.';
         }
         field(25; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';
+            ToolTip = 'Specifies the country/region of the address.';
             TableRelation = "Country/Region";
 
             trigger OnValidate()
@@ -217,20 +241,24 @@ table 5200 Employee
         field(27; "Emplymt. Contract Code"; Code[10])
         {
             Caption = 'Emplymt. Contract Code';
+            ToolTip = 'Specifies the employment contract code for the employee.';
             TableRelation = "Employment Contract";
         }
         field(28; "Statistics Group Code"; Code[10])
         {
             Caption = 'Statistics Group Code';
+            ToolTip = 'Specifies a statistics group code to assign to the employee for statistical purposes.';
             TableRelation = "Employee Statistics Group";
         }
         field(29; "Employment Date"; Date)
         {
             Caption = 'Employment Date';
+            ToolTip = 'Specifies the date when the employee began to work for the company.';
         }
         field(31; Status; Enum "Employee Status")
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the employment status of the employee.';
 
             trigger OnValidate()
             var
@@ -245,19 +273,23 @@ table 5200 Employee
         field(32; "Inactive Date"; Date)
         {
             Caption = 'Inactive Date';
+            ToolTip = 'Specifies the date when the employee became inactive, due to disability or maternity leave, for example.';
         }
         field(33; "Cause of Inactivity Code"; Code[10])
         {
             Caption = 'Cause of Inactivity Code';
+            ToolTip = 'Specifies a code for the cause of inactivity by the employee.';
             TableRelation = "Cause of Inactivity";
         }
         field(34; "Termination Date"; Date)
         {
             Caption = 'Termination Date';
+            ToolTip = 'Specifies the date when the employee was terminated, due to retirement or dismissal, for example.';
         }
         field(35; "Grounds for Term. Code"; Code[10])
         {
             Caption = 'Grounds for Term. Code';
+            ToolTip = 'Specifies a termination code for the employee who has been terminated.';
             TableRelation = "Grounds for Termination";
         }
         field(36; "Global Dimension 1 Code"; Code[20])
@@ -287,6 +319,7 @@ table 5200 Employee
         field(38; "Resource No."; Code[20])
         {
             Caption = 'Resource No.';
+            ToolTip = 'Specifies a resource number for the employee.';
             TableRelation = Resource where(Type = const(Person));
 
             trigger OnValidate()
@@ -305,12 +338,14 @@ table 5200 Employee
             CalcFormula = exist("Human Resource Comment Line" where("Table Name" = const(Employee),
                                                                      "No." = field("No.")));
             Caption = 'Comment';
+            ToolTip = 'Specifies if a comment has been entered for this entry.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(40; "Last Date Modified"; Date)
         {
             Caption = 'Last Date Modified';
+            ToolTip = 'Specifies when this record was last modified.';
             Editable = false;
         }
         field(41; "Date Filter"; Date)
@@ -351,6 +386,7 @@ table 5200 Employee
         field(46; Extension; Text[30])
         {
             Caption = 'Extension';
+            ToolTip = 'Specifies the employee''s telephone extension.';
         }
         field(47; "Employee No. Filter"; Code[20])
         {
@@ -361,6 +397,7 @@ table 5200 Employee
         field(48; Pager; Text[30])
         {
             Caption = 'Pager';
+            ToolTip = 'Specifies the employee''s pager number.';
         }
         field(49; "Fax No."; Text[30])
         {
@@ -369,6 +406,7 @@ table 5200 Employee
         field(50; "Company E-Mail"; Text[80])
         {
             Caption = 'Company Email';
+            ToolTip = 'Specifies the employee''s email address at the company.';
             ExtendedDatatype = EMail;
 
             trigger OnValidate()
@@ -385,6 +423,7 @@ table 5200 Employee
         field(52; "Salespers./Purch. Code"; Code[20])
         {
             Caption = 'Salespers./Purch. Code';
+            ToolTip = 'Specifies a salesperson or purchaser code for the employee.';
             TableRelation = "Salesperson/Purchaser" where(Blocked = const(false));
         }
         field(53; "No. Series"; Code[20])
@@ -401,19 +440,23 @@ table 5200 Employee
         field(55; "Employee Posting Group"; Code[20])
         {
             Caption = 'Employee Posting Group';
+            ToolTip = 'Specifies the employee''s type to link business transactions made for the employee with the appropriate account in the general ledger.';
             TableRelation = "Employee Posting Group";
         }
         field(56; "Bank Branch No."; Text[20])
         {
             Caption = 'Bank Branch No.';
+            ToolTip = 'Specifies a number of the bank branch.';
         }
         field(57; "Bank Account No."; Text[30])
         {
             Caption = 'Bank Account No.';
+            ToolTip = 'Specifies the number used by the bank for the bank account.';
         }
         field(58; IBAN; Code[50])
         {
             Caption = 'IBAN';
+            ToolTip = 'Specifies the bank account''s international bank account number.';
 
             trigger OnValidate()
             var
@@ -439,6 +482,7 @@ table 5200 Employee
         field(60; "SWIFT Code"; Code[20])
         {
             Caption = 'SWIFT Code';
+            ToolTip = 'Specifies the SWIFT code (international bank identifier code) of the bank where the employee has the account.';
             TableRelation = "SWIFT Code";
             ValidateTableRelation = false;
         }
@@ -458,11 +502,13 @@ table 5200 Employee
         field(75; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency code that is inserted by default when you create entries for the employee.';
             TableRelation = Currency;
         }
         field(80; "Application Method"; Enum "Application Method")
         {
             Caption = 'Application Method';
+            ToolTip = 'Specifies how to apply payments to entries for this employee.';
         }
         field(90; "Currency Filter"; Code[10])
         {
@@ -473,22 +519,27 @@ table 5200 Employee
         field(100; "Engagement Type"; Enum "Employee Engagement Type")
         {
             Caption = 'Engagement Type';
+            ToolTip = 'Specifies the value of the Engagement Type field.';
         }
         field(101; "Collective Bargain. Agmt. Info"; Boolean)
         {
             Caption = 'Collective Bargaining Agreement Info';
+            ToolTip = 'Specifies the value of the Collective Bargaining Agreement Info field.';
         }
         field(102; "Board Member"; Boolean)
         {
             Caption = 'Board Member';
+            ToolTip = 'Specifies the value of the Board Member field.';
         }
         field(103; "Manager Role"; Boolean)
         {
             Caption = 'Manager Role';
+            ToolTip = 'Specifies the value of the Manager Role field.';
         }
         field(104; "Payroll"; Decimal)
         {
             Caption = 'Payroll';
+            ToolTip = 'Specifies the value of the Payroll field.';
 
             trigger OnValidate()
             begin
@@ -498,6 +549,7 @@ table 5200 Employee
         field(105; "Payroll Currency Code"; Code[10])
         {
             Caption = 'Payroll Currency Code';
+            ToolTip = 'Specifies the value of the Payroll Currency Code field.';
             TableRelation = Currency;
 
             trigger OnValidate()
@@ -521,24 +573,29 @@ table 5200 Employee
         field(108; "Nationality"; Code[10])
         {
             Caption = 'Nationality';
+            ToolTip = 'Specifies the value of the Nationality field.';
             TableRelation = Nationality;
         }
         field(109; "Working Type"; Enum "Employee Working Type")
         {
             Caption = 'Working Type';
+            ToolTip = 'Specifies the value of the Working Type field.';
         }
         field(110; "Working Hours"; Decimal)
         {
             Caption = 'Working Hours';
+            ToolTip = 'Specifies the value of the Working Hours field.';
         }
         field(140; Image; Media)
         {
             Caption = 'Image';
+            ToolTip = 'Specifies the picture of the employee.';
             ExtendedDatatype = Person;
         }
         field(150; "Privacy Blocked"; Boolean)
         {
             Caption = 'Privacy Blocked';
+            ToolTip = 'Specifies whether to limit access to data for the data subject during daily operations. This is useful, for example, when protecting data from changes while it is under privacy review.';
         }
         field(175; "Allow Multiple Posting Groups"; Boolean)
         {

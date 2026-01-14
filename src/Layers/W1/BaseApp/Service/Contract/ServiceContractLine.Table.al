@@ -292,6 +292,7 @@ table 5964 "Service Contract Line"
         }
         field(13; "Response Time (Hours)"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Response Time (Hours)';
             DecimalPlaces = 0 : 5;
@@ -428,6 +429,7 @@ table 5964 "Service Contract Line"
         }
         field(22; "Line Value"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Line Value';
@@ -442,6 +444,7 @@ table 5964 "Service Contract Line"
         }
         field(23; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Line Discount %';
             DecimalPlaces = 0 : 5;
@@ -471,6 +474,7 @@ table 5964 "Service Contract Line"
         }
         field(24; "Line Amount"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Line Amount';
@@ -525,6 +529,7 @@ table 5964 "Service Contract Line"
         }
         field(32; "Line Cost"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Line Cost';
@@ -538,6 +543,7 @@ table 5964 "Service Contract Line"
         }
         field(33; "Line Discount Amount"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Line Discount Amount';
@@ -557,6 +563,7 @@ table 5964 "Service Contract Line"
         }
         field(34; Profit; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Profit';

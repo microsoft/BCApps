@@ -6,49 +6,77 @@ namespace Microsoft.Finance.Dimension.Correction;
 
 using Microsoft.Finance.GeneralLedger.Ledger;
 
+/// <summary>
+/// Stores selection criteria for identifying general ledger entries to include in dimension correction.
+/// Manages filters and dimension set IDs for both included and excluded entries.
+/// </summary>
 table 2585 "Dim Correct Selection Criteria"
 {
     DataClassification = CustomerContent;
 
     fields
     {
+        /// <summary>
+        /// Unique identifier for the selection criteria entry.
+        /// </summary>
         field(1; "Entry No."; Integer)
         {
             DataClassification = CustomerContent;
             AutoIncrement = true;
         }
 
+        /// <summary>
+        /// Reference to the parent dimension correction entry.
+        /// </summary>
         field(2; "Dimension Correction Entry No."; Integer)
         {
             DataClassification = CustomerContent;
         }
 
+        /// <summary>
+        /// BLOB field containing serialized selection filter criteria for G/L entries.
+        /// </summary>
         field(3; "Selection Filter"; Blob)
         {
             DataClassification = CustomerContent;
         }
 
+        /// <summary>
+        /// Type of filter used for selecting entries in the dimension correction.
+        /// </summary>
         field(4; "Filter Type"; Option)
         {
             DataClassification = CustomerContent;
             OptionMembers = Manual,Excluded,"Related Entries","Custom Filter","By Dimension";
         }
 
+        /// <summary>
+        /// BLOB field containing serialized dimension set IDs that match the selection criteria.
+        /// </summary>
         field(5; "Dimension Set IDs"; Blob)
         {
             DataClassification = CustomerContent;
         }
 
+        /// <summary>
+        /// Last entry number processed for this selection criteria.
+        /// </summary>
         field(6; "Last Entry No."; Integer)
         {
             DataClassification = CustomerContent;
         }
 
+        /// <summary>
+        /// Language identifier for localization of selection criteria text.
+        /// </summary>
         field(7; "Language Id"; Integer)
         {
             DataClassification = CustomerContent;
         }
 
+        /// <summary>
+        /// Indicates whether UTF-16 encoding is used for text processing.
+        /// </summary>
         field(8; "UTF16 Encoding"; Boolean)
         {
             DataClassification = CustomerContent;
@@ -79,6 +107,10 @@ table 2585 "Dim Correct Selection Criteria"
                 Rec."Entry No." := DimCorrectSelectionCriteria."Entry No." + 1;
     end;
 
+    /// <summary>
+    /// Sets selection filter from a record reference with language handling.
+    /// </summary>
+    /// <param name="MainRecordRef">Record reference to extract filter view from</param>
     procedure SetSelectionFilter(var MainRecordRef: RecordRef)
     var
         CurrentLanguage: Integer;
@@ -89,6 +121,10 @@ table 2585 "Dim Correct Selection Criteria"
         GlobalLanguage(CurrentLanguage);
     end;
 
+    /// <summary>
+    /// Sets selection filter text with proper encoding in the BLOB field.
+    /// </summary>
+    /// <param name="NewSelectionFilter">Filter text to store</param>
     procedure SetSelectionFilter(NewSelectionFilter: Text)
     var
         SelectionFilterOutStream: OutStream;
@@ -102,6 +138,10 @@ table 2585 "Dim Correct Selection Criteria"
         Rec."Language Id" := GlobalLanguage();
     end;
 
+    /// <summary>
+    /// Retrieves selection filter text from the BLOB field with proper language and encoding handling.
+    /// </summary>
+    /// <param name="SelectionFilterText">Variable to store the retrieved filter text</param>
     procedure GetSelectionFilter(var SelectionFilterText: Text)
     var
         RecorordRef: RecordRef;
@@ -129,6 +169,10 @@ table 2585 "Dim Correct Selection Criteria"
         end;
     end;
 
+    /// <summary>
+    /// Sets dimension set IDs in the BLOB field for efficient storage and retrieval.
+    /// </summary>
+    /// <param name="DimensionSetIds">List of dimension set IDs to store</param>
     procedure SetDimensionSetIds(var DimensionSetIds: List of [Integer])
     var
         DimensionSetID: Integer;
@@ -150,6 +194,10 @@ table 2585 "Dim Correct Selection Criteria"
         DimensionSetIDsOutStream.WriteText(CommaSeparatedDimensionSetIds);
     end;
 
+    /// <summary>
+    /// Retrieves dimension set IDs from the BLOB field as a list of integers.
+    /// </summary>
+    /// <param name="DimensionSetIds">List to populate with dimension set IDs</param>
     procedure GetDimensionSetIds(var DimensionSetIds: List of [Integer])
     var
         TextDimensionSetID: Text;
@@ -182,6 +230,10 @@ table 2585 "Dim Correct Selection Criteria"
         DimensionSetIds := CommaSeparatedDimensionSetIds.Split(',');
     end;
 
+    /// <summary>
+    /// Generates display text for the selection criteria for user interface presentation.
+    /// </summary>
+    /// <param name="DisplayText">Variable to store the generated display text</param>
     procedure GetSelectionDisplayText(var DisplayText: Text)
     var
         MainRecordRef: RecordRef;

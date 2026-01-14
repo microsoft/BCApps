@@ -6,8 +6,8 @@ namespace Microsoft.Inventory.Planning;
 
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
-using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.ProductionBOM;
 
 tableextension 99000850 "Mfg. Planning Assignment" extends "Planning Assignment"
 {

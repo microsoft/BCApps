@@ -10,6 +10,16 @@ using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 
+/// <summary>
+/// Provides detailed information about selected general journal lines in a factbox format for enhanced data visibility.
+/// Displays posting groups, VAT information, account details, and other relevant line attributes for user reference.
+/// </summary>
+/// <remarks>
+/// Information factbox for journal line detail display. Provides read-only access to extended journal line information
+/// including posting setup details, account relationships, and transaction attributes for user assistance.
+/// Key features: Posting group display, VAT information, account details, transaction attribute visibility.
+/// Integration: Used with journal pages to provide contextual information about selected journal lines.
+/// </remarks>
 page 9120 "Journal Line Details FactBox"
 {
     PageType = CardPart;

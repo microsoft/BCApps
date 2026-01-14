@@ -4,23 +4,23 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
-using Microsoft.Assembly.History;
-using Microsoft.Warehouse.Ledger;
-using System.Environment.Configuration;
 using Microsoft.Assembly.Document;
-using Microsoft.Inventory.Item;
-using Microsoft.Inventory.BOM;
-using Microsoft.Foundation.UOM;
-using Microsoft.Projects.Resources.Resource;
+using Microsoft.Assembly.History;
 using Microsoft.Assembly.Setup;
-using Microsoft.Foundation.NoSeries;
-using Microsoft.Inventory.Location;
-using Microsoft.Sales.Document;
 using Microsoft.Finance.Dimension;
-using Microsoft.Inventory.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Warehouse.Structure;
+using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory;
+using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Location;
+using Microsoft.Projects.Resources.Resource;
+using Microsoft.Sales.Document;
+using Microsoft.Warehouse.Ledger;
+using Microsoft.Warehouse.Structure;
+using System.Environment.Configuration;
 
 codeunit 137908 "SCM Assembly Order"
 {

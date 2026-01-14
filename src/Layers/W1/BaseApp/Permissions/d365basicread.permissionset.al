@@ -1,162 +1,162 @@
 namespace System.Security.AccessControl;
 
+using Microsoft;
 using Microsoft.AccountantPortal;
-using Microsoft.Booking;
-using Microsoft.Sales.Archive;
-using Microsoft.CRM.Team;
-using Microsoft.Inventory.Location;
-using Microsoft.Projects.TimeSheet;
-using Microsoft.CostAccounting.Setup;
-using Microsoft.Bank.Payment;
-using Microsoft.Foundation.Reporting;
-using Microsoft.EServices.EDocument;
-using Microsoft.Foundation.Attachment;
-using Microsoft.Foundation.Navigate;
-using Microsoft.Finance.VAT.Reporting;
-using Microsoft.eServices.OnlineMap;
-using Microsoft.Finance.Payroll;
-using Microsoft.Projects.Project.Setup;
-using System.Security.Authentication;
-using System.Globalization;
-using Microsoft.Foundation.AuditCodes;
-using Microsoft.Foundation.Shipping;
-using Microsoft.Foundation.UOM;
-using Microsoft.Foundation.Task;
-using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.VAT.Clause;
-using Microsoft.Finance.VAT.Registration;
-using System.Reflection;
-using Microsoft.Sales.Customer;
-using Microsoft.Purchases.Vendor;
-using System.Tooling;
-using System.Privacy;
-using System.Utilities;
-using Microsoft.Inventory.Transfer;
-using System.Integration;
-using System.IO;
-using System.Environment;
-using System.Environment.Configuration;
-using System.Upgrade;
-using System.DateTime;
-using Microsoft.Finance.FinancialReports;
-using Microsoft.Integration.Entity;
-using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.AllocationAccount;
-using Microsoft.Inventory.Analysis;
-using Microsoft.Foundation.Address;
-using Microsoft.Inventory.Availability;
-using System.Azure.Identity;
-using System.AI;
+using Microsoft.API;
+using Microsoft.API.Upgrade;
 using Microsoft.Bank.BankAccount;
-using Microsoft.Bank.Setup;
+using Microsoft.Bank.DirectDebit;
+using Microsoft.Bank.Payment;
+using Microsoft.Bank.PositivePay;
 using Microsoft.Bank.Reconciliation;
-using System.Visualization;
-using Microsoft.Warehouse.Structure;
-using Microsoft.Inventory.BOM;
-using Microsoft.Finance.GeneralLedger.Budget;
-using Microsoft.Finance.Consolidation;
-using Microsoft.CRM.BusinessRelation;
-using Microsoft.CRM.Campaign;
+using Microsoft.Bank.Setup;
+using Microsoft.Booking;
 using Microsoft.CashFlow.Forecast;
 using Microsoft.CashFlow.Setup;
-using Microsoft.Integration.Dataverse;
+using Microsoft.CostAccounting.Setup;
+using Microsoft.CRM.BusinessRelation;
+using Microsoft.CRM.Campaign;
+using Microsoft.CRM.Contact;
+using Microsoft.CRM.Interaction;
+using Microsoft.CRM.Outlook;
+using Microsoft.CRM.RoleCenters;
+using Microsoft.CRM.Segment;
+using Microsoft.CRM.Setup;
+using Microsoft.CRM.Team;
+using Microsoft.EServices.EDocument;
+using Microsoft.eServices.OnlineMap;
+using Microsoft.Finance.AllocationAccount;
+using Microsoft.Finance.Analysis;
+using Microsoft.Finance.Consolidation;
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.Deferral;
 using Microsoft.Finance.Dimension;
-using System.Diagnostics;
+using Microsoft.Finance.Dimension.Correction;
+using Microsoft.Finance.FinancialReports;
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Budget;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Reports;
+using Microsoft.Finance.GeneralLedger.Reversal;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.Payroll;
+using Microsoft.Finance.ReceivablesPayables;
+using Microsoft.Finance.RoleCenters;
+using Microsoft.Finance.SalesTax;
+using Microsoft.Finance.VAT.Clause;
+using Microsoft.Finance.VAT.Registration;
+using Microsoft.Finance.VAT.Reporting;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation;
+using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Attachment;
+using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.Calendar;
 using Microsoft.Foundation.Comment;
 using Microsoft.Foundation.Company;
-using Microsoft.CRM.Contact;
-using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Costing;
-using Microsoft.Integration.D365Sales;
-using Microsoft.Integration.PowerBI;
-using Microsoft.Finance.Currency;
-using Microsoft.Sales.Analysis;
-using Microsoft.Finance.ReceivablesPayables;
-using Microsoft.Finance.Deferral;
-using Microsoft.Sales.Receivables;
-using Microsoft.HumanResources.Payables;
-using Microsoft.Purchases.Payables;
-using Microsoft.Finance.Dimension.Correction;
-using Microsoft.Pricing.Calculation;
-using Microsoft.Pricing.PriceList;
-using System.Email;
-using Microsoft.HumanResources.Employee;
-using Microsoft.Inventory.Tracking;
-using Microsoft.CRM.Outlook;
 using Microsoft.Foundation.ExtendedText;
-using Microsoft.Inventory.Item.Attribute;
-using Microsoft.Sales.FinanceCharge;
-using Microsoft.Finance.RoleCenters;
-using System.Automation;
-using Microsoft.Inventory.Ledger;
-using Microsoft.Finance.Analysis;
-using Microsoft.Finance.GeneralLedger.Ledger;
-using Microsoft.Integration.Graph;
+using Microsoft.Foundation.Navigate;
+using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Foundation.Period;
+using Microsoft.Foundation.Reporting;
+using Microsoft.Foundation.Shipping;
+using Microsoft.Foundation.Task;
+using Microsoft.Foundation.UOM;
+using Microsoft.HumanResources.Employee;
+using Microsoft.HumanResources.Payables;
 using Microsoft.HumanResources.Setup;
+using Microsoft.Integration.D365Sales;
+using Microsoft.Integration.Dataverse;
+using Microsoft.Integration.Entity;
+using Microsoft.Integration.Graph;
+using Microsoft.Integration.PowerBI;
+using Microsoft.Intercompany.DataExchange;
 using Microsoft.Intercompany.Setup;
-using Microsoft.CRM.Interaction;
+using Microsoft.Inventory.Analysis;
+using Microsoft.Inventory.Availability;
+using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.BOM.Tree;
+using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Counting.Journal;
-using Microsoft.Inventory.Setup;
-using System.Security.Encryption;
-using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Intrastat;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Item.Attribute;
+using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Item.Picture;
 using Microsoft.Inventory.Item.Substitution;
-using Microsoft.Inventory.Item.Catalog;
-using System.Threading;
-using Microsoft.CRM.Setup;
-using Microsoft.Inventory.BOM.Tree;
-using Microsoft.Purchases.Document;
-using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
-using Microsoft.Bank.PositivePay;
-using System.Integration.PowerBI;
-using Microsoft.Pricing.Asset;
-using Microsoft.Pricing.Source;
-using Microsoft.Foundation;
-using Microsoft.Pricing.Worksheet;
-using System.Device;
-using Microsoft.Purchases.Analysis;
-using Microsoft.Purchases.Comment;
-using Microsoft.Purchases.Archive;
-using Microsoft.Purchases.Pricing;
-using Microsoft.Purchases.RoleCenters;
-using Microsoft.Purchases.Setup;
-using Microsoft.Finance.GeneralLedger.Reports;
-using System.Xml;
-using Microsoft.CRM.RoleCenters;
-using Microsoft.Sales.Reminder;
-using Microsoft.Purchases.Remittance;
-using Microsoft.Warehouse.Setup;
 using Microsoft.Inventory.Requisition;
+using Microsoft.Inventory.Setup;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Inventory.Transfer;
+using Microsoft.Pricing.Asset;
+using Microsoft.Pricing.Calculation;
+using Microsoft.Pricing.PriceList;
+using Microsoft.Pricing.Source;
+using Microsoft.Pricing.Worksheet;
+using Microsoft.Projects.Project.Setup;
 using Microsoft.Projects.Resources.Analysis;
 using Microsoft.Projects.Resources.Journal;
 using Microsoft.Projects.Resources.Ledger;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Projects.Resources.Setup;
-using Microsoft.Finance.GeneralLedger.Reversal;
-using Microsoft.Sales.Setup;
+using Microsoft.Projects.TimeSheet;
+using Microsoft.Purchases.Analysis;
+using Microsoft.Purchases.Archive;
+using Microsoft.Purchases.Comment;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Pricing;
+using Microsoft.Purchases.Remittance;
+using Microsoft.Purchases.RoleCenters;
+using Microsoft.Purchases.Setup;
+using Microsoft.Purchases.Vendor;
+using Microsoft.RoleCenters;
+using Microsoft.Sales.Analysis;
+using Microsoft.Sales.Archive;
 using Microsoft.Sales.Comment;
-using Microsoft.Sales.RoleCenters;
+using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
+using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Pricing;
-using Microsoft.CRM.Segment;
-using Microsoft.Bank.DirectDebit;
-using System.Text;
-using Microsoft.Finance.SalesTax;
-using System.Security.User;
-using Microsoft.Foundation.Period;
-using Microsoft.RoleCenters;
+using Microsoft.Sales.Receivables;
+using Microsoft.Sales.Reminder;
+using Microsoft.Sales.RoleCenters;
+using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
-using Microsoft.Inventory.Intrastat;
-using Microsoft.Foundation.Calendar;
-using Microsoft.API.Upgrade;
-using Microsoft.API;
-using Microsoft.Intercompany.DataExchange;
-using Microsoft;
+using Microsoft.Warehouse.Setup;
+using Microsoft.Warehouse.Structure;
+using System.AI;
+using System.Automation;
+using System.Azure.Identity;
+using System.DateTime;
+using System.Device;
+using System.Diagnostics;
+using System.Email;
+using System.Environment;
+using System.Environment.Configuration;
+using System.Globalization;
+using System.Integration;
+using System.Integration.PowerBI;
+using System.IO;
+using System.Privacy;
+using System.Reflection;
+using System.Security.Authentication;
+using System.Security.Encryption;
+using System.Security.User;
 using System.TestTools;
+using System.Text;
+using System.Threading;
+using System.Tooling;
+using System.Upgrade;
+using System.Utilities;
+using System.Visualization;
+using System.Xml;
 
 permissionset 209 "D365 Basic - Read"
 {
@@ -441,10 +441,14 @@ permissionset 209 "D365 Basic - Read"
                   tabledata "Error Message Register" = R,
                   tabledata "Excel Buffer" = R,
                   tabledata "Excel Template Storage" = R,
+#if not CLEAN28
                   tabledata "Exchange Contact" = R,
+#endif
                   tabledata "Exchange Object" = R,
                   tabledata "Exchange Service Setup" = R,
+#if not CLEAN28
                   tabledata "Exchange Sync" = R,
+#endif
                   tabledata "Experience Tier Buffer" = R,
                   tabledata "Experience Tier Setup" = R,
                   tabledata "Extended Text Header" = R,
@@ -517,6 +521,7 @@ permissionset 209 "D365 Basic - Read"
                   tabledata "Item Attribute Translation" = R,
                   tabledata "Item Attribute Value" = R,
                   tabledata "Item Attribute Value Mapping" = R,
+                  tabledata "Item Var. Attr. Value Mapping" = R,
                   tabledata "Item Attribute Value Selection" = R,
                   tabledata "Item Availability Buffer" = R,
                   tabledata "Item Availability by Date" = R,
@@ -741,8 +746,8 @@ permissionset 209 "D365 Basic - Read"
                   tabledata "Sent Notification Entry" = R,
                   tabledata "SEPA Direct Debit Mandate" = R,
                   tabledata "Service Connection" = R,
-                  tabledata "Sheet Definition Name" = R,
-                  tabledata "Sheet Definition Line" = R,
+                  tabledata "Dimension Perspective Name" = R,
+                  tabledata "Dimension Perspective Line" = R,
                   tabledata "Ship-to Address" = R,
                   tabledata "Shipment Method" = R,
                   tabledata "Shipment Method Translation" = R,

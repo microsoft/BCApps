@@ -32,13 +32,8 @@ tableextension 99000759 "Mfg. Stockkeeping Unit" extends "Stockkeeping Unit"
         field(5421; "Scheduled Need (Qty.)"; Decimal)
         {
             ObsoleteReason = 'Use the field ''Qty. on Component Lines'' instead';
-#if CLEAN25
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '18.0';
-#endif
             CalcFormula = sum("Prod. Order Component"."Remaining Qty. (Base)" where(Status = filter(Planned .. Released),
                                                                                      "Item No." = field("Item No."),
                                                                                      "Location Code" = field("Location Code"),

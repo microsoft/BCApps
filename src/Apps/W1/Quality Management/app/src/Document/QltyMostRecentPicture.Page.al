@@ -14,7 +14,7 @@ page 20431 "Qlty. Most Recent Picture"
     InsertAllowed = false;
     LinksAllowed = false;
     PageType = CardPart;
-    SourceTable = "Qlty. Inspection Test Header";
+    SourceTable = "Qlty. Inspection Header";
     ApplicationArea = QualityManagement;
 
     layout

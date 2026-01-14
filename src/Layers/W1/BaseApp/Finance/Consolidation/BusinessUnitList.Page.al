@@ -8,6 +8,14 @@ using Microsoft.Finance.Currency;
 using System.Environment;
 using System.Text;
 
+/// <summary>
+/// Displays a list of all business units configured for consolidation with management and consolidation actions.
+/// Provides overview of business unit consolidation status and quick access to consolidation operations.
+/// </summary>
+/// <remarks>
+/// Central list page for business unit management supporting batch operations like consolidation execution,
+/// access management, and business unit configuration. Integrates with consolidation workflow and validation.
+/// </remarks>
 page 240 "Business Unit List"
 {
     AdditionalSearchTerms = 'department,consolidation';
@@ -300,6 +308,11 @@ page 240 "Business Unit List"
         LastConsolidationEndingDate := ConsolidateBusinessUnits.GetLastConsolidationEndingDate(Rec);
     end;
 
+    /// <summary>
+    /// Returns a selection filter text for currently selected business units on the page.
+    /// Used for filtering operations based on user selection in the business unit list.
+    /// </summary>
+    /// <returns>Filter text representing selected business unit codes</returns>
     procedure GetSelectionFilter(): Text
     var
         BusUnit: Record "Business Unit";

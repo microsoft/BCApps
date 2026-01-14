@@ -5,8 +5,8 @@
 namespace Microsoft.Inventory.Availability;
 
 using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Requisition;
 
 codeunit 5830 "Calc. Availability Overview"
 {
@@ -303,34 +303,6 @@ codeunit 5830 "Calc. Availability Overview"
         exit(CheckItemInRange(AvailCalcOverview));
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by InsertAvailabilityEntry()', '25.0')]
-    procedure InsertEntry(var AvailabilityCalcOverview: Record "Availability Calc. Overview"; NewType: Integer; NewDate: Date; NewLocation: Code[10]; NewVariantCode: Code[10]; NewQuantityBase: Decimal; NewReservQtyBase: Decimal; NewSourceType: Integer; NewSourceOrderStatus: Integer; NewSourceID: Code[20]; NewDescription: Text[100]; NewDemandType: Option)
-    begin
-        InsertAvailabilityEntry(
-            AvailabilityCalcOverview, NewType, NewDate, NewLocation, NewVariantCode, NewQuantityBase, NewReservQtyBase,
-            NewSourceType, NewSourceOrderStatus, NewSourceID, NewDescription, TransformDemandTypeOptionToEnum(NewDemandType));
-    end;
-
-    [Obsolete('Temporary procedure used by InsertEntry() and SetParam()', '25.0')]
-    local procedure TransformDemandTypeOptionToEnum(DemandTypeOption: Option): Enum "Demand Order Source Type"
-    begin
-        case DemandTypeOption of
-            0: // " "
-                exit("Demand Order Source Type"::"All Demands");
-            1: // Sales
-                exit("Demand Order Source Type"::"Sales Demand");
-            2: // Production
-                exit("Demand Order Source Type"::"Production Demand");
-            3: // Job
-                exit("Demand Order Source Type"::"Job Demand");
-            4: // Service  
-                exit("Demand Order Source Type"::"Service Demand");
-            5: // Assembly
-                exit("Demand Order Source Type"::"Assembly Demand");
-        end;
-    end;
-#endif
 
     procedure InsertAvailabilityEntry(var AvailabilityCalcOverview: Record "Availability Calc. Overview"; NewType: Integer; NewDate: Date; NewLocation: Code[10]; NewVariantCode: Code[10])
     begin
@@ -545,13 +517,6 @@ codeunit 5830 "Calc. Availability Overview"
         EntryNo := NewEntryNo;
     end;
 
-#if not CLEAN25 
-    [Obsolete('Replaced by SetParameters() with enum', '25.0')]
-    procedure SetParam(NewDemandType: Option; NewDemandNo: Code[20])
-    begin
-        SetParameters(TransformDemandTypeOptionToEnum(NewDemandType), NewDemandNo);
-    end;
-#endif
 
     procedure SetParameters(NewDemandType: Enum "Demand Order Source Type"; NewDemandNo: Code[20])
     begin
@@ -631,4 +596,3 @@ codeunit 5830 "Calc. Availability Overview"
     begin
     end;
 }
-

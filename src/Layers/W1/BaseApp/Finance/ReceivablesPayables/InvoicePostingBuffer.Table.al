@@ -21,6 +21,16 @@ using Microsoft.FixedAssets.Posting;
 using Microsoft.Foundation.Enums;
 using Microsoft.Projects.Project.Job;
 
+/// <summary>
+/// Temporary buffer table for accumulating and organizing invoice posting entries before G/L posting.
+/// Groups posting entries by account, dimensions, and posting characteristics for efficient batch processing.
+/// </summary>
+/// <remarks>
+/// Central accumulation mechanism for invoice posting operations across sales, purchase, and service modules.
+/// Supports complex posting scenarios including VAT, deferrals, fixed assets, and job-related postings.
+/// Provides grouping and summarization capabilities to optimize G/L entry creation during document posting.
+/// Extensible design supports custom posting logic through the invoice posting interface framework.
+/// </remarks>
 table 55 "Invoice Posting Buffer"
 {
     Caption = 'Invoice Posting Buffer';
@@ -30,22 +40,34 @@ table 55 "Invoice Posting Buffer"
 
     fields
     {
+        /// <summary>
+        /// Primary key grouping identifier for consolidating similar posting entries.
+        /// </summary>
         field(1; "Group ID"; Text[1000])
         {
             Caption = 'Primary Key';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Type of posting line indicating the specific posting purpose and characteristics.
+        /// </summary>
         field(2; Type; Enum "Invoice Posting Line Type")
         {
             Caption = 'Type';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// G/L account number for posting the accumulated amounts.
+        /// </summary>
         field(3; "G/L Account"; Code[20])
         {
             Caption = 'G/L Account';
             DataClassification = SystemMetadata;
             TableRelation = "G/L Account";
         }
+        /// <summary>
+        /// Global dimension 1 code for the posting entry.
+        /// </summary>
         field(4; "Global Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,1,1';
@@ -53,6 +75,9 @@ table 55 "Invoice Posting Buffer"
             DataClassification = SystemMetadata;
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
+        /// <summary>
+        /// Global dimension 2 code for cost center or department classification.
+        /// </summary>
         field(5; "Global Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,1,2';
@@ -60,12 +85,18 @@ table 55 "Invoice Posting Buffer"
             DataClassification = SystemMetadata;
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
+        /// <summary>
+        /// Project number for project-related invoice postings.
+        /// </summary>
         field(6; "Job No."; Code[20])
         {
             Caption = 'Project No.';
             DataClassification = SystemMetadata;
             TableRelation = Job;
         }
+        /// <summary>
+        /// Net amount for the invoice posting entry in local currency.
+        /// </summary>
         field(7; Amount; Decimal)
         {
             AutoFormatType = 1;
@@ -73,6 +104,9 @@ table 55 "Invoice Posting Buffer"
             Caption = 'Amount';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// VAT amount calculated for this invoice posting entry.
+        /// </summary>
         field(8; "VAT Amount"; Decimal)
         {
             AutoFormatType = 1;
@@ -80,23 +114,35 @@ table 55 "Invoice Posting Buffer"
             Caption = 'VAT Amount';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// General business posting group for determining G/L accounts and setup.
+        /// </summary>
         field(10; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
             DataClassification = SystemMetadata;
             TableRelation = "Gen. Business Posting Group";
         }
+        /// <summary>
+        /// General product posting group for determining G/L accounts and setup.
+        /// </summary>
         field(11; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
             DataClassification = SystemMetadata;
             TableRelation = "Gen. Product Posting Group";
         }
+        /// <summary>
+        /// VAT calculation type determining how VAT is calculated for this entry.
+        /// </summary>
         field(12; "VAT Calculation Type"; Enum "Tax Calculation Type")
         {
             Caption = 'VAT Calculation Type';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// VAT base amount for calculating VAT on this entry.
+        /// </summary>
         field(14; "VAT Base Amount"; Decimal)
         {
             AutoFormatType = 1;
@@ -104,28 +150,43 @@ table 55 "Invoice Posting Buffer"
             Caption = 'VAT Base Amount';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Indicates whether this entry was created automatically by the system.
+        /// </summary>
         field(17; "System-Created Entry"; Boolean)
         {
             Caption = 'System-Created Entry';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Tax area code for sales tax calculation and reporting.
+        /// </summary>
         field(18; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
             DataClassification = SystemMetadata;
             TableRelation = "Tax Area";
         }
+        /// <summary>
+        /// Indicates whether this entry is subject to sales tax.
+        /// </summary>
         field(19; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Tax group code for categorizing items for sales tax calculation.
+        /// </summary>
         field(20; "Tax Group Code"; Code[20])
         {
             Caption = 'Tax Group Code';
             DataClassification = SystemMetadata;
             TableRelation = "Tax Group";
         }
+        /// <summary>
+        /// Quantity of items or services for this posting entry.
+        /// </summary>
         field(21; Quantity; Decimal)
         {
             AutoFormatType = 0;
@@ -133,23 +194,35 @@ table 55 "Invoice Posting Buffer"
             DataClassification = SystemMetadata;
             DecimalPlaces = 1 : 5;
         }
+        /// <summary>
+        /// Indicates whether use tax applies to this entry.
+        /// </summary>
         field(22; "Use Tax"; Boolean)
         {
             Caption = 'Use Tax';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// VAT business posting group for determining VAT rates and accounts.
+        /// </summary>
         field(23; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
             DataClassification = SystemMetadata;
             TableRelation = "VAT Business Posting Group";
         }
+        /// <summary>
+        /// VAT product posting group for determining VAT rates and accounts.
+        /// </summary>
         field(24; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
             DataClassification = SystemMetadata;
             TableRelation = "VAT Product Posting Group";
         }
+        /// <summary>
+        /// Amount in additional reporting currency (ACY).
+        /// </summary>
         field(25; "Amount (ACY)"; Decimal)
         {
             AutoFormatExpression = GetAdditionalReportingCurrencyCode();
@@ -157,6 +230,9 @@ table 55 "Invoice Posting Buffer"
             Caption = 'Amount (ACY)';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// VAT amount in additional reporting currency (ACY).
+        /// </summary>
         field(26; "VAT Amount (ACY)"; Decimal)
         {
             AutoFormatExpression = GetAdditionalReportingCurrencyCode();
@@ -164,6 +240,9 @@ table 55 "Invoice Posting Buffer"
             Caption = 'VAT Amount (ACY)';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// VAT base amount in additional reporting currency (ACY).
+        /// </summary>
         field(29; "VAT Base Amount (ACY)"; Decimal)
         {
             AutoFormatExpression = GetAdditionalReportingCurrencyCode();
@@ -171,6 +250,9 @@ table 55 "Invoice Posting Buffer"
             Caption = 'VAT Base Amount (ACY)';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// VAT difference amount for manual VAT adjustments.
+        /// </summary>
         field(31; "VAT Difference"; Decimal)
         {
             AutoFormatType = 1;
@@ -178,6 +260,9 @@ table 55 "Invoice Posting Buffer"
             Caption = 'VAT Difference';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// VAT percentage rate used for this posting entry.
+        /// </summary>
         field(32; "VAT %"; Decimal)
         {
             AutoFormatType = 0;
@@ -185,6 +270,9 @@ table 55 "Invoice Posting Buffer"
             DataClassification = SystemMetadata;
             DecimalPlaces = 1 : 1;
         }
+        /// <summary>
+        /// VAT base amount before payment discount calculation.
+        /// </summary>
         field(35; "VAT Base Before Pmt. Disc."; Decimal)
         {
             AutoFormatType = 1;
@@ -192,16 +280,25 @@ table 55 "Invoice Posting Buffer"
             Caption = 'VAT Base Before Pmt. Disc.';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Journal template name for the posting operation.
+        /// </summary>
         field(40; "Journal Templ. Name"; Code[10])
         {
             Caption = 'Journal Template Name';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Description text for the posting entry.
+        /// </summary>
         field(215; "Entry Description"; Text[100])
         {
             Caption = 'Entry Description';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Dimension set ID linking to dimension values for this posting entry.
+        /// </summary>
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
@@ -209,17 +306,26 @@ table 55 "Invoice Posting Buffer"
             Editable = false;
             TableRelation = "Dimension Set Entry";
         }
+        /// <summary>
+        /// Additional identifier for grouping entries with same characteristics.
+        /// </summary>
         field(1000; "Additional Grouping Identifier"; Code[20])
         {
             Caption = 'Additional Grouping Identifier';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Deferral code for revenue or expense recognition scheduling.
+        /// </summary>
         field(1700; "Deferral Code"; Code[10])
         {
             Caption = 'Deferral Code';
             DataClassification = SystemMetadata;
             TableRelation = "Deferral Template"."Deferral Code";
         }
+        /// <summary>
+        /// Line number for deferral schedule entries.
+        /// </summary>
         field(1701; "Deferral Line No."; Integer)
         {
             Caption = 'Deferral Line No.';
@@ -372,16 +478,12 @@ table 55 "Invoice Posting Buffer"
         exit(GeneralLedgerSetup."Additional Reporting Currency")
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure PrepareInvoicePostingBuffer in codeunit Sales Post Invoice', '25.0')]
-    procedure PrepareSales(var SalesLine: Record Microsoft.Sales.Document."Sales Line")
-    var
-        SalesPostInvoice: Codeunit Microsoft.Sales.Posting."Sales Post Invoice";
-    begin
-        SalesPostInvoice.PrepareInvoicePostingBuffer(SalesLine, Rec);
-    end;
-#endif
-
+    /// <summary>
+    /// Calculates and applies discount amounts to the invoice posting buffer.
+    /// </summary>
+    /// <param name="PricesInclVAT">Whether prices include VAT</param>
+    /// <param name="DiscountAmount">Discount amount in LCY</param>
+    /// <param name="DiscountAmountACY">Discount amount in additional currency</param>
     procedure CalcDiscount(PricesInclVAT: Boolean; DiscountAmount: Decimal; DiscountAmountACY: Decimal)
     var
         CurrencyLCY: Record Currency;
@@ -434,6 +536,14 @@ table 55 "Invoice Posting Buffer"
         exit(Value * (VATPercent / 100));
     end;
 
+    /// <summary>
+    /// Sets the G/L account and updates total amounts for posting buffer entry.
+    /// </summary>
+    /// <param name="AccountNo">G/L account number to set</param>
+    /// <param name="TotalVAT">Total VAT amount to update</param>
+    /// <param name="TotalVATACY">Total VAT amount in ACY to update</param>
+    /// <param name="TotalAmount">Total amount to update</param>
+    /// <param name="TotalAmountACY">Total amount in ACY to update</param>
     procedure SetAccount(AccountNo: Code[20]; var TotalVAT: Decimal; var TotalVATACY: Decimal; var TotalAmount: Decimal; var TotalAmountACY: Decimal)
     begin
         TotalVAT := TotalVAT - "VAT Amount";
@@ -444,6 +554,16 @@ table 55 "Invoice Posting Buffer"
         OnAfterSetAccount(Rec, "G/L Account");
     end;
 
+    /// <summary>
+    /// Sets all amount fields in the invoice posting buffer from total calculations.
+    /// </summary>
+    /// <param name="TotalVAT">Total VAT amount</param>
+    /// <param name="TotalVATACY">Total VAT amount in ACY</param>
+    /// <param name="TotalAmount">Total amount</param>
+    /// <param name="TotalAmountACY">Total amount in ACY</param>
+    /// <param name="VATDifference">VAT difference amount</param>
+    /// <param name="TotalVATBase">Total VAT base amount</param>
+    /// <param name="TotalVATBaseACY">Total VAT base amount in ACY</param>
     procedure SetAmounts(TotalVAT: Decimal; TotalVATACY: Decimal; TotalAmount: Decimal; TotalAmountACY: Decimal; VATDifference: Decimal; TotalVATBase: Decimal; TotalVATBaseACY: Decimal)
     begin
         Amount := TotalAmount;
@@ -456,15 +576,6 @@ table 55 "Invoice Posting Buffer"
         "VAT Base Before Pmt. Disc." := TotalAmount;
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure PrepareInvoicePostingBuffer in codeunit Purch. Post Invoice', '25.0')]
-    procedure PreparePurchase(var PurchLine: Record Microsoft.Purchases.Document."Purchase Line")
-    var
-        PurchPostInvoice: Codeunit Microsoft.Purchases.Posting."Purch. Post Invoice";
-    begin
-        PurchPostInvoice.PrepareInvoicePostingBuffer(PurchLine, Rec);
-    end;
-#endif
 
     procedure CalcDiscountNoVAT(DiscountAmount: Decimal; DiscountAmountACY: Decimal)
     var
@@ -482,25 +593,7 @@ table 55 "Invoice Posting Buffer"
         "VAT Base Before Pmt. Disc." := "VAT Base Amount";
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure SetSalesTax in codeunit Purch. Post Invoice', '25.0')]
-    procedure SetSalesTaxForPurchLine(PurchaseLine: Record Microsoft.Purchases.Document."Purchase Line")
-    var
-        PurchPostInvoice: Codeunit Microsoft.Purchases.Posting."Purch. Post Invoice";
-    begin
-        PurchPostInvoice.SetSalesTax(PurchaseLine, Rec);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure SetSalesTax in codeunit Sales Post Invoice', '25.0')]
-    procedure SetSalesTaxForSalesLine(SalesLine: Record Microsoft.Sales.Document."Sales Line")
-    var
-        SalesPostInvoice: Codeunit Microsoft.Sales.Posting."Sales Post Invoice";
-    begin
-        SalesPostInvoice.SetSalesTax(SalesLine, Rec);
-    end;
-#endif
 
     procedure ReverseAmounts()
     begin
@@ -525,15 +618,6 @@ table 55 "Invoice Posting Buffer"
         "VAT Difference" := VATDifference;
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure PrepareInvoicePostingBuffer in codeunit Service Post Invoice', '25.0')]
-    procedure PrepareService(var ServiceLine: Record Microsoft.Service.Document."Service Line")
-    var
-        ServicePostInvoice: Codeunit Microsoft.Service.Posting."Service Post Invoice";
-    begin
-        ServicePostInvoice.PrepareInvoicePostingBuffer(ServiceLine, Rec);
-    end;
-#endif
 
     procedure PreparePrepmtAdjBuffer(InvoicePostingBuffer: Record "Invoice Posting Buffer"; GLAccountNo: Code[20]; AdjAmount: Decimal; RoundingEntry: Boolean)
     var
@@ -785,44 +869,8 @@ table 55 "Invoice Posting Buffer"
         OnAfterCopyToGenJnlLineFA(GenJnlLine, Rec);
     end;
 
-#if not CLEAN25
-    internal procedure RunOnAfterPrepareSales(var SalesLine: Record Microsoft.Sales.Document."Sales Line"; var InvoicePostingBuffer: Record "Invoice Posting Buffer")
-    begin
-        OnAfterPrepareSales(SalesLine, InvoicePostingBuffer);
-    end;
 
-    [Obsolete('Replaced by event OnAfterPrepareInvoicePostingBuffer in codeunit Sales Post Invoice Events', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterPrepareSales(var SalesLine: Record Microsoft.Sales.Document."Sales Line"; var InvoicePostingBuffer: Record "Invoice Posting Buffer")
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnAfterPreparePurchase(var PurchaseLine: Record Microsoft.Purchases.Document."Purchase Line"; var InvoicePostingBuffer: Record "Invoice Posting Buffer")
-    begin
-        OnAfterPreparePurchase(PurchaseLine, InvoicePostingBuffer);
-    end;
-
-    [Obsolete('Replaced by event OnAfterPrepareInvoicePostingBuffer in Purch. Post Invoice Events', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterPreparePurchase(var PurchaseLine: Record Microsoft.Purchases.Document."Purchase Line"; var InvoicePostingBuffer: Record "Invoice Posting Buffer")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnAfterPrepareService(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var InvoicePostingBuffer: Record "Invoice Posting Buffer")
-    begin
-        OnAfterPrepareService(ServiceLine, InvoicePostingBuffer);
-    end;
-
-    [Obsolete('Replaced by event OnAfterPrepareInvoicePostingBuffer in codeunit Service Post Invoice', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterPrepareService(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var InvoicePostingBuffer: Record "Invoice Posting Buffer")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterBuildPrimaryKey(var InvoicePostingBuffer: Record "Invoice Posting Buffer")
@@ -859,18 +907,6 @@ table 55 "Invoice Posting Buffer"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforePrepareSales(var InvoicePostingBuffer: Record "Invoice Posting Buffer"; var SalesLine: Record Microsoft.Sales.Document."Sales Line")
-    begin
-        OnBeforePrepareSales(InvoicePostingBuffer, SalesLine);
-    end;
-
-    [Obsolete('Moved to codeunit Sales Post Invoice Events', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforePrepareSales(var InvoicePostingBuffer: Record "Invoice Posting Buffer"; var SalesLine: Record Microsoft.Sales.Document."Sales Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnFillPrepmtAdjBufferOnBeforeAssignInvoicePostingBuffer(var PrepmtAdjInvoicePostingBuffer: Record "Invoice Posting Buffer"; InvoicePostingBuffer: Record "Invoice Posting Buffer")

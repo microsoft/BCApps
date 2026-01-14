@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument;
 
-using Microsoft.Service.History;
 using Microsoft.Service.Document;
+using Microsoft.Service.History;
 
 codeunit 6468 "Serv. Doc. Exchange Mgt."
 {

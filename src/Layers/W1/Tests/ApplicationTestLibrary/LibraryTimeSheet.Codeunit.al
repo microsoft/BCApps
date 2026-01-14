@@ -1,3 +1,6 @@
+/// <summary>
+/// Provides utility functions for creating and managing timesheets in test scenarios, including time sheet lines and resource time sheets.
+/// </summary>
 codeunit 131904 "Library - Time Sheet"
 {
     EventSubscriberInstance = Manual;

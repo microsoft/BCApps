@@ -8,6 +8,20 @@ using Microsoft.Bank.BankAccount;
 using System.IO;
 using System.Telemetry;
 
+/// <summary>
+/// Processes bank account reconciliation lines during bank statement import and data exchange operations.
+/// This codeunit handles the transformation of imported bank statement data into Business Central reconciliation
+/// lines, managing data validation, field mapping, and integration with the data exchange framework.
+/// Supports both bank reconciliation and payment application workflows with comprehensive error handling
+/// and progress tracking for large statement imports.
+/// </summary>
+/// <remarks>
+/// Key features include bank statement import processing, data exchange framework integration, field mapping
+/// validation, progress reporting, and telemetry logging. The codeunit manages the technical aspects of
+/// converting external bank statement formats into standardized reconciliation line records through
+/// configurable mapping definitions. Provides error handling for format validation, data quality issues,
+/// and import failures while maintaining audit trails and processing statistics.
+/// </remarks>
 codeunit 1248 "Process Bank Acc. Rec Lines"
 {
     Permissions = TableData "Data Exch." = rimd;
@@ -33,6 +47,15 @@ codeunit 1248 "Process Bank Acc. Rec Lines"
         InvalidFileFormatErr: Label 'The format of the chosen file is incompatible with the bank statement import format %2 specified on bank account %1. You must choose another file or change the bank statement import format on bank account %1.', Comment = '%1 - bank account code, %2 - name of a bank statement import format';
         BankAccountNo: Code[20];
 
+    /// <summary>
+    /// Imports bank statement data into a bank account reconciliation document.
+    /// Processes imported data through the data exchange framework, creating reconciliation lines
+    /// with proper field mapping and validation. Handles both bank reconciliation and payment
+    /// application statement types with progress tracking and telemetry logging.
+    /// </summary>
+    /// <param name="BankAccRecon">Bank account reconciliation document to receive the imported lines.</param>
+    /// <param name="DataExch">Data exchange record containing the imported bank statement data.</param>
+    /// <returns>True if import completed successfully; false if errors occurred during processing.</returns>
     procedure ImportBankStatement(BankAccRecon: Record "Bank Acc. Reconciliation"; DataExch: Record "Data Exch."): Boolean
     var
         DataExchDef: Record "Data Exch. Def";

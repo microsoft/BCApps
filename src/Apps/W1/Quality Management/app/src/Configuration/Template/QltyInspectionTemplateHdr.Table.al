@@ -9,14 +9,14 @@ using Microsoft.QualityManagement.Document;
 
 /// 
 /// <summary>
-/// A Quality Inspection Template is a test plan containing a set of questions and data points that you want to collect.
+/// A Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.
 /// A place where the contents of what goes in an inspection are defined.
 /// </summary>
 table 20402 "Qlty. Inspection Template Hdr."
 {
     Caption = 'Quality Inspection Template Header';
-    DrillDownPageID = "Qlty. Inspection Template List";
-    LookupPageID = "Qlty. Inspection Template List";
+    DrillDownPageId = "Qlty. Inspection Template List";
+    LookupPageId = "Qlty. Inspection Template List";
     DataClassification = CustomerContent;
     Permissions = tabledata "Qlty. Inspection Template Line" = d;
 
@@ -79,56 +79,56 @@ table 20402 "Qlty. Inspection Template Hdr."
     trigger OnDelete()
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
         QltyInspectionTemplateLine.SetRange("Template Code", Code);
         QltyInspectionTemplateLine.DeleteAll(true);
 
-        QltyInTestGenerationRule.SetRange("Template Code", Code);
-        QltyInTestGenerationRule.DeleteAll();
+        QltyInspectionGenRule.SetRange("Template Code", Code);
+        QltyInspectionGenRule.DeleteAll();
     end;
 
     trigger OnRename()
     var
-        RenameQltyInspectionTestLine: Record "Qlty. Inspection Test Line";
+        RenameQltyInspectionLine: Record "Qlty. Inspection Line";
     begin
         if (xRec."Code" <> '') and (Rec."Code" <> '') and (xRec."Code" <> Rec."Code") then begin
-            RenameQltyInspectionTestLine.SetRange("Template Code", xRec."Code");
-            RenameQltyInspectionTestLine.ModifyAll("Template Code", Rec."Code");
+            RenameQltyInspectionLine.SetRange("Template Code", xRec."Code");
+            RenameQltyInspectionLine.ModifyAll("Template Code", Rec."Code");
         end;
     end;
 
     /// <summary>
-    /// Adds the supplied field to the template if it does not already exist.
-    /// If it already exists then it will not add the field.
+    /// Adds the supplied test to the template if it does not already exist.
+    /// If it already exists then it will not add the test.
     /// </summary>
-    /// <param name="FieldCode"></param>
-    procedure AddFieldToTemplate(FieldCode: Code[20]): Boolean
+    /// <param name="TestCode"></param>
+    procedure AddTestToTemplate(TestCode: Code[20]): Boolean
     var
         DummyQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
     begin
-        exit(AddFieldToTemplate(FieldCode, DummyQltyInspectionTemplateLine));
+        exit(AddTestToTemplate(TestCode, DummyQltyInspectionTemplateLine));
     end;
 
     /// <summary>
-    /// Adds the supplied field to the template if it does not already exist.
-    /// If it already exists then it will not add the field and it will simply find it.
+    /// Adds the supplied test to the template if it does not already exist.
+    /// If it already exists then it will not add the test and it will simply find it.
     /// </summary>
-    /// <param name="FieldCode"></param>
+    /// <param name="TestCode"></param>
     /// <param name="QltyInspectionTemplateLine">the template line</param>
-    procedure AddFieldToTemplate(FieldCode: Code[20]; var QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"): Boolean
+    procedure AddTestToTemplate(TestCode: Code[20]; var QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"): Boolean
     begin
         QltyInspectionTemplateLine.Reset();
         QltyInspectionTemplateLine.SetRange("Template Code", Rec.Code);
-        QltyInspectionTemplateLine.SetRange("Field Code", FieldCode);
+        QltyInspectionTemplateLine.SetRange("Test Code", TestCode);
         if not QltyInspectionTemplateLine.FindFirst() then begin
             Clear(QltyInspectionTemplateLine);
             QltyInspectionTemplateLine.Init();
             QltyInspectionTemplateLine."Template Code" := Rec.Code;
             QltyInspectionTemplateLine.InitLineNoIfNeeded();
-            QltyInspectionTemplateLine.Validate("Field Code", FieldCode);
+            QltyInspectionTemplateLine.Validate("Test Code", TestCode);
             QltyInspectionTemplateLine.Insert(true);
-            QltyInspectionTemplateLine.EnsureGrades(true);
+            QltyInspectionTemplateLine.EnsureResultsExist(true);
             QltyInspectionTemplateLine.Modify();
             exit(true);
         end;

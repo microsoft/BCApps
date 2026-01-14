@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Ledger;
 
+/// <summary>
+/// Calculates running balance for G/L accounts with performance optimization through caching.
+/// Provides running balance calculations in both local currency (LCY) and additional currency (ACY).
+/// </summary>
+/// <remarks>
+/// Uses dictionary caching to optimize performance when calculating running balances for multiple entries.
+/// Automatically resets cache when switching between different G/L accounts.
+/// Excludes calculations for OData clients to prevent performance issues.
+/// </remarks>
 codeunit 122 "Calc. Running GL. Acc. Balance"
 {
     InherentPermissions = X;
@@ -17,6 +26,11 @@ codeunit 122 "Calc. Running GL. Acc. Balance"
         EntryValuesACY: Dictionary of [Integer, Decimal];
         PrevAccNo: Code[20];
 
+    /// <summary>
+    /// Calculates running balance in local currency for the specified G/L entry.
+    /// </summary>
+    /// <param name="GLEntry">G/L entry for which to calculate running balance</param>
+    /// <returns>Running balance amount in local currency up to and including the specified entry</returns>
     procedure GetGLAccBalance(var GLEntry: Record "G/L Entry"): Decimal
     var
         RunningBalance: Decimal;
@@ -26,6 +40,11 @@ codeunit 122 "Calc. Running GL. Acc. Balance"
         exit(RunningBalance);
     end;
 
+    /// <summary>
+    /// Calculates running balance in additional currency for the specified G/L entry.
+    /// </summary>
+    /// <param name="GLEntry">G/L entry for which to calculate running balance</param>
+    /// <returns>Running balance amount in additional currency up to and including the specified entry</returns>
     procedure GetGLAccBalanceACY(var GLEntry: Record "G/L Entry"): Decimal
     var
         RunningBalance: Decimal;

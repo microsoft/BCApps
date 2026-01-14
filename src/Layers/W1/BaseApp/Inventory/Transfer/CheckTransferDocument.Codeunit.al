@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,9 +24,6 @@ codeunit 9134 "Check Transfer Document"
     begin
         IsHandled := false;
         OnBeforeCheckTransferLines(Item, CurrentFieldNo, CheckFieldNo, CheckFieldCaption, IsHandled);
-#if not CLEAN25
-        Item.RunOnBeforeCheckTransLine(Item, CurrentFieldNo, CheckFieldNo, CheckFieldCaption, IsHandled);
-#endif
         if IsHandled then
             exit;
 

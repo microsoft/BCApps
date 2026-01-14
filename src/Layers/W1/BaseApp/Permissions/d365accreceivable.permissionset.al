@@ -1,37 +1,37 @@
 namespace System.Security.AccessControl;
 
+using Microsoft.Bank.BankAccount;
+using Microsoft.Bank.Payment;
 using Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.Statement;
+using Microsoft.CRM.Opportunity;
+using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Currency;
-using Microsoft.Sales.FinanceCharge;
-using Microsoft.Sales.Reminder;
-using Microsoft.Sales.Customer;
+using Microsoft.Finance.VAT.Registration;
+using Microsoft.Foundation.Period;
+using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.Item;
-using Microsoft.Purchases.Document;
+using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
-using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Tracking;
-using Microsoft.Finance.VAT.Registration;
-using Microsoft.Projects.Project.Ledger;
-using Microsoft.Sales.Document;
-using Microsoft.EServices.EDocument;
-using Microsoft.Foundation.Period;
-using Microsoft.Bank.Payment;
-using System.Threading;
-using System.Environment.Configuration;
-using Microsoft.CRM.Opportunity;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Inventory.Availability;
-using Microsoft.Bank.BankAccount;
-using Microsoft.Warehouse.History;
 using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
 using Microsoft.Pricing.Source;
 using Microsoft.Pricing.Worksheet;
+using Microsoft.Projects.Project.Ledger;
+using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Remittance;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.FinanceCharge;
+using Microsoft.Sales.Reminder;
+using Microsoft.Warehouse.History;
+using System.Environment.Configuration;
+using System.Threading;
 
 permissionset 7862 "D365 ACC. RECEIVABLE"
 {

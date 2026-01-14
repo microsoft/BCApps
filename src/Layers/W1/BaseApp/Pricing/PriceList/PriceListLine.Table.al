@@ -750,7 +750,7 @@ table 7001 "Price List Line"
         exit(PriceSourceInterface.IsSourceNoAllowed());
     end;
 
-    local procedure CheckAmountType(FldCaption: Text; AmountType: Enum "Price Amount Type")
+    procedure CheckAmountType(FldCaption: Text; AmountType: Enum "Price Amount Type")
     begin
         if "Amount Type" = AmountType then
             Error(FieldNotAllowedForAmountTypeErr, FldCaption, FieldCaption("Amount Type"), Format("Amount Type"));

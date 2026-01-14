@@ -145,11 +145,16 @@ enum 30111 "Shpfy GraphQL Type" implements "Shpfy IGraphQL"
         Caption = 'Get Variant by Id';
         Implementation = "Shpfy IGraphQL" = "Shpfy GQL VariantById";
     }
+#if not CLEAN28
     value(26; GetLocationOfOrderLines)
     {
         Caption = 'Get Location of the Order Lines';
         Implementation = "Shpfy IGraphQL" = "Shpfy GQL LocationOrderLines";
+        ObsoleteReason = 'This request is no longer used.';
+        ObsoleteState = Pending;
+        ObsoleteTag = '28.0';
     }
+#endif
     value(27; ModifyInventory)
     {
         Caption = 'Modify Inventory';
@@ -419,6 +424,11 @@ enum 30111 "Shpfy GraphQL Type" implements "Shpfy IGraphQL"
     {
         Caption = 'Get Fulfillments';
         Implementation = "Shpfy IGraphQL" = "Shpfy GQL Get Fulfillments";
+    }
+    value(84; GetNextFulfillmentOrderIds)
+    {
+        Caption = 'Get Next Fulfillments';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextGetFulfillments";
     }
     value(86; GetProductOptions)
     {
@@ -694,5 +704,25 @@ enum 30111 "Shpfy GraphQL Type" implements "Shpfy IGraphQL"
     {
         Caption = 'Get Next Custom Product Collections';
         Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextCustProdColls";
+    }
+    value(141; GetVariantImage)
+    {
+        Caption = 'Get Variant Image';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL GetVariantImage";
+    }
+    value(142; AddVariantImage)
+    {
+        Caption = 'Add Variant Image';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL AddVariantImage";
+    }
+    value(143; UpdateProdWithImage)
+    {
+        Caption = 'Update Product With Image';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL AddImageToProduct";
+    }
+    value(144; SetVariantImage)
+    {
+        Caption = 'Set Variant Image';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL SetVariantImage";
     }
 }

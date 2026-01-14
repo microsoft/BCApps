@@ -9,6 +9,10 @@ using Microsoft.Intercompany.Setup;
 using System.IO;
 using System.Telemetry;
 
+/// <summary>
+/// Main interface for managing the intercompany chart of accounts structure.
+/// Provides comprehensive functionality for account creation, mapping, import/export, and synchronization.
+/// </summary>
 page 605 "IC Chart of Accounts"
 {
     ApplicationArea = Intercompany;
@@ -360,6 +364,12 @@ page 605 "IC Chart of Accounts"
         Emphasize := Rec."Account Type" <> Rec."Account Type"::Posting;
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting IC G/L account during copy from chart of accounts operation.
+    /// Allows modification of IC account data before insertion.
+    /// </summary>
+    /// <param name="ICGLAccount">IC G/L account being inserted</param>
+    /// <param name="GLAccount">Source G/L account being copied from</param>
     [IntegrationEvent(false, false)]
     local procedure OnCopyFromChartOfAccountsOnBeforeICGLAccInsert(var ICGLAccount: Record "IC G/L Account"; GLAccount: Record "G/L Account")
     begin

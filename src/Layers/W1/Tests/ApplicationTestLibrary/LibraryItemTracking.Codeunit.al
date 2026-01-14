@@ -1,7 +1,8 @@
+/// <summary>
+/// Provides utility functions for creating and managing item tracking (serial numbers, lot numbers) in test scenarios.
+/// </summary>
 codeunit 130502 "Library - Item Tracking"
 {
-    // Unsupported version tags:
-    // NA: Unable to Compile
 
     Permissions = TableData "Whse. Item Tracking Line" = rimd;
 

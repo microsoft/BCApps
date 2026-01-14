@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -83,15 +83,6 @@ codeunit 5817 "Undo Posting Management"
             DATABASE::"Sales Line", SalesLine."Document Type"::Order.AsInteger(), SalesShptLine."Order No.", SalesShptLine."Order Line No.");
     end;
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit Serv. Undo Posting Mgt.', '25.0')]
-    procedure TestServShptLine(ServShptLine: Record Microsoft.Service.History."Service Shipment Line")
-    var
-        ServUndoPostingMgt: Codeunit "Serv. Undo Posting Mgt.";
-    begin
-        ServUndoPostingMgt.TestServShptLine(ServShptLine);
-    end;
-#endif
 
     procedure TestPurchRcptLine(PurchRcptLine: Record "Purch. Rcpt. Line")
     var
@@ -1061,25 +1052,7 @@ codeunit 5817 "Undo Posting Management"
         SalesLineReserve.VerifyQuantity(SalesLine, xSalesLine);
     end;
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit Serv. Undo Posting Mgt.', '25.0')]
-    procedure UpdateServLine(ServLine: Record Microsoft.Service.Document."Service Line"; UndoQty: Decimal; UndoQtyBase: Decimal; var TempUndoneItemLedgEntry: Record "Item Ledger Entry" temporary)
-    var
-        ServUndoPostingMgt: Codeunit "Serv. Undo Posting Mgt.";
-    begin
-        ServUndoPostingMgt.UpdateServLine(ServLine, UndoQty, UndoQtyBase, TempUndoneItemLedgEntry);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit Serv. Undo Posting Mgt.', '25.0')]
-    procedure UpdateServLineCnsm(var ServLine: Record Microsoft.Service.Document."Service Line"; UndoQty: Decimal; UndoQtyBase: Decimal; var TempUndoneItemLedgEntry: Record "Item Ledger Entry" temporary)
-    var
-        ServUndoPostingMgt: Codeunit "Serv. Undo Posting Mgt.";
-    begin
-        ServUndoPostingMgt.UpdateServLineCnsm(ServLine, UndoQty, UndoQtyBase, TempUndoneItemLedgEntry);
-    end;
-#endif
 
     procedure RevertPostedItemTracking(var TempItemLedgEntry: Record "Item Ledger Entry" temporary; AvailabilityDate: Date; RevertInvoiced: Boolean)
     var
@@ -1313,18 +1286,6 @@ codeunit 5817 "Undo Posting Management"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnAfterUpdateServLine(var ServLine: Record Microsoft.Service.Document."Service Line")
-    begin
-        OnAfterUpdateServLine(ServLine);
-    end;
-
-    [Obsolete('Moved to codeunit Serv. Undo Posting Mgt.', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterUpdateServLine(var ServLine: Record Microsoft.Service.Document."Service Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAdjustQuantityRounding(var ItemJnlLine: Record "Item Journal Line"; var NonDistrQuantity: Decimal; NonDistrQuantityBase: Decimal; var IsHandled: Boolean)
@@ -1391,44 +1352,8 @@ codeunit 5817 "Undo Posting Management"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforeRevertPostedItemTrackingFromServiceLine(ServiceLine: Record Microsoft.Service.Document."Service Line"; var TempUndoneItemLedgEntry: Record "Item Ledger Entry" temporary; var IsHandled: Boolean)
-    begin
-        OnBeforeRevertPostedItemTrackingFromServiceLine(ServiceLine, TempUndoneItemLedgEntry, IsHandled);
-    end;
 
-    [Obsolete('Moved to codeunit Serv. Undo Posting Mgt.', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeRevertPostedItemTrackingFromServiceLine(ServiceLine: Record Microsoft.Service.Document."Service Line"; var TempUndoneItemLedgEntry: Record "Item Ledger Entry" temporary; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnBeforeServiceLineReserveVerifyQuantity(ServiceLine: Record Microsoft.Service.Document."Service Line"; xServiceLine: Record Microsoft.Service.Document."Service Line"; var IsHandled: Boolean)
-    begin
-        OnBeforeServiceLineReserveVerifyQuantity(ServiceLine, xServiceLine, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit Serv. Undo Posting Mgt.', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeServiceLineReserveVerifyQuantity(ServiceLine: Record Microsoft.Service.Document."Service Line"; xServiceLine: Record Microsoft.Service.Document."Service Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnBeforeServiceLineCnsmReserveVerifyQuantity(ServiceLine: Record Microsoft.Service.Document."Service Line"; xServiceLine: Record Microsoft.Service.Document."Service Line"; var IsHandled: Boolean)
-    begin
-        OnBeforeServiceLineCnsmReserveVerifyQuantity(ServiceLine, xServiceLine, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit Serv. Undo Posting Mgt.', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeServiceLineCnsmReserveVerifyQuantity(ServiceLine: Record Microsoft.Service.Document."Service Line"; xServiceLine: Record Microsoft.Service.Document."Service Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestAllTransactions(UndoType: Integer; UndoID: Code[20]; UndoLineNo: Integer; SourceType: Integer; SourceSubtype: Integer; SourceID: Code[20]; SourceRefNo: Integer)
@@ -1560,18 +1485,6 @@ codeunit 5817 "Undo Posting Management"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforeUpdateServLine(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var UndoQty: Decimal; var UndoQtyBase: Decimal; var TempUndoneItemLedgEntry: Record "Item Ledger Entry" temporary; var IsHandled: Boolean)
-    begin
-        OnBeforeUpdateServLine(ServiceLine, UndoQty, UndoQtyBase, TempUndoneItemLedgEntry, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit Serv. Undo Posting Mgt.', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateServLine(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var UndoQty: Decimal; var UndoQtyBase: Decimal; var TempUndoneItemLedgEntry: Record "Item Ledger Entry" temporary; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePurchLine(PurchaseLine: Record "Purchase Line"; var UndoQty: Decimal; var UndoQtyBase: Decimal; var TempUndoneItemLedgEntry: Record "Item Ledger Entry" temporary; var IsHandled: Boolean)

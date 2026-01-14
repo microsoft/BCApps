@@ -4,20 +4,20 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.Security.AccessControl;
 
-using Microsoft.Sales.Customer;
 using Microsoft.Inventory.Item;
 using Microsoft.Projects.Resources.Resource;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
 using Microsoft.Service.Archive;
-using Microsoft.Service.Resources;
 using Microsoft.Service.Comment;
 using Microsoft.Service.Contract;
+using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Item;
-using Microsoft.Service.Document;
 using Microsoft.Service.Ledger;
-using Microsoft.Service.Setup;
 using Microsoft.Service.Maintenance;
-using Microsoft.Purchases.Vendor;
+using Microsoft.Service.Resources;
+using Microsoft.Service.Setup;
 
 permissionset 2805 "Service Items - View"
 {

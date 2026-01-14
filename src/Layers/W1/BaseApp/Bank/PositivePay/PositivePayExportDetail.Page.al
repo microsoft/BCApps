@@ -160,6 +160,12 @@ page 1234 "Positive Pay Export Detail"
         LastUploadDate: Date;
         UploadCutoffDate: Date;
 
+    /// <summary>
+    /// Sets the filter parameters for displaying check ledger entries within the specified date range and bank account.
+    /// </summary>
+    /// <param name="NewLastUploadDate">The last upload date for filtering check entries.</param>
+    /// <param name="NewUploadCutoffDate">The cutoff date for filtering check entries.</param>
+    /// <param name="NewBankAcctNo">The bank account number to filter check entries.</param>
     procedure Set(NewLastUploadDate: Date; NewUploadCutoffDate: Date; NewBankAcctNo: Code[20])
     begin
         LastUploadDate := NewLastUploadDate;
@@ -169,6 +175,10 @@ page 1234 "Positive Pay Export Detail"
         CurrPage.Update(false);
     end;
 
+    /// <summary>
+    /// Applies bank payment type filter to the check ledger entries displayed in the page.
+    /// </summary>
+    /// <param name="BankPaymentType">The bank payment type to filter by, or blank to show all types.</param>
     procedure SetBankPaymentType(BankPaymentType: Enum "Bank Payment Type")
     begin
         if BankPaymentType = Enum::"Bank Payment Type"::" " then

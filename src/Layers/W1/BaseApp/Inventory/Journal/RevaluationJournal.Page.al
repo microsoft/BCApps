@@ -16,8 +16,8 @@ using Microsoft.Inventory.Posting;
 using Microsoft.Inventory.Reports;
 using System.Environment;
 using System.Environment.Configuration;
-using System.Integration;
 using System.Globalization;
+using System.Integration;
 
 page 5803 "Revaluation Journal"
 {

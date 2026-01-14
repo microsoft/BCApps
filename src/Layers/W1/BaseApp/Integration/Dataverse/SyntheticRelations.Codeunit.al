@@ -4,11 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Integration.Dataverse;
 
-using System;
-using System.Telemetry;
-using System.Reflection;
-using Microsoft.Integration.SyncEngine;
 using Microsoft.Integration.D365Sales;
+using Microsoft.Integration.SyncEngine;
+using System;
+using System.Reflection;
+using System.Telemetry;
 
 codeunit 7202 "Synthetic Relations"
 {

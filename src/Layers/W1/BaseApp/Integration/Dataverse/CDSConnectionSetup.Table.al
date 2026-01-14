@@ -10,8 +10,8 @@ using Microsoft.Utilities;
 using System.Environment;
 using System.Privacy;
 using System.Security.Encryption;
-using System.Threading;
 using System.Telemetry;
+using System.Threading;
 
 table 7200 "CDS Connection Setup"
 {
@@ -368,14 +368,6 @@ table 7200 "CDS Connection Setup"
         exit(not GetSecretPassword().IsEmpty());
     end;
 
-#if not CLEAN25
-    [Obsolete('Use GetSecretPassword instead.', '25.0')]
-    [NonDebuggable]
-    procedure GetPassword(): Text
-    begin
-        exit(GetSecretPassword().Unwrap());
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure GetSecretPassword(): SecretText
@@ -392,17 +384,6 @@ table 7200 "CDS Connection Setup"
 
     end;
 
-#if not CLEAN25
-    [Obsolete('Use SetPassword with SecretText parameter instead.', '25.0')]
-    [NonDebuggable]
-    procedure SetPassword(PasswordText: Text)
-    var
-        SecretPasswordText: SecretText;
-    begin
-        SecretPasswordText := PasswordText;
-        SetPassword(SecretPasswordText);
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure SetPassword(PasswordText: SecretText)
@@ -420,14 +401,6 @@ table 7200 "CDS Connection Setup"
         IsolatedStorageManagement.Set(Format("User Password Key"), PasswordText, DATASCOPE::Company);
     end;
 
-#if not CLEAN25
-    [Obsolete('Use GetSecretAccessToken instead.', '25.0')]
-    [NonDebuggable]
-    procedure GetAccessToken(): Text
-    begin
-        exit(GetSecretAccessToken().Unwrap());
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure GetSecretAccessToken(): SecretText
@@ -436,17 +409,6 @@ table 7200 "CDS Connection Setup"
             exit(TempAccessToken);
     end;
 
-#if not CLEAN25
-    [NonDebuggable]
-    [Obsolete('Use SetAccessToken with SecretText parameter instead.', '25.0')]
-    procedure SetAccessToken(AccessToken: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        SecretAccessToken := AccessToken;
-        SetAccessToken(SecretAccessToken);
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure SetAccessToken(AccessToken: SecretText)
@@ -476,17 +438,6 @@ table 7200 "CDS Connection Setup"
         IsolatedStorageManagement.Delete(Format("User Password Key"), DATASCOPE::Company);
     end;
 
-#if not CLEAN25
-    [Obsolete('Use SetClientSecret with SecretText parameter instead.', '25.0')]
-    [NonDebuggable]
-    procedure SetClientSecret(ClientSecretText: Text)
-    var
-        SecretClientSecretText: SecretText;
-    begin
-        SecretClientSecretText := ClientSecretText;
-        SetClientSecret(SecretClientSecretText);
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure SetClientSecret(ClientSecretText: SecretText)
@@ -510,14 +461,6 @@ table 7200 "CDS Connection Setup"
         IsolatedStorageManagement.Set(Format("Client Secret Key"), ClientSecretText, DATASCOPE::Company);
     end;
 
-#if not CLEAN25
-    [Obsolete('Use GetSecretClientSecret instead', '25.0')]
-    [NonDebuggable]
-    procedure GetClientSecret(): Text
-    begin
-        exit(GetSecretClientSecret().Unwrap());
-    end;
-#endif
 
     [Scope('OnPrem')]
     [NonDebuggable]

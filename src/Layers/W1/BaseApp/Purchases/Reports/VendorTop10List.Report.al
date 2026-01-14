@@ -1,3 +1,4 @@
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -13,9 +14,12 @@ report 311 "Vendor - Top 10 List"
     DefaultLayout = RDLC;
     RDLCLayout = './Purchases/Reports/VendorTop10List.rdlc';
     ApplicationArea = Suite;
-    Caption = 'Vendor - Top 10 List';
+    Caption = 'Vendor - Top 10 List (Obsolete)';
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'This report has been replaced by the report Vendor - Top List (Excel). This report will be removed in a future release.';
+    ObsoleteTag = '28.0';
 
     dataset
     {
@@ -175,8 +179,8 @@ report 311 "Vendor - Top 10 List"
 
     requestpage
     {
-        AboutTitle = 'About Vendor - Top 10 List';
-        AboutText = 'Review a summary of vendors with the most transactions within a selected period to monitor supplier relationships, plan upcoming payments and identify potential cashflow issues.';
+        AboutTitle = 'About Vendor - Top 10 List (Obsolete)';
+        AboutText = 'Review a summary of vendors with the most transactions within a selected period to monitor supplier relationships, plan upcoming payments and identify potential cashflow issues.** This report is obsolete and will be removed in a future release.** Please refer to the report documentation for alternative ways to retrieve this information.';
         SaveValues = true;
 
         layout
@@ -261,3 +265,4 @@ report 311 "Vendor - Top 10 List"
     end;
 }
 
+#endif

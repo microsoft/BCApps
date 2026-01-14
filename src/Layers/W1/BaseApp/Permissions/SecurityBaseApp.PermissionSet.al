@@ -1,15 +1,15 @@
 namespace System.Security.AccessControl;
 
-using System.Environment.Configuration;
-using System.Diagnostics;
-using Microsoft.Foundation.Company;
-using System.Tooling;
+using Microsoft;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Company;
+using Microsoft.Utilities;
+using System.Diagnostics;
+using System.Environment.Configuration;
 using System.Privacy;
 using System.Security.User;
-using Microsoft.Utilities;
-using Microsoft.Finance.VAT.Setup;
-using Microsoft;
+using System.Tooling;
 
 permissionset 7372 "Security - Baseapp"
 {

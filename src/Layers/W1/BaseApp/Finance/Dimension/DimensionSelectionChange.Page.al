@@ -7,6 +7,15 @@ namespace Microsoft.Finance.Dimension;
 using Microsoft.Finance.Consolidation;
 using Microsoft.Finance.GeneralLedger.Account;
 
+/// <summary>
+/// Interactive dimension selection interface for dimension value change operations.
+/// Enables users to select dimensions and specify new dimension values for bulk change scenarios.
+/// </summary>
+/// <remarks>
+/// Used in dimension change and reclassification processes where dimension values need to be updated.
+/// Supports filtering existing dimension values and specifying new target dimension values for replacement.
+/// Commonly used in dimension correction, reclassification, and global dimension change workflows.
+/// </remarks>
 page 567 "Dimension Selection-Change"
 {
     Caption = 'Dimension Selection';
@@ -58,6 +67,11 @@ page 567 "Dimension Selection-Change"
     {
     }
 
+    /// <summary>
+    /// Retrieves all dimension selections with change criteria from the temporary buffer.
+    /// Transfers complete dimension configuration including filters and new values to calling process.
+    /// </summary>
+    /// <param name="TheDimSelectionBuf">Target buffer to receive dimension selection and change configuration</param>
     procedure GetDimSelBuf(var TheDimSelectionBuf: Record "Dimension Selection Buffer")
     begin
         TheDimSelectionBuf.DeleteAll();
@@ -68,6 +82,15 @@ page 567 "Dimension Selection-Change"
             until Rec.Next() = 0;
     end;
 
+    /// <summary>
+    /// Adds a dimension to the selection buffer with change criteria including new dimension value codes.
+    /// Automatically resolves dimension descriptions and configures lookup tables for various entity types.
+    /// </summary>
+    /// <param name="NewSelected">Whether the dimension is initially selected for change</param>
+    /// <param name="NewCode">Dimension code to add</param>
+    /// <param name="NewDescription">Description for the dimension, auto-resolved if empty</param>
+    /// <param name="NewNewDimValueCode">New dimension value code to change to</param>
+    /// <param name="NewDimValueFilter">Filter criteria for existing dimension values to change</param>
     procedure InsertDimSelBuf(NewSelected: Boolean; NewCode: Text[30]; NewDescription: Text[30]; NewNewDimValueCode: Code[20]; NewDimValueFilter: Text[250])
     var
         Dim: Record Dimension;

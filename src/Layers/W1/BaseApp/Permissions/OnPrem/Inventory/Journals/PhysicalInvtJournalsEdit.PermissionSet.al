@@ -1,29 +1,29 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Warehouse.Structure;
-using Microsoft.Foundation.Comment;
-using Microsoft.Foundation.Address;
-using Microsoft.Finance.Dimension;
-using Microsoft.Inventory.Counting.Tracking;
-using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Ledger;
-using Microsoft.Inventory.Journal;
-using Microsoft.Inventory.Location;
-using Microsoft.Inventory.Counting.Journal;
-using Microsoft.Inventory.Counting.Comment;
-using Microsoft.Inventory.Counting.Document;
-using Microsoft.Inventory.Counting.Recording;
-using Microsoft.Inventory.Counting.History;
-using System.Security.User;
-using Microsoft.Foundation.Period;
-using Microsoft.Foundation.AuditCodes;
 using Microsoft.CRM.Team;
-using Microsoft.Inventory.Intrastat;
-using Microsoft.Finance.VAT.Setup;
+using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.RateChange;
 using Microsoft.Finance.VAT.Reporting;
-using Microsoft.Finance.VAT.Calculation;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Address;
+using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.Comment;
+using Microsoft.Foundation.Period;
+using Microsoft.Inventory.Counting.Comment;
+using Microsoft.Inventory.Counting.Document;
+using Microsoft.Inventory.Counting.History;
+using Microsoft.Inventory.Counting.Journal;
+using Microsoft.Inventory.Counting.Recording;
+using Microsoft.Inventory.Counting.Tracking;
+using Microsoft.Inventory.Intrastat;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
+using Microsoft.Warehouse.Structure;
+using System.Security.User;
 
 permissionset 4736 "Physical Invt Journals - Edit"
 {

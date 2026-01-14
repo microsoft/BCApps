@@ -7,6 +7,14 @@ namespace Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
 using System.Diagnostics;
 
+/// <summary>
+/// Updates global dimension numbers in dimension set entries based on general ledger setup configuration.
+/// Manages the synchronization of global dimension assignments across all dimension set entries when dimension setup changes.
+/// </summary>
+/// <remarks>
+/// Used primarily during dimension setup changes to ensure dimension set entries reflect current global dimension assignments.
+/// Includes progress tracking and change log integration for dimension number updates across large datasets.
+/// </remarks>
 codeunit 482 "Update Dim. Set Glbl. Dim. No."
 {
     EventSubscriberInstance = Manual;
@@ -23,6 +31,14 @@ codeunit 482 "Update Dim. Set Glbl. Dim. No."
         Window: Dialog;
         ProgressBarMsg: Label 'Processing: @1@@@@@@@';
 
+    /// <summary>
+    /// Updates global dimension numbers in all dimension set entries based on current general ledger setup.
+    /// Processes dimension set entries with progress tracking and change log integration.
+    /// </summary>
+    /// <remarks>
+    /// Clears existing global dimension numbers and assigns new values based on shortcut dimension configuration.
+    /// Uses event subscription to ensure change log tracking during the update process.
+    /// </remarks>
     procedure UpdateDimSetEntryGlobalDimNo()
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -59,6 +75,10 @@ codeunit 482 "Update Dim. Set Glbl. Dim. No."
             Window.Close();
     end;
 
+    /// <summary>
+    /// Clears all global dimension number assignments from dimension set entries.
+    /// Resets global dimension numbers to zero as preparation for reassignment based on current setup.
+    /// </summary>
     procedure BlankGlobalDimensionNo()
     var
         DimensionSetEntry: Record "Dimension Set Entry";
@@ -69,6 +89,11 @@ codeunit 482 "Update Dim. Set Glbl. Dim. No."
         UpdateProgressDialog();
     end;
 
+    /// <summary>
+    /// Assigns global dimension numbers to dimension set entries based on general ledger setup configuration.
+    /// Updates dimension set entries for shortcut dimensions 3-8 with their corresponding global dimension numbers.
+    /// </summary>
+    /// <param name="GeneralLedgerSetup">General ledger setup record containing shortcut dimension configuration</param>
     procedure SetGlobalDimensionNos(GeneralLedgerSetup: Record "General Ledger Setup")
     begin
         SetGlobalDimensionNo(GeneralLedgerSetup."Shortcut Dimension 3 Code", 3);

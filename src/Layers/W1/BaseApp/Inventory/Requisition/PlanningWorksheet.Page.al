@@ -1066,17 +1066,6 @@ page 99000852 "Planning Worksheet"
                 {
                 }
             }
-            group(Category_Category9)
-            {
-                Caption = 'Drop Shipment', Comment = 'Generated from the PromotedActionCategories property index 3.';
-
-                actionref("Get Sales Orders_Promoted"; "Get Sales Orders")
-                {
-                }
-                actionref("Sales Order_Promoted"; "Sales Order")
-                {
-                }
-            }
             group(Category_Category4)
             {
                 Caption = 'Prepare', Comment = 'Generated from the PromotedActionCategories property index 3.';
@@ -1085,6 +1074,17 @@ page 99000852 "Planning Worksheet"
                 {
                 }
                 actionref("Get &Action Messages_Promoted"; "Get &Action Messages")
+                {
+                }
+            }
+            group(Category_Category9)
+            {
+                Caption = 'Drop Shipment', Comment = 'Generated from the PromotedActionCategories property index 3.';
+
+                actionref("Get Sales Orders_Promoted"; "Get Sales Orders")
+                {
+                }
+                actionref("Sales Order_Promoted"; "Sales Order")
                 {
                 }
             }

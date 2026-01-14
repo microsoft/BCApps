@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Integration.Graph;
 
+using Microsoft.API;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.History;
@@ -16,7 +17,6 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using Microsoft.API;
 
 codeunit 5465 "Graph Mgt - General Tools"
 {

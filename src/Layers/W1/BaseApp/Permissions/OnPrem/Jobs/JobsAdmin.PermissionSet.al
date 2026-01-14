@@ -1,11 +1,11 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.Projects.Project.Journal;
-using Microsoft.Projects.Project.Job;
-using Microsoft.Projects.Project.WIP;
-using Microsoft.Projects.Project.Setup;
-using Microsoft.Foundation.AuditCodes;
 using Microsoft.Finance.VAT.RateChange;
+using Microsoft.Foundation.AuditCodes;
+using Microsoft.Projects.Project.Job;
+using Microsoft.Projects.Project.Journal;
+using Microsoft.Projects.Project.Setup;
+using Microsoft.Projects.Project.WIP;
 
 permissionset 6124 "Jobs - Admin"
 {

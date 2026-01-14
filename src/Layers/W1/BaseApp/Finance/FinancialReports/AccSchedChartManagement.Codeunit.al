@@ -11,6 +11,15 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 using System.Visualization;
 
+/// <summary>
+/// Provides chart management functionality for account schedule visualization and analysis.
+/// Manages chart data preparation, drill-down operations, and business chart buffer integration.
+/// </summary>
+/// <remarks>
+/// Core functionality: Chart data retrieval, drill-down navigation, period-based analysis.
+/// Integration: Links with Business Chart Buffer, Account Schedule system, and Analysis Views.
+/// Extensibility: Multiple integration events for custom chart types and drill-down behavior.
+/// </remarks>
 codeunit 762 "Acc. Sched. Chart Management"
 {
 
@@ -30,6 +39,13 @@ codeunit 762 "Acc. Sched. Chart Management"
         DefaultAccSchedTok: Label 'DEFAULT', Comment = 'The default name of the chart setup.';
         DefinitionsModifiedMsg: Label 'The row definition or column definition has been modified since the chart setup was created. Please reset your chart setup.';
 
+    /// <summary>
+    /// Retrieves and positions the account schedules chart setup record based on chart name and navigation direction.
+    /// Handles navigation through multiple chart setups and tracks last viewed setup.
+    /// </summary>
+    /// <param name="AccountSchedulesChartSetup">Chart setup record to populate and position</param>
+    /// <param name="ChartName">Name of the chart setup to retrieve</param>
+    /// <param name="Move">Navigation direction: positive for next, negative for previous, 0 for no movement</param>
     procedure GetSetupRecordset(var AccountSchedulesChartSetup: Record "Account Schedules Chart Setup"; ChartName: Text[60]; Move: Integer)
     begin
         FindRecordset(AccountSchedulesChartSetup, ChartName);
@@ -77,6 +93,12 @@ codeunit 762 "Acc. Sched. Chart Management"
         AccountSchedulesChartSetup.Insert();
     end;
 
+    /// <summary>
+    /// Performs drill-down operation from chart data point to underlying financial data and analysis.
+    /// Opens appropriate pages based on account schedule line totaling type and column layout configuration.
+    /// </summary>
+    /// <param name="BusChartBuf">Business chart buffer containing drill-down context and data point information</param>
+    /// <param name="AccountSchedulesChartSetup">Chart setup record defining the chart configuration and parameters</param>
     procedure DrillDown(var BusChartBuf: Record "Business Chart Buffer"; AccountSchedulesChartSetup: Record "Account Schedules Chart Setup")
     var
         AccScheduleLine: Record "Acc. Schedule Line";
@@ -120,6 +142,13 @@ codeunit 762 "Acc. Sched. Chart Management"
         end;
     end;
 
+    /// <summary>
+    /// Updates chart data with account schedule calculations for the specified period and chart setup.
+    /// Populates business chart buffer with financial data based on account schedule and column layout definitions.
+    /// </summary>
+    /// <param name="BusChartBuf">Business chart buffer to populate with calculated financial data</param>
+    /// <param name="Period">Period navigation option: Next, Previous, or unchanged</param>
+    /// <param name="AccountSchedulesChartSetup">Chart setup record defining data source and calculation parameters</param>
     procedure UpdateData(var BusChartBuf: Record "Business Chart Buffer"; Period: Option " ",Next,Previous; AccountSchedulesChartSetup: Record "Account Schedules Chart Setup")
     var
         BusChartMapColumn: Record "Business Chart Map";
@@ -287,6 +316,14 @@ codeunit 762 "Acc. Sched. Chart Management"
         BusChartBuf.AddPeriods(GetCorrectedDate(BusChartBuf, PeriodDate, 1), GetCorrectedDate(BusChartBuf, PeriodDate, MaxPeriodNo));
     end;
 
+    /// <summary>
+    /// Calculates corrected date based on period length and period number for chart axis positioning.
+    /// Adjusts dates for period-based chart display and handles different period length types.
+    /// </summary>
+    /// <param name="BusChartBuf">Business chart buffer containing period length configuration</param>
+    /// <param name="InputDate">Starting date for calculation</param>
+    /// <param name="PeriodNo">Period number offset for date calculation</param>
+    /// <returns>Calculated output date adjusted for chart period positioning</returns>
     procedure GetCorrectedDate(BusChartBuf: Record "Business Chart Buffer"; InputDate: Date; PeriodNo: Integer) OutputDate: Date
     begin
         OutputDate := CalcDate(StrSubstNo('<%1%2>', PeriodNo, BusChartBuf.GetPeriodLength()), InputDate);
@@ -345,6 +382,11 @@ codeunit 762 "Acc. Sched. Chart Management"
         AccSchedManagement.SetStartDateEndDate(FromDate, ToDate);
     end;
 
+    /// <summary>
+    /// Validates account schedule line descriptions for duplicates within the specified account schedule.
+    /// Raises error if duplicate descriptions are found to prevent chart display ambiguity.
+    /// </summary>
+    /// <param name="AccScheduleName">Account schedule name to check for duplicate line descriptions</param>
     procedure CheckDuplicateAccScheduleLineDescription(AccScheduleName: Code[10])
     var
         AccScheduleLineQuery: Query "Acc. Sched. Line Desc. Count";
@@ -355,6 +397,11 @@ codeunit 762 "Acc. Sched. Chart Management"
             Error(DuplicateRowDescriptionsMsg, AccScheduleName, AccScheduleLineQuery.Description);
     end;
 
+    /// <summary>
+    /// Validates column layout headers for duplicates within the specified column layout definition.
+    /// Raises error if duplicate column headers are found to prevent chart display ambiguity.
+    /// </summary>
+    /// <param name="ColumnLayoutName">Column layout name to check for duplicate column headers</param>
     procedure CheckDuplicateColumnLayoutColumnHeader(ColumnLayoutName: Code[10])
     var
         ColumnLayoutQuery: Query "Colm. Layt. Colm. Header Count";
@@ -478,6 +525,12 @@ codeunit 762 "Acc. Sched. Chart Management"
         end;
     end;
 
+    /// <summary>
+    /// Selects all chart setup lines and applies default chart types for measures or dimensions.
+    /// Enables all available data series in the chart with appropriate visualization settings.
+    /// </summary>
+    /// <param name="AccSchedChartSetupLine">Chart setup line record defining the selection scope</param>
+    /// <param name="IsMeasure">True to select measures, false to select dimensions</param>
     procedure SelectAll(AccSchedChartSetupLine: Record "Acc. Sched. Chart Setup Line"; IsMeasure: Boolean)
     var
         AccountSchedulesChartSetup: Record "Account Schedules Chart Setup";
@@ -489,6 +542,12 @@ codeunit 762 "Acc. Sched. Chart Management"
             AccountSchedulesChartSetup.SetDimensionChartTypesToDefault(AccSchedChartSetupLine);
     end;
 
+    /// <summary>
+    /// Deselects all chart setup lines and removes chart type assignments for measures or dimensions.
+    /// Hides all data series from the chart display by clearing visualization settings.
+    /// </summary>
+    /// <param name="AccSchedChartSetupLine">Chart setup line record defining the deselection scope</param>
+    /// <param name="IsMeasure">True to deselect measures, false to deselect dimensions</param>
     procedure DeselectAll(AccSchedChartSetupLine: Record "Acc. Sched. Chart Setup Line"; IsMeasure: Boolean)
     var
         AccountSchedulesChartSetup: Record "Account Schedules Chart Setup";
@@ -501,6 +560,11 @@ codeunit 762 "Acc. Sched. Chart Management"
         AccSchedChartSetupLine.ModifyAll("Chart Type", AccSchedChartSetupLine."Chart Type"::" ");
     end;
 
+    /// <summary>
+    /// Provides reference to the internal account schedule management codeunit for external access.
+    /// Enables external code to access account schedule calculation and management functionality.
+    /// </summary>
+    /// <param name="RefAccSchedManagement">Variable to receive the account schedule management codeunit reference</param>
     procedure GetAccSchedMgtRef(var RefAccSchedManagement: Codeunit AccSchedManagement)
     begin
         RefAccSchedManagement := AccSchedManagement;
@@ -516,16 +580,35 @@ codeunit 762 "Acc. Sched. Chart Management"
         exit(Round(Amount, GeneralLedgerSetup."Amount Rounding Precision"));
     end;
 
+    /// <summary>
+    /// Integration event raised before running Chart of Accounts Analysis View from GL account drill-down.
+    /// Enables custom handling of analysis view navigation and filtering.
+    /// </summary>
+    /// <param name="GLAccount">G/L Account record being drilled down from chart</param>
+    /// <param name="ColumnLayout">Column layout record defining drill-down context and parameters</param>
     [IntegrationEvent(false, false)]
     local procedure OnDrillDownOnGLAccountOnBeforeRunChartOfAccsAnalysisView(var GLAccount: Record "G/L Account"; var ColumnLayout: Record "Column Layout")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised for custom totaling type drill-down handling.
+    /// Enables extensibility for custom account schedule line totaling types not covered by standard logic.
+    /// </summary>
+    /// <param name="AccScheduleLine">Account schedule line record with custom totaling type</param>
+    /// <param name="ColumnLayout">Column layout record defining drill-down context and parameters</param>
+    /// <param name="BusChartBuf">Business chart buffer containing drill-down data point information</param>
     [IntegrationEvent(false, false)]
     local procedure OnDrillDownTotalingTypeElseCase(var AccScheduleLine: Record "Acc. Schedule Line"; var ColumnLayout: Record "Column Layout"; var BusChartBuf: Record "Business Chart Buffer")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before running Chart of Accounts GL page from GL account drill-down.
+    /// Enables custom handling of GL account navigation and filtering.
+    /// </summary>
+    /// <param name="GLAccount">G/L Account record being drilled down from chart</param>
+    /// <param name="ColumnLayout">Column layout record defining drill-down context and parameters</param>
     [IntegrationEvent(false, false)]
     local procedure OnDrillDownOnGLAccountOnBeforeRunChartOfAccountsGL(var GLAccount: Record "G/L Account"; var ColumnLayout: Record "Column Layout")
     begin

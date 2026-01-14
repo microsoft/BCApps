@@ -6,6 +6,15 @@ namespace Microsoft.Finance.Consolidation;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 
+/// <summary>
+/// Configuration page for consolidation system setup and global consolidation parameters.
+/// Manages consolidation settings, default values, and system-wide consolidation preferences.
+/// </summary>
+/// <remarks>
+/// Card page for configuring consolidation system settings and default parameters.
+/// Controls consolidation behavior, default dimension handling, and system-wide consolidation preferences.
+/// Central configuration point for multi-company consolidation system setup and management.
+/// </remarks>
 page 243 "Consolidation Setup"
 {
     ApplicationArea = All;

@@ -1,21 +1,21 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.Service.Contract;
+using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
-using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.Source;
 using Microsoft.Pricing.Worksheet;
 using Microsoft.Service.Archive;
-using Microsoft.Service.Pricing;
 using Microsoft.Service.Comment;
-using Microsoft.Service.History;
+using Microsoft.Service.Contract;
 using Microsoft.Service.Document;
 using Microsoft.Service.Email;
+using Microsoft.Service.History;
 using Microsoft.Service.Item;
 using Microsoft.Service.Ledger;
-using Microsoft.Service.Setup;
 using Microsoft.Service.Posting;
+using Microsoft.Service.Pricing;
+using Microsoft.Service.Setup;
 
 permissionsetextension 5918 "SERV D365PREM SMG VIEW" extends "D365PREM SMG, VIEW"
 {

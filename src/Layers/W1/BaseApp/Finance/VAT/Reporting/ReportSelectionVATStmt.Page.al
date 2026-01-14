@@ -8,6 +8,10 @@ using Microsoft.Foundation.Reporting;
 using System.Reflection;
 using System.Telemetry;
 
+/// <summary>
+/// Configuration interface for selecting reports used in VAT statement processing.
+/// Enables assignment of specific reports to VAT usage scenarios with sequence and formatting options.
+/// </summary>
 page 584 "Report Selection - VAT Stmt."
 {
     ApplicationArea = Basic, Suite;

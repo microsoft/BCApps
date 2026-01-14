@@ -73,10 +73,6 @@ codeunit 103002 "Set Global Preconditions"
         PurchInvHeader: Record "Purch. Inv. Header";
         PurchInvLine: Record "Purch. Inv. Line";
         PurchLine: Record "Purchase Line";
-#if not CLEAN25
-        PurchLineDisc: Record "Purchase Line Discount";
-        PurchPrice: Record "Purchase Price";
-#endif
         PurchRcptHeader: Record "Purch. Rcpt. Header";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         ReqLine: Record "Requisition Line";
@@ -100,10 +96,6 @@ codeunit 103002 "Set Global Preconditions"
         SalesInvHeader: Record "Sales Invoice Header";
         SalesInvLine: Record "Sales Invoice Line";
         SalesLine: Record "Sales Line";
-#if not CLEAN25
-        SalesLineDisc: Record "Sales Line Discount";
-        SalesPrice: Record "Sales Price";
-#endif
         SalesShptHeader: Record "Sales Shipment Header";
         SalesShptLine: Record "Sales Shipment Line";
         SKU: Record "Stockkeeping Unit";
@@ -180,10 +172,6 @@ codeunit 103002 "Set Global Preconditions"
         PurchInvHeader.DeleteAll();
         PurchInvLine.DeleteAll();
         PurchLine.DeleteAll();
-#if not CLEAN25
-        PurchLineDisc.DeleteAll();
-        PurchPrice.DeleteAll();
-#endif
         PurchRcptHeader.DeleteAll();
         PurchRcptLine.DeleteAll();
         ReqLine.DeleteAll();
@@ -207,10 +195,6 @@ codeunit 103002 "Set Global Preconditions"
         SalesInvHeader.DeleteAll();
         SalesInvLine.DeleteAll();
         SalesLine.DeleteAll();
-#if not CLEAN25
-        SalesLineDisc.DeleteAll();
-        SalesPrice.DeleteAll();
-#endif
         SalesShptHeader.DeleteAll();
         SalesShptLine.DeleteAll();
         SKU.DeleteAll();
@@ -280,4 +264,3 @@ codeunit 103002 "Set Global Preconditions"
             ItemJnlBatch.Modify(true);
     end;
 }
-

@@ -23,9 +23,9 @@ using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Inventory.Intrastat;
+using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Location;
 using Microsoft.Pricing.Calculation;
-using Microsoft.Inventory.Journal;
 using Microsoft.Projects.Resources.Journal;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Sales.Customer;
@@ -154,6 +154,7 @@ table 5990 "Service Shipment Header"
         }
         field(25; "Payment Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Payment Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -199,6 +200,7 @@ table 5990 "Service Shipment Header"
         }
         field(33; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
             MinValue = 0;
@@ -465,6 +467,7 @@ table 5990 "Service Shipment Header"
         }
         field(119; "VAT Base Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT Base Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -538,6 +541,7 @@ table 5990 "Service Shipment Header"
         }
         field(5911; "Allocated Hours"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Service Order Allocation"."Allocated Hours" where("Document Type" = const(Order),
                                                                                   "Document No." = field("Order No."),
                                                                                   "Resource No." = field("Resource Filter"),
@@ -589,12 +593,14 @@ table 5990 "Service Shipment Header"
         }
         field(5924; "Default Response Time (Hours)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Default Response Time (Hours)';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(5925; "Actual Response Time (Hours)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Actual Response Time (Hours)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -602,6 +608,7 @@ table 5990 "Service Shipment Header"
         }
         field(5926; "Service Time (Hours)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Service Time (Hours)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -917,9 +924,6 @@ table 5990 "Service Shipment Header"
         ItemJournalLine."Reason Code" := Rec."Reason Code";
 
         OnAfterCopyToItemJnlLine(ItemJournalLine, Rec);
-#if not CLEAN25
-        ItemJournalLine.RunOnAfterCopyItemJnlLineFromServShptHeader(ItemJournalLine, Rec);
-#endif
     end;
 
     procedure CopyToResJournalLine(var ResJournalLine: Record "Res. Journal Line")
@@ -944,9 +948,6 @@ table 5990 "Service Shipment Header"
             CertificateOfSupply."Ship-to Country/Region Code" := Rec."Ship-to Country/Region Code";
             CertificateOfSupply."Customer/Vendor No." := Rec."Bill-to Customer No.";
             OnAfterInitCertificateOfSupply(CertificateOfSupply, Rec);
-#if not CLEAN25
-            CertificateOfSupply.RunOnAfterInitFromService(CertificateOfSupply, Rec);
-#endif
             CertificateOfSupply.Insert(true);
         end
     end;

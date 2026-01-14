@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Account;
 
+/// <summary>
+/// List part page displaying the current user's favorite G/L accounts.
+/// Provides quick access to frequently used accounts with real-time balance information.
+/// </summary>
 page 9153 "My Accounts"
 {
     Caption = 'My Accounts';
@@ -48,6 +52,9 @@ page 9153 "My Accounts"
     {
         area(processing)
         {
+            /// <summary>
+            /// Opens the G/L Account Card page for the selected account in view mode.
+            /// </summary>
             action(Open)
             {
                 ApplicationArea = Basic, Suite;
@@ -106,11 +113,19 @@ page 9153 "My Accounts"
         exit((Rec.Name <> GLAccount.Name) or (Rec.Totaling <> GLAccount.Totaling));
     end;
 
+    /// <summary>
+    /// Integration event that allows customization before synchronizing fields with G/L Account.
+    /// Subscribers can implement custom logic or skip the standard synchronization.
+    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSyncFieldsWithGLAccount(var MyAccount: Record "My Account"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event that allows customization after calculating fields during G/L Account synchronization.
+    /// Subscribers can modify the synchronization behavior based on field calculations.
+    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnSyncFieldsWithGLAccountOnAfterCalcFields(var GLAccount: Record "G/L Account"; var SyncFieldsUpdatedInGLAccount: Boolean)
     begin

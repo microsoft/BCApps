@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Tracking;
 
-using Microsoft.Manufacturing.Document;
 using Microsoft.Inventory.Item;
+using Microsoft.Manufacturing.Document;
 
 reportextension 99000858 "Mfg. Get Demand To Reserve" extends "Get Demand To Reserve"
 {

@@ -4,6 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Analysis;
 
+/// <summary>
+/// Manages filter criteria for analysis views to restrict data included in analysis view updates.
+/// Enables configuration of dimension filters and other criteria applied during analysis view processing.
+/// </summary>
+/// <remarks>
+/// Used to define filters that limit which G/L entries and budget entries are included in analysis view calculations.
+/// Supports dimension-based filtering and integration with analysis view update processes.
+/// </remarks>
 page 557 "Analysis View Filter"
 {
     Caption = 'Analysis View Filter';

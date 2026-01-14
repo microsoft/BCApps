@@ -5,12 +5,16 @@
 namespace Microsoft.Bank.Reconciliation;
 
 using Microsoft.Bank.BankAccount;
-using Microsoft.Bank.Statement;
 using Microsoft.Bank.Ledger;
+using Microsoft.Bank.Statement;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
 
+/// <summary>
+/// Provides validation and testing functions for bank account reconciliation procedures.
+/// Validates reconciliation balance calculations and data integrity before posting.
+/// </summary>
 codeunit 380 "Bank Acc. Recon. Test"
 {
 
@@ -45,64 +49,6 @@ codeunit 380 "Bank Acc. Recon. Test"
         if BankAccReconciliation."Statement Date" <> 0D then
             BankAccountLedgerEntry.SetRange("Posting Date", 0D, BankAccReconciliation."Statement Date");
         BankAccountLedgerEntry.SetFilter("Statement No.", '<> %1', BankAccReconciliation."Statement No.");
-    end;
-
-    local procedure TotalOfClosedEntriesWithNoClosedAtDate(var BankAccountLedgerEntry: Record "Bank Account Ledger Entry"): Decimal
-    begin
-        BankAccountLedgerEntry.SetRange("Closed at Date", 0D);
-        BankAccountLedgerEntry.SetRange(Open, false);
-        BankAccountLedgerEntry.CalcSums(Amount);
-        exit(BankAccountLedgerEntry.Amount);
-    end;
-
-    procedure TotalOutstandingBankTransactions(BankAccReconciliation: Record "Bank Acc. Reconciliation") Total: Decimal
-    var
-        BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
-        BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line";
-        DocNo: Text;
-    begin
-        SetOutstandingFilters(BankAccReconciliation, BankAccountLedgerEntry);
-        BankAccountLedgerEntry.SetRange("Check Ledger Entries", 0);
-        if BankAccountLedgerEntry.IsEmpty() then
-            exit;
-
-        FilterOutstandingBankAccLedgerEntry(BankAccountLedgerEntry, BankAccReconciliation."Statement No.", BankAccReconciliation."Statement Date");
-        BankAccountLedgerEntry.MarkedOnly(true);
-
-        BankAccountLedgerEntry.CalcSums(Amount);
-        Total := BankAccountLedgerEntry.Amount;
-        Total -= TotalOfClosedEntriesWithNoClosedAtDate(BankAccountLedgerEntry);
-
-        if BankAccReconciliation."Statement Type" = BankAccReconciliation."Statement Type"::"Payment Application" then begin
-            // When the BankAccReconciliation is created from the Payment Reconciliation Journal:
-            // we subtract the "Applied Amount" to Bank Ledger Entries with no CLE, since those are no longer outstanding.
-            // These are the lines with "Account Type" "Bank Account", that are applied to some "Document No." (Lines of type Bank Account without Doc. No are bank to bank transfers, which are not outstanding)
-            BankAccReconciliation.SetFiltersOnBankAccReconLineTable(BankAccReconciliation, BankAccReconciliationLine);
-            BankAccReconciliationLine.SetRange("Account Type", BankAccReconciliationLine."Account Type"::"Bank Account");
-            if BankAccReconciliationLine.FindSet() then
-                repeat
-                    DocNo := BankAccReconciliationLine.GetAppliedToDocumentNo('|');
-                    if DocNo <> '' then begin
-                        // We will just subtract the "Applied Amount" if there is no Check Ledger Entry
-                        // associated to that BLE
-                        BankAccountLedgerEntry.Reset();
-                        BankAccountLedgerEntry.SetFilter("Document No.", DocNo);
-                        BankAccountLedgerEntry.SetRange("Check Ledger Entries", 0);
-                        if not BankAccountLedgerEntry.IsEmpty() then
-                            Total -= BankAccReconciliationLine."Applied Amount";
-                    end;
-                until BankAccReconciliationLine.Next() = 0;
-        end;
-        exit(Total);
-    end;
-
-    local procedure FilterOutstandingBankAccLedgerEntry(var BankAccountLedgerEntry: Record "Bank Account Ledger Entry"; StatementNo: Code[20]; StatementDate: Date)
-    begin
-        if BankAccountLedgerEntry.FindSet() then
-            repeat
-                if CheckBankAccountLedgerEntryFilters(BankAccountLedgerEntry, StatementNo, StatementDate) then
-                    BankAccountLedgerEntry.Mark(true);
-            until BankAccountLedgerEntry.Next() = 0;
     end;
 
     procedure CheckBankAccountLedgerEntryFilters(var BankAccountLedgerEntry: Record "Bank Account Ledger Entry"; StatementNo: Code[20]; StatementDate: Date): Boolean
@@ -149,28 +95,131 @@ codeunit 380 "Bank Acc. Recon. Test"
             exit(true);
     end;
 
-    procedure TotalOutstandingPayments(BankAccReconciliation: Record "Bank Acc. Reconciliation") Total: Decimal
+    procedure TotalOutstandingBankTransactions(BankAccReconciliation: Record "Bank Acc. Reconciliation"): Decimal
     var
         BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
+    begin
+        BankAccountLedgerEntry.SetRange("Check Ledger Entries", 0);
+        exit(GetTotalOutstanding(BankAccReconciliation, BankAccountLedgerEntry));
+    end;
+
+    procedure TotalOutstandingPayments(BankAccReconciliation: Record "Bank Acc. Reconciliation"): Decimal
+    var
+        BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
+    begin
+        BankAccountLedgerEntry.SetFilter("Check Ledger Entries", '<> %1', 0);
+        exit(GetTotalOutstanding(BankAccReconciliation, BankAccountLedgerEntry));
+    end;
+
+    /// <summary>
+    /// Gets the total outstanding amount for the given Bank Acc. Reconciliation, it considers the filters applied on the Bank Account Ledger Entry record passed as parameter (that are not overridden).
+    /// The calculation avoids looping through the closed Bank Account Ledger Entries via sums and set operations, this is important for performance and it should be maintained like that since it's used at posting.
+    /// </summary>
+    /// <param name="BankAccReconciliation">The bank account reconciliation</param>
+    /// <param name="BankAccountLedgerEntry">Record with the filters to consider throughout the calculation, several get overriden currently it's only meant to respect the "Check Ledger Entries" filter</param>
+    /// <returns></returns>
+    local procedure GetTotalOutstanding(BankAccReconciliation: Record "Bank Acc. Reconciliation"; var BankAccountLedgerEntry: Record "Bank Account Ledger Entry"): Decimal
+    var
+        GeneralBankAccountLedgerEntryFilters: Record "Bank Account Ledger Entry";
         BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line";
+        x1, x2, x3, x4, x5, x6, x7, Total : Decimal;
         DocNo: Text;
     begin
-        SetOutstandingFilters(BankAccReconciliation, BankAccountLedgerEntry);
-        BankAccountLedgerEntry.SetFilter("Check Ledger Entries", '<>0');
-        if BankAccountLedgerEntry.IsEmpty() then
-            exit;
+        // Common filters for all cases
+        BankAccountLedgerEntry.SetRange("Bank Account No.", BankAccReconciliation."Bank Account No.");
+        BankAccountLedgerEntry.SetRange(Reversed, false);
+        if BankAccReconciliation."Statement Date" <> 0D then
+            BankAccountLedgerEntry.SetRange("Posting Date", 0D, BankAccReconciliation."Statement Date");
 
-        FilterOutstandingBankAccLedgerEntry(BankAccountLedgerEntry, BankAccReconciliation."Statement No.", BankAccReconciliation."Statement Date");
-        BankAccountLedgerEntry.MarkedOnly(true);
+        GeneralBankAccountLedgerEntryFilters.CopyFilters(BankAccountLedgerEntry);
+        // Case 1: When Statement No. = ''
+        // When we have Statement No = '' it means those BLE that are not matched to any statement yet.
+        // This means either they are open and not matched to any ongoing bank rec.
+        // We add all BLE that are considered open, or that have been closed after the statement date. The BLEs to add are those that satisfy:
+        // 
+        //  Statement Status <> Closed
+        //  AND (Open = true // case 1.a - this avoids considering corrupted entries with Open = false and Closed at Date = 0D (found in some NA environments)
+        //      OR Closed at Date > Statement Date of the bank rec. // case 1.b
+        //  )
+        //  Note for case 1.b: In principle the precondition Statement No = '' implies Closed at Date = 0D, but in case we have a data inconsistency with:
+        //  - Statement No = ''
+        //  - Open = false
+        //  - Closed at Date > 0D
+        //  We will consider it as closed, but for some reason the Statement No. is blank. We will consider the entry only if it was closed after the statement date (since it is considered open at the time of the statement date).
+        //
+        // We calculate amount for case 1:
+        // To calculate possible overlaps between (case 1.a) and (case 1.b) we calculate the intersections and subtract them from the union to avoid double counting
 
+        // General filters for case 1:
+        BankAccountLedgerEntry.SetRange("Statement No.", '');
+        BankAccountLedgerEntry.SetFilter("Statement Status", '%1 | %2 | %3', BankAccountLedgerEntry."Statement Status"::Open, BankAccountLedgerEntry."Statement Status"::"Bank Acc. Entry Applied", BankAccountLedgerEntry."Statement Status"::"Check Entry Applied");
+
+        // total for case 1.a
+        ClearOpenFilters(BankAccountLedgerEntry);
+        BankAccountLedgerEntry.SetRange(Open, true);
         BankAccountLedgerEntry.CalcSums(Amount);
-        Total := BankAccountLedgerEntry.Amount;
+        x1 := BankAccountLedgerEntry.Amount;
 
-        Total -= TotalOfClosedEntriesWithNoClosedAtDate(BankAccountLedgerEntry);
+        // total for case 1.b
+        ClearOpenFilters(BankAccountLedgerEntry);
+        BankAccountLedgerEntry.SetFilter("Closed at Date", '> %1', BankAccReconciliation."Statement Date");
+        BankAccountLedgerEntry.CalcSums(Amount);
+        x2 := BankAccountLedgerEntry.Amount;
 
+        // total for (case 1.a) intersection (case 1.b), ideally should be 0, but in case of data inconsistencies we consider it
+        ClearOpenFilters(BankAccountLedgerEntry);
+        BankAccountLedgerEntry.SetRange(Open, true);
+        BankAccountLedgerEntry.SetFilter("Closed at Date", '> %1', BankAccReconciliation."Statement Date");
+        BankAccountLedgerEntry.CalcSums(Amount);
+        x3 := BankAccountLedgerEntry.Amount;
+
+        // total for case 1
+        x4 := x1 + x2 - x3;
+
+        // Case 2: Statement no. <> '' and Statement no. <> BankAccReconciliation."Statement No."
+        // These are BLEs that are matched to other statements or to ongoing bank recs (not the current one).
+        //
+        // Case 2.a: BLEs with Closed at Date <> 0D
+        // We will consider as outstanding if they were closed after the statement date of the current bank rec.
+        // So we will consider those BLEs that satisfy 
+        //
+        // Closed at Date > Statement Date of the bank rec.
+        //      (disregarding Open, or Statement Status, since we consider them closed when the "Closed At" date is specified):
+
+        // General filters for case 2:
+        BankAccountLedgerEntry.SetFilter("Statement No.", '<> %1 & <> %2', BankAccReconciliation."Statement No.", '');
+        BankAccountLedgerEntry.SetRange("Statement Status");
+
+        // total for case 2.a
+        ClearOpenFilters(BankAccountLedgerEntry);
+        BankAccountLedgerEntry.SetFilter("Closed at Date", '> %1', BankAccReconciliation."Statement Date");
+        BankAccountLedgerEntry.CalcSums(Amount);
+        x5 := BankAccountLedgerEntry.Amount;
+
+        // Case 2.b: BLEs that are open (Closed at Date = 0D)
+        // We will consider as outstanding in this case BLEs that are in different ongoing bank recs (not yet closed) as long as they are matched in an statement with a date after the statement date of the current bank rec.
+        // If there is any of the BLE fields that signal that the BLE is not open (e.g., Statement Status = Closed or Open = false) we will disregard the BLE.
+        // Note that (case 2.a) and (case 2.b) are disjoint
+
+        // total for case 2.b
+        ClearOpenFilters(BankAccountLedgerEntry);
+        BankAccountLedgerEntry.SetRange("Closed at Date", 0D);
+        BankAccountLedgerEntry.SetRange(Open, true); // this also avoids considering corrupted entries with Open = false and Closed at Date = 0D (found in some NA environments)
+        BankAccountLedgerEntry.SetFilter("Statement Status", '%1 | %2 | %3', BankAccountLedgerEntry."Statement Status"::Open, BankAccountLedgerEntry."Statement Status"::"Bank Acc. Entry Applied", BankAccountLedgerEntry."Statement Status"::"Check Entry Applied");
+        BankAccountLedgerEntry.SetFilter("Statement Date", '>%1', BankAccReconciliation."Statement Date");
+        BankAccountLedgerEntry.CalcSums(Amount);
+        x6 := BankAccountLedgerEntry.Amount;
+
+        // total for case 2
+        x7 := x5 + x6;
+
+        // Final total = case 1 + case 2 (disjoint cases)
+        Total := x7 + x4;
+
+        // Adjustments for Payment Application type
         if BankAccReconciliation."Statement Type" = BankAccReconciliation."Statement Type"::"Payment Application" then begin
             // When the BankAccReconciliation is created from the Payment Reconciliation Journal:
-            // we subtract the "Applied Amount" to Bank Ledger Entries with CLEs, since those are no longer outstanding.
+            // we subtract the "Applied Amount" to Bank Ledger Entries with no CLE, since those are no longer outstanding.
             // These are the lines with "Account Type" "Bank Account", that are applied to some "Document No." (Lines of type Bank Account without Doc. No are bank to bank transfers, which are not outstanding)
             BankAccReconciliation.SetFiltersOnBankAccReconLineTable(BankAccReconciliation, BankAccReconciliationLine);
             BankAccReconciliationLine.SetRange("Account Type", BankAccReconciliationLine."Account Type"::"Bank Account");
@@ -178,17 +227,20 @@ codeunit 380 "Bank Acc. Recon. Test"
                 repeat
                     DocNo := BankAccReconciliationLine.GetAppliedToDocumentNo('|');
                     if DocNo <> '' then begin
-                        // We will just subtract the "Applied Amount" if there are Check Ledger Entry
-                        // associated to that BLE
-                        BankAccountLedgerEntry.Reset();
-                        BankAccountLedgerEntry.SetFilter("Document No.", DocNo);
-                        BankAccountLedgerEntry.SetFilter("Check Ledger Entries", '<>0');
-                        if not BankAccountLedgerEntry.IsEmpty() then
+                        // We will just subtract the "Applied Amount" 
+                        GeneralBankAccountLedgerEntryFilters.SetFilter("Document No.", DocNo);
+                        if not GeneralBankAccountLedgerEntryFilters.IsEmpty() then
                             Total -= BankAccReconciliationLine."Applied Amount";
                     end;
                 until BankAccReconciliationLine.Next() = 0;
         end;
         exit(Total);
+    end;
+
+    local procedure ClearOpenFilters(var BankAccountLedgerEntry: Record "Bank Account Ledger Entry")
+    begin
+        BankAccountLedgerEntry.SetRange(Open);
+        BankAccountLedgerEntry.SetRange("Closed at Date");
     end;
 
     local procedure SetGLAccountBalanceFilters(BankAccountPostingGroup: Record "Bank Account Posting Group"; StatementDate: Date; var GLEntry: Record "G/L Entry")

@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.FinancialReports;
 
+/// <summary>
+/// Setup page for configuring trial balance display parameters including row and column definitions.
+/// Provides interface for selecting account schedule and column layout used in trial balance reports.
+/// </summary>
+/// <remarks>
+/// Card page for managing trial balance configuration with instructional guidance for users.
+/// Controls the appearance and structure of the simplified trial balance view by linking
+/// specific account schedule rows with column layout definitions for consistent presentation.
+/// </remarks>
 page 1394 "Trial Balance Setup"
 {
     Caption = 'Trial Balance Setup';

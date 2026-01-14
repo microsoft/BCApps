@@ -281,6 +281,12 @@ page 460 "Purchases & Payables Setup"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the code for the number series that will be used to assign numbers to posted purchase invoices.';
                 }
+                field("Posted Self-Billing Inv. Nos."; Rec."Posted Self-Billing Inv. Nos.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Importance = Additional;
+                    ToolTip = 'Specifies the code for the number series that will be used to assign numbers to posted self-billing purchase invoices.';
+                }
                 field("Credit Memo Nos."; Rec."Credit Memo Nos.")
                 {
                     ApplicationArea = Basic, Suite;

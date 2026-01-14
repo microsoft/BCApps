@@ -27,16 +27,17 @@ codeunit 134042 "ERM VAT Tolerance"
     procedure HighVATTolBeforePostSalesDoc()
     var
         TempSalesLine: Record "Sales Line" temporary;
+        VATAmountLine: Record "VAT Amount Line";
         VATTolerancePct: Decimal;
         PaymentDiscountPct: Decimal;
     begin
         // Check VAT Amount on Sales Order Statistics when VAT Tolerance % greater than Payment Discount %.
         Initialize();
         ComputeHighVATTolerancePct(VATTolerancePct, PaymentDiscountPct);
-        SalesStatisticsWithVAT(TempSalesLine, VATTolerancePct, PaymentDiscountPct, false);
+        SalesStatisticsWithVAT(TempSalesLine, VATTolerancePct, PaymentDiscountPct, false, VATAmountLine);
 
         // Verify VAT Amount and Rollback Payment Terms and General Ledger Setup.
-        VerifySalesExclVAT(TempSalesLine, PaymentDiscountPct);
+        VerifySalesExclVAT(TempSalesLine, PaymentDiscountPct, VATAmountLine);
     end;
 
     [Test]
@@ -44,16 +45,17 @@ codeunit 134042 "ERM VAT Tolerance"
     procedure LowVATTolBeforePostSalesDoc()
     var
         TempSalesLine: Record "Sales Line" temporary;
+        VATAmountLine: Record "VAT Amount Line";
         VATTolerancePct: Decimal;
         PaymentDiscountPct: Decimal;
     begin
         // Check VAT Amount on Sales Order Statistics when VAT Tolerance % less than Payment Discount %.
         Initialize();
         ComputeLowVATTolerancePct(VATTolerancePct, PaymentDiscountPct);
-        SalesStatisticsWithVAT(TempSalesLine, VATTolerancePct, PaymentDiscountPct, false);
+        SalesStatisticsWithVAT(TempSalesLine, VATTolerancePct, PaymentDiscountPct, false, VATAmountLine);
 
         // Verify VAT Amount and Rollback Payment Terms and General Ledger Setup.
-        VerifySalesExclVAT(TempSalesLine, VATTolerancePct);
+        VerifySalesExclVAT(TempSalesLine, VATTolerancePct, VATAmountLine);
     end;
 
     [Test]
@@ -61,16 +63,17 @@ codeunit 134042 "ERM VAT Tolerance"
     procedure HighInclVATBeforePostSalesDoc()
     var
         TempSalesLine: Record "Sales Line" temporary;
+        VATAmountLine: Record "VAT Amount Line";
         VATTolerancePct: Decimal;
         PaymentDiscountPct: Decimal;
     begin
         // Check VAT Amount on Sales Order Statistics when VAT Tolerance % greater than Payment Discount %.
         Initialize();
         ComputeHighVATTolerancePct(VATTolerancePct, PaymentDiscountPct);
-        SalesStatisticsWithVAT(TempSalesLine, VATTolerancePct, PaymentDiscountPct, true);
+        SalesStatisticsWithVAT(TempSalesLine, VATTolerancePct, PaymentDiscountPct, true, VATAmountLine);
 
         // Verify VAT Amount Line and Rollback Payment Terms and General Ledger Setup.
-        VerifyStatistics(TempSalesLine, PaymentDiscountPct);
+        VerifyStatistics(TempSalesLine, PaymentDiscountPct, VATAmountLine);
     end;
 
     [Test]
@@ -78,22 +81,22 @@ codeunit 134042 "ERM VAT Tolerance"
     procedure LowInclVATBeforePostSalesDoc()
     var
         TempSalesLine: Record "Sales Line" temporary;
+        VATAmountLine: Record "VAT Amount Line";
         VATTolerancePct: Decimal;
         PaymentDiscountPct: Decimal;
     begin
         // Check VAT Amount on Sales Order Statistics when VAT Tolerance % less than Payment Discount %.
         Initialize();
         ComputeLowVATTolerancePct(VATTolerancePct, PaymentDiscountPct);
-        SalesStatisticsWithVAT(TempSalesLine, VATTolerancePct, PaymentDiscountPct, true);
+        SalesStatisticsWithVAT(TempSalesLine, VATTolerancePct, PaymentDiscountPct, true, VATAmountLine);
 
         // Verify and Rollback Payment Terms and General Ledger Setup.
-        VerifyStatistics(TempSalesLine, VATTolerancePct);
+        VerifyStatistics(TempSalesLine, VATTolerancePct, VATAmountLine);
     end;
 
-    local procedure SalesStatisticsWithVAT(var TempSalesLine: Record "Sales Line" temporary; VATTolerancePct: Decimal; PaymentDiscountPct: Decimal; PricesIncludingVAT: Boolean)
+    local procedure SalesStatisticsWithVAT(var TempSalesLine: Record "Sales Line" temporary; VATTolerancePct: Decimal; PaymentDiscountPct: Decimal; PricesIncludingVAT: Boolean; var VATAmountLine: Record "VAT Amount Line")
     var
         SalesHeader: Record "Sales Header";
-        VATAmountLine: Record "VAT Amount Line";
         QtyType: Option General,Invoicing,Shipping;
     begin
         // Setup: Create Sales Order with Different VAT Posting Group Lines.
@@ -187,16 +190,17 @@ codeunit 134042 "ERM VAT Tolerance"
     procedure HighVATTolOnPostedSalesDoc()
     var
         TempSalesLine: Record "Sales Line" temporary;
+        VATAmountLine: Record "VAT Amount Line";
         VATTolerancePct: Decimal;
         PaymentDiscountPct: Decimal;
     begin
         // Check VAT Amount on Posted Sales Invoice Statistics when VAT Tolerance % greater than Payment Discount %.
         Initialize();
         ComputeHighVATTolerancePct(VATTolerancePct, PaymentDiscountPct);
-        PostedSalesStatisticsWithVAT(TempSalesLine, VATTolerancePct, PaymentDiscountPct, false);
+        PostedSalesStatisticsWithVAT(TempSalesLine, VATTolerancePct, PaymentDiscountPct, false, VATAmountLine);
 
         // Verify VAT Amount on Posted Sales Order Statistics
-        VerifySalesExclVAT(TempSalesLine, PaymentDiscountPct);
+        VerifySalesExclVAT(TempSalesLine, PaymentDiscountPct, VATAmountLine);
     end;
 
     [Test]
@@ -204,16 +208,17 @@ codeunit 134042 "ERM VAT Tolerance"
     procedure LowVATTolOnPostedSalesDoc()
     var
         TempSalesLine: Record "Sales Line" temporary;
+        VATAmountLine: Record "VAT Amount Line";
         VATTolerancePct: Decimal;
         PaymentDiscountPct: Decimal;
     begin
         // Check VAT Amount on Posted Sales Invoice Statistics when VAT Tolerance % less than Payment Discount %.
         Initialize();
         ComputeLowVATTolerancePct(VATTolerancePct, PaymentDiscountPct);
-        PostedSalesStatisticsWithVAT(TempSalesLine, VATTolerancePct, PaymentDiscountPct, false);
+        PostedSalesStatisticsWithVAT(TempSalesLine, VATTolerancePct, PaymentDiscountPct, false, VATAmountLine);
 
         // Verify VAT Amount on Posted Sales Order Statistics
-        VerifySalesExclVAT(TempSalesLine, VATTolerancePct);
+        VerifySalesExclVAT(TempSalesLine, VATTolerancePct, VATAmountLine);
     end;
 
     [Test]
@@ -221,16 +226,17 @@ codeunit 134042 "ERM VAT Tolerance"
     procedure HighInclVATTolOnPostedSalesDoc()
     var
         TempSalesLine: Record "Sales Line" temporary;
+        VATAmountLine: Record "VAT Amount Line";
         VATTolerancePct: Decimal;
         PaymentDiscountPct: Decimal;
     begin
         // Check VAT Amount on Posted Sales Invoice Statistics when VAT Tolerance % greater than Payment Discount %.
         Initialize();
         ComputeHighVATTolerancePct(VATTolerancePct, PaymentDiscountPct);
-        PostedSalesStatisticsWithVAT(TempSalesLine, VATTolerancePct, PaymentDiscountPct, true);
+        PostedSalesStatisticsWithVAT(TempSalesLine, VATTolerancePct, PaymentDiscountPct, true, VATAmountLine);
 
         // Verify: Verify VAT Amount on Posted Sales Order Statistics.
-        VerifyStatistics(TempSalesLine, PaymentDiscountPct);
+        VerifyStatistics(TempSalesLine, PaymentDiscountPct, VATAmountLine);
     end;
 
     [Test]
@@ -238,22 +244,22 @@ codeunit 134042 "ERM VAT Tolerance"
     procedure LowInclVATTolOnPostedSalesDoc()
     var
         TempSalesLine: Record "Sales Line" temporary;
+        VATAmountLine: Record "VAT Amount Line";
         VATTolerancePct: Decimal;
         PaymentDiscountPct: Decimal;
     begin
         // Check VAT Amount on Posted Sales Invoice Statistics when VAT Tolerance % less than Payment Discount %.
         Initialize();
         ComputeLowVATTolerancePct(VATTolerancePct, PaymentDiscountPct);
-        PostedSalesStatisticsWithVAT(TempSalesLine, VATTolerancePct, PaymentDiscountPct, true);
+        PostedSalesStatisticsWithVAT(TempSalesLine, VATTolerancePct, PaymentDiscountPct, true, VATAmountLine);
 
         // Verify: Verify VAT Amount on Posted Sales Order Statistics.
-        VerifyStatistics(TempSalesLine, VATTolerancePct);
+        VerifyStatistics(TempSalesLine, VATTolerancePct, VATAmountLine);
     end;
 
-    local procedure PostedSalesStatisticsWithVAT(var TempSalesLine: Record "Sales Line" temporary; VATTolerancePct: Decimal; PaymentDiscountPct: Decimal; PricesIncludingVAT: Boolean)
+    local procedure PostedSalesStatisticsWithVAT(var TempSalesLine: Record "Sales Line" temporary; VATTolerancePct: Decimal; PaymentDiscountPct: Decimal; PricesIncludingVAT: Boolean; var VATAmountLine: Record "VAT Amount Line")
     var
         SalesHeader: Record "Sales Header";
-        VATAmountLine: Record "VAT Amount Line";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
         PostedDocumentNo: Code[20];
@@ -409,16 +415,17 @@ codeunit 134042 "ERM VAT Tolerance"
     procedure HighVATTolBeforePostPurchDoc()
     var
         TempPurchaseLine: Record "Purchase Line" temporary;
+        VATAmountLine: Record "VAT Amount Line";
         VATTolerancePct: Decimal;
         PaymentDiscountPct: Decimal;
     begin
         // Check VAT Amount on Purchase Order Statistics when VAT Tolerance % greater than Payment Discount %.
         Initialize();
         ComputeHighVATTolerancePct(VATTolerancePct, PaymentDiscountPct);
-        PurchStatisticsWithVAT(TempPurchaseLine, VATTolerancePct, PaymentDiscountPct, false);
+        PurchStatisticsWithVAT(TempPurchaseLine, VATTolerancePct, PaymentDiscountPct, false, VATAmountLine);
 
         // Verify VAT Amount for every VAT Amount Line and Rollback Payment Terms and General Ledger Setup.
-        VerifyPurchExclVAT(TempPurchaseLine, PaymentDiscountPct);
+        VerifyPurchExclVAT(TempPurchaseLine, PaymentDiscountPct, VATAmountLine);
     end;
 
     [Test]
@@ -426,16 +433,17 @@ codeunit 134042 "ERM VAT Tolerance"
     procedure LowVATTolBeforePostPurchDoc()
     var
         TempPurchaseLine: Record "Purchase Line" temporary;
+        VATAmountLine: Record "VAT Amount Line";
         VATTolerancePct: Decimal;
         PaymentDiscountPct: Decimal;
     begin
         // Check VAT Amount on Purchase Order Statistics when VAT Tolerance % less than Payment Discount %.
         Initialize();
         ComputeLowVATTolerancePct(VATTolerancePct, PaymentDiscountPct);
-        PurchStatisticsWithVAT(TempPurchaseLine, VATTolerancePct, PaymentDiscountPct, false);
+        PurchStatisticsWithVAT(TempPurchaseLine, VATTolerancePct, PaymentDiscountPct, false, VATAmountLine);
 
         // Verify VAT Amount for every VAT Amount Line and Rollback Payment Terms and General Ledger Setup.
-        VerifyPurchExclVAT(TempPurchaseLine, VATTolerancePct);
+        VerifyPurchExclVAT(TempPurchaseLine, VATTolerancePct, VATAmountLine);
     end;
 
     [Test]
@@ -443,16 +451,17 @@ codeunit 134042 "ERM VAT Tolerance"
     procedure HighInclVATBeforePostPurchDoc()
     var
         TempPurchaseLine: Record "Purchase Line" temporary;
+        VATAmountLine: Record "VAT Amount Line";
         VATTolerancePct: Decimal;
         PaymentDiscountPct: Decimal;
     begin
         // Check VAT Amount on Purchase Order Statistics when VAT Tolerance % greater than Payment Discount %.
         Initialize();
         ComputeHighVATTolerancePct(VATTolerancePct, PaymentDiscountPct);
-        PurchStatisticsWithVAT(TempPurchaseLine, VATTolerancePct, PaymentDiscountPct, true);
+        PurchStatisticsWithVAT(TempPurchaseLine, VATTolerancePct, PaymentDiscountPct, true, VATAmountLine);
 
         // Verify: Verify VAT Amount for every VAT Amount Line.
-        VerifyPurchVAT(TempPurchaseLine, PaymentDiscountPct);
+        VerifyPurchVAT(TempPurchaseLine, PaymentDiscountPct, VATAmountLine);
     end;
 
     [Test]
@@ -460,23 +469,23 @@ codeunit 134042 "ERM VAT Tolerance"
     procedure LowInclVATBeforePostPurchDoc()
     var
         TempPurchaseLine: Record "Purchase Line" temporary;
+        VATAmountLine: Record "VAT Amount Line";
         VATTolerancePct: Decimal;
         PaymentDiscountPct: Decimal;
     begin
         // Check VAT Amount on Purchase Order Statistics when VAT Tolerance % less than Payment Discount %.
         Initialize();
         ComputeLowVATTolerancePct(VATTolerancePct, PaymentDiscountPct);
-        PurchStatisticsWithVAT(TempPurchaseLine, VATTolerancePct, PaymentDiscountPct, true);
+        PurchStatisticsWithVAT(TempPurchaseLine, VATTolerancePct, PaymentDiscountPct, true, VATAmountLine);
 
         // Verify: Verify VAT Amount for every VAT Amount Line.
-        VerifyPurchVAT(TempPurchaseLine, VATTolerancePct);
+        VerifyPurchVAT(TempPurchaseLine, VATTolerancePct, VATAmountLine);
     end;
 
-    local procedure PurchStatisticsWithVAT(var TempPurchaseLine: Record "Purchase Line" temporary; VATTolerancePct: Decimal; PaymentDiscountPct: Decimal; PricesIncludingVAT: Boolean)
+    local procedure PurchStatisticsWithVAT(var TempPurchaseLine: Record "Purchase Line" temporary; VATTolerancePct: Decimal; PaymentDiscountPct: Decimal; PricesIncludingVAT: Boolean; var VATAmountLine: Record "VAT Amount Line")
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        VATAmountLine: Record "VAT Amount Line";
         QtyType: Option General,Invoicing,Shipping;
     begin
         // Setup: Create Purchase Order with Different VAT Posting Group Lines.
@@ -570,16 +579,17 @@ codeunit 134042 "ERM VAT Tolerance"
     procedure HighVATTolOnPostedPurchDoc()
     var
         TempPurchaseLine: Record "Purchase Line" temporary;
+        VATAmountLine: Record "VAT Amount Line";
         VATTolerancePct: Decimal;
         PaymentDiscountPct: Decimal;
     begin
         // Check VAT Amount on Posted Purchase Invoice Statistics when VAT Tolerance % greater than Payment Discount %.
         Initialize();
         ComputeHighVATTolerancePct(VATTolerancePct, PaymentDiscountPct);
-        PostedPurchStatisticsWithVAT(TempPurchaseLine, VATTolerancePct, PaymentDiscountPct, false);
+        PostedPurchStatisticsWithVAT(TempPurchaseLine, VATTolerancePct, PaymentDiscountPct, false, VATAmountLine);
 
         // Verify VAT Amount on Posted Purchase Order Statistics and Rollback Payment Terms and General Ledger Setup.
-        VerifyPurchExclVAT(TempPurchaseLine, PaymentDiscountPct);
+        VerifyPurchExclVAT(TempPurchaseLine, PaymentDiscountPct, VATAmountLine);
     end;
 
     [Test]
@@ -587,16 +597,17 @@ codeunit 134042 "ERM VAT Tolerance"
     procedure LowVATTolOnPostedPurchDoc()
     var
         TempPurchaseLine: Record "Purchase Line" temporary;
+        VATAmountLine: Record "VAT Amount Line";
         VATTolerancePct: Decimal;
         PaymentDiscountPct: Decimal;
     begin
         // Check VAT Amount on Posted Purchase Invoice Statistics when VAT Tolerance % less than Payment Discount %.
         Initialize();
         ComputeLowVATTolerancePct(VATTolerancePct, PaymentDiscountPct);
-        PostedPurchStatisticsWithVAT(TempPurchaseLine, VATTolerancePct, PaymentDiscountPct, false);
+        PostedPurchStatisticsWithVAT(TempPurchaseLine, VATTolerancePct, PaymentDiscountPct, false, VATAmountLine);
 
         // Verify VAT Amount on Posted Purchase Order Statistics and Rollback Payment Terms and General Ledger Setup.
-        VerifyPurchExclVAT(TempPurchaseLine, VATTolerancePct);
+        VerifyPurchExclVAT(TempPurchaseLine, VATTolerancePct, VATAmountLine);
     end;
 
     [Test]
@@ -604,16 +615,17 @@ codeunit 134042 "ERM VAT Tolerance"
     procedure HighInclVATTolOnPostedPurchDoc()
     var
         TempPurchaseLine: Record "Purchase Line" temporary;
+        VATAmountLine: Record "VAT Amount Line";
         VATTolerancePct: Decimal;
         PaymentDiscountPct: Decimal;
     begin
         // Check VAT Amount on Posted Purchase Invoice Statistics when VAT Tolerance % greater than Payment Discount %.
         Initialize();
         ComputeHighVATTolerancePct(VATTolerancePct, PaymentDiscountPct);
-        PostedPurchStatisticsWithVAT(TempPurchaseLine, VATTolerancePct, PaymentDiscountPct, true);
+        PostedPurchStatisticsWithVAT(TempPurchaseLine, VATTolerancePct, PaymentDiscountPct, true, VATAmountLine);
 
         // Verify: Verify VAT Amount on Posted Purchase Order Statistics.
-        VerifyPurchVAT(TempPurchaseLine, PaymentDiscountPct);
+        VerifyPurchVAT(TempPurchaseLine, PaymentDiscountPct, VATAmountLine);
     end;
 
     [Test]
@@ -621,22 +633,22 @@ codeunit 134042 "ERM VAT Tolerance"
     procedure LowInclVATTolOnPostedPurchDoc()
     var
         TempPurchaseLine: Record "Purchase Line" temporary;
+        VATAmountLine: Record "VAT Amount Line";
         VATTolerancePct: Decimal;
         PaymentDiscountPct: Decimal;
     begin
         // Check VAT Amount on Posted Purchase Invoice Statistics when VAT Tolerance % less than Payment Discount %.
         Initialize();
         ComputeLowVATTolerancePct(VATTolerancePct, PaymentDiscountPct);
-        PostedPurchStatisticsWithVAT(TempPurchaseLine, VATTolerancePct, PaymentDiscountPct, true);
+        PostedPurchStatisticsWithVAT(TempPurchaseLine, VATTolerancePct, PaymentDiscountPct, true, VATAmountLine);
 
         // Verify: Verify VAT Amount on Posted Purchase Order Statistics.
-        VerifyPurchVAT(TempPurchaseLine, VATTolerancePct);
+        VerifyPurchVAT(TempPurchaseLine, VATTolerancePct, VATAmountLine);
     end;
 
-    local procedure PostedPurchStatisticsWithVAT(var TempPurchaseLine: Record "Purchase Line" temporary; VATTolerancePct: Decimal; PaymentDiscountPct: Decimal; PricesIncludingVAT: Boolean)
+    local procedure PostedPurchStatisticsWithVAT(var TempPurchaseLine: Record "Purchase Line" temporary; VATTolerancePct: Decimal; PaymentDiscountPct: Decimal; PricesIncludingVAT: Boolean; var VATAmountLine: Record "VAT Amount Line")
     var
         PurchaseHeader: Record "Purchase Header";
-        VATAmountLine: Record "VAT Amount Line";
         PurchInvHeader: Record "Purch. Inv. Header";
         PurchInvLine: Record "Purch. Inv. Line";
         PostedDocumentNo: Code[20];
@@ -1256,36 +1268,36 @@ codeunit 134042 "ERM VAT Tolerance"
         until TempPurchaseLine.Next() = 0;
     end;
 
-    local procedure VerifyPurchVAT(var TempPurchaseLine: Record "Purchase Line" temporary; TolerancePctForCalculation: Decimal)
+    local procedure VerifyPurchVAT(var TempPurchaseLine: Record "Purchase Line" temporary; TolerancePctForCalculation: Decimal; var VATAmountLine: Record "VAT Amount Line")
     var
         VATAmount: Decimal;
     begin
         TempPurchaseLine.FindSet();
         repeat
             VATAmount := Round(TempPurchaseLine."Line Amount" * TempPurchaseLine."VAT %" / (100 + TempPurchaseLine."VAT %"));
-            VerifyVATOnStatistics(TempPurchaseLine."VAT %", VATAmount - Round(VATAmount * TolerancePctForCalculation / 100));
+            VerifyVATOnStatistics(TempPurchaseLine."VAT %", VATAmount - Round(VATAmount * TolerancePctForCalculation / 100), VATAmountLine);
         until TempPurchaseLine.Next() = 0;
     end;
 
-    local procedure VerifyPurchExclVAT(var TempPurchaseLine: Record "Purchase Line" temporary; TolerancePctForCalculation: Decimal)
+    local procedure VerifyPurchExclVAT(var TempPurchaseLine: Record "Purchase Line" temporary; TolerancePctForCalculation: Decimal; var VATAmountLine: Record "VAT Amount Line")
     var
         VATAmount: Decimal;
     begin
         TempPurchaseLine.FindSet();
         repeat
             VATAmount := Round(TempPurchaseLine."Line Amount" * TempPurchaseLine."VAT %" / 100);
-            VerifyVATOnStatistics(TempPurchaseLine."VAT %", VATAmount - Round(VATAmount * TolerancePctForCalculation / 100));
+            VerifyVATOnStatistics(TempPurchaseLine."VAT %", VATAmount - Round(VATAmount * TolerancePctForCalculation / 100), VATAmountLine);
         until TempPurchaseLine.Next() = 0;
     end;
 
-    local procedure VerifySalesExclVAT(var TempSalesLine: Record "Sales Line" temporary; TolerancePctForCalculation: Decimal)
+    local procedure VerifySalesExclVAT(var TempSalesLine: Record "Sales Line" temporary; TolerancePctForCalculation: Decimal; var VATAmountLine: Record "VAT Amount Line")
     var
         VATAmount: Decimal;
     begin
         TempSalesLine.FindSet();
         repeat
             VATAmount := Round(TempSalesLine."Line Amount" * TempSalesLine."VAT %" / 100);
-            VerifyVATOnStatistics(TempSalesLine."VAT %", VATAmount - Round(VATAmount * TolerancePctForCalculation / 100));
+            VerifyVATOnStatistics(TempSalesLine."VAT %", VATAmount - Round(VATAmount * TolerancePctForCalculation / 100), VATAmountLine);
         until TempSalesLine.Next() = 0;
     end;
 
@@ -1318,14 +1330,14 @@ codeunit 134042 "ERM VAT Tolerance"
         until TempSalesLine.Next() = 0;
     end;
 
-    local procedure VerifyStatistics(var TempSalesLine: Record "Sales Line" temporary; TolerancePctForCalculation: Decimal)
+    local procedure VerifyStatistics(var TempSalesLine: Record "Sales Line" temporary; TolerancePctForCalculation: Decimal; var VATAmountLine: Record "VAT Amount Line")
     var
         VATAmount: Decimal;
     begin
         TempSalesLine.FindSet();
         repeat
             VATAmount := Round(TempSalesLine."Line Amount" * TempSalesLine."VAT %" / (100 + TempSalesLine."VAT %"));
-            VerifyVATOnStatistics(TempSalesLine."VAT %", VATAmount - Round(VATAmount * TolerancePctForCalculation / 100));
+            VerifyVATOnStatistics(TempSalesLine."VAT %", VATAmount - Round(VATAmount * TolerancePctForCalculation / 100), VATAmountLine);
         until TempSalesLine.Next() = 0;
     end;
 
@@ -1371,9 +1383,7 @@ codeunit 134042 "ERM VAT Tolerance"
           StrSubstNo(AmountErr, SalesLine.FieldCaption("Outstanding Amount"), OutstandingAmount, SalesLine.TableCaption()));
     end;
 
-    local procedure VerifyVATOnStatistics(VATPct: Decimal; VATAmount: Decimal)
-    var
-        VATAmountLine: Record "VAT Amount Line";
+    local procedure VerifyVATOnStatistics(VATPct: Decimal; VATAmount: Decimal; var VATAmountLine: Record "VAT Amount Line")
     begin
         VATAmountLine.SetRange("VAT %", VATPct);
         VATAmountLine.FindFirst();
@@ -1382,4 +1392,3 @@ codeunit 134042 "ERM VAT Tolerance"
           StrSubstNo(AmountErr, VATAmountLine.FieldCaption("VAT Amount"), VATAmount, VATAmountLine.TableCaption()));
     end;
 }
-

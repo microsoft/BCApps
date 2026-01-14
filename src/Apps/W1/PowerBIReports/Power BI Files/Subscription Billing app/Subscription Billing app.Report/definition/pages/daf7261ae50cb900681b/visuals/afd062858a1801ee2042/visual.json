@@ -7,7 +7,7 @@
     "z": 1000,
     "height": 307,
     "width": 1226.8259385665528,
-    "tabOrder": 5
+    "tabOrder": 1000
   },
   "visual": {
     "visualType": "columnChart",
@@ -139,41 +139,7 @@
             "concatenateLabels": {
               "expr": {
                 "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "maxMarginFactor": {
-              "expr": {
-                "Literal": {
-                  "Value": "15L"
-                }
-              }
-            },
-            "fontSize": {
-              "expr": {
-                "Literal": {
-                  "Value": "9D"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "legend": [
-        {
-          "properties": {
-            "showGradientLegend": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
+                  "Value": "false"
                 }
               }
             }

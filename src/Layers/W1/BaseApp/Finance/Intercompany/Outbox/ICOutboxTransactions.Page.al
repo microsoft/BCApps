@@ -9,6 +9,15 @@ using Microsoft.Intercompany.Comment;
 using Microsoft.Intercompany.Inbox;
 using Microsoft.Intercompany.Partner;
 
+/// <summary>
+/// Intercompany outbox transactions interface for managing and processing outbound transactions to partner companies.
+/// Provides transaction review, status management, and transmission capabilities for intercompany business processes.
+/// </summary>
+/// <remarks>
+/// Primary data source: IC Outbox Transaction. Integrates with partner communication, transaction export, and status tracking systems.
+/// Navigation: Transaction list → Details view → Send/Return/Cancel operations.
+/// Extensible via page extensions for additional transaction management fields and custom processing actions.
+/// </remarks>
 page 611 "IC Outbox Transactions"
 {
     ApplicationArea = Intercompany;

@@ -13,6 +13,16 @@ using Microsoft.Utilities;
 using System.Text;
 using System.Utilities;
 
+/// <summary>
+/// Copies G/L budget data between budgets or from actual G/L entries with flexible transformation options.
+/// Supports budget versioning, scenario planning, and historical data analysis through sophisticated copying workflows.
+/// </summary>
+/// <remarks>
+/// Key capabilities: Multi-source copying (G/L Entries or Budget Entries), date shifting, multiplier application, and dimension mapping.
+/// Use cases: Budget rollover, scenario analysis, historical baseline creation, and budget template replication.
+/// Validation: Comprehensive dimension validation, date range checking, and target budget compatibility verification.
+/// Performance: Optimized batch processing with progress tracking and memory-efficient data handling for large datasets.
+/// </remarks>
 report 96 "Copy G/L Budget"
 {
     Caption = 'Copy G/L Budget';
@@ -502,6 +512,21 @@ report 96 "Copy G/L Budget"
         TempGLBudgetEntry.DeleteAll();
     end;
 
+    /// <summary>
+    /// Initializes the report with the specified parameters for copying budget entries.
+    /// Sets up all the necessary filters and options for the budget copy operation.
+    /// </summary>
+    /// <param name="FromSource2">Source option indicating where to copy from.</param>
+    /// <param name="FromGLBudgetName2">Source budget name to copy from.</param>
+    /// <param name="FromGLAccountNo2">Source G/L account filter.</param>
+    /// <param name="FromDate2">Source date filter.</param>
+    /// <param name="ToGlBudgetName2">Target budget name to copy to.</param>
+    /// <param name="ToGLAccountNo2">Target G/L account number.</param>
+    /// <param name="ToBUCode2">Target business unit code.</param>
+    /// <param name="AmountAdjustFactor2">Factor for adjusting budget amounts.</param>
+    /// <param name="RoundingMethod2">Rounding method to apply.</param>
+    /// <param name="DateAdjustExpression2">Date adjustment formula.</param>
+    /// <param name="NoMessage2">Whether to suppress completion messages.</param>
     procedure Initialize(FromSource2: Option; FromGLBudgetName2: Code[10]; FromGLAccountNo2: Code[250]; FromDate2: Text[30]; ToGlBudgetName2: Code[10]; ToGLAccountNo2: Code[20]; ToBUCode2: Code[20]; AmountAdjustFactor2: Decimal; RoundingMethod2: Code[10]; DateAdjustExpression2: DateFormula; NoMessage2: Boolean)
     begin
         FromSource := FromSource2;
@@ -617,6 +642,22 @@ report 96 "Copy G/L Budget"
         exit(false);
     end;
 
+    /// <summary>
+    /// Initializes the report request with comprehensive parameters for budget copying operations.
+    /// Sets up all filters, adjustments, and target settings for the budget copy process.
+    /// </summary>
+    /// <param name="FromSource2">Source option indicating where to copy from.</param>
+    /// <param name="FromGLBudgetName2">Source budget name to copy from.</param>
+    /// <param name="FromGLAccountNo2">Source G/L account filter.</param>
+    /// <param name="FromDate2">Source date filter.</param>
+    /// <param name="FromClosingEntryFilter2">Filter for closing entries.</param>
+    /// <param name="DimensionText">Dimension filter text.</param>
+    /// <param name="ToGlBudgetName2">Target budget name.</param>
+    /// <param name="ToGLAccountNo2">Target G/L account number.</param>
+    /// <param name="AmountAdjustFactor2">Amount adjustment factor.</param>
+    /// <param name="RoundingMethod2">Rounding method code.</param>
+    /// <param name="DateAdjustExpression2">Date adjustment formula.</param>
+    /// <param name="ToDateCompression2">Date compression option.</param>
     procedure InitializeRequest(FromSource2: Option; FromGLBudgetName2: Code[10]; FromGLAccountNo2: Code[250]; FromDate2: Text[30]; FromClosingEntryFilter2: Option; DimensionText: Text[250]; ToGlBudgetName2: Code[10]; ToGLAccountNo2: Code[20]; AmountAdjustFactor2: Decimal; RoundingMethod2: Code[10]; DateAdjustExpression2: DateFormula; ToDateCompression2: Option)
     begin
         FromSource := FromSource2;
@@ -643,16 +684,28 @@ report 96 "Copy G/L Budget"
         end;
     end;
 
+    /// <summary>
+    /// Integration event raised before copying budget dimension codes during report processing.
+    /// Allows subscribers to modify budget name settings before dimension codes are copied.
+    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnPreReportOnBeforeCopyBudgetDimCodes(var GLBudgetName: Record "G/L Budget Name")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting G/L Budget Entries during the copy process.
+    /// Allows subscribers to perform additional processing after budget entries are created.
+    /// </summary>
     [IntegrationEvent(false, false)]
     procedure OnPostReportOnAfterInsertGLBudgetEntry(FromBudgetName: Code[10]; ToBudgetName: Code[10])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting a target G/L Budget Entry during the copy process.
+    /// Allows subscribers to modify the budget entry before it is inserted.
+    /// </summary>
     [IntegrationEvent(false, false)]
     procedure OnInsertGLBudgetEntryOnBeforeToGLBudgetEntryInsert(var ToGLBudgetEntry: Record "G/L Budget Entry"; ToDateCompression: Option "None",Day,Week,Month,Quarter,Year,Period)
     begin

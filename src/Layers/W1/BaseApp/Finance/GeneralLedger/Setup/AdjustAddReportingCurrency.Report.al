@@ -17,6 +17,10 @@ using Microsoft.Foundation.Period;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Projects.Project.Ledger;
 
+/// <summary>
+/// Recalculates additional reporting currency amounts across VAT, G/L, Value, Job, and Cost entries.
+/// Posts residual rounding differences to configured residual accounts. Processing-only.
+/// </summary>
 report 86 "Adjust Add. Reporting Currency"
 {
     Caption = 'Adjust Add. Reporting Currency';
@@ -470,11 +474,19 @@ report 86 "Adjust Add. Reporting Currency"
         Currency: Record Currency;
         Window: Dialog;
 
+    /// <summary>
+    /// Sets the Additional Reporting Currency code to use during execution.
+    /// </summary>
+    /// <param name="AddCurr">Currency code from General Ledger Setup</param>
     procedure SetAddCurr(AddCurr: Code[10])
     begin
         GLSetup."Additional Reporting Currency" := AddCurr;
     end;
 
+    /// <summary>
+    /// Indicates whether the report completed execution.
+    /// </summary>
+    /// <returns>True after OnPostReport has run; otherwise false</returns>
     procedure IsExecuted(): Boolean
     begin
         exit(ReportIsExecuted);
@@ -496,6 +508,14 @@ report 86 "Adjust Add. Reporting Currency"
             AmtRndgPrec));
     end;
 
+    /// <summary>
+    /// Checks whether the specified date is a closing date of a fiscal year.
+    /// </summary>
+    /// <param name="Date">Date to evaluate</param>
+    /// <returns>True if the date is a fiscal year closing date, otherwise false</returns>
+    /// <remarks>
+    /// Caches last evaluated period boundaries in LastFiscalYearStartDate/EndDate.
+    /// </remarks>
     procedure IsAccountingPeriodClosingDate(Date: Date): Boolean
     var
         AccountingPeriod: Record "Accounting Period";
@@ -525,6 +545,10 @@ report 86 "Adjust Add. Reporting Currency"
         exit(LastIsAccPeriodClosingDate);
     end;
 
+    /// <summary>
+    /// Validates a G/L account and fiscal year combination for ARC residual posting and creates balancing entries when needed.
+    /// </summary>
+    /// <param name="CloseIncomeStmtBuffer2">Buffer record with G/L Account No. and Closing Date</param>
     procedure CheckCombination(CloseIncomeStmtBuffer2: Record "Close Income Statement Buffer")
     begin
         Clear(GLEntry3);
@@ -546,6 +570,16 @@ report 86 "Adjust Add. Reporting Currency"
         end;
     end;
 
+    /// <summary>
+    /// Inserts a system-created G/L entry for ARC residuals and updates the current G/L Register range.
+    /// </summary>
+    /// <param name="PostingDate">Posting date for the entry</param>
+    /// <param name="DocumentDate">Document date for the entry</param>
+    /// <param name="DocumentType">Document type as integer enum value</param>
+    /// <param name="DocumentNo">Document number to assign</param>
+    /// <param name="GLAccountNo">G/L account to post to</param>
+    /// <param name="ReasonCode">Reason code to set on the entry</param>
+    /// <param name="AddCurrAmount">Amount in additional reporting currency</param>
     procedure InsertGLEntry(PostingDate: Date; DocumentDate: Date; DocumentType: Integer; DocumentNo: Code[20]; GLAccountNo: Code[20]; ReasonCode: Code[10]; AddCurrAmount: Decimal)
     var
         AccountingPeriodMgt: Codeunit "Accounting Period Mgt.";
@@ -607,6 +641,11 @@ report 86 "Adjust Add. Reporting Currency"
         GLReg."To Entry No." := GLEntry2."Entry No.";
     end;
 
+    /// <summary>
+    /// Initializes request values used by the request page and posting.
+    /// </summary>
+    /// <param name="NewDocumentNo">Document number to use</param>
+    /// <param name="NewRetainedEarningsGLAccNo">Retained earnings account number</param>
     procedure InitializeRequest(NewDocumentNo: Code[20]; NewRetainedEarningsGLAccNo: Code[20])
     begin
         DocumentNo := NewDocumentNo;
@@ -615,6 +654,10 @@ report 86 "Adjust Add. Reporting Currency"
         CurrencyFactor := CurrExchRate.ExchangeRate(WorkDate(), GLSetup."Additional Reporting Currency");
     end;
 
+    /// <summary>
+    /// Sets the Gen. Journal Batch context for posting.
+    /// </summary>
+    /// <param name="NewGenJnlBatch">Journal batch to use for posting</param>
     procedure SetGenJnlBatch(NewGenJnlBatch: Record "Gen. Journal Batch")
     begin
         GenJnlBatch := NewGenJnlBatch;
@@ -622,11 +665,20 @@ report 86 "Adjust Add. Reporting Currency"
         GenJnlLineReq."Journal Batch Name" := GenJnlBatch.Name;
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting an ARC G/L entry.
+    /// </summary>
+    /// <param name="GLEntry">G/L entry record to be inserted</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertGLEntryOnBeforeGLEntryInsert(var GLEntry: Record "G/L Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before applying the default Closed filter on VAT Entries.
+    /// </summary>
+    /// <param name="VATEntry">VAT Entry record to filter</param>
+    /// <param name="IsHandled">Set true to skip standard Closed filtering</param>
     [IntegrationEvent(false, false)]
     local procedure OnPreDataItemVatEntryOnBeforeSetFilterOnClosedVATEntries(var VATEntry: Record "VAT Entry"; var IsHandled: Boolean)
     begin

@@ -12,26 +12,42 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using System.Telemetry;
 using System.Text;
 
+/// <summary>
+/// Defines allocation distribution rules for allocation accounts with support for fixed and variable allocation methods.
+/// Manages destination accounts, breakdown criteria, dimension filters, and calculation parameters for automated distribution.
+/// </summary>
 table 2671 "Alloc. Account Distribution"
 {
     DataClassification = CustomerContent;
 
     fields
     {
+        /// <summary>
+        /// Allocation account number that this distribution rule applies to.
+        /// </summary>
         field(1; "Allocation Account No."; Code[20])
         {
             Caption = 'Allocation Account No.';
             TableRelation = "Allocation Account"."No.";
         }
+        /// <summary>
+        /// Sequential line number for the distribution rule within the allocation account.
+        /// </summary>
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
         }
+        /// <summary>
+        /// Type of account allocation method: Fixed for predefined shares, Variable for dynamic calculations.
+        /// </summary>
         field(4; "Account Type"; Option)
         {
             Caption = 'Account type';
             OptionMembers = Fixed,Variable;
         }
+        /// <summary>
+        /// Share amount or weighting factor used for distribution calculations.
+        /// </summary>
         field(6; Share; Decimal)
         {
             Caption = 'Share';
@@ -44,6 +60,9 @@ table 2671 "Alloc. Account Distribution"
                 CalcPercent();
             end;
         }
+        /// <summary>
+        /// Calculated percentage of the total allocation based on the share amount.
+        /// </summary>
         field(7; Percent; Decimal)
         {
             Caption = 'Percent';
@@ -53,10 +72,16 @@ table 2671 "Alloc. Account Distribution"
             MaxValue = 100;
             MinValue = 0;
         }
+        /// <summary>
+        /// Timestamp indicating when the share amount was last updated.
+        /// </summary>
         field(8; "Share Updated at"; DateTime)
         {
             Caption = 'Shared Updated at';
         }
+        /// <summary>
+        /// Type of destination account for the allocation (G/L Account, Bank Account, etc.).
+        /// </summary>
         field(9; "Destination Account Type"; Enum "Destination Account Type")
         {
             Caption = 'Destination Account Type';
@@ -65,6 +90,9 @@ table 2671 "Alloc. Account Distribution"
                 Clear(Rec."Destination Account Number");
             end;
         }
+        /// <summary>
+        /// Account number for the allocation destination based on the destination account type.
+        /// </summary>
         field(10; "Destination Account Number"; Code[20])
         {
             Caption = 'Destination Account Number';
@@ -74,10 +102,16 @@ table 2671 "Alloc. Account Distribution"
             if ("Destination Account Type" = const("Bank Account")) "Bank Account";
 
         }
+        /// <summary>
+        /// Account type used for breakdown calculations in variable allocation methods.
+        /// </summary>
         field(19; "Breakdown Account Type"; Enum "Breakdown Account Type")
         {
             Caption = 'Breakdown Account Type';
         }
+        /// <summary>
+        /// Account number used for breakdown calculations based on the breakdown account type.
+        /// </summary>
         field(20; "Breakdown Account Number"; Code[20])
         {
             Caption = 'Breakdown Account Number';
@@ -116,11 +150,17 @@ table 2671 "Alloc. Account Distribution"
                 end;
             end;
         }
+        /// <summary>
+        /// Time period used for calculation in variable allocation methods.
+        /// </summary>
         field(21; "Calculation Period"; Enum "Allocation Account Period")
         {
             Caption = 'Calculation Period';
         }
 
+        /// <summary>
+        /// Filter criteria for global dimension 1 used in allocation calculations.
+        /// </summary>
         field(23; "Dimension 1 Filter"; Text[1024])
         {
             CaptionClass = '3, ' + GetDimensionCaption(1);
@@ -132,6 +172,9 @@ table 2671 "Alloc. Account Distribution"
                 LookupDimensionFilter(1);
             end;
         }
+        /// <summary>
+        /// Filter criteria for global dimension 2 used in allocation calculations.
+        /// </summary>
         field(24; "Dimension 2 Filter"; Text[1024])
         {
             CaptionClass = '3, ' + GetDimensionCaption(2);
@@ -143,6 +186,9 @@ table 2671 "Alloc. Account Distribution"
                 LookupDimensionFilter(2);
             end;
         }
+        /// <summary>
+        /// Filter criteria for shortcut dimension 3 used in allocation calculations.
+        /// </summary>
         field(25; "Dimension 3 Filter"; Text[1024])
         {
             CaptionClass = '3, ' + GetDimensionCaption(3);
@@ -154,6 +200,9 @@ table 2671 "Alloc. Account Distribution"
                 LookupDimensionFilter(3);
             end;
         }
+        /// <summary>
+        /// Filter criteria for shortcut dimension 4 used in allocation calculations.
+        /// </summary>
         field(26; "Dimension 4 Filter"; Text[1024])
         {
             CaptionClass = '3, ' + GetDimensionCaption(4);
@@ -165,6 +214,9 @@ table 2671 "Alloc. Account Distribution"
                 LookupDimensionFilter(4);
             end;
         }
+        /// <summary>
+        /// Filter criteria for shortcut dimension 5 used in allocation calculations.
+        /// </summary>
         field(27; "Dimension 5 Filter"; Text[1024])
         {
             CaptionClass = '3, ' + GetDimensionCaption(5);
@@ -176,6 +228,9 @@ table 2671 "Alloc. Account Distribution"
                 LookupDimensionFilter(5);
             end;
         }
+        /// <summary>
+        /// Filter criteria for shortcut dimension 6 used in allocation calculations.
+        /// </summary>
         field(28; "Dimension 6 Filter"; Text[1024])
         {
             CaptionClass = '3, ' + GetDimensionCaption(6);
@@ -187,6 +242,9 @@ table 2671 "Alloc. Account Distribution"
                 LookupDimensionFilter(6);
             end;
         }
+        /// <summary>
+        /// Filter criteria for shortcut dimension 7 used in allocation calculations.
+        /// </summary>
         field(29; "Dimension 7 Filter"; Text[1024])
         {
             CaptionClass = '3, ' + GetDimensionCaption(7);
@@ -198,6 +256,9 @@ table 2671 "Alloc. Account Distribution"
                 LookupDimensionFilter(7);
             end;
         }
+        /// <summary>
+        /// Filter criteria for shortcut dimension 8 used in allocation calculations.
+        /// </summary>
         field(30; "Dimension 8 Filter"; Text[1024])
         {
             CaptionClass = '3, ' + GetDimensionCaption(8);
@@ -209,6 +270,9 @@ table 2671 "Alloc. Account Distribution"
                 LookupDimensionFilter(8);
             end;
         }
+        /// <summary>
+        /// Business unit code filter used for G/L account allocation calculations.
+        /// </summary>
         field(35; "Business Unit Code Filter"; Text[1024])
         {
             Caption = 'Business Unit Code Filter';
@@ -220,6 +284,9 @@ table 2671 "Alloc. Account Distribution"
                     Error(BusinessUnitCodeCanOnlyBeUsedWithGLAccFilterErr);
             end;
         }
+        /// <summary>
+        /// Global dimension 1 code for the distribution line posting.
+        /// </summary>
         field(37; "Global Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,1,1';
@@ -232,6 +299,9 @@ table 2671 "Alloc. Account Distribution"
                 ValidateShortcutDimCode(1, "Global Dimension 1 Code");
             end;
         }
+        /// <summary>
+        /// Global dimension 2 code for the distribution line posting.
+        /// </summary>
         field(38; "Global Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,1,2';
@@ -244,6 +314,9 @@ table 2671 "Alloc. Account Distribution"
                 ValidateShortcutDimCode(2, "Global Dimension 2 Code");
             end;
         }
+        /// <summary>
+        /// Dimension set ID linking to dimension combinations for the distribution line.
+        /// </summary>
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
@@ -427,6 +500,11 @@ table 2671 "Alloc. Account Distribution"
         DimensionManagement.UpdateGlobalDimFromDimSetID(Rec."Dimension Set ID", "Global Dimension 1 Code", "Global Dimension 2 Code");
     end;
 
+    /// <summary>
+    /// Validates shortcut dimension codes and updates the dimension set ID accordingly.
+    /// </summary>
+    /// <param name="FieldNumber">Dimension field number for validation</param>
+    /// <param name="ShortcutDimCode">Dimension code to validate</param>
     procedure ValidateShortcutDimCode(FieldNumber: Integer; var ShortcutDimCode: Code[20])
     var
         DimensionManagement: Codeunit DimensionManagement;
@@ -522,11 +600,22 @@ table 2671 "Alloc. Account Distribution"
         Rec.Modify();
     end;
 
+    /// <summary>
+    /// Integration event raised when looking up breakdown account numbers for extensibility.
+    /// </summary>
+    /// <param name="AllocAccountDistribution">Allocation account distribution record being processed</param>
+    /// <param name="Handled">Set to true to indicate custom lookup was handled</param>
     [IntegrationEvent(false, false)]
     local procedure OnLookupBreakdownAccountNumber(var AllocAccountDistribution: Record "Alloc. Account Distribution"; var Handled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when looking up breakdown account names for extensibility.
+    /// </summary>
+    /// <param name="AllocAccountDistribution">Allocation account distribution record being processed</param>
+    /// <param name="AccountName">Account name to be populated from custom lookup</param>
+    /// <param name="Handled">Set to true to indicate custom lookup was handled</param>
     [IntegrationEvent(false, false)]
     local procedure OnLookupBreakdownAccountName(var AllocAccountDistribution: Record "Alloc. Account Distribution"; var AccountName: Text[2048]; var Handled: Boolean)
     begin

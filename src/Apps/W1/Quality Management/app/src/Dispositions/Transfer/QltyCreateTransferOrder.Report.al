@@ -21,15 +21,15 @@ report 20410 "Qlty. Create Transfer Order"
 
     dataset
     {
-        dataitem(CurrentTest; "Qlty. Inspection Test Header")
+        dataitem(CurrentInspection; "Qlty. Inspection Header")
         {
-            RequestFilterFields = "No.", "Retest No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Document No.", "Template Code";
+            RequestFilterFields = "No.", "Re-inspection No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Document No.", "Template Code";
 
             trigger OnAfterGetRecord()
             var
                 QltyDispTransfer: Codeunit "Qlty. Disp. Transfer";
             begin
-                QltyDispTransfer.PerformDisposition(CurrentTest, SpecificQuantity, QltyQuantityBehavior, FilterOfSourceLocation, FilterOfSourceBin, Destination, InTransit);
+                QltyDispTransfer.PerformDisposition(CurrentInspection, SpecificQuantity, QltyQuantityBehavior, FilterOfSourceLocation, FilterOfSourceBin, Destination, InTransit);
             end;
         }
     }
@@ -37,7 +37,7 @@ report 20410 "Qlty. Create Transfer Order"
     requestpage
     {
         AboutTitle = 'About Creating a Transfer';
-        AboutText = 'Use this to transfer inventory from a testing location to another location.';
+        AboutText = 'Use this to transfer inventory from an inspectioning location to another location.';
 
         layout
         {
@@ -173,7 +173,7 @@ report 20410 "Qlty. Create Transfer Order"
                 group(SettingsForSource)
                 {
                     Caption = 'Source (optional)';
-                    InstructionalText = 'Optional filters that limit where the inventory is transferred from if the test covers more than one bin.';
+                    InstructionalText = 'Optional filters that limit where the inventory is transferred from if the inspection covers more than one bin.';
 
                     field(ChooseSourceLocationFilter; FilterOfSourceLocation)
                     {

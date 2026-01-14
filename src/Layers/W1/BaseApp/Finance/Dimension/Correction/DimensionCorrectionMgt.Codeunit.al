@@ -13,6 +13,11 @@ using System.Text;
 using System.Threading;
 using System.Utilities;
 
+/// <summary>
+/// Manages dimension correction operations including validation, execution, and supporting data generation.
+/// Provides comprehensive functionality for correcting dimension errors in posted general ledger entries
+/// with validation, job scheduling, and status management capabilities.
+/// </summary>
 codeunit 2580 "Dimension Correction Mgt"
 {
     trigger OnRun()
@@ -20,6 +25,11 @@ codeunit 2580 "Dimension Correction Mgt"
 
     end;
 
+    /// <summary>
+    /// Validates that no blocked dimensions are used in the dimension correction changes.
+    /// Checks all changes to ensure dimensions and dimension values are not blocked for use.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction record to validate</param>
     procedure ValidateNoBlockedDimensionsUsed(var DimensionCorrection: Record "Dimension Correction")
     var
         DimCorrectionChange: Record "Dim Correction Change";
@@ -34,6 +44,12 @@ codeunit 2580 "Dimension Correction Mgt"
         until DimCorrectionChange.Next() = 0;
     end;
 
+    /// <summary>
+    /// Generates supporting tables and data structures for dimension correction processing.
+    /// Creates target dimension set IDs and prepares temporary buffers for validation and execution.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction record to generate data for</param>
+    /// <param name="TempDimCorrectionSetBuffer">Temporary buffer to populate with correction set data</param>
     procedure GenerateSupportingTables(var DimensionCorrection: Record "Dimension Correction"; var TempDimCorrectionSetBuffer: Record "Dim Correction Set Buffer" temporary)
     var
         DimensionCorrectionEntryLog: Record "Dim Correction Entry Log";
@@ -63,12 +79,22 @@ codeunit 2580 "Dimension Correction Mgt"
             Error(NoLedgerEntriesFoundErr);
     end;
 
+    /// <summary>
+    /// Verifies that the dimension correction can be validated based on its current status.
+    /// Checks if the dimension correction is in a valid state for validation processing.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction record to verify</param>
     procedure VerifyCanValidateDimensionCorrection(var DimensionCorrection: Record "Dimension Correction")
     begin
         if not (DimensionCorrection.Status in [DimensionCorrection.Status::Completed, DimensionCorrection.Status::Draft, DimensionCorrection.Status::Failed, DimensionCorrection.Status::"Validaton in Process"]) then
             Error(CannotValidateDimensionCorrectionErr, DimensionCorrection.Status);
     end;
 
+    /// <summary>
+    /// Validates that blocked dimensions and dimension values are not used in the correction.
+    /// Performs validation with telemetry logging to ensure data integrity.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction record to validate</param>
     procedure ValidateBlockedNotUsed(var DimensionCorrection: Record "Dimension Correction")
     begin
         Session.LogMessage('0000EHD', StrSubstNo(StartingValidateDimensionCorrectionChangesTelemetryLbl, DimensionCorrection."Entry No."), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', DimensionCorrectionTok);
@@ -76,6 +102,13 @@ codeunit 2580 "Dimension Correction Mgt"
         Session.LogMessage('0000EHE', StrSubstNo(CompletedValidateDimensionCorrectionChangesTelemetryLbl, DimensionCorrection."Entry No."), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', DimensionCorrectionTok);
     end;
 
+    /// <summary>
+    /// Validates dimension sets for the correction to ensure dimension combination rules are followed.
+    /// Checks dimension combinations and restrictions, counting any validation errors encountered.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction record to validate</param>
+    /// <param name="TempDimCorrectionSetBuffer">Temporary buffer containing dimension sets to validate</param>
+    /// <param name="ErrorCount">Variable to receive the count of validation errors found</param>
     procedure ValidateDimensionSets(var DimensionCorrection: Record "Dimension Correction"; var TempDimCorrectionSetBuffer: Record "Dim Correction Set Buffer" temporary; var ErrorCount: Integer)
     var
         DimensionManagement: Codeunit DimensionManagement;
@@ -100,6 +133,12 @@ codeunit 2580 "Dimension Correction Mgt"
         until TempDimCorrectionSetBuffer.Next() = 0;
     end;
 
+    /// <summary>
+    /// Validates dimension changes across all selected entries for a dimension correction.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction record to validate</param>
+    /// <param name="TempDimCorrectionSetBuffer">Temporary buffer containing correction set data</param>
+    /// <param name="ErrorCount">Returns the number of validation errors encountered</param>
     procedure ValidateDimensionChanges(var DimensionCorrection: Record "Dimension Correction"; var TempDimCorrectionSetBuffer: Record "Dim Correction Set Buffer" temporary; var ErrorCount: Integer)
     var
         LastDimCorrectionEntryLog: Record "Dim Correction Entry Log";
@@ -187,6 +226,10 @@ codeunit 2580 "Dimension Correction Mgt"
         end;
     end;
 
+    /// <summary>
+    /// Verifies whether a specific dimension can be changed based on blocking setup.
+    /// </summary>
+    /// <param name="DimCorrectionChange">Dimension correction change record to verify</param>
     procedure VerifyIfDimensionCanBeChanged(var DimCorrectionChange: Record "Dim Correction Change")
     var
         DimCorrecitonBlocked: Record "Dim Correction Blocked Setup";
@@ -197,6 +240,10 @@ codeunit 2580 "Dimension Correction Mgt"
         OnAfterVerifyIfDimensionCanBeChanged(DimCorrectionChange);
     end;
 
+    /// <summary>
+    /// Deletes all validation error messages associated with a dimension correction.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction record to delete validation errors for</param>
     procedure DeleteValidationErrors(var DimensionCorrection: Record "Dimension Correction")
     var
         ErrorMessage: Record "Error Message";
@@ -208,6 +255,11 @@ codeunit 2580 "Dimension Correction Mgt"
         Clear(DimensionCorrection."Validation Errors Register ID");
     end;
 
+    /// <summary>
+    /// Updates validation status and throws an error if validation failed.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction record to update status for</param>
+    /// <param name="ErrorCount">Number of validation errors encountered</param>
     procedure UpdateValidationStatusAndThrowErrorIfFailed(var DimensionCorrection: Record "Dimension Correction"; ErrorCount: Integer)
     begin
         DimensionCorrection."Validated At" := CurrentDateTime();
@@ -226,6 +278,11 @@ codeunit 2580 "Dimension Correction Mgt"
         end;
     end;
 
+    /// <summary>
+    /// Generates selected entries for dimension correction based on selection criteria.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction record to generate entries for</param>
+    /// <param name="TempDimCorrectionSetBuffer">Temporary buffer to store generated correction set data</param>
     procedure GenerateSelectedEntries(var DimensionCorrection: Record "Dimension Correction"; var TempDimCorrectionSetBuffer: Record "Dim Correction Set Buffer" temporary)
     var
         DimCorrectSelectionCriteria: Record "Dim Correct Selection Criteria";
@@ -320,6 +377,14 @@ codeunit 2580 "Dimension Correction Mgt"
         end;
     end;
 
+    /// <summary>
+    /// Determines if a G/L entry should be updated during dimension correction.
+    /// </summary>
+    /// <param name="GLEntry">G/L entry to check for update eligibility</param>
+    /// <param name="TempDimCorrectionSetBuffer">Temporary buffer containing correction set data</param>
+    /// <param name="DimensionCorrectionEntryNo">Dimension correction entry number</param>
+    /// <param name="TempExcludedEntriesInteger">Temporary buffer containing excluded entry numbers</param>
+    /// <returns>True if the G/L entry should be updated, false otherwise</returns>
     procedure IsGLEntryForUpdate(var GLEntry: Record "G/L Entry"; var TempDimCorrectionSetBuffer: Record "Dim Correction Set Buffer" temporary; DimensionCorrectionEntryNo: Integer; var TempExcludedEntriesInteger: Record Integer temporary): boolean
     begin
         if not TempDimCorrectionSetBuffer.Get(DimensionCorrectionEntryNo, GLEntry."Dimension Set ID") then
@@ -412,6 +477,13 @@ codeunit 2580 "Dimension Correction Mgt"
         exit(AddedEntries)
     end;
 
+    /// <summary>
+    /// Retrieves the target dimension correction set buffer for a specific G/L entry.
+    /// </summary>
+    /// <param name="TempDimCorrectionSetBuffer">Temporary buffer containing correction set data</param>
+    /// <param name="DimensionCorrection">Dimension correction record</param>
+    /// <param name="GLEntry">G/L entry to find target correction set for</param>
+    /// <returns>True if target correction set buffer found, false otherwise</returns>
     procedure GetTargetDimCorrectionSetBuffer(var TempDimCorrectionSetBuffer: Record "Dim Correction Set Buffer" temporary; var DimensionCorrection: Record "Dimension Correction"; var GLEntry: Record "G/L Entry"): Boolean
     begin
         TempDimCorrectionSetBuffer.SetRange("Dimension Correction Entry No.", DimensionCorrection."Entry No.");
@@ -429,6 +501,10 @@ codeunit 2580 "Dimension Correction Mgt"
         exit(false);
     end;
 
+    /// <summary>
+    /// Generates target dimension set IDs for dimension correction based on correction changes.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction record to generate target set IDs for</param>
     procedure GenerateTargetDimensionSetIds(var DimensionCorrection: Record "Dimension Correction")
     var
         DimCorrectSelectionCriteria: Record "Dim Correct Selection Criteria";
@@ -482,6 +558,11 @@ codeunit 2580 "Dimension Correction Mgt"
         DimensionCorrection.Modify();
     end;
 
+    /// <summary>
+    /// Creates a dimension correction from selected G/L register entries.
+    /// </summary>
+    /// <param name="GLRegister">G/L register entries to create correction from</param>
+    /// <param name="DimensionCorrection">Dimension correction record to populate</param>
     procedure CreateCorrectionFromGLRegister(var GLRegister: Record "G/L Register"; var DimensionCorrection: Record "Dimension Correction")
     var
         LastDimensionCorrection: Record "Dimension Correction";
@@ -509,6 +590,11 @@ codeunit 2580 "Dimension Correction Mgt"
         ReloadDimensionChangesTable(NewEntryNo);
     end;
 
+    /// <summary>
+    /// Creates a dimension correction from manually selected G/L entries.
+    /// </summary>
+    /// <param name="GLEntry">G/L entries to create correction from</param>
+    /// <param name="DimensionCorrection">Dimension correction record to populate</param>
     procedure CreateCorrectionFromSelection(var GLEntry: Record "G/L Entry"; var DimensionCorrection: Record "Dimension Correction")
     var
         LastDimensionCorrection: Record "Dimension Correction";
@@ -528,6 +614,11 @@ codeunit 2580 "Dimension Correction Mgt"
         ReloadDimensionChangesTable(NewEntryNo);
     end;
 
+    /// <summary>
+    /// Creates a dimension correction from G/L entries based on filter criteria.
+    /// </summary>
+    /// <param name="GLEntry">G/L entries with applied filters to create correction from</param>
+    /// <param name="DimensionCorrection">Dimension correction record to populate</param>
     procedure CreateCorrectionFromFilter(var GLEntry: Record "G/L Entry"; var DimensionCorrection: Record "Dimension Correction")
     var
         LastDimensionCorrection: Record "Dimension Correction";
@@ -547,6 +638,13 @@ codeunit 2580 "Dimension Correction Mgt"
         ReloadDimensionChangesTable(NewEntryNo);
     end;
 
+    /// <summary>
+    /// Inserts new dimension correction selection criteria based on record filters.
+    /// </summary>
+    /// <param name="MainRecordRef">Record reference with filters to extract criteria from</param>
+    /// <param name="DimCorrectSelectionCriteriaFilterType">Filter type for the selection criteria</param>
+    /// <param name="DimCorrectSelectionCriteria">Selection criteria record to populate</param>
+    /// <param name="DimensionCorrectionEntryNo">Dimension correction entry number</param>
     procedure InsertNewDimCorrectSelectionCriteria(var MainRecordRef: RecordRef; DimCorrectSelectionCriteriaFilterType: Option; var DimCorrectSelectionCriteria: Record "Dim Correct Selection Criteria"; DimensionCorrectionEntryNo: Integer)
     var
         DimensionCorrectionMgt: Codeunit "Dimension Correction Mgt";
@@ -561,6 +659,11 @@ codeunit 2580 "Dimension Correction Mgt"
         DimCorrectSelectionCriteria.Modify(true);
     end;
 
+    /// <summary>
+    /// Generates a filter text for selected dimension set IDs from temporary dimension set entries.
+    /// </summary>
+    /// <param name="TempDimensionSetEntry">Temporary dimension set entries containing selected dimensions</param>
+    /// <returns>Filter text representing the selected dimension set IDs</returns>
     procedure GetSelectedDimensionSetIDsFilter(var TempDimensionSetEntry: Record "Dimension Set Entry" temporary): Text
     var
         TempFoundDimensionSetIDInteger: Record "Integer" temporary;
@@ -596,6 +699,11 @@ codeunit 2580 "Dimension Correction Mgt"
         exit(SelectedDimensionSetFilter);
     end;
 
+    /// <summary>
+    /// Retrieves selected dimension set IDs based on temporary dimension set entries.
+    /// </summary>
+    /// <param name="TempDimensionSetEntry">Temporary dimension set entries to find matching set IDs for</param>
+    /// <param name="TempFoundDimensionSetIDInteger">Temporary integer buffer to store found dimension set IDs</param>
     procedure GetSelectedDimensionSetIDs(var TempDimensionSetEntry: Record "Dimension Set Entry" temporary; var TempFoundDimensionSetIDInteger: Record "Integer" temporary)
     var
         DimensionSetEntry: Record "Dimension Set Entry";
@@ -697,6 +805,11 @@ codeunit 2580 "Dimension Correction Mgt"
         exit(Changed);
     end;
 
+    /// <summary>
+    /// Transfers selection filter from G/L Entry record to a record reference for filter processing.
+    /// </summary>
+    /// <param name="GLEntry">G/L entry record with selection filters applied</param>
+    /// <param name="GLEntryRecordRef">Record reference to transfer filters to</param>
     procedure TransferSelectionFilterToRecordRef(var GLEntry: Record "G/L Entry"; var GLEntryRecordRef: RecordRef)
     var
         SelectionFilterManagement: Codeunit SelectionFilterManagement;
@@ -710,6 +823,12 @@ codeunit 2580 "Dimension Correction Mgt"
         EntryNoFieldRef.SetFilter(FilteredText);
     end;
 
+    /// <summary>
+    /// Retrieves dimension correction changes for a specific dimension correction entry.
+    /// </summary>
+    /// <param name="DimensionCorrectionEntryNo">Dimension correction entry number to get changes for</param>
+    /// <param name="TempDimCorrectionChange">Temporary record to store correction changes</param>
+    /// <returns>True if correction changes were found, false otherwise</returns>
     procedure GetDimCorrectionChanges(DimensionCorrectionEntryNo: Integer; var TempDimCorrectionChange: Record "Dim Correction Change" temporary): Boolean
     var
         DimCorrectionChange: Record "Dim Correction Change";
@@ -727,6 +846,12 @@ codeunit 2580 "Dimension Correction Mgt"
         exit(true);
     end;
 
+    /// <summary>
+    /// Retrieves selection criteria for a dimension correction entry.
+    /// </summary>
+    /// <param name="DimensionCorrectionEntryNo">Dimension correction entry number to get selection criteria for</param>
+    /// <param name="DimCorrectSelectionCriteria">Record to store selection criteria</param>
+    /// <returns>True if selection criteria were found, false otherwise</returns>
     procedure GetSelectionCriteria(DimensionCorrectionEntryNo: Integer; var DimCorrectSelectionCriteria: Record "Dim Correct Selection Criteria"): Boolean
     begin
         DimCorrectSelectionCriteria.SetRange("Dimension Correction Entry No.", DimensionCorrectionEntryNo);
@@ -734,6 +859,11 @@ codeunit 2580 "Dimension Correction Mgt"
         exit(DimCorrectSelectionCriteria.FindSet());
     end;
 
+    /// <summary>
+    /// Calculates dimension set IDs based on selection criteria filters.
+    /// </summary>
+    /// <param name="DimensionSetIds">List to store calculated dimension set IDs</param>
+    /// <param name="DimCorrectSelectionCriteria">Selection criteria containing filters</param>
     procedure CalculateDimensionSetIds(var DimensionSetIds: List of [Integer]; var DimCorrectSelectionCriteria: Record "Dim Correct Selection Criteria")
     var
         GLEntry: Record "G/L Entry";
@@ -757,6 +887,10 @@ codeunit 2580 "Dimension Correction Mgt"
         until GLEntry.Next() = 0;
     end;
 
+    /// <summary>
+    /// Reloads dimension changes table by recalculating changes based on current selection criteria.
+    /// </summary>
+    /// <param name="DimCorrectionEntryNo">Dimension correction entry number to reload changes for</param>
     procedure ReloadDimensionChangesTable(DimCorrectionEntryNo: Integer)
     var
         DimCorrectSelectionCriteria: Record "Dim Correct Selection Criteria";
@@ -779,6 +913,12 @@ codeunit 2580 "Dimension Correction Mgt"
         UpdateDimCorrectionChanges(DimensionCodeValue, DimCorrectionEntryNo);
     end;
 
+    /// <summary>
+    /// Loads dimension correction set buffer data into a temporary record.
+    /// </summary>
+    /// <param name="DimensionCorrectionEntryNo">Dimension correction entry number to load data for</param>
+    /// <param name="TempDimCorrectionSetBuffer">Temporary buffer to store correction set data</param>
+    /// <returns>True if correction set buffer data was loaded, false otherwise</returns>
     procedure LoadTempDimCorrectionSetBuffer(DimensionCorrectionEntryNo: Integer; var TempDimCorrectionSetBuffer: Record "Dim Correction Set Buffer" temporary): Boolean
     var
         DimCorrectionSetBuffer: Record "Dim Correction Set Buffer";
@@ -799,6 +939,11 @@ codeunit 2580 "Dimension Correction Mgt"
         exit(true);
     end;
 
+    /// <summary>
+    /// Schedules a job queue entry to run dimension correction.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction to schedule for execution</param>
+    /// <returns>True if job was successfully scheduled, false otherwise</returns>
     procedure ScheduleRunJob(var DimensionCorrection: Record "Dimension Correction"): Boolean
 
     var
@@ -817,6 +962,11 @@ codeunit 2580 "Dimension Correction Mgt"
         exit(false);
     end;
 
+    /// <summary>
+    /// Schedules a job queue entry to undo dimension correction.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction to schedule for undo</param>
+    /// <returns>True if undo job was successfully scheduled, false otherwise</returns>
     procedure ScheduleUndoJob(var DimensionCorrection: Record "Dimension Correction"): Boolean
     var
         JobQueueEntry: Record "Job Queue Entry";
@@ -832,6 +982,11 @@ codeunit 2580 "Dimension Correction Mgt"
         exit(false);
     end;
 
+    /// <summary>
+    /// Schedules a job queue entry to validate dimension correction.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction to schedule for validation</param>
+    /// <returns>True if validation job was successfully scheduled, false otherwise</returns>
     procedure ScheduleValidationJob(var DimensionCorrection: Record "Dimension Correction"): Boolean
     var
         JobQueueEntry: Record "Job Queue Entry";
@@ -849,6 +1004,11 @@ codeunit 2580 "Dimension Correction Mgt"
             exit(false);
     end;
 
+    /// <summary>
+    /// Schedules a job queue entry to update analysis views after dimension correction.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction to schedule analysis view updates for</param>
+    /// <returns>True if analysis view update job was successfully scheduled, false otherwise</returns>
     procedure ScheduleUpdateAnalysisViews(var DimensionCorrection: Record "Dimension Correction"): Boolean
     var
         JobQueueEntry: Record "Job Queue Entry";
@@ -876,6 +1036,10 @@ codeunit 2580 "Dimension Correction Mgt"
         exit(true);
     end;
 
+    /// <summary>
+    /// Updates the status of a dimension correction based on job queue entry status.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction record to update status for</param>
     procedure UpdateStatus(var DimensionCorrection: Record "Dimension Correction")
     var
         JobQueueEntry: Record "Job Queue Entry";
@@ -905,6 +1069,10 @@ codeunit 2580 "Dimension Correction Mgt"
     end;
 
 
+    /// <summary>
+    /// Updates the analysis view status for dimension correction based on job queue entry status.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction record to update analysis view status for</param>
     procedure UpdateAnalysisViewStatus(var DimensionCorrection: Record "Dimension Correction")
     var
         JobQueueEntry: Record "Job Queue Entry";
@@ -962,6 +1130,10 @@ codeunit 2580 "Dimension Correction Mgt"
         JobQueueEntry.Insert(true);
     end;
 
+    /// <summary>
+    /// Verifies that a dimension correction job can be started by checking for conflicts with other running jobs.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction to verify for job start</param>
     procedure VerifyCanStartJob(DimensionCorrection: Record "Dimension Correction")
     var
         InProgressDimensionCorrection: Record "Dimension Correction";
@@ -983,6 +1155,10 @@ codeunit 2580 "Dimension Correction Mgt"
             Error(AnotherJobAlreadyInProgressErr, InProgressDimensionCorrection."Entry No.");
     end;
 
+    /// <summary>
+    /// Sets dimension correction status to in progress and clears error information.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction record to set in progress</param>
     procedure SetStatusInProgress(var DimensionCorrection: Record "Dimension Correction")
     begin
         DimensionCorrection.Status := DimensionCorrection.Status::"In Process";
@@ -996,6 +1172,10 @@ codeunit 2580 "Dimension Correction Mgt"
         Commit();
     end;
 
+    /// <summary>
+    /// Sets dimension correction status to undo in progress and clears error information.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction record to set undo in progress</param>
     procedure SetUndoStatusInProgress(var DimensionCorrection: Record "Dimension Correction")
     begin
         DimensionCorrection.Status := DimensionCorrection.Status::"Undo in Process";
@@ -1008,6 +1188,10 @@ codeunit 2580 "Dimension Correction Mgt"
         Commit();
     end;
 
+    /// <summary>
+    /// Sets dimension correction status to validation in progress and clears validation fields.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction record to set validation in progress</param>
     procedure SetValidatingStatusInProgress(var DimensionCorrection: Record "Dimension Correction")
     begin
         DimensionCorrection.Status := DimensionCorrection.Status::"Validaton in Process";
@@ -1018,6 +1202,12 @@ codeunit 2580 "Dimension Correction Mgt"
         Commit();
     end;
 
+    /// <summary>
+    /// Gets formatted validation status text for dimension correction.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction to get validation status for</param>
+    /// <param name="ErrorMessage">Error message text to include if validation failed</param>
+    /// <returns>Formatted validation status text</returns>
     procedure GetValidationStatusText(var DimensionCorrection: Record "Dimension Correction"; ErrorMessage: Text): Text
     begin
         if DimensionCorrection."Validated At" = 0DT then
@@ -1033,6 +1223,11 @@ codeunit 2580 "Dimension Correction Mgt"
         exit(StrSubstNo(ValidationFailedLbl, DimensionCorrection."Validated At", ErrorMessage));
     end;
 
+    /// <summary>
+    /// Creates a draft copy of an existing dimension correction with all selection criteria.
+    /// </summary>
+    /// <param name="DimensionCorrection">Original dimension correction to copy from</param>
+    /// <param name="NewDimensionCorrection">New dimension correction record to populate</param>
     procedure CopyToDraft(var DimensionCorrection: Record "Dimension Correction"; var NewDimensionCorrection: Record "Dimension Correction")
     var
         DimCorrectSelectionCriteria: Record "Dim Correct Selection Criteria";
@@ -1149,6 +1344,12 @@ codeunit 2580 "Dimension Correction Mgt"
         end;
     end;
 
+    /// <summary>
+    /// Determines if a G/L entry is excluded from dimension correction based on exclusion criteria.
+    /// </summary>
+    /// <param name="GLEntry">G/L entry to check for exclusion</param>
+    /// <param name="DimensionCorrectionEntryNo">Dimension correction entry number containing exclusion criteria</param>
+    /// <returns>True if entry is excluded, false otherwise</returns>
     procedure IsEntryExclued(var GLEntry: Record "G/L Entry"; DimensionCorrectionEntryNo: Integer): Boolean
     var
         ExcludedDimCorrectSelectionCriteria: Record "Dim Correct Selection Criteria";
@@ -1158,6 +1359,12 @@ codeunit 2580 "Dimension Correction Mgt"
         exit(IsEntryExclued(GLEntry, ExcludedDimCorrectSelectionCriteria));
     end;
 
+    /// <summary>
+    /// Determines if a G/L entry is excluded based on specific exclusion selection criteria.
+    /// </summary>
+    /// <param name="GLEntry">G/L entry to check for exclusion</param>
+    /// <param name="ExcludedDimCorrectSelectionCriteria">Exclusion selection criteria to evaluate against</param>
+    /// <returns>True if entry is excluded, false otherwise</returns>
     procedure IsEntryExclued(var GLEntry: Record "G/L Entry"; var ExcludedDimCorrectSelectionCriteria: Record "Dim Correct Selection Criteria"): Boolean
     var
         TempGLEntry: Record "G/L Entry" temporary;
@@ -1178,6 +1385,10 @@ codeunit 2580 "Dimension Correction Mgt"
         exit(false);
     end;
 
+    /// <summary>
+    /// Increments a counter and commits database changes if the commit threshold is reached.
+    /// </summary>
+    /// <param name="Counter">Counter to increment and check against commit threshold</param>
     procedure IncrementAndCommitIfNeeded(var Counter: Integer)
     begin
         Counter += 1;
@@ -1193,11 +1404,19 @@ codeunit 2580 "Dimension Correction Mgt"
         exit(100000);
     end;
 
+    /// <summary>
+    /// Gets the maximum number of validation errors allowed before stopping validation.
+    /// </summary>
+    /// <returns>Maximum number of validation errors (50000)</returns>
     procedure GetMaximumNumberOfValidationErrors(): Integer
     begin
         exit(50000);
     end;
 
+    /// <summary>
+    /// Gets the number of operations after which database changes should be committed.
+    /// </summary>
+    /// <returns>Commit count threshold</returns>
     procedure GetCommitCount(): Integer;
     var
         Handled: Boolean;
@@ -1210,6 +1429,10 @@ codeunit 2580 "Dimension Correction Mgt"
         exit(1000);
     end;
 
+    /// <summary>
+    /// Gets the maximum number of G/L entries to show in preview mode.
+    /// </summary>
+    /// <returns>Preview G/L entries limit</returns>
     procedure GetPreviewGLEntriesLimit(): Integer
     var
         Handled: Boolean;
@@ -1222,6 +1445,10 @@ codeunit 2580 "Dimension Correction Mgt"
         exit(20000);
     end;
 
+    /// <summary>
+    /// Gets the maximum number of filter conditions allowed in selection criteria.
+    /// </summary>
+    /// <returns>Filter conditions limit</returns>
     procedure GetFilterConditionsLimit(): Integer;
     var
         Handled: Boolean;
@@ -1291,6 +1518,10 @@ codeunit 2580 "Dimension Correction Mgt"
         end;
     end;
 
+    /// <summary>
+    /// Sets the analysis views update status to completed and clears error messages.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction record to mark analysis views update as completed</param>
     procedure SetUpdateAnalysisViewsCompleted(var DimensionCorrection: Record "Dimension Correction")
     begin
         DimensionCorrection."Update Analysis Views Status" := DimensionCorrection."Update Analysis Views Status"::Completed;
@@ -1298,6 +1529,9 @@ codeunit 2580 "Dimension Correction Mgt"
         DimensionCorrection.Modify();
     end;
 
+    /// <summary>
+    /// Shows notification to update cost accounting manually after dimension correction.
+    /// </summary>
     procedure ShowNotificationUpdateCashFlowAccounting()
     var
         MyNotifications: Record "My Notifications";
@@ -1322,6 +1556,10 @@ codeunit 2580 "Dimension Correction Mgt"
         ShowUpdateCostAccountingManually.Send();
     end;
 
+    /// <summary>
+    /// Disables the cost accounting update notification to prevent future display.
+    /// </summary>
+    /// <param name="UpdateCostAcountingNotification">Notification being dismissed</param>
     procedure DontShowAgainUpdateCostAccounting(UpdateCostAcountingNotification: Notification)
     var
         MyNotifications: Record "My Notifications";
@@ -1336,6 +1574,10 @@ codeunit 2580 "Dimension Correction Mgt"
         exit('0bf7a209-d730-485b-9ad8-14dc1e756eaf');
     end;
 
+    /// <summary>
+    /// Verifies that a dimension correction can be undone by checking if dimension sets are still valid.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction to verify for undo capability</param>
     procedure VerifyCanUndoDimensionCorrection(var DimensionCorrection: Record "Dimension Correction")
     begin
         DimensionCorrection.CalcFields(Invalidated);
@@ -1343,6 +1585,10 @@ codeunit 2580 "Dimension Correction Mgt"
             Error(DimensionSetIsInvalidErr);
     end;
 
+    /// <summary>
+    /// Verifies that a draft dimension correction entry can be modified based on its current status.
+    /// </summary>
+    /// <param name="DimensionCorrectionEntryNo">Dimension correction entry number to verify for modification</param>
     procedure VerifyCanModifyDraftEntry(DimensionCorrectionEntryNo: Integer)
     var
         DimensionCorrection: Record "Dimension Correction";
@@ -1358,26 +1604,49 @@ codeunit 2580 "Dimension Correction Mgt"
             Error(ModifyingDraftDimensionCorrectionNotAllowedReopenErr);
     end;
 
+    /// <summary>
+    /// Integration event allowing customization of preview G/L entries limit.
+    /// </summary>
+    /// <param name="Handled">Set to true to override default limit</param>
+    /// <param name="Limit">Custom preview entries limit to use</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetPreviewGLEntriesLimit(var Handled: Boolean; var Limit: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event allowing customization of commit count threshold.
+    /// </summary>
+    /// <param name="Handled">Set to true to override default commit count</param>
+    /// <param name="CommitCount">Custom commit count threshold to use</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetCommitCount(var Handled: Boolean; var CommitCount: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event allowing customization of filter conditions limit.
+    /// </summary>
+    /// <param name="Handled">Set to true to override default filter count</param>
+    /// <param name="FilterCount">Custom filter conditions limit to use</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetFilterCount(var Handled: Boolean; var FilterCount: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after verifying if dimension can be changed.
+    /// </summary>
+    /// <param name="DimCorrectionChange">Dimension correction change record that was verified</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterVerifyIfDimensionCanBeChanged(var DimCorrectionChange: Record "Dim Correction Change")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting temporary new dimension set entry during dimension transformation.
+    /// </summary>
+    /// <param name="TempNewDimensionSetEntry">Temporary dimension set entry about to be inserted</param>
     [IntegrationEvent(false, false)]
     local procedure OnTransformDimensionSetOnBeforeInsertTempNewDimensionSetEntry(var TempNewDimensionSetEntry: Record "Dimension Set Entry" temporary)
     begin

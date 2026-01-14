@@ -10,6 +10,16 @@ using Microsoft.Projects.Project.Journal;
 using Microsoft.Utilities;
 using System.Utilities;
 
+/// <summary>
+/// Management codeunit for handling journal validation errors and background error checking for journal lines.
+/// Provides centralized error management, validation tracking, and background error handling for journal operations.
+/// </summary>
+/// <remarks>
+/// Centralized error management system for journal validation and background error processing.
+/// Key features: Error message collection and management, background validation support, journal line change tracking.
+/// Integration: Works with background error handling, validation codeunits, journal check processes.
+/// Usage: Validation error collection, background check coordination, error display and management.
+/// </remarks>
 codeunit 9080 "Journal Errors Mgt."
 {
     SingleInstance = true;
@@ -29,21 +39,42 @@ codeunit 9080 "Journal Errors Mgt."
         FullBatchCheck: Boolean;
         NothingToPostErr: Label 'There is nothing to post because the journal does not contain a quantity or amount.';
 
+    /// <summary>
+    /// Retrieves the standardized error message for situations where there are no journal lines to post.
+    /// Provides consistent error messaging across journal posting operations.
+    /// </summary>
+    /// <returns>Text message indicating nothing to post condition.</returns>
     procedure GetNothingToPostErrorMsg(): Text
     begin
         exit(NothingToPostErr);
     end;
 
+    /// <summary>
+    /// Sets error messages collection from source error message records for journal validation processing.
+    /// Transfers error messages from external validation processes into the journal error management context.
+    /// </summary>
+    /// <param name="SourceTempErrorMessage">Temporary error message records to copy into journal error management.</param>
     procedure SetErrorMessages(var SourceTempErrorMessage: Record "Error Message" temporary)
     begin
         TempErrorMessage.Copy(SourceTempErrorMessage, true);
     end;
 
+    /// <summary>
+    /// Retrieves error messages collection for journal validation and processing.
+    /// Returns accumulated error messages from journal validation operations for display or further processing.
+    /// </summary>
+    /// <param name="NewTempErrorMessage">Temporary error message records to populate with current error collection.</param>
     procedure GetErrorMessages(var NewTempErrorMessage: Record "Error Message" temporary)
     begin
         NewTempErrorMessage.Copy(TempErrorMessage, true);
     end;
 
+    /// <summary>
+    /// Sets record context for journal line modification validation tracking.
+    /// Stores previous and current journal line records for change detection and validation during modification operations.
+    /// </summary>
+    /// <param name="xRec">Previous version of journal line record before modification.</param>
+    /// <param name="Rec">Current version of journal line record after modification.</param>
     procedure SetRecXRecOnModify(xRec: Record "Gen. Journal Line"; Rec: Record "Gen. Journal Line")
     begin
         if BackgroundErrorHandlingMgt.BackgroundValidationFeatureEnabled() then begin
@@ -63,6 +94,13 @@ codeunit 9080 "Journal Errors Mgt."
         end;
     end;
 
+    /// <summary>
+    /// Retrieves record context for journal line modification validation tracking.
+    /// Returns stored previous and current journal line records used for change detection during validation.
+    /// </summary>
+    /// <param name="xRec">Previous version of journal line record to return.</param>
+    /// <param name="Rec">Current version of journal line record to return.</param>
+    /// <returns>True if record context is available, false if no modification context is stored.</returns>
     procedure GetRecXRecOnModify(var xRec: Record "Gen. Journal Line"; var Rec: Record "Gen. Journal Line"): Boolean
     begin
         if TempGenJnlLineAfterModify.FindFirst() then begin
@@ -77,16 +115,33 @@ codeunit 9080 "Journal Errors Mgt."
         exit(false);
     end;
 
+    /// <summary>
+    /// Sets the full batch check mode for journal validation processing.
+    /// Controls whether validation should process entire journal batches or individual lines.
+    /// </summary>
+    /// <param name="NewFullBatchCheck">True to enable full batch validation, false for individual line validation.</param>
     procedure SetFullBatchCheck(NewFullBatchCheck: Boolean)
     begin
         FullBatchCheck := NewFullBatchCheck;
     end;
 
+    /// <summary>
+    /// Retrieves the current full batch check mode setting for journal validation.
+    /// Indicates whether validation is configured for full batch or individual line processing.
+    /// </summary>
+    /// <returns>True if full batch validation is enabled, false if individual line validation is used.</returns>
     procedure GetFullBatchCheck(): Boolean
     begin
         exit(FullBatchCheck);
     end;
 
+    /// <summary>
+    /// Retrieves deleted journal lines from the tracking buffer for error management and recovery operations.
+    /// Returns journal lines that have been marked as deleted during validation or processing operations.
+    /// </summary>
+    /// <param name="TempGenJnlLine">Temporary journal line records to populate with deleted line information.</param>
+    /// <param name="ClearBuffer">Boolean indicating whether to clear the deleted lines buffer after retrieval.</param>
+    /// <returns>True if deleted lines are available, false if no deleted lines exist in buffer.</returns>
     procedure GetDeletedGenJnlLine(var TempGenJnlLine: Record "Gen. Journal Line" temporary; ClearBuffer: Boolean): Boolean
     begin
         if TempDeletedGenJnlLine.FindSet() then begin
@@ -103,6 +158,12 @@ codeunit 9080 "Journal Errors Mgt."
         exit(false);
     end;
 
+    /// <summary>
+    /// Retrieves modified journal lines from the tracking buffer for change detection and validation.
+    /// Returns journal lines that have been tracked as modified during validation operations.
+    /// </summary>
+    /// <param name="TempGenJnlLine">Temporary journal line records to populate with modified line information.</param>
+    /// <returns>True if modified lines are available, false if no modified lines exist in buffer.</returns>
     procedure GetModifiedGenJnlLine(var TempGenJnlLine: Record "Gen. Journal Line" temporary): Boolean
     begin
         TempGenJnlLine.Reset();
@@ -120,6 +181,11 @@ codeunit 9080 "Journal Errors Mgt."
         exit(false);
     end;
 
+    /// <summary>
+    /// Inserts a deleted journal line into the tracking buffer for audit and recovery purposes.
+    /// Stores journal lines that have been deleted during validation or posting operations.
+    /// </summary>
+    /// <param name="GenJnlLine">The journal line record to track as deleted.</param>
     procedure InsertDeletedLine(GenJnlLine: Record "Gen. Journal Line")
     begin
         if BackgroundErrorHandlingMgt.BackgroundValidationFeatureEnabled() then begin

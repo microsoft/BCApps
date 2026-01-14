@@ -19,8 +19,8 @@ using Microsoft.Warehouse.Request;
 table 911 "Posted Assembly Line"
 {
     Caption = 'Posted Assembly Line';
-    DrillDownPageID = "Posted Assembly Order Subform";
-    LookupPageID = "Posted Assembly Order Subform";
+    DrillDownPageID = "Posted Assembly Lines";
+    LookupPageID = "Posted Assembly Lines";
     DataClassification = CustomerContent;
 
     fields
@@ -28,22 +28,27 @@ table 911 "Posted Assembly Line"
         field(2; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the number of the posted assembly order header that the posted assembly order line refers to.';
         }
         field(3; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the number of the posted assembly order line.'; 
         }
         field(8; "Order No."; Code[20])
         {
             Caption = 'Order No.';
+            ToolTip = 'Specifies the number of the assembly order that the assembly order line refers to.';
         }
         field(9; "Order Line No."; Integer)
         {
             Caption = 'Order Line No.';
+            ToolTip = 'Specifies the number of the assembly order line that the posted assembly order line originates from.';
         }
         field(10; Type; Enum "BOM Component Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of the posted assembly order line.';
         }
         field(11; "No."; Code[20])
         {
@@ -51,20 +56,24 @@ table 911 "Posted Assembly Line"
             TableRelation = if (Type = const(Item)) Item
             else
             if (Type = const(Resource)) Resource;
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(12; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
             TableRelation = if (Type = const(Item)) "Item Variant".Code where("Item No." = field("No."),
                                                                                Code = field("Variant Code"));
+            ToolTip = 'Specifies the variant of the item on the line.';
         }
         field(13; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the assembly component on the posted assembly line.';
         }
         field(14; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies the second description of the assembly component on the posted assembly line.';
         }
         field(18; "Lead-Time Offset"; DateFormula)
         {
@@ -75,28 +84,33 @@ table 911 "Posted Assembly Line"
             Caption = 'Resource Usage Type';
             OptionCaption = ' ,Direct,Fixed';
             OptionMembers = " ",Direct,"Fixed";
+            ToolTip = 'Specifies how the cost of the resource on the posted assembly order line is allocated to the assembly item.';
         }
         field(20; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
             TableRelation = Location where("Use As In-Transit" = const(false));
+            ToolTip = 'Specifies the location from which assembly component was consumed.';
         }
         field(21; "Shortcut Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes set up in the General Ledger Setup window.';
         }
         field(22; "Shortcut Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes set up in the General Ledger Setup window.';
         }
         field(23; "Bin Code"; Code[20])
         {
             AccessByPermission = TableData "Warehouse Source Filter" = R;
             Caption = 'Bin Code';
+            ToolTip = 'Specifies the code of the bin from which the assembly component was consumed.';
         }
         field(25; Position; Code[10])
         {
@@ -120,6 +134,7 @@ table 911 "Posted Assembly Line"
             DecimalPlaces = 0 : 5;
             MinValue = 0;
             AutoFormatType = 0;
+            ToolTip = 'Specifies how many units of the assembly component were posted as consumed by the posted assembly order line.';
         }
         field(41; "Quantity (Base)"; Decimal)
         {
@@ -136,6 +151,7 @@ table 911 "Posted Assembly Line"
             Caption = 'Quantity per';
             DecimalPlaces = 0 : 5;
             AutoFormatType = 0;
+            ToolTip = 'Specifies how many units of the assembly component are required to assemble one assembly item.';
         }
         field(61; "Qty. per Unit of Measure"; Decimal)
         {
@@ -143,11 +159,13 @@ table 911 "Posted Assembly Line"
             DecimalPlaces = 0 : 5;
             Editable = false;
             AutoFormatType = 0;
+            ToolTip = 'Specifies the quantity per unit of measure of the component item on the posted assembly order line.';
         }
         field(62; "Inventory Posting Group"; Code[20])
         {
             Caption = 'Inventory Posting Group';
             TableRelation = "Inventory Posting Group";
+            ToolTip = 'Specifies links between business transactions made for the item and an inventory account in the general ledger, to group amounts for that item type.';
         }
         field(63; "Gen. Prod. Posting Group"; Code[20])
         {
@@ -158,12 +176,14 @@ table 911 "Posted Assembly Line"
         {
             Caption = 'Gen. Bus. Posting Group';
             TableRelation = "Gen. Business Posting Group";
+            ToolTip = 'Specifies the code for the General Business Posting Group that applies to the entry.';
         }
         field(65; "Unit Cost"; Decimal)
         {
             AutoFormatType = 2;
             AutoFormatExpression = '';
             Caption = 'Unit Cost';
+            ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
         }
         field(67; "Cost Amount"; Decimal)
         {
@@ -171,6 +191,7 @@ table 911 "Posted Assembly Line"
             AutoFormatExpression = '';
             Caption = 'Cost Amount';
             Editable = false;
+            ToolTip = 'Specifies the cost of the posted assembly order line.';
         }
         field(80; "Unit of Measure Code"; Code[10])
         {
@@ -178,6 +199,7 @@ table 911 "Posted Assembly Line"
             TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."))
             else
             if (Type = const(Resource)) "Resource Unit of Measure".Code where("Resource No." = field("No."));
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
         }
         field(480; "Dimension Set ID"; Integer)
         {
@@ -298,6 +320,14 @@ table 911 "Posted Assembly Line"
             until TempItemLedgerEntry.Next() = 0;
 
         TempPostedAssemblyLine.Reset();
+    end;
+
+    internal procedure ShowAssemblyDocument()
+    var
+        PostedAssemblyHeader: Record "Posted Assembly Header";
+    begin
+        PostedAssemblyHeader.Get(Rec."Document No.");
+        Page.Run(Page::"Posted Assembly Order", PostedAssemblyHeader);
     end;
 
     [IntegrationEvent(false, false)]

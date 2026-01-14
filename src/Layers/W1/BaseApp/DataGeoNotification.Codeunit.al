@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft;
 
-using System.Environment.Configuration;
+using Microsoft.Foundation.Company;
 using System.Apps;
 using System.Environment;
-using Microsoft.Foundation.Company;
+using System.Environment.Configuration;
 
 codeunit 1760 "Data Geo. Notification"
 {

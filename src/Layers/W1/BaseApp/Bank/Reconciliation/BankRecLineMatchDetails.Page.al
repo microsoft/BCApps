@@ -6,6 +6,10 @@ namespace Microsoft.Bank.Reconciliation;
 
 using Microsoft.Bank.Ledger;
 
+/// <summary>
+/// Displays detailed matching information for bank reconciliation lines.
+/// Shows match criteria, confidence levels, and potential matches for manual review.
+/// </summary>
 page 412 "Bank Rec. Line Match Details"
 {
     Caption = 'Match Details';

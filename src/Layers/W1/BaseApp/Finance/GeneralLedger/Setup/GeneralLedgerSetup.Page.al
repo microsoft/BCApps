@@ -18,6 +18,15 @@ using Microsoft.Foundation.Period;
 using System.Security.User;
 using System.Utilities;
 
+/// <summary>
+/// Setup page for configuring core General Ledger parameters including posting permissions, currency settings, VAT handling, and dimension management.
+/// Provides access to critical financial system configuration affecting all accounting transactions and reporting.
+/// </summary>
+/// <remarks>
+/// Key configuration areas: posting date controls, VAT settings, currency precision, dimension setup, job queue integration.
+/// Critical system setup affecting all financial transactions, reporting, and compliance requirements.
+/// Includes advanced features for additional reporting currency, unrealized VAT, and automated posting processes.
+/// </remarks>
 page 118 "General Ledger Setup"
 {
     AdditionalSearchTerms = 'finance setup,general ledger setup,g/l setup';

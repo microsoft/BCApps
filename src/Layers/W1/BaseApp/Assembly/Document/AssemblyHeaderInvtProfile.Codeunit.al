@@ -4,11 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Document;
 
-using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Requisition;
-using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Planning;
+using Microsoft.Inventory.Requisition;
+using Microsoft.Inventory.Tracking;
 
 codeunit 927 "Assembly Header Invt. Profile"
 {
@@ -47,9 +47,6 @@ codeunit 927 "Assembly Header Invt. Profile"
         InventoryProfile."Due Date" := AssemblyHeader."Due Date";
 
         OnAfterTransferInventoryProfileFromAssemblyHeader(InventoryProfile, AssemblyHeader);
-#if not CLEAN25
-        InventoryProfile.RunOnAfterTransferFromAsmHeader(InventoryProfile, AssemblyHeader);
-#endif
     end;
 
     [IntegrationEvent(false, false)]

@@ -6,6 +6,16 @@ namespace Microsoft.Finance.GeneralLedger.Journal;
 
 using Microsoft.Finance.VAT.Calculation;
 
+/// <summary>
+/// Exchanges account and balancing account information in general journal lines for posting reversals and corrections.
+/// Swaps all account-related fields including VAT settings, posting groups, and tax information between account and balancing account.
+/// </summary>
+/// <remarks>
+/// Account field exchange functionality for journal line account/balancing account swapping.
+/// Comprehensive field swapping including account numbers, VAT settings, posting groups, and tax configurations.
+/// Key features: Complete account field exchange, VAT information preservation, posting group swapping, tax setting exchange.
+/// Usage: Posting reversals, account corrections, balancing account adjustments with complete field consistency.
+/// </remarks>
 codeunit 366 "Exchange Acc. G/L Journal Line"
 {
     TableNo = "Gen. Journal Line";
@@ -73,11 +83,22 @@ codeunit 366 "Exchange Acc. G/L Journal Line"
         GenJnlLine2: Record "Gen. Journal Line";
         NonDeductibleVAT: Codeunit "Non-Deductible VAT";
 
+    /// <summary>
+    /// Integration event raised after completing account and balancing account field exchange operations.
+    /// Enables custom processing after all account-related fields have been swapped between account and balancing account.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record with exchanged account information.</param>
+    /// <param name="GenJournalLine2">Original journal line record before exchange operation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterOnRun(var GenJournalLine: Record "Gen. Journal Line"; GenJournalLine2: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before starting account and balancing account field exchange operations.
+    /// Enables custom validation or preprocessing before account field swapping begins.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record that will have account information exchanged.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnRun(var GenJournalLine: Record "Gen. Journal Line")
     begin

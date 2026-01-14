@@ -2602,6 +2602,28 @@ codeunit 137261 "SCM Inventory Item Tracking II"
         Assert.IsTrue(StrPos(GetLastErrorText, StrSubstNo(SingleExpirationDateErr, WorkDate())) > 0, GetLastErrorText)
     end;
 
+    [Test]
+    [HandlerFunctions('ItemTrackingLinesPageHandler,CustomizedSerialPageHandler')]
+    [Scope('OnPrem')]
+    procedure ErrorRequestingSerialNosWhenUsingCreateCustomizedSerialNumberFunction()
+    var
+        Item: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        // [SCENARIO 616804] Error requesting "Serial Nos." when using the 'Create customized serial number' function for serial number mandatory items
+        Initialize();
+
+        // [GIVEN] Create item with item tracking code
+        CreateItemInboundSNInfoMustExist(Item);
+
+        // [WHEN] Create item journal line with serial number = "S1", create SN info from create customized serial no. action
+        CreateSNInfo := true;
+        CreateItemWithTrackingAttrNoPosting(ItemJournalLine, Item."No.", TrackingOption::CreateCustomizedSN, '', 5);
+
+        // [THEN] Serial number information card must be created
+        AssertSNInfoExists(ItemJournalLine);
+    end;
+
     local procedure Initialize()
     var
         InventorySetup: Record "Inventory Setup";

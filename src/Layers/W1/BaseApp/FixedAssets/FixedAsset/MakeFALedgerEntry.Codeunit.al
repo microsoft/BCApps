@@ -5,10 +5,10 @@
 namespace Microsoft.FixedAssets.Ledger;
 
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.VAT.Calculation;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
-using Microsoft.Finance.VAT.Calculation;
 
 codeunit 5604 "Make FA Ledger Entry"
 {

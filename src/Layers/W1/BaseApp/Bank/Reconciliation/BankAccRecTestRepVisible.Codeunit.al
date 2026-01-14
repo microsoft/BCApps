@@ -7,6 +7,10 @@ namespace Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.Reports;
 using Microsoft.Foundation.Reporting;
 
+/// <summary>
+/// Manages visibility settings for bank account reconciliation test reports.
+/// Controls display options and parameters for reconciliation test report generation.
+/// </summary>
 codeunit 385 "Bank Acc.Rec.Test Rep. Visible"
 {
     EventSubscriberInstance = Manual;

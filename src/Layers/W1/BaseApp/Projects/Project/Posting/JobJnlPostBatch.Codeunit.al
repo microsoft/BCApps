@@ -10,12 +10,12 @@ using Microsoft.Finance.Analysis;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.Period;
 using Microsoft.Inventory.Analysis;
-using Microsoft.Projects.Project.Setup;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Setup;
 using Microsoft.Projects.Project.Journal;
 using Microsoft.Projects.Project.Ledger;
 using Microsoft.Projects.Project.Planning;
+using Microsoft.Projects.Project.Setup;
 
 codeunit 1013 "Job Jnl.-Post Batch"
 {

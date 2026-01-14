@@ -24,6 +24,9 @@ table 1660 "Payroll Setup"
 
     fields
     {
+        /// <summary>
+        /// Auto-incrementing primary key identifier for the setup record.
+        /// </summary>
         field(1; "Primary Key"; Integer)
         {
             AutoIncrement = true;

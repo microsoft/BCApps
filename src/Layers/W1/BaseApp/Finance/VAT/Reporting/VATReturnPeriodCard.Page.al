@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+/// <summary>
+/// Displays VAT return period details with associated VAT return information and status.
+/// Provides read-only view of period data and actions for VAT return management.
+/// </summary>
 page 738 "VAT Return Period Card"
 {
     Caption = 'VAT Return Period';

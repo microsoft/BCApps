@@ -68,6 +68,7 @@ table 5907 "Service Ledger Entry"
         }
         field(11; "Amount (LCY)"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Amount (LCY)';
         }
@@ -148,41 +149,49 @@ table 5907 "Service Ledger Entry"
         }
         field(25; "Cost Amount"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Cost Amount';
         }
         field(26; "Discount Amount"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Discount Amount';
         }
         field(27; "Unit Cost"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 2;
             Caption = 'Unit Cost';
         }
         field(28; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(29; "Charged Qty."; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Charged Qty.';
             DecimalPlaces = 0 : 5;
         }
         field(30; "Unit Price"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 2;
             Caption = 'Unit Price';
         }
         field(31; "Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Discount %';
             DecimalPlaces = 0 : 5;
         }
         field(32; "Contract Disc. Amount"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Contract Disc. Amount';
         }
@@ -293,6 +302,7 @@ table 5907 "Service Ledger Entry"
         }
         field(57; Amount; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Amount';
         }

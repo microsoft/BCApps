@@ -13,7 +13,6 @@ codeunit 134981 "ERM Fixed Assets Reports - II"
     var
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        LibraryDimension: Codeunit "Library - Dimension";
         LibraryERM: Codeunit "Library - ERM";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
         LibraryFiscalYear: Codeunit "Library - Fiscal Year";
@@ -25,8 +24,6 @@ codeunit 134981 "ERM Fixed Assets Reports - II"
         LaterEndingDateErr: Label 'The Starting Date is later than the Ending Date.';
         UnknownErr: Label 'Unknown Error.';
         GapWarningMsg: Label 'There is a gap in the number series.';
-        LaterDepreciationDateErr: Label 'The First Depreciation Date is later than the Last Depreciation Date.';
-        NoOfDaysErr: Label 'Number of Days must not be greater than 360 or less than 5.';
         BlankDatesErr: Label 'You must specify the Starting Date and the Ending Date.';
         GLAcquisitionDateTxt: Label 'G/L Acquisition Date';
         AcquisitionCostTxt: Label 'Acquisition Cost';
@@ -38,44 +35,10 @@ codeunit 134981 "ERM Fixed Assets Reports - II"
         WriteDownTxt: Label 'Write-Down';
         ValidationErr: Label '%1 must be %2 .', Comment = '%1 = Column Caption, %2 = Column Value';
         StartingEndingDateErr: Label 'The Starting Date is later than the Ending Date.';
-        SpecifyDepreciationDateErr: Label 'You must specify the First Depreciation Date and the Last Depreciation Date.';
         FAJnlDepreciationPostErr: Label 'You cannot post depreciation, because the calculation is across different fiscal year periods, which is not supported.';
         GroupTotals: Option " ","FA Class","FA Subclass","FA Location","Main Asset","Global Dimension 1","Global Dimension 2","FA Posting Group";
-        GLBudgetEntryNotFoundErr: Label 'G/L Budget Entry with appropriate dimension value code not found.';
-        CopyDimToBudgetEntryErr: Label 'Default Dimensions were not copied to Budget.';
-        GLBudgetEntryWithDateNotFoundErr: Label 'G/L Budget Entry with appropriate date value code not found.';
         FAPostingDateErr: Label 'FA Posting Date is not correct for %1 in FA Ledger Entry', Comment = '%1 = Fixed Asset No.';
         CompletionStatsTok: Label 'The depreciation has been calculated.';
-
-    [Test]
-    [HandlerFunctions('RHFAProjectedValue')]
-    [Scope('OnPrem')]
-    procedure FixedAssetWithProjectedDisposal()
-    var
-        FixedAsset: Record "Fixed Asset";
-        FixedAsset2: Record "Fixed Asset";
-        FADepreciationBook: Record "FA Depreciation Book";
-        FADepreciationBook2: Record "FA Depreciation Book";
-    begin
-        // Test values on Fixed Asset Projected Value Report after running with Projected Disposal & Print Per FA as True.
-
-        // 1.Setup: Create two Fixed Asset & FA Depreciation Books with projected disposal and Post FA General Journal Lines.
-        Initialize();
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset2);
-        CreateFADepreciationBookWithProjectedDisposal(FADepreciationBook, FixedAsset);
-        CreateFADepreciationBookWithProjectedDisposal(FADepreciationBook2, FixedAsset2);
-        CreateAndPostFAGenJournalLine(FADepreciationBook, FADepreciationBook2);
-
-        // 2.Exercise: Run Fixed Asset Projected Value Report with Projected Disposal & Print Per Fixed Asset as True.
-        FixedAsset.SetFilter("No.", '%1|%2', FixedAsset."No.", FixedAsset2."No.");
-        RunFixedAssetProjectedValue(FixedAsset, GroupTotals::" ", true, true, '', false);
-
-        // 3.Verify: Verify values on Projected Value Report.
-        LibraryReportDataset.LoadDataSetFile();
-        VerifyProjectedDisposalValues(FADepreciationBook, FADepreciationBook2);
-        LibraryFixedAsset.VerifyLastFARegisterGLRegisterOneToOneRelation(); // TFS 376879
-    end;
 
     [Test]
     [HandlerFunctions('RHMaintenanceRegister')]
@@ -308,526 +271,6 @@ codeunit 134981 "ERM Fixed Assets Reports - II"
         LibraryReportDataset.LoadDataSetFile();
         VerifyFixedAssetRegisterLine(FixedAsset."No.");
         VerifyFixedAssetRegisterLine(FixedAsset2."No.");
-        LibraryFixedAsset.VerifyLastFARegisterGLRegisterOneToOneRelation(); // TFS 376879
-    end;
-
-    [Test]
-    [HandlerFunctions('RHFixedAssetProjectedValue')]
-    [Scope('OnPrem')]
-    procedure BlankDepreciationBookCodeError()
-    var
-        FixedAssetProjectedValue: Report "Fixed Asset - Projected Value";
-    begin
-        // Test error occurs on Running Fixed Asset Projected Value Report without Depreciation Book Code.
-
-        // 1. Setup.
-        Initialize();
-
-        // 2. Exercise: Run Fixed Asset Projected Value Report without Depreciation Book Code.
-        Clear(FixedAssetProjectedValue);
-        LibraryVariableStorage.Enqueue('');
-        LibraryVariableStorage.Enqueue(WorkDate());
-        LibraryVariableStorage.Enqueue(WorkDate());
-        Commit();
-        asserterror FixedAssetProjectedValue.Run();
-
-        // 3. Verify: Verify that System generates an error without Depreciation Book Code.
-        Assert.ExpectedErrorCannotFind(Database::"Depreciation Book");
-    end;
-
-    [Test]
-    [HandlerFunctions('RHFixedAssetProjectedValue')]
-    [Scope('OnPrem')]
-    procedure FAProjectedBlankDateError()
-    var
-        FixedAssetProjectedValue: Report "Fixed Asset - Projected Value";
-    begin
-        // Test error occurs on Running Fixed Asset Projected Value Report without Starting Date and Ending Date.
-
-        // 1. Setup.
-        Initialize();
-
-        // 2. Exercise: Run Fixed Asset Projected Value Report without Starting Date and Ending Date.
-        Clear(FixedAssetProjectedValue);
-        LibraryVariableStorage.Enqueue(LibraryFixedAsset.GetDefaultDeprBook());
-        LibraryVariableStorage.Enqueue(0D);
-        LibraryVariableStorage.Enqueue(0D);
-        FixedAssetProjectedValue.GetFASetup();
-        Commit();
-        asserterror FixedAssetProjectedValue.Run();
-
-        // 3. Verify: Verify that System generates an error without Starting Date and Ending Date.
-        Assert.ExpectedError(SpecifyDepreciationDateErr);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHFAProjectedValue')]
-    [Scope('OnPrem')]
-    procedure StartDateLaterEndingDateError()
-    var
-        FixedAssetProjectedValue: Report "Fixed Asset - Projected Value";
-    begin
-        // Test error occurs on Running Fixed Asset Projected Value Report with Starting Date greater than Ending Date.
-
-        // 1. Setup.
-        Initialize();
-
-        // 2. Exercise: Run Fixed Asset Projected Value Report with Starting Date greater than Ending Date.
-        Clear(FixedAssetProjectedValue);
-
-        // Using the Random Number for the Day.
-        FixedAssetProjectedValue.SetMandatoryFields(
-          '', CalcDate('<' + Format(LibraryRandom.RandInt(5)) + 'D>', WorkDate()), WorkDate());
-        FixedAssetProjectedValue.GetFASetup();
-
-        asserterror FixedAssetProjectedValue.Run();
-
-        // 3. Verify: Verify that System generates an error when Starting Date is later than the Ending Date.
-        Assert.AreEqual(StrSubstNo(LaterDepreciationDateErr), GetLastErrorText, UnknownErr);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHFixedAssetProjectedValueNoOfDaysError')]
-    [Scope('OnPrem')]
-    procedure FAProjectedNoOfDaysError()
-    begin
-        // Test error occurs on Running Fixed Asset Projected Value Report with Number of Days less than 5.
-
-        // 1. Setup.
-        Initialize();
-
-        // 2. Exercise: Run Fixed Asset Projected Value Report with Number of Days less than 5.
-        asserterror REPORT.Run(REPORT::"Fixed Asset - Projected Value");
-
-        // 3. Verify: Verify that System generates an error when Number of Days less than 5.
-        Assert.AreEqual(StrSubstNo(NoOfDaysErr), GetLastErrorText, UnknownErr);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHFAProjectedValue')]
-    [Scope('OnPrem')]
-    procedure FAProjectedValueWithFAClass()
-    var
-        FixedAsset: Record "Fixed Asset";
-        FixedAsset2: Record "Fixed Asset";
-        FAClass: Record "FA Class";
-        FADepreciationBook: Record "FA Depreciation Book";
-        FADepreciationBook2: Record "FA Depreciation Book";
-    begin
-        // Test values on Fixed Asset Projected Value Report after running with Group Total as FA Class.
-
-        // 1. Setup: Create two Fixed Asset with same FA Class, two FA Depreciation Book, General Journal Batch,
-        // two Fixed Asset Journal Lines, Post Journal Lines.
-        Initialize();
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset2);
-
-        LibraryFixedAsset.FindFAClass(FAClass);
-        UpdateFAClassCode(FixedAsset, FAClass.Code);
-        UpdateFAClassCode(FixedAsset2, FAClass.Code);
-
-        CreateFADepreciationBook(FADepreciationBook, FixedAsset);
-        CreateFADepreciationBook(FADepreciationBook2, FixedAsset2);
-        CreateAndPostFAGenJournalLine(FADepreciationBook, FADepreciationBook2);
-
-        // 2. Exercise: Run Fixed Asset Projected Value Report with Group Total as FA Class.
-        FixedAsset.SetFilter("No.", '%1|%2', FixedAsset."No.", FixedAsset2."No.");
-        RunFixedAssetProjectedValue(FixedAsset, GroupTotals::"FA Class", true, false, '', false);
-
-        // 3. Verify: Verify values on report generated with FA Class.
-        LibraryReportDataset.LoadDataSetFile();
-        VerifyValuesOnGroupTotal(FADepreciationBook, FADepreciationBook2);
-        LibraryFixedAsset.VerifyLastFARegisterGLRegisterOneToOneRelation(); // TFS 376879
-    end;
-
-    [Test]
-    [HandlerFunctions('RHFAProjectedValue')]
-    [Scope('OnPrem')]
-    procedure FAProjectedValueWithFASubclass()
-    var
-        FixedAsset: Record "Fixed Asset";
-        FixedAsset2: Record "Fixed Asset";
-        FASubclass: Record "FA Subclass";
-        FADepreciationBook: Record "FA Depreciation Book";
-        FADepreciationBook2: Record "FA Depreciation Book";
-    begin
-        // Test values on Fixed Asset Projected Value Report after running with Group Total as FA Subclass.
-
-        // 1. Setup: Create two Fixed Asset with same FA Subclass, two FA Depreciation Book, General Journal Batch,
-        // two Fixed Asset Journal Lines, Post Journal Lines.
-        Initialize();
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset2);
-
-        LibraryFixedAsset.FindFASubclass(FASubclass);
-        UpdateFASubclassCode(FixedAsset, FASubclass.Code);
-        UpdateFASubclassCode(FixedAsset2, FASubclass.Code);
-
-        CreateFADepreciationBook(FADepreciationBook, FixedAsset);
-        CreateFADepreciationBook(FADepreciationBook2, FixedAsset2);
-        CreateAndPostFAGenJournalLine(FADepreciationBook, FADepreciationBook2);
-
-        // 2. Exercise: Run Fixed Asset Projected Value Report with Group Total as FA Subclass.
-        FixedAsset.SetFilter("No.", '%1|%2', FixedAsset."No.", FixedAsset2."No.");
-        RunFixedAssetProjectedValue(FixedAsset, GroupTotals::"FA Subclass", true, false, '', false);
-
-        // 3. Verify: Verify values on report generated with FA Subclass.
-        LibraryReportDataset.LoadDataSetFile();
-        VerifyValuesOnGroupTotal(FADepreciationBook, FADepreciationBook2);
-        LibraryFixedAsset.VerifyLastFARegisterGLRegisterOneToOneRelation(); // TFS 376879
-    end;
-
-    [Test]
-    [HandlerFunctions('RHFAProjectedValue')]
-    [Scope('OnPrem')]
-    procedure FAProjectedValueWithFALocation()
-    var
-        FixedAsset: Record "Fixed Asset";
-        FixedAsset2: Record "Fixed Asset";
-        FALocation: Record "FA Location";
-        FADepreciationBook: Record "FA Depreciation Book";
-        FADepreciationBook2: Record "FA Depreciation Book";
-    begin
-        // Test values on Fixed Asset Projected Value Report after running with Group Total as FA Location.
-
-        // 1. Setup: Create two Fixed Asset with same FA Location, two FA Depreciation Book, General Journal Batch,
-        // two Fixed Asset Journal Lines, Post Journal Lines.
-        Initialize();
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset2);
-
-        LibraryFixedAsset.FindFALocation(FALocation);
-        UpdateFALocationCode(FixedAsset, FALocation.Code);
-        UpdateFALocationCode(FixedAsset2, FALocation.Code);
-
-        CreateFADepreciationBook(FADepreciationBook, FixedAsset);
-        CreateFADepreciationBook(FADepreciationBook2, FixedAsset2);
-        CreateAndPostFAGenJournalLine(FADepreciationBook, FADepreciationBook2);
-
-        // 2. Exercise: Run Fixed Asset Projected Value Report with Group Total as FA Location.
-        FixedAsset.SetFilter("No.", '%1|%2', FixedAsset."No.", FixedAsset2."No.");
-        RunFixedAssetProjectedValue(FixedAsset, GroupTotals::"FA Location", true, false, '', false);
-
-        // 3. Verify: Verify values on report generated with FA Location.
-        LibraryReportDataset.LoadDataSetFile();
-        VerifyProjectedGroupValue(FADepreciationBook, FADepreciationBook2);
-        VerifyValuesOnGroupTotal(FADepreciationBook, FADepreciationBook2);
-        LibraryFixedAsset.VerifyLastFARegisterGLRegisterOneToOneRelation(); // TFS 376879
-    end;
-
-    [Test]
-    [HandlerFunctions('RHFAProjectedValue')]
-    [Scope('OnPrem')]
-    procedure FAProjectedValueWithMainAsset()
-    var
-        FixedAsset: Record "Fixed Asset";
-        FixedAsset2: Record "Fixed Asset";
-        FixedAsset3: Record "Fixed Asset";
-        FADepreciationBook: Record "FA Depreciation Book";
-        FADepreciationBook2: Record "FA Depreciation Book";
-        FADepreciationBook3: Record "FA Depreciation Book";
-        MainAssetComponent: Record "Main Asset Component";
-    begin
-        // Test values on Fixed Asset Projected Value Report after running with Group Total as Main Asset.
-
-        // 1. Setup: Create Three Fixed Asset, Create Main Asset Components, two FA Depreciation Book, General Journal Batch,
-        // two Fixed Asset Journal Lines, Post Journal Lines.
-        Initialize();
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset2);
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset3);
-
-        LibraryFixedAsset.CreateMainAssetComponent(MainAssetComponent, FixedAsset3."No.", FixedAsset."No.");
-        LibraryFixedAsset.CreateMainAssetComponent(MainAssetComponent, FixedAsset3."No.", FixedAsset2."No.");
-
-        CreateFADepreciationBook(FADepreciationBook, FixedAsset);
-        CreateFADepreciationBook(FADepreciationBook2, FixedAsset2);
-        CreateFADepreciationBook(FADepreciationBook3, FixedAsset3);
-        CreateAndPostFAGenJournalLine(FADepreciationBook, FADepreciationBook2);
-
-        // 2. Exercise: Run Fixed Asset Projected Value Report with Group Total as Main Asset.
-        FixedAsset.SetFilter("No.", '%1|%2', FixedAsset."No.", FixedAsset2."No.");
-        RunFixedAssetProjectedValue(FixedAsset, GroupTotals::"Main Asset", true, false, '', false);
-
-        // 3.Verify: Verify values on report generated with Main Asset.
-        LibraryReportDataset.LoadDataSetFile();
-        VerifyValuesOnGroupTotal(FADepreciationBook, FADepreciationBook2);
-        LibraryFixedAsset.VerifyLastFARegisterGLRegisterOneToOneRelation(); // TFS 376879
-    end;
-
-    [Test]
-    [HandlerFunctions('RHFAProjectedValue')]
-    [Scope('OnPrem')]
-    procedure FAProjectedValueWithAccPeriod()
-    var
-        FixedAsset: Record "Fixed Asset";
-        FADepreciationBook: Record "FA Depreciation Book";
-        GenJournalBatch: Record "Gen. Journal Batch";
-        GenJournalLine: Record "Gen. Journal Line";
-        NewAccPeriodDate: Date;
-        NoOfDays: Integer;
-    begin
-        // 1. Setup: Create Fixed Asset, FA Depreciation Book, General Journal Batch,
-        // Fixed Asset Journal Line, Post Journal Lines, change Accounting Period with end of month.
-        Initialize();
-
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
-        CreateFADepreciationBook(FADepreciationBook, FixedAsset);
-        CreateGeneralJournalBatch(GenJournalBatch);
-        CreateGeneralJournalLine(GenJournalLine, GenJournalBatch, FADepreciationBook, GenJournalLine."FA Posting Type"::"Acquisition Cost");
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-
-        // 2. Exercise: Run Fixed Asset Projected Value Report with new Accounting Period Starting Date value.
-        ModifyAccountingPeriod(NewAccPeriodDate, NoOfDays);
-        RunFAProjectedValueMultiLines(FixedAsset, GroupTotals::" ", true, false, '', false);
-
-        // 3. Verify: Verify values on report.
-        LibraryReportDataset.LoadDataSetFile();
-
-        VerifyValuesOnNewAccPeriod(NewAccPeriodDate, NoOfDays);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHFAProjectedValue')]
-    [Scope('OnPrem')]
-    procedure FAProjectedValueGLBudgetEntryDate()
-    var
-        FixedAsset: Record "Fixed Asset";
-        FADepreciationBook: Record "FA Depreciation Book";
-        GenJournalBatch: Record "Gen. Journal Batch";
-        GenJournalLine: Record "Gen. Journal Line";
-        GLBudgetName: Record "G/L Budget Name";
-        NewAccPeriodDate: Date;
-        NoOfDays: Integer;
-    begin
-        // 1. Setup: Create Fixed Asset, FA Depreciation Book, General Journal Batch,
-        // Fixed Asset Journal Line, Post Journal Lines, change Accounting Period with end of month.
-        Initialize();
-
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
-        CreateFADepreciationBook(FADepreciationBook, FixedAsset);
-        CreateGeneralJournalBatch(GenJournalBatch);
-        CreateGeneralJournalLine(GenJournalLine, GenJournalBatch, FADepreciationBook, GenJournalLine."FA Posting Type"::"Acquisition Cost");
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-
-        // 2. Exercise: Run Fixed Asset Projected Value Report with new Accounting Period Starting Date value.
-        ModifyAccountingPeriod(NewAccPeriodDate, NoOfDays);
-        LibraryERM.CreateGLBudgetName(GLBudgetName);
-        Commit();
-
-        RunFAProjectedValueMultiLines(FixedAsset, GroupTotals::" ", true, false, GLBudgetName.Name, false);
-
-        // 3. Verify: Verify date on G/L Budget Entry.
-        VerifyGLBudgetEntryDate(GLBudgetName.Name, NewAccPeriodDate);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHFAProjectedValue')]
-    [Scope('OnPrem')]
-    procedure FAProjectedGlobalDimension1()
-    var
-        DimensionValue: Record "Dimension Value";
-        FixedAsset: Record "Fixed Asset";
-        FixedAsset2: Record "Fixed Asset";
-        FADepreciationBook: Record "FA Depreciation Book";
-        FADepreciationBook2: Record "FA Depreciation Book";
-        GeneralLedgerSetup: Record "General Ledger Setup";
-        LibraryDimension: Codeunit "Library - Dimension";
-    begin
-        // Test values on Fixed Asset Projected Value Report after running with Group Total as Global Dimension 1.
-
-        // 1. Setup: Create two Fixed Asset with same Global Dimension 1 Code, two FA Depreciation Book, General Journal Batch,
-        // two Fixed Asset Journal Lines, Post Journal Lines.
-        Initialize();
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset2);
-        GeneralLedgerSetup.Get();
-        LibraryDimension.FindDimensionValue(DimensionValue, LibraryERM.GetGlobalDimensionCode(1));
-        UpdateGlobalDimension1Code(FixedAsset, DimensionValue.Code);
-        UpdateGlobalDimension1Code(FixedAsset2, DimensionValue.Code);
-
-        CreateFADepreciationBook(FADepreciationBook, FixedAsset);
-        CreateFADepreciationBook(FADepreciationBook2, FixedAsset2);
-        CreateAndPostFAGenJournalLine(FADepreciationBook, FADepreciationBook2);
-
-        // 2. Exercise: Run Fixed Asset Projected Value Report with Group Total as Global Dimension 1.
-        FixedAsset.SetFilter("No.", '%1|%2', FixedAsset."No.", FixedAsset2."No.");
-        RunFixedAssetProjectedValue(FixedAsset, GroupTotals::"Global Dimension 1", true, false, '', false);
-
-        // 3. Verify: Verify values on report generated with Global Dimension 1.
-        LibraryReportDataset.LoadDataSetFile();
-        VerifyValuesOnGroupTotal(FADepreciationBook, FADepreciationBook2);
-        LibraryFixedAsset.VerifyLastFARegisterGLRegisterOneToOneRelation(); // TFS 376879
-    end;
-
-    [Test]
-    [HandlerFunctions('RHFAProjectedValue')]
-    [Scope('OnPrem')]
-    procedure FAProjectedGlobalDimension2()
-    var
-        DimensionValue: Record "Dimension Value";
-        FixedAsset: Record "Fixed Asset";
-        FixedAsset2: Record "Fixed Asset";
-        FADepreciationBook: Record "FA Depreciation Book";
-        FADepreciationBook2: Record "FA Depreciation Book";
-    begin
-        // Test values on Fixed Asset Projected Value Report after running with Group Total as Global Dimension 2.
-
-        // 1. Setup: Create two Fixed Asset with same Global Dimension 2 Code, two FA Depreciation Book, General Journal Batch,
-        // two Fixed Asset Journal Lines, Post Journal Lines.
-        Initialize();
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset2);
-        LibraryDimension.FindDimensionValue(DimensionValue, LibraryERM.GetGlobalDimensionCode(2));
-        UpdateGlobalDimension2Code(FixedAsset, DimensionValue.Code);
-        UpdateGlobalDimension2Code(FixedAsset2, DimensionValue.Code);
-
-        CreateFADepreciationBook(FADepreciationBook, FixedAsset);
-        CreateFADepreciationBook(FADepreciationBook2, FixedAsset2);
-        CreateAndPostFAGenJournalLine(FADepreciationBook, FADepreciationBook2);
-
-        // 2. Exercise: Run Fixed Asset Projected Value Report with Group Total as Global Dimension 2.
-        FixedAsset.SetFilter("No.", '%1|%2', FixedAsset."No.", FixedAsset2."No.");
-        RunFixedAssetProjectedValue(FixedAsset, GroupTotals::"Global Dimension 2", true, false, '', false);
-
-        // 3. Verify: Verify values on report generated with Global Dimension 2.
-        LibraryReportDataset.LoadDataSetFile();
-        VerifyValuesOnGroupTotal(FADepreciationBook, FADepreciationBook2);
-        LibraryFixedAsset.VerifyLastFARegisterGLRegisterOneToOneRelation(); // TFS 376879
-    end;
-
-    [Test]
-    [HandlerFunctions('RHFAProjectedValue')]
-    [Scope('OnPrem')]
-    procedure FAProjectedFAPostingGroup()
-    var
-        FixedAsset: Record "Fixed Asset";
-        FixedAsset2: Record "Fixed Asset";
-        FADepreciationBook: Record "FA Depreciation Book";
-        FADepreciationBook2: Record "FA Depreciation Book";
-    begin
-        // Test values on Fixed Asset Projected Value Report after running with Group Total as FA Posting Group.
-
-        // 1.Setup: Create two Fixed Asset with same FA Posting Group, two FA Depreciation Book, General Journal Batch,
-        // two Fixed Asset Journal Lines, Post Journal Lines.
-        Initialize();
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset2);
-        AttachFAPostingGroup(FixedAsset2, FixedAsset."FA Posting Group");
-
-        CreateFADepreciationBook(FADepreciationBook, FixedAsset);
-        CreateFADepreciationBook(FADepreciationBook2, FixedAsset2);
-        CreateAndPostFAGenJournalLine(FADepreciationBook, FADepreciationBook2);
-
-        // 2.Exercise: Run Fixed Asset Projected Value Report with Group Total as FA Posting Group.
-        FixedAsset.SetFilter("No.", '%1|%2', FixedAsset."No.", FixedAsset2."No.");
-        RunFixedAssetProjectedValue(FixedAsset, GroupTotals::"FA Posting Group", true, false, '', false);
-
-        // 3.Verify: Verify values on report generated with FA Posting Group.
-        LibraryReportDataset.LoadDataSetFile();
-        VerifyValuesOnGroupTotal(FADepreciationBook, FADepreciationBook2);
-        LibraryFixedAsset.VerifyLastFARegisterGLRegisterOneToOneRelation(); // TFS 376879
-    end;
-
-    [Test]
-    [HandlerFunctions('RHFAProjectedValue')]
-    [Scope('OnPrem')]
-    procedure FAProjectedWithBlankGroup()
-    var
-        FixedAsset: Record "Fixed Asset";
-        FixedAsset2: Record "Fixed Asset";
-        FADepreciationBook: Record "FA Depreciation Book";
-        FADepreciationBook2: Record "FA Depreciation Book";
-    begin
-        // Test values on Fixed Asset Projected Value Report after running with Blank Group Total and Print Details as False.
-
-        // 1.Setup: Create two Fixed Asset, two FA Depreciation Book, General Journal Batch,
-        // two Fixed Asset Journal Lines, Post Journal Lines.
-        Initialize();
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset2);
-
-        CreateFADepreciationBook(FADepreciationBook, FixedAsset);
-        CreateFADepreciationBook(FADepreciationBook2, FixedAsset2);
-        CreateAndPostFAGenJournalLine(FADepreciationBook, FADepreciationBook2);
-
-        // 2.Exercise: Run Fixed Asset Projected Value Report with Group Total as Blank and Print Details as False.
-        FixedAsset.SetFilter("No.", '%1|%2', FixedAsset."No.", FixedAsset2."No.");
-        RunFixedAssetProjectedValue(FixedAsset, GroupTotals, false, false, '', false);
-
-        // 3.Verify: Verify values on report generated with blank Group.
-        LibraryReportDataset.LoadDataSetFile();
-        VerifyFAProjectedValueTotal(FADepreciationBook, FADepreciationBook2);
-        LibraryFixedAsset.VerifyLastFARegisterGLRegisterOneToOneRelation(); // TFS 376879
-    end;
-
-    [Test]
-    [HandlerFunctions('RHFAProjectedValue')]
-    [Scope('OnPrem')]
-    procedure FAProjectedWithDisposal()
-    var
-        FixedAsset: Record "Fixed Asset";
-        FixedAsset2: Record "Fixed Asset";
-        FADepreciationBook: Record "FA Depreciation Book";
-        FADepreciationBook2: Record "FA Depreciation Book";
-    begin
-        // Test values on Fixed Asset Projected Value Report after running with Projected Disposal as True.
-
-        // 1.Setup: Create two Fixed Asset, two FA Depreciation Book, General Journal Batch,
-        // two Fixed Asset Journal Lines, Post Journal Lines.
-        Initialize();
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset2);
-
-        CreateFADepreciationBook(FADepreciationBook, FixedAsset);
-        CreateFADepreciationBook(FADepreciationBook2, FixedAsset2);
-        CreateAndPostFAGenJournalLine(FADepreciationBook, FADepreciationBook2);
-
-        // 2.Exercise: Run Fixed Asset Projected Value Report with Projected Disposal as True.
-        FixedAsset.SetFilter("No.", '%1|%2', FixedAsset."No.", FixedAsset2."No.");
-        RunFixedAssetProjectedValue(FixedAsset, GroupTotals, false, true, '', false);
-
-        // 3.Verify: Verify values on report generated with Project Disposal as True.
-        LibraryReportDataset.LoadDataSetFile();
-        VerifyProjectedDisposalTotal(FADepreciationBook, FADepreciationBook2);
-        LibraryFixedAsset.VerifyLastFARegisterGLRegisterOneToOneRelation(); // TFS 376879
-    end;
-
-    [Test]
-    [HandlerFunctions('RHFAProjectedValue')]
-    [Scope('OnPrem')]
-    procedure FAProjectedWithBudget()
-    var
-        FixedAsset: Record "Fixed Asset";
-        FixedAsset2: Record "Fixed Asset";
-        FADepreciationBook: Record "FA Depreciation Book";
-        FADepreciationBook2: Record "FA Depreciation Book";
-        GLBudgetName: Record "G/L Budget Name";
-        GLBudgetEntry: Record "G/L Budget Entry";
-    begin
-        // Test values on Fixed Asset Projected Value Report after running with Budget and Insert Balance Account as True.
-
-        // 1.Setup: Create two Fixed Asset, two FA Depreciation Book, General Journal Batch,
-        // two Fixed Asset Journal Lines, Post Journal Lines.
-        Initialize();
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset2);
-
-        CreateFADepreciationBook(FADepreciationBook, FixedAsset);
-        CreateFADepreciationBook(FADepreciationBook2, FixedAsset2);
-        CreateAndPostFAGenJournalLine(FADepreciationBook, FADepreciationBook2);
-
-        // 2.Exercise: Run Fixed Asset Projected Value Report with Budget and Insert Balance Account as True.
-        FixedAsset.SetFilter("No.", '%1|%2', FixedAsset."No.", FixedAsset2."No.");
-        LibraryFixedAsset.CreateGLBudgetName(GLBudgetName);
-        Commit();
-        RunFixedAssetProjectedValue(FixedAsset, GroupTotals, false, false, GLBudgetName.Name, true);
-
-        // 3.Verify: Verify values on Report and G/L Budget Entry.
-        LibraryReportDataset.LoadDataSetFile();
-        VerifyFAProjectedValueTotal(FADepreciationBook, FADepreciationBook2);
-        GLBudgetEntry.SetRange("Budget Name", GLBudgetName.Name);
-        GLBudgetEntry.FindFirst();
         LibraryFixedAsset.VerifyLastFARegisterGLRegisterOneToOneRelation(); // TFS 376879
     end;
 
@@ -1446,82 +889,6 @@ codeunit 134981 "ERM Fixed Assets Reports - II"
     end;
 
     [Test]
-    [HandlerFunctions('RHFAProjectedValue')]
-    [Scope('OnPrem')]
-    procedure FAProjectedBudgetDimension1()
-    var
-        DimensionValue: Record "Dimension Value";
-        FixedAsset: Record "Fixed Asset";
-        FADepreciationBook: Record "FA Depreciation Book";
-        GeneralLedgerSetup: Record "General Ledger Setup";
-        GenJournalBatch: Record "Gen. Journal Batch";
-        GenJournalLine: Record "Gen. Journal Line";
-        GLBudgetName: Record "G/L Budget Name";
-        LibraryDimension: Codeunit "Library - Dimension";
-    begin
-        // Test Dimension values after running Fixed Asset Projected Value Report with Group Total as Budget Dimension 1
-
-        // 1. Setup: Create Fixed Asset with Shortcut Dimension 3 Code, FA Depreciation Book, General Journal Batch,
-        // Fixed Asset Journal Line, Post Journal Line.
-        Initialize();
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
-        GeneralLedgerSetup.Get();
-        LibraryDimension.FindDimensionValue(DimensionValue, GeneralLedgerSetup."Shortcut Dimension 3 Code");
-        UpdateDimension3Code(FixedAsset, GeneralLedgerSetup."Shortcut Dimension 3 Code", DimensionValue.Code);
-
-        CreateFADepreciationBook(FADepreciationBook, FixedAsset);
-
-        CreateGeneralJournalBatch(GenJournalBatch);
-        CreateGeneralJournalLine(GenJournalLine, GenJournalBatch, FADepreciationBook, GenJournalLine."FA Posting Type"::"Acquisition Cost");
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-
-        // 2. Exercise: Run Fixed Asset Projected Value Report.
-        FixedAsset.SetRange("No.", FixedAsset."No.");
-        LibraryFixedAsset.CreateGLBudgetName(GLBudgetName);
-        UpdateBudgetDimensionCode(GLBudgetName, GeneralLedgerSetup."Shortcut Dimension 3 Code");
-        Commit();
-        RunFixedAssetProjectedValue(FixedAsset, GroupTotals::"Global Dimension 1", false, false, GLBudgetName.Name, false);
-
-        // 3. Verify: Verify values on G/L Budget Entries generated with Shortcut Dimension 3 Code.
-        VerifyGLBudgetEntryDimension(GLBudgetName.Name, DimensionValue.Code);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHFAProjectedValue')]
-    [Scope('OnPrem')]
-    procedure FAProjectedBudgetEntryDefaultDim()
-    var
-        FixedAsset: Record "Fixed Asset";
-        FADepreciationBook: Record "FA Depreciation Book";
-        GLBudgetName: Record "G/L Budget Name";
-        GLBudgetEntry: Record "G/L Budget Entry";
-        GroupTotals: Option " ","FA Class","FA Subclass","FA Location","Main Asset","Global Dimension 1","Global Dimension 2","FA Posting Group";
-    begin
-        // Test Default Dimension values on Fixed Asset Projected Value Report after running are copied to Budget.
-
-        // 1.Setup: Create two Fixed Asset, two FA Depreciation Book, General Journal Batch,
-        // two Fixed Asset Journal Lines, Post Journal Lines.
-        Initialize();
-        CreateFixedAssetWithGroupAndDim(FixedAsset);
-        CreateFADepreciationBook(FADepreciationBook, FixedAsset);
-        CreateAndPostGenJournalLine(FADepreciationBook);
-
-        // 2.Exercise: Run Fixed Asset Projected Value Report with Budget.
-        FixedAsset.SetRange("No.", FixedAsset."No.");
-        LibraryFixedAsset.CreateGLBudgetName(GLBudgetName);
-        Commit();
-        RunFixedAssetProjectedValue(FixedAsset, GroupTotals, false, false, GLBudgetName.Name, true);
-
-        // 3.Verify: Verify G/L Budget Entry.
-        GLBudgetEntry.SetRange("Budget Name", GLBudgetName.Name);
-        GLBudgetEntry.FindSet();
-        repeat
-            Assert.IsTrue(GLBudgetEntry."Global Dimension 1 Code" <> '', CopyDimToBudgetEntryErr);
-            Assert.IsTrue(GLBudgetEntry."Global Dimension 2 Code" <> '', CopyDimToBudgetEntryErr);
-        until GLBudgetEntry.Next() = 0;
-    end;
-
-    [Test]
     [HandlerFunctions('DepreciationCalcConfirmHandler')]
     [Scope('OnPrem')]
     procedure RunCalculateDepreciationForGenJnlWithBlankDocNoTwoFA()
@@ -1739,20 +1106,6 @@ codeunit 134981 "ERM Fixed Assets Reports - II"
         exit(DepreciationBook.Code);
     end;
 
-    local procedure CreateFADepreciationBookWithProjectedDisposal(var FADepreciationBook: Record "FA Depreciation Book"; FixedAsset: Record "Fixed Asset")
-    var
-        DepreciationBook: Record "Depreciation Book";
-    begin
-        DepreciationBook.Get(LibraryFixedAsset.GetDefaultDeprBook());
-        LibraryFixedAsset.CreateFADepreciationBook(FADepreciationBook, FixedAsset."No.", DepreciationBook.Code);
-        FADepreciationBook.Validate("Depreciation Starting Date", WorkDate());
-        FADepreciationBook.Validate("Depreciation Ending Date", CalcDate(StrSubstNo('<%1Y>', LibraryRandom.RandInt(5)), WorkDate()));
-        FADepreciationBook.Validate("FA Posting Group", FixedAsset."FA Posting Group");
-        FADepreciationBook.Validate("Projected Disposal Date", WorkDate());
-        FADepreciationBook.Validate("Projected Proceeds on Disposal", LibraryRandom.RandDec(100, 2));
-        FADepreciationBook.Modify(true);
-    end;
-
     local procedure CreateFADepreciationBook(var FADepreciationBook: Record "FA Depreciation Book"; FixedAsset: Record "Fixed Asset")
     var
         DepreciationBook: Record "Depreciation Book";
@@ -1889,20 +1242,6 @@ codeunit 134981 "ERM Fixed Assets Reports - II"
         GenJournalBatch.Modify(true);
     end;
 
-    local procedure CreateFixedAssetWithGroupAndDim(var FixedAsset: Record "Fixed Asset")
-    var
-        GeneralLedgerSetup: Record "General Ledger Setup";
-        DimensionValue: Record "Dimension Value";
-        LibraryDimension: Codeunit "Library - Dimension";
-    begin
-        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
-        GeneralLedgerSetup.Get();
-        LibraryDimension.FindDimensionValue(DimensionValue, GeneralLedgerSetup."Global Dimension 1 Code");
-        UpdateGlobalDimension1Code(FixedAsset, DimensionValue.Code);
-        LibraryDimension.FindDimensionValue(DimensionValue, GeneralLedgerSetup."Global Dimension 2 Code");
-        UpdateGlobalDimension2Code(FixedAsset, DimensionValue.Code);
-    end;
-
     local procedure CreateTwoFixedAsset(var FixedAsset: array[2] of Record "Fixed Asset")
     var
         i: Integer;
@@ -1963,12 +1302,6 @@ codeunit 134981 "ERM Fixed Assets Reports - II"
         FALedgerEntry.FindFirst();
     end;
 
-    local procedure GetDepreciationAmount(FADepreciationBook: Record "FA Depreciation Book"): Decimal
-    begin
-        // Using Round with 1 for Projected Depreciation in Report.
-        exit(Round(FADepreciationBook."Book Value" / FADepreciationBook."No. of Depreciation Months", 1));
-    end;
-
     local procedure IndexationAndIntegrationInBook(DepreciationBookCode: Code[10])
     var
         DepreciationBook: Record "Depreciation Book";
@@ -2015,37 +1348,6 @@ codeunit 134981 "ERM Fixed Assets Reports - II"
           DepreciationBookCode, NewPostingDate, false, 0, NewPostingDate, DocumentNo, FixedAsset.Description, BalAccount);
         CalculateDepreciation.UseRequestPage(false);
         CalculateDepreciation.Run();
-    end;
-
-    local procedure RunFixedAssetProjectedValue(var FixedAsset: Record "Fixed Asset"; GroupTotals: Option; PrintDetails: Boolean; ProjectedDisposal: Boolean; BudgetNameCode: Code[10]; InsertBalanceAccount: Boolean)
-    var
-        FixedAssetProjectedValue: Report "Fixed Asset - Projected Value";
-    begin
-        Clear(FixedAssetProjectedValue);
-        FixedAssetProjectedValue.SetTableView(FixedAsset);
-        FixedAssetProjectedValue.SetMandatoryFields('', WorkDate(), WorkDate());
-        FixedAssetProjectedValue.GetFASetup();
-        FixedAssetProjectedValue.SetTotalFields(GroupTotals, PrintDetails);
-
-        // 30 for days in first period.
-        FixedAssetProjectedValue.SetPeriodFields(0, 30, WorkDate(), false);
-        FixedAssetProjectedValue.SetBudgetField(BudgetNameCode, InsertBalanceAccount, ProjectedDisposal, false);
-        FixedAssetProjectedValue.Run();
-    end;
-
-    local procedure RunFAProjectedValueMultiLines(var FixedAsset: Record "Fixed Asset"; GroupTotals: Option; PrintDetails: Boolean; ProjectedDisposal: Boolean; BudgetNameCode: Code[10]; InsertBalanceAccount: Boolean)
-    var
-        FixedAssetProjectedValue: Report "Fixed Asset - Projected Value";
-    begin
-        Clear(FixedAssetProjectedValue);
-        FixedAssetProjectedValue.SetTableView(FixedAsset);
-        FixedAssetProjectedValue.SetMandatoryFields('', CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()));
-        FixedAssetProjectedValue.GetFASetup();
-        FixedAssetProjectedValue.SetTotalFields(GroupTotals, PrintDetails);
-
-        FixedAssetProjectedValue.SetPeriodFields(0, 0, 0D, true);
-        FixedAssetProjectedValue.SetBudgetField(BudgetNameCode, InsertBalanceAccount, ProjectedDisposal, true);
-        FixedAssetProjectedValue.Run();
     end;
 
     local procedure RunFAGLAnalysisWithPeriod(FixedAssetNo: Code[20]; DepreciationBookCode: Code[10]; StartingDate: Date; EndingDate: Date; PostingType1: Text[30]; PostingType2: Text[30]; PostingType3: Text[30]; Period: Option; GroupTotals: Option; OnlySoldAssets: Boolean)
@@ -2177,18 +1479,6 @@ codeunit 134981 "ERM Fixed Assets Reports - II"
         FixedAsset.Modify(true);
     end;
 
-    local procedure UpdateDimension3Code(FixedAsset: Record "Fixed Asset"; DimensionCode: Code[20]; DimensionValue: Code[20])
-    var
-        DefaultDimension: Record "Default Dimension";
-    begin
-        DefaultDimension.Init();
-        DefaultDimension.Validate("Table ID", DATABASE::"Fixed Asset");
-        DefaultDimension.Validate("No.", FixedAsset."No.");
-        DefaultDimension.Validate("Dimension Code", DimensionCode);
-        DefaultDimension.Validate("Dimension Value Code", DimensionValue);
-        DefaultDimension.Insert();
-    end;
-
     local procedure UpdateMaintenanceOnFixedAsset(var FixedAsset: Record "Fixed Asset")
     var
         Vendor: Record Vendor;
@@ -2222,46 +1512,6 @@ codeunit 134981 "ERM Fixed Assets Reports - II"
         FAJournalSetup2.FindFirst();
         FAJournalSetup.TransferFields(FAJournalSetup2, false);
         FAJournalSetup.Modify(true);
-    end;
-
-    local procedure UpdateBudgetDimensionCode(var GLBudgetName: Record "G/L Budget Name"; BudgetDimension1Code: Code[20])
-    begin
-        GLBudgetName.Validate("Budget Dimension 1 Code", BudgetDimension1Code);
-        GLBudgetName.Modify();
-    end;
-
-    local procedure ModifyAccountingPeriod(var NewDate: Date; var NoOfDays: Integer)
-    var
-        AccountingPeriod: Record "Accounting Period";
-        Month: Integer;
-    begin
-        AccountingPeriod.ModifyAll("Date Locked", false);
-        Month := LibraryRandom.RandIntInRange(3, 7);
-        if Month mod 2 = 0 then
-            Month += 1;
-        NewDate := DMY2Date(31, Month, Date2DMY(WorkDate(), 3));
-        AccountingPeriod.Validate("Starting Date", NewDate);
-        if not AccountingPeriod.Get(AccountingPeriod."Starting Date") then
-            AccountingPeriod.Insert(true);
-        Commit();
-        AccountingPeriod.Next(-1);
-        NoOfDays := NewDate - AccountingPeriod."Starting Date";
-    end;
-
-    local procedure VerifyFAProjectedValueTotal(FADepreciationBook: Record "FA Depreciation Book"; FADepreciationBook2: Record "FA Depreciation Book")
-    var
-        Amount: Decimal;
-        Amount2: Decimal;
-    begin
-        FADepreciationBook.CalcFields("Book Value");
-        FADepreciationBook2.CalcFields("Book Value");
-
-        Amount := GetDepreciationAmount(FADepreciationBook);
-        Amount2 := GetDepreciationAmount(FADepreciationBook2);
-
-        LibraryReportDataset.AssertElementWithValueExists('TotalBookValue2',
-          FADepreciationBook."Book Value" - Amount + FADepreciationBook2."Book Value" - Amount2);
-        LibraryReportDataset.AssertElementWithValueExists('TotalAmounts1', -Amount - Amount2);
     end;
 
     local procedure VerifyFixedAssetDocument(FANo: Code[20])
@@ -2324,76 +1574,6 @@ codeunit 134981 "ERM Fixed Assets Reports - II"
         LibraryReportDataset.AssertCurrentRowValueEquals('Maintenance_Ledger_Entry__Entry_No__', MaintenanceLedgerEntry."Entry No.");
     end;
 
-    local procedure VerifyProjectedDisposalTotal(FADepreciationBook: Record "FA Depreciation Book"; FADepreciationBook2: Record "FA Depreciation Book")
-    var
-        Amount: Decimal;
-        Amount2: Decimal;
-        TotalBookValue: Decimal;
-        TotalAmountValue: Decimal;
-    begin
-        FADepreciationBook.CalcFields("Book Value");
-        FADepreciationBook2.CalcFields("Book Value");
-
-        Amount := GetDepreciationAmount(FADepreciationBook);
-        Amount2 := GetDepreciationAmount(FADepreciationBook2);
-        TotalBookValue := FADepreciationBook."Book Value" - Amount + FADepreciationBook2."Book Value" - Amount2 -
-          FADepreciationBook."Projected Proceeds on Disposal" - FADepreciationBook2."Projected Proceeds on Disposal";
-        TotalAmountValue :=
-          FADepreciationBook."Projected Proceeds on Disposal" + FADepreciationBook2."Projected Proceeds on Disposal";
-
-        LibraryReportDataset.AssertElementWithValueExists('TotalBookValue2', TotalBookValue);
-        LibraryReportDataset.AssertElementWithValueExists('TotalAmounts2', TotalAmountValue);
-    end;
-
-    local procedure VerifyProjectedGroupValue(FADepreciationBook: Record "FA Depreciation Book"; FADepreciationBook2: Record "FA Depreciation Book")
-    var
-        TotalDepCustomAmt: Decimal;
-    begin
-        FADepreciationBook.CalcFields("Book Value");
-        FADepreciationBook2.CalcFields("Book Value");
-        TotalDepCustomAmt := GetDepreciationAmount(FADepreciationBook) + GetDepreciationAmount(FADepreciationBook2);
-        LibraryReportDataset.AssertElementWithValueExists('GroupAmounts_1', -TotalDepCustomAmt);
-    end;
-
-    local procedure VerifyValuesOnGroupTotal(FADepreciationBook: Record "FA Depreciation Book"; FADepreciationBook2: Record "FA Depreciation Book")
-    var
-        Amount: Decimal;
-        Amount2: Decimal;
-    begin
-        FADepreciationBook.CalcFields("Book Value");
-        FADepreciationBook2.CalcFields("Book Value");
-
-        Amount := GetDepreciationAmount(FADepreciationBook);
-        Amount2 := GetDepreciationAmount(FADepreciationBook2);
-
-        LibraryReportDataset.SetRange('FixedAssetNo', FADepreciationBook."FA No.");
-        LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.AssertCurrentRowValueEquals('BookValue', FADepreciationBook."Book Value");
-        LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.AssertCurrentRowValueEquals('DeprAmount', -Amount);
-        LibraryReportDataset.AssertCurrentRowValueEquals('GroupTotalBookValue', FADepreciationBook."Book Value" - Amount);
-
-        LibraryReportDataset.SetRange('FixedAssetNo', FADepreciationBook2."FA No.");
-        LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.AssertCurrentRowValueEquals('BookValue', FADepreciationBook2."Book Value");
-        LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.AssertCurrentRowValueEquals('DeprAmount', -Amount2);
-        LibraryReportDataset.AssertCurrentRowValueEquals(
-          'GroupTotalBookValue',
-          FADepreciationBook."Book Value" + FADepreciationBook2."Book Value" - Amount - Amount2);
-    end;
-
-    local procedure VerifyValuesOnNewAccPeriod(NewPeriodDate: Date; NoOfDays: Integer)
-    begin
-        LibraryReportDataset.SetRange('FormatUntilDate', Format(NewPeriodDate - 1));
-        LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.AssertCurrentRowValueEquals('NumberOfDays', NoOfDays);
-
-        LibraryReportDataset.Reset();
-        LibraryReportDataset.AssertElementWithValueExists('FormatUntilDate', Format(CalcDate('<CM+1M>', NewPeriodDate)));
-    end;
-
     local procedure VerifyAmountInFATransaction(FANo: Code[20]; FAPostingType: Enum "FA Ledger Entry FA Posting Type")
     var
         FALedgerEntry: Record "FA Ledger Entry";
@@ -2402,42 +1582,6 @@ codeunit 134981 "ERM Fixed Assets Reports - II"
         FindFALedgerEntry(FALedgerEntry, FANo, FAPostingType);
         GLEntry.Get(FALedgerEntry."G/L Entry No.");
         GLEntry.TestField(Amount, FALedgerEntry.Amount);
-    end;
-
-    local procedure VerifyProjectedDisposalValues(FADepreciationBook: Record "FA Depreciation Book"; FADepreciationBook2: Record "FA Depreciation Book")
-    var
-        TotalBookValue: Decimal;
-        TotalAmountValue: Decimal;
-    begin
-        FADepreciationBook.CalcFields("Book Value");
-        FADepreciationBook2.CalcFields("Book Value");
-        TotalBookValue := FADepreciationBook."Book Value" - GetDepreciationAmount(FADepreciationBook) +
-          FADepreciationBook2."Book Value" - GetDepreciationAmount(FADepreciationBook2) -
-          FADepreciationBook."Projected Proceeds on Disposal" - FADepreciationBook2."Projected Proceeds on Disposal";
-        TotalAmountValue :=
-          FADepreciationBook."Projected Proceeds on Disposal" + FADepreciationBook2."Projected Proceeds on Disposal";
-
-        LibraryReportDataset.AssertElementWithValueExists('TotalAmounts4', TotalBookValue);
-        LibraryReportDataset.AssertElementWithValueExists('TotalAmounts3', TotalAmountValue);
-    end;
-
-    local procedure VerifyGLBudgetEntryDimension(BudgetName: Code[10]; DimensionValue: Code[20])
-    var
-        GLBudgetEntry: Record "G/L Budget Entry";
-    begin
-        GLBudgetEntry.SetRange("Budget Name", BudgetName);
-        GLBudgetEntry.SetRange("Budget Dimension 1 Code", DimensionValue);
-        Assert.IsFalse(GLBudgetEntry.IsEmpty, GLBudgetEntryNotFoundErr);
-    end;
-
-    local procedure VerifyGLBudgetEntryDate(GLBudgetNameName: Code[20]; AccPeriodDate: Date)
-    var
-        GLBudgetEntry: Record "G/L Budget Entry";
-    begin
-        GLBudgetEntry.SetRange("Budget Name", GLBudgetNameName);
-        GLBudgetEntry.SetFilter(Date, '%1..%2', CalcDate('<-CM>', AccPeriodDate), CalcDate('<CM>', AccPeriodDate));
-        GLBudgetEntry.FindFirst();
-        Assert.AreEqual(GLBudgetEntry.Date, AccPeriodDate - 1, GLBudgetEntryWithDateNotFoundErr);
     end;
 
     [RequestPageHandler]
@@ -2490,34 +1634,6 @@ codeunit 134981 "ERM Fixed Assets Reports - II"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure RHFixedAssetProjectedValue(var FixedAssetProjectedValue: TestRequestPage "Fixed Asset - Projected Value")
-    var
-        DepreciationBook: Variant;
-        StartingDate: Variant;
-        EndingDate: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(DepreciationBook);
-        LibraryVariableStorage.Dequeue(StartingDate);
-        LibraryVariableStorage.Dequeue(EndingDate);
-        FixedAssetProjectedValue.DepreciationBook.SetValue(DepreciationBook);
-        FixedAssetProjectedValue.FirstDeprDate.SetValue(Format(StartingDate));
-        FixedAssetProjectedValue.LastDeprDate.SetValue(Format(EndingDate));
-        FixedAssetProjectedValue.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure RHFixedAssetProjectedValueNoOfDaysError(var FixedAssetProjectedValue: TestRequestPage "Fixed Asset - Projected Value")
-    begin
-        FixedAssetProjectedValue.DepreciationBook.SetValue(LibraryFixedAsset.GetDefaultDeprBook());
-        FixedAssetProjectedValue.FirstDeprDate.SetValue(Format(WorkDate()));
-        FixedAssetProjectedValue.LastDeprDate.SetValue(Format(WorkDate()));
-        FixedAssetProjectedValue.NumberOfDays.SetValue(LibraryRandom.RandInt(4));
-        FixedAssetProjectedValue.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure RHFAGLAnalysis(var FixedAssetGLAnalysis: TestRequestPage "Fixed Asset - G/L Analysis")
     var
         FileName: Text;
@@ -2561,13 +1677,6 @@ codeunit 134981 "ERM Fixed Assets Reports - II"
         ParametersFileName := LibraryReportDataset.GetParametersFileName();
         FileName := LibraryReportDataset.GetFileName();
         FixedAssetGLAnalysis.SaveAsXml(ParametersFileName, FileName);
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure RHFAProjectedValue(var FixedAssetGLAnalysis: TestRequestPage "Fixed Asset - Projected Value")
-    begin
-        FixedAssetGLAnalysis.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
     [RequestPageHandler]

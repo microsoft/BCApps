@@ -7,6 +7,15 @@ namespace Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
 using System.Text;
 
+/// <summary>
+/// Manages dynamic caption translation for dimension fields using CaptionClass expressions.
+/// Provides localized captions for global and shortcut dimensions based on General Ledger Setup configuration.
+/// </summary>
+/// <remarks>
+/// Singleton codeunit that translates dimension field captions for different languages.
+/// Supports global dimensions, shortcut dimensions, and custom dimension caption expressions.
+/// Extensibility through OnTranslateDimCaptionClassOnDimCaptionTypeCaseElse event for custom caption logic.
+/// </remarks>
 codeunit 343 "Dimension CaptionClass Mgmt"
 {
     SingleInstance = true;
@@ -351,6 +360,17 @@ codeunit 343 "Dimension CaptionClass Mgmt"
         exit(GLSetupRead);
     end;
 
+    /// <summary>
+    /// Integration event raised for custom dimension caption type handling.
+    /// Enables extension of dimension caption translation logic for custom caption types.
+    /// </summary>
+    /// <param name="DimCaptionType">The dimension caption type from the CaptionClass expression</param>
+    /// <param name="DimCaptionRef">The dimension caption reference from the CaptionClass expression</param>
+    /// <param name="Language">Language code for caption translation</param>
+    /// <param name="DimOptionalParam1">First optional parameter from the CaptionClass expression</param>
+    /// <param name="DimOptionalParam2">Second optional parameter from the CaptionClass expression</param>
+    /// <param name="Result">Set to return custom caption text</param>
+    /// <param name="IsHandled">Set to true to indicate custom caption handling was performed</param>
     [IntegrationEvent(false, false)]
     local procedure OnTranslateDimCaptionClassOnDimCaptionTypeCaseElse(DimCaptionType: Text[80]; DimCaptionRef: Text[80]; Language: Integer; DimOptionalParam1: Text[80]; DimOptionalParam2: Text[80]; var Result: Text; var IsHandled: Boolean)
     begin

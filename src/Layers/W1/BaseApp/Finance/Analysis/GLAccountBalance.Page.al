@@ -11,6 +11,10 @@ using Microsoft.Foundation.Comment;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.ExtendedText;
 
+/// <summary>
+/// G/L account balance analysis page with detailed balance breakdown and drill-down capabilities.
+/// Provides comprehensive balance analysis with filtering and detailed entry access.
+/// </summary>
 page 415 "G/L Account Balance"
 {
     Caption = 'G/L Account Balance';

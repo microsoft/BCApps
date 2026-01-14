@@ -14,6 +14,15 @@ using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
 using System.Text;
 
+/// <summary>
+/// List interface for browsing and selecting general ledger accounts with hierarchical display and balance information.
+/// Provides lookup functionality and navigation to detailed account information and related records.
+/// </summary>
+/// <remarks>
+/// Key functionality: Account lookup, balance display, hierarchical navigation, bulk operations.
+/// User workflow: Account selection for transactions, account browsing, balance inquiries.
+/// Extensible via page extensions for additional columns, actions, and filtering options.
+/// </remarks>
 page 18 "G/L Account List"
 {
     Caption = 'G/L Account List';
@@ -278,14 +287,19 @@ page 18 "G/L Account List"
         }
         area(reporting)
         {
+#if not CLEAN28
             action("Trial Balance")
             {
                 ApplicationArea = Suite;
-                Caption = 'Trial Balance';
+                Caption = 'Trial Balance (Obsolete)';
                 Image = "Report";
                 RunObject = Report "Trial Balance";
                 ToolTip = 'View general ledger account balances and activities for all the selected accounts, one transaction per line.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report has been replaced by the report Trial Balance (Excel). This report will be removed in a future release.';
+                ObsoleteTag = '28.0';
             }
+#endif
             action("Trial Balance by Period")
             {
                 ApplicationArea = Basic, Suite;
@@ -323,9 +337,14 @@ page 18 "G/L Account List"
             {
                 Caption = 'Report', Comment = 'Generated from the PromotedActionCategories property index 2.';
 
+#if not CLEAN28
                 actionref("Trial Balance_Promoted"; "Trial Balance")
                 {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the report Trial Balance (Excel). This report will be removed in a future release.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
                 actionref("Trial Balance by Period_Promoted"; "Trial Balance by Period")
                 {
                 }
@@ -381,11 +400,21 @@ page 18 "G/L Account List"
     protected var
         Emphasize: Boolean;
 
+    /// <summary>
+    /// Sets the current page selection to match the specified general ledger account record set.
+    /// Used for programmatically selecting accounts in the list for bulk operations.
+    /// </summary>
+    /// <param name="GLAcc">Record set of general ledger accounts to select in the list</param>
     procedure SetSelection(var GLAcc: Record "G/L Account")
     begin
         CurrPage.SetSelectionFilter(GLAcc);
     end;
 
+    /// <summary>
+    /// Returns a filter string representing the currently selected general ledger accounts.
+    /// Used for capturing user selections for processing in other procedures or reports.
+    /// </summary>
+    /// <returns>Filter string for the selected general ledger accounts</returns>
     procedure GetSelectionFilter(): Text
     var
         GLAcc: Record "G/L Account";

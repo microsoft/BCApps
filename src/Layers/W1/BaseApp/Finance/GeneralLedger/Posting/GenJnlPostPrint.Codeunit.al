@@ -9,6 +9,14 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.BatchProcessing;
 using System.Utilities;
 
+/// <summary>
+/// Handles posting of general journal lines with integrated document printing capabilities.
+/// Combines journal posting functionality with automatic printing of posted documents and reports.
+/// </summary>
+/// <remarks>
+/// Supports both immediate posting with printing and job queue scheduling with print flags.
+/// Integrates with posting preview, error handling, and configurable report printing.
+/// </remarks>
 codeunit 232 "Gen. Jnl.-Post+Print"
 {
     TableNo = "Gen. Journal Line";
@@ -133,36 +141,75 @@ codeunit 232 "Gen. Jnl.-Post+Print"
         BatchPostingPrintMgt.PrintJournal(RecRefToPrint);
     end;
 
+    /// <summary>
+    /// Integration event raised after successfully posting journal batch operations.
+    /// Enables post-processing or cleanup after journal lines have been posted.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record that was posted</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostJournalBatch(var GenJournalLine: Record "Gen. Journal Line");
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after confirming journal batch posting with the user.
+    /// Enables modification of confirmation behavior or additional validation after user confirmation.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record to be posted</param>
+    /// <param name="IsHandled">Set to true to handle confirmation processing externally</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterConfirmPostJournalBatch(var GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before starting journal batch posting operations.
+    /// Enables custom validation, preprocessing, or dialog suppression before posting begins.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record to be posted</param>
+    /// <param name="HideDialog">Set to true to suppress confirmation dialogs during posting</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostJournalBatch(var GenJournalLine: Record "Gen. Journal Line"; var HideDialog: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when applying filters to journal lines during posting operations.
+    /// Enables customization of journal line filtering logic or addition of custom filter criteria.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record being filtered for posting</param>
     [IntegrationEvent(false, false)]
     local procedure OnGenJnlLineSetFilter(var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before displaying successful posting messages to the user.
+    /// Enables customization or suppression of standard posting success notifications.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record that was successfully posted</param>
+    /// <param name="IsHandled">Set to true to suppress standard success messages</param>
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnBeforeLinesSuccessfullyPostedMessage(GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after completing the OnRun trigger processing.
+    /// Enables final cleanup or logging operations after journal posting and printing completion.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record that was processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterOnRun(var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before printing journal batch reports.
+    /// Enables custom print handling or suppression of standard journal batch printing.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record being printed</param>
+    /// <param name="IsHandled">Set to true to handle printing externally and skip standard printing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePrintJournalBatch(var GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin

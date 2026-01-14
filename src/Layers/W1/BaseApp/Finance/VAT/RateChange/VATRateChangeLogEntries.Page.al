@@ -12,6 +12,10 @@ using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Display page for VAT rate change log entries showing conversion history and audit trail.
+/// Provides read-only view of all VAT rate change operations with drill-down capabilities to source records.
+/// </summary>
 page 553 "VAT Rate Change Log Entries"
 {
     Caption = 'VAT Rate Change Log Entries';
@@ -176,6 +180,13 @@ page 553 "VAT Rate Change Log Entries"
         Text0002: Label 'The related entry has been posted or deleted.';
 #pragma warning restore AA0074
 
+    /// <summary>
+    /// Integration event raised after showing a VAT rate change log entry record.
+    /// Allows custom handling or navigation for specific record types or scenarios.
+    /// </summary>
+    /// <param name="VATRateChangeLogEntry">Log entry record being displayed</param>
+    /// <param name="IsHandled">Set to true to skip standard record display processing</param>
+    /// <param name="RecRef">Record reference for the source record being shown</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterShow(VATRateChangeLogEntry: Record "VAT Rate Change Log Entry"; var IsHandled: Boolean; RecRef: RecordRef)
     begin

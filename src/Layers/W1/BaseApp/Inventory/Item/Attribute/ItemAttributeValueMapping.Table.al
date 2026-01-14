@@ -55,6 +55,7 @@ table 7505 "Item Attribute Value Mapping"
         ItemAttribute: Record "Item Attribute";
         ItemAttributeValue: Record "Item Attribute Value";
         ItemAttributeValueMapping: Record "Item Attribute Value Mapping";
+        ItemVariantAttributeValueMapping: Record "Item Var. Attr. Value Mapping";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -72,6 +73,11 @@ table 7505 "Item Attribute Value Mapping"
         ItemAttributeValueMapping.SetRange("Item Attribute ID", "Item Attribute ID");
         ItemAttributeValueMapping.SetRange("Item Attribute Value ID", "Item Attribute Value ID");
         if ItemAttributeValueMapping.Count <> 1 then
+            exit;
+
+        ItemVariantAttributeValueMapping.SetRange("Item Attribute ID", "Item Attribute ID");
+        ItemVariantAttributeValueMapping.SetRange("Item Attribute Value ID", "Item Attribute Value ID");
+        if not ItemVariantAttributeValueMapping.IsEmpty() then
             exit;
 
         ItemAttributeValueMapping := Rec;

@@ -481,6 +481,7 @@ table 5901 "Service Item Line"
         }
         field(11; "Response Time (Hours)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Response Time (Hours)';
             DecimalPlaces = 0 : 5;
 
@@ -775,6 +776,7 @@ table 5901 "Service Item Line"
         }
         field(22; "Warranty % (Parts)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Warranty % (Parts)';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -809,6 +811,7 @@ table 5901 "Service Item Line"
         }
         field(23; "Warranty % (Labor)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Warranty % (Labor)';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -1248,6 +1251,7 @@ table 5901 "Service Item Line"
         }
         field(42; "Actual Response Time (Hours)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Actual Response Time (Hours)';
             DecimalPlaces = 0 : 5;
         }
@@ -1271,6 +1275,8 @@ table 5901 "Service Item Line"
         }
         field(46; "Base Amount to Adjust"; Decimal)
         {
+            AutoFormatExpression = GetCurrencyCode();
+            AutoFormatType = 1;
             Caption = 'Base Amount to Adjust';
             Editable = false;
         }
@@ -1810,6 +1816,12 @@ table 5901 "Service Item Line"
     begin
         if ServHeader."No." <> "Document No." then
             ServHeader.Get(Rec."Document Type", Rec."Document No.");
+    end;
+
+    local procedure GetCurrencyCode(): Code[10]
+    begin
+        GetServHeader();
+        exit(ServHeader."Currency Code");
     end;
 
     local procedure CheckCustomerNo()

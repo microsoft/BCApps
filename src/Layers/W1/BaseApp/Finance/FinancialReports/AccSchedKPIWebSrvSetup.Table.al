@@ -11,6 +11,15 @@ using Microsoft.Foundation.Period;
 using System.Environment;
 using System.Integration;
 
+/// <summary>
+/// Configuration table for account schedule KPI web service setup and publishing parameters.
+/// Controls data refresh settings, period definitions, budgeting parameters, and web service publication options.
+/// </summary>
+/// <remarks>
+/// Central setup table for KPI web service functionality including data time-to-live settings,
+/// forecasting parameters, and integration with G/L budgets. Supports automated data refresh
+/// and web service publication for external KPI consumption and reporting scenarios.
+/// </remarks>
 table 135 "Acc. Sched. KPI Web Srv. Setup"
 {
     Caption = 'Acc. Sched. KPI Web Srv. Setup';
@@ -18,6 +27,9 @@ table 135 "Acc. Sched. KPI Web Srv. Setup"
 
     fields
     {
+        /// <summary>
+        /// Primary key field for web service setup configuration record.
+        /// </summary>
         field(1; "Primary Key"; Code[10])
         {
             AllowInCustomizations = Never;
@@ -28,23 +40,35 @@ table 135 "Acc. Sched. KPI Web Srv. Setup"
                 TestField("Primary Key", '');
             end;
         }
+        /// <summary>
+        /// Determines when forecasted values begin in KPI calculations relative to closed periods or current date.
+        /// </summary>
         field(2; "Forecasted Values Start"; Option)
         {
             Caption = 'Forecasted Values Start';
             OptionCaption = 'After Latest Closed Period,After Current Date';
             OptionMembers = "After Latest Closed Period","After Current Date";
         }
+        /// <summary>
+        /// G/L budget name used for forecasted values and budget comparisons in KPI calculations.
+        /// </summary>
         field(3; "G/L Budget Name"; Code[10])
         {
             Caption = 'G/L Budget Name';
             TableRelation = "G/L Budget Name";
         }
+        /// <summary>
+        /// Time period scope for KPI data collection and reporting.
+        /// </summary>
         field(4; Period; Option)
         {
             Caption = 'Period';
             OptionCaption = 'Fiscal Year - Last Locked Period,Current Fiscal Year,Current Calendar Year,Current Calendar Quarter,Current Month,Today,Current Period,Last Locked Period,Current Fiscal Year + 3 Previous Years';
             OptionMembers = "Fiscal Year - Last Locked Period","Current Fiscal Year","Current Calendar Year","Current Calendar Quarter","Current Month",Today,"Current Period","Last Locked Period","Current Fiscal Year + 3 Previous Years";
         }
+        /// <summary>
+        /// Aggregation level for KPI data presentation and time-based grouping.
+        /// </summary>
         field(5; "View By"; Option)
         {
             Caption = 'View By';
@@ -52,6 +76,9 @@ table 135 "Acc. Sched. KPI Web Srv. Setup"
             OptionCaption = 'Day,Week,Month,Quarter,Year,Period';
             OptionMembers = Day,Week,Month,Quarter,Year,Period;
         }
+        /// <summary>
+        /// Name identifier for the published web service endpoint.
+        /// </summary>
         field(6; "Web Service Name"; Text[240])
         {
             Caption = 'Web Service Name';
@@ -69,6 +96,9 @@ table 135 "Acc. Sched. KPI Web Srv. Setup"
                         Error(ServiceNameErr);
             end;
         }
+        /// <summary>
+        /// Indicates whether the KPI web service is currently published and available for external access.
+        /// </summary>
         field(7; Published; Boolean)
         {
             CalcFormula = exist("Web Service" where("Object Type" = const(Page),
@@ -78,18 +108,27 @@ table 135 "Acc. Sched. KPI Web Srv. Setup"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Timestamp of the last data refresh operation for KPI calculations.
+        /// </summary>
         field(8; "Data Last Updated"; DateTime)
         {
             Caption = 'Data Last Updated';
             DataClassification = SystemMetadata;
             Editable = false;
         }
+        /// <summary>
+        /// Entry number of the last G/L entry processed in the most recent KPI data update.
+        /// </summary>
         field(9; "Last G/L Entry Included"; Integer)
         {
             Caption = 'Last G/L Entry Included';
             DataClassification = SystemMetadata;
             Editable = false;
         }
+        /// <summary>
+        /// Number of hours that KPI data remains valid before requiring refresh.
+        /// </summary>
         field(10; "Data Time To Live (hours)"; Integer)
         {
             Caption = 'Data Time To Live (hours)';
@@ -136,6 +175,13 @@ table 135 "Acc. Sched. KPI Web Srv. Setup"
     var
         ServiceNameErr: Label 'The service name may only contain letters A-Z, a-z, digits 0-9, and hyphens (-). No other characters are allowed.';
 
+    /// <summary>
+    /// Calculates period length and date range based on the configured period type.
+    /// Determines start date, end date, and number of time segments for KPI data collection.
+    /// </summary>
+    /// <param name="NoOfLines">Returns the number of time segments in the period</param>
+    /// <param name="StartDate">Returns the period start date</param>
+    /// <param name="EndDate">Returns the period end date</param>
     procedure GetPeriodLength(var NoOfLines: Integer; var StartDate: Date; var EndDate: Date)
     var
         AccountingPeriod: Record "Accounting Period";
@@ -244,6 +290,13 @@ table 135 "Acc. Sched. KPI Web Srv. Setup"
         exit(TotalNoOfDays div NoOfDaysPerLine);
     end;
 
+    /// <summary>
+    /// Calculates the next start date based on the original start date and offset value.
+    /// Handles different view-by periods including accounting periods, years, quarters, months, weeks, and days.
+    /// </summary>
+    /// <param name="OrgStartDate">Original start date for calculation</param>
+    /// <param name="OffSet">Number of periods to offset from the original date</param>
+    /// <returns>Calculated start date after applying the offset</returns>
     procedure CalcNextStartDate(OrgStartDate: Date; OffSet: Integer): Date
     var
         AccountingPeriod: Record "Accounting Period";
@@ -277,6 +330,11 @@ table 135 "Acc. Sched. KPI Web Srv. Setup"
         exit(CalcDate(DateCalc, OrgStartDate));
     end;
 
+    /// <summary>
+    /// Retrieves the last closed accounting date based on general ledger setup.
+    /// Returns the date before the allow posting from date or work date if not set.
+    /// </summary>
+    /// <returns>Last closed accounting date</returns>
     procedure GetLastClosedAccDate(): Date
     var
         GLSetup: Record "General Ledger Setup";
@@ -287,6 +345,11 @@ table 135 "Acc. Sched. KPI Web Srv. Setup"
         exit(WorkDate());
     end;
 
+    /// <summary>
+    /// Retrieves the last modification date from G/L budget entries for the configured budget.
+    /// Returns the most recent change date or zero date if no budget entries exist.
+    /// </summary>
+    /// <returns>Last budget change date</returns>
     procedure GetLastBudgetChangedDate(): Date
     var
         GLBudgetEntry: Record "G/L Budget Entry";

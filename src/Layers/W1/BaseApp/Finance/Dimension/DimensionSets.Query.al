@@ -6,6 +6,15 @@ namespace Microsoft.Finance.Dimension;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 
+/// <summary>
+/// Query providing structured access to dimension sets with expanded shortcut dimension values.
+/// Retrieves dimension set data with dimension codes and names for all eight shortcut dimensions configured in General Ledger Setup.
+/// </summary>
+/// <remarks>
+/// Optimized for reporting and analysis scenarios requiring flattened dimension set data.
+/// Uses cross joins with General Ledger Setup to provide complete dimension value information.
+/// Returns dimension set ID, value count, and expanded dimension values for dimensions 1-8.
+/// </remarks>
 query 257 "Dimension Sets"
 {
     Caption = 'Dimension Sets';

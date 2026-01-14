@@ -6,6 +6,10 @@ namespace Microsoft.Finance.VAT.Reporting;
 
 using System.Reflection;
 
+/// <summary>
+/// Defines VAT statement templates that serve as containers for organizing VAT statement names and lines.
+/// Provides framework for different VAT calculation and reporting scenarios with customizable page and report assignments.
+/// </summary>
 table 255 "VAT Statement Template"
 {
     Caption = 'VAT Statement Template';
@@ -15,15 +19,24 @@ table 255 "VAT Statement Template"
 
     fields
     {
+        /// <summary>
+        /// Unique name identifier for the VAT statement template.
+        /// </summary>
         field(1; Name; Code[10])
         {
             Caption = 'Name';
             NotBlank = true;
         }
+        /// <summary>
+        /// Description of the VAT statement template purpose and usage.
+        /// </summary>
         field(2; Description; Text[80])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// Page ID for the VAT statement interface associated with this template.
+        /// </summary>
         field(6; "Page ID"; Integer)
         {
             Caption = 'Page ID';
@@ -36,11 +49,17 @@ table 255 "VAT Statement Template"
                 "VAT Statement Report ID" := REPORT::"VAT Statement";
             end;
         }
+        /// <summary>
+        /// Report ID for generating VAT statement reports from this template.
+        /// </summary>
         field(7; "VAT Statement Report ID"; Integer)
         {
             Caption = 'VAT Statement Report ID';
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Report));
         }
+        /// <summary>
+        /// Display caption of the associated VAT statement page.
+        /// </summary>
         field(16; "Page Caption"; Text[250])
         {
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Page),
@@ -49,6 +68,9 @@ table 255 "VAT Statement Template"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Display caption of the associated VAT statement report.
+        /// </summary>
         field(17; "VAT Statement Report Caption"; Text[250])
         {
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Report),

@@ -14,13 +14,8 @@ table 6404 "FS Project Task"
     Description = 'An entity for storing the Microsoft Dynamics 365 Business Central project task.';
     DataClassification = SystemMetadata;
     ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-#if not CLEAN25
-    ObsoleteState = Pending;
-    ObsoleteTag = '25.0';
-#else
     ObsoleteState = Removed;
     ObsoleteTag = '28.0';
-#endif
 
     fields
     {

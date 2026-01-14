@@ -105,6 +105,8 @@ page 8075 "Customer Contract Lines"
                     ToolTip = 'Specifies the price of the Subscription Line with quantity of 1 in the billing period. The price is calculated from Base Price and Base Price %.';
                     Editable = false;
                     BlankZero = true;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = ServiceCommitment."Currency Code";
                 }
                 field("Discount %"; ServiceCommitment."Discount %")
                 {
@@ -121,12 +123,16 @@ page 8075 "Customer Contract Lines"
                     ToolTip = 'Specifies the amount of the discount for the Subscription Line.';
                     BlankZero = true;
                     MinValue = 0;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = ServiceCommitment."Currency Code";
                 }
                 field("Service Amount"; ServiceCommitment.Amount)
                 {
                     Caption = 'Amount';
                     ToolTip = 'Specifies the amount for the Subscription Line including discount.';
                     BlankZero = true;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = ServiceCommitment."Currency Code";
                 }
                 field("Next Billing Date"; ServiceCommitment."Next Billing Date")
                 {
@@ -141,6 +147,8 @@ page 8075 "Customer Contract Lines"
                     Caption = 'Calculation Base Amount';
                     ToolTip = 'Specifies the base amount from which the price will be calculated.';
                     BlankZero = true;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = ServiceCommitment."Currency Code";
                 }
                 field("Calculation Base %"; ServiceCommitment."Calculation Base %")
                 {
@@ -148,6 +156,8 @@ page 8075 "Customer Contract Lines"
                     Caption = 'Calculation Base %';
                     ToolTip = 'Specifies the percent at which the price of the Subscription Line will be calculated. 100% means that the price corresponds to the Base Price.';
                     BlankZero = true;
+                    DecimalPlaces = 0 : 5;
+                    AutoFormatType = 0;
                 }
                 field("Billing Base Period"; ServiceCommitment."Billing Base Period")
                 {

@@ -10,6 +10,16 @@ using Microsoft.Finance.GeneralLedger.Reports;
 using Microsoft.Foundation.Reporting;
 using System.Environment;
 
+/// <summary>
+/// List page for managing general journal batches within journal templates providing batch configuration and navigation.
+/// Displays journal batches with their settings including balancing account configuration, number series, and posting parameters.
+/// </summary>
+/// <remarks>
+/// Journal batch management interface for configuring and navigating journal batches within templates.
+/// Key features: Batch configuration display, balancing account setup, number series assignment, posting parameter management.
+/// Integration: Direct navigation to journal lines, batch-level posting operations, template context filtering.
+/// Actions: Open journal lines, post batches, test reports, navigate to ledger entries and registers.
+/// </remarks>
 page 251 "General Journal Batches"
 {
     Caption = 'General Journal Batches';
@@ -225,14 +235,19 @@ page 251 "General Journal Batches"
                 RunObject = Report "Detail Trial Balance";
                 ToolTip = 'View detail general ledger account balances and activities.';
             }
+#if not CLEAN28
             action("Trial Balance")
             {
                 ApplicationArea = Suite;
-                Caption = 'Trial Balance';
+                Caption = 'Trial Balance (Obsolete)';
                 Image = "Report";
                 RunObject = Report "Trial Balance";
                 ToolTip = 'View general ledger account balances and activities.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report has been replaced by the report Trial Balance (Excel). This report will be removed in a future release.';
+                ObsoleteTag = '28.0';
             }
+#endif
             action("Trial Balance by Period")
             {
                 ApplicationArea = Basic, Suite;
@@ -296,9 +311,14 @@ page 251 "General Journal Batches"
                 actionref("Detail Trial Balance_Promoted"; "Detail Trial Balance")
                 {
                 }
+#if not CLEAN28
                 actionref("Trial Balance_Promoted"; "Trial Balance")
                 {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the report Trial Balance (Excel). This report will be removed in a future release.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
             }
         }
     }

@@ -13,18 +13,31 @@ using Microsoft.Intercompany.Dimension;
 using Microsoft.Intercompany.Partner;
 using System.Telemetry;
 
+/// <summary>
+/// Manages mapping and synchronization between intercompany accounts and local G/L accounts.
+/// Provides automated mapping capabilities, dimension synchronization, and account structure maintenance.
+/// </summary>
 codeunit 428 "IC Mapping"
 {
     trigger OnRun()
     begin
     end;
 
+    /// <summary>
+    /// Returns the telemetry feature name for intercompany functionality tracking.
+    /// </summary>
+    /// <returns>Feature name used for telemetry logging</returns>
     procedure GetFeatureTelemetryName(): Text
     begin
         exit('Intercompany');
     end;
 
     #region Mapping Accounts
+    /// <summary>
+    /// Maps multiple intercompany G/L accounts to corresponding local G/L accounts.
+    /// Creates automatic account mappings based on account number and type matching.
+    /// </summary>
+    /// <param name="ICAccounts">Intercompany G/L accounts to be mapped</param>
     procedure MapICAccounts(var ICAccounts: Record "IC G/L Account")
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -40,6 +53,11 @@ codeunit 428 "IC Mapping"
         until ICAccounts.Next() = 0;
     end;
 
+    /// <summary>
+    /// Maps multiple local G/L accounts to corresponding intercompany G/L accounts.
+    /// Updates local accounts with intercompany account references for transaction mapping.
+    /// </summary>
+    /// <param name="GLAccounts">Local G/L accounts to be mapped to intercompany accounts</param>
     procedure MapCompanyAccounts(var GLAccounts: Record "G/L Account")
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -56,6 +74,11 @@ codeunit 428 "IC Mapping"
         until GLAccounts.Next() = 0;
     end;
 
+    /// <summary>
+    /// Removes mapping references from multiple intercompany G/L accounts.
+    /// Clears the Map-to G/L Acc. No. field for specified intercompany accounts.
+    /// </summary>
+    /// <param name="ICAccounts">Intercompany G/L accounts to have mappings removed</param>
     procedure RemoveICMapping(var ICAccounts: Record "IC G/L Account")
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -72,6 +95,11 @@ codeunit 428 "IC Mapping"
         until ICAccounts.Next() = 0;
     end;
 
+    /// <summary>
+    /// Removes intercompany mapping references from multiple local G/L accounts.
+    /// Clears the Default IC Partner G/L Acc. No field for specified G/L accounts.
+    /// </summary>
+    /// <param name="GLAccounts">Local G/L accounts to have intercompany mappings removed</param>
     procedure RemoveCompanyMapping(var GLAccounts: Record "G/L Account")
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -88,6 +116,11 @@ codeunit 428 "IC Mapping"
         until GLAccounts.Next() = 0;
     end;
 
+    /// <summary>
+    /// Maps a single intercompany G/L account to corresponding local G/L account.
+    /// Creates mapping when account numbers and types match between intercompany and local accounts.
+    /// </summary>
+    /// <param name="ICAccount">Intercompany G/L account to be mapped</param>
     procedure MapAccounts(ICAccount: Record "IC G/L Account")
     var
         GLAccount: Record "G/L Account";
@@ -101,6 +134,11 @@ codeunit 428 "IC Mapping"
         end;
     end;
 
+    /// <summary>
+    /// Maps a single local G/L account to corresponding intercompany G/L account.
+    /// Creates mapping when account numbers and types match between local and intercompany accounts.
+    /// </summary>
+    /// <param name="GLAccount">Local G/L account to be mapped to intercompany account</param>
     procedure MapAccounts(GLAccount: Record "G/L Account")
     var
         ICAccount: Record "IC G/L Account";
@@ -114,6 +152,11 @@ codeunit 428 "IC Mapping"
         end;
     end;
 
+    /// <summary>
+    /// Removes mapping reference from a single intercompany G/L account.
+    /// Clears the Map-to G/L Acc. No. field if currently mapped.
+    /// </summary>
+    /// <param name="ICAccount">Intercompany G/L account to have mapping removed</param>
     procedure RemoveMapAccounts(ICAccount: Record "IC G/L Account")
     begin
         if ICAccount."Map-to G/L Acc. No." = '' then
@@ -122,6 +165,11 @@ codeunit 428 "IC Mapping"
         ICAccount.Modify();
     end;
 
+    /// <summary>
+    /// Removes intercompany mapping reference from a single local G/L account.
+    /// Clears the Default IC Partner G/L Acc. No field if currently mapped.
+    /// </summary>
+    /// <param name="GLAccount">Local G/L account to have intercompany mapping removed</param>
     procedure RemoveMapAccounts(GLAccount: Record "G/L Account")
     begin
         if GLAccount."Default IC Partner G/L Acc. No" = '' then
@@ -130,6 +178,12 @@ codeunit 428 "IC Mapping"
         GLAccount.Modify();
     end;
 
+    /// <summary>
+    /// Synchronizes intercompany G/L account structure with specified partner company.
+    /// Downloads partner's account structure and updates local intercompany chart of accounts.
+    /// </summary>
+    /// <param name="DeleteExistingEntries">Whether to delete existing IC accounts before synchronization</param>
+    /// <param name="PartnerCode">Intercompany partner code to synchronize with</param>
     procedure SynchronizeAccounts(DeleteExistingEntries: Boolean; PartnerCode: Code[20])
     var
         TempICPartnerAccount: Record "IC G/L Account" temporary;
@@ -211,6 +265,11 @@ codeunit 428 "IC Mapping"
     #endregion
 
     #region Mapping Dimensions
+    /// <summary>
+    /// Maps multiple intercompany dimensions to corresponding local dimensions.
+    /// Creates automatic dimension mappings based on dimension code matching.
+    /// </summary>
+    /// <param name="ICDimensions">Intercompany dimensions to be mapped</param>
     procedure MapICDimensions(var ICDimensions: Record "IC Dimension")
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -227,6 +286,11 @@ codeunit 428 "IC Mapping"
         until ICDimensions.Next() = 0;
     end;
 
+    /// <summary>
+    /// Maps multiple local dimensions to corresponding intercompany dimensions.
+    /// Updates local dimensions with intercompany dimension references for transaction mapping.
+    /// </summary>
+    /// <param name="Dimensions">Local dimensions to be mapped to intercompany dimensions</param>
     procedure MapCompanyDimensions(var Dimensions: Record Dimension)
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -243,6 +307,11 @@ codeunit 428 "IC Mapping"
         until Dimensions.Next() = 0;
     end;
 
+    /// <summary>
+    /// Removes mapping references from multiple intercompany dimensions.
+    /// Clears the Map-to Dimension Code field for specified intercompany dimensions.
+    /// </summary>
+    /// <param name="ICDimension">Intercompany dimensions to have mappings removed</param>
     procedure RemoveICMapping(var ICDimension: Record "IC Dimension")
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -259,6 +328,11 @@ codeunit 428 "IC Mapping"
         until ICDimension.Next() = 0;
     end;
 
+    /// <summary>
+    /// Removes intercompany mapping references from multiple local dimensions.
+    /// Clears the Map-to IC Dimension Code field for specified dimensions.
+    /// </summary>
+    /// <param name="Dimensions">Local dimensions to have intercompany mappings removed</param>
     procedure RemoveCompanyMapping(var Dimensions: Record Dimension)
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -275,6 +349,11 @@ codeunit 428 "IC Mapping"
         until Dimensions.Next() = 0;
     end;
 
+    /// <summary>
+    /// Maps multiple intercompany dimension values to corresponding local dimension values.
+    /// Creates automatic dimension value mappings based on dimension and value code matching.
+    /// </summary>
+    /// <param name="ICDimensionValues">Intercompany dimension values to be mapped</param>
     procedure MapICDimensionValues(var ICDimensionValues: Record "IC Dimension Value")
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -291,6 +370,11 @@ codeunit 428 "IC Mapping"
         until ICDimensionValues.Next() = 0;
     end;
 
+    /// <summary>
+    /// Maps multiple local dimension values to corresponding intercompany dimension values.
+    /// Updates local dimension values with intercompany references for transaction mapping.
+    /// </summary>
+    /// <param name="DimensionValues">Local dimension values to be mapped to intercompany dimension values</param>
     procedure MapCompanyDimensionValues(var DimensionValues: Record "Dimension Value")
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -307,6 +391,11 @@ codeunit 428 "IC Mapping"
         until DimensionValues.Next() = 0;
     end;
 
+    /// <summary>
+    /// Removes mapping references from multiple intercompany dimension values.
+    /// Clears mapping fields for specified intercompany dimension values.
+    /// </summary>
+    /// <param name="ICDimensionValue">Intercompany dimension values to have mappings removed</param>
     procedure RemoveICMapping(var ICDimensionValue: Record "IC Dimension Value")
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -324,6 +413,11 @@ codeunit 428 "IC Mapping"
         until ICDimensionValue.Next() = 0;
     end;
 
+    /// <summary>
+    /// Removes intercompany mapping references from multiple local dimension values.
+    /// Clears mapping fields for specified dimension values.
+    /// </summary>
+    /// <param name="DimensionValues">Local dimension values to have intercompany mappings removed</param>
     procedure RemoveCompanyMapping(var DimensionValues: Record "Dimension Value")
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -341,6 +435,11 @@ codeunit 428 "IC Mapping"
         until DimensionValues.Next() = 0;
     end;
 
+    /// <summary>
+    /// Maps a single incoming intercompany dimension to corresponding local dimension.
+    /// Creates mapping when dimension codes match between intercompany and local dimensions.
+    /// </summary>
+    /// <param name="ICDimension">Intercompany dimension to be mapped</param>
     procedure MapIncomingICDimensions(ICDimension: Record "IC Dimension")
     var
         Dimension: Record Dimension;
@@ -361,6 +460,11 @@ codeunit 428 "IC Mapping"
         end;
     end;
 
+    /// <summary>
+    /// Maps a single outgoing local dimension to corresponding intercompany dimension.
+    /// Creates mapping when dimension codes match between local and intercompany dimensions.
+    /// </summary>
+    /// <param name="Dimension">Local dimension to be mapped to intercompany dimension</param>
     procedure MapOutgoingICDimensions(Dimension: Record Dimension)
     var
         ICDimension: Record "IC Dimension";
@@ -380,6 +484,11 @@ codeunit 428 "IC Mapping"
         end;
     end;
 
+    /// <summary>
+    /// Maps incoming intercompany dimension values to corresponding local dimension values.
+    /// Creates mapping when dimension and value codes match with compatible types.
+    /// </summary>
+    /// <param name="ICDimensionValue">Intercompany dimension value to be mapped</param>
     procedure MapIncomingICDimensionValues(var ICDimensionValue: Record "IC Dimension Value")
     var
         DimensionValue: Record "Dimension Value";
@@ -396,6 +505,11 @@ codeunit 428 "IC Mapping"
         end;
     end;
 
+    /// <summary>
+    /// Maps outgoing local dimension values to corresponding intercompany dimension values.
+    /// Creates mapping when dimension and value codes match with compatible types.
+    /// </summary>
+    /// <param name="DimensionValue">Local dimension value to be mapped to intercompany dimension value</param>
     procedure MapOutgoingICDimensionValues(var DimensionValue: Record "Dimension Value")
     var
         ICDimensionValue: Record "IC Dimension Value";
@@ -412,6 +526,11 @@ codeunit 428 "IC Mapping"
         end;
     end;
 
+    /// <summary>
+    /// Removes mapping references from a single intercompany dimension and its dimension values.
+    /// Clears Map-to Dimension Code field and all related dimension value mappings.
+    /// </summary>
+    /// <param name="ICDimensions">Intercompany dimension to have mapping removed</param>
     procedure RemoveMapDimensions(ICDimensions: Record "IC Dimension")
     var
         ICDimensionValue: Record "IC Dimension Value";
@@ -432,6 +551,11 @@ codeunit 428 "IC Mapping"
         end;
     end;
 
+    /// <summary>
+    /// Removes intercompany mapping references from a single local dimension and its dimension values.
+    /// Clears Map-to IC Dimension Code field and all related dimension value mappings.
+    /// </summary>
+    /// <param name="CompanyDimension">Local dimension to have intercompany mapping removed</param>
     procedure RemoveMapDimensions(CompanyDimension: Record Dimension)
     var
         DimensionValue: Record "Dimension Value";
@@ -452,6 +576,11 @@ codeunit 428 "IC Mapping"
         end;
     end;
 
+    /// <summary>
+    /// Removes mapping reference from a single intercompany dimension value.
+    /// Clears the Map-to Dimension Value Code field if currently mapped.
+    /// </summary>
+    /// <param name="ICDimensionValues">Intercompany dimension value to have mapping removed</param>
     procedure RemoveMapDimensionValues(var ICDimensionValues: Record "IC Dimension Value")
     begin
         if ICDimensionValues."Map-to Dimension Value Code" = '' then
@@ -459,6 +588,11 @@ codeunit 428 "IC Mapping"
         Clear(ICDimensionValues."Map-to Dimension Value Code");
     end;
 
+    /// <summary>
+    /// Removes intercompany mapping reference from a single local dimension value.
+    /// Clears the Map-to IC Dimension Value Code field if currently mapped.
+    /// </summary>
+    /// <param name="CompanyDimensionValue">Local dimension value to have intercompany mapping removed</param>
     procedure RemoveMapDimensionValues(var CompanyDimensionValue: Record "Dimension Value")
     begin
         if CompanyDimensionValue."Map-to IC Dimension Value Code" = '' then
@@ -466,6 +600,12 @@ codeunit 428 "IC Mapping"
         Clear(CompanyDimensionValue."Map-to IC Dimension Value Code");
     end;
 
+    /// <summary>
+    /// Synchronizes intercompany dimension structure with specified partner company.
+    /// Downloads partner's dimension and dimension value structure for local synchronization.
+    /// </summary>
+    /// <param name="DeleteExistingEntries">Whether to delete existing IC dimensions before synchronization</param>
+    /// <param name="PartnerCode">Intercompany partner code to synchronize with</param>
     procedure SynchronizeDimensions(DeleteExistingEntries: Boolean; PartnerCode: Code[20])
     var
         TempPartnersICDimension: Record "IC Dimension" temporary;
@@ -652,16 +792,35 @@ codeunit 428 "IC Mapping"
         CopyInboxTypeNotDatabaseErr: Label 'Copy is only available for partners using database as their intercompany inbox type. Partner %1 inbox type is %2', Comment = '%1 = Partner code, %2 = Partner inbox type';
         NoBankAccountsWithICEnableMsg: Label 'The bank accounts for IC Partner %1 are not set up for intercompany copying. Enable bank accounts to be copied on IC Partner %1 by visiting the bank account card and selecting Enable for Intercompany transactions.', Comment = '%1 = Partner Code';
 
+    /// <summary>
+    /// Integration event raised before changing company context for IC account synchronization.
+    /// Allows external code to prevent company context changes during account synchronization.
+    /// </summary>
+    /// <param name="IsChangeCompanyAllowed">Set to false to prevent company context change</param>
+    /// <param name="TempPartnersICAccounts">Temporary IC accounts from partner company</param>
     [IntegrationEvent(false, false)]
     local procedure OnAllowChangeCompanyForTempICAccounts(var IsChangeCompanyAllowed: Boolean; var TempPartnersICAccounts: Record "IC G/L Account" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before changing company context for IC dimension synchronization.
+    /// Allows external code to prevent company context changes during dimension synchronization.
+    /// </summary>
+    /// <param name="IsChangeCompanyAllowed">Set to false to prevent company context change</param>
+    /// <param name="TempPartnersICDimensions">Temporary IC dimensions from partner company</param>
+    /// <param name="TempPartnersICDimensionValues">Temporary IC dimension values from partner company</param>
     [IntegrationEvent(false, false)]
     local procedure OnAllowChangeCompanyForTempICDimensions(var IsChangeCompanyAllowed: Boolean; var TempPartnersICDimensions: Record "IC Dimension" temporary; var TempPartnersICDimensionValues: Record "IC Dimension Value" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before changing company context for bank account copying.
+    /// Allows external code to prevent company context changes during bank account operations.
+    /// </summary>
+    /// <param name="IsChangeCompanyAllowed">Set to false to prevent company context change</param>
+    /// <param name="TempPartnersBankAccounts">Temporary bank accounts from partner company</param>
     [IntegrationEvent(false, false)]
     local procedure OnAllowChangeCompanyForTempBankAccounts(var IsChangeCompanyAllowed: Boolean; var TempPartnersBankAccounts: Record "Bank Account" temporary)
     begin

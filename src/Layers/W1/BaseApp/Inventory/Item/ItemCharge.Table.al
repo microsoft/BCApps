@@ -24,11 +24,13 @@ table 5800 "Item Charge"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            OptimizeForTextSearch = true;
             NotBlank = true;
         }
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            OptimizeForTextSearch = true;
 
             trigger OnValidate()
             begin
@@ -40,6 +42,7 @@ table 5800 "Item Charge"
         {
             Caption = 'Gen. Prod. Posting Group';
             TableRelation = "Gen. Product Posting Group";
+            OptimizeForTextSearch = true;
 
             trigger OnValidate()
             var
@@ -59,10 +62,12 @@ table 5800 "Item Charge"
         {
             Caption = 'VAT Prod. Posting Group';
             TableRelation = "VAT Product Posting Group";
+            OptimizeForTextSearch = true;
         }
         field(6; "Search Description"; Code[100])
         {
             Caption = 'Search Description';
+            OptimizeForTextSearch = true;
         }
         field(7; "Global Dimension 1 Code"; Code[20])
         {

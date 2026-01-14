@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Reconciliation;
 
+/// <summary>
+/// Configuration page for text-to-account mapping rules.
+/// Allows setup of automatic account assignment based on transaction text patterns.
+/// </summary>
 page 1251 "Text-to-Account Mapping"
 {
     AutoSplitKey = true;

@@ -6,6 +6,9 @@ namespace Microsoft.Finance.Dimension.Correction;
 
 using Microsoft.Finance.Dimension;
 
+/// <summary>
+/// List part page for managing dimension value changes within a dimension correction. Allows users to define specific dimension value transformations for the correction.
+/// </summary>
 page 2590 "Dimension Correction Changes"
 {
     PageType = ListPart;

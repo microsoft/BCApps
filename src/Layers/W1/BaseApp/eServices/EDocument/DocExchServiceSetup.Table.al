@@ -291,16 +291,6 @@ table 1275 "Doc. Exch. Service Setup"
 
         IsolatedStorageManagement.Set(Format("Client Secret Key"), ClientSecretText, DATASCOPE::Company);
     end;
-#if not CLEAN25
-
-    [Scope('OnPrem')]
-    [Obsolete('Replaced by GetClientSecretAsSecretText', '25.0')]
-    [NonDebuggable]
-    procedure GetClientSecret(): Text
-    begin
-        exit(GetClientSecretAsSecretText().Unwrap());
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure GetClientSecretAsSecretText(): SecretText
@@ -331,18 +321,6 @@ table 1275 "Doc. Exch. Service Setup"
 
         IsolatedStorageManagement.Delete(Format("Client Secret Key"), DATASCOPE::Company);
     end;
-#if not CLEAN25
-
-    [Scope('OnPrem')]
-    [Obsolete('Replaced by SetAccessToken(AccessToken: SecretText)', '25.0')]
-    procedure SetAccessToken(AccessToken: Text)
-    var
-        AccessTokenAsSecretText: SecretText;
-    begin
-        AccessTokenAsSecretText := AccessToken;
-        SetAccessToken(AccessTokenAsSecretText);
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure SetAccessToken(AccessToken: SecretText)
@@ -364,16 +342,6 @@ table 1275 "Doc. Exch. Service Setup"
 
         SetToken("Access Token Key", AccessToken);
     end;
-#if not CLEAN25
-
-    [Scope('OnPrem')]
-    [NonDebuggable]
-    [Obsolete('Replaced by GetAccessTokenAsSecretText', '25.0')]
-    procedure GetAccessToken(): Text
-    begin
-        exit(GetAccessTokenAsSecretText().Unwrap());
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure GetAccessTokenAsSecretText(): SecretText
@@ -403,18 +371,6 @@ table 1275 "Doc. Exch. Service Setup"
 
         DeleteToken("Access Token Key");
     end;
-#if not CLEAN25
-
-    [Obsolete('Replaced by SetRefreshToken(RefreshToken: SecretText)', '25.0')]
-    [Scope('OnPrem')]
-    procedure SetRefreshToken(RefreshToken: Text)
-    var
-        RefreshTokenAsSecretText: SecretText;
-    begin
-        RefreshTokenAsSecretText := RefreshToken;
-        SetRefreshToken(RefreshTokenAsSecretText);
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure SetRefreshToken(RefreshToken: SecretText)
@@ -436,16 +392,6 @@ table 1275 "Doc. Exch. Service Setup"
 
         SetToken("Refresh Token Key", RefreshToken);
     end;
-#if not CLEAN25
-
-    [Scope('OnPrem')]
-    [NonDebuggable]
-    [Obsolete('Replaced by GetRefreshTokenAsSecretText', '25.0')]
-    procedure GetRefreshToken(): Text
-    begin
-        exit(GetRefreshTokenAsSecretText().Unwrap())
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure GetRefreshTokenAsSecretText(): SecretText
@@ -697,4 +643,3 @@ table 1275 "Doc. Exch. Service Setup"
     begin
     end;
 }
-

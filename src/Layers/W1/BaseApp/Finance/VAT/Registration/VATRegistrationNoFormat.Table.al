@@ -10,6 +10,10 @@ using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 
+/// <summary>
+/// Defines country-specific VAT registration number formats for validation and duplicate checking.
+/// Provides pattern matching capabilities and business rules enforcement for VAT numbers across different jurisdictions.
+/// </summary>
 table 381 "VAT Registration No. Format"
 {
     Caption = 'VAT Registration No. Format';
@@ -17,6 +21,9 @@ table 381 "VAT Registration No. Format"
 
     fields
     {
+        /// <summary>
+        /// Country or region code that determines the applicable VAT registration number format rules.
+        /// </summary>
         field(1; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';
@@ -25,10 +32,16 @@ table 381 "VAT Registration No. Format"
             TableRelation = "Country/Region";
             ToolTip = 'Specifies the country/region of the address.';
         }
+        /// <summary>
+        /// Line number for multiple format definitions within the same country/region.
+        /// </summary>
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
         }
+        /// <summary>
+        /// Pattern definition for valid VAT registration number format using # for digits, @ for letters, and ? for any character.
+        /// </summary>
         field(3; Format; Text[20])
         {
             Caption = 'Format';
@@ -61,6 +74,14 @@ table 381 "VAT Registration No. Format"
 #pragma warning restore AA0074
         VATRegistrationNumberErr: Label 'The entered VAT Registration number for %1 %2 is not in agreement with the format specified for Country/Region Code %3.\', Comment = '%1 - Record Type, %2 - Record No., %3 - Country Region Code';
 
+    /// <summary>
+    /// Validates VAT registration number format and checks for duplicates across customer, vendor, and contact records.
+    /// </summary>
+    /// <param name="VATRegNo">VAT registration number to validate</param>
+    /// <param name="CountryCode">Country/region code for format validation</param>
+    /// <param name="Number">Record number to exclude from duplicate checking</param>
+    /// <param name="TableID">Table identifier for record type validation</param>
+    /// <returns>True if validation passes, otherwise triggers error</returns>
     procedure Test(VATRegNo: Text[20]; CountryCode: Code[10]; Number: Code[20]; TableID: Option): Boolean
     var
         CompanyInfo: Record "Company Information";
@@ -248,6 +269,12 @@ table 381 "VAT Registration No. Format"
             Message(StrSubstNo(Text004, TextString));
     end;
 
+    /// <summary>
+    /// Compares VAT registration number against specified format pattern using wildcard matching.
+    /// </summary>
+    /// <param name="VATRegNo">VAT registration number to validate</param>
+    /// <param name="Format">Format pattern with # for digits, @ for letters, ? for any character</param>
+    /// <returns>True if VAT number matches the format pattern</returns>
     procedure Compare(VATRegNo: Text[20]; Format: Text[20]): Boolean
     var
         i: Integer;
@@ -293,66 +320,147 @@ table 381 "VAT Registration No. Format"
         end;
     end;
 
+    /// <summary>
+    /// Integration event raised before validating customer VAT registration number for duplicates.
+    /// </summary>
+    /// <param name="VATRegNo">VAT registration number being validated</param>
+    /// <param name="Number">Customer number to exclude from validation</param>
+    /// <param name="IsHandled">Set to true to skip standard validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckCust(VATRegNo: Text[20]; Number: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before displaying customer VAT registration number duplicate warning message.
+    /// </summary>
+    /// <param name="TextString">Message text to display</param>
+    /// <param name="IsHandled">Set to true to skip standard message display</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowCheckCustMessage(TextString: Text; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before displaying vendor VAT registration number duplicate warning message.
+    /// </summary>
+    /// <param name="TextString">Message text to display</param>
+    /// <param name="IsHandled">Set to true to skip standard message display</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowCheckVendMessage(TextString: Text; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating vendor VAT registration number for duplicates.
+    /// </summary>
+    /// <param name="VATRegNo">VAT registration number being validated</param>
+    /// <param name="Number">Vendor number to exclude from validation</param>
+    /// <param name="IsHandled">Set to true to skip standard validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckVend(VATRegNo: Text[20]; Number: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating contact VAT registration number for duplicates.
+    /// </summary>
+    /// <param name="VATRegNo">VAT registration number being validated</param>
+    /// <param name="Number">Contact number to exclude from validation</param>
+    /// <param name="IsHandled">Set to true to skip standard validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckContact(VATRegNo: Text[20]; Number: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before VAT registration number format validation begins.
+    /// </summary>
+    /// <param name="VATRegNo">VAT registration number to validate</param>
+    /// <param name="CountryCode">Country/region code for format validation</param>
+    /// <param name="Number">Record number being validated</param>
+    /// <param name="TableID">Table identifier for record type</param>
+    /// <param name="Check">Validation result flag</param>
+    /// <param name="IsHandled">Set to true to skip standard validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTest(VATRegNo: Text[20]; CountryCode: Code[10]; Number: Code[20]; TableID: Option; Check: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before contact VAT registration number duplicate validation.
+    /// </summary>
+    /// <param name="VATRegNo">VAT registration number being validated</param>
+    /// <param name="Number">Contact number being validated</param>
+    /// <param name="TextString">Message text for duplicate entries</param>
+    /// <param name="Check">Validation result flag</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckContactOnBeforeCheck(VATRegNo: Text[20]; Number: Code[20]; TextString: Text; var Check: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before customer record filtering for VAT registration number duplicate checking.
+    /// </summary>
+    /// <param name="Customer">Customer record with applied filters for validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckCustOnBeforeCustFindSet(var Customer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before customer VAT registration number duplicate validation.
+    /// </summary>
+    /// <param name="VATRegNo">VAT registration number being validated</param>
+    /// <param name="Number">Customer number being validated</param>
+    /// <param name="TextString">Message text for duplicate entries</param>
+    /// <param name="Check">Validation result flag</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckCustOnBeforeCheck(VATRegNo: Text[20]; Number: Code[20]; TextString: Text; var Check: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before vendor record filtering for VAT registration number duplicate checking.
+    /// </summary>
+    /// <param name="Vendor">Vendor record with applied filters for validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckVendOnBeforeVendFindSet(var Vendor: Record Vendor)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before vendor VAT registration number duplicate validation.
+    /// </summary>
+    /// <param name="VATRegNo">VAT registration number being validated</param>
+    /// <param name="Number">Vendor number being validated</param>
+    /// <param name="TextString">Message text for duplicate entries</param>
+    /// <param name="Check">Validation result flag</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckVendorOnBeforeCheck(VATRegNo: Text[20]; Number: Code[20]; TextString: Text; var Check: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised during VAT registration number validation for custom table types.
+    /// </summary>
+    /// <param name="VATRegNo">VAT registration number being validated</param>
+    /// <param name="CountryCode">Country/region code for format validation</param>
+    /// <param name="Number">Record number being validated</param>
+    /// <param name="TableID">Table identifier for custom record type</param>
     [IntegrationEvent(false, false)]
     local procedure OnTestTable(VATRegNo: Text[20]; CountryCode: Code[10]; Number: Code[20]; TableID: Option)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised to construct custom error message for VAT registration number validation failures.
+    /// </summary>
+    /// <param name="ErrorMessageLbl">Base error message label</param>
+    /// <param name="Number">Record number being validated</param>
+    /// <param name="TableID">Table identifier for record type</param>
+    /// <param name="ErrorMsg">Constructed error message</param>
+    /// <param name="IsHandled">Set to true if custom error message is provided</param>
     [IntegrationEvent(false, false)]
     local procedure OnConstructErrorMessageIfNotCheck(ErrorMessageLbl: Text; Number: Code[20]; TableID: Option; var ErrorMsg: Text; var IsHandled: Boolean)
     begin

@@ -1,8 +1,8 @@
 namespace System.IO;
 
-using System.Reflection;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
+using System.Reflection;
 
 codeunit 8612 "Config. Template Management"
 {
@@ -63,15 +63,12 @@ codeunit 8612 "Config. Template Management"
     var
         ConfigTemplateLine: Record "Config. Template Line";
         ConfigTemplateHeader2: Record "Config. Template Header";
-#if CLEAN25
         ConfigValidateMgt: Codeunit "Config. Validate Management";
-#endif
         FieldRef: FieldRef;
         RecRef2: RecordRef;
         SkipCurrentField: Boolean;
         FieldIsModified: Boolean;
         IsHandled: Boolean;
-        IsNotSkipped: Boolean;
     begin
         OnBeforeInsertTemplate(ConfigTemplateLine, ConfigTemplateHeader);
         ConfigTemplateLine.SetRange("Data Template Code", ConfigTemplateHeader.Code);
@@ -91,12 +88,8 @@ codeunit 8612 "Config. Template Management"
                                 IsHandled := false;
                                 OnInsertTemplateBeforeValidateFieldValue(RecRef, FieldRef, ConfigTemplateLine."Default Value", ConfigTemplateLine."Language ID", IsHandled, ConfigTemplateLine);
                                 if not IsHandled then begin
-#if CLEAN25
-                                    ConfigValidateMgt.ValidateFieldValue(RecRef, FieldRef, ConfigTemplateLine."Default Value", false, ConfigTemplateLine."Language ID");                                    
-#else
-                                    IsNotSkipped := ValidateFieldValue(RecRef, FieldRef, ConfigTemplateLine);
-#endif
-                                    FieldIsModified := IsNotSkipped or FieldIsModified;
+                                    ConfigValidateMgt.ValidateFieldValue(RecRef, FieldRef, ConfigTemplateLine."Default Value", false, ConfigTemplateLine."Language ID");
+                                    FieldIsModified := true;
                                 end;
                             end;
                         end;
@@ -152,21 +145,6 @@ codeunit 8612 "Config. Template Management"
         exit(true);
     end;
 
-#if not CLEAN25
-    local procedure ValidateFieldValue(var RecRef: RecordRef; FieldRef: FieldRef; ConfigTemplateLine: Record "Config. Template Line"): Boolean
-    var
-        ConfigValidateMgt: Codeunit "Config. Validate Management";
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeModifyRecordWithField(RecRef, FieldRef, ConfigTemplateLine."Default Value", ConfigTemplateLine."Language ID", IsHandled, ConfigTemplateLine);
-        if IsHandled then
-            exit(false);
-
-        ConfigValidateMgt.ValidateFieldValue(RecRef, FieldRef, ConfigTemplateLine."Default Value", false, ConfigTemplateLine."Language ID");
-        exit(true);
-    end;
-#endif
 
     local procedure TestKeyFields(var RecRef: RecordRef; ConfigTemplateHeader: Record "Config. Template Header") Result: Boolean
     var
@@ -645,13 +623,6 @@ codeunit 8612 "Config. Template Management"
     begin
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by event OnInsertTemplateBeforeValidateFieldValue', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeModifyRecordWithField(var RecRef: RecordRef; FieldRef: FieldRef; Value: Text[2048]; LanguageID: Integer; var IsHandled: Boolean; ConfigTemplateLine: Record "Config. Template Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnInsertTemplateBeforeValidateFieldValue(var RecRef: RecordRef; FieldRef: FieldRef; Value: Text[2048]; LanguageID: Integer; var IsHandled: Boolean; ConfigTemplateLine: Record "Config. Template Line")
@@ -703,4 +674,3 @@ codeunit 8612 "Config. Template Management"
     begin
     end;
 }
-

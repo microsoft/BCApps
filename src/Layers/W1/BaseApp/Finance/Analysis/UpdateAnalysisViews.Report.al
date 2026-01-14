@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Analysis;
 
+/// <summary>
+/// Batch report for updating analysis views with G/L entry and budget data aggregation.
+/// Provides options to reset analysis views and rebuild all analysis view entries from source transactions.
+/// </summary>
 report 84 "Update Analysis Views"
 {
     ApplicationArea = Dimensions;

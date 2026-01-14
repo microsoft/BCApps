@@ -411,6 +411,8 @@ codeunit 905 "Assembly Line Management"
     end;
 
     local procedure PreCheckAndConfirmUpdate(AsmHeader: Record "Assembly Header"; OldAsmHeader: Record "Assembly Header"; FieldNum: Integer; var ReplaceLinesFromBOM: Boolean; var TempAssemblyLine: Record "Assembly Line" temporary; var UpdateDueDate: Boolean; var UpdateLocation: Boolean; var UpdateQuantity: Boolean; var UpdateUOM: Boolean; var UpdateQtyToConsume: Boolean; var UpdateDimension: Boolean): Boolean
+    var
+        SkipReplaceLinesConfirmation: Boolean;
     begin
         UpdateDueDate := false;
         UpdateLocation := false;
@@ -467,9 +469,13 @@ codeunit 905 "Assembly Line Management"
             else
                 if CalledFromRefreshBOM(ReplaceLinesFromBOM, FieldNum) then
                     if LinesExist(AsmHeader) then
-                        if GuiAllowed then
-                            if not Confirm(Text004, false) then
-                                ReplaceLinesFromBOM := false;
+                        if GuiAllowed then begin
+                            SkipReplaceLinesConfirmation := false;
+                            OnPreCheckAndConfirmUpdateOnElseOnBeforeResetLinesConfirmDialog(AsmHeader, OldAsmHeader, FieldNum, ReplaceLinesFromBOM, SkipReplaceLinesConfirmation);
+                            if not SkipReplaceLinesConfirmation then
+                                if not Confirm(Text004, false) then
+                                    ReplaceLinesFromBOM := false;
+                        end;
         end;
 
         if not (UpdateDueDate or UpdateLocation or UpdateQuantity or UpdateUOM or UpdateQtyToConsume or UpdateDimension) and
@@ -1099,6 +1105,11 @@ codeunit 905 "Assembly Line Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowDueDateBeforeWorkDateMsg(ActualLineDueDate: Date; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPreCheckAndConfirmUpdateOnElseOnBeforeResetLinesConfirmDialog(var AssemblyHeader: Record "Assembly Header"; OldAssemblyHeader: Record "Assembly Header"; FieldNum: Integer; var ReplaceLinesFromBOM: Boolean; var SkipReplaceLinesConfirmation: Boolean)
     begin
     end;
 }

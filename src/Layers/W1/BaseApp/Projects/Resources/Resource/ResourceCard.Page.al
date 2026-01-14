@@ -254,19 +254,6 @@ page 76 "Resource Card"
                 ApplicationArea = Jobs;
                 SubPageLink = "No." = field("No.");
             }
-#if not CLEAN25
-            part("Attached Documents"; "Document Attachment Factbox")
-            {
-                ObsoleteTag = '25.0';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The "Document Attachment FactBox" has been replaced by "Doc. Attachment List Factbox", which supports multiple files upload.';
-                ApplicationArea = All;
-                Visible = false;
-                Caption = 'Attachments';
-                SubPageLink = "Table ID" = const(Database::Resource),
-                              "No." = field("No.");
-            }
-#endif
             part("Attached Documents List"; "Doc. Attachment List Factbox")
             {
                 ApplicationArea = All;
@@ -280,9 +267,6 @@ page 76 "Resource Card"
                 ApplicationArea = Jobs;
                 SubPageLink = "No." = field("No."),
                               "Unit of Measure Filter" = field("Unit of Measure Filter"),
-#if not CLEAN25
-                              "Service Zone Filter" = field("Service Zone Filter"),
-#endif
                               "Chargeable Filter" = field("Chargeable Filter");
                 Visible = true;
             }
@@ -360,15 +344,6 @@ page 76 "Resource Card"
                     RunPageLink = "Resource No." = field("No.");
                     ToolTip = 'View or edit the units of measure that are set up for the resource.';
                 }
-#if not CLEAN25
-                separator(Action34)
-                {
-                    Caption = '';
-                    ObsoleteReason = 'Not used.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-                }
-#endif
                 action("Co&mments")
                 {
                     ApplicationArea = Comments;
@@ -507,152 +482,6 @@ page 76 "Resource Card"
                     end;
                 }
             }
-#if not CLEAN25
-            group(ActionGroupFS)
-            {
-                Caption = 'Dynamics 365 Field Service';
-                Visible = false;
-                ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                ObsoleteState = Pending;
-                ObsoleteTag = '25.0';
-
-                action(FSGoToProduct)
-                {
-                    ApplicationArea = Suite;
-                    Caption = 'Bookable Resource';
-                    Image = CoupledItem;
-                    ToolTip = 'Open the coupled Dynamics 365 Field Service bookable resource.';
-                    ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-
-                    trigger OnAction()
-                    var
-                        CRMIntegrationManagement: Codeunit "CRM Integration Management";
-                    begin
-                        CRMIntegrationManagement.ShowCRMEntityFromRecordID(Rec.RecordId);
-                    end;
-                }
-                action(FSSynchronizeNow)
-                {
-                    AccessByPermission = TableData "CRM Integration Record" = IM;
-                    ApplicationArea = Suite;
-                    Caption = 'Synchronize';
-                    Image = Refresh;
-                    ToolTip = 'Send updated data to Dynamics 365 Sales.';
-                    ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-
-                    trigger OnAction()
-                    var
-                        Resource: Record Resource;
-                        CRMIntegrationManagement: Codeunit "CRM Integration Management";
-                        ResourceRecordRef: RecordRef;
-                    begin
-                        CurrPage.SetSelectionFilter(Resource);
-                        Resource.Next();
-
-                        if Resource.Count = 1 then
-                            CRMIntegrationManagement.UpdateOneNow(Resource.RecordId)
-                        else begin
-                            ResourceRecordRef.GetTable(Resource);
-                            CRMIntegrationManagement.UpdateMultipleNow(ResourceRecordRef);
-                        end
-                    end;
-                }
-                group(FSCoupling)
-                {
-                    Caption = 'Coupling', Comment = 'Coupling is a noun';
-                    Image = LinkAccount;
-                    ToolTip = 'Create, change, or delete a coupling between the Business Central record and a Dynamics 365 Sales record.';
-                    ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-
-                    action(ManageFSCoupling)
-                    {
-                        AccessByPermission = TableData "CRM Integration Record" = IM;
-                        ApplicationArea = Suite;
-                        Caption = 'Set Up Coupling';
-                        Image = LinkAccount;
-                        ToolTip = 'Create or modify the coupling to a Dynamics 365 Sales product.';
-                        ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                        ObsoleteState = Pending;
-                        ObsoleteTag = '25.0';
-
-                        trigger OnAction()
-                        var
-                            CRMIntegrationManagement: Codeunit "CRM Integration Management";
-                        begin
-                            CRMIntegrationManagement.DefineCoupling(Rec.RecordId);
-                        end;
-                    }
-                    action(MatchBasedCouplingFS)
-                    {
-                        AccessByPermission = TableData "CRM Integration Record" = IM;
-                        ApplicationArea = Suite;
-                        Caption = 'Match-Based Coupling';
-                        Image = CoupledItem;
-                        ToolTip = 'Couple resources to products in Dynamics 365 Sales based on matching criteria.';
-                        ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                        ObsoleteState = Pending;
-                        ObsoleteTag = '25.0';
-
-                        trigger OnAction()
-                        var
-                            Resource: Record Resource;
-                            CRMIntegrationManagement: Codeunit "CRM Integration Management";
-                            RecRef: RecordRef;
-                        begin
-                            CurrPage.SetSelectionFilter(Resource);
-                            RecRef.GetTable(Resource);
-                            CRMIntegrationManagement.MatchBasedCoupling(RecRef);
-                        end;
-                    }
-                    action(DeleteFSCoupling)
-                    {
-                        AccessByPermission = TableData "CRM Integration Record" = D;
-                        ApplicationArea = Suite;
-                        Caption = 'Delete Coupling';
-                        Enabled = CRMIsCoupledToRecord;
-                        Image = UnLinkAccount;
-                        ToolTip = 'Delete the coupling to a Dynamics 365 Sales product.';
-                        ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                        ObsoleteState = Pending;
-                        ObsoleteTag = '25.0';
-
-                        trigger OnAction()
-                        var
-                            Resource: Record Resource;
-                            CRMCouplingManagement: Codeunit "CRM Coupling Management";
-                            RecRef: RecordRef;
-                        begin
-                            CurrPage.SetSelectionFilter(Resource);
-                            RecRef.GetTable(Resource);
-                            CRMCouplingManagement.RemoveCoupling(RecRef);
-                        end;
-                    }
-                }
-                action(ShowLogFS)
-                {
-                    ApplicationArea = Suite;
-                    Caption = 'Synchronization Log';
-                    Image = Log;
-                    ToolTip = 'View integration synchronization jobs for the resource table.';
-                    ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-
-                    trigger OnAction()
-                    var
-                        CRMIntegrationManagement: Codeunit "CRM Integration Management";
-                    begin
-                        CRMIntegrationManagement.ShowLog(Rec.RecordId);
-                    end;
-                }
-            }
-#endif
             group("&Prices")
             {
                 Caption = '&Prices';
@@ -893,68 +722,6 @@ page 76 "Resource Card"
                 {
                 }
             }
-#if not CLEAN25
-            group(Category_Synchronize_FS)
-            {
-                Caption = 'Synchronize';
-                Visible = false;
-                ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                ObsoleteState = Pending;
-                ObsoleteTag = '25.0';
-
-                group(Category_Coupling_FS)
-                {
-                    Caption = 'Coupling';
-                    ShowAs = SplitButton;
-                    ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-
-                    actionref(ManageFSCoupling_Promoted; ManageFSCoupling)
-                    {
-                        ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                        ObsoleteState = Pending;
-                        ObsoleteTag = '25.0';
-                    }
-                    actionref(DeleteFSCoupling_Promoted; DeleteFSCoupling)
-                    {
-                        ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                        ObsoleteState = Pending;
-                        ObsoleteTag = '25.0';
-                    }
-                    actionref(MatchBasedCouplingFS_Promoted; MatchBasedCouplingFS)
-                    {
-                        ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                        ObsoleteState = Pending;
-                        ObsoleteTag = '25.0';
-                    }
-                }
-                actionref(FSSynchronizeNow_Promoted; FSSynchronizeNow)
-                {
-                    ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-                }
-                actionref(FSGoToProduct_Promoted; FSGoToProduct)
-                {
-                    ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-                }
-                actionref(ShowLogFS_Promoted; ShowLogFS)
-                {
-                    ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-                }
-                actionref("Unit Group_Promoted_FS"; "Unit Group")
-                {
-                    ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-                }
-            }
-#endif
             group(Category_Synchronize)
             {
                 Caption = 'Synchronize';
@@ -1029,4 +796,3 @@ page 76 "Resource Card"
         NoFieldVisible := DocumentNoVisibility.ResourceNoIsVisible();
     end;
 }
-

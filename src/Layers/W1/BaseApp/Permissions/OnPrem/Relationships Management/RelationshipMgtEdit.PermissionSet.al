@@ -1,12 +1,12 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.CRM.Interaction;
 using Microsoft.CRM.Campaign;
-using Microsoft.CRM.Duplicates;
 using Microsoft.CRM.Contact;
-using Microsoft.CRM.Profiling;
-using Microsoft.CRM.Outlook;
+using Microsoft.CRM.Duplicates;
+using Microsoft.CRM.Interaction;
 using Microsoft.CRM.Opportunity;
+using Microsoft.CRM.Outlook;
+using Microsoft.CRM.Profiling;
 using Microsoft.CRM.Task;
 
 permissionset 2398 "Relationship Mgt - Edit"

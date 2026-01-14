@@ -4,6 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Manages global dimension change operations with configuration and processing control.
+/// Provides interface for setting up and executing changes to global dimension assignments across all data.
+/// </summary>
+/// <remarks>
+/// Coordinates complex global dimension changes through job queue processing with progress monitoring.
+/// Supports parallel processing options and validation of dimension change feasibility before execution.
+/// </remarks>
 page 577 "Change Global Dimensions"
 {
     Caption = 'Change Global Dimensions';

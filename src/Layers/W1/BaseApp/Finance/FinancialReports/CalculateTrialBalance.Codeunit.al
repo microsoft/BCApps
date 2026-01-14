@@ -7,6 +7,15 @@ namespace Microsoft.Finance.FinancialReports;
 using Microsoft.Foundation.Period;
 using System.Environment;
 
+/// <summary>
+/// Handles trial balance calculation and data processing for financial reporting.
+/// Provides calculation engine for generating trial balance data with period comparison capabilities.
+/// </summary>
+/// <remarks>
+/// Core calculation engine for trial balance functionality. Processes general ledger data
+/// through account schedule framework to generate period-based trial balance information.
+/// Supports comparative analysis and integrates with trial balance management system.
+/// </remarks>
 codeunit 1391 "Calculate Trial Balance"
 {
     var

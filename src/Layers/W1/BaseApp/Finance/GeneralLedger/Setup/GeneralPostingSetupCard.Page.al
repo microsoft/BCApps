@@ -6,6 +6,15 @@ namespace Microsoft.Finance.GeneralLedger.Setup;
 
 using System.Telemetry;
 
+/// <summary>
+/// Card page for configuring General Posting Setup records that define G/L account assignments for business and product posting group combinations.
+/// Controls account mappings for sales, purchases, cost of goods sold, inventory adjustments, and manufacturing transactions.
+/// </summary>
+/// <remarks>
+/// Key functionality: G/L account setup for automated posting, VAT integration, show/hide account options.
+/// Used extensively in sales, purchase, inventory, and manufacturing posting processes.
+/// Critical for ensuring proper G/L account assignments across all business transactions.
+/// </remarks>
 page 395 "General Posting Setup Card"
 {
     Caption = 'General Posting Setup Card';

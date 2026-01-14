@@ -8,6 +8,15 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Ledger;
 using Microsoft.Finance.GeneralLedger.Ledger;
 
+/// <summary>
+/// Generates detailed register of bank account ledger entries organized by G/L register numbers.
+/// Displays bank transactions with posting details, amounts, and optional LCY conversion.
+/// </summary>
+/// <remarks>
+/// Data Sources: G/L Register, Bank Account Ledger Entry. 
+/// Features: Register-based grouping, currency display options, entry-level detail reporting.
+/// Usage: Transaction auditing, register verification, detailed bank account activity analysis.
+/// </remarks>
 report 1403 "Bank Account Register"
 {
     DefaultLayout = RDLC;

@@ -834,13 +834,13 @@ page 286 "Recurring Item Jnl."
         ItemJnlMgt: Codeunit ItemJnlManagement;
         ReportPrint: Codeunit "Test Report-Print";
         ItemAvailFormsMgt: Codeunit "Item Availability Forms Mgt";
-        CurrentJnlBatchName: Code[10];
         ItemDescription: Text[100];
 
     protected var
         EntryType: Enum "Item Journal Entry Type";
         ShortcutDimCode: array[8] of Code[20];
         NewShortcutDimCode: array[8] of Code[20];
+        CurrentJnlBatchName: Code[10];
 
     local procedure CurrentJnlBatchNameOnAfterVali()
     begin

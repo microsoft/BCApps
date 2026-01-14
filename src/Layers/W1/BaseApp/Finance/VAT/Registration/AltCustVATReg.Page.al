@@ -6,6 +6,10 @@ namespace Microsoft.Finance.VAT.Registration;
 
 using System.Telemetry;
 
+/// <summary>
+/// Provides interface for managing alternative customer VAT registration numbers for multi-country business scenarios.
+/// Enables configuration of country-specific VAT registrations and associated posting groups.
+/// </summary>
 page 212 "Alt. Cust. VAT Reg."
 {
     Caption = 'Alternative Customer VAT Registration';

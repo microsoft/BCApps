@@ -6,13 +6,14 @@ namespace Microsoft.eServices.EDocument.Processing.AI;
 
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.Finance.AllocationAccount;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
-using System.AI;
 using Microsoft.Purchases.Vendor;
+using System.AI;
 using System.Azure.KeyVault;
-using System.Telemetry;
 using System.Config;
+using System.Telemetry;
 
 codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISystem
 {
@@ -177,6 +178,7 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
     local procedure LoadHistoricalDataIntoTempTable(var TempPurchInvLine: Record "Purch. Inv. Line" temporary; VendorNo: Code[20]; HistoricalMatchingConfig: Text)
     var
         PurchInvLine: Record "Purch. Inv. Line";
+        AllocationAccount: Record "Allocation Account";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         OneYearAgoDate: Date;
         RecordCount: Integer;
@@ -202,6 +204,9 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
             TempPurchInvLine.Copy(PurchInvLine);
             repeat
                 TempPurchInvLine := PurchInvLine;
+                if TempPurchInvLine."Allocation Account No." <> '' then
+                    if AllocationAccount.Get(TempPurchInvLine."Allocation Account No.") then
+                        TempPurchInvLine.Description := AllocationAccount.Name;
                 TempPurchInvLine.Insert();
                 RecordCount += 1;
             until (PurchInvLine.Next() = 0) or (RecordCount >= MaxHistoricalRecords);
@@ -581,16 +586,21 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
     procedure GetSystemPrompt(UserLanguage: Text): SecretText
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
-        EDocumentAIProcessor: Codeunit "E-Doc. AI Tool Processor";
-        PromptSecretText: SecretText;
-        PromptSecretNameTok: Label 'EDocHistoricalMatching-SystemPrompt', Locked = true;
+        SecurityPromptSecretText, CompletePromptSecretText : SecretText;
+        EDocHistoricalMatchingPromptText: Text;
+        EDocHistoricalMatchingPromptTok: Label 'Prompts/EDocHistoricalMatching-SystemPrompt.md', Locked = true;
+        SecurityPromptTok: Label 'EDocHistoricalMatching-SecurityPrompt', Locked = true;
     begin
-        if not AzureKeyVault.GetAzureKeyVaultSecret(PromptSecretNameTok, PromptSecretText) then
-            PromptSecretText := SecretStrSubstNo('');
-
-        PromptSecretText := EDocumentAIProcessor.SetLanguageInPrompt(PromptSecretText, UserLanguage);
-        exit(PromptSecretText);
+        EDocHistoricalMatchingPromptText := NavApp.GetResourceAsText(EDocHistoricalMatchingPromptTok, TextEncoding::UTF8);
+        if AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptTok, SecurityPromptSecretText) then
+            CompletePromptSecretText := SecretText.SecretStrSubstNo(EDocHistoricalMatchingPromptText, SecurityPromptSecretText, UserLanguage)
+        else begin
+            Session.LogMessage('0000QQ0', 'Failed to retrieve security prompt', Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', GetFeatureName());
+            CompletePromptSecretText := SecretStrSubstNo('');
+        end;
+        exit(CompletePromptSecretText);
     end;
+
 
     procedure GetTools(): List of [Interface "AOAI Function"]
     var

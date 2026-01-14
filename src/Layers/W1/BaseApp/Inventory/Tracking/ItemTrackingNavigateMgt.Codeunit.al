@@ -22,8 +22,8 @@ using Microsoft.Warehouse.Activity.History;
 using Microsoft.Warehouse.History;
 using Microsoft.Warehouse.InventoryDocument;
 using Microsoft.Warehouse.Ledger;
-using System.Reflection;
 using System.IO;
+using System.Reflection;
 
 codeunit 6529 "Item Tracking Navigate Mgt."
 {

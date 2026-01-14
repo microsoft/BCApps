@@ -1,25 +1,25 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.Sales.FinanceCharge;
-using Microsoft.HumanResources.Employee;
-using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Inventory.Item;
 using Microsoft.Bank.BankAccount;
+using Microsoft.CRM.Team;
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.SalesTax;
+using Microsoft.Finance.VAT.RateChange;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.Calendar;
 using Microsoft.Foundation.PaymentTerms;
-using Microsoft.Purchases.Setup;
+using Microsoft.Foundation.Reporting;
+using Microsoft.Foundation.Shipping;
+using Microsoft.HumanResources.Employee;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Purchases.Document;
-using Microsoft.Finance.SalesTax;
+using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
-using Microsoft.Foundation.Calendar;
-using Microsoft.Foundation.AuditCodes;
-using Microsoft.Foundation.Reporting;
-using Microsoft.CRM.Team;
-using Microsoft.Foundation.Shipping;
-using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.VAT.RateChange;
+using Microsoft.Sales.FinanceCharge;
 
 permissionset 6092 "Payables - Admin"
 {

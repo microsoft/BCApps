@@ -6,6 +6,10 @@ namespace Microsoft.Intercompany.Inbox;
 
 using Microsoft.Intercompany.Dimension;
 
+/// <summary>
+/// Document page for viewing and analyzing handled intercompany inbox sales documents.
+/// Displays complete sales document information including header details, lines, and dimensions for processed transactions.
+/// </summary>
 page 648 "Handled IC Inbox Sales Doc."
 {
     Caption = 'Handled IC Inbox Sales Doc.';

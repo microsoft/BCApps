@@ -5,8 +5,8 @@
 namespace Microsoft.Sales.History;
 
 using Microsoft.Finance.Dimension;
-using Microsoft.Utilities;
 using Microsoft.Sales.Document;
+using Microsoft.Utilities;
 
 page 5708 "Get Shipment Lines"
 {

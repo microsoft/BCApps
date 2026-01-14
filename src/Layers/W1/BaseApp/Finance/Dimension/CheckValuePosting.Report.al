@@ -8,9 +8,18 @@ using Microsoft.CRM.Team;
 using Microsoft.Inventory.Location;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
-using System.Utilities;
 using System.Globalization;
+using System.Utilities;
 
+/// <summary>
+/// Validates dimension value posting rules and identifies conflicts between default dimension configurations.
+/// Analyzes dimension posting requirements across related master data records to detect validation errors.
+/// </summary>
+/// <remarks>
+/// Compares dimension value posting rules between account types, customers/vendors and their salespersons/responsibility centers.
+/// Identifies conflicts where mandatory, same code, or no code restrictions create posting validation errors.
+/// Essential for dimension setup validation and troubleshooting posting issues.
+/// </remarks>
 report 30 "Check Value Posting"
 {
     DefaultLayout = RDLC;

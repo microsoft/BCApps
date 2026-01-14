@@ -18,8 +18,8 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Pricing;
 using Microsoft.Sales.Setup;
-using System.Utilities;
 using System.Telemetry;
+using System.Utilities;
 
 table 7000 "Price List Header"
 {

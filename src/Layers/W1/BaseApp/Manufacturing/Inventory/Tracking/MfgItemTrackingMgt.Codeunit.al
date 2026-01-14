@@ -400,6 +400,8 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
           Round(
             TempProdOrdLineTrackingBuff."Qty. split for Put Away (Base)" / TempProdOrdLineTrackingBuff."Qty. per Unit of Measure",
             UOMMgt.QtyRndPrecision());
+
+        OnAfterUpdateQtySplitForPutAwayOnProdOrdLineTrackingBuffer(TempProdOrdLineTrackingBuff, ProdOrderLine, ItemLedgerEntry, QtyBaseAvailableToPutAway, RemainingHandledQtyBase);
     end;
 
     local procedure CalcQtyBaseToPutAway(var RemainingHandledQtyBase: Decimal; QtyBaseAvailableToPutAway: Decimal) Qty: Decimal
@@ -758,6 +760,11 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyProdOrderLineFieldsToTempProdOrdLineTrackingBuff(ProdOrderLine: Record "Prod. Order Line"; var TempProdOrdLineTrackingBuff: Record "Prod. Ord. Line Tracking Buff.")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterUpdateQtySplitForPutAwayOnProdOrdLineTrackingBuffer(var TempProdOrdLineTrackingBuff: Record "Prod. Ord. Line Tracking Buff." temporary; ProdOrderLine: Record "Prod. Order Line"; ItemLedgerEntry: Record "Item Ledger Entry"; var QtyBaseAvailableToPutAway: Decimal; var RemainingHandledQtyBase: Decimal)
     begin
     end;
 }

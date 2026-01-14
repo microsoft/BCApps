@@ -202,9 +202,6 @@ codeunit 99000876 "Transfer Availability Mgt."
         ItemAvailabilityFormsMgt.FilterItem(Item, TransLine."Transfer-from Code", TransLine."Variant Code", TransLine."Shipment Date");
 
         OnBeforeShowItemAvailabilityFromTransLine(Item, TransLine, AvailabilityType);
-#if not CLEAN25
-        ItemAvailabilityFormsMgt.RunOnBeforeShowItemAvailFromTransLine(Item, TransLine, AvailabilityType);
-#endif
         case AvailabilityType of
             AvailabilityType::Period:
                 if ItemAvailabilityFormsMgt.ShowItemAvailabilityByPeriod(Item, GetFieldCaption(TransLine.FieldCaption(TransLine."Shipment Date")), TransLine."Shipment Date", NewDate) then
@@ -264,9 +261,6 @@ codeunit 99000876 "Transfer Availability Mgt."
     local procedure TransferTransLine(InventoryEventBuffer: Record "Inventory Event Buffer"; var InventoryPageData: Record "Inventory Page Data"; SourceType: Integer; SourceSubtype: Integer; SourceID: Code[20])
     var
         TransHeader: Record "Transfer Header";
-#if not CLEAN25
-        CalcInventoryPageData: codeunit "Calc. Inventory Page Data";
-#endif
         RecRef: RecordRef;
     begin
         TransHeader.Get(SourceID);
@@ -307,9 +301,6 @@ codeunit 99000876 "Transfer Availability Mgt."
                 Error(UnsupportedEntitySourceErr, SourceType, SourceSubtype);
         end;
         OnAfterTransferTransLine(InventoryPageData, TransHeader);
-#if not CLEAN25
-        CalcInventoryPageData.RunOnAfterTransferTransLine(InventoryPageData, TransHeader);
-#endif
     end;
 
     [IntegrationEvent(false, false)]
@@ -379,9 +370,6 @@ codeunit 99000876 "Transfer Availability Mgt."
         InventoryEventBuffer."Transfer Direction" := InventoryEventBuffer."Transfer Direction"::Outbound;
 
         OnAfterTransferFromOutboundTransfer(InventoryEventBuffer, TransLine);
-#if not CLEAN25
-        InventoryEventBuffer.RunOnAfterTransferFromOutboundTransfer(InventoryEventBuffer, TransLine);
-#endif
     end;
 
     procedure TransferFromInboundTransOrder(var InventoryEventBuffer: Record "Inventory Event Buffer"; TransLine: Record "Transfer Line")
@@ -403,9 +391,6 @@ codeunit 99000876 "Transfer Availability Mgt."
         InventoryEventBuffer."Transfer Direction" := InventoryEventBuffer."Transfer Direction"::Inbound;
 
         OnAfterTransferFromInboundTransOrder(InventoryEventBuffer, TransLine);
-#if not CLEAN25
-        InventoryEventBuffer.RunOnAfterTransferFromInboundTransOrder(InventoryEventBuffer, TransLine);
-#endif
     end;
 
     [IntegrationEvent(false, false)]

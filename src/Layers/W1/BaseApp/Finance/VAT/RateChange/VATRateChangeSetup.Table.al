@@ -13,6 +13,10 @@ using Microsoft.Projects.Resources.Resource;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 
+/// <summary>
+/// Configuration table for VAT rate change conversion settings and filters.
+/// Controls which master data, journals, and documents are updated during VAT rate change operations.
+/// </summary>
 table 550 "VAT Rate Change Setup"
 {
     Caption = 'VAT Rate Change Setup';
@@ -20,11 +24,17 @@ table 550 "VAT Rate Change Setup"
 
     fields
     {
+        /// <summary>
+        /// Primary key field for the singleton setup record.
+        /// </summary>
         field(1; "Primary Key"; Code[10])
         {
             AllowInCustomizations = Never;
             Caption = 'Primary Key';
         }
+        /// <summary>
+        /// Specifies whether general product posting groups should be updated during VAT rate change conversion.
+        /// </summary>
         field(10; "Update Gen. Prod. Post. Groups"; Option)
         {
             Caption = 'Update Gen. Prod. Post. Groups';
@@ -32,6 +42,9 @@ table 550 "VAT Rate Change Setup"
             OptionCaption = 'VAT Prod. Posting Group,,,No';
             OptionMembers = "VAT Prod. Posting Group",,,No;
         }
+        /// <summary>
+        /// Specifies whether G/L accounts should be updated with new VAT or general product posting groups during conversion.
+        /// </summary>
         field(15; "Update G/L Accounts"; Option)
         {
             Caption = 'Update G/L Accounts';
@@ -39,6 +52,9 @@ table 550 "VAT Rate Change Setup"
             OptionCaption = 'VAT Prod. Posting Group,Gen. Prod. Posting Group,Both,No';
             OptionMembers = "VAT Prod. Posting Group","Gen. Prod. Posting Group",Both,No;
         }
+        /// <summary>
+        /// Specifies whether items should be updated with new VAT or general product posting groups during conversion.
+        /// </summary>
         field(17; "Update Items"; Option)
         {
             AccessByPermission = TableData Item = R;
@@ -47,6 +63,9 @@ table 550 "VAT Rate Change Setup"
             OptionCaption = 'VAT Prod. Posting Group,Gen. Prod. Posting Group,Both,No';
             OptionMembers = "VAT Prod. Posting Group","Gen. Prod. Posting Group",Both,No;
         }
+        /// <summary>
+        /// Specifies whether item templates should be updated with new VAT or general product posting groups during conversion.
+        /// </summary>
         field(18; "Update Item Templates"; Option)
         {
             AccessByPermission = TableData Item = R;
@@ -55,6 +74,9 @@ table 550 "VAT Rate Change Setup"
             OptionCaption = 'VAT Prod. Posting Group,Gen. Prod. Posting Group,Both,No';
             OptionMembers = "VAT Prod. Posting Group","Gen. Prod. Posting Group",Both,No;
         }
+        /// <summary>
+        /// Specifies whether item charges should be updated with new VAT or general product posting groups during conversion.
+        /// </summary>
         field(19; "Update Item Charges"; Option)
         {
             AccessByPermission = TableData "Item Charge" = R;
@@ -63,6 +85,9 @@ table 550 "VAT Rate Change Setup"
             OptionCaption = 'VAT Prod. Posting Group,Gen. Prod. Posting Group,Both,No';
             OptionMembers = "VAT Prod. Posting Group","Gen. Prod. Posting Group",Both,No;
         }
+        /// <summary>
+        /// Specifies whether resources should be updated with new VAT or general product posting groups during conversion.
+        /// </summary>
         field(21; "Update Resources"; Option)
         {
             AccessByPermission = TableData Resource = R;
@@ -71,6 +96,9 @@ table 550 "VAT Rate Change Setup"
             OptionCaption = 'VAT Prod. Posting Group,Gen. Prod. Posting Group,Both,No';
             OptionMembers = "VAT Prod. Posting Group","Gen. Prod. Posting Group",Both,No;
         }
+        /// <summary>
+        /// Specifies whether general journal lines should be updated with new VAT or general product posting groups during conversion.
+        /// </summary>
         field(30; "Update Gen. Journal Lines"; Option)
         {
             Caption = 'Update Gen. Journal Lines';
@@ -78,6 +106,9 @@ table 550 "VAT Rate Change Setup"
             OptionCaption = 'VAT Prod. Posting Group,Gen. Prod. Posting Group,Both,No';
             OptionMembers = "VAT Prod. Posting Group","Gen. Prod. Posting Group",Both,No;
         }
+        /// <summary>
+        /// Specifies whether general journal allocation lines should be updated with new VAT or general product posting groups during conversion.
+        /// </summary>
         field(31; "Update Gen. Journal Allocation"; Option)
         {
             AccessByPermission = TableData "Gen. Jnl. Allocation" = R;
@@ -86,6 +117,9 @@ table 550 "VAT Rate Change Setup"
             OptionCaption = 'VAT Prod. Posting Group,Gen. Prod. Posting Group,Both,No';
             OptionMembers = "VAT Prod. Posting Group","Gen. Prod. Posting Group",Both,No;
         }
+        /// <summary>
+        /// Specifies whether standard general journal lines should be updated with new VAT or general product posting groups during conversion.
+        /// </summary>
         field(32; "Update Std. Gen. Jnl. Lines"; Option)
         {
             Caption = 'Update Std. Gen. Jnl. Lines';
@@ -93,6 +127,9 @@ table 550 "VAT Rate Change Setup"
             OptionCaption = 'VAT Prod. Posting Group,Gen. Prod. Posting Group,Both,No';
             OptionMembers = "VAT Prod. Posting Group","Gen. Prod. Posting Group",Both,No;
         }
+        /// <summary>
+        /// Specifies whether resource journal lines should be updated with general product posting groups during conversion.
+        /// </summary>
         field(33; "Update Res. Journal Lines"; Option)
         {
             AccessByPermission = TableData Resource = R;
@@ -101,6 +138,9 @@ table 550 "VAT Rate Change Setup"
             OptionCaption = ',Gen. Prod. Posting Group,,No';
             OptionMembers = ,"Gen. Prod. Posting Group",,No;
         }
+        /// <summary>
+        /// Specifies whether project journal lines should be updated with general product posting groups during conversion.
+        /// </summary>
         field(35; "Update Job Journal Lines"; Option)
         {
             AccessByPermission = TableData Job = R;
@@ -109,6 +149,9 @@ table 550 "VAT Rate Change Setup"
             OptionCaption = ',Gen. Prod. Posting Group,,No';
             OptionMembers = ,"Gen. Prod. Posting Group",,No;
         }
+        /// <summary>
+        /// Specifies whether requisition lines should be updated with general product posting groups during conversion.
+        /// </summary>
         field(37; "Update Requisition Lines"; Option)
         {
             AccessByPermission = TableData "Req. Wksh. Template" = R;
@@ -117,6 +160,9 @@ table 550 "VAT Rate Change Setup"
             OptionCaption = ',Gen. Prod. Posting Group,,No';
             OptionMembers = ,"Gen. Prod. Posting Group",,No;
         }
+        /// <summary>
+        /// Specifies whether standard item journal lines should be updated with general product posting groups during conversion.
+        /// </summary>
         field(39; "Update Std. Item Jnl. Lines"; Option)
         {
             AccessByPermission = TableData Item = R;
@@ -125,6 +171,9 @@ table 550 "VAT Rate Change Setup"
             OptionCaption = ',Gen. Prod. Posting Group,,No';
             OptionMembers = ,"Gen. Prod. Posting Group",,No;
         }
+        /// <summary>
+        /// Specifies whether sales documents should be updated with new VAT or general product posting groups during conversion.
+        /// </summary>
         field(50; "Update Sales Documents"; Option)
         {
             AccessByPermission = TableData "Sales Header" = R;
@@ -133,6 +182,9 @@ table 550 "VAT Rate Change Setup"
             OptionCaption = 'VAT Prod. Posting Group,Gen. Prod. Posting Group,Both,No';
             OptionMembers = "VAT Prod. Posting Group","Gen. Prod. Posting Group",Both,No;
         }
+        /// <summary>
+        /// Specifies whether purchase documents should be updated with new VAT or general product posting groups during conversion.
+        /// </summary>
         field(55; "Update Purchase Documents"; Option)
         {
             AccessByPermission = TableData "Purchase Header" = R;
@@ -141,6 +193,9 @@ table 550 "VAT Rate Change Setup"
             OptionCaption = 'VAT Prod. Posting Group,Gen. Prod. Posting Group,Both,No';
             OptionMembers = "VAT Prod. Posting Group","Gen. Prod. Posting Group",Both,No;
         }
+        /// <summary>
+        /// Specifies whether reminder documents should be updated with new VAT product posting groups during conversion.
+        /// </summary>
         field(70; "Update Reminders"; Option)
         {
             AccessByPermission = TableData "Sales Header" = R;
@@ -149,6 +204,9 @@ table 550 "VAT Rate Change Setup"
             OptionCaption = 'VAT Prod. Posting Group,,,No';
             OptionMembers = "VAT Prod. Posting Group",,,No;
         }
+        /// <summary>
+        /// Specifies whether finance charge memo documents should be updated with new VAT product posting groups during conversion.
+        /// </summary>
         field(75; "Update Finance Charge Memos"; Option)
         {
             Caption = 'Update Finance Charge Memos';
@@ -156,51 +214,81 @@ table 550 "VAT Rate Change Setup"
             OptionCaption = 'VAT Prod. Posting Group,,,No';
             OptionMembers = "VAT Prod. Posting Group",,,No;
         }
+        /// <summary>
+        /// Indicates whether the VAT rate change conversion process has been completed.
+        /// </summary>
         field(90; "VAT Rate Change Tool Completed"; Boolean)
         {
             Caption = 'VAT Rate Change Tool Completed';
             InitValue = false;
         }
+        /// <summary>
+        /// Specifies whether sales documents with any status, including released documents, should be updated during conversion.
+        /// </summary>
         field(91; "Ignore Status on Sales Docs."; Boolean)
         {
             Caption = 'Ignore Status on Sales Docs.';
             InitValue = true;
         }
+        /// <summary>
+        /// Specifies whether purchase documents with any status, including released documents, should be updated during conversion.
+        /// </summary>
         field(92; "Ignore Status on Purch. Docs."; Boolean)
         {
             Caption = 'Ignore Status on Purch. Docs.';
             InitValue = true;
         }
+        /// <summary>
+        /// Enables actual data modification during conversion. When false, conversion runs in preview mode only.
+        /// </summary>
         field(93; "Perform Conversion"; Boolean)
         {
             Caption = 'Perform Conversion';
         }
+        /// <summary>
+        /// Filter used to limit which items are included in the VAT rate change conversion process.
+        /// </summary>
         field(100; "Item Filter"; Text[250])
         {
             Caption = 'Item Filter';
             //The property 'ValidateTableRelation' can only be set if the property 'TableRelation' is set
             //ValidateTableRelation = false;
         }
+        /// <summary>
+        /// Filter used to limit which G/L accounts are included in the VAT rate change conversion process.
+        /// </summary>
         field(101; "Account Filter"; Text[250])
         {
             Caption = 'Account Filter';
             //The property 'ValidateTableRelation' can only be set if the property 'TableRelation' is set
             //ValidateTableRelation = false;
         }
+        /// <summary>
+        /// Filter used to limit which resources are included in the VAT rate change conversion process.
+        /// </summary>
         field(102; "Resource Filter"; Text[250])
         {
             Caption = 'Resource Filter';
             //The property 'ValidateTableRelation' can only be set if the property 'TableRelation' is set
             //ValidateTableRelation = false;
         }
+        /// <summary>
+        /// Specifies whether unit prices should be updated for G/L account lines when prices include VAT.
+        /// </summary>
         field(110; "Update Unit Price For G/L Acc."; Boolean)
         {
             Caption = 'Update Unit Prices for G/L Accounts';
         }
+        /// <summary>
+        /// Specifies whether unit prices should be updated for item charge lines when prices include VAT.
+        /// </summary>
         field(111; "Upd. Unit Price For Item Chrg."; Boolean)
         {
             Caption = 'Update Unit Prices for Item Charges';
         }
+        /// <summary>
+        /// Specifies whether unit prices should be updated for fixed asset lines when prices include VAT.
+        /// </summary>
         field(112; "Upd. Unit Price For FA"; Boolean)
         {
             Caption = 'Update Unit Prices for Fixed Assets';
@@ -219,6 +307,11 @@ table 550 "VAT Rate Change Setup"
     {
     }
 
+    /// <summary>
+    /// Opens item lookup dialog and sets the provided text filter based on user selection.
+    /// </summary>
+    /// <param name="Text">Filter text to be updated with selected item numbers</param>
+    /// <returns>True if user selected items and confirmed, false if cancelled</returns>
     procedure LookUpItemFilter(var Text: Text[250]): Boolean
     var
         Item: Record Item;
@@ -234,6 +327,11 @@ table 550 "VAT Rate Change Setup"
         exit(false)
     end;
 
+    /// <summary>
+    /// Opens resource lookup dialog and sets the provided text with the selected resource number.
+    /// </summary>
+    /// <param name="Text">Text to be updated with selected resource number</param>
+    /// <returns>True if user selected a resource and confirmed, false if cancelled</returns>
     procedure LookUpResourceFilter(var Text: Text[250]): Boolean
     var
         Resource: Record Resource;
@@ -249,6 +347,11 @@ table 550 "VAT Rate Change Setup"
         exit(false)
     end;
 
+    /// <summary>
+    /// Opens G/L account lookup dialog and sets the provided text filter based on user selection.
+    /// </summary>
+    /// <param name="Text">Filter text to be updated with selected G/L account numbers</param>
+    /// <returns>True if user selected accounts and confirmed, false if cancelled</returns>
     procedure LookUpGLAccountFilter(var Text: Text[250]): Boolean
     var
         GLAccount: Record "G/L Account";

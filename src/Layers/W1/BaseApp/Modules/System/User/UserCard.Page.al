@@ -5,8 +5,8 @@ using System.Azure.Identity;
 using System.Email;
 using System.Environment;
 using System.Security.AccessControl;
-using System.Utilities;
 using System.Telemetry;
+using System.Utilities;
 
 page 9807 "User Card"
 {

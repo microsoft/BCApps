@@ -5,8 +5,8 @@
 namespace Microsoft.Manufacturing.Document;
 
 using Microsoft.Foundation.UOM;
-using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory;
+using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Sales.Document;
 

@@ -9,6 +9,18 @@ using Microsoft.Bank.Ledger;
 using Microsoft.Foundation.Reporting;
 using System.Telemetry;
 
+/// <summary>
+/// Main page for bank account reconciliation processes, enabling users to match bank statement entries
+/// with ledger entries. Provides tools for automatic and manual matching, statement import, and
+/// reconciliation posting. Supports both bank reconciliation and payment application workflows with
+/// integrated match confidence scoring and difference resolution capabilities.
+/// </summary>
+/// <remarks>
+/// Key functionality includes statement line import from external files, automatic matching algorithms
+/// with configurable rules, manual entry matching with tolerance handling, difference transfer to accounts,
+/// and comprehensive reporting. The page supports multiple bank account currencies and provides
+/// detailed match analysis with review workflows for uncertain matches.
+/// </remarks>
 page 379 "Bank Acc. Reconciliation"
 {
     Caption = 'Bank Acc. Reconciliation';

@@ -8,9 +8,9 @@ using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
+using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
-using Microsoft.Inventory.Setup;
 using Microsoft.Purchases.Document;
 
 

@@ -9,6 +9,14 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Integration.Dataverse;
 using System.Text;
 
+/// <summary>
+/// Provides a list view interface for managing currency records and their exchange rates.
+/// Supports currency administration, exchange rate navigation, and integration with external rate services.
+/// </summary>
+/// <remarks>
+/// Source Table: Currency (4). Key actions include creating new currencies, viewing exchange rates,
+/// and configuring currency exchange rate services for automatic updates.
+/// </remarks>
 page 5 Currencies
 {
     AdditionalSearchTerms = 'Multiple Foreign Currencies, Monetary Page, Exchange Page, Forex Overview, Money Page, Cash Page, Trade Currencies, Financial Unit Page, Transaction Money Page, Business Currency Page, Capital Type Page';

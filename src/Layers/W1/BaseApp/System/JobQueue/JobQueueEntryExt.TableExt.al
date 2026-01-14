@@ -1,7 +1,8 @@
 namespace System.Threading;
+
 using Microsoft.Foundation.Reporting;
-using System.Environment;
 using System.Device;
+using System.Environment;
 
 tableextension 472 "Job Queue Entry Ext." extends "Job Queue Entry"
 {

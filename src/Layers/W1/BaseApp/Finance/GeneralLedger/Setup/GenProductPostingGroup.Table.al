@@ -10,6 +10,10 @@ using Microsoft.Inventory.Item;
 using Microsoft.Projects.Resources.Resource;
 using System.Utilities;
 
+/// <summary>
+/// Defines general product posting groups and default VAT product group linkage.
+/// Used to determine posting accounts for item/resource related transactions.
+/// </summary>
 table 251 "Gen. Product Posting Group"
 {
     Caption = 'Gen. Product Posting Group';
@@ -19,15 +23,25 @@ table 251 "Gen. Product Posting Group"
 
     fields
     {
+        /// <summary>
+        /// Unique code identifying the general product posting group.
+        /// </summary>
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
             NotBlank = true;
         }
+        /// <summary>
+        /// Descriptive name of the posting group for readability.
+        /// </summary>
         field(2; Description; Text[100])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// Default VAT product posting group applied when this product group is used.
+        /// Changing this value can cascade updates to related records.
+        /// </summary>
         field(3; "Def. VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'Def. VAT Prod. Posting Group';
@@ -109,6 +123,9 @@ table 251 "Gen. Product Posting Group"
                 end;
             end;
         }
+        /// <summary>
+        /// If true, default VAT product group is auto-inserted on related records.
+        /// </summary>
         field(4; "Auto Insert Default"; Boolean)
         {
             Caption = 'Auto Insert Default';
@@ -147,6 +164,12 @@ table 251 "Gen. Product Posting Group"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 
+    /// <summary>
+    /// Validates and retrieves a General Product Posting Group record by code, indicating if auto-insert is enabled.
+    /// </summary>
+    /// <param name="GenProdPostingGrp">Variable to receive the posting group record</param>
+    /// <param name="EnteredGenProdPostingGroup">Posting group code to validate and retrieve</param>
+    /// <returns>True if the posting group has Auto Insert Default enabled, false otherwise</returns>
     procedure ValidateVatProdPostingGroup(var GenProdPostingGrp: Record "Gen. Product Posting Group"; EnteredGenProdPostingGroup: Code[20]): Boolean
     begin
         if EnteredGenProdPostingGroup <> '' then
@@ -156,11 +179,21 @@ table 251 "Gen. Product Posting Group"
         exit(GenProdPostingGrp."Auto Insert Default");
     end;
 
+    /// <summary>
+    /// Integration event fired before modifying G/L Account during Default VAT Product Posting Group validation.
+    /// </summary>
+    /// <param name="GLAccount">G/L Account record being modified</param>
+    /// <param name="GenProductPostingGroup">General Product Posting Group record</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateDefVATProdPostingGroupOnBeforeGLAcc2Modify(var GLAccount: Record "G/L Account"; var GenProductPostingGroup: Record "Gen. Product Posting Group")
     begin
     end;
 
+    /// <summary>
+    /// Integration event fired before modifying Item during Default VAT Product Posting Group validation.
+    /// </summary>
+    /// <param name="Item">Item record being modified</param>
+    /// <param name="GenProductPostingGroup">General Product Posting Group record</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateDefVATProdPostingGroupOnBeforeItem2Modify(var Item: Record Item; var GenProductPostingGroup: Record "Gen. Product Posting Group")
     begin

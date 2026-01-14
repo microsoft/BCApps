@@ -84,7 +84,7 @@ table 7004 "Sales Line Discount"
         }
         field(5; "Line Discount %"; Decimal)
         {
-            AutoFormatType = 2;
+            AutoFormatType = 0;
             Caption = 'Line Discount %';
             MaxValue = 100;
             MinValue = 0;

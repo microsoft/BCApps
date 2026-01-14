@@ -9,5 +9,6 @@
   "doNotRunTests": false,
   "useCompilerFolder": false,
   "doNotPublishApps": false,
-  "testType": "UnitTest"
+  "testType": "UnitTest",
+  "installOnlyReferencedApps": false
 }

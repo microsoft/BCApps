@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Utilities;
 
+using Microsoft.Finance.AllocationAccount;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.FixedAssets.FixedAsset;
@@ -11,7 +12,6 @@ using Microsoft.Inventory.Item;
 using Microsoft.Projects.Resources.Resource;
 using System.Reflection;
 using System.Text;
-using Microsoft.Finance.AllocationAccount;
 
 codeunit 703 "Find Record Management"
 {

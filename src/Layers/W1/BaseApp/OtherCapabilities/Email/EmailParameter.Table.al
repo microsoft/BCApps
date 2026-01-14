@@ -1,9 +1,9 @@
 namespace System.Email;
 
-using Microsoft.Sales.Document;
-using System.Utilities;
-using System.Reflection;
 using Microsoft.Foundation.Reporting;
+using Microsoft.Sales.Document;
+using System.Reflection;
+using System.Utilities;
 
 table 9510 "Email Parameter"
 {

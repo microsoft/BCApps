@@ -8,6 +8,10 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
 
+/// <summary>
+/// Generates detailed VAT register report showing VAT entries organized by G/L register numbers.
+/// Provides chronological listing of VAT transactions with amounts in local and additional reporting currencies.
+/// </summary>
 report 13 "VAT Register"
 {
     DefaultLayout = RDLC;
@@ -217,6 +221,11 @@ report 13 "VAT Register"
         exit('');
     end;
 
+    /// <summary>
+    /// Initializes the VAT register report with currency display preferences.
+    /// Configures whether to show amounts in additional reporting currency or local currency.
+    /// </summary>
+    /// <param name="NewUseAmtsInAddCurr">True to display amounts in additional reporting currency, false for local currency</param>
     procedure InitializeRequest(NewUseAmtsInAddCurr: Boolean)
     begin
         UseAmtsInAddCurr := NewUseAmtsInAddCurr;

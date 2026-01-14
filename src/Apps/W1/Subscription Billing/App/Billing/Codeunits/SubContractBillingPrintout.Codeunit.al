@@ -48,7 +48,7 @@ codeunit 8064 "Sub. Contract Billing Printout"
                             TempJobLedgerEntryBuffer."Document Date" := UsageDataBilling."Charge Start Date";
                             TempJobLedgerEntryBuffer."Posting Date" := UsageDataBilling."Charge End Date";
                             TempJobLedgerEntryBuffer.Quantity := UsageDataBilling.Quantity;
-                            TempJobLedgerEntryBuffer.Description := UsageDataBilling."Subscription Description";
+                            TempJobLedgerEntryBuffer.Description := UsageDataBilling.GetPrintoutDescription();
                             TempJobLedgerEntryBuffer."External Document No." := UsageDataBilling."Subscription Contract No.";
                             TempJobLedgerEntryBuffer."Resource Group No." := SalesInvoiceHeader."Sell-to Customer No.";
                             if SalesInvoiceHeader."Sub. Contract Detail Overview" = Enum::"Contract Detail Overview"::Complete then begin

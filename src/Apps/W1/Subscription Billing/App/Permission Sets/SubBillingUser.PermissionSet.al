@@ -43,5 +43,6 @@ permissionset 8053 "Sub. Billing User"
         tabledata "Usage Data Supplier" = IMD,
         tabledata "Vend. Sub. Contract Deferral" = IMD,
         tabledata "Vend. Sub. Contract Line" = IMD,
-        tabledata "Vendor Subscription Contract" = IMD;
+        tabledata "Vendor Subscription Contract" = IMD,
+        tabledata "Contract Billing Err. Log" = IMD;
 }

@@ -3196,7 +3196,7 @@ codeunit 137059 "SCM RTAM Item Tracking-II"
         // [GIVEN] Change item No. to a non-existent item in the sales line.
         SalesOrderSubform.OpenEdit();
         SalesOrderSubform.GotoRecord(SalesLine);
-        asserterror SalesOrderSubform."No.".SetValue(LibraryRandom.RandText(5));
+        asserterror SalesOrderSubform."No.".SetValue(LibraryRandom.RandText(20));
         SalesOrderSubform.Close();
 
         // [GIVEN] Change item number to old item in the sales line.

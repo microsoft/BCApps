@@ -33,7 +33,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         Sources: Dictionary of [Enum "Prod. Order Source Type", boolean];
         ProdOrderStatus: Enum "Production Order Status";
         OrderLinesMin: Integer;
@@ -193,7 +193,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
         VATBusinessPostingGroup: Record "VAT Business Posting Group";
     begin
         VATProductPostingGroup.Init();
-        VATProductPostingGroup.Code := 'VAT PRODUCT TEST';
+        VATProductPostingGroup.Code := 'VAT PRODUCT DEMO';
         if not VATProductPostingGroup.Insert() then
             exit;
 
@@ -223,7 +223,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
 
     /// <summary>
     /// Creates a text that can be used to filter records to only those with a value in the given 
-    /// list. Useful for applying tests to only generated test data.
+    /// list. Useful for applying inspections to only generated test data.
     /// </summary>
     /// <param name="pliCodes">A list of Record No's to filter by.</param>
     /// <returns>A text of every element of the input delimited by '|'.</returns>
@@ -305,7 +305,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
 
         Item."Routing No." := RoutingHeader."No.";
         Item."Replenishment System" := "Replenishment System"::"Prod. Order";
-        Item."VAT Prod. Posting Group" := 'VAT PRODUCT TEST';
+        Item."VAT Prod. Posting Group" := 'VAT PRODUCT DEMO';
         Item.Modify();
 
         SetupVAT();
@@ -315,14 +315,14 @@ codeunit 139952 "Qlty. Prod. Order Generator"
     var
         RoutingHeader: Record "Routing Header";
     begin
-        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
 
         CreateBoM(Item);
         CreateSerialRouting(RoutingHeader);
 
         Item."Routing No." := RoutingHeader."No.";
         Item."Replenishment System" := "Replenishment System"::"Prod. Order";
-        Item."VAT Prod. Posting Group" := 'VAT PRODUCT TEST';
+        Item."VAT Prod. Posting Group" := 'VAT PRODUCT DEMO';
         Item.Modify();
 
         SetupVAT();
@@ -353,7 +353,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
         ProductionBOMLine: Record "Production BOM Line";
     begin
         LibraryInventory.CreateItem(Item);
-        Item.Validate("VAT Prod. Posting Group", 'VAT PRODUCT TEST');
+        Item.Validate("VAT Prod. Posting Group", 'VAT PRODUCT DEMO');
         Item.Modify();
 
         LibraryManufacturing.CreateProductionBOMLine(ProductionBOMHeader, ProductionBOMLine, '', "Production Bom Line Type"::Item, Item."No.", 1);

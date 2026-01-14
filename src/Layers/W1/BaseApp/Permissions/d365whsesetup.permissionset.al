@@ -1,10 +1,10 @@
 namespace System.Security.AccessControl;
 
 using Microsoft.Warehouse.Activity;
-using Microsoft.Warehouse.Setup;
+using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Request;
-using Microsoft.Warehouse.Document;
+using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Worksheet;
 
 permissionset 4784 "D365 WHSE, SETUP"

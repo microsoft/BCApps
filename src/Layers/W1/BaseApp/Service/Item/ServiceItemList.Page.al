@@ -15,9 +15,6 @@ using Microsoft.Service.Ledger;
 using Microsoft.Service.Maintenance;
 using Microsoft.Service.Reports;
 using Microsoft.Service.Resources;
-#if not CLEAN25
-using Microsoft.Integration.Dataverse;
-#endif
 using System.Text;
 
 page 5981 "Service Item List"
@@ -155,34 +152,10 @@ page 5981 "Service Item List"
                     ToolTip = 'Specifies that the service item is blocked from being used in service contracts or used and posted in transactions via service documents, except credit memos.';
                     Visible = false;
                 }
-#if not CLEAN25
-                field("Coupled to Dataverse"; Rec."Coupled to Dataverse")
-                {
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies that the service item is coupled to an entity in Dynamics 365 Field Service.';
-                    Visible = false;
-                    ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-                }
-#endif
             }
         }
         area(factboxes)
         {
-#if not CLEAN25
-            part("Attached Documents"; "Document Attachment Factbox")
-            {
-                ObsoleteTag = '25.0';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The "Document Attachment FactBox" has been replaced by "Doc. Attachment List Factbox", which supports multiple files upload.';
-                ApplicationArea = Service;
-                Caption = 'Attachments';
-                Visible = false;
-                SubPageLink = "Table ID" = const(Database::"Service Item"),
-                              "No." = field("No.");
-            }
-#endif
             part("Attached Documents List"; "Doc. Attachment List Factbox")
             {
                 ApplicationArea = Service;
@@ -449,138 +422,6 @@ page 5981 "Service Item List"
                     ToolTip = 'View all the ledger entries for the service item or service order that result from posting transactions in service documents that contain warranty agreements.';
                 }
             }
-#if not CLEAN25
-            group(ActionGroupFS)
-            {
-                Caption = 'Dynamics 365 Field Service';
-                Visible = false;
-                ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                ObsoleteState = Pending;
-                ObsoleteTag = '25.0';
-
-                action(CRMGoToProduct)
-                {
-                    ApplicationArea = Suite;
-                    Caption = 'Customer Asset';
-                    Image = CoupledItem;
-                    ToolTip = 'Open the coupled Dynamics 365 Field Service customer asset.';
-                    ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-
-                    trigger OnAction()
-                    var
-                        CRMIntegrationManagement: Codeunit "CRM Integration Management";
-                    begin
-                        CRMIntegrationManagement.ShowCRMEntityFromRecordID(Rec.RecordId);
-                    end;
-                }
-                action(CRMSynchronizeNow)
-                {
-                    AccessByPermission = TableData "CRM Integration Record" = IM;
-                    ApplicationArea = Suite;
-                    Caption = 'Synchronize';
-                    Image = Refresh;
-                    ToolTip = 'Send updated data to Dynamics 365 Field Service.';
-                    ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-
-                    trigger OnAction()
-                    var
-                        CRMIntegrationManagement: Codeunit "CRM Integration Management";
-                    begin
-                        CRMIntegrationManagement.UpdateOneNow(Rec.RecordId);
-                    end;
-                }
-                group(Coupling)
-                {
-                    Caption = 'Coupling', Comment = 'Coupling is a noun';
-                    Image = LinkAccount;
-                    ToolTip = 'Create, change, or delete a coupling between the Business Central record and a Dynamics 365 Field Service record.';
-                    ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-
-                    action(ManageCRMCoupling)
-                    {
-                        AccessByPermission = TableData "CRM Integration Record" = IM;
-                        ApplicationArea = Suite;
-                        Caption = 'Set Up Coupling';
-                        Image = LinkAccount;
-                        ToolTip = 'Create or modify the coupling to a Dynamics 365 Field Service product.';
-                        ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                        ObsoleteState = Pending;
-                        ObsoleteTag = '25.0';
-
-                        trigger OnAction()
-                        var
-                            CRMIntegrationManagement: Codeunit "CRM Integration Management";
-                        begin
-                            CRMIntegrationManagement.DefineCoupling(Rec.RecordId);
-                        end;
-                    }
-                    action(MatchBasedCouplingFS)
-                    {
-                        AccessByPermission = TableData "CRM Integration Record" = IM;
-                        ApplicationArea = Suite;
-                        Caption = 'Match-Based Coupling';
-                        Image = CoupledItem;
-                        ToolTip = 'Couple resources to products in Dynamics 365 Sales based on matching criteria.';
-                        ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                        ObsoleteState = Pending;
-                        ObsoleteTag = '25.0';
-
-                        trigger OnAction()
-                        var
-                            ServiceItem: Record "Service Item";
-                            CRMIntegrationManagement: Codeunit "CRM Integration Management";
-                            RecRef: RecordRef;
-                        begin
-                            CurrPage.SetSelectionFilter(ServiceItem);
-                            RecRef.GetTable(ServiceItem);
-                            CRMIntegrationManagement.MatchBasedCoupling(RecRef);
-                        end;
-                    }
-                    action(DeleteCRMCoupling)
-                    {
-                        AccessByPermission = TableData "CRM Integration Record" = D;
-                        ApplicationArea = Suite;
-                        Caption = 'Delete Coupling';
-                        Enabled = false;
-                        Image = UnLinkAccount;
-                        ToolTip = 'Delete the coupling to a Dynamics 365 Field Service product.';
-                        ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                        ObsoleteState = Pending;
-                        ObsoleteTag = '25.0';
-
-                        trigger OnAction()
-                        var
-                            CRMCouplingManagement: Codeunit "CRM Coupling Management";
-                        begin
-                            CRMCouplingManagement.RemoveCoupling(Rec.RecordId);
-                        end;
-                    }
-                }
-                action(ShowLog)
-                {
-                    ApplicationArea = Suite;
-                    Caption = 'Synchronization Log';
-                    Image = Log;
-                    ToolTip = 'View integration synchronization jobs for the resource table.';
-                    ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-
-                    trigger OnAction()
-                    var
-                        CRMIntegrationManagement: Codeunit "CRM Integration Management";
-                    begin
-                        CRMIntegrationManagement.ShowLog(Rec.RecordId);
-                    end;
-                }
-            }
-#endif
         }
         area(processing)
         {
@@ -746,4 +587,3 @@ page 5981 "Service Item List"
     begin
     end;
 }
-

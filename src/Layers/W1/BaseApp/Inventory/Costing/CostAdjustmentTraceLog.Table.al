@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Costing;
 
+using Microsoft.Foundation.Enums;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
-using Microsoft.Foundation.Enums;
 using Microsoft.Inventory.Location;
 
 table 5816 "Cost Adjustment Trace Log"

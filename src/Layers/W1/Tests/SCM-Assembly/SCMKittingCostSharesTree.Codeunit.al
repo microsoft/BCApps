@@ -4,16 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
+using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.BOM.Tree;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
+using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
-using Microsoft.Inventory.Location;
-using Microsoft.Projects.Resources.Resource;
-using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Manufacturing.MachineCenter;
-using Microsoft.Inventory.BOM;
 using Microsoft.Manufacturing.StandardCost;
-using Microsoft.Inventory.BOM.Tree;
+using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Projects.Resources.Resource;
 
 codeunit 137110 "SCM Kitting - Cost Shares Tree"
 {

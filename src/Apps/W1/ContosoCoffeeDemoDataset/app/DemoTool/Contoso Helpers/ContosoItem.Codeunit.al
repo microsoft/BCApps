@@ -4,20 +4,20 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.DemoTool.Helpers;
 
-using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Tracking;
 using Microsoft.Assembly.Setup;
-using Microsoft.Inventory.Journal;
-using Microsoft.Inventory.Item.Catalog;
-using Microsoft.Inventory.Setup;
-using Microsoft.Inventory.Item.Substitution;
-using Microsoft.Inventory.Item.Attribute;
-using Microsoft.Manufacturing.Setup;
-using System.Utilities;
 using Microsoft.DemoTool;
-using Microsoft.Inventory.Ledger;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Costing;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Item.Attribute;
+using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Inventory.Item.Substitution;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Setup;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Manufacturing.Setup;
+using System.Utilities;
 
 codeunit 5143 "Contoso Item"
 {

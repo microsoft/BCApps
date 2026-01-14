@@ -6,6 +6,15 @@ namespace Microsoft.Finance.GeneralLedger.Preview;
 
 using Microsoft.Foundation.Navigate;
 
+/// <summary>
+/// Main posting preview page displaying entry types and counts generated during preview operations.
+/// Provides overview of all ledger entries that would be created during actual posting.
+/// </summary>
+/// <remarks>
+/// Displays document entries in a list format showing table names, entry counts, and total amounts.
+/// Enables drill-down functionality to view detailed preview entries for each ledger type.
+/// Serves as the primary interface for posting preview analysis and validation.
+/// </remarks>
 page 115 "G/L Posting Preview"
 {
     Caption = 'Posting Preview';
@@ -97,6 +106,12 @@ page 115 "G/L Posting Preview"
     var
         PostingPreviewEventHandler: Codeunit "Posting Preview Event Handler";
 
+    /// <summary>
+    /// Initializes the G/L posting preview page with document entries from posting preview operations.
+    /// Loads entry types and counts for comprehensive overview of posting preview results.
+    /// </summary>
+    /// <param name="TempDocumentEntry">Temporary document entry records containing preview results</param>
+    /// <param name="NewPostingPreviewEventHandler">Event handler for accessing detailed entries and operations</param>
     procedure Set(var TempDocumentEntry: Record "Document Entry" temporary; NewPostingPreviewEventHandler: Codeunit "Posting Preview Event Handler")
     begin
         PostingPreviewEventHandler := NewPostingPreviewEventHandler;

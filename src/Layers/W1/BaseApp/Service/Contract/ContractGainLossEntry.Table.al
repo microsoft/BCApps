@@ -69,6 +69,7 @@ table 5969 "Contract Gain/Loss Entry"
         }
         field(12; Amount; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Amount';
         }

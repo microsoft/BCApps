@@ -11,6 +11,14 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Foundation.Comment;
 using Microsoft.Foundation.ExtendedText;
 
+/// <summary>
+/// Chart of accounts page designed for analysis view account selection and navigation.
+/// Displays both G/L accounts and cash flow accounts in a unified view for analysis purposes.
+/// </summary>
+/// <remarks>
+/// Temporary table-based page that consolidates G/L and cash flow accounts for analysis view configuration.
+/// Enables account selection across different account sources in analysis by dimensions functionality.
+/// </remarks>
 page 569 "Chart of Accs. (Analysis View)"
 {
     Caption = 'Chart of Accs. (Analysis View)';
@@ -330,6 +338,11 @@ page 569 "Chart of Accs. (Analysis View)"
         Emphasize: Boolean;
         NameIndent: Integer;
 
+    /// <summary>
+    /// Inserts G/L accounts into the temporary analysis view account table for unified display.
+    /// Converts G/L account records to analysis view account format for account selection.
+    /// </summary>
+    /// <param name="GLAcc">G/L Account record set to insert into temporary table</param>
     procedure InsertTempGLAccAnalysisViews(var GLAcc: Record "G/L Account")
     begin
         if GLAcc.Find('-') then
@@ -341,6 +354,11 @@ page 569 "Chart of Accs. (Analysis View)"
             until GLAcc.Next() = 0;
     end;
 
+    /// <summary>
+    /// Inserts cash flow accounts into the temporary analysis view account table for unified display.
+    /// Converts cash flow account records to analysis view account format for account selection.
+    /// </summary>
+    /// <param name="CFAccount">Cash Flow Account record set to insert into temporary table</param>
     procedure InsertTempCFAccountAnalysisVie(var CFAccount: Record "Cash Flow Account")
     begin
         if CFAccount.Find('-') then

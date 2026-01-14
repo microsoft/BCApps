@@ -6,6 +6,14 @@ namespace Microsoft.Finance.Dimension;
 
 using Microsoft.HumanResources.Employee;
 
+/// <summary>
+/// Manages default dimensions for multiple master data records simultaneously.
+/// Enables bulk configuration of common default dimension settings across selected entities.
+/// </summary>
+/// <remarks>
+/// Supports multi-record dimension setup with common dimension value assignment and posting type configuration.
+/// Provides extensibility through integration events for custom multi-record dimension processing.
+/// </remarks>
 page 542 "Default Dimensions-Multiple"
 {
     Caption = 'Default Dimensions-Multiple';
@@ -150,6 +158,10 @@ page 542 "Default Dimensions-Multiple"
         TotalRecNo: Integer;
         TableIDNo: Integer;
 
+    /// <summary>
+    /// Clears all entries from the temporary default dimension table.
+    /// Resets the multi-record dimension configuration state for new selection.
+    /// </summary>
     procedure ClearTempDefaultDim()
     begin
         TempDefaultDim2.DeleteAll();
@@ -251,6 +263,12 @@ page 542 "Default Dimensions-Multiple"
             until TempDefaultDim3.Next() = 0;
     end;
 
+    /// <summary>
+    /// Copies default dimensions from a specified master data record to the temporary dimension collection.
+    /// Enables dimension inheritance and bulk processing for multi-record dimension operations.
+    /// </summary>
+    /// <param name="TableID">Table ID of the source master data record</param>
+    /// <param name="No">Record number of the source master data record</param>
     procedure CopyDefaultDimToDefaultDim(TableID: Integer; No: Code[20])
     var
         DefaultDim: Record "Default Dimension";
@@ -381,11 +399,23 @@ page 542 "Default Dimensions-Multiple"
                 Text := Text001;
     end;
 
+    /// <summary>
+    /// Integration event raised before copying field values during common default dimension setup.
+    /// Enables customization of field assignment logic for multi-record dimension operations.
+    /// </summary>
+    /// <param name="DefaultDimension">Target default dimension record being modified</param>
+    /// <param name="FromDefaultDimension">Source default dimension record providing field values</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetCommonDefaultCopyFields(var DefaultDimension: Record "Default Dimension"; FromDefaultDimension: Record "Default Dimension")
     begin
     end;
 
+    /// <summary>
+    /// Sets up multi-record dimension processing for a collection of master data records.
+    /// Enables bulk default dimension operations across multiple records of the same table type.
+    /// </summary>
+    /// <param name="MasterRecord">Master data record variant containing selected records</param>
+    /// <param name="NoField">Field number of the record identifier field</param>
     procedure SetMultiRecord(MasterRecord: Variant; NoField: Integer)
     var
         MasterRecordRef: RecordRef;
@@ -404,6 +434,11 @@ page 542 "Default Dimensions-Multiple"
             until MasterRecordRef.Next() = 0;
     end;
 
+    /// <summary>
+    /// Sets up multi-record dimension processing specifically for employee records.
+    /// Deprecated method maintained for backwards compatibility - use SetMultiRecord instead.
+    /// </summary>
+    /// <param name="Employee">Employee record set for bulk dimension processing</param>
     procedure SetMultiEmployee(var Employee: Record Employee)
     begin
         //DEPRECATED - TO BE REMOVED FOR FALL 19
@@ -479,16 +514,33 @@ page 542 "Default Dimensions-Multiple"
             until Rec.Next() = 0;
     end;
 
+    /// <summary>
+    /// Integration event raised before processing multi-record dimension setup.
+    /// Enables customization of master record validation and preprocessing logic.
+    /// </summary>
+    /// <param name="MasterRecord">Master data record variant to be processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetMultiRecord(var MasterRecord: Variant)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying default dimension record during common dimension processing.
+    /// Enables custom field validation and modification logic for multi-record operations.
+    /// </summary>
+    /// <param name="DefaultDimension">Default dimension record being modified</param>
+    /// <param name="TempDefaultDimension2">Temporary default dimension record for reference</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetDefaultDimOnBeforeModify(var DefaultDimension: Record "Default Dimension"; var TempDefaultDimension2: Record "Default Dimension" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before processing next record during common default dimension setup.
+    /// Enables custom processing logic for each master data record in multi-record operations.
+    /// </summary>
+    /// <param name="DefaultDimension">Default dimension record being processed</param>
+    /// <param name="TempDefaultDimension3">Temporary default dimension record for the current master data record</param>
     [IntegrationEvent(false, false)]
     local procedure OnSetCommonDefaultDimOnBeforeNextTempDefaultDim3(var DefaultDimension: Record "Default Dimension"; var TempDefaultDimension3: Record "Default Dimension" temporary)
     begin

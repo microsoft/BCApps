@@ -7,6 +7,15 @@ namespace Microsoft.Bank.Statement;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Foundation.Reporting;
 
+/// <summary>
+/// Displays bank account statement details with summary information and related statement lines.
+/// Provides interface for viewing posted bank statements and accessing reconciliation information.
+/// </summary>
+/// <remarks>
+/// Source Table: Bank Account Statement (275). Shows bank statement header information and line details.
+/// Supports navigation to related bank account information and statement line details.
+/// Used for reviewing completed bank statement processing and reconciliation results.
+/// </remarks>
 page 383 "Bank Account Statement"
 {
     Caption = 'Bank Account Statement';

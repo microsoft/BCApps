@@ -7,6 +7,10 @@ namespace Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.BankAccount;
 using System.Telemetry;
 
+/// <summary>
+/// Overview page for payment reconciliation journals.
+/// Provides dashboard view of reconciliation status and navigation to detailed journals.
+/// </summary>
 page 1293 "Pmt. Rec. Journals Overview"
 {
     Caption = 'Unprocessed Payments';

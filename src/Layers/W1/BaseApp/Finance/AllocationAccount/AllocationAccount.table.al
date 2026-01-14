@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.AllocationAccount;
 
+/// <summary>
+/// Defines allocation accounts for automatic distribution of amounts across multiple destinations.
+/// Supports both fixed and variable allocation methods with configurable distribution rules.
+/// </summary>
 table 2670 "Allocation Account"
 {
     DataClassification = CustomerContent;
@@ -12,15 +16,26 @@ table 2670 "Allocation Account"
 
     fields
     {
+        /// <summary>
+        /// Unique identifier for the allocation account.
+        /// </summary>
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            OptimizeForTextSearch = true;
             NotBlank = true;
         }
+        /// <summary>
+        /// Descriptive name for the allocation account.
+        /// </summary>
         field(2; Name; Text[100])
         {
             Caption = 'Name';
+            OptimizeForTextSearch = true;
         }
+        /// <summary>
+        /// Type of allocation method: Fixed for predefined percentages, Variable for dynamic calculations.
+        /// </summary>
         field(3; "Account Type"; Option)
         {
             Caption = 'Account type';
@@ -31,6 +46,9 @@ table 2670 "Allocation Account"
                 DeleteTheExistingSetupRecords();
             end;
         }
+        /// <summary>
+        /// Specifies how document lines should be split: by Amount or by Quantity.
+        /// </summary>
         field(10; "Document Lines Split"; Option)
         {
             Caption = 'Split Document Lines';

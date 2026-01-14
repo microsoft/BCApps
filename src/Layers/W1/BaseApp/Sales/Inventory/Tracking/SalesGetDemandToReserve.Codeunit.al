@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Tracking;
 
-using Microsoft.Sales.Document;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
 
 codeunit 99000839 "Sales Get Demand To Reserve"
 {

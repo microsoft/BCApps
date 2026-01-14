@@ -11,6 +11,15 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 using System.Utilities;
 
+/// <summary>
+/// List page for viewing and editing individual G/L budget entries with full dimensional analysis capabilities.
+/// Primary data entry interface for budget amounts with validation, dimension support, and drill-down functionality.
+/// </summary>
+/// <remarks>
+/// Key features: Budget entry CRUD operations, dimensional filtering, amount validation, and analysis navigation.
+/// Integration: Links to G/L Account analysis, dimension management, and budget reporting workflows.
+/// Performance: Optimized for large datasets with filtered views and indexed access patterns.
+/// </remarks>
 page 120 "G/L Budget Entries"
 {
     AdditionalSearchTerms = 'general ledger budget entries';

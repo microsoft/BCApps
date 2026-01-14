@@ -14,6 +14,15 @@ using Microsoft.Finance.GeneralLedger.Budget;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using System.Utilities;
 
+/// <summary>
+/// Defines configurable analysis views for multi-dimensional financial reporting and analysis.
+/// Provides pre-aggregated data from G/L entries, cash flow entries, and budget entries with customizable dimension tracking.
+/// </summary>
+/// <remarks>
+/// Core configuration table for the Analysis system. Supports G/L Account and Cash Flow Account sources with up to 4 dimensions.
+/// Analysis view entries are created through the UpdateAnalysisView process for optimized reporting performance.
+/// Extensibility: OnBeforeValidate events for dimension codes and validation logic customization.
+/// </remarks>
 table 363 "Analysis View"
 {
     Caption = 'Analysis View';
@@ -25,15 +34,24 @@ table 363 "Analysis View"
 
     fields
     {
+        /// <summary>
+        /// Unique identifier for the analysis view configuration.
+        /// </summary>
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
             NotBlank = true;
         }
+        /// <summary>
+        /// Descriptive name for the analysis view displayed in user interface and reports.
+        /// </summary>
         field(2; Name; Text[50])
         {
             Caption = 'Name';
         }
+        /// <summary>
+        /// Source of accounts to include in the analysis view (G/L Account or Cash Flow Account).
+        /// </summary>
         field(3; "Account Source"; Enum "Analysis Account Source")
         {
             Caption = 'Account Source';
@@ -48,18 +66,30 @@ table 363 "Analysis View"
                 "Account Filter" := '';
             end;
         }
+        /// <summary>
+        /// Last G/L entry number processed during analysis view update.
+        /// </summary>
         field(4; "Last Entry No."; Integer)
         {
             Caption = 'Last Entry No.';
         }
+        /// <summary>
+        /// Last budget entry number processed during analysis view update.
+        /// </summary>
         field(5; "Last Budget Entry No."; Integer)
         {
             Caption = 'Last Budget Entry No.';
         }
+        /// <summary>
+        /// Date when the analysis view was last updated with transaction data.
+        /// </summary>
         field(6; "Last Date Updated"; Date)
         {
             Caption = 'Last Date Updated';
         }
+        /// <summary>
+        /// Specifies whether the analysis view should be updated automatically when transactions are posted.
+        /// </summary>
         field(7; "Update on Posting"; Boolean)
         {
             Caption = 'Update on Posting';
@@ -70,6 +100,9 @@ table 363 "Analysis View"
                 VerificationForCashFlow();
             end;
         }
+        /// <summary>
+        /// Indicates whether the analysis view is blocked from updates and modifications.
+        /// </summary>
         field(8; Blocked; Boolean)
         {
             Caption = 'Blocked';
@@ -90,6 +123,9 @@ table 363 "Analysis View"
                 end;
             end;
         }
+        /// <summary>
+        /// Filter criteria for selecting which accounts to include in the analysis view based on the account source.
+        /// </summary>
         field(9; "Account Filter"; Code[250])
         {
             Caption = 'Account Filter';
@@ -206,6 +242,9 @@ table 363 "Analysis View"
                 end;
             end;
         }
+        /// <summary>
+        /// Filter criteria for selecting business units to include in the analysis view.
+        /// </summary>
         field(10; "Business Unit Filter"; Code[250])
         {
             Caption = 'Business Unit Filter';
@@ -259,6 +298,9 @@ table 363 "Analysis View"
                 end;
             end;
         }
+        /// <summary>
+        /// Starting date for transactions to include in the analysis view data.
+        /// </summary>
         field(11; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
@@ -279,6 +321,9 @@ table 363 "Analysis View"
                 end;
             end;
         }
+        /// <summary>
+        /// Date compression method for aggregating transactions in analysis view entries.
+        /// </summary>
         field(12; "Date Compression"; Option)
         {
             Caption = 'Date Compression';
@@ -302,6 +347,9 @@ table 363 "Analysis View"
                 end;
             end;
         }
+        /// <summary>
+        /// Primary dimension code to track in the analysis view for multi-dimensional reporting.
+        /// </summary>
         field(13; "Dimension 1 Code"; Code[20])
         {
             Caption = 'Dimension 1 Code';
@@ -320,6 +368,9 @@ table 363 "Analysis View"
                     "Dimension 1 Code" := xRec."Dimension 1 Code";
             end;
         }
+        /// <summary>
+        /// Secondary dimension code to track in the analysis view for multi-dimensional reporting.
+        /// </summary>
         field(14; "Dimension 2 Code"; Code[20])
         {
             Caption = 'Dimension 2 Code';
@@ -338,6 +389,9 @@ table 363 "Analysis View"
                     "Dimension 2 Code" := xRec."Dimension 2 Code";
             end;
         }
+        /// <summary>
+        /// Third dimension code to track in the analysis view for extended multi-dimensional reporting.
+        /// </summary>
         field(15; "Dimension 3 Code"; Code[20])
         {
             Caption = 'Dimension 3 Code';
@@ -356,6 +410,9 @@ table 363 "Analysis View"
                     "Dimension 3 Code" := xRec."Dimension 3 Code";
             end;
         }
+        /// <summary>
+        /// Fourth dimension code to track in the analysis view for comprehensive multi-dimensional reporting.
+        /// </summary>
         field(16; "Dimension 4 Code"; Code[20])
         {
             Caption = 'Dimension 4 Code';
@@ -374,6 +431,9 @@ table 363 "Analysis View"
                     "Dimension 4 Code" := xRec."Dimension 4 Code";
             end;
         }
+        /// <summary>
+        /// Specifies whether budget data should be included in the analysis view for budget vs. actual comparisons.
+        /// </summary>
         field(17; "Include Budgets"; Boolean)
         {
             AccessByPermission = TableData "G/L Budget Name" = R;
@@ -398,10 +458,16 @@ table 363 "Analysis View"
                 end;
             end;
         }
+        /// <summary>
+        /// Indicates that the analysis view should be refreshed when it is unblocked.
+        /// </summary>
         field(18; "Refresh When Unblocked"; Boolean)
         {
             Caption = 'Refresh When Unblocked';
         }
+        /// <summary>
+        /// Indicates that the analysis view data needs to be reset and updated.
+        /// </summary>
         field(19; "Reset Needed"; Boolean)
         {
             Caption = 'Data update needed';
@@ -577,6 +643,9 @@ table 363 "Analysis View"
         end;
     end;
 
+    /// <summary>
+    /// Resets the analysis view by clearing all analysis view entries and resetting tracking fields.
+    /// </summary>
     procedure AnalysisViewReset()
     var
         AnalysisViewEntry2: Record "Analysis View Entry";
@@ -619,6 +688,11 @@ table 363 "Analysis View"
         exit(ClearTotaling);
     end;
 
+    /// <summary>
+    /// Checks if a specified dimension code is tracked by any of the four dimension code fields in the analysis view.
+    /// </summary>
+    /// <param name="DimensionCode">Dimension code to check for tracking</param>
+    /// <returns>True if the dimension is tracked in any of the four dimension code fields</returns>
     procedure CheckDimensionIsTracked(DimensionCode: Code[20]): Boolean
     begin
         if Rec."Dimension 1 Code" = DimensionCode then
@@ -636,6 +710,12 @@ table 363 "Analysis View"
         exit(false);
     end;
 
+    /// <summary>
+    /// Validates that required dimensions are retained for specified objects in analysis views.
+    /// </summary>
+    /// <param name="ObjectType">Type of object to validate dimensions for</param>
+    /// <param name="ObjectID">ID of object to validate dimensions for</param>
+    /// <param name="OnlyIfIncludeBudgets">Whether to check only analysis views that include budgets</param>
     procedure CheckDimensionsAreRetained(ObjectType: Integer; ObjectID: Integer; OnlyIfIncludeBudgets: Boolean)
     begin
         Reset();
@@ -662,6 +742,9 @@ table 363 "Analysis View"
                   DimCode, AnalysisViewCode, AnalysisViewName);
     end;
 
+    /// <summary>
+    /// Checks if all analysis views are updated with the latest transaction data and prompts for update if needed.
+    /// </summary>
     procedure CheckViewsAreUpdated()
     var
         GLEntry: Record "G/L Entry";
@@ -710,6 +793,10 @@ table 363 "Analysis View"
         end;
     end;
 
+    /// <summary>
+    /// Updates all analysis views in the system, optionally showing a progress window.
+    /// </summary>
+    /// <param name="ShowWindow">Whether to display a progress window during the update process</param>
     procedure UpdateAllAnalysisViews(ShowWindow: Boolean)
     var
         AnalysisView: Record "Analysis View";
@@ -726,6 +813,9 @@ table 363 "Analysis View"
             until Next() = 0;
     end;
 
+    /// <summary>
+    /// Updates the last entry number for all non-blocked analysis views to the latest G/L entry number.
+    /// </summary>
     procedure UpdateLastEntryNo()
     var
         GLEntry: Record "G/L Entry";
@@ -741,6 +831,10 @@ table 363 "Analysis View"
         end;
     end;
 
+    /// <summary>
+    /// Validates that the user confirms deletion of analysis view data when modifying configuration fields.
+    /// </summary>
+    /// <param name="FieldName">Name of the field being modified that requires confirmation</param>
     procedure ValidateDelete(FieldName: Text)
     var
         Question: Text;
@@ -754,6 +848,9 @@ table 363 "Analysis View"
             Error(Text013);
     end;
 
+    /// <summary>
+    /// Resets the analysis view budget entries by deleting all budget entries and resetting the last budget entry number.
+    /// </summary>
     procedure AnalysisViewBudgetReset()
     var
         AnalysisViewBudgetEntry2: Record "Analysis View Budget Entry";
@@ -763,6 +860,10 @@ table 363 "Analysis View"
         "Last Budget Entry No." := 0;
     end;
 
+    /// <summary>
+    /// Validates that the user confirms modification of analysis view data when changing configuration fields.
+    /// </summary>
+    /// <param name="FieldName">Name of the field being modified that requires confirmation</param>
     procedure ValidateModify(FieldName: Text)
     var
         Question: Text;
@@ -777,6 +878,12 @@ table 363 "Analysis View"
             Error(Text013);
     end;
 
+    /// <summary>
+    /// Copies analysis view dimension filters to selected dimensions for a specified object.
+    /// </summary>
+    /// <param name="ObjectType">Type of object to copy filters to</param>
+    /// <param name="ObjectID">ID of object to copy filters to</param>
+    /// <param name="AnalysisViewCode">Code of analysis view to copy filters from</param>
     procedure CopyAnalysisViewFilters(ObjectType: Integer; ObjectID: Integer; AnalysisViewCode: Code[10])
     var
         SelectedDim: Record "Selected Dimension";
@@ -844,6 +951,10 @@ table 363 "Analysis View"
             Error(Text016, FieldCaption("Update on Posting"), "Account Source");
     end;
 
+    /// <summary>
+    /// Checks if the analysis view has been configured with last entry tracking or last date updated.
+    /// </summary>
+    /// <returns>True if last entry number or last date updated is set, depending on account source</returns>
     procedure CheckIfLastEntryOrDateIsSet(): Boolean
     var
         IsHandled: Boolean;
@@ -860,6 +971,10 @@ table 363 "Analysis View"
         exit("Last Date Updated" <> 0D);
     end;
 
+    /// <summary>
+    /// Sets the Update on Posting field for all analysis views to the specified value.
+    /// </summary>
+    /// <param name="NewUpdateOnPosting">New value for the Update on Posting field</param>
     procedure SetUpdateOnPosting(NewUpdateOnPosting: Boolean)
     begin
         OnBeforeSetUpdateOnPosting(Rec, NewUpdateOnPosting);
@@ -882,11 +997,17 @@ table 363 "Analysis View"
         end;
     end;
 
+    /// <summary>
+    /// Sets a flag to skip confirmation dialogues during analysis view operations.
+    /// </summary>
     procedure SetSkipConfirmationDialogue()
     begin
         SkipConfirmationDialogue := true;
     end;
 
+    /// <summary>
+    /// Opens the Analysis by Dimensions page for the current analysis view.
+    /// </summary>
     procedure RunAnalysisByDimensionPage()
     var
         TempAnalysisByDimParameters: Record "Analysis by Dim. Parameters" temporary;
@@ -896,6 +1017,9 @@ table 363 "Analysis View"
         PAGE.RUN(PAGE::"Analysis by Dimensions", TempAnalysisByDimParameters);
     end;
 
+    /// <summary>
+    /// Shows a notification to the user indicating that the analysis view needs to be reset.
+    /// </summary>
     procedure ShowResetNeededNotification()
     var
         ResetNeededNotification: Notification;
@@ -910,86 +1034,191 @@ table 363 "Analysis View"
         ResetNeededNotification.Send();
     end;
 
+    /// <summary>
+    /// Integration event raised after analysis view reset operations are completed.
+    /// </summary>
+    /// <param name="AnalysisView">Analysis view record that was reset</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAnalysisViewReset(var AnalysisView: Record "Analysis View")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after copying analysis view filters to selected dimensions.
+    /// </summary>
+    /// <param name="AnalysisView">Analysis view record with filters being copied</param>
+    /// <param name="ObjectType">Type of object receiving the filters</param>
+    /// <param name="ObjectID">ID of object receiving the filters</param>
+    /// <param name="AnalysisViewCode">Code of analysis view being copied from</param>
+    /// <param name="GLAcc">G/L Account record for filter context</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyAnalysisViewFilters(var AnalysisView: Record "Analysis View"; ObjectType: Integer; ObjectID: Integer; AnalysisViewCode: Code[10]; var GLAcc: Record "G/L Account")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating Dimension 1 Code field changes.
+    /// </summary>
+    /// <param name="Rec">Analysis view record being validated</param>
+    /// <param name="xRec">Previous analysis view record values</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateDimension1Code(var Rec: Record "Analysis View"; var xRec: Record "Analysis View")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating Dimension 2 Code field changes.
+    /// </summary>
+    /// <param name="Rec">Analysis view record being validated</param>
+    /// <param name="xRec">Previous analysis view record values</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateDimension2Code(var Rec: Record "Analysis View"; var xRec: Record "Analysis View")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating Dimension 3 Code field changes.
+    /// </summary>
+    /// <param name="Rec">Analysis view record being validated</param>
+    /// <param name="xRec">Previous analysis view record values</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateDimension3Code(var Rec: Record "Analysis View"; var xRec: Record "Analysis View")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating Dimension 4 Code field changes.
+    /// </summary>
+    /// <param name="Rec">Analysis view record being validated</param>
+    /// <param name="xRec">Previous analysis view record values</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateDimension4Code(var Rec: Record "Analysis View"; var xRec: Record "Analysis View")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating Date Compression field changes.
+    /// </summary>
+    /// <param name="Rec">Analysis view record being validated</param>
+    /// <param name="xRec">Previous analysis view record values</param>
+    /// <param name="IsHandled">Set to true to skip default validation logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateDateCompression(var Rec: Record "Analysis View"; var xRec: Record "Analysis View"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating the Blocked field on Analysis View records.
+    /// Enables custom validation logic and the ability to bypass standard validation.
+    /// </summary>
+    /// <param name="Rec">Current Analysis View record being validated</param>
+    /// <param name="xRec">Previous Analysis View record values</param>
+    /// <param name="IsHandled">Set to true to skip standard validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateBlocked(var Rec: Record "Analysis View"; var xRec: Record "Analysis View"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating the Starting Date field on Analysis View records.
+    /// Enables custom validation logic and the ability to bypass standard validation.
+    /// </summary>
+    /// <param name="Rec">Current Analysis View record being validated</param>
+    /// <param name="xRec">Previous Analysis View record values</param>
+    /// <param name="IsHandled">Set to true to skip standard validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateStartingDate(var Rec: Record "Analysis View"; var xRec: Record "Analysis View"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating the Include Budgets field on Analysis View records.
+    /// Enables custom validation logic and the ability to bypass standard validation.
+    /// </summary>
+    /// <param name="Rec">Current Analysis View record being validated</param>
+    /// <param name="xRec">Previous Analysis View record values</param>
+    /// <param name="IsHandled">Set to true to skip standard validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateIncludeBudgets(var Rec: Record "Analysis View"; var xRec: Record "Analysis View"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating the Account Filter field on Analysis View records.
+    /// Enables custom validation logic and the ability to bypass standard validation.
+    /// </summary>
+    /// <param name="Rec">Current Analysis View record being validated</param>
+    /// <param name="xRec">Previous Analysis View record values</param>
+    /// <param name="IsHandled">Set to true to skip standard validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateAccountFilter(var Rec: Record "Analysis View"; var xRec: Record "Analysis View"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating the Business Unit Filter field on Analysis View records.
+    /// Enables custom validation logic and the ability to bypass standard validation.
+    /// </summary>
+    /// <param name="Rec">Current Analysis View record being validated</param>
+    /// <param name="xRec">Previous Analysis View record values</param>
+    /// <param name="IsHandled">Set to true to skip standard validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateBusinessUnitFilter(var Rec: Record "Analysis View"; var xRec: Record "Analysis View"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking if Last Entry or Date field is set on Analysis View records.
+    /// Enables custom logic for determining analysis view update requirements.
+    /// </summary>
+    /// <param name="Rec">Current Analysis View record being checked</param>
+    /// <param name="Result">Result of the check operation</param>
+    /// <param name="IsHandled">Set to true to skip standard check logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckIfLastEntryOrDateIsSet(var Rec: Record "Analysis View"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before setting the Update on Posting field on Analysis View records.
+    /// Enables custom logic for managing automatic analysis view updates.
+    /// </summary>
+    /// <param name="Rec">Current Analysis View record being modified</param>
+    /// <param name="NewUpdateOnPosting">New value for Update on Posting field</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetUpdateOnPosting(var Rec: Record "Analysis View"; NewUpdateOnPosting: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when validating account filter on Analysis View records.
+    /// Enables additional validation or processing during account filter validation.
+    /// </summary>
+    /// <param name="AnalysisView">Current Analysis View record being validated</param>
+    /// <param name="xRecAnalysisView">Previous Analysis View record values</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateAccountFilter(var AnalysisView: Record "Analysis View"; var xRecAnalysisView: Record "Analysis View")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when performing account filter lookup on Analysis View records.
+    /// Enables custom lookup behavior for account filter field.
+    /// </summary>
+    /// <param name="Handled">Set to true if custom lookup was performed</param>
+    /// <param name="AccountFilter">Account filter value being looked up</param>
+    /// <param name="AnalysisView">Analysis View record with account filter</param>
     [IntegrationEvent(false, false)]
     local procedure OnLookupAccountFilter(var Handled: Boolean; var AccountFilter: Text; var AnalysisView: Record "Analysis View")
     begin
     end;
 
+    /// <summary>
+    /// Integration event for determining if an Analysis View is supported by custom implementations.
+    /// Enables extensibility for additional analysis view types beyond standard G/L and Cash Flow.
+    /// </summary>
+    /// <param name="AnalysisView">Analysis View record to validate support for</param>
+    /// <param name="IsSupported">Set to true if the analysis view type is supported</param>
     [IntegrationEvent(false, false)]
     internal procedure OnGetAnalysisViewSupported(var AnalysisView: Record "Analysis View"; var IsSupported: Boolean)
     begin

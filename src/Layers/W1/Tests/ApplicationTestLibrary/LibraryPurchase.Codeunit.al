@@ -1,6 +1,8 @@
+/// <summary>
+/// Provides utility functions for creating and managing purchase documents in test scenarios, including purchase orders, invoices, and credit memos.
+/// </summary>
 codeunit 130512 "Library - Purchase"
 {
-    // Contains all utility functions related to Purchase.
 
     Permissions = TableData "Purchase Header" = rimd,
                   TableData "Purchase Line" = rimd;

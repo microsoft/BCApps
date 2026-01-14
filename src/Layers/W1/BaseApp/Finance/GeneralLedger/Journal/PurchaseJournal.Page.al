@@ -21,6 +21,16 @@ using System.Environment.Configuration;
 using System.Integration;
 using System.Threading;
 
+/// <summary>
+/// Purchase journal page for entering purchase transactions and vendor-related general journal entries.
+/// Provides specialized interface for purchase postings with vendor account focus and simplified data entry.
+/// </summary>
+/// <remarks>
+/// Specialized purchase journal with vendor-focused transaction entry interface.
+/// Features dual view modes: simple view (vendor-focused) and detailed view (full general journal functionality).
+/// Key capabilities: Vendor payment processing, purchase invoice corrections, vendor adjustments, VAT handling.
+/// Integration: Direct posting to vendor ledger entries, automatic account validation, dimension processing.
+/// </remarks>
 page 254 "Purchase Journal"
 {
     // // This page has two view modes based on global variable 'IsSimplePage' as :-
@@ -572,12 +582,20 @@ page 254 "Purchase Journal"
                     ApplicationArea = Dimensions;
                     ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible1;
+                    trigger OnValidate()
+                    begin
+                        CurrPage.SaveRecord();
+                    end;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
                     ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible2;
+                    trigger OnValidate()
+                    begin
+                        CurrPage.SaveRecord();
+                    end;
                 }
                 field(ShortcutDimCode3; ShortcutDimCode[3])
                 {
@@ -1772,11 +1790,21 @@ page 254 "Purchase Journal"
         end;
     end;
 
+    /// <summary>
+    /// Sets the current journal batch name for the purchase journal page.
+    /// Used to control which batch is currently active and displayed in the purchase journal.
+    /// </summary>
+    /// <param name="NewCurrentJnlBatchName">The journal batch name to set as current.</param>
     procedure SetCurrentJnlBatchName(NewCurrentJnlBatchName: Code[10])
     begin
         CurrentJnlBatchName := NewCurrentJnlBatchName;
     end;
 
+    /// <summary>
+    /// Gets the current journal batch name for the purchase journal page.
+    /// Returns the name of the journal batch currently active and displayed.
+    /// </summary>
+    /// <returns>The current journal batch name code.</returns>
     procedure GetCurrentJnlBatchName(): Code[10]
     begin
         exit(CurrentJnlBatchName);
@@ -1849,21 +1877,47 @@ page 254 "Purchase Journal"
         JobQueuesUsed := GeneralLedgerSetup.JobQueueActive();
     end;
 
+    /// <summary>
+    /// Integration event that occurs after validating shortcut dimension codes in the purchase journal.
+    /// Allows custom processing of dimension validation for purchase journal entries.
+    /// </summary>
+    /// <param name="GenJournalLine">The journal line being validated for dimension codes.</param>
+    /// <param name="ShortcutDimCode">Array of shortcut dimension codes being validated.</param>
+    /// <param name="DimIndex">Index of the dimension code being validated (1-8).</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateShortcutDimCode(var GenJournalLine: Record "Gen. Journal Line"; var ShortcutDimCode: array[8] of Code[20]; DimIndex: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event that occurs before opening a journal from a batch in the purchase journal.
+    /// Allows custom handling of journal opening operations and result override.
+    /// </summary>
+    /// <param name="GenJournalLine">The journal line context for opening the journal.</param>
+    /// <param name="Result">Boolean result that can be modified to override the opening operation.</param>
+    /// <param name="IsHandled">Set to true to skip standard journal opening processing.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeOpenJournalFromBatch(var GenJournalLine: Record "Gen. Journal Line"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event that occurs before selecting a journal template in the purchase journal.
+    /// Allows custom template selection logic and override of standard template selection.
+    /// </summary>
+    /// <param name="GenJournalLine">The journal line providing context for template selection.</param>
+    /// <param name="GenJnlManagement">General journal management codeunit for template operations.</param>
+    /// <param name="IsHandled">Set to true to skip standard template selection processing.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeSelectTemplate(var GenJournalLine: Record "Gen. Journal Line"; var GenJnlManagement: Codeunit GenJnlManagement; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event that occurs after opening the journal during page opening for the purchase journal.
+    /// Allows custom processing after journal initialization and batch selection.
+    /// </summary>
+    /// <param name="CurrentJnlBatchName">The current journal batch name after opening the journal.</param>
     [IntegrationEvent(true, false)]
     local procedure OnOpenPageOnAfterOpenJnl(var CurrentJnlBatchName: Code[10])
     begin

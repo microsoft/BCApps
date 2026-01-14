@@ -12,6 +12,10 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 using System.IO;
 
+/// <summary>
+/// Generates VIES (VAT Information Exchange System) declaration files for EU VAT reporting compliance.
+/// Exports EU sales data to disk file format required by tax authorities for intra-community trade reporting.
+/// </summary>
 report 88 "VAT- VIES Declaration Disk"
 {
     Caption = 'VAT- VIES Declaration Disk';
@@ -264,11 +268,21 @@ report 88 "VAT- VIES Declaration Disk"
         exit(CustLedgerEntry."Sell-to Customer No.");
     end;
 
+    /// <summary>
+    /// Returns the name of the generated VIES declaration file.
+    /// Provides access to the filename for external processing or verification purposes.
+    /// </summary>
+    /// <returns>Complete filename with path for the generated VIES declaration file</returns>
     procedure GetFileName(): Text[1024]
     begin
         exit(FileName);
     end;
 
+    /// <summary>
+    /// Initializes VIES declaration report with file dialog visibility preferences.
+    /// Configures whether to display file save dialog during report execution.
+    /// </summary>
+    /// <param name="NewHideFileDialog">True to suppress file dialog, false to show file selection dialog</param>
     procedure InitializeRequest(NewHideFileDialog: Boolean)
     begin
         HideFileDialog := NewHideFileDialog;
@@ -284,6 +298,14 @@ report 88 "VAT- VIES Declaration Disk"
         VATEntry.ModifyAll("Internal Ref. No.", InternalRefNo);
     end;
 
+    /// <summary>
+    /// Integration event raised before executing post-report file operations.
+    /// Enables custom file handling and processing logic for VIES declaration output.
+    /// </summary>
+    /// <param name="FileName">Generated filename for VIES declaration file</param>
+    /// <param name="ToFileNameTxt">Target filename text for file operations</param>
+    /// <param name="HideFileDialog">Whether file dialog is hidden during processing</param>
+    /// <param name="IsHandled">Set to true to skip standard post-report processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnPostReport(var FileName: Text; ToFileNameTxt: Text; HideFileDialog: Boolean; var IsHandled: Boolean)
     begin

@@ -13,13 +13,13 @@ using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.FixedAssets.Ledger;
+using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Enums;
+using Microsoft.Projects.Project.Job;
+using Microsoft.Projects.Project.Journal;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
-using Microsoft.Foundation.Company;
-using Microsoft.Projects.Project.Journal;
-using Microsoft.Projects.Project.Job;
 
 /// <summary>
 /// Defines the implementation of Non-Deductible VAT
@@ -386,6 +386,14 @@ codeunit 6201 "Non-Ded. VAT Impl."
         VATAmountLine."Deductible VAT Amount" := Round(VATAmountLine."Deductible VAT Amount", Currency."Amount Rounding Precision");
         VATAmountLine."Calc. Non-Ded. VAT Amount" := Round(VATAmountLine."Calc. Non-Ded. VAT Amount", Currency."Amount Rounding Precision");
         VATAmountLine."Non-Deductible VAT Diff." += PurchaseLine."Non-Deductible VAT Diff.";
+        // Ensure deductible amounts are not negative due to rounding
+        if VATAmountLine."Deductible VAT Base" < 0 then begin
+            VATAmountLine."Non-Deductible VAT Base" += VATAmountLine."Deductible VAT Base";
+            VATAmountLine."Deductible VAT Base" := 0;
+            VATAmountLine."Non-Deductible VAT Amount" += VATAmountLine."Deductible VAT Amount";
+            VATAmountLine."Deductible VAT Amount" := 0;
+        end;
+
     end;
 
     procedure CopyNonDedVATFromPurchInvLineToVATAmountLine(var VATAmountLine: Record "VAT Amount Line"; PurchInvLine: Record "Purch. Inv. Line")
@@ -404,6 +412,13 @@ codeunit 6201 "Non-Ded. VAT Impl."
         VATAmountLine."Calc. Non-Ded. VAT Amount" := PurchInvLine."Non-Deductible VAT Amount" - PurchInvLine."Non-Deductible VAT Diff.";
         VATAmountLine."Deductible VAT Base" := VATAmountLine."VAT Base" - VATAmountLine."Non-Deductible VAT Base";
         VATAmountLine."Deductible VAT Amount" := VATAmountLine."VAT Amount" - VATAmountLine."Non-Deductible VAT Amount";
+        // Ensure deductible amounts are not negative due to rounding
+        if VATAmountLine."Deductible VAT Base" < 0 then begin
+            VATAmountLine."Non-Deductible VAT Base" += VATAmountLine."Deductible VAT Base";
+            VATAmountLine."Deductible VAT Base" := 0;
+            VATAmountLine."Non-Deductible VAT Amount" += VATAmountLine."Deductible VAT Amount";
+            VATAmountLine."Deductible VAT Amount" := 0;
+        end;
     end;
 
     procedure CopyNonDedVATFromPurchCrMemoLineToVATAmountLine(var VATAmountLine: Record "VAT Amount Line"; PurchCrMemoLine: Record "Purch. Cr. Memo Line")

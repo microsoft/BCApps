@@ -9,6 +9,15 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 
+/// <summary>
+/// Defines general business posting groups for transaction classification and G/L account assignment automation.
+/// Controls default VAT business posting group assignment and automatic general posting setup creation.
+/// </summary>
+/// <remarks>
+/// Used with general product posting groups to determine G/L account assignments through General Posting Setup matrix.
+/// Integrates with customer, vendor, and G/L account master data for consistent posting group assignment.
+/// Extensibility: OnValidateDefVATBusPostingGroupOnBeforeModifyGLAccount event for custom validation logic.
+/// </remarks>
 table 250 "Gen. Business Posting Group"
 {
     Caption = 'Gen. Business Posting Group';
@@ -19,15 +28,24 @@ table 250 "Gen. Business Posting Group"
 
     fields
     {
+        /// <summary>
+        /// Unique identifier for the general business posting group used in transaction classification.
+        /// </summary>
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
             NotBlank = true;
         }
+        /// <summary>
+        /// Descriptive name for the general business posting group explaining its business purpose.
+        /// </summary>
         field(2; Description; Text[100])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// Default VAT business posting group automatically assigned to customers, vendors, and G/L accounts using this general business posting group.
+        /// </summary>
         field(3; "Def. VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'Def. VAT Bus. Posting Group';
@@ -69,6 +87,9 @@ table 250 "Gen. Business Posting Group"
                 end;
             end;
         }
+        /// <summary>
+        /// Controls automatic creation of general posting setup records when this business posting group is combined with product posting groups.
+        /// </summary>
         field(4; "Auto Insert Default"; Boolean)
         {
             Caption = 'Auto Insert Default';
@@ -99,6 +120,12 @@ table 250 "Gen. Business Posting Group"
         Vend: Record Vendor;
         Vend2: Record Vendor;
 
+    /// <summary>
+    /// Validates and retrieves general business posting group configuration for automatic posting setup creation.
+    /// </summary>
+    /// <param name="GenBusPostingGrp">General business posting group record to validate and populate</param>
+    /// <param name="EnteredGenBusPostingGroup">Business posting group code to validate</param>
+    /// <returns>True if auto insert default is enabled for the posting group, false otherwise</returns>
     procedure ValidateVatBusPostingGroup(var GenBusPostingGrp: Record "Gen. Business Posting Group"; EnteredGenBusPostingGroup: Code[20]): Boolean
     begin
         if EnteredGenBusPostingGroup <> '' then
@@ -108,6 +135,12 @@ table 250 "Gen. Business Posting Group"
         exit(GenBusPostingGrp."Auto Insert Default");
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying G/L account VAT business posting group during default VAT posting group update.
+    /// Enables custom validation or modification logic for G/L account VAT posting group changes.
+    /// </summary>
+    /// <param name="Rec">General business posting group record being processed</param>
+    /// <param name="GLAccount">G/L account record being modified</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateDefVATBusPostingGroupOnBeforeModifyGLAccount(var Rec: Record "Gen. Business Posting Group"; var GLAccount: Record "G/L Account")
     begin

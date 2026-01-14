@@ -6,6 +6,14 @@ namespace Microsoft.Intercompany.Outbox;
 
 using Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Displays processed intercompany outbox purchase lines for document analysis and review.
+/// Provides detailed view of transmitted purchase line items sent to IC partners.
+/// </summary>
+/// <remarks>
+/// Primary data source: Handled IC Outbox Purch. Line. Supports purchase line analysis, cost tracking, and transaction history review.
+/// Navigation: Purchase document → Line details → Dimension analysis and related item information viewing.
+/// </remarks>
 page 643 "Handled IC Outbox Purch. Lines"
 {
     Caption = 'Lines';

@@ -8,9 +8,8 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
-using Microsoft.Pricing.Source;
-using System.Telemetry;
 using Microsoft.Pricing.Calculation;
+using Microsoft.Pricing.Source;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Project.Pricing;
 using Microsoft.Projects.Resources.Pricing;
@@ -18,6 +17,7 @@ using Microsoft.Projects.Resources.Resource;
 using Microsoft.Purchases.Pricing;
 using Microsoft.Sales.Pricing;
 using Microsoft.Utilities;
+using System.Telemetry;
 
 codeunit 7009 CopyFromToPriceListLine
 {

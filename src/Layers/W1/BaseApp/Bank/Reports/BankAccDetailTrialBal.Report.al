@@ -8,6 +8,15 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Ledger;
 using System.Utilities;
 
+/// <summary>
+/// Generates detailed trial balance report for bank accounts with transaction-level detail.
+/// Displays opening balances, transaction details, and closing balances for bank account analysis.
+/// </summary>
+/// <remarks>
+/// Data Sources: Bank Account, Bank Account Ledger Entry. 
+/// Features: Period filtering, balance calculations, transaction detail, reversed entry handling.
+/// Usage: Financial reporting, account analysis, balance verification, audit trail documentation.
+/// </remarks>
 report 1404 "Bank Acc. - Detail Trial Bal."
 {
     DefaultLayout = RDLC;
@@ -278,6 +287,13 @@ report 1404 "Bank Acc. - Detail Trial Bal."
         StartBalance: Decimal;
         StartBalanceLCY: Decimal;
 
+    /// <summary>
+    /// Initializes report options for output formatting and filtering behavior.
+    /// Configures page layout, balance display, and reversed entry handling preferences.
+    /// </summary>
+    /// <param name="NewPrintOnlyOnePerPage">Controls single bank account per page printing</param>
+    /// <param name="NewExcludeBalanceOnly">Excludes accounts that only have balance without transactions</param>
+    /// <param name="NewPrintReversedEntries">Includes reversed entries in the report output</param>
     procedure InitializeRequest(NewPrintOnlyOnePerPage: Boolean; NewExcludeBalanceOnly: Boolean; NewPrintReversedEntries: Boolean)
     begin
         PrintOnlyOnePerPageReq := NewPrintOnlyOnePerPage;

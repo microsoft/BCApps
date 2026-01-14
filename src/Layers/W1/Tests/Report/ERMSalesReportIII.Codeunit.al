@@ -23,14 +23,11 @@ codeunit 134984 "ERM Sales Report III"
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryWarehouse: Codeunit "Library - Warehouse";
-        LibraryXPathXMLReader: Codeunit "Library - XPath XML Reader";
         FileManagement: Codeunit "File Management";
-        CodeCoverageMgt: Codeunit "Code Coverage Mgt.";
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         RecordErr: Label '%1 must exist.', Comment = '%1 = Table Name';
         HeaderDimensionTxt: Label '%1%2%3', Locked = true;
-        TotalLCYTxt: Label 'Total (LCY)';
         TotalCapTxt: Label 'Total';
         PrepaymentPostErr: Label '%1 must be completely preinvoiced before you can ship or invoice the line.', Comment = '%1=Field Caption';
         CustBalanceCustLedgEntryTxt: Label 'CustBalance_CustLedgEntryHdrFooter';
@@ -43,14 +40,11 @@ codeunit 134984 "ERM Sales Report III"
         WarningTxt: Label 'Warning!';
         EntriesExistTxt: Label 'true';
         TotalTxt: Label 'total';
-        AgingBy: Option "Due Date","Posting Date","Document Date";
-        HeadingType: Option "Date Interval","Number of Days";
         isInitialized: Boolean;
         ReportStandardSalesCreditMemoErr: Label 'File of report Standard Sales - Credit Memo not found.';
         WrongExchRateErr: Label 'Wrong exchange rate.';
         VALExchRateTok: Label 'VALExchRate';
         VATIdentifierTok: Label 'VATAmountLine__VAT_Identifier__Control241';
-        EnterDateFormulaErr: Label 'Enter a date formula in the Period Length field.';
         RowPrintedMultiplyErr: Label 'Analysis row must be printed only once.';
         RunReportNotSupportedErr: Label 'The method RunReport is not supported for TestPages';
         Rep1302DatasetErr: Label 'Wrong REP1302 "Standard Sales - Pro Forma Inv" dataset.';
@@ -265,8 +259,7 @@ codeunit 134984 "ERM Sales Report III"
 
         // Verify.
         LibraryReportDataset.LoadDataSetFile();
-        VerifyVATEntries('VATAmountLine__VAT_Identifier_', 'VATAmountLine__VAT___', 'VATAmountLine__VAT_Base_',
-          'VATAmountLine__Line_Amount_', 'VATAmountLine__Inv__Disc__Base_Amount_');
+        VerifyVATEntries('VATAmountLine__VAT_Identifier_', 'VATAmountLine__VAT___', 'VATAmountLine__VAT_Base_', 'VATAmountLine__Line_Amount_', 'VATAmountLine__Inv__Disc__Base_Amount_', VATAmountLine);
     end;
 
     [Test]
@@ -433,229 +426,6 @@ codeunit 134984 "ERM Sales Report III"
     end;
 
     [Test]
-    [HandlerFunctions('RHAgedAccountsReceivable')]
-    [Scope('OnPrem')]
-    procedure AgedAccountRecDueDate()
-    var
-        Customer: Record Customer;
-        SalesLine: Record "Sales Line";
-        SalesHeader: Record "Sales Header";
-        VATAmount: Decimal;
-        PeriodLength: DateFormula;
-        NoOfDays: Text[30];
-        PostedDocNo: Code[20];
-    begin
-        // [FEATURE] [Aged Accounts Receivable]
-        // Check Aged Account Receivable Report with Aging By Due Date.
-
-        // Setup: Create and Post Sales Order with Modify Due Date on Sales Header and Calculate VAT Amount with Random Values.
-        Initialize();
-        NoOfDays := Format(LibraryRandom.RandInt(5));
-        CreateSalesDocument(SalesLine, SalesLine."Document Type"::Order, CreateCustomer(), '');
-        SalesHeader.Get(SalesLine."Document Type", SalesLine."Document No.");
-        SalesHeader.Validate("Due Date", CalcDate('<' + NoOfDays + 'D>', SalesHeader."Posting Date"));
-        SalesHeader.Modify(true);
-        PostedDocNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
-        VATAmount := Round(SalesLine."Line Amount" + (SalesLine."Line Amount" * SalesLine."VAT %" / 100));
-        Evaluate(PeriodLength, '<' + NoOfDays + 'M>');
-
-        // Exercise: Save Aged Account Receivable Report with Aging By Due Date.
-        Customer.SetRange("No.", SalesLine."Sell-to Customer No.");
-        SaveAgedAccountsReceivable(
-          Customer, AgingBy::"Due Date", HeadingType::"Date Interval", PeriodLength, false, false);
-
-        // Verify: Verify Saved Report Data.
-        VerifyAgedAccountsRecReport(PostedDocNo, SalesLine."Sell-to Customer No.", VATAmount, VATAmount
-          , VATAmount, VATAmount);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHAgedAccountsReceivable')]
-    [Scope('OnPrem')]
-    procedure AgedAccountRecPostingDate()
-    var
-        SalesLine: Record "Sales Line";
-        PeriodLength: DateFormula;
-        VATAmount: Decimal;
-        PostedDocNo: Code[20];
-    begin
-        // [FEATURE] [Aged Accounts Receivable]
-        // Check Aged Account Receivable Report with Aging By Posting Date.
-
-        // Create and Post Sales Order and Save Aged Account Receivable Report with Posting Date.
-        Initialize();
-        VATAmount := SetupAgedAccountsReceivable(SalesLine, PostedDocNo, PeriodLength, AgingBy::"Posting Date",
-            HeadingType::"Date Interval", false, false, '');
-
-        // Verify: Verify Saved Report Data with Aging by Posting Date. 1D is Required by Increasing Date with 1 Day.
-        VerifyAgedAccountsRecReport(PostedDocNo, SalesLine."Sell-to Customer No.", VATAmount, VATAmount,
-          VATAmount, VATAmount);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHAgedAccountsReceivable')]
-    [Scope('OnPrem')]
-    procedure AgedAccountRecDocumentDate()
-    var
-        Customer: Record Customer;
-        SalesLine: Record "Sales Line";
-        SalesHeader: Record "Sales Header";
-        PeriodLength: DateFormula;
-        NoOfDays: Text[30];
-        VATAmount: Decimal;
-        PostedDocNo: Code[20];
-    begin
-        // [FEATURE] [Aged Accounts Receivable]
-        // Check Aged Account Receivable Report with Aging By Document Date.
-
-        // Setup: Create and Post Sales Order with Modify Document Date on Sales Header and Calculate VAT Amount with Random Values.
-        Initialize();
-        NoOfDays := Format(LibraryRandom.RandInt(5));
-        CreateSalesDocument(SalesLine, SalesLine."Document Type"::Order, CreateCustomer(), '');
-        SalesHeader.Get(SalesLine."Document Type", SalesLine."Document No.");
-        SalesHeader.Validate("Document Date", CalcDate('<' + NoOfDays + 'D>', SalesHeader."Posting Date"));
-        SalesHeader.Modify(true);
-        PostedDocNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
-        VATAmount := Round(SalesLine."Line Amount" + (SalesLine."Line Amount" * SalesLine."VAT %" / 100));
-        Evaluate(PeriodLength, '<' + NoOfDays + 'M>');
-
-        // Exercise: Save Aged Account Receivable Report with Aging By Document Date.
-        Customer.SetRange("No.", SalesLine."Sell-to Customer No.");
-        SaveAgedAccountsReceivable(
-          Customer, AgingBy::"Document Date", HeadingType::"Date Interval", PeriodLength, false, false);
-
-        // Verify: Verify Saved Report Data with Balance Amount and Heading Type with Date Interval.
-        VerifyAgedAccountsRecReport(PostedDocNo, SalesLine."Sell-to Customer No.", VATAmount, 0,
-          VATAmount, 0);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHAgedAccountsReceivable')]
-    [Scope('OnPrem')]
-    procedure AgedAccountRecFalsePrintAmtLCY()
-    var
-        Customer: Record Customer;
-        GeneralLedgerSetup: Record "General Ledger Setup";
-        SalesLine: Record "Sales Line";
-        SalesLine2: Record "Sales Line";
-        PeriodLength: DateFormula;
-        VATAmount: Decimal;
-        VATAmount2: Decimal;
-    begin
-        // [FEATURE] [Aged Accounts Receivable]
-        // Check Aged Account Receivable Report with Print Amount LCY False.
-
-        // Create and Post Sales Order and Save Aged Account Receivable Report with Print Amount LCY.
-        Initialize();
-        GeneralLedgerSetup.Get();
-        CreateAndPostSalesDocument(SalesLine, CreateCustomer(), SalesLine."Document Type"::Order, '', true);
-        VATAmount := Round(SalesLine."Line Amount" + (SalesLine."Line Amount" * SalesLine."VAT %" / 100));
-
-        CreateAndPostSalesDocument(SalesLine2, CreateCustomer(), SalesLine."Document Type"::Order, '', true);
-        VATAmount2 := Round(SalesLine2."Line Amount" + (SalesLine2."Line Amount" * SalesLine2."VAT %" / 100));
-
-        // Exercise: Take Period Length with Random Values.
-        Evaluate(PeriodLength, '<' + Format(LibraryRandom.RandInt(5)) + 'M>');
-        Customer.SetFilter("No.", '%1|%2', SalesLine."Sell-to Customer No.", SalesLine2."Sell-to Customer No.");
-        SaveAgedAccountsReceivable(
-          Customer, AgingBy::"Due Date", HeadingType::"Date Interval", PeriodLength, false, false);
-
-        // Verify: Verify Saved Report Data with Print Amount LCY FALSE.
-        LibraryReportDataset.LoadDataSetFile();
-
-        LibraryReportDataset.SetRange('No_Cust', SalesLine."Sell-to Customer No.");
-        LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.AssertCurrentRowValueEquals('CurrrencyCode', GeneralLedgerSetup."LCY Code");
-
-        LibraryReportDataset.Reset();
-        LibraryReportDataset.SetRange('CurrSpecificationCptn', 'Currency Specification');
-        LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.AssertCurrentRowValueEquals('AgedCLE6RemAmt', VATAmount + VATAmount2);
-
-        LibraryReportDataset.Reset();
-        LibraryReportDataset.SetRange('TotalLCYCptn', TotalLCYTxt);
-        LibraryReportDataset.SetRange('No_Cust', SalesLine2."Sell-to Customer No.");
-        LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.AssertCurrentRowValueEquals('GrandTotalCLEAmtLCY', VATAmount + VATAmount2);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHAgedAccountsReceivable')]
-    [Scope('OnPrem')]
-    procedure AgedAccountRecTruePrintAmtLCY()
-    var
-        Currency: Record Currency;
-        SalesLine: Record "Sales Line";
-        PeriodLength: DateFormula;
-        VATAmount: Decimal;
-        VATAmountLCY: Decimal;
-        PostedDocNo: Code[20];
-    begin
-        // [FEATURE] [Aged Accounts Receivable]
-        // Check Aged Account Receivable Report with Print Amount LCY TRUE.
-
-        // Create and Post Sales Order and Save Aged Account Receivable Report with Print Amount LCY.
-        Initialize();
-        VATAmount := SetupAgedAccountsReceivable(SalesLine, PostedDocNo, PeriodLength, AgingBy::"Due Date", HeadingType::"Date Interval",
-            true, false, CreateCurrencyAndExchangeRate());
-        Currency.Get(SalesLine."Currency Code");
-        VATAmount := Round(VATAmount, Currency."Invoice Rounding Precision");
-        VATAmountLCY := LibraryERM.ConvertCurrency(Round(VATAmount, Currency."Invoice Rounding Precision"), Currency.Code, '', WorkDate());
-
-        // Verify: Verify Saved Report Data with Print Amount LCY FALSE.
-        VerifyAgedAccountsRecReport(PostedDocNo, SalesLine."Sell-to Customer No.", VATAmount, VATAmount,
-          VATAmountLCY, VATAmountLCY);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHAgedAccountsReceivable')]
-    [Scope('OnPrem')]
-    procedure AgedAccountRecNoOfDays()
-    var
-        SalesLine: Record "Sales Line";
-        PeriodLength: DateFormula;
-        PostedDocNo: Code[20];
-        VATAmount: Decimal;
-    begin
-        // [FEATURE] [Aged Accounts Receivable]
-        // Check Aged Account Receivable Report with Heading Type No. of Days.
-
-        // Create and Post Sales Order, Save Aged Account Receivable Report with Heading Type No. of Days.
-        Initialize();
-
-        VATAmount := SetupAgedAccountsReceivable(SalesLine, PostedDocNo, PeriodLength, AgingBy::"Due Date",
-            HeadingType::"Number of Days", false, false, '');
-
-        // Verify: Verify Saved Report Data with Heading Type No. of Days.
-        VerifyAgedAccountsRecReport(PostedDocNo, SalesLine."Sell-to Customer No.", VATAmount, VATAmount,
-          VATAmount, VATAmount);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHAgedAccountsReceivable')]
-    [Scope('OnPrem')]
-    procedure AgedAccountRecPrintDetails()
-    var
-        SalesLine: Record "Sales Line";
-        PeriodLength: DateFormula;
-        VATAmount: Decimal;
-        PostedDocNo: Code[20];
-    begin
-        // [FEATURE] [Aged Accounts Receivable]
-        // Check Aged Account Receivable Report with Print Details.
-
-        // Create and Post Sales Order, Save Aged Account Receivable Report with Print Details.
-        Initialize();
-
-        VATAmount := SetupAgedAccountsReceivable(SalesLine, PostedDocNo, PeriodLength, AgingBy::"Due Date",
-            HeadingType::"Date Interval", false, true, '');
-
-        // Verify: Verify Saved Report Data with Print Details TRUE.
-        VerifyAgedAccountsRecReport(PostedDocNo, SalesLine."Sell-to Customer No.", VATAmount, VATAmount,
-          VATAmount, VATAmount);
-    end;
-
-    [Test]
     [HandlerFunctions('RHCustomerBalanceToDate')]
     [Scope('OnPrem')]
     procedure CustomerBalanceToDateAllFalse()
@@ -760,8 +530,7 @@ codeunit 134984 "ERM Sales Report III"
 
         // Verify: Verify Report Data for VAT.
         LibraryReportDataset.LoadDataSetFile();
-        VerifyVATEntries('VATAmtLineVATIdentifier', 'VATAmtLineVATPercentage',
-          'VATAmtLineVATBase', 'VATAmtLineLineAmt', 'VATAmtLineInvDiscBaseAmt');
+        VerifyVATEntries('VATAmtLineVATIdentifier', 'VATAmtLineVATPercentage', 'VATAmtLineVATBase', 'VATAmtLineLineAmt', 'VATAmtLineInvDiscBaseAmt', VATAmountLine);
     end;
 
     [Test]
@@ -806,55 +575,6 @@ codeunit 134984 "ERM Sales Report III"
         // Verify: Verify Interaction Log Entry Record.
         LibraryReportDataset.LoadDataSetFile();
         VerifyInteractionLogEntry(InteractionLogEntry."Document Type"::"Sales Return Order", SalesLine."Document No.");
-    end;
-
-    [Test]
-    [HandlerFunctions('PostAndApplyCustPageHandler,PostApplicationPageHandler,MessageHandler,RHAgedAccountsReceivable')]
-    [Scope('OnPrem')]
-    procedure AgedAccReceivableReport()
-    var
-        Customer: Record Customer;
-        GenJournalBatch: Record "Gen. Journal Batch";
-        GenJournalLine: Record "Gen. Journal Line";
-        AgingBy: Option "Due Date","Posting Date","Document Date";
-        HeadingType: Option "Date Interval","Number of Days";
-        PeriodLength: DateFormula;
-    begin
-        // [FEATURE] [Aged Accounts Receivable]
-        // Verify that program filter data correctly by date in Aged Accounts Receivable report.
-
-        // Setup: Create Customer,Post Invoice and Payment and apply it.
-        Initialize();
-        LibrarySales.CreateCustomer(Customer);
-        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
-        LibraryERM.ClearGenJournalLines(GenJournalBatch);
-        LibraryERM.CreateGeneralJnlLine(
-          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::Invoice,
-          GenJournalLine."Account Type"::Customer, Customer."No.", LibraryRandom.RandDec(100, 2)); // Take Random Amount.
-
-        // In Bug 215283,Invoice should be made before the Payment is posted.Hence, taking Random Date before the workdate.
-        GenJournalLine.Validate("Posting Date", CalcDate('<-' + Format(LibraryRandom.RandInt(5)) + 'D>', WorkDate()));
-        GenJournalLine.Modify(true);
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-
-        // Make Payment by dividing Invoice amount from Random no.
-        LibraryERM.CreateGeneralJnlLine(
-          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::Payment,
-          GenJournalLine."Account Type"::Customer, Customer."No.", -(GenJournalLine.Amount / LibraryRandom.RandIntInRange(2, 5)));
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-        ApplyCustLedgerEntry(GenJournalLine."Document Type", GenJournalLine."Account No.");
-        Customer.Get(Customer."No.");
-        Customer.CalcFields(Balance);
-
-        // Exercise: Save Aged Accounts Receivables Report.
-        Evaluate(PeriodLength, '<' + Format(LibraryRandom.RandInt(5)) + 'M>'); // Take Random value for Period length.
-        Customer.SetRecFilter();
-        Commit();
-        SaveAgedAccountsReceivable(
-          Customer, AgingBy::"Due Date", HeadingType::"Date Interval", PeriodLength, false, false);
-
-        // Verify: Verify the Balance in the report.
-        VerifyXMLReport('No_Cust', Customer."No.", 'TotalCLE1Amt', Customer.Balance);
     end;
 
     [Test]
@@ -1100,26 +820,6 @@ codeunit 134984 "ERM Sales Report III"
         // Verify: Verify Amount in FCY on Document Entries Report.
         VerifyAmtOnDocumentEntriesReport(
           CrMemoPostingDtTxt, Format(SalesCrMemoHeader."Posting Date"), CrMemoAmtTxt, SalesCrMemoHeader.Amount);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHAgedAccountsReceivable')]
-    [Scope('OnPrem')]
-    procedure AgedAccountRecWithCurrencyCodeMatchesBlankAndLCY()
-    begin
-        // [FEATURE] [Aged Accounts Receivable]
-        // Verify Aged Accounts Receivable report should consider the Amount when Currency Code is Blank and LCY with Print Amount LCY False.
-        AgedAccountRecFalsePrintAmtLCYAndCurrencyCodeMatchesLCY(true); // 1st currency code is blank, 2nd currency is LCY.
-    end;
-
-    [Test]
-    [HandlerFunctions('RHAgedAccountsReceivable')]
-    [Scope('OnPrem')]
-    procedure AgedAccountRecWithCurrencyCodeMatchesLCYAndBlank()
-    begin
-        // [FEATURE] [Aged Accounts Receivable]
-        // Verify Aged Accounts Receivable report should consider the Amount when Currency Code is LCY and Blank with Print Amount LCY False.
-        AgedAccountRecFalsePrintAmtLCYAndCurrencyCodeMatchesLCY(false); // 1st currency code is LCY, 2nd currency is blank.
     end;
 
     [Test]
@@ -1439,48 +1139,6 @@ codeunit 134984 "ERM Sales Report III"
     end;
 
     [Test]
-    [HandlerFunctions('RHAgedAccountsReceivableEmptyPeriodLength')]
-    [Scope('OnPrem')]
-    procedure AgedAccountsReceivablePeriodLengthError()
-    var
-        Customer: Record Customer;
-        PeriodLength: DateFormula;
-    begin
-        // [FEATURE] [UT] [Aged Accounts Receivable]
-        // [SCENARIO 202767] Aged Accounts Receivable report gives 'Enter a date formula in the Period Length field.' error when "Period Length" is empty
-        Initialize();
-
-        LibrarySales.CreateCustomer(Customer);
-        Commit();
-        asserterror SaveAgedAccountsReceivable(
-            Customer, AgingBy::"Due Date", HeadingType::"Date Interval", PeriodLength, false, false);
-        Assert.ExpectedError(EnterDateFormulaErr);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHAgedAccountsReceivableDefaultPeriodLength')]
-    [Scope('OnPrem')]
-    procedure AgedAccountsReceivableDefaultPeriodLength()
-    var
-        Customer: Record Customer;
-        PeriodLength: DateFormula;
-        ExpectedPeriodLength: DateFormula;
-    begin
-        // [FEATURE] [UT] [Aged Accounts Receivable]
-        // [SCENARIO 232335] Aged Accounts Receivable report has '<1M>' as default Period Length
-        Initialize();
-
-        Clear(PeriodLength);
-        LibrarySales.CreateCustomer(Customer);
-        Commit();
-        SaveAgedAccountsReceivable(
-          Customer, AgingBy::"Due Date", HeadingType::"Date Interval", PeriodLength, false, false);
-        Evaluate(PeriodLength, LibraryVariableStorage.DequeueText());
-        Evaluate(ExpectedPeriodLength, '<1M>');
-        Assert.AreEqual(ExpectedPeriodLength, PeriodLength, 'Incorrect Period Length');
-    end;
-
-    [Test]
     [Scope('OnPrem')]
     procedure ECSalesListReportWithFilteredPostingDateWithNoData()
     var
@@ -1566,42 +1224,6 @@ codeunit 134984 "ERM Sales Report III"
         // StatementRequestPageHandler
         LibraryReportDataset.LoadDataSetFile();
         Assert.AreEqual(0, LibraryReportDataset.RowCount(), '');
-    end;
-
-    [Test]
-    [HandlerFunctions('RHAgedAccountsReceivable')]
-    [Scope('OnPrem')]
-    procedure AgedAccountsReceivableTimestampAndCompanyDisplayNameCalledOnce()
-    var
-        GenJournalBatch: Record "Gen. Journal Batch";
-        GenJournalLine: Record "Gen. Journal Line";
-        Customer: Record Customer;
-        PeriodLength: DateFormula;
-        I: Integer;
-    begin
-        // [FEATURE] [Performance] [Aged Accounts Receivable] [Date-Time] [Time Zone]
-        // [SCENARIO 235531] TypeHelper.GetFormattedCurrentDateTimeInUserTimeZone and COMPANYPROPERTY.DisplayName() are called once for Aged Accounts Receivable report when multiple entries are processed
-        Initialize();
-
-        // [GIVEN] Post 2 Sales Invoices
-        LibrarySales.CreateCustomer(Customer);
-        LibraryJournals.CreateGenJournalBatch(GenJournalBatch);
-        for I := 1 to 2 do
-            LibraryJournals.CreateGenJournalLine(
-              GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::Invoice,
-              GenJournalLine."Account Type"::Customer, Customer."No.", GenJournalLine."Bal. Account Type"::"G/L Account",
-              LibraryERM.CreateGLAccountNo(), LibraryRandom.RandIntInRange(1000, 2000));
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-
-        // [WHEN] Run Aged Accounts Receivable
-        Customer.SetRecFilter();
-        Evaluate(PeriodLength, '<1M>');
-        CodeCoverageMgt.StartApplicationCoverage();
-        SaveAgedAccountsReceivable(Customer, AgingBy::"Posting Date", HeadingType::"Date Interval", PeriodLength, false, false);
-        CodeCoverageMgt.StopApplicationCoverage();
-
-        // [THEN] COMPANYPROPERTY.DisplayName() is called once
-        VerifyAgedAccountsReceivableNoOfHitsCodeCoverage('COMPANYPROPERTY.DISPLAYNAME', 1);
     end;
 
     [Test]
@@ -1722,80 +1344,6 @@ codeunit 134984 "ERM Sales Report III"
         // [THEN] Date Filter = '01/01/20..31/12/20' is printed on the filter section on Excel worksheet.
         LibraryReportValidation.OpenExcelFile();
         LibraryReportValidation.VerifyCellValueOnWorksheet(2, 2, DateFilter, '1');
-    end;
-
-    [Test]
-    [HandlerFunctions('RHAgedAccountsReceivable')]
-    [Scope('OnPrem')]
-    procedure AgedAccReceivableReportConsidersGlobalDimensionFiltersWhenReportOpenLedgEntries()
-    var
-        Customer: Record Customer;
-        GenJournalLine: Record "Gen. Journal Line";
-        AgingBy: Option "Due Date","Posting Date","Document Date";
-        HeadingType: Option "Date Interval","Number of Days";
-        PeriodLength: DateFormula;
-        i: Integer;
-    begin
-        // [FEATURE] [Aged Accounts Receivable] [Dimension]
-        // [SCENARIO 284398] Aged Account Receivable Report considers global dimension filters
-
-        Initialize();
-
-        LibrarySales.CreateCustomer(Customer);
-
-        // [GIVEN] Two posted invoices
-        // [GIVEN] Invoice "A" with Amount = 100, "Global Dimension 1 Code" = "X1", "Global Dimension 2 Code" = "X2"
-        // [GIVEN] Invoice "B" with Amount = 200, "Global Dimension 1 Code" = "X2", "Global Dimension 2 Code" = "Y2"
-        for i := 1 to 2 do
-            PostInvoiceWithDimensions(GenJournalLine, Customer."No.");
-        PrepareAgedAccReceivableReportForDimRun(
-          Customer, PeriodLength, GenJournalLine."Shortcut Dimension 1 Code", GenJournalLine."Shortcut Dimension 2 Code");
-
-        // [WHEN] Run Aged Account Receivable Report with "Global Dimension 1 Filter" = "X2" and "Global Dimension 2 Filter" = "Y2"
-        SaveAgedAccountsReceivable(
-          Customer, AgingBy::"Posting Date", HeadingType::"Date Interval", PeriodLength, false, false);
-
-        // [THEN] Total amount in exported XML file of report is 200
-        VerifyXMLReport('No_Cust', Customer."No.", 'TotalCLE1Amt', GenJournalLine."Amount (LCY)");
-    end;
-
-    [Test]
-    [HandlerFunctions('PostAndApplyCustPageHandler,PostApplicationPageHandler,MessageHandler,RHAgedAccountsReceivable')]
-    [Scope('OnPrem')]
-    procedure AgedAccReceivableReportConsidersGlobalDimensionFiltersWhenReportClosedLedgEntries()
-    var
-        Customer: Record Customer;
-        GenJournalLine: Record "Gen. Journal Line";
-        AgingBy: Option "Due Date","Posting Date","Document Date";
-        PeriodLength: DateFormula;
-        i: Integer;
-    begin
-        // [FEATURE] [Aged Accounts Receivable] [Dimension]
-        // [SCENARIO 284398] Aged Account Receivable Report considers global dimension filters
-
-        Initialize();
-
-        LibrarySales.CreateCustomer(Customer);
-
-        // [GIVEN] Two posted invoices fully applied by payments
-        // [GIVEN] Invoice "A" with Amount = 100, "Global Dimension 1 Code" = "X1", "Global Dimension 2 Code" = "X2"
-        // [GIVEN] Invoice "B" with Amount = 200, "Global Dimension 1 Code" = "X2", "Global Dimension 2 Code" = "Y2"
-        for i := 1 to 2 do begin
-            PostInvoiceWithDimensions(GenJournalLine, Customer."No.");
-            PostApplyPaymentWithDimensions(
-              GenJournalLine, Customer."No.", GenJournalLine."Posting Date" + 1, -GenJournalLine.Amount,
-              GenJournalLine."Shortcut Dimension 1 Code", GenJournalLine."Shortcut Dimension 2 Code");
-        end;
-        PrepareAgedAccReceivableReportForDimRun(
-          Customer, PeriodLength, GenJournalLine."Shortcut Dimension 1 Code", GenJournalLine."Shortcut Dimension 2 Code");
-        Commit();
-
-        // [WHEN] Run Aged Account Receivable Report with "Global Dimension 1 Filter" = "X2" and "Global Dimension 2 Filter" = "Y2"
-        SaveAgedAccountsReceivable(
-          Customer, AgingBy::"Posting Date", HeadingType::"Date Interval", PeriodLength, false, false);
-
-        // [THEN] Total amount in exported XML file of report is 200
-        VerifyXMLReport('No_Cust', Customer."No.", 'TotalCLE1Amt', -GenJournalLine."Amount (LCY)");
     end;
 
     [Test]
@@ -1986,43 +1534,6 @@ codeunit 134984 "ERM Sales Report III"
     end;
 
     [Test]
-    [HandlerFunctions('AgedAccountsReceivableReportRequestPageHandler')]
-    procedure AgedAccReceivableCustomerPhoneNoAndContact()
-    var
-        Customer: Record Customer;
-    begin
-        // [FEATURE] [Aged Accounts Receivable]
-        // [SCENARIO 290824] Aged Accounts Receivable report prints customer phone number and contact when Print Details = "Yes"
-        Initialize();
-
-        // [GIVEN] Customer "CUST" with Phone No. = "12345", Contact = "CONT"
-        LibrarySales.CreateCustomer(Customer);
-        Customer.Validate("Phone No.",
-          CopyStr(
-            LibraryUtility.GenerateRandomNumericText(MaxStrLen(Customer."Phone No.")),
-            1,
-            MaxStrLen(Customer."Phone No.")));
-        Customer.Validate(Contact,
-          CopyStr(
-            LibraryUtility.GenerateRandomAlphabeticText(MaxStrLen(Customer.Contact), 0),
-            1,
-            MaxStrLen(Customer.Contact)));
-        Customer.Modify();
-
-        // [GIVEN] Create and post invoice for Customer "CUST", "Posting Date" = "01.01.2019" and "Due Date" = "01.02.2019"
-        CreatePostSalesInvoiceWithDueDateCalc(Customer."No.", CalcDate('<1M>', WorkDate()));
-
-        // [WHEN] Run report Aged Accounts Receivable with "Print Details" = "Yes"
-        RunAgedAccountsReceivableWithParameters(Customer, CalcDate('<2M>', WorkDate()));
-
-        // [THEN] Customer "CUST" is printed with Phone No. = "12345", Contact = "CONT"
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists('Name1_Cust', Customer."No.");
-        LibraryReportDataset.AssertElementWithValueExists('CustomerPhoneNo', Customer."Phone No.");
-        LibraryReportDataset.AssertElementWithValueExists('CustomerContactName', Customer.Contact);
-    end;
-
-    [Test]
     [HandlerFunctions('ProFormaInvoiceXML_RPH')]
     [Scope('OnPrem')]
     procedure SalesProFormaInvoiceCorrectlyCalculateVATAmount()
@@ -2068,13 +1579,13 @@ codeunit 134984 "ERM Sales Report III"
         LibraryReportDataset.AssertCurrentRowValueEquals('DocumentNo', SalesLine[1]."Document No.");
         LibraryReportDataset.AssertCurrentRowValueEquals('Quantity', Quantity);
         LibraryReportDataset.AssertCurrentRowValueEquals('LineAmount', Format(SalesLine[1]."Line Amount"));
-        VATAmount := SalesLine[1]."Amount Including VAT" - SalesLine[1].Amount;
+        VATAmount := Round(SalesLine[1].Amount * SalesLine[1]."VAT %" / 100 * SalesLine[1]."Qty. to Invoice" / SalesLine[1].Quantity);
         LibraryReportDataset.AssertCurrentRowValueEquals('VATAmount', Format(VATAmount));
 
         Assert.IsTrue(LibraryReportDataset.GetNextRow(), Rep1302DatasetErr);
         LibraryReportDataset.AssertCurrentRowValueEquals('Quantity', Quantity);
         LibraryReportDataset.AssertCurrentRowValueEquals('LineAmount', Format(SalesLine[2]."Line Amount"));
-        VATAmount := SalesLine[2]."Amount Including VAT" - SalesLine[2].Amount;
+        VATAmount := Round(SalesLine[2].Amount * SalesLine[2]."VAT %" / 100 * SalesLine[2]."Qty. to Invoice" / SalesLine[2].Quantity);
         LibraryReportDataset.AssertCurrentRowValueEquals('VATAmount', Format(VATAmount));
     end;
 
@@ -2273,138 +1784,6 @@ codeunit 134984 "ERM Sales Report III"
         LibraryReportDataset.AssertCurrentRowValueEquals('ShipToAddress1', ReturnReceiptHeader."Ship-to Name");
         // [THEN] Dataset contains data for bill-to customer "C2"
         LibraryReportDataset.AssertCurrentRowValueEquals('CustomerAddress1', ReturnReceiptHeader."Bill-to Name");
-    end;
-
-    [Test]
-    [HandlerFunctions('RHAgedAccountsReceivableFileName')]
-    procedure AgedAccountsReceivableCurrencyFilterNotSet()
-    var
-        Customer: Record Customer;
-        SalesLine: Record "Sales Line";
-        CurrencyCode: array[2] of Code[10];
-        DocumentNo: Code[20];
-        PeriodLength: DateFormula;
-        Filters: Text;
-        AmountFCY: array[2] of Decimal;
-        AmountLCY: array[2] of Decimal;
-    begin
-        // [FEATURE] [Aged Accounts Receivable]
-        // [SCENARIO 397446] Run Aged Accounts Receivable report for Sales Documents with different currencies when Currency Filter is not set.
-        Initialize();
-
-        // [GIVEN] Posted Sales Invoice with Currency "C1". Posted Sales Invoice with Currency "C2".
-        LibrarySales.CreateCustomer(Customer);
-        CurrencyCode[1] := LibraryERM.CreateCurrencyWithRandomExchRates();
-        CurrencyCode[2] := LibraryERM.CreateCurrencyWithRandomExchRates();
-        DocumentNo := CreateAndPostSalesDocument(SalesLine, Customer."No.", SalesLine."Document Type"::Invoice, CurrencyCode[1], true);
-        GetSalesDocAmounts(SalesLine."Document Type"::Invoice, DocumentNo, AmountFCY[1], AmountLCY[1]);
-        DocumentNo := CreateAndPostSalesDocument(SalesLine, Customer."No.", SalesLine."Document Type"::Invoice, CurrencyCode[2], true);
-        GetSalesDocAmounts(SalesLine."Document Type"::Invoice, DocumentNo, AmountFCY[2], AmountLCY[2]);
-
-        // [WHEN] Run report Aged Accounts Receivable. "Currency Filter" is not set in "Filter Totals by" section in Customer block.
-        Evaluate(PeriodLength, StrSubstNo('<%1M>', LibraryRandom.RandInt(5)));
-        Customer.SetRecFilter();
-        SaveAgedAccountsReceivable(Customer, AgingBy::"Due Date", HeadingType::"Date Interval", PeriodLength, false, false);
-
-        // [THEN] Lines for currencies "C1" and "C2" are shown. Totals are equal to sum of Amount(LCY) of Invoices.
-        LibraryXPathXMLReader.Initialize(LibraryVariableStorage.DequeueText(), '');
-        VerifyCurrencyAgedAccountsReceivable(CurrencyCode[1], AmountFCY[1], AmountLCY[1], 0);
-        VerifyCurrencyAgedAccountsReceivable(CurrencyCode[2], AmountFCY[2], AmountLCY[2], 1);
-        VerifyTotalLCYAgedAccountsReceivable(AmountLCY[1] + AmountLCY[2]);
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('//Result/CurrrencyCode', 2);
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('//Result/TempCurrCode', 2);
-
-        // [THEN] Filter on the report page does not contain "Currency Filter".
-        Filters := LibraryXPathXMLReader.GetNodeInnerTextByXPathWithIndex('//Result/CustFilter', 0);
-        asserterror Assert.ExpectedMessage('Currency Filter', Filters);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHAgedAccountsReceivableFileName')]
-    procedure AgedAccountsReceivableCurrencyFilterSetOneCurrency()
-    var
-        Customer: Record Customer;
-        SalesLine: Record "Sales Line";
-        CurrencyCode: array[2] of Code[10];
-        DocumentNo: Code[20];
-        PeriodLength: DateFormula;
-        Filters: Text;
-        AmountFCY: Decimal;
-        AmountLCY: Decimal;
-    begin
-        // [FEATURE] [Aged Accounts Receivable]
-        // [SCENARIO 397446] Run Aged Accounts Receivable report for Sales Documents with different currencies when Currency Filter is set to one currency.
-        Initialize();
-
-        // [GIVEN] Posted Sales Invoice with Currency "C1". Posted Sales Invoice with Currency "C2".
-        LibrarySales.CreateCustomer(Customer);
-        CurrencyCode[1] := LibraryERM.CreateCurrencyWithRandomExchRates();
-        CurrencyCode[2] := LibraryERM.CreateCurrencyWithRandomExchRates();
-        CreateAndPostSalesDocument(SalesLine, Customer."No.", SalesLine."Document Type"::Invoice, CurrencyCode[1], true);
-        DocumentNo := CreateAndPostSalesDocument(SalesLine, Customer."No.", SalesLine."Document Type"::Invoice, CurrencyCode[2], true);
-        GetSalesDocAmounts(SalesLine."Document Type"::Invoice, DocumentNo, AmountFCY, AmountLCY);
-
-        // [WHEN] Run report Aged Accounts Receivable. Set "Currency Filter" = "C2" in "Filter Totals by" section in Customer block.
-        Evaluate(PeriodLength, StrSubstNo('<%1M>', LibraryRandom.RandInt(5)));
-        Customer.SetRecFilter();
-        Customer.SetRange("Currency Filter", CurrencyCode[2]);
-        SaveAgedAccountsReceivable(Customer, AgingBy::"Due Date", HeadingType::"Date Interval", PeriodLength, false, false);
-
-        // [THEN] Only line for currency "C2" is shown. Totals are equal to corresponding values of the posted Invoice with Currency "C2".
-        LibraryXPathXMLReader.Initialize(LibraryVariableStorage.DequeueText(), '');
-        VerifyCurrencyAgedAccountsReceivable(CurrencyCode[2], AmountFCY, AmountLCY, 0);
-        VerifyTotalLCYAgedAccountsReceivable(AmountLCY);
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('//Result/CurrrencyCode', 1);
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('//Result/TempCurrCode', 1);
-
-        // [THEN] Filter on the report page contains "Currency Filter: C2".
-        Filters := LibraryXPathXMLReader.GetNodeInnerTextByXPathWithIndex('//Result/CustFilter', 0);
-        Assert.ExpectedMessage(StrSubstNo('Currency Filter: %1', CurrencyCode[2]), Filters);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHAgedAccountsReceivableFileName')]
-    procedure AgedAccountsReceivableCurrencyFilterSetTwoCurrencies()
-    var
-        Customer: Record Customer;
-        SalesLine: Record "Sales Line";
-        CurrencyCode: array[2] of Code[10];
-        DocumentNo: Code[20];
-        PeriodLength: DateFormula;
-        Filters: Text;
-        AmountFCY: array[2] of Decimal;
-        AmountLCY: array[2] of Decimal;
-    begin
-        // [FEATURE] [Aged Accounts Receivable]
-        // [SCENARIO 397446] Run Aged Accounts Receivable report for Sales Documents with different currencies when Currency Filter is set for two currencies.
-        Initialize();
-
-        // [GIVEN] Posted Sales Invoice with Currency "C1". Posted Sales Invoice with Currency "C2".
-        LibrarySales.CreateCustomer(Customer);
-        CurrencyCode[1] := LibraryERM.CreateCurrencyWithRandomExchRates();
-        CurrencyCode[2] := LibraryERM.CreateCurrencyWithRandomExchRates();
-        DocumentNo := CreateAndPostSalesDocument(SalesLine, Customer."No.", SalesLine."Document Type"::Invoice, CurrencyCode[1], true);
-        GetSalesDocAmounts(SalesLine."Document Type"::Invoice, DocumentNo, AmountFCY[1], AmountLCY[1]);
-        DocumentNo := CreateAndPostSalesDocument(SalesLine, Customer."No.", SalesLine."Document Type"::Invoice, CurrencyCode[2], true);
-        GetSalesDocAmounts(SalesLine."Document Type"::Invoice, DocumentNo, AmountFCY[2], AmountLCY[2]);
-
-        // [WHEN] Run report Aged Accounts Receivable. Set "Currency Filter" = "C1|C2" in "Filter Totals by" section in Customer block.
-        Evaluate(PeriodLength, StrSubstNo('<%1M>', LibraryRandom.RandInt(5)));
-        Customer.SetRecFilter();
-        Customer.SetFilter("Currency Filter", '%1|%2', CurrencyCode[1], CurrencyCode[2]);
-        SaveAgedAccountsReceivable(Customer, AgingBy::"Due Date", HeadingType::"Date Interval", PeriodLength, false, false);
-
-        // [THEN] Lines for currencies "C1" and "C2" are shown. Totals are equal to sum of Amount(LCY) of Invoices.
-        LibraryXPathXMLReader.Initialize(LibraryVariableStorage.DequeueText(), '');
-        VerifyCurrencyAgedAccountsReceivable(CurrencyCode[1], AmountFCY[1], AmountLCY[1], 0);
-        VerifyCurrencyAgedAccountsReceivable(CurrencyCode[2], AmountFCY[2], AmountLCY[2], 1);
-        VerifyTotalLCYAgedAccountsReceivable(AmountLCY[1] + AmountLCY[2]);
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('//Result/CurrrencyCode', 2);
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('//Result/TempCurrCode', 2);
-
-        // [THEN] Filter on the report page contains "Currency Filter: C1|C2".
-        Filters := LibraryXPathXMLReader.GetNodeInnerTextByXPathWithIndex('//Result/CustFilter', 0);
-        Assert.ExpectedMessage(StrSubstNo('Currency Filter: %1|%2', CurrencyCode[1], CurrencyCode[2]), Filters);
     end;
 
     [Test]
@@ -2936,113 +2315,6 @@ codeunit 134984 "ERM Sales Report III"
         VerifyTotalOnCustBalanceToDateWithLCY(DetailedCustLedgEntryAmount(Customer."No.", GenJournalLine."Posting Date"));
     end;
 
-    [Test]
-    [HandlerFunctions('RHAgedAccountsReceivableFileName')]
-    [Scope('OnPrem')]
-    procedure AgedAccountReceivablesReportsPrioritizeMostRecentPostingCausingFaultyReports()
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-        Customer: Record Customer;
-        CustomerLedgerEntry: Record "Cust. Ledger Entry";
-        LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
-        DocumentNo: Code[20];
-        Amount: Decimal;
-        AsofDate: Date;
-        PeriodLength: DateFormula;
-    begin
-        //[SCENARIO 574822] Aged Account Receivables and Aged Account Payable Reports Prioritize Most Recent Posting Date Rather than Posting Date on Latest Entry Causing Faulty Reports
-
-        Initialize();
-
-        // [GIVEN] Create Customer
-        LibrarySales.CreateCustomer(Customer);
-
-        //[GIVEN] Create and Post Sales Invoice
-        Amount := 12000;
-        DocumentNo :=
-        CreateAndPostSalesInvoiceWithOneLine(Customer."No.", '123', Amount, 0D);
-
-        // [GIVEN] Create Payment Journal and post for Sales Invoice
-        CreateGeneralJournalLine(GenJournalLine, 1, Customer."No.", GenJournalLine."Document Type"::Payment, -Amount);
-        GenJournalLine.Validate("Posting Date", WorkDate());
-        UpdateGenJournalLine(GenJournalLine, '', DocumentNo, -Amount);
-        LibraryLowerPermissions.SetAccountReceivables();
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-
-        // [GIVEN] Unapply The Payment for Sales Invoice
-        LibraryERM.FindCustomerLedgerEntry(CustomerLedgerEntry, CustomerLedgerEntry."Document Type"::Payment, DocumentNo);
-        UnapplyCustomerLedgerEntry(CustomerLedgerEntry, 20280201D);
-
-        // [GIVEN] apply the payment again for the Sales Invoice
-        CreateGeneralJournalLine(GenJournalLine, 1, Customer."No.", GenJournalLine."Document Type"::Payment, -Amount);
-        GenJournalLine.Validate("Posting Date", WorkDate());
-        UpdateGenJournalLine(GenJournalLine, '', DocumentNo, -Amount);
-        LibraryLowerPermissions.SetAccountReceivables();
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-
-        //[WHEN] Run Aged Account Receivable Report
-        AsofDate := 20271231D;
-        SaveAgedAccReceivable(Customer, AgingBy::"Posting Date", HeadingType::"Date Interval", PeriodLength, false, true, AsofDate);
-
-        //[THEN] Check These  Entries should not be there.
-        LibraryReportDataset.AssertElementWithValueNotExist('CLEPostingDate', WorkDate());
-    end;
-
-    [Test]
-    [HandlerFunctions('PostAndApplyCustPageHandler,PostApplicationPageHandler,MessageHandler,RHAgedAccountsReceivable')]
-    [Scope('OnPrem')]
-    procedure AgedAccountsReceivableReportShouldShowCreditMemoWhenUsingOptionAgingByPostingDate()
-    var
-        Customer: Record Customer;
-        Item: Record Item;
-        CustledEntry: Record "Cust. Ledger Entry";
-        SalesHeader: Record "Sales Header";
-        SalesCrMemo: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        DocumentNo: Code[20];
-        PeriodLength: DateFormula;
-    begin
-
-        //[SCENARIO 599304] Aged Accounts Receivable/Payable reports do not show credit memo when using option Aging By = Posting Date
-        Initialize();
-
-        // [GIVEN] Create Customer
-        LibrarySales.CreateCustomer(Customer);
-        LibraryInventory.CreateItem(Item);
-
-        // [GIVEN] Create and Post Sales Invoice
-        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
-        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
-        SalesHeader."Posting Date" := WorkDate();
-        SalesHeader.Modify();
-        SalesLine.Validate("Unit Price", 1000); //Use a value that is easy to verify in the report
-        SalesLine.Modify(true);
-        LibrarySales.PostSalesDocument(SalesHeader, true, false);
-
-        // [GIVEN] Create and Post Sales Credit Memo
-        LibrarySales.CreateSalesHeader(SalesCrMemo, SalesCrMemo."Document Type"::"Credit Memo", Customer."No.");
-        LibrarySales.CreateSalesLine(SalesLine, SalesCrMemo, SalesLine.Type::Item, Item."No.", 1);
-        SalesCrMemo."Posting Date" := WorkDate();
-        SalesCrMemo.Modify();
-        SalesLine.Validate("Unit Price", 1000); //Use a value that is easy to verify in the report
-        SalesLine.Modify(true);
-        DocumentNo := LibrarySales.PostSalesDocument(SalesCrMemo, true, false);
-
-        // [WHEN] Apply Entries from Credit Memo to Invoice
-        LibraryERM.FindCustomerLedgerEntry(CustledEntry, CustledEntry."Document Type"::"Credit Memo", DocumentNo);
-        ApplyCustLedgerEntry(CustledEntry."Document Type"::"Credit Memo", Customer."No.");
-
-        // [WHEN] Run Aged Accounts Receivable Report
-        Evaluate(PeriodLength, '<1M>');
-        Customer.SetRecFilter();
-        Commit();
-        SaveAgedAccountsReceivable(
-            Customer, AgingBy::"Posting Date", HeadingType::"Date Interval", PeriodLength, true, true);
-
-        //[THEN] Check These  Entries should be there.
-        LibraryReportDataset.AssertElementWithValueNotExist('CLEPostingDate', WorkDate());
-    end;
-
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -3066,57 +2338,6 @@ codeunit 134984 "ERM Sales Report III"
         isInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"ERM Sales Report III");
-    end;
-
-    local procedure AgedAccountRecFalsePrintAmtLCYAndCurrencyCodeMatchesLCY(FirstBlank: Boolean)
-    var
-        SalesLine: Record "Sales Line";
-        Customer: Record Customer;
-        CustomerNo: Code[20];
-        CurrencyCode: Code[10];
-        CurrencyCode1: Code[10];
-        CurrencyCode2: Code[10];
-        PeriodLength: DateFormula;
-    begin
-        // Setup: Create Currency and update LCY Code in GL Setup.
-        Initialize();
-        CreateLCYAndUpdateGeneralLedgerSetup(CurrencyCode);
-
-        // Create and Post 2 Sales Orders.
-        CustomerNo := CreateCustomer();
-        if FirstBlank then begin
-            CurrencyCode1 := '';
-            CurrencyCode2 := CurrencyCode;
-        end else begin
-            CurrencyCode1 := CurrencyCode;
-            CurrencyCode2 := '';
-        end;
-        CreateAndPostSalesDocument(SalesLine, CustomerNo, SalesLine."Document Type"::Order, CurrencyCode1, true);
-        CreateAndPostSalesDocument(SalesLine, CustomerNo, SalesLine."Document Type"::Order, CurrencyCode2, true);
-
-        // Exercise: Run and save Aged Account Receivable Report with Print Amount LCY = False.
-        Evaluate(PeriodLength, '<' + Format(LibraryRandom.RandInt(5)) + 'M>');
-        Customer.Get(CustomerNo);
-        Customer.SetRecFilter();
-        SaveAgedAccountsReceivable(Customer, AgingBy::"Due Date", HeadingType::"Date Interval", PeriodLength, false, false);
-
-        // Verify: Verify the Balance in the report.
-        Customer.CalcFields(Balance);
-        VerifyXMLReport('No_Cust', CustomerNo, 'TotalCLE1Amt', Customer.Balance);
-    end;
-
-    local procedure SetupAgedAccountsReceivable(var SalesLine: Record "Sales Line"; var PostedDocNo: Code[20]; var PeriodLength: DateFormula; AgingBy: Integer; HeadingType: Option; PrintAmountLCY: Boolean; PrintDetails: Boolean; CurrencyCode: Code[10]) VATAmount: Decimal
-    var
-        Customer: Record Customer;
-    begin
-        // Setup: Create and Post Sales Order and Find Customer Ledger Entry Amount.
-        PostedDocNo := CreateAndPostSalesDocument(SalesLine, CreateCustomer(), SalesLine."Document Type"::Order, CurrencyCode, true);
-        VATAmount := Round(SalesLine."Line Amount" + (SalesLine."Line Amount" * SalesLine."VAT %" / 100));
-
-        // Exercise: Take Period Length with Random Values.
-        Evaluate(PeriodLength, '<' + Format(LibraryRandom.RandInt(5)) + 'M>');
-        Customer.SetRange("No.", SalesLine."Sell-to Customer No.");
-        SaveAgedAccountsReceivable(Customer, AgingBy, HeadingType, PeriodLength, PrintAmountLCY, PrintDetails);
     end;
 
     local procedure PrepareCustomFCYSalesInvoiceForProForma(var SalesLine: Record "Sales Line"; CurrencyCode: Code[10])
@@ -3364,37 +2585,12 @@ codeunit 134984 "ERM Sales Report III"
         SalesLine.Modify(true);
     end;
 
-    local procedure CreatePostSalesInvoiceWithDueDateCalc(CustomerNo: Code[20]; DueDate: Date): Decimal
-    var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        SalesInvoiceHeader: Record "Sales Invoice Header";
-    begin
-        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
-        SalesHeader.Validate("Due Date", DueDate);
-        SalesHeader.Modify();
-        LibrarySales.CreateSalesLine(
-          SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNo(), LibraryRandom.RandDec(10, 2));
-        SalesLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2));
-        SalesLine.Modify(true);
-        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
-        SalesInvoiceHeader.CalcFields("Amount Including VAT");
-        exit(SalesInvoiceHeader."Amount Including VAT");
-    end;
-
     local procedure CreateGLAccount(var GLAccount: Record "G/L Account"; GenProdPostingGroup: Code[20]; VATProdPostingGroup: Code[20])
     begin
         LibraryERM.CreateGLAccount(GLAccount);
         GLAccount.Validate("Gen. Prod. Posting Group", GenProdPostingGroup);
         GLAccount.Validate("VAT Prod. Posting Group", VATProdPostingGroup);
         GLAccount.Modify(true);
-    end;
-
-    local procedure CreateLCYAndUpdateGeneralLedgerSetup(var CurrencyCode: Code[10])
-    begin
-        CurrencyCode := CreateCurrencyAndExchangeRate();
-        UpdateCurrencyExchangeRate(CurrencyCode, 1, 1); // Update Exchange Rate to 1:1 since this is a Local Currency.
-        UpdateGeneralLedgerSetupForLCYCode(CurrencyCode);
     end;
 
     local procedure CreateItemCharge(var ItemCharge: Record "Item Charge"; GenProdPostingGroup: Code[20]; VATProdPostingGroup: Code[20])
@@ -3693,26 +2889,6 @@ codeunit 134984 "ERM Sales Report III"
         SalesLine.FindSet();
     end;
 
-    local procedure GetSalesDocAmounts(DocumentType: Enum "Gen. Journal Document Type"; DocumentNo: Code[20]; var Amount: Decimal; var AmountLCY: Decimal)
-    var
-        CustLedgerEntry: Record "Cust. Ledger Entry";
-    begin
-        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, DocumentType, DocumentNo);
-        CustLedgerEntry.CalcFields(Amount, "Amount (LCY)");
-        Amount := CustLedgerEntry.Amount;
-        AmountLCY := CustLedgerEntry."Amount (LCY)";
-    end;
-
-    local procedure ApplyCustLedgerEntry(DocumentType: Enum "Gen. Journal Document Type"; CustomerNo: Code[20])
-    var
-        CustomerLedgerEntries: TestPage "Customer Ledger Entries";
-    begin
-        CustomerLedgerEntries.OpenView();
-        CustomerLedgerEntries.FILTER.SetFilter("Document Type", Format(DocumentType));
-        CustomerLedgerEntries.FILTER.SetFilter("Customer No.", CustomerNo);
-        CustomerLedgerEntries."Apply Entries".Invoke();
-    end;
-
     local procedure MockApplyUnapplyScenario(CustomerNo: Code[20]; ApplnDate1: Date; UnapplDate: Date; ApplnDate2: Date) Amount: Decimal
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
@@ -3768,16 +2944,6 @@ codeunit 134984 "ERM Sales Report III"
         DetailedCustLedgEntry.Insert();
     end;
 
-    local procedure SaveAgedAccountsReceivable(var Customer: Record Customer; AgingBy: Option; HeadingType: Option; PeriodLength: DateFormula; AmountLCY: Boolean; PrintDetails: Boolean)
-    var
-        AgedAccountsReceivable: Report "Aged Accounts Receivable";
-    begin
-        Clear(AgedAccountsReceivable);
-        AgedAccountsReceivable.SetTableView(Customer);
-        AgedAccountsReceivable.InitializeRequest(WorkDate(), AgingBy, PeriodLength, AmountLCY, PrintDetails, HeadingType, false);
-        AgedAccountsReceivable.Run();
-    end;
-
     local procedure SaveBlanketSalesOrder(No: Code[20]; InternalInfo: Boolean)
     var
         SalesHeader: Record "Sales Header";
@@ -3815,18 +2981,6 @@ codeunit 134984 "ERM Sales Report III"
         SalesDocumentTest.InitializeRequest(Ship, Invoice, ShowDimension, ShowItemCharge);
         Commit();
         SalesDocumentTest.Run();
-    end;
-
-    local procedure RunAgedAccountsReceivableWithParameters(Customer: Record Customer; AgedAsOfDate: Date)
-    var
-        AgedAccountsReceivable: Report "Aged Accounts Receivable";
-    begin
-        Clear(AgedAccountsReceivable);
-        LibraryVariableStorage.Enqueue(AgedAsOfDate);
-
-        Customer.SetRecFilter();
-        AgedAccountsReceivable.SetTableView(Customer);
-        AgedAccountsReceivable.Run();
     end;
 
     local procedure RunSalesCreditMemoTestReport(DocNo: Code[20])
@@ -3962,29 +3116,6 @@ codeunit 134984 "ERM Sales Report III"
         SalesReceivablesSetup.Modify(true);
     end;
 
-    local procedure UpdateCurrencyExchangeRate(CurrencyCode: Code[10]; ExchangeRateAmt: Decimal; AdjmtExchRateAmt: Decimal)
-    var
-        CurrencyExchangeRate: Record "Currency Exchange Rate";
-    begin
-        CurrencyExchangeRate.SetRange("Currency Code", CurrencyCode);
-        CurrencyExchangeRate.FindFirst();
-        CurrencyExchangeRate.Validate("Exchange Rate Amount", ExchangeRateAmt);
-        CurrencyExchangeRate.Validate("Relational Exch. Rate Amount", AdjmtExchRateAmt);
-        CurrencyExchangeRate.Validate("Adjustment Exch. Rate Amount", ExchangeRateAmt);
-        CurrencyExchangeRate.Validate("Relational Adjmt Exch Rate Amt", AdjmtExchRateAmt);
-        CurrencyExchangeRate.Modify(true);
-    end;
-
-    local procedure UpdateGeneralLedgerSetupForLCYCode(CurrencyCode: Code[10])
-    var
-        GeneralLedgerSetup: Record "General Ledger Setup";
-    begin
-        GeneralLedgerSetup.Get();
-        GeneralLedgerSetup."LCY Code" := '';        // to avoid error on updating LCY Code
-        GeneralLedgerSetup.Validate("LCY Code", CurrencyCode);
-        GeneralLedgerSetup.Modify(true);
-    end;
-
     local procedure UpdateOpenOnCustLedgerEntry(EntryNo: Integer)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
@@ -4104,51 +3235,6 @@ codeunit 134984 "ERM Sales Report III"
         REPORT.Run(REPORT::"Standard Sales - Pro Forma Inv", true, false, SalesHeader);
     end;
 
-    local procedure PostInvoiceWithDimensions(var GenJournalLine: Record "Gen. Journal Line"; CustNo: Code[20])
-    var
-        GeneralLedgerSetup: Record "General Ledger Setup";
-        GenJournalBatch: Record "Gen. Journal Batch";
-        DimensionValue: array[2] of Record "Dimension Value";
-    begin
-        GeneralLedgerSetup.Get();
-        LibraryDimension.CreateDimensionValue(DimensionValue[1], GeneralLedgerSetup."Global Dimension 1 Code");
-        LibraryDimension.CreateDimensionValue(DimensionValue[2], GeneralLedgerSetup."Global Dimension 2 Code");
-        LibraryJournals.CreateGenJournalBatch(GenJournalBatch);
-        LibraryJournals.CreateGenJournalLine(
-          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::Invoice,
-          GenJournalLine."Account Type"::Customer, CustNo, GenJournalLine."Bal. Account Type"::"G/L Account",
-          LibraryERM.CreateGLAccountNo(), LibraryRandom.RandIntInRange(1000, 2000));
-        GenJournalLine.Validate("Shortcut Dimension 1 Code", DimensionValue[1].Code);
-        GenJournalLine.Validate("Shortcut Dimension 2 Code", DimensionValue[2].Code);
-        GenJournalLine.Modify(true);
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-    end;
-
-    local procedure PostApplyPaymentWithDimensions(var GenJournalLine: Record "Gen. Journal Line"; CustNo: Code[20]; PostingDate: Date; Amount: Decimal; ShortcutDimension1Code: Code[20]; ShortcutDimension2Code: Code[20])
-    var
-        GenJournalBatch: Record "Gen. Journal Batch";
-    begin
-        LibraryJournals.CreateGenJournalBatch(GenJournalBatch);
-        LibraryJournals.CreateGenJournalLine(
-          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::Payment,
-          GenJournalLine."Account Type"::Customer, CustNo, GenJournalLine."Bal. Account Type"::"G/L Account",
-          LibraryERM.CreateGLAccountNo(), Amount);
-        GenJournalLine.Validate("Posting Date", PostingDate);
-        GenJournalLine.Validate("Shortcut Dimension 1 Code", ShortcutDimension1Code);
-        GenJournalLine.Validate("Shortcut Dimension 2 Code", ShortcutDimension2Code);
-        GenJournalLine.Modify(true);
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-        ApplyCustLedgerEntry(GenJournalLine."Document Type", GenJournalLine."Account No.");
-    end;
-
-    local procedure PrepareAgedAccReceivableReportForDimRun(var Customer: Record Customer; var PeriodLength: DateFormula; ShortcutDimension1Code: Code[20]; ShortcutDimension2Code: Code[20])
-    begin
-        Evaluate(PeriodLength, '<' + Format(LibraryRandom.RandInt(5)) + 'M>');
-        Customer.SetFilter("Global Dimension 1 Filter", ShortcutDimension1Code);
-        Customer.SetFilter("Global Dimension 2 Filter", ShortcutDimension2Code);
-        Customer.SetRecFilter();
-    end;
-
     local procedure SetReportSelection(ReportSelectionUsage: Enum "Report Selection Usage"; ReportId: Integer)
     var
         CustomReportSelection: Record "Custom Report Selection";
@@ -4169,45 +3255,6 @@ codeunit 134984 "ERM Sales Report III"
     begin
         exit(
           Format(Value, 0, StrSubstNo('<Sign><Integer Thousand><1000Character,,><Decimals,%1><Comma,.><Filler Character,0>', Decimals + 1)));
-    end;
-
-    local procedure FormatDecimalXML(DecimalValue: Decimal): Text
-    begin
-        exit(Format(DecimalValue, 0, '<Precision,0:2><Standard Format,9>'));
-    end;
-
-    local procedure VerifyAgedAccountsRecReport(PostedDocNo: Code[20]; SellToCustNo: Code[20]; Total: Decimal; VATAmount: Decimal; TotalLCY: Decimal; VATAmountLCY: Decimal)
-    begin
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.SetRange('No_Cust', SellToCustNo);
-        LibraryReportDataset.SetRange('CLEEndDateDocNo', PostedDocNo);
-        LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.AssertCurrentRowValueEquals('CLEEndDate', Total);
-        LibraryReportDataset.AssertCurrentRowValueEquals('AgedCLE1TempRemAmt', VATAmount);
-        LibraryReportDataset.AssertCurrentRowValueEquals('CLEEndDateAmtLCY', TotalLCY);
-        LibraryReportDataset.AssertCurrentRowValueEquals('AgedCLE1RemAmtLCY', VATAmountLCY);
-    end;
-
-    local procedure VerifyCurrencyAgedAccountsReceivable(CurrencyCode: Code[10]; Amount: Decimal; AmountLCY: Decimal; NodeIndex: Integer)
-    begin
-        LibraryXPathXMLReader.VerifyNodeValueByXPathWithIndex('//Result/CurrrencyCode', CurrencyCode, NodeIndex);
-        LibraryXPathXMLReader.VerifyNodeValueByXPathWithIndex('//Result/TempCurrCode', CurrencyCode, NodeIndex);
-        LibraryXPathXMLReader.VerifyNodeValueByXPathWithIndex('//Result/RemAmt_CLEEndDate', FormatDecimalXML(Amount), NodeIndex);
-        LibraryXPathXMLReader.VerifyNodeValueByXPathWithIndex('//Result/CLEEndDateAmtLCY', FormatDecimalXML(AmountLCY), NodeIndex);
-    end;
-
-    local procedure VerifyTotalLCYAgedAccountsReceivable(TotalLCY: Decimal)
-    var
-        nodeList: DotNet XmlNodeList;
-        TotalLastIndex: Integer;
-        TotalLCYText: Text;
-        TotalLCYActual: Decimal;
-    begin
-        LibraryXPathXMLReader.GetNodeList('//Result/GrandTotalCLE1AmtLCY', nodeList);
-        TotalLastIndex := nodeList.Count - 1; // index of the last node that contains Total(LCY) value
-        TotalLCYText := LibraryXPathXMLReader.GetNodeInnerTextByXPathWithIndex('//Result/GrandTotalCLE1AmtLCY', TotalLastIndex);
-        Evaluate(TotalLCYActual, TotalLCYText);
-        Assert.AreEqual(TotalLCY, TotalLCYActual, 'Total(LCY) amount is not as expected');
     end;
 
     local procedure VerifyInternalInformation(DimensionValueRec: Record "Dimension Value"; Separator: Text[3])
@@ -4340,9 +3387,7 @@ codeunit 134984 "ERM Sales Report III"
         LibraryReportDataset.AssertCurrentRowValueEquals('TtlAmtCurrencyTtlBuff2', Round(InvoiceAmount + GenJournalLine.Amount));
     end;
 
-    local procedure VerifyVATEntries(VATIdentifierLabel: Text[50]; VATPercLabel: Text[50]; VATBaseLabel: Text[50]; LineAmountLabel: Text[50]; InvDiscBaseAmountLabel: Text[50])
-    var
-        VATAmountLine: Record "VAT Amount Line";
+    local procedure VerifyVATEntries(VATIdentifierLabel: Text[50]; VATPercLabel: Text[50]; VATBaseLabel: Text[50]; LineAmountLabel: Text[50]; InvDiscBaseAmountLabel: Text[50]; var VATAmountLine: Record "VAT Amount Line")
     begin
         VATAmountLine.SetFilter("VAT %", '>0');
         VATAmountLine.FindFirst();
@@ -4456,14 +3501,6 @@ codeunit 134984 "ERM Sales Report III"
         VerifyDocumentEntries(ValueEntry.TableCaption(), ValueEntry.Count);
     end;
 
-    local procedure VerifyXMLReport(XmlElementCaption: Text; XmlValue: Text; ValidateCaption: Text; ValidateValue: Decimal)
-    begin
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.SetRange(XmlElementCaption, XmlValue);
-        LibraryReportDataset.GetLastRow();
-        LibraryReportDataset.AssertCurrentRowValueEquals(ValidateCaption, ValidateValue);
-    end;
-
     local procedure VerifyCustomerBalanceToDateWithLimitTotal(CustomerNo: Code[20]; GlobalDimension1Code: Code[20]; GlobalDimension2Code: Code[20]; CurrencyCode: Code[10])
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
@@ -4528,16 +3565,6 @@ codeunit 134984 "ERM Sales Report III"
         LibraryReportDataset.AssertCurrentRowValueEquals('Body6View_AnlysLine', Italic);
         LibraryReportDataset.AssertCurrentRowValueEquals('Body7View_AnlysLine', BoldItalic);
         LibraryReportDataset.AssertCurrentRowValueEquals('Body8View_AnlysLine', Underlined);
-    end;
-
-    local procedure VerifyAgedAccountsReceivableNoOfHitsCodeCoverage(CodeLine: Text; NoOfHits: Integer)
-    var
-        CodeCoverage: Record "Code Coverage";
-    begin
-        Assert.AreEqual(
-          NoOfHits,
-          CodeCoverageMgt.GetNoOfHitsCoverageForObject(CodeCoverage."Object Type"::Report, REPORT::"Aged Accounts Receivable", CodeLine),
-          StrSubstNo('%1 must be called %2 times when Aged Accounts Receivable is run', CodeLine, NoOfHits));
     end;
 
     local procedure VerifyProformaInvoiceBaseValues(SalesHeader: Record "Sales Header")
@@ -4631,7 +3658,7 @@ codeunit 134984 "ERM Sales Report III"
     begin
         Item.Get(SalesLine."No.");
         LineAmount := Round(SalesLine.Amount * SalesLine."Qty. to Invoice" / SalesLine.Quantity);
-        VATAmount := SalesLine."Amount Including VAT" - SalesLine.Amount;
+        VATAmount := Round(SalesLine.Amount * SalesLine."VAT %" / 100 * SalesLine."Qty. to Invoice" / SalesLine.Quantity);
         LibraryReportDataset.AssertCurrentRowValueEquals('ItemDescription', SalesLine."No.");
         LibraryReportDataset.AssertCurrentRowValueEquals('CountryOfManufacturing', Item."Country/Region of Origin Code");
         LibraryReportDataset.AssertCurrentRowValueEquals('Tariff', Item."Tariff No.");
@@ -4806,16 +3833,6 @@ codeunit 134984 "ERM Sales Report III"
         LibraryReportDataset.AssertCurrentRowValueEquals('TtlAmtCurrencyTtlBuff2', Round(Amount));
     end;
 
-    local procedure SaveAgedAccReceivable(var Customer: Record Customer; AgingBy: Option; HeadingType: Option; PeriodLength: DateFormula; AmountLCY: Boolean; PrintDetails: Boolean; PostingDate: Date)
-    var
-        AgedAccountsReceivable: Report "Aged Accounts Receivable";
-    begin
-        Clear(AgedAccountsReceivable);
-        AgedAccountsReceivable.SetTableView(Customer);
-        AgedAccountsReceivable.InitializeRequest(PostingDate, AgingBy, PeriodLength, AmountLCY, PrintDetails, HeadingType, false);
-        AgedAccountsReceivable.Run();
-    end;
-
     procedure UnapplyCustomerLedgerEntry(CustLedgerEntry: Record "Cust. Ledger Entry"; PostingDate: Date)
     var
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
@@ -4847,56 +3864,6 @@ codeunit 134984 "ERM Sales Report III"
         GenJournalLine.Validate("Source Currency Code", DetailedCustLedgEntry."Currency Code");
         GenJournalLine.Validate("System-Created Entry", true);
         GenJnlPostLine.UnapplyCustLedgEntry(GenJournalLine, DetailedCustLedgEntry);
-    end;
-
-    local procedure UpdateGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; CurrencyCode: Code[10]; AppliestoDocNo: Code[20]; Amount: Decimal)
-    begin
-        GenJournalLine.Validate("Currency Code", CurrencyCode);
-        GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
-        GenJournalLine.Validate("Applies-to Doc. No.", AppliestoDocNo);
-        GenJournalLine.Validate("Document No.", AppliestoDocNo);
-        GenJournalLine.Validate(Amount, Amount);
-        GenJournalLine.Modify(true);
-    end;
-
-    local procedure CreateGeneralJournalLine(var GenJournalLine: Record "Gen. Journal Line"; NoOfLine: Integer; CustomerNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type"; Amount: Decimal)
-    var
-        GenJournalBatch: Record "Gen. Journal Batch";
-        Counter: Integer;
-    begin
-        SelectGenJournalBatch(GenJournalBatch);
-        for Counter := 1 to NoOfLine do
-            LibraryERM.CreateGeneralJnlLine(
-              GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, DocumentType,
-              GenJournalLine."Account Type"::Customer, CustomerNo, Amount);
-    end;
-
-    local procedure CreateAndPostSalesInvoiceWithOneLine(CustomerNo: Code[20]; ExtDocNo: Code[20]; Amount: Decimal; DueDate: Date): Code[20]
-    var
-        Item: Record Item;
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-    begin
-        CreateItem(Item, Amount);
-        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
-        SalesHeader.Validate("External Document No.", ExtDocNo);
-
-        if DueDate <> 0D then
-            SalesHeader.Validate("Due Date", DueDate);
-        SalesHeader."Posting Date" := WorkDate();
-
-        SalesHeader.Modify(true);
-        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
-
-        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
-    end;
-
-    local procedure CreateItem(var Item: Record Item; Amount: Decimal)
-    begin
-        LibraryInventory.CreateItem(Item);
-        Item.Validate("Unit Price", Amount);
-        Item.Validate("Last Direct Cost", Amount);
-        Item.Modify(true);
     end;
 
     [RequestPageHandler]
@@ -4941,42 +3908,6 @@ codeunit 134984 "ERM Sales Report III"
         // Modal Page Handler.
         if PostApplication.Editable() then;
         Response := ACTION::OK
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure RHAgedAccountsReceivable(var AgedAccountsReceivable: TestRequestPage "Aged Accounts Receivable")
-    begin
-        if AgedAccountsReceivable.Editable() then;
-        AgedAccountsReceivable.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure RHAgedAccountsReceivableFileName(var AgedAccountsReceivable: TestRequestPage "Aged Accounts Receivable")
-    var
-        FileName: Text;
-    begin
-        FileName := LibraryReportDataset.GetFileName();
-        LibraryVariableStorage.Enqueue(FileName);
-        AgedAccountsReceivable.SaveAsXml(LibraryReportDataset.GetParametersFileName(), FileName);
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure RHAgedAccountsReceivableEmptyPeriodLength(var AgedAccountsReceivable: TestRequestPage "Aged Accounts Receivable")
-    begin
-        if AgedAccountsReceivable.Editable() then;
-        AgedAccountsReceivable.PeriodLength.SetValue('');
-        AgedAccountsReceivable.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure RHAgedAccountsReceivableDefaultPeriodLength(var AgedAccountsReceivable: TestRequestPage "Aged Accounts Receivable")
-    begin
-        LibraryVariableStorage.Enqueue(AgedAccountsReceivable.PeriodLength.Value);
-        AgedAccountsReceivable.Cancel().Invoke();
     end;
 
     [RequestPageHandler]
@@ -5148,18 +4079,6 @@ codeunit 134984 "ERM Sales Report III"
     procedure ItemTrackingSummaryPageHandler(var ItemTrackingSummary: TestPage "Item Tracking Summary")
     begin
         ItemTrackingSummary.OK().Invoke();
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure AgedAccountsReceivableReportRequestPageHandler(var AgedAccountsReceivable: TestRequestPage "Aged Accounts Receivable")
-    var
-        RefAgingBy: Option "Due Date","Posting Date","Document Date";
-    begin
-        AgedAccountsReceivable.Agingby.SetValue(RefAgingBy::"Due Date");
-        AgedAccountsReceivable.AgedAsOf.SetValue(LibraryVariableStorage.DequeueDate());
-        AgedAccountsReceivable.PrintDetails.SetValue(true);
-        AgedAccountsReceivable.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
     [ConfirmHandler]

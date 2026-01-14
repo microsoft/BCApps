@@ -5,20 +5,20 @@
 namespace System.Security.AccessControl;
 
 using Microsoft.CRM.Contact;
-using Microsoft.Service.Contract;
+using Microsoft.CRM.Team;
 using Microsoft.Finance.Currency;
-using Microsoft.Sales.Customer;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Inventory.Location;
+using Microsoft.Sales.Customer;
 using Microsoft.Service.Archive;
 using Microsoft.Service.Comment;
+using Microsoft.Service.Contract;
 using Microsoft.Service.Document;
 using Microsoft.Service.Item;
 using Microsoft.Service.Ledger;
 using Microsoft.Service.Setup;
-using Microsoft.Foundation.AuditCodes;
-using Microsoft.Inventory.Location;
-using Microsoft.CRM.Team;
 
 permissionset 5768 "Service Contract - Edit"
 {

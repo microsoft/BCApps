@@ -6,11 +6,20 @@ namespace Microsoft.Finance.FinancialReports;
 
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Foundation.Period;
-using System.Environment.Configuration;
 using System.Environment;
+using System.Environment.Configuration;
 using System.IO;
 using System.Telemetry;
 
+/// <summary>
+/// Central management codeunit for financial report operations including configuration package import/export,
+/// report printing, date formula calculations, and user notification handling.
+/// </summary>
+/// <remarks>
+/// Provides core functionality for financial report lifecycle management, XML exchange operations,
+/// date filter calculations for account schedule lines, and integration with configuration packages
+/// for template distribution and customization scenarios.
+/// </remarks>
 codeunit 18 "Financial Report Mgt."
 {
 
@@ -78,6 +87,15 @@ codeunit 18 "Financial Report Mgt."
             MyNotifications.InsertDefault(RowsNotificationIdTok, RowsEditWarningNotificationMsg, '', false);
     end;
 
+    /// <summary>
+    /// Exports a financial report configuration as an XML package for distribution and deployment.
+    /// Creates a configuration package containing the financial report and its row/column definitions.
+    /// </summary>
+    /// <param name="FinancialReport">Financial report record to export</param>
+    /// <remarks>
+    /// Generates a complete export package including account schedule names, lines, and column layouts.
+    /// Enables template distribution and environment-to-environment migration of financial report definitions.
+    /// </remarks>
     procedure XMLExchangeExport(FinancialReport: Record "Financial Report")
     var
         ConfigPackage: Record "Config. Package";
@@ -122,6 +140,15 @@ codeunit 18 "Financial Report Mgt."
         end;
     end;
 
+    /// <summary>
+    /// Imports a financial report configuration from an XML package file selected by the user.
+    /// Processes the imported configuration package and applies it to create the financial report.
+    /// </summary>
+    /// <param name="FinancialReport">Target financial report record for import context</param>
+    /// <remarks>
+    /// Provides complete import functionality including validation, dependency resolution,
+    /// and error handling for configuration package deployment scenarios.
+    /// </remarks>
     procedure XMLExchangeImport(FinancialReport: Record "Financial Report")
     var
         ConfigXMLExchange: Codeunit "Config. XML Exchange";
@@ -134,6 +161,15 @@ codeunit 18 "Financial Report Mgt."
         end;
     end;
 
+    /// <summary>
+    /// Applies a configuration package to create or update financial report definitions.
+    /// Processes package tables and validates data before applying changes to the database.
+    /// </summary>
+    /// <param name="PackageCode">Configuration package code to apply</param>
+    /// <remarks>
+    /// Handles package validation, dependency resolution, and error reporting during
+    /// financial report template deployment from configuration packages.
+    /// </remarks>
     procedure ApplyPackage(PackageCode: Code[20])
     var
         ConfigPackage: Record "Config. Package";
@@ -322,6 +358,15 @@ codeunit 18 "Financial Report Mgt."
         end;
     end;
 
+    /// <summary>
+    /// Prints a financial report using the Account Schedule report with the specified financial report configuration.
+    /// Provides extensibility through OnBeforePrint integration event for custom print handling.
+    /// </summary>
+    /// <param name="FinancialReport">Financial report record to print</param>
+    /// <remarks>
+    /// Integrates with standard Account Schedule report engine for consistent financial report output.
+    /// Supports custom printing scenarios through event subscription patterns.
+    /// </remarks>
     procedure Print(FinancialReport: Record "Financial Report")
     var
         AccountSchedule: Report "Account Schedule";
@@ -336,6 +381,13 @@ codeunit 18 "Financial Report Mgt."
         AccountSchedule.Run();
     end;
 
+    /// <summary>
+    /// Provides lookup functionality for financial report names with user selection dialog.
+    /// Returns the selected financial report name through the EntrdSchedName parameter.
+    /// </summary>
+    /// <param name="FinancialReportName">Current financial report name for initial selection</param>
+    /// <param name="EntrdSchedName">Returns the selected financial report name</param>
+    /// <returns>True if user confirmed selection, false if cancelled</returns>
     procedure LookupName(FinancialReportName: Code[10]; var EntrdSchedName: Text[10]): Boolean
     var
         FinancialReport: Record "Financial Report";
@@ -349,6 +401,14 @@ codeunit 18 "Financial Report Mgt."
         exit(true);
     end;
 
+    /// <summary>
+    /// Initializes financial reports by creating financial report records from existing account schedule names.
+    /// Migrates legacy account schedule configurations to the new financial reports framework.
+    /// </summary>
+    /// <remarks>
+    /// Runs only when no financial reports exist, ensuring backward compatibility during system upgrades.
+    /// Creates default financial reports for each account schedule name to maintain existing functionality.
+    /// </remarks>
     procedure Initialize()
     var
         FinancialReport: Record "Financial Report";
@@ -395,6 +455,11 @@ codeunit 18 "Financial Report Mgt."
         NotificationLifecycleMgt.SendNotification(UpdateFinancialReportNotification, GLAccount.RecordId);
     end;
 
+    /// <summary>
+    /// Opens the Financial Reports page in response to a user notification action.
+    /// Provides direct navigation to financial reports management from notification messages.
+    /// </summary>
+    /// <param name="UpdateFinancialReportNotification">Notification context triggering the action</param>
     procedure OpenFinancialReports(UpdateFinancialReportNotification: Notification)
     begin
         Page.Run(Page::"Financial Reports");
@@ -497,6 +562,11 @@ codeunit 18 "Financial Report Mgt."
         end;
     end;
 
+    /// <summary>
+    /// Disables the financial report update notification permanently for the current user.
+    /// Prevents future notifications about financial report configuration updates.
+    /// </summary>
+    /// <param name="UpdateFinancialReportNotification">Notification to disable</param>
     procedure HideUpdateFinancialReportNotification(UpdateFinancialReportNotification: Notification)
     var
         MyNotifications: Record "My Notifications";
@@ -519,6 +589,11 @@ codeunit 18 "Financial Report Mgt."
         FeatureTelemetry.LogUsage('0000ONR', 'Financial Report', StrSubstNo(TelemetryEventTxt, Action, Name), TelemetryDimensions);
     end;
 
+    /// <summary>
+    /// Returns the unique identifier for financial report update notifications.
+    /// Provides consistent notification ID for user preference management and notification control.
+    /// </summary>
+    /// <returns>GUID identifier for financial report update notifications</returns>
     procedure GetUpdateFinancialReportNotificationId(): Guid
     begin
         exit(UpdateFinancialReportNotificationIdTok);
@@ -559,6 +634,16 @@ codeunit 18 "Financial Report Mgt."
             AccScheduleLine.SetFilter("Cost Center Filter", FinancialReport.CostCenterFilter);
     end;
 
+    /// <summary>
+    /// Calculates and applies date filters to account schedule lines based on financial report date configuration.
+    /// Supports both explicit start/end date formulas and period formula expressions for flexible date range handling.
+    /// </summary>
+    /// <param name="FinancialReport">Financial report containing date filter configuration</param>
+    /// <param name="AccScheduleLine">Account schedule line record to apply date filters to</param>
+    /// <remarks>
+    /// Prioritizes start/end date formulas over period formulas. Handles period formula parsing
+    /// with localization support and fallback to standard date filter processing.
+    /// </remarks>
     procedure CalcAccScheduleLineDateFilter(FinancialReport: Record "Financial Report"; var AccScheduleLine: Record "Acc. Schedule Line")
     var
         AccSchedManagement: Codeunit AccSchedManagement;
@@ -599,6 +684,14 @@ codeunit 18 "Financial Report Mgt."
         AccScheduleLine.SetFilter("Date Filter", DateFilter);
     end;
 
+    /// <summary>
+    /// Sets date filters on account schedule lines using explicit start and end date formulas.
+    /// Calculates the date range relative to work date and applies it as a date filter.
+    /// </summary>
+    /// <param name="AccScheduleLine">Account schedule line record to filter</param>
+    /// <param name="StartDateFormula">Start date formula relative to work date</param>
+    /// <param name="EndDateFormula">End date formula relative to work date</param>
+    /// <returns>True if date filter was applied, false if both formulas are empty</returns>
     procedure SetAccScheduleLineStartEndDateFormula(var AccScheduleLine: Record "Acc. Schedule Line"; StartDateFormula: DateFormula; EndDateFormula: DateFormula): Boolean
     var
         EndDate: Date;
@@ -613,6 +706,14 @@ codeunit 18 "Financial Report Mgt."
         exit(true);
     end;
 
+    /// <summary>
+    /// Sets date filters on account schedule lines using period formula expressions with localization support.
+    /// Parses period formulas and applies calculated date ranges to account schedule line filtering.
+    /// </summary>
+    /// <param name="AccScheduleLine">Account schedule line record to filter</param>
+    /// <param name="PeriodFormula">Period formula expression to parse and apply</param>
+    /// <param name="LanguageId">Language identifier for localized period formula parsing</param>
+    /// <returns>True if period formula was successfully parsed and applied, false otherwise</returns>
     procedure SetAccScheduleLinePeriodFormula(var AccScheduleLine: Record "Acc. Schedule Line"; PeriodFormula: Code[20]; LanguageId: Integer): Boolean
     var
         PeriodFormulaParser: Codeunit "Period Formula Parser";
@@ -633,6 +734,12 @@ codeunit 18 "Financial Report Mgt."
         end;
     end;
 
+    /// <summary>
+    /// Integration event raised before printing a financial report.
+    /// Enables custom print processing and allows bypassing standard print functionality.
+    /// </summary>
+    /// <param name="FinancialReport">Financial report being printed</param>
+    /// <param name="IsHandled">Set to true to skip standard print processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePrint(var FinancialReport: Record "Financial Report"; var IsHandled: Boolean)
     begin

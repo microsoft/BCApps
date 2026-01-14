@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.ReceivablesPayables;
 
+/// <summary>
+/// Interface for implementing posting group change methods with validation and data migration support.
+/// Defines contract for custom posting group change logic in customer and vendor management.
+/// </summary>
+/// <remarks>
+/// Implemented by posting group change method enums to provide extensible posting group modification.
+/// Supports validation of posting group changes and automated data migration scenarios.
+/// Enables custom business logic for posting group change approval and processing.
+/// </remarks>
 interface "Posting Group Change Method"
 {
     /// <summary>

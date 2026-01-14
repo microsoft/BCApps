@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Statement;
 
+/// <summary>
+/// Displays bank account statement lines in a list format for viewing transaction details.
+/// Shows individual transactions from bank statements with amounts, dates, and reconciliation information.
+/// </summary>
+/// <remarks>
+/// Source Table: Bank Account Statement Line (276). Part page for displaying statement line details.
+/// Provides transaction-level view of bank statement data with balance calculations and difference tracking.
+/// Integrates with bank reconciliation workflow for transaction review and validation.
+/// </remarks>
 page 384 "Bank Account Statement Lines"
 {
     AutoSplitKey = true;

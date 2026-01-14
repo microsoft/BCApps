@@ -8,8 +8,16 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
 
+/// <summary>
+/// Central management for allocation account operations including line generation and validation.
+/// Handles both fixed and variable allocation methods with dimension and currency support.
+/// </summary>
 codeunit 2675 "Allocation Account Mgt."
 {
+    /// <summary>
+    /// Determines if allocation account fields should be used based on parent inheritance configuration.
+    /// </summary>
+    /// <returns>True if allocation accounts are configured to inherit from parent documents</returns>
     procedure UseAllocationAccountNoField(): Boolean
     var
         AllocAccountDistribution: Record "Alloc. Account Distribution";
@@ -19,6 +27,15 @@ codeunit 2675 "Allocation Account Mgt."
         exit(not (AllocAccountDistribution.IsEmpty()));
     end;
 
+    /// <summary>
+    /// Generates allocation lines based on the allocation account configuration and distribution rules.
+    /// </summary>
+    /// <param name="AllocationAccount">Allocation account containing distribution configuration</param>
+    /// <param name="AllocationLine">Allocation line record to populate with calculated distributions</param>
+    /// <param name="AmountToDistribute">Total amount to be distributed across allocation rules</param>
+    /// <param name="PostingDate">Date to use for variable allocation calculations</param>
+    /// <param name="ExistingDimensionSetId">Dimension set ID to inherit or modify</param>
+    /// <param name="CurrencyCode">Currency code for amount calculations</param>
     procedure GenerateAllocationLines(var AllocationAccount: Record "Allocation Account"; var AllocationLine: Record "Allocation Line"; AmountToDistribute: Decimal; PostingDate: Date; ExistingDimensionSetId: Integer; CurrencyCode: Code[10])
     begin
         if AllocationAccount."Account Type" = AllocationAccount."Account Type"::Fixed then
@@ -104,6 +121,10 @@ codeunit 2675 "Allocation Account Mgt."
         AllocationLine.Modify();
     end;
 
+    /// <summary>
+    /// Validates that allocation account does not use parent inheritance for standalone usage scenarios.
+    /// </summary>
+    /// <param name="AccountNo">Allocation account number to validate</param>
     procedure VerifyNoInheritFromParentUsed(AccountNo: Code[20])
     var
         AllocAccountDistribution: Record "Alloc. Account Distribution";
@@ -126,8 +147,14 @@ codeunit 2675 "Allocation Account Mgt."
         DimensionManagement: Codeunit DimensionManagement;
         DimensionSetIDArr: array[10] of Integer;
     begin
-        if AllocationLine."Dimension Set ID" = 0 then
+        if AllocationLine."Dimension Set ID" = 0 then begin
+            if ExistingSetID <> 0 then begin
+                AllocationLine."Dimension Set ID" := ExistingSetID;
+                DimensionManagement.UpdateGlobalDimFromDimSetID(
+                  AllocationLine."Dimension Set ID", AllocationLine."Global Dimension 1 Code", AllocationLine."Global Dimension 2 Code");
+            end;
             exit;
+        end;
 
         if ExistingSetID = AllocationLine."Dimension Set ID" then
             exit;
@@ -184,21 +211,43 @@ codeunit 2675 "Allocation Account Mgt."
     var
         CannotEnterAccountNumberIfInheritFromParentErr: Label 'To use an Allocation Account with "Inherit from parent" you must set Account Type to G/L Account or Bank Account. To set the allocation account use the Allocation Account No. field on the line.';
 
+    /// <summary>
+    /// Integration event raised after inserting allocation line for fixed allocation methods.
+    /// </summary>
+    /// <param name="AllocationLine">Generated allocation line</param>
+    /// <param name="AllocAccountDistibution">Source allocation account distribution record</param>
     [IntegrationEvent(false, false)]
     local procedure OnGenerateFixedAllocationLinesOnAfterInsertAllocationLine(var AllocationLine: Record "Allocation Line"; var AllocAccountDistibution: Record "Alloc. Account Distribution")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting allocation line for variable allocation methods.
+    /// </summary>
+    /// <param name="AllocationLine">Generated allocation line</param>
+    /// <param name="AllocAccountDistibution">Source allocation account distribution record</param>
     [IntegrationEvent(false, false)]
     local procedure OnGenerateVariableAllocationLinesOnAfterInsertAllocationLine(var AllocationLine: Record "Allocation Line"; var AllocAccountDistibution: Record "Alloc. Account Distribution")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before generating variable allocation lines for preprocessing.
+    /// </summary>
+    /// <param name="AllocationAccount">Allocation account configuration record</param>
+    /// <param name="AllocationLine">Allocation line record to be generated</param>
+    /// <param name="ExistingDimensionSetId">Existing dimension set ID for inheritance</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGenerateVariableAllocationLines(var AllocationAccount: Record "Allocation Account"; var AllocationLine: Record "Allocation Line"; var ExistingDimensionSetId: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after generating variable allocation lines for postprocessing.
+    /// </summary>
+    /// <param name="AllocationAccount">Allocation account configuration record</param>
+    /// <param name="AllocationLine">Generated allocation line record</param>
+    /// <param name="ExistingDimensionSetId">Final dimension set ID used</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGenerateVariableAllocationLines(var AllocationAccount: Record "Allocation Account"; var AllocationLine: Record "Allocation Line"; var ExistingDimensionSetId: Integer)
     begin

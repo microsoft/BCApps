@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Sales.Document;
-using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 

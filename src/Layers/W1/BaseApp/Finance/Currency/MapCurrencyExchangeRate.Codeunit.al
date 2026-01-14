@@ -4,11 +4,21 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Currency;
 
+using Microsoft.Utilities;
 using System.IO;
 using System.Reflection;
 using System.Utilities;
-using Microsoft.Utilities;
 
+/// <summary>
+/// Maps imported exchange rate data to currency exchange rate records.
+/// Processes data exchange records and creates or updates currency exchange rates
+/// based on field mappings configured in the Data Exchange Framework.
+/// </summary>
+/// <remarks>
+/// Integrates with Data Exchange Framework for structured data import.
+/// Validates mandatory field mappings and provides integration events
+/// for custom exchange rate processing logic.
+/// </remarks>
 codeunit 1280 "Map Currency Exchange Rate"
 {
     TableNo = "Data Exch.";

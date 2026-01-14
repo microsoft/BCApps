@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,9 +30,6 @@ codeunit 9132 "Check Prod. Order Document"
     begin
         IsHandled := false;
         OnBeforeCheckProdOrderLines(Item, CurrentFieldNo, CheckFieldNo, CheckFieldCaption, IsHandled);
-#if not CLEAN25
-        Item.RunOnBeforeCheckProdOrderLine(Item, CurrentFieldNo, CheckFieldNo, CheckFieldCaption, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -57,9 +54,6 @@ codeunit 9132 "Check Prod. Order Document"
     begin
         IsHandled := false;
         OnBeforeCheckProdOrderComponents(Item, CurrentFieldNo, CheckFieldNo, CheckFieldCaption, IsHandled);
-#if not CLEAN25
-        Item.RunOnBeforeCheckProdOrderCompLine(Item, CurrentFieldNo, CheckFieldNo, CheckFieldCaption, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -86,9 +80,6 @@ codeunit 9132 "Check Prod. Order Document"
     begin
         IsHandled := false;
         OnBeforeCheckProdBOMLines(Item, CurrentFieldNo, CheckFieldNo, CheckFieldCaption, IsHandled);
-#if not CLEAN25
-        Item.RunOnBeforeCheckProdBOMLine(Item, CurrentFieldNo, CheckFieldNo, CheckFieldCaption, IsHandled);
-#endif
         if IsHandled then
             exit;
 

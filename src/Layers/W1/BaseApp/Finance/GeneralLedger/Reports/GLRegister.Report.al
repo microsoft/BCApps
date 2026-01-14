@@ -9,6 +9,15 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Purchases.History;
 using Microsoft.Sales.History;
 
+/// <summary>
+/// Generates G/L Register report displaying posted journal batches with detailed transaction information.
+/// Shows register entries with source document references, posting dates, and associated G/L entries for audit trail purposes.
+/// </summary>
+/// <remarks>
+/// Data sources: G/L Register and G/L Entry tables with detailed transaction and document tracking.
+/// Provides comprehensive audit trail showing posting sequences, source documents, and entry distributions.
+/// Used for audit procedures, posting verification, and transaction trace-back requirements.
+/// </remarks>
 report 3 "G/L Register"
 {
     DefaultLayout = RDLC;

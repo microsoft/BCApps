@@ -1,3 +1,4 @@
+#if not CLEAN28
 namespace Microsoft.Booking;
 
 using Microsoft.Inventory.Item;
@@ -7,11 +8,13 @@ using System.Azure.Identity;
 codeunit 6722 "Booking Manager Handler"
 {
     SingleInstance = true;
-
+    obsoleteReason= 'Bookings is no longer part of Business Central 365.';
+    obsoleteState= pending;
+    obsoleteTag= '28.0';
     trigger OnRun()
     begin
     end;
-
+    
     var
         BookingSync: Record "Booking Sync";
         O365SyncManagement: Codeunit "O365 Sync. Management";
@@ -108,4 +111,4 @@ codeunit 6722 "Booking Manager Handler"
             O365SyncManagement.SyncBookingServices(BookingSync);
     end;
 }
-
+#endif

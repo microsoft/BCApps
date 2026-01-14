@@ -14,6 +14,16 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Enums;
 using System.Utilities;
 
+/// <summary>
+/// Table for storing allocation lines that distribute general journal line amounts across multiple G/L accounts.
+/// Enables splitting journal line amounts using percentages, amounts, or quantities for cost allocation and distribution.
+/// </summary>
+/// <remarks>
+/// Core allocation functionality for general journal lines enabling multi-account distribution.
+/// Supports percentage-based, amount-based, and quantity-based allocation methods.
+/// Key fields: Account No., Allocation %, Amount, VAT handling for proper tax distribution.
+/// Integration: Links to parent journal line via template, batch, and line number references.
+/// </remarks>
 table 221 "Gen. Jnl. Allocation"
 {
     Caption = 'Gen. Jnl. Allocation';
@@ -22,26 +32,41 @@ table 221 "Gen. Jnl. Allocation"
 
     fields
     {
+        /// <summary>
+        /// Journal template name that defines the type and behavior of the journal containing this allocation line.
+        /// </summary>
         field(1; "Journal Template Name"; Code[10])
         {
             Caption = 'Journal Template Name';
             TableRelation = "Gen. Journal Template";
         }
+        /// <summary>
+        /// Journal batch name that groups related journal lines for this allocation.
+        /// </summary>
         field(2; "Journal Batch Name"; Code[10])
         {
             Caption = 'Journal Batch Name';
             TableRelation = "Gen. Journal Batch".Name where("Journal Template Name" = field("Journal Template Name"));
         }
+        /// <summary>
+        /// Line number of the parent general journal line to which this allocation applies.
+        /// </summary>
         field(3; "Journal Line No."; Integer)
         {
             Caption = 'Journal Line No.';
             TableRelation = "Gen. Journal Line"."Line No." where("Journal Template Name" = field("Journal Template Name"),
                                                                   "Journal Batch Name" = field("Journal Batch Name"));
         }
+        /// <summary>
+        /// Sequential line number for this allocation entry within the parent journal line.
+        /// </summary>
         field(4; "Line No."; Integer)
         {
             Caption = 'Line No.';
         }
+        /// <summary>
+        /// G/L account number to which the allocated amount will be posted.
+        /// </summary>
         field(5; "Account No."; Code[20])
         {
             Caption = 'Account No.';
@@ -78,6 +103,9 @@ table 221 "Gen. Jnl. Allocation"
                 CreateDimFromDefaultDim();
             end;
         }
+        /// <summary>
+        /// First shortcut dimension code for this allocation line, typically used for department or project classification.
+        /// </summary>
         field(6; "Shortcut Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,2,1';
@@ -91,6 +119,9 @@ table 221 "Gen. Jnl. Allocation"
                 Modify();
             end;
         }
+        /// <summary>
+        /// Second shortcut dimension code for this allocation line, typically used for cost center or area classification.
+        /// </summary>
         field(7; "Shortcut Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,2,2';
@@ -104,6 +135,10 @@ table 221 "Gen. Jnl. Allocation"
                 Modify();
             end;
         }
+        /// <summary>
+        /// Allocation quantity used for quantity-based distribution of journal line amounts.
+        /// When specified, amounts are distributed proportionally based on quantities rather than percentages.
+        /// </summary>
         field(8; "Allocation Quantity"; Decimal)
         {
             Caption = 'Allocation Quantity';
@@ -120,6 +155,10 @@ table 221 "Gen. Jnl. Allocation"
                 GenJnlLine.UpdateLineBalance();
             end;
         }
+        /// <summary>
+        /// Percentage of the parent journal line amount to allocate to this account.
+        /// Used for percentage-based distribution where total percentages across allocation lines should equal 100%.
+        /// </summary>
         field(9; "Allocation %"; Decimal)
         {
             Caption = 'Allocation %';
@@ -135,6 +174,10 @@ table 221 "Gen. Jnl. Allocation"
                 GenJnlLine.UpdateLineBalance();
             end;
         }
+        /// <summary>
+        /// Fixed allocation amount to be posted to this account.
+        /// Used for amount-based distribution where specific amounts are allocated rather than percentages or quantities.
+        /// </summary>
         field(10; Amount; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
@@ -155,6 +198,10 @@ table 221 "Gen. Jnl. Allocation"
                 end;
             end;
         }
+        /// <summary>
+        /// General posting type that determines how this allocation line affects general ledger posting.
+        /// Controls whether the allocation creates purchase, sale, or other general ledger entries.
+        /// </summary>
         field(11; "Gen. Posting Type"; Enum "General Posting Type")
         {
             Caption = 'Gen. Posting Type';
@@ -164,6 +211,10 @@ table 221 "Gen. Jnl. Allocation"
                 Validate("VAT Prod. Posting Group");
             end;
         }
+        /// <summary>
+        /// General business posting group used for determining posting accounts and VAT treatment for this allocation line.
+        /// Links to general posting setup for proper account determination during posting.
+        /// </summary>
         field(12; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
@@ -176,6 +227,10 @@ table 221 "Gen. Jnl. Allocation"
                         Validate("VAT Bus. Posting Group", GenBusPostingGrp."Def. VAT Bus. Posting Group");
             end;
         }
+        /// <summary>
+        /// General product posting group used for determining posting accounts and VAT treatment for this allocation line.
+        /// Links to general posting setup for proper account determination during posting.
+        /// </summary>
         field(13; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
@@ -188,11 +243,17 @@ table 221 "Gen. Jnl. Allocation"
                         Validate("VAT Prod. Posting Group", GenProdPostingGrp."Def. VAT Prod. Posting Group");
             end;
         }
+        /// <summary>
+        /// VAT calculation method used for this allocation line to determine VAT amount computation.
+        /// </summary>
         field(14; "VAT Calculation Type"; Enum "Tax Calculation Type")
         {
             Caption = 'VAT Calculation Type';
             Editable = false;
         }
+        /// <summary>
+        /// VAT amount calculated for this allocation line based on the allocation amount and VAT percentage.
+        /// </summary>
         field(15; "VAT Amount"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
@@ -200,6 +261,9 @@ table 221 "Gen. Jnl. Allocation"
             Caption = 'VAT Amount';
             Editable = false;
         }
+        /// <summary>
+        /// VAT percentage rate applied to this allocation line for VAT amount calculation.
+        /// </summary>
         field(16; "VAT %"; Decimal)
         {
             Caption = 'VAT %';
@@ -209,6 +273,9 @@ table 221 "Gen. Jnl. Allocation"
             MinValue = 0;
             AutoFormatType = 0;
         }
+        /// <summary>
+        /// Name of the G/L account specified for this allocation line, automatically populated when Account No. is selected.
+        /// </summary>
         field(17; "Account Name"; Text[100])
         {
             CalcFormula = lookup("G/L Account".Name where("No." = field("Account No.")));
@@ -216,6 +283,9 @@ table 221 "Gen. Jnl. Allocation"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Tax area code for sales tax calculation when tax functionality is enabled for this allocation line.
+        /// </summary>
         field(18; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
@@ -226,6 +296,9 @@ table 221 "Gen. Jnl. Allocation"
                 Validate("VAT Prod. Posting Group");
             end;
         }
+        /// <summary>
+        /// Indicates whether this allocation line is subject to sales tax liability when tax functionality is enabled.
+        /// </summary>
         field(19; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
@@ -235,6 +308,9 @@ table 221 "Gen. Jnl. Allocation"
                 Validate("VAT Prod. Posting Group");
             end;
         }
+        /// <summary>
+        /// Tax group code for sales tax calculation when tax functionality is enabled for this allocation line.
+        /// </summary>
         field(20; "Tax Group Code"; Code[20])
         {
             Caption = 'Tax Group Code';
@@ -245,6 +321,9 @@ table 221 "Gen. Jnl. Allocation"
                 Validate("VAT Prod. Posting Group");
             end;
         }
+        /// <summary>
+        /// Indicates whether this allocation line uses reverse charge VAT (use tax) when tax functionality is enabled.
+        /// </summary>
         field(21; "Use Tax"; Boolean)
         {
             Caption = 'Use Tax';
@@ -254,6 +333,9 @@ table 221 "Gen. Jnl. Allocation"
                 Validate("VAT Prod. Posting Group");
             end;
         }
+        /// <summary>
+        /// VAT business posting group code for VAT calculation setup applicable to this allocation line.
+        /// </summary>
         field(22; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
@@ -264,6 +346,9 @@ table 221 "Gen. Jnl. Allocation"
                 Validate("VAT Prod. Posting Group");
             end;
         }
+        /// <summary>
+        /// VAT product posting group code for VAT calculation setup applicable to this allocation line.
+        /// </summary>
         field(23; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
@@ -276,6 +361,9 @@ table 221 "Gen. Jnl. Allocation"
                 UpdateVAT(GenJnlLine);
             end;
         }
+        /// <summary>
+        /// Allocation amount expressed in the additional reporting currency when ACY functionality is enabled.
+        /// </summary>
         field(24; "Additional-Currency Amount"; Decimal)
         {
             AutoFormatType = 1;
@@ -283,6 +371,9 @@ table 221 "Gen. Jnl. Allocation"
             Editable = false;
             AutoFormatExpression = GetAdditionalReportingCurrencyCode();
         }
+        /// <summary>
+        /// Unique identifier for the dimension set associated with this allocation line for financial analysis and reporting.
+        /// </summary>
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
@@ -353,6 +444,11 @@ table 221 "Gen. Jnl. Allocation"
         exit(true);
     end;
 
+    /// <summary>
+    /// Updates allocation amounts and distributions for all allocation lines associated with the specified journal line.
+    /// Recalculates allocation percentages and amounts to ensure total allocation equals journal line amount.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line record for which allocations should be updated.</param>
     procedure UpdateAllocations(var GenJnlLine: Record "Gen. Journal Line")
     var
         GenJnlAlloc: Record "Gen. Jnl. Allocation";
@@ -431,6 +527,12 @@ table 221 "Gen. Jnl. Allocation"
             Find();
     end;
 
+    /// <summary>
+    /// Updates allocation amounts in additional reporting currency for all allocation lines associated with the specified journal line.
+    /// Converts allocation amounts to additional currency using current exchange rates.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line record for which additional currency allocations should be updated.</param>
+    /// <param name="AddCurrAmount">Total additional currency amount to distribute across allocation lines.</param>
     procedure UpdateAllocationsAddCurr(var GenJnlLine: Record "Gen. Journal Line"; AddCurrAmount: Decimal)
     var
         GenJnlAlloc: Record "Gen. Jnl. Allocation";
@@ -510,6 +612,11 @@ table 221 "Gen. Jnl. Allocation"
         GenJnlLine.Modify();
     end;
 
+    /// <summary>
+    /// Validates VAT setup and calculations for this allocation line based on the associated journal line context.
+    /// Ensures VAT posting groups and calculation types are compatible with journal line requirements.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line record providing VAT validation context for this allocation.</param>
     procedure CheckVAT(var GenJnlLine: Record "Gen. Journal Line")
     begin
         if ("Gen. Posting Type" <> "Gen. Posting Type"::" ") and (GenJnlLine."Gen. Posting Type" <> GenJnlLine."Gen. Posting Type"::" ") then
@@ -518,6 +625,11 @@ table 221 "Gen. Jnl. Allocation"
               GenJnlLine.FieldCaption("Gen. Posting Type"));
     end;
 
+    /// <summary>
+    /// Updates VAT amounts and percentages for this allocation line based on current VAT setup and allocation amount.
+    /// Calculates VAT amount using VAT posting group configuration and allocation base amount.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line record providing VAT calculation context for this allocation.</param>
     procedure UpdateVAT(var GenJnlLine: Record "Gen. Journal Line")
     var
         GenJnlLine2: Record "Gen. Journal Line";
@@ -537,6 +649,11 @@ table 221 "Gen. Jnl. Allocation"
         OnAfterUpdateVAT(GenJnlLine, GenJnlLine2, Rec);
     end;
 
+    /// <summary>
+    /// Retrieves the currency code applicable to this allocation line based on the associated journal line.
+    /// Returns the journal line's currency code or LCY if no specific currency is defined.
+    /// </summary>
+    /// <returns>Currency code for this allocation line's amounts and VAT calculations.</returns>
     procedure GetCurrencyCode(): Code[10]
     var
         GenJnlLine3: Record "Gen. Journal Line";
@@ -559,6 +676,11 @@ table 221 "Gen. Jnl. Allocation"
         exit('');
     end;
 
+    /// <summary>
+    /// Creates dimension set for this allocation line from the specified default dimension sources.
+    /// Builds dimension combinations for financial analysis and reporting requirements.
+    /// </summary>
+    /// <param name="DefaultDimSource">List of default dimension sources to use for dimension set creation.</param>
     procedure CreateDim(DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
     var
         IsHandled: Boolean;
@@ -578,6 +700,12 @@ table 221 "Gen. Jnl. Allocation"
         OnAfterCreateDimProcedure(Rec, CurrFieldNo, DefaultDimSource, xRec, OldDimSetID);
     end;
 
+    /// <summary>
+    /// Validates shortcut dimension code for the specified dimension and updates the allocation line's dimension set.
+    /// Ensures dimension values are valid and updates the dimension set ID accordingly.
+    /// </summary>
+    /// <param name="FieldNumber">Field number indicating which shortcut dimension is being validated.</param>
+    /// <param name="ShortcutDimCode">Shortcut dimension code value to validate and assign.</param>
     procedure ValidateShortcutDimCode(FieldNumber: Integer; var ShortcutDimCode: Code[20])
     begin
         OnBeforeValidateShortcutDimCode(Rec, xRec, FieldNumber, ShortcutDimCode);
@@ -587,17 +715,32 @@ table 221 "Gen. Jnl. Allocation"
         OnAfterValidateShortcutDimCode(Rec, xRec, FieldNumber, ShortcutDimCode);
     end;
 
+    /// <summary>
+    /// Opens lookup for shortcut dimension code selection and updates the allocation line's dimension set.
+    /// Provides user interface for selecting valid dimension values for the specified dimension.
+    /// </summary>
+    /// <param name="FieldNumber">Field number indicating which shortcut dimension lookup should be opened.</param>
+    /// <param name="ShortcutDimCode">Current shortcut dimension code value, updated with user selection.</param>
     procedure LookupShortcutDimCode(FieldNumber: Integer; var ShortcutDimCode: Code[20])
     begin
         DimMgt.LookupDimValueCode(FieldNumber, ShortcutDimCode);
         DimMgt.ValidateShortcutDimValues(FieldNumber, ShortcutDimCode, "Dimension Set ID");
     end;
 
+    /// <summary>
+    /// Retrieves and displays shortcut dimension codes for this allocation line in the provided array.
+    /// Populates shortcut dimension code array with current dimension values for display purposes.
+    /// </summary>
+    /// <param name="ShortcutDimCode">Array to populate with current shortcut dimension codes from this allocation.</param>
     procedure ShowShortcutDimCode(var ShortcutDimCode: array[8] of Code[20])
     begin
         DimMgt.GetShortcutDimensions(Rec."Dimension Set ID", ShortcutDimCode);
     end;
 
+    /// <summary>
+    /// Opens the dimensions page to display and allow editing of all dimensions for this allocation line.
+    /// Provides comprehensive dimension management interface for detailed financial analysis setup.
+    /// </summary>
     procedure ShowDimensions()
     begin
         "Dimension Set ID" :=
@@ -608,6 +751,10 @@ table 221 "Gen. Jnl. Allocation"
         OnAfterShowDimensions(Rec, xRec);
     end;
 
+    /// <summary>
+    /// Creates dimension set for this allocation line from default dimension setup for the G/L account.
+    /// Automatically applies standard dimension configuration based on account and posting group defaults.
+    /// </summary>
     procedure CreateDimFromDefaultDim()
     var
         DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
@@ -702,71 +849,164 @@ table 221 "Gen. Jnl. Allocation"
         OnAfterCheckGLAccount(GLAccount, Rec);
     end;
 
+    /// <summary>
+    /// Integration event raised after initializing default dimension sources for allocation line dimension creation.
+    /// Enables custom modification of dimension sources before dimension set creation for allocation lines.
+    /// </summary>
+    /// <param name="GenJnlAllocation">General journal allocation record for which dimension sources are being initialized.</param>
+    /// <param name="DefaultDimSource">List of default dimension sources that can be modified for custom dimension logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitDefaultDimensionSources(var GenJnlAllocation: Record "Gen. Jnl. Allocation"; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before creating dimension set for allocation line.
+    /// Enables custom logic to completely override standard dimension creation processing for allocations.
+    /// </summary>
+    /// <param name="GenJnlAllocation">General journal allocation record for which dimensions are being created.</param>
+    /// <param name="IsHandled">Set to true to skip standard dimension creation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateDim(var GenJnlAllocation: Record "Gen. Jnl. Allocation"; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after completing dimension creation procedure for allocation line.
+    /// Enables custom processing and validation after standard dimension set creation is completed.
+    /// </summary>
+    /// <param name="GenJnlAllocation">General journal allocation record for which dimensions were created.</param>
+    /// <param name="CurrFieldNo">Field number that triggered the dimension creation process.</param>
+    /// <param name="DefaultDimSource">List of default dimension sources used in dimension creation.</param>
+    /// <param name="xGenJnlAllocation">Previous version of allocation record before dimension changes.</param>
+    /// <param name="OldDimSetID">Previous dimension set ID before changes were applied.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateDimProcedure(var GenJnlAllocation: Record "Gen. Jnl. Allocation"; CurrFieldNo: Integer; DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; xGenJnlAllocation: Record "Gen. Jnl. Allocation"; OldDimSetID: Integer);
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after displaying dimensions page for allocation line.
+    /// Enables custom processing after user interaction with allocation line dimensions.
+    /// </summary>
+    /// <param name="GenJnlAllocation">General journal allocation record for which dimensions were displayed.</param>
+    /// <param name="xGenJnlAllocation">Previous version of allocation record before dimension display interaction.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterShowDimensions(var GenJnlAllocation: Record "Gen. Jnl. Allocation"; xGenJnlAllocation: Record "Gen. Jnl. Allocation")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating shortcut dimension code for allocation line.
+    /// Enables custom processing after shortcut dimension validation and dimension set updates.
+    /// </summary>
+    /// <param name="GenJnlAllocation">General journal allocation record for which shortcut dimension was validated.</param>
+    /// <param name="xGenJnlAllocation">Previous version of allocation record before shortcut dimension validation.</param>
+    /// <param name="FieldNumber">Field number indicating which shortcut dimension was validated.</param>
+    /// <param name="ShortcutDimCode">Shortcut dimension code value that was validated and applied.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateShortcutDimCode(var GenJnlAllocation: Record "Gen. Jnl. Allocation"; var xGenJnlAllocation: Record "Gen. Jnl. Allocation"; FieldNumber: Integer; var ShortcutDimCode: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating shortcut dimension code for allocation line.
+    /// Enables custom logic to override standard shortcut dimension validation processing.
+    /// </summary>
+    /// <param name="GenJnlAllocation">General journal allocation record for which shortcut dimension is being validated.</param>
+    /// <param name="xGenJnlAllocation">Previous version of allocation record before shortcut dimension validation.</param>
+    /// <param name="FieldNumber">Field number indicating which shortcut dimension is being validated.</param>
+    /// <param name="ShortcutDimCode">Shortcut dimension code value being validated (can be modified).</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateShortcutDimCode(var GenJnlAllocation: Record "Gen. Jnl. Allocation"; var xGenJnlAllocation: Record "Gen. Jnl. Allocation"; FieldNumber: Integer; var ShortcutDimCode: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event that occurs after modifying a general journal allocation line during update process.
+    /// Allows customization of allocation line processing after standard modification logic.
+    /// </summary>
+    /// <param name="GenJnlAlloc">The general journal allocation record that was modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAllocationsOnAfterGenJnlAllocModify(var GenJnlAlloc: Record "Gen. Jnl. Allocation")
     begin
     end;
 
+    /// <summary>
+    /// Integration event that occurs before modifying a general journal allocation line during update process.
+    /// Allows customization of allocation line values before standard modification logic.
+    /// </summary>
+    /// <param name="GenJournalLine">The source general journal line being processed.</param>
+    /// <param name="GenJnlAlloc">The general journal allocation record being modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAllocationsOnBeforeGenJnlAllocModify(GenJournalLine: Record "Gen. Journal Line"; var GenJnlAlloc: Record "Gen. Jnl. Allocation")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after modifying allocation line during additional currency allocation updates.
+    /// Enables custom processing after allocation line changes during ACY amount distribution.
+    /// </summary>
+    /// <param name="GenJnlAlloc">General journal allocation record that was modified during ACY update process.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAllocationsAddCurrOnAfterGenJnlAllocModify(var GenJnlAlloc: Record "Gen. Jnl. Allocation")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating G/L account setup for allocation line.
+    /// Enables custom logic to override standard G/L account validation processing for allocations.
+    /// </summary>
+    /// <param name="GLAccount">G/L Account record being validated for allocation line usage.</param>
+    /// <param name="IsHandled">Set to true to skip standard G/L account validation logic.</param>
+    /// <param name="GenJnlAllocation">General journal allocation record providing context for G/L account validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckGLAccount(GLAccount: Record "G/L Account"; var IsHandled: Boolean; var GenJnlAllocation: Record "Gen. Jnl. Allocation");
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating G/L account setup for allocation line.
+    /// Enables custom processing and validation after standard G/L account checks are completed.
+    /// </summary>
+    /// <param name="GLAccount">G/L Account record that was validated for allocation line usage.</param>
+    /// <param name="GenJnlAllocation">General journal allocation record providing context for G/L account validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckGLAccount(var GLAccount: Record "G/L Account"; GenJnlAllocation: Record "Gen. Jnl. Allocation")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating VAT amounts for allocation line.
+    /// Enables custom logic to completely override standard VAT update processing for allocations.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line record providing VAT update context.</param>
+    /// <param name="IsHandled">Set to true to skip standard VAT update logic.</param>
+    /// <param name="GenJnlAllocation">General journal allocation record for which VAT is being updated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateVAT(var GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean; var GenJnlAllocation: Record "Gen. Jnl. Allocation")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after updating VAT amounts for allocation line.
+    /// Enables custom processing after standard VAT calculation and update is completed.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line record that provided VAT update context.</param>
+    /// <param name="GenJournalLine2">Additional journal line record used during VAT update process.</param>
+    /// <param name="GenJnlAllocation">General journal allocation record for which VAT was updated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateVAT(var GenJournalLine: Record "Gen. Journal Line"; GenJournalLine2: Record "Gen. Journal Line"; var GenJnlAllocation: Record "Gen. Jnl. Allocation")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating account number for allocation line.
+    /// Enables custom logic to completely override standard account number validation processing.
+    /// </summary>
+    /// <param name="GenJnlAllocation">General journal allocation record for which account number is being validated.</param>
+    /// <param name="xGenJnlAllocation">Previous version of allocation record before account number validation.</param>
+    /// <param name="IsHandled">Set to true to skip standard account number validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateAccountNo(var GenJnlAllocation: Record "Gen. Jnl. Allocation"; xGenJnlAllocation: Record "Gen. Jnl. Allocation"; var IsHandled: Boolean)
     begin

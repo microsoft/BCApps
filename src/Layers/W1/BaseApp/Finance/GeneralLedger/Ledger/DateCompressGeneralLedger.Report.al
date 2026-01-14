@@ -14,6 +14,15 @@ using Microsoft.Inventory.Ledger;
 using System.DataAdministration;
 using System.Utilities;
 
+/// <summary>
+/// Compresses G/L entries by date to reduce database size and improve performance.
+/// Combines multiple G/L entries with the same G/L account and date into single summarized entries.
+/// </summary>
+/// <remarks>
+/// Data sources: G/L Entry table. Supports flexible date compression periods and field retention options.
+/// Maintains VAT entry links, dimension information, and audit trail through registers.
+/// Extensibility: OnBeforeInitRegisters, OnGLEntryOnAfterGetRecordOnBeforeInitNewEntry events available.
+/// </remarks>
 report 98 "Date Compress General Ledger"
 {
     Caption = 'Date Compress General Ledger';
@@ -516,6 +525,13 @@ report 98 "Date Compress General Ledger"
         end;
     end;
 
+    /// <summary>
+    /// Compresses collected dimension buffer entries into summarized G/L entries.
+    /// </summary>
+    /// <remarks>
+    /// Processes dimension buffer entries and creates compressed G/L entries with summarized amounts.
+    /// Maintains dimension information and creates proper audit trail entries.
+    /// </remarks>
     procedure ComprCollectedEntries()
     var
         GLEntry: Record "G/L Entry";
@@ -543,6 +559,10 @@ report 98 "Date Compress General Ledger"
         DimBufMgt.DeleteAllDimEntryNo();
     end;
 
+    /// <summary>
+    /// Initializes a new G/L entry record for date compression with default values.
+    /// </summary>
+    /// <param name="NewGLEntry">G/L entry record to initialize with compression defaults</param>
     procedure InitNewEntry(var NewGLEntry: Record "G/L Entry")
     begin
         LastEntryNo := LastEntryNo + 1;
@@ -580,6 +600,7 @@ report 98 "Date Compress General Ledger"
         Window.Update(2, NewGLEntry."Posting Date");
         DateComprReg."No. of New Records" := DateComprReg."No. of New Records" + 1;
         Window.Update(3, DateComprReg."No. of New Records");
+        OnAfterInitNewEntry(NewGLEntry);
     end;
 
     local procedure InsertNewEntry(var NewGLEntry: Record "G/L Entry"; DimEntryNo: Integer)
@@ -609,6 +630,16 @@ report 98 "Date Compress General Ledger"
         RetainDimText := DimSelectionBuf.GetDimSelectionText(3, REPORT::"Date Compress General Ledger", '');
     end;
 
+    /// <summary>
+    /// Initializes date compression parameters for programmatic execution.
+    /// </summary>
+    /// <param name="StartingDate">First date of the compression period</param>
+    /// <param name="EndingDate">Last date of the compression period</param>
+    /// <param name="PeriodLength">Period length option for compression grouping</param>
+    /// <param name="Description">Description for compressed entries</param>
+    /// <param name="NewDateComprRetainFields">Field retention options for compression</param>
+    /// <param name="RetainDimensionText">Dimension retention specification</param>
+    /// <param name="DoUseDataArchive">Whether to use data archiving for deleted entries</param>
     procedure InitializeRequest(StartingDate: Date; EndingDate: Date; PeriodLength: Option; Description: Text[100]; NewDateComprRetainFields: Record "Date Compr. Retain Fields"; RetainDimensionText: Text[250]; DoUseDataArchive: Boolean)
     begin
         InitializeParameter();
@@ -662,18 +693,37 @@ report 98 "Date Compress General Ledger"
         Session.LogMessage('0000F4P', StrSubstNo(EndDateCompressionTelemetryMsg, CurrReport.ObjectId(false), CurrReport.ObjectId(true)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
     end;
 
+    /// <summary>
+    /// Integration event raised before initializing registers during G/L entry date compression.
+    /// </summary>
+    /// <param name="GLEntry">G/L Entry record being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitRegisters(var GLEntry: Record "G/L Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised during G/L entry processing before initializing a new entry.
+    /// </summary>
+    /// <param name="GLEntry2">New G/L Entry record being created.</param>
+    /// <param name="GLEntry">Source G/L Entry record being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGLEntryOnAfterGetRecordOnBeforeInitNewEntry(var GLEntry2: Record "G/L Entry"; var GLEntry: Record "G/L Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before deleting a G/L entry during the summarization process.
+    /// </summary>
+    /// <param name="NewGLEntry">New summarized G/L Entry record.</param>
+    /// <param name="GLEntry">Original G/L Entry record to be deleted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSummarizeEntryOnBeforeGLEntryDelete(var NewGLEntry: Record "G/L Entry"; GLEntry: Record "G/L Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInitNewEntry(var NewGLEntry: Record "G/L Entry")
     begin
     end;
 }

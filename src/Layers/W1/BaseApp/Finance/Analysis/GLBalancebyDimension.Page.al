@@ -15,6 +15,10 @@ using System.Reflection;
 using System.Text;
 using System.Utilities;
 
+/// <summary>
+/// Provides dimensional analysis of G/L account balances with configurable matrix views.
+/// Enables users to analyze G/L account balances across dimensions with flexible row/column configurations and drill-down capabilities.
+/// </summary>
 page 408 "G/L Balance by Dimension"
 {
     Caption = 'G/L Balance by Dimension';
@@ -910,56 +914,133 @@ page 408 "G/L Balance by Dimension"
         DateFilterOnAfterValidate();
     end;
 
+    /// <summary>
+    /// Integration event raised after page initialization for custom setup logic.
+    /// Enables additional initialization steps for G/L Balance by Dimension analysis.
+    /// </summary>
     [IntegrationEvent(true, false)]
     local procedure OnAfterOnInit()
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after dimension code to option conversion for custom dimension handling.
+    /// Enables extension of dimension code conversion logic beyond standard dimensions.
+    /// </summary>
+    /// <param name="DimCode">Dimension code being converted</param>
+    /// <param name="GeneralLedgerSetup">General ledger setup for dimension configuration</param>
+    /// <param name="Result">Conversion result that can be modified</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterDimCodeToOption(DimCode: Text[30]; GeneralLedgerSetup: Record "General Ledger Setup"; var Result: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after dimension definition validation for custom validation logic.
+    /// Enables custom validation of dimension definitions beyond standard checks.
+    /// </summary>
+    /// <param name="GeneralLedgerSetup">General ledger setup for dimension configuration</param>
+    /// <param name="DimCode">Dimension code being validated</param>
+    /// <param name="Result">Validation result that can be modified</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterIsNotValidDefinition(GeneralLedgerSetup: Record "General Ledger Setup"; var DimCode: Text[30]; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before G/L Account filtering for custom filter logic.
+    /// Enables modification of G/L Account filters based on dimension options.
+    /// </summary>
+    /// <param name="GLAccount">G/L Account record for filtering</param>
+    /// <param name="GLAccFilter">G/L Account filter text that can be modified</param>
+    /// <param name="LineDimOption">Line dimension option for analysis</param>
+    /// <param name="ColumnDimOption">Column dimension option for analysis</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGLAccFilter(var GLAccount: Record "G/L Account"; var GLAccFilter: Text; LineDimOption: Option "G/L Account",Period,"Business Unit","Dimension 1","Dimension 2","Dimension 3","Dimension 4"; ColumnDimOption: Option "G/L Account",Period,"Business Unit","Dimension 1","Dimension 2","Dimension 3","Dimension 4")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before finding records for custom record finding logic.
+    /// Enables custom record navigation behavior in dimensional analysis.
+    /// </summary>
+    /// <param name="DimOption">Dimension option for record finding</param>
+    /// <param name="DimensionValue">Dimension value record for navigation</param>
+    /// <param name="GLAccount">G/L Account record for navigation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFindRec(DimOption: Option; var DimensionValue: Record "Dimension Value"; var GLAccount: Record "G/L Account")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before record navigation for custom navigation logic.
+    /// Enables custom record stepping behavior in dimensional analysis.
+    /// </summary>
+    /// <param name="DimOption">Dimension option for navigation</param>
+    /// <param name="DimensionValue">Dimension value record for navigation</param>
+    /// <param name="GLAccount">G/L Account record for navigation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeNextRec(DimOption: Option; var DimensionValue: Record "Dimension Value"; var GLAccount: Record "G/L Account")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised for custom dimension handling in find record operations.
+    /// Enables extension of record finding logic beyond standard dimensions.
+    /// </summary>
+    /// <param name="AnalysisByDimParameters">Analysis parameters for context</param>
+    /// <param name="DimOption">Dimension option for finding</param>
+    /// <param name="GeneralLedgerSetup">General ledger setup for configuration</param>
+    /// <param name="Found">Whether record was found, can be modified</param>
+    /// <param name="DimensionCodeBuffer">Dimension code buffer for record operations</param>
+    /// <param name="Which">Navigation direction for finding</param>
     [IntegrationEvent(true, false)]
     local procedure OnFindRecCaseElse(AnalysisByDimParameters: Record "Analysis by Dim. Parameters"; DimOption: Integer; GeneralLedgerSetup: Record "General Ledger Setup"; var Found: Boolean; var DimensionCodeBuffer: Record "Dimension Code Buffer"; Which: Text[250])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before dimension selection lookup for custom selection behavior.
+    /// Enables modification of dimension selection page before display.
+    /// </summary>
+    /// <param name="GeneralLedgerSetup">General ledger setup for configuration</param>
+    /// <param name="DimensionSelection">Dimension selection page that can be customized</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetDimSelectionOnBeforeDimSelectionLookup(GeneralLedgerSetup: Record "General Ledger Setup"; var DimensionSelection: Page "Dimension Selection")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised for custom dimension handling in next record operations.
+    /// Enables extension of record navigation logic beyond standard dimensions.
+    /// </summary>
+    /// <param name="AnalysisByDimParameters">Analysis parameters for context</param>
+    /// <param name="DimOption">Dimension option for navigation</param>
+    /// <param name="GeneralLedgerSetup">General ledger setup for configuration</param>
+    /// <param name="ResultSteps">Navigation steps result that can be modified</param>
+    /// <param name="DimensionCodeBuffer">Dimension code buffer for navigation</param>
+    /// <param name="Steps">Number of steps for navigation</param>
     [IntegrationEvent(true, false)]
     local procedure OnNextRecCaseElse(AnalysisByDimParameters: Record "Analysis by Dim. Parameters"; DimOption: Integer; GeneralLedgerSetup: Record "General Ledger Setup"; var ResultSteps: Integer; var DimensionCodeBuffer: Record "Dimension Code Buffer"; Steps: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before running the G/L Balance by Dimension Matrix page.
+    /// Enables customization of matrix page before display.
+    /// </summary>
+    /// <param name="GLBalancebyDimMatrix">G/L Balance by Dimension Matrix page that can be customized</param>
     [IntegrationEvent(true, false)]
     local procedure OnShowMatrixActionOnBeforeRunModal(var GLBalancebyDimMatrix: Page "G/L Balance by Dim. Matrix")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised on page open before finding period for custom initialization logic.
+    /// Enables custom setup behavior during page opening.
+    /// </summary>
+    /// <param name="GeneralLedgerSetup">General ledger setup for configuration</param>
+    /// <param name="GLAccount">G/L Account record for initialization</param>
     [IntegrationEvent(true, false)]
     local procedure OnOnOpenPageOnBeforeFindPeriod(GeneralLedgerSetup: Record "General Ledger Setup"; var GLAccount: Record "G/L Account")
     begin

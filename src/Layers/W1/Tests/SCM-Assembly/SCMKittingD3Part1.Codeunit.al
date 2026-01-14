@@ -4,20 +4,20 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
-using Microsoft.Assembly.Setup;
-using Microsoft.Inventory.Setup;
 using Microsoft.Assembly.Document;
+using Microsoft.Assembly.History;
+using Microsoft.Assembly.Posting;
+using Microsoft.Assembly.Setup;
+using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Setup;
+using Microsoft.Projects.Resources.Resource;
 using Microsoft.Utilities;
 using System.Environment.Configuration;
-using Microsoft.Finance.Dimension;
-using Microsoft.Inventory.Location;
-using Microsoft.Inventory.BOM;
-using Microsoft.Projects.Resources.Resource;
-using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Assembly.History;
-using Microsoft.Inventory.Costing;
-using Microsoft.Assembly.Posting;
 
 codeunit 137092 "SCM Kitting - D3 - Part 1"
 {

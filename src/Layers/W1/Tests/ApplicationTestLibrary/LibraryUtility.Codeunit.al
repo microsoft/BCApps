@@ -1,6 +1,8 @@
+/// <summary>
+/// Provides generic utility functions for test automation including record manipulation, field comparison, and no series management.
+/// </summary>
 codeunit 131000 "Library - Utility"
 {
-    // Contains all generic utility functions.
 
     Permissions = TableData "FA Setup" = m;
 

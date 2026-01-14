@@ -4,22 +4,24 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Test;
 
-using Microsoft.Inventory.Journal;
-using System.TestLibraries.Utilities;
 using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Location;
-using Microsoft.Manufacturing.Document;
-using Microsoft.Warehouse.Activity;
-using Microsoft.Manufacturing.Journal;
-using Microsoft.Warehouse.Structure;
-using Microsoft.Manufacturing.Setup;
-using Microsoft.Manufacturing.ProductionBOM;
-using Microsoft.Warehouse.Setup;
-using Microsoft.Inventory.Setup;
+using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
-using Microsoft.Inventory.Tracking;
-using Microsoft.Warehouse.Request;
+using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Posting;
+using Microsoft.Inventory.Setup;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Journal;
+using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
+using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Warehouse.Activity;
+using Microsoft.Warehouse.Request;
+using Microsoft.Warehouse.Setup;
+using Microsoft.Warehouse.Structure;
+using System.TestLibraries.Utilities;
 
 codeunit 137298 "SCM Prod. Whse. Handling"
 {
@@ -1510,6 +1512,135 @@ codeunit 137298 "SCM Prod. Whse. Handling"
         FindLastItemLedgerEntry(ItemLedgerEntry, CompItem."No.", Location.Code, false);
     end;
 
+    [Test]
+    procedure PostTimeOnlyProductionJournalWithWarehousePutaway()
+    var
+        Item: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        Location: Record Location;
+        ProdOrderLine: Record "Prod. Order Line";
+        ProductionOrder: Record "Production Order";
+        PutawayTemplateHeader: Record "Put-away Template Header";
+        PutawayTemplateLine: Record "Put-away Template Line";
+        ProductionJournalMgt: Codeunit "Production Journal Mgt";
+    begin
+        // [SCENARIO 609902] Posting time-only production journal (Setup Time/Run Time with zero output qty) succeeds with Warehouse Put-away.
+        Initialize();
+
+        // [GIVEN] Create Location with bins and "Prod. Output Whse. Handling" = "Warehouse Put-away".
+        LibraryWarehouse.CreatePutAwayTemplateHeader(PutAwayTemplateHeader);
+        LibraryWarehouse.CreatePutAwayTemplateLine(PutAwayTemplateHeader, PutAwayTemplateLine, true, false, false, false, false, false);
+        CreateLocationSetupWithBins(Location, false, false, false, false, true, 2, false);
+        Location.Validate("Directed Put-away and Pick", true);
+        Location.Validate("Prod. Output Whse. Handling", Location."Prod. Output Whse. Handling"::"Warehouse Put-away");
+        Location.Validate("Put-away Template Code", PutawayTemplateHeader.Code);
+        Location.Modify(true);
+
+        // [GIVEN] Create a production item with no components.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
+        Item.Modify(true);
+
+        // [GIVEN] Create Released Production Order for the item.
+        LibraryManufacturing.CreateProductionOrder(ProductionOrder, "Production Order Status"::Released, "Prod. Order Source Type"::Item, Item."No.", 10);
+        ProductionOrder.Validate("Location Code", Location.Code);
+        ProductionOrder.Modify(true);
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+
+        // [GIVEN] Create production journal lines.
+        FindFirstProdOrderLine(ProdOrderLine, ProductionOrder);
+        ProductionJournalMgt.InitSetupValues();
+        ProductionJournalMgt.SetTemplateAndBatchName();
+        ProductionJournalMgt.CreateJnlLines(ProductionOrder, ProdOrderLine."Line No.");
+        ItemJournalLine.SetRange("Order Type", ItemJournalLine."Order Type"::Production);
+        ItemJournalLine.SetRange("Document No.", ProductionOrder."No.");
+        ItemJournalLine.FindFirst();
+
+        // [GIVEN] Set Output Quantity to 0 and Setup Time to a non-zero value.
+        ItemJournalLine.Validate("Output Quantity", 0);
+        ItemJournalLine.Validate("Setup Time", 10);
+        ItemJournalLine.Modify(true);
+
+        // [WHEN] Post the production journal.
+        // [THEN] Posting succeeds without "There is nothing to create" error.
+        CODEUNIT.Run(CODEUNIT::"Item Jnl.-Post Batch", ItemJournalLine);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ProdOutputWithRoutingSameWorkCenter_CreatesWhsePutAway()
+    var
+        Bin: Record Bin;
+        Item: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        Location: Record Location;
+        ProdOrderLine: Record "Prod. Order Line";
+        ProductionOrder: Record "Production Order";
+        ProductionJournalMgt: Codeunit "Production Journal Mgt";
+        LastOperationNo: Text[10];
+    begin
+        // [SCENARIO 613406] Warehouse put-away is created when posting output for last operation with routing lines sharing same work center.
+        Initialize();
+
+        // [GIVEN] Create Location with bins and "Prod. Output Whse. Handling" = "Inventory Put-away".
+        CreateLocationSetupWithBins(Location, false, false, false, false, true, LibraryRandom.RandInt(10), false);
+        Location.Validate("Prod. Output Whse. Handling", Location."Prod. Output Whse. Handling"::"Inventory Put-away");
+        Location.Validate("Always Create Put-away Line", true);
+        Location.Modify(true);
+
+        // [GIVEN] Create a production item with routing having multiple lines with the same work center.
+        CreateItemWithRoutingUsingSameWorkCenter(Item, LastOperationNo);
+
+        // [GIVEN] Create Released Production Order for the item.
+        LibraryManufacturing.CreateProductionOrder(ProductionOrder, "Production Order Status"::Released, "Prod. Order Source Type"::Item, Item."No.", 1);
+        ProductionOrder.Validate("Location Code", Location.Code);
+        ProductionOrder.Modify(true);
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+
+        // [GIVEN] Create production journal lines.
+        FindFirstProdOrderLine(ProdOrderLine, ProductionOrder);
+        ProductionJournalMgt.InitSetupValues();
+        ProductionJournalMgt.SetTemplateAndBatchName();
+        ProductionJournalMgt.CreateJnlLines(ProductionOrder, ProdOrderLine."Line No.");
+        ItemJournalLine.SetRange("Order Type", ItemJournalLine."Order Type"::Production);
+        ItemJournalLine.SetRange("Document No.", ProductionOrder."No.");
+
+        // [GIVEN] Delete all lines except the last output line (operation '30').
+        ItemJournalLine.SetFilter("Entry Type", '<>%1', ItemJournalLine."Entry Type"::Output);
+        ItemJournalLine.DeleteAll();
+        ItemJournalLine.SetRange("Entry Type");
+        ItemJournalLine.SetRange("Entry Type", ItemJournalLine."Entry Type"::Output);
+        ItemJournalLine.SetFilter("Operation No.", '<>%1', LastOperationNo);
+        ItemJournalLine.DeleteAll();
+
+        // [GIVEN] Set Output Quantity on the last operation line.
+        ItemJournalLine.SetRange("Entry Type");
+        ItemJournalLine.SetRange("Operation No.");
+        ItemJournalLine.FindFirst();
+
+        // [GIVEN] Ensure output quantity is set.
+        if ItemJournalLine."Output Quantity" = 0 then
+            ItemJournalLine.Validate("Output Quantity", ProductionOrder.Quantity);
+
+        // [GIVEN] Set Bin Code on the Item Journal Line.
+        Bin.SetRange("Location Code", Location.Code);
+        Bin.FindFirst();
+        ItemJournalLine.Validate("Bin Code", Bin.Code);
+        ItemJournalLine.Modify(true);
+
+        // [WHEN] Post the production journal for the last operation.
+        CODEUNIT.Run(CODEUNIT::"Item Jnl.-Post Batch", ItemJournalLine);
+
+        // [THEN] Item Ledger Entry is created for output at the location.
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Location Code", Location.Code);
+        ItemLedgerEntry.FindFirst();
+
+        Assert.RecordIsNotEmpty(ItemLedgerEntry);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1841,6 +1972,39 @@ codeunit 137298 "SCM Prod. Whse. Handling"
         ItemLedgerEntry.SetRange("Location Code", LocationCode);
         ItemLedgerEntry.SetRange(Positive, IsPositive);
         ItemLedgerEntry.FindLast();
+    end;
+
+    local procedure CreateItemWithRoutingUsingSameWorkCenter(var Item: Record Item; var LastOperationNo: Text[10])
+    var
+        WorkCenter: Record "Work Center";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+    begin
+        LibraryManufacturing.CreateWorkCenterWithCalendar(WorkCenter);
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+
+        LibraryManufacturing.CreateRoutingLineSetup(
+            RoutingLine, RoutingHeader, WorkCenter."No.",
+            LibraryUtility.GenerateRandomCode(RoutingLine.FieldNo("Operation No."), DATABASE::"Routing Line"),
+            LibraryRandom.RandInt(1), LibraryRandom.RandInt(1));
+
+        LibraryManufacturing.CreateRoutingLineSetup(
+            RoutingLine, RoutingHeader, WorkCenter."No.",
+            LibraryUtility.GenerateRandomCode(RoutingLine.FieldNo("Operation No."), DATABASE::"Routing Line"),
+            LibraryRandom.RandInt(1), LibraryRandom.RandInt(1));
+
+        LibraryManufacturing.CreateRoutingLineSetup(
+            RoutingLine, RoutingHeader, WorkCenter."No.",
+            LibraryUtility.GenerateRandomCode(RoutingLine.FieldNo("Operation No."), DATABASE::"Routing Line"),
+            LibraryRandom.RandInt(1), LibraryRandom.RandInt(1));
+        LastOperationNo := RoutingLine."Operation No.";
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
+        Item.Validate("Routing No.", RoutingHeader."No.");
+        Item.Modify(true);
     end;
 
     [RequestPageHandler]

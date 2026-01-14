@@ -4,6 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Journal;
 
+/// <summary>
+/// Provides list view access to posted general journal batches for historical analysis and audit trail purposes.
+/// Displays completed journal batch information including posting details, template references, and batch descriptions.
+/// </summary>
+/// <remarks>
+/// Historical journal batch list for posted batch analysis and audit purposes. Provides read-only access to
+/// batch-level posting information including template references, posting dates, and batch identification details.
+/// Key features: Posted batch browsing, template and batch identification, posting history access, audit trail support.
+/// Integration: Links to posted journal lines and G/L register entries for complete posting history analysis.
+/// </remarks>
 page 185 "Posted General Journal Batch"
 {
     Caption = 'Posted General Journal Batch';

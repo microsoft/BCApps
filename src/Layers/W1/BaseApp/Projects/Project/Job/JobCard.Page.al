@@ -17,11 +17,11 @@ using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
 using Microsoft.Pricing.Source;
 using Microsoft.Projects.Project.Analysis;
+using Microsoft.Projects.Project.Archive;
 using Microsoft.Projects.Project.Ledger;
 using Microsoft.Projects.Project.Planning;
 using Microsoft.Projects.Project.Pricing;
 using Microsoft.Projects.Project.Reports;
-using Microsoft.Projects.Project.Archive;
 using Microsoft.Projects.Project.WIP;
 using Microsoft.Projects.TimeSheet;
 using Microsoft.Purchases.Document;
@@ -973,19 +973,6 @@ page 88 "Job Card"
                 SubPageLink = "No." = field("Bill-to Customer No.");
                 Visible = false;
             }
-#if not CLEAN25
-            part("Attached Documents"; "Document Attachment Factbox")
-            {
-                ObsoleteTag = '25.0';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The "Document Attachment FactBox" has been replaced by "Doc. Attachment List Factbox", which supports multiple files upload.';
-                ApplicationArea = All;
-                Visible = false;
-                Caption = 'Attachments';
-                SubPageLink = "Table ID" = const(Database::Job),
-                              "No." = field("No.");
-            }
-#endif
             part("Attached Documents List"; "Doc. Attachment List Factbox")
             {
                 ApplicationArea = All;

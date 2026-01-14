@@ -20,9 +20,9 @@ report 20406 "Qlty. Create Internal Put-away"
 
     dataset
     {
-        dataitem(CurrentTest; "Qlty. Inspection Test Header")
+        dataitem(CurrentInspection; "Qlty. Inspection Header")
         {
-            RequestFilterFields = "No.", "Retest No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Document No.", "Template Code";
+            RequestFilterFields = "No.", "Re-inspection No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Document No.", "Template Code";
 
             trigger OnAfterGetRecord()
             var
@@ -30,18 +30,18 @@ report 20406 "Qlty. Create Internal Put-away"
                 QltyDispWarehousePutAway: Codeunit "Qlty. Disp. Warehouse Put-away";
             begin
                 if (SpecificQuantity = 0) and (QltyQuantityBehavior = QltyQuantityBehavior::"Specific Quantity") then begin
-                    SpecificQuantity := CurrentTest."Source Quantity (Base)";
+                    SpecificQuantity := CurrentInspection."Source Quantity (Base)";
                     if SpecificQuantity = 0 then
                         Error(InventoryNeedsQuantityErr);
                 end;
 
-                if (QltyQuantityBehavior in [QltyQuantityBehavior::"Sample Quantity", QltyQuantityBehavior::"Failed Quantity", QltyQuantityBehavior::"Passed Quantity"]) and (CurrentTest."Sample Size" <= 0) then
+                if (QltyQuantityBehavior in [QltyQuantityBehavior::"Sample Quantity", QltyQuantityBehavior::"Failed Quantity", QltyQuantityBehavior::"Passed Quantity"]) and (CurrentInspection."Sample Size" <= 0) then
                     Error(SampleMoveErr);
 
                 if CreateWarehousePutAwayFromInternalPutAway then
-                    QltyDispWarehousePutAway.PerformDisposition(CurrentTest, SpecificQuantity, FilterOfSourceLocation, FilterOfSourceBin, QltyQuantityBehavior)
+                    QltyDispWarehousePutAway.PerformDisposition(CurrentInspection, SpecificQuantity, FilterOfSourceLocation, FilterOfSourceBin, QltyQuantityBehavior)
                 else
-                    QltyDispInternalPutAway.PerformDisposition(CurrentTest, SpecificQuantity, FilterOfSourceLocation, FilterOfSourceBin, ReleaseImmediately, QltyQuantityBehavior);
+                    QltyDispInternalPutAway.PerformDisposition(CurrentInspection, SpecificQuantity, FilterOfSourceLocation, FilterOfSourceBin, ReleaseImmediately, QltyQuantityBehavior);
             end;
         }
     }
@@ -55,7 +55,7 @@ report 20406 "Qlty. Create Internal Put-away"
                 group(SettingsForQuantity)
                 {
                     Caption = 'Quantity';
-                    InstructionalText = 'In most scenarios you will want to move the entire lot/serial/package if it is being quarantined. If you want a specific amount you can define it here. If this value is zero and also you are not moving the entire amount then the journal entry will use the Quantity defined on the test itself.';
+                    InstructionalText = 'In most scenarios you will want to move the entire lot/serial/package if it is being quarantined. If you want a specific amount you can define it here. If this value is zero and also you are not moving the entire amount then the journal entry will use the Quantity defined on the inspection itself.';
 
                     field(ChooseMoveAllInventory; MoveTracked)
                     {
@@ -108,7 +108,7 @@ report 20406 "Qlty. Create Internal Put-away"
                         {
                             ApplicationArea = All;
                             Caption = 'Quantity to Handle';
-                            ToolTip = 'Specifies the specific quantity to move. If zero the quantity defined on the test will be used.';
+                            ToolTip = 'Specifies the specific quantity to move. If zero, the quantity defined on the inspection will be used.';
                             AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
                             ShowMandatory = true;

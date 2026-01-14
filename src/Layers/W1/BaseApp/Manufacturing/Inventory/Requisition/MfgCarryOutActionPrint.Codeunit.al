@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Requisition;
 
-using Microsoft.Manufacturing.Document;
 using Microsoft.Foundation.Reporting;
+using Microsoft.Manufacturing.Document;
 
 codeunit 99000816 "Mfg. Carry Out Action Print"
 {

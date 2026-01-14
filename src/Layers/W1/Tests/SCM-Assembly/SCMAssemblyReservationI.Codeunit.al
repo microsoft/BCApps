@@ -4,19 +4,19 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
-using System.TestLibraries.Utilities;
-using Microsoft.Inventory.Tracking;
-using Microsoft.Inventory.Ledger;
-using Microsoft.Inventory.Item;
 using Microsoft.Assembly.Document;
-using Microsoft.Sales.Document;
-using Microsoft.Purchases.Document;
-using Microsoft.Inventory.Location;
-using Microsoft.Inventory.Transfer;
-using Microsoft.Sales.Customer;
-using Microsoft.Inventory.Journal;
-using Microsoft.Sales.History;
 using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Inventory.Transfer;
+using Microsoft.Purchases.Document;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
+using System.TestLibraries.Utilities;
 
 codeunit 137916 "SCM Assembly Reservation I"
 {

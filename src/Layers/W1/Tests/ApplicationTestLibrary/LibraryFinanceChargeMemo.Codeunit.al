@@ -1,3 +1,6 @@
+/// <summary>
+/// Provides utility functions for creating and managing finance charge memos in test scenarios.
+/// </summary>
 codeunit 131350 "Library - Finance Charge Memo"
 {
 

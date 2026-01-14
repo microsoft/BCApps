@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Requisition;
 
-using Microsoft.Manufacturing.Document;
 using Microsoft.Inventory.Item.Substitution;
 using Microsoft.Inventory.Planning;
+using Microsoft.Manufacturing.Document;
 
 codeunit 99000867 "Mfg. Order Planning Mgt."
 {

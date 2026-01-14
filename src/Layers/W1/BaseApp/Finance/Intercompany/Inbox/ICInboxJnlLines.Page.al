@@ -6,6 +6,10 @@ namespace Microsoft.Intercompany.Inbox;
 
 using Microsoft.Intercompany.Dimension;
 
+/// <summary>
+/// Displays journal line details for intercompany transactions received from partner companies.
+/// Provides detailed view of account information, amounts, and posting parameters for IC journal transactions.
+/// </summary>
 page 616 "IC Inbox Jnl. Lines"
 {
     Caption = 'IC Inbox Jnl. Lines';

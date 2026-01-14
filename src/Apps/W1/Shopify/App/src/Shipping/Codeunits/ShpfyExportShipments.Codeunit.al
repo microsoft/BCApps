@@ -90,11 +90,13 @@ codeunit 30190 "Shpfy Export Shipments"
         TrackingCompany: Enum "Shpfy Tracking Companies";
         PrevFulfillmentOrderId: BigInteger;
         IsHandled: Boolean;
+        EmptyFulfillment: Boolean;
         TrackingUrl: Text;
         GraphQueryStart: Text;
         GraphQuery: TextBuilder;
         LineCount: Integer;
         GraphQueries: List of [Text];
+        UnfulfillableOrders: List of [BigInteger];
     begin
         Clear(PrevFulfillmentOrderId);
 
@@ -165,10 +167,16 @@ codeunit 30190 "Shpfy Export Shipments"
                 end;
                 GraphQuery.Append('lineItemsByFulfillmentOrder: [');
                 GraphQueryStart := GraphQuery.ToText();
+                EmptyFulfillment := true;
                 repeat
                     // Skip fulfillment orders that are assigned and not accepted
                     if AssignedFulfillmentOrderIds.ContainsKey(TempFulfillmentOrderLine."Shopify Fulfillment Order Id") then
                         continue;
+
+                    if not CanFulfillOrder(TempFulfillmentOrderLine, Shop, UnfulfillableOrders) then
+                        continue;
+
+                    EmptyFulfillment := false;
 
                     if PrevFulfillmentOrderId <> TempFulfillmentOrderLine."Shopify Fulfillment Order Id" then begin
                         if PrevFulfillmentOrderId <> 0 then
@@ -202,7 +210,8 @@ codeunit 30190 "Shpfy Export Shipments"
                 until TempFulfillmentOrderLine.Next() = 0;
                 GraphQuery.Append(']}]})');
                 GraphQuery.Append('{fulfillment { legacyResourceId name createdAt updatedAt deliveredAt displayStatus estimatedDeliveryAt status totalQuantity location { legacyResourceId } trackingInfo { number url company } service { serviceName type } fulfillmentLineItems(first: 10) { pageInfo { endCursor hasNextPage } nodes { id quantity originalTotalSet { presentmentMoney { amount } shopMoney { amount }} lineItem { id isGiftCard }}}}, userErrors {field,message}}}"}');
-                GraphQueries.Add(GraphQuery.ToText());
+                if not EmptyFulfillment then
+                    GraphQueries.Add(GraphQuery.ToText());
             end;
             exit(GraphQueries);
         end;
@@ -223,6 +232,27 @@ codeunit 30190 "Shpfy Export Shipments"
             if FulfillmentOrderLine.FindFirst() then
                 exit(true);
         end;
+    end;
+
+    local procedure CanFulfillOrder(FulfillmentOrderLine: Record "Shpfy FulFillment Order Line"; Shop: Record "Shpfy Shop"; var UnfulfillableOrders: List of [BigInteger]): Boolean
+    var
+        ShopLocation: Record "Shpfy Shop Location";
+        SyncLocations: Codeunit "Shpfy Sync Shop Locations";
+    begin
+        if UnfulfillableOrders.Contains(FulfillmentOrderLine."Shopify Fulfillment Order Id") then
+            exit(false);
+
+        if not ShopLocation.Get(Shop.Code, FulfillmentOrderLine."Shopify Location Id") then
+            exit(true);
+
+        if not ShopLocation."Is Fulfillment Service" then
+            exit(true);
+
+        if ShopLocation.Name = SyncLocations.GetFulfillmentServiceName() then
+            exit(true);
+
+        UnfulfillableOrders.Add(FulfillmentOrderLine."Shopify Fulfillment Order Id");
+        exit(false);
     end;
 
     local procedure GetNotifyCustomer(Shop: Record "Shpfy Shop"; SalesShipmmentHeader: Record "Sales Shipment Header"; LocationId: BigInteger): Boolean

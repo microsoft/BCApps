@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Reports;
 
-using Microsoft.Inventory.Item;
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.BOM.Tree;
+using Microsoft.Inventory.Item;
 
 report 99000794 "Compare Production Cost Shares"
 {

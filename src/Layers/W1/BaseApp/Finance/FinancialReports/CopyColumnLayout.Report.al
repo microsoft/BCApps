@@ -5,6 +5,10 @@
 namespace Microsoft.Finance.FinancialReports;
 using System.Telemetry;
 
+/// <summary>
+/// Creates copy of existing column layout with all associated column definitions.
+/// Enables duplication of column layout structure for new financial report configurations.
+/// </summary>
 report 960 "Copy Column Layout"
 {
     Caption = 'Copy Column Layout';
@@ -95,6 +99,10 @@ report 960 "Copy Column Layout"
         MultipleSourcesErr: Label 'You can only copy one column layout at a time.';
         CopyEventTxt: Label 'Financial Report Column Definition copied: %1', Comment = '%1 = column layout name', Locked = true;
 
+    /// <summary>
+    /// Returns the name of the newly created column layout after copy operation.
+    /// </summary>
+    /// <returns>New column layout name as Code[10]</returns>
     procedure GetNewColumnLayoutName(): Code[10]
     begin
         exit(NewColumnLayoutName);

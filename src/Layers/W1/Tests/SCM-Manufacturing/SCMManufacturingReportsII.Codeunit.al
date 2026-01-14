@@ -4,22 +4,22 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Test;
 
-using Microsoft.Inventory.Journal;
-using System.TestLibraries.Utilities;
-using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Manufacturing.MachineCenter;
-using Microsoft.Inventory.Item;
-using Microsoft.Manufacturing.Document;
-using Microsoft.Manufacturing.ProductionBOM;
-using Microsoft.Inventory.Location;
-using Microsoft.Inventory.Setup;
-using Microsoft.Inventory.Ledger;
-using Microsoft.Manufacturing.Routing;
 using Microsoft.Inventory.Costing;
-using Microsoft.Manufacturing.Capacity;
-using Microsoft.Manufacturing.Reports;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Reports;
+using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
+using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Reports;
+using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.WorkCenter;
+using System.TestLibraries.Utilities;
 
 codeunit 137310 "SCM Manufacturing Reports -II"
 {

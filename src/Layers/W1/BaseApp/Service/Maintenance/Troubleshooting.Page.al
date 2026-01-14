@@ -92,19 +92,9 @@ page 5990 Troubleshooting
         TblshtgSetup: Record "Troubleshooting Setup";
         PageCaptionPrefix: Text;
 
-#if not CLEAN25
-    [Obsolete('Replaced with SetPageCaptionPrefix to remove length limitation.', '25.0')]
-    procedure SetCaption(CaptionCode2: Code[20]; CaptionDescription2: Text[30])
-    begin
-        PageCaptionPrefix := '';
-        if CaptionCode2 <> '' then
-            PageCaptionPrefix := CaptionCode2 + ' ' + CaptionDescription2;
-    end;
-#endif
 
     procedure SetPageCaptionPrefix(PageCaptionPrefixToSet: Text)
     begin
         PageCaptionPrefix := PageCaptionPrefixToSet;
     end;
 }
-

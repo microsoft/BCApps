@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Reconciliation;
 
+/// <summary>
+/// Dialog page for changing bank reconciliation statement numbers.
+/// Provides user interface for statement number modification with validation.
+/// </summary>
 page 1285 "Change Bank Rec. Statement No."
 {
     PageType = StandardDialog;

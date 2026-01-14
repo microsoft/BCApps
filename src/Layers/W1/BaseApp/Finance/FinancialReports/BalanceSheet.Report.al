@@ -7,6 +7,15 @@ namespace Microsoft.Finance.FinancialReports;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 
+/// <summary>
+/// Generates standard balance sheet report using predefined account schedule templates.
+/// Produces formatted financial statement showing assets, liabilities, and equity positions.
+/// </summary>
+/// <remarks>
+/// Template-driven balance sheet report using standard account schedule configuration.
+/// Processes general ledger balances through account schedule engine for standardized
+/// financial statement presentation. Supports period-based analysis and drill-down capabilities.
+/// </remarks>
 report 151 "Balance Sheet"
 {
     AccessByPermission = TableData "G/L Account" = R;

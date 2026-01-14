@@ -8,6 +8,15 @@ using Microsoft.Intercompany;
 using Microsoft.Intercompany.Comment;
 using Microsoft.Intercompany.Inbox;
 
+/// <summary>
+/// Displays processed intercompany outbox transactions for historical review and status tracking.
+/// Provides comprehensive management interface for transmitted intercompany transactions and their lifecycle.
+/// </summary>
+/// <remarks>
+/// Primary data source: Handled IC Outbox Trans. Integrates with transaction details, comments, and partner communication status.
+/// Navigation: Transaction list → Details → Related documents and partner correspondence tracking.
+/// Extensible via page extensions for custom transaction analysis and partner-specific processing logic.
+/// </remarks>
 page 613 "Handled IC Outbox Transactions"
 {
     ApplicationArea = Intercompany;

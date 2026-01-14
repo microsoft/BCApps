@@ -6,6 +6,10 @@ namespace Microsoft.Intercompany.GLAccount;
 
 using Microsoft.Finance.GeneralLedger.Account;
 
+/// <summary>
+/// Main interface for managing bidirectional mappings between local and intercompany G/L accounts.
+/// Provides side-by-side view of local and IC accounts with automated mapping capabilities.
+/// </summary>
 page 626 "IC Mapping Chart of Account"
 {
     PageType = ListPlus;

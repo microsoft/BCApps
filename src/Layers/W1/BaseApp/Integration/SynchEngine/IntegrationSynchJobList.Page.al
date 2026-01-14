@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Integration.SyncEngine;
 
-using System.Reflection;
 using Microsoft.Integration.Dataverse;
+using System.Reflection;
 
 page 5338 "Integration Synch. Job List"
 {

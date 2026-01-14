@@ -63,7 +63,7 @@ codeunit 4582 "SOA Retrieve Emails"
         if Processed >= ProcessLimit then begin
             TelemetryDimensions.Set('Processed', Format(Processed));
             TelemetryDimensions.Set('ProcessLimit', Format(ProcessLimit));
-            FeatureTelemetry.LogUsage('0000O9Y', SOASetupCU.GetFeatureName(), StrSubstNo(TelemetryProcessingLimitReachedLbl), TelemetryDimensions);
+            FeatureTelemetry.LogUsage('0000O9Y', SOASetupCU.GetFeatureName(), TelemetryProcessingLimitReachedLbl, TelemetryDimensions);
             exit;
         end;
 
@@ -116,7 +116,7 @@ codeunit 4582 "SOA Retrieve Emails"
             if Processed >= ProcessLimit then begin
                 TelemetryDimensions.Set('Processed', Format(Processed));
                 TelemetryDimensions.Set('ProcessLimit', Format(ProcessLimit));
-                FeatureTelemetry.LogUsage('0000O9Z', SOASetupCU.GetFeatureName(), StrSubstNo(TelemetryProcessingLimitReachedLbl), TelemetryDimensions);
+                FeatureTelemetry.LogUsage('0000O9Z', SOASetupCU.GetFeatureName(), TelemetryProcessingLimitReachedLbl, TelemetryDimensions);
                 break;
             end;
         until SOAEmail.Next() = 0;
@@ -137,7 +137,6 @@ codeunit 4582 "SOA Retrieve Emails"
     var
         EmailInbox: Record "Email Inbox";
         AgentTaskBuilder: Codeunit "Agent Task Builder";
-        SOABillingTask: Codeunit "SOA Billing Task";
         TelemetryDimensions: Dictionary of [Text, Text];
     begin
         if not EmailInbox.Get(SOAEmail."Email Inbox ID") then begin
@@ -146,12 +145,11 @@ codeunit 4582 "SOA Retrieve Emails"
             exit;
         end;
 
-        if AgentTaskBuilder.TaskExists(SOASetup."Agent User Security ID", EmailInbox."Conversation Id") then
+        if AgentTaskBuilder.TaskExists(SOASetup."User Security ID", EmailInbox."Conversation Id") then
             AddEmailToExistingAgentTask(SOASetup, EmailInbox, SOAEmail)
         else
             AddEmailToNewAgentTask(SOASetup, EmailInbox, SOAEmail);
 
-        SOABillingTask.ScheduleBillingTask();
         OnAfterProcessEmail(SOAEmail."Email Inbox ID");
     end;
 
@@ -204,7 +202,7 @@ codeunit 4582 "SOA Retrieve Emails"
             .SetRequiresReview(SOATaskMessage.MessageRequiresReview(SOASetup, EmailInbox, true))
             .SetIgnoreAttachment(not SOASetup."Analyze Attachments");
 
-        AgentTaskBuilder.Initialize(SOASetup."Agent User Security ID", AgentTaskTitle)
+        AgentTaskBuilder.Initialize(SOASetup."User Security ID", AgentTaskTitle)
             .SetExternalId(EmailInbox."Conversation Id")
             .AddTaskMessage(AgentMessageBuilder);
 

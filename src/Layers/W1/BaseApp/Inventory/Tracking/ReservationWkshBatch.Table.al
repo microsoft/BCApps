@@ -5,8 +5,8 @@
 namespace Microsoft.Inventory.Tracking;
 
 using Microsoft.Inventory.Item;
-using System.Utilities;
 using System.Automation;
+using System.Utilities;
 
 table 345 "Reservation Wksh. Batch"
 {

@@ -10,8 +10,8 @@ using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Item;
 using Microsoft.Service.Setup;
-using System.Upgrade;
 using System.Environment;
+using System.Upgrade;
 
 codeunit 104059 "Serv. Upgrade BaseApp"
 {

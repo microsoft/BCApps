@@ -45,13 +45,8 @@ tableextension 99000750 "Mfg. Item" extends Item
         field(5421; "Scheduled Need (Qty.)"; Decimal)
         {
             ObsoleteReason = 'Use the field ''Qty. on Component Lines'' instead';
-#if CLEAN25
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '18.0';
-#endif
             CalcFormula = sum("Prod. Order Component"."Remaining Qty. (Base)" where(Status = filter(Planned .. Released),
                                                                                      "Item No." = field("No."),
                                                                                      "Variant Code" = field("Variant Filter"),
@@ -283,35 +278,8 @@ tableextension 99000750 "Mfg. Item" extends Item
         ProductionBlockedOutputItemErr: Label 'You cannot produce %1 %2 because the %3 is %4 on the %1 card.', Comment = '%1 - Table Caption (Item), %2 - Item No., %3 - Field Caption, %4 - Field Value';
         ProductionBlockedOutputItemVariantErr: Label 'You cannot produce variant %1 for %2 %3 because it is blocked for production output.', Comment = '%1 - Item Variant Code, %2 - Table Caption (Item), %3 - Item No.';
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure CheckProdOrderLine() in codeunit CheckProdOrderDocument', '25.0')]
-    procedure CheckProdOrderLine(CurrentFieldNo: Integer; CheckFieldNo: Integer; CheckFieldCaption: Text)
-    var
-        CheckProdOrderDocument: Codeunit "Check Prod. Order Document";
-    begin
-        CheckProdOrderDocument.CheckProdOrderLines(Rec, CurrentFieldNo, CheckFieldNo, CheckFieldCaption);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure CheckProdOrderComponent() in codeunit CheckProdOrderDocument', '25.0')]
-    procedure CheckProdOrderCompLine(CurrentFieldNo: Integer; CheckFieldNo: Integer; CheckFieldCaption: Text)
-    var
-        CheckProdOrderDocument: Codeunit "Check Prod. Order Document";
-    begin
-        CheckProdOrderDocument.CheckProdOrderLines(Rec, CurrentFieldNo, CheckFieldNo, CheckFieldCaption);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure CheckProdBOMLine() in codeunit CheckProdOrderDocument', '25.0')]
-    procedure CheckProdBOMLine(CurrentFieldNo: Integer; CheckFieldNo: Integer; CheckFieldCaption: Text)
-    var
-        CheckProdOrderDocument: Codeunit "Check Prod. Order Document";
-    begin
-        CheckProdOrderDocument.CheckProdBOMLines(Rec, CurrentFieldNo, CheckFieldNo, CheckFieldCaption);
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateProductionBOMNo(var Item: Record Item; xItem: Record Item; var IsHandled: Boolean)

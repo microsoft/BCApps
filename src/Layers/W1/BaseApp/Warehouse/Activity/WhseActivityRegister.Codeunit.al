@@ -1046,6 +1046,7 @@ codeunit 7307 "Whse.-Activity-Register"
                 repeat
                     // Per Lot/SN
                     TempWhseActivLine.SetRange("Item No.", TempWhseActivLine."Item No.");
+                    TempWhseActivLine.SetRange("Variant Code", TempWhseActivLine."Variant Code");
                     QtyAvailToInsertBase := CalcQtyAvailToInsertBase(TempWhseActivLine);
                     TempWhseActivLine.SetTrackingFilterFromWhseActivityLine(TempWhseActivLine);
                     OnCheckWhseItemTrkgLineOnBeforeCalcQtyToRegisterBase(TempWhseActivLine, WhseActivLine, QtyAvailToInsertBase);
@@ -1074,6 +1075,7 @@ codeunit 7307 "Whse.-Activity-Register"
                     // Clear filters, Lot/SN
                     TempWhseActivLine.ClearTrackingFilter();
                     TempWhseActivLine.SetRange("Item No.");
+                    TempWhseActivLine.SetRange("Variant Code");
                     OnCheckWhseItemTrkgLineOnAfterClearFilters(TempWhseActivLine, WhseActivLine);
                 until TempWhseActivLine.Next() = 0; // Per Lot/SN
                                                     // Clear filters, document

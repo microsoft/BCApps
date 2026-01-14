@@ -1,3 +1,6 @@
+/// <summary>
+/// Provides utility functions for creating and managing workflows in test scenarios, including workflow steps, workflow events, and workflow responses.
+/// </summary>
 codeunit 131101 "Library - Workflow"
 {
     Permissions = TableData "Workflow Step" = d,

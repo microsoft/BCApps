@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+/// <summary>
+/// Stores European Community Sales List (ECSL) VAT report line data for EU trade reporting.
+/// Contains customer VAT registration numbers and supply values for cross-border EU transactions.
+/// </summary>
 table 362 "ECSL VAT Report Line"
 {
     Caption = 'ECSL VAT Report Line';
@@ -11,28 +15,46 @@ table 362 "ECSL VAT Report Line"
 
     fields
     {
+        /// <summary>
+        /// Sequential line number for ordering ECSL report lines within a report.
+        /// </summary>
         field(1; "Line No."; Integer)
         {
             Caption = 'Line No.';
         }
+        /// <summary>
+        /// ECSL VAT report number that this line belongs to.
+        /// </summary>
         field(2; "Report No."; Code[20])
         {
             Caption = 'Report No.';
         }
+        /// <summary>
+        /// EU country code for the customer's VAT registration location.
+        /// </summary>
         field(3; "Country Code"; Code[10])
         {
             Caption = 'Country Code';
         }
+        /// <summary>
+        /// Customer's VAT registration number in the destination EU country.
+        /// </summary>
         field(4; "Customer VAT Reg. No."; Text[20])
         {
             Caption = 'Customer VAT Reg. No.';
         }
+        /// <summary>
+        /// Total value of supplies provided to this customer during the reporting period.
+        /// </summary>
         field(5; "Total Value Of Supplies"; Decimal)
         {
             Caption = 'Total Value Of Supplies';
             AutoFormatType = 1;
             AutoFormatExpression = '';
         }
+        /// <summary>
+        /// Type of EU transaction indicating goods or services and delivery method.
+        /// </summary>
         field(6; "Transaction Indicator"; Option)
         {
             Caption = 'Transaction Indicator';
@@ -53,6 +75,11 @@ table 362 "ECSL VAT Report Line"
     {
     }
 
+    /// <summary>
+    /// Clears all ECSL report lines and related line relations for the specified VAT report.
+    /// Used when regenerating ECSL data or resetting report content.
+    /// </summary>
+    /// <param name="VATReportHeader">VAT report header containing the ECSL report to clear</param>
     procedure ClearLines(VATReportHeader: Record "VAT Report Header")
     var
         ECSLVATReportLine: Record "ECSL VAT Report Line";

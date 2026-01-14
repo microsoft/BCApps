@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.SalesTax;
 
+/// <summary>
+/// List page for managing tax area line assignments and jurisdiction relationships.
+/// Displays jurisdiction codes and calculation order within tax areas.
+/// </summary>
 page 465 "Tax Area Line"
 {
     Caption = 'Lines';

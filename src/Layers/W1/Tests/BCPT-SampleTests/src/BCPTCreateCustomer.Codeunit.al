@@ -1,14 +1,14 @@
 namespace System.Test.Tooling;
 
-using System.Tooling;
-using Microsoft.Sales.Setup;
-using Microsoft.Foundation.NoSeries;
-using Microsoft.Sales.Customer;
+using Microsoft.Bank.BankAccount;
 using Microsoft.CRM.BusinessRelation;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
-using Microsoft.Bank.BankAccount;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Setup;
+using System.Tooling;
 
 codeunit 149126 "BCPT Create Customer" implements "BCPT Test Param. Provider"
 {

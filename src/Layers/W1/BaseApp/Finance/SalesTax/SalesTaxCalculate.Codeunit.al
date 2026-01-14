@@ -6,6 +6,10 @@ namespace Microsoft.Finance.SalesTax;
 
 using Microsoft.Finance.GeneralLedger.Journal;
 
+/// <summary>
+/// Provides comprehensive sales tax calculation functionality for transactions.
+/// Handles complex tax scenarios including tax-on-tax calculations and multi-jurisdictional rates.
+/// </summary>
 codeunit 398 "Sales Tax Calculate"
 {
 
@@ -39,6 +43,18 @@ codeunit 398 "Sales Tax Calculate"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 
+    /// <summary>
+    /// Calculates total sales tax amount for a transaction based on tax area and group codes.
+    /// Handles multiple jurisdictions, tax-on-tax scenarios, and currency conversion.
+    /// </summary>
+    /// <param name="TaxAreaCode">Tax area code determining applicable jurisdictions</param>
+    /// <param name="TaxGroupCode">Tax group code for item classification</param>
+    /// <param name="TaxLiable">Whether the transaction is subject to tax</param>
+    /// <param name="Date">Transaction date for tax rate lookup</param>
+    /// <param name="Amount">Transaction amount for tax calculation</param>
+    /// <param name="Quantity">Transaction quantity for quantity-based taxes</param>
+    /// <param name="ExchangeRate">Currency exchange rate for foreign transactions</param>
+    /// <returns>Total calculated tax amount</returns>
     procedure CalculateTax(TaxAreaCode: Code[20]; TaxGroupCode: Code[20]; TaxLiable: Boolean; Date: Date; Amount: Decimal; Quantity: Decimal; ExchangeRate: Decimal) TaxAmount: Decimal
     var
         MaxAmount: Decimal;
@@ -125,6 +141,18 @@ codeunit 398 "Sales Tax Calculate"
         end;
     end;
 
+    /// <summary>
+    /// Reverse calculates the net amount from a total amount including tax.
+    /// Determines the base amount when given an amount that includes sales tax.
+    /// </summary>
+    /// <param name="TaxAreaCode">Tax area code for jurisdiction determination</param>
+    /// <param name="TaxGroupCode">Tax group code for item classification</param>
+    /// <param name="TaxLiable">Whether the transaction is subject to tax</param>
+    /// <param name="Date">Transaction date for tax rate lookup</param>
+    /// <param name="TotalAmount">Total amount including tax</param>
+    /// <param name="Quantity">Transaction quantity for quantity-based taxes</param>
+    /// <param name="ExchangeRate">Currency exchange rate for foreign transactions</param>
+    /// <returns>Net amount excluding tax</returns>
     procedure ReverseCalculateTax(TaxAreaCode: Code[20]; TaxGroupCode: Code[20]; TaxLiable: Boolean; Date: Date; TotalAmount: Decimal; Quantity: Decimal; ExchangeRate: Decimal) Amount: Decimal
     var
         Inclination: array[10] of Decimal;
@@ -323,6 +351,17 @@ codeunit 398 "Sales Tax Calculate"
         Amount := Amount * ExchangeFactor;
     end;
 
+    /// <summary>
+    /// Initializes detailed sales tax lines for allocation across multiple tax jurisdictions.
+    /// Prepares temporary tax detail records for posting and distribution calculations.
+    /// </summary>
+    /// <param name="TaxAreaCode">Tax area code determining jurisdictions</param>
+    /// <param name="TaxGroupCode">Tax group code for item classification</param>
+    /// <param name="TaxLiable">Whether the transaction is subject to tax</param>
+    /// <param name="Amount">Transaction amount for tax calculation</param>
+    /// <param name="Quantity">Transaction quantity for quantity-based taxes</param>
+    /// <param name="Date">Transaction date for tax rate lookup</param>
+    /// <param name="DesiredTaxAmount">Target tax amount for reconciliation</param>
     procedure InitSalesTaxLines(TaxAreaCode: Code[20]; TaxGroupCode: Code[20]; TaxLiable: Boolean; Amount: Decimal; Quantity: Decimal; Date: Date; DesiredTaxAmount: Decimal)
     var
         GenJnlLine: Record "Gen. Journal Line";
@@ -448,6 +487,14 @@ codeunit 398 "Sales Tax Calculate"
         TotalForAllocation := DesiredTaxAmount;
     end;
 
+    /// <summary>
+    /// Retrieves the next sales tax line from initialized tax details for posting allocation.
+    /// Returns individual tax jurisdiction amounts with proper rounding adjustments.
+    /// </summary>
+    /// <param name="TaxDetail2">Tax detail record to populate with current line</param>
+    /// <param name="ReturnTaxAmount">Calculated tax amount for this jurisdiction</param>
+    /// <param name="ReturnTaxBaseAmount">Base amount for tax calculation</param>
+    /// <returns>True if a tax line was retrieved, false if no more lines</returns>
     procedure GetSalesTaxLine(var TaxDetail2: Record "Tax Detail"; var ReturnTaxAmount: Decimal; var ReturnTaxBaseAmount: Decimal): Boolean
     var
         TaxAmount: Decimal;
@@ -489,11 +536,40 @@ codeunit 398 "Sales Tax Calculate"
         exit(true);
     end;
 
+    /// <summary>
+    /// Integration event raised before starting the main tax calculation procedure.
+    /// Enables custom tax calculation logic or external tax service integration.
+    /// </summary>
+    /// <param name="TaxAreaCode">Tax area code determining jurisdictions</param>
+    /// <param name="TaxGroupCode">Tax group code for item classification</param>
+    /// <param name="TaxLiable">Whether the transaction is subject to tax</param>
+    /// <param name="Date">Transaction date for tax rate lookup</param>
+    /// <param name="Amount">Transaction amount for tax calculation</param>
+    /// <param name="Quantity">Transaction quantity for quantity-based taxes</param>
+    /// <param name="ExchangeRate">Currency exchange rate for foreign transactions</param>
+    /// <param name="TaxAmount">Calculated tax amount (can be modified by subscribers)</param>
+    /// <param name="IsHandled">Set to true to skip standard calculation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalculateTaxProcedure(TaxAreaCode: Code[20]; TaxGroupCode: Code[20]; TaxLiable: Boolean; Date: Date; Amount: Decimal; Quantity: Decimal; ExchangeRate: Decimal; var TaxAmount: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before initializing sales tax lines for detailed calculations.
+    /// Enables custom tax line initialization or external tax service integration.
+    /// </summary>
+    /// <param name="TaxAreaCode">Tax area code determining jurisdictions</param>
+    /// <param name="TaxGroupCode">Tax group code for item classification</param>
+    /// <param name="TaxLiable">Whether the transaction is subject to tax</param>
+    /// <param name="Amount">Transaction amount for tax calculation</param>
+    /// <param name="Quantity">Transaction quantity for quantity-based taxes</param>
+    /// <param name="Date">Transaction date for tax rate lookup</param>
+    /// <param name="DesiredTaxAmount">Target tax amount for reconciliation</param>
+    /// <param name="TMPTaxDetail">Temporary tax detail record for line processing</param>
+    /// <param name="IsHandled">Set to true to skip standard initialization</param>
+    /// <param name="Initialised">Initialization status flag</param>
+    /// <param name="FirstLine">First line processing flag</param>
+    /// <param name="TotalForAllocation">Total amount available for allocation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitSalesTaxLines(var TaxAreaCode: Code[20]; var TaxGroupCode: Code[20]; TaxLiable: Boolean; Amount: Decimal; Quantity: Decimal; Date: Date; DesiredTaxAmount: Decimal; var TMPTaxDetail: Record "Tax Detail"; var IsHandled: Boolean; var Initialised: Boolean; var FirstLine: Boolean; var TotalForAllocation: Decimal)
     begin

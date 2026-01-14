@@ -832,9 +832,11 @@ page 1015 "Job Planning Lines Part"
     var
         Job: Record Job;
     begin
-        if Rec.GetFilter("Job No.") <> '' then
-            if Job.Get(Rec.GetRangeMin("Job No.")) then
+        if Rec.GetFilter("Job No.") <> '' then begin
+            Rec.CopyFilter("Job No.", Job."No.");
+            if Job.FindFirst() then
                 CurrPage.Editable(not (Job.Blocked = Job.Blocked::All));
+        end;
     end;
 
     var

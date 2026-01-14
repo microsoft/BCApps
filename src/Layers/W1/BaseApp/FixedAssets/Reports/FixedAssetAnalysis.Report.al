@@ -1,3 +1,4 @@
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -14,8 +15,11 @@ report 5600 "Fixed Asset - Analysis"
     DefaultLayout = RDLC;
     RDLCLayout = './FixedAssets/Reports/FixedAssetAnalysis.rdlc';
     ApplicationArea = FixedAssets;
-    Caption = 'Fixed Asset Analysis';
+    Caption = 'Fixed Asset Analysis (Obsolete)';
     UsageCategory = ReportsAndAnalysis;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'This report has been replaced by the report Fixed Asset Analysis (Excel). This report will be removed in a future release.';
+    ObsoleteTag = '28.0';
 
     dataset
     {
@@ -223,8 +227,8 @@ report 5600 "Fixed Asset - Analysis"
     {
         Permissions = TableData "FA Setup" = r;
         SaveValues = true;
-        AboutTitle = 'About Fixed Asset Analysis';
-        AboutText = '**Fixed Asset Analysis** Report is a flexible reporting option that provides a comprehensive examination of an organization''s fixed assets, such as property, plant, and equipment (PP&E), for different purposes. If the purpose is to reconcile asset values with GL then fields like acquisition, depreciation can be selected. If the purpose is about reviewing net value along with write down value, users can use this report accordingly by choosing the relevant amount fields and amount fields for multiple periods.';
+        AboutTitle = 'About Fixed Asset Analysis (Obsolete)';
+        AboutText = '**Fixed Asset Analysis** Report is a flexible reporting option that provides a comprehensive examination of an organization''s fixed assets, such as property, plant, and equipment (PP&E), for different purposes. If the purpose is to reconcile asset values with GL then fields like acquisition, depreciation can be selected. If the purpose is about reviewing net value along with write down value, users can use this report accordingly by choosing the relevant amount fields and amount fields for multiple periods.** This report is obsolete and will be removed in a future release.** Please refer to the report documentation for alternative ways to retrieve this information.';
 
         layout
         {
@@ -655,3 +659,4 @@ report 5600 "Fixed Asset - Analysis"
     end;
 }
 
+#endif

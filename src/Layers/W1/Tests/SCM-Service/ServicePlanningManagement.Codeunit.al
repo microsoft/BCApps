@@ -4,20 +4,20 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Test;
 
-using Microsoft.Service.Document;
-using Microsoft.Projects.Resources.Resource;
-using Microsoft.Inventory.Item;
-using Microsoft.Service.Resources;
-using Microsoft.Service.Item;
-using Microsoft.Service.Analysis;
-using Microsoft.Service.Maintenance;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
-using Microsoft.Service.Setup;
-using Microsoft.Service.Reports;
-using Microsoft.Purchases.Document;
-using Microsoft.Service.History;
 using Microsoft.Projects.Resources.Ledger;
+using Microsoft.Projects.Resources.Resource;
+using Microsoft.Purchases.Document;
+using Microsoft.Service.Analysis;
+using Microsoft.Service.Document;
+using Microsoft.Service.History;
+using Microsoft.Service.Item;
+using Microsoft.Service.Maintenance;
+using Microsoft.Service.Reports;
+using Microsoft.Service.Resources;
+using Microsoft.Service.Setup;
 
 codeunit 136111 "Service Planning Management"
 {

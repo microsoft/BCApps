@@ -47,9 +47,6 @@ codeunit 99000860 "Plng. Component Invt. Profile"
         InventoryProfile.IsSupply := InventoryProfile."Untracked Quantity" < 0;
 
         OnAfterTransferInventoryProfileFromPlanningComponent(InventoryProfile, PlanningComponent);
-#if not CLEAN25
-        InventoryProfile.RunOnAfterTransferFromPlanComponent(InventoryProfile, PlanningComponent);
-#endif 
     end;
 
     [IntegrationEvent(false, false)]
@@ -97,16 +94,10 @@ codeunit 99000860 "Plng. Component Invt. Profile"
     local procedure TransPlanningCompToProfile(var InventoryProfile: Record "Inventory Profile"; var Item: Record Item; var TempReservationEntry: Record "Reservation Entry" temporary; var NextLineNo: Integer; PlanMRP: Boolean)
     var
         PlanningComponent: Record "Planning Component";
-#if not CLEAN25
-        InventoryProfileOffsetting: Codeunit "Inventory Profile Offsetting";
-#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
         OnBeforeTransPlanningCompToProfile(InventoryProfile, Item, IsHandled);
-#if not CLEAN25
-        InventoryProfileOffsetting.RunOnBeforeTransPlanningCompToProfile(InventoryProfile, Item, IsHandled);
-#endif
         if IsHandled then
             exit;
 

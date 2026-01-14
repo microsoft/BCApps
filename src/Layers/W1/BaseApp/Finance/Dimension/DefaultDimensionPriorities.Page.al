@@ -6,6 +6,10 @@ namespace Microsoft.Finance.Dimension;
 
 using Microsoft.Foundation.AuditCodes;
 
+/// <summary>
+/// Manages default dimension priority settings for source codes to control dimension inheritance behavior.
+/// Configures the order of dimension precedence when multiple sources provide dimension values for the same dimension.
+/// </summary>
 page 543 "Default Dimension Priorities"
 {
     ApplicationArea = Dimensions;
@@ -155,6 +159,11 @@ page 543 "Default Dimension Priorities"
                 Error(Text001);
     end;
 
+    /// <summary>
+    /// Sets the source code for default dimension priority filtering and management.
+    /// </summary>
+    /// <param name="CurrentSourceCode">Source code to set for dimension priority context</param>
+    /// <param name="DefaultDimPriority">Default dimension priority record to update with source code</param>
     procedure SetSourceCode(CurrentSourceCode: Code[20]; var DefaultDimPriority: Record "Default Dimension Priority")
     begin
         DefaultDimPriority.FilterGroup := 2;

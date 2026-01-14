@@ -1,8 +1,8 @@
 ﻿namespace System.Environment.Configuration;
 
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Utilities;
 using System.IO;
-using Microsoft.Foundation.NoSeries;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Utilities;
@@ -156,4 +156,3 @@ table 1514 "Sent Notification Entry"
     var
         NotContentMsg: Label 'There is no content to export.';
 }
-

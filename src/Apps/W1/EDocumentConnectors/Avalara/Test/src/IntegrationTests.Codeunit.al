@@ -5,16 +5,16 @@
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.Sales.Customer;
-using Microsoft.Purchases.Document;
-using Microsoft.Foundation.Company;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.VAT.Setup;
-using System.Threading;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Service;
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Company;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
+using System.Threading;
 using System.Utilities;
 
 codeunit 148191 "Integration Tests"

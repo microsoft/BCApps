@@ -1,7 +1,7 @@
 namespace System.Security.User;
 
-using System.Visualization;
 using System.Security.AccessControl;
+using System.Visualization;
 
 /// <summary>
 /// Modifies the behavior of security group factboxes on the user card for better performance.

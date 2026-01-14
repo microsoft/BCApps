@@ -47,6 +47,7 @@ codeunit 136302 "Job Consumption Purchase"
         WrongTotalCostAmtErr: Label 'Total cost amount must  be 0 in Posted Purchase Receipt %1.', Comment = '%1 = Document No. (e.g. "Total cost amount must be 0 in Posted Purchase Receipt 107031").';
         JobPlanningLineQuantityErr: Label 'The Project Planning Line Quantity should not change.';
         MustNotBeChangedErr: Label '%1 must not be changed', Comment = '%1 = Field caption';
+        RequisitionLineErr: Label 'Expected Requisition Line for Item No. %1 is %2.';
 
     [Test]
     [Scope('OnPrem')]
@@ -4404,6 +4405,62 @@ codeunit 136302 "Job Consumption Purchase"
         VerifyItemLedgerEntry(Item[1], Quantity); // Item Type Inventory.
         VerifyItemLedgerEntry(Item[2], 0); // Item Type Non Inventory.
         VerifyItemLedgerEntry(Item[3], 0); // Item Type Service.
+    end;
+
+    [Test]
+    procedure AllJobPlanningLinesShownWhenCreatingPurchaseOrder()
+    var
+        JobPlanningLine: array[3] of Record "Job Planning Line";
+        JobTask: Record "Job Task";
+        Item: array[3] of Record Item;
+        ItemJnlBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        RequisitionLine: Record "Requisition Line";
+        OrderPlanningMgt: Codeunit "Order Planning Mgt.";
+        i: Integer;
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 608751] All job planning lines should be shown when creating purchase orders.
+        Initialize();
+
+        // [GIVEN] Create job with job task.
+        CreateJobWithJobTask(JobTask);
+        Quantity := LibraryRandom.RandIntInRange(10, 20);
+
+        // [GIVEN] Create 3 items with Replenishment System as Purchase.
+        for i := 1 to 3 do begin
+            LibraryInventory.CreateItem(Item[i]);
+            Item[i].Validate("Replenishment System", Item[i]."Replenishment System"::Purchase);
+            Item[i].Modify(true);
+        end;
+
+        // [GIVEN] Add inventory to items 2 and 3 (item 1 has no inventory).
+        SetupItemJnlBatch(ItemJnlBatch);
+        LibraryInventory.CreateItemJournalLine(
+          ItemJournalLine, ItemJnlBatch."Journal Template Name", ItemJnlBatch.Name,
+          ItemJournalLine."Entry Type"::"Positive Adjmt.", Item[2]."No.", Quantity * 2);
+        LibraryInventory.CreateItemJournalLine(
+          ItemJournalLine, ItemJnlBatch."Journal Template Name", ItemJnlBatch.Name,
+          ItemJournalLine."Entry Type"::"Positive Adjmt.", Item[3]."No.", Quantity * 2);
+        LibraryInventory.PostItemJournalLine(
+          ItemJnlBatch."Journal Template Name", ItemJnlBatch.Name);
+
+        // [GIVEN] Create job planning lines for all 3 items.
+        for i := 1 to 3 do
+            CreateJobPlanningLine(
+              JobPlanningLine[i], JobTask, JobPlanningLine[i].Type::Item, Item[i]."No.", Quantity, true);
+
+        // [WHEN] Calculate order plan for the specific job.
+        OrderPlanningMgt.PlanSpecificJob(RequisitionLine, JobTask."Job No.");
+
+        // [THEN] All 3 items should be present in requisition lines.
+        for i := 1 to 3 do begin
+            RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
+            RequisitionLine.SetRange("No.", Item[i]."No.");
+            Assert.AreEqual(1,
+                RequisitionLine.Count,
+                StrSubstNo(RequisitionLineErr, Item[i]."No.", 1));
+        end;
     end;
 
     local procedure Initialize()

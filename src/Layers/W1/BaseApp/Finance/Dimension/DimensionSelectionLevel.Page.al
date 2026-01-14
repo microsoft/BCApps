@@ -9,6 +9,15 @@ using Microsoft.CashFlow.Forecast;
 using Microsoft.Finance.Consolidation;
 using Microsoft.Finance.GeneralLedger.Account;
 
+/// <summary>
+/// Dimension selection interface with level assignment for analysis views and hierarchical reporting.
+/// Enables users to select dimensions and assign priority levels for structured multi-dimensional analysis.
+/// </summary>
+/// <remarks>
+/// Used in analysis view configuration where dimension priority levels determine analysis structure.
+/// Supports dimension value filtering and prevents duplicate level assignments across selected dimensions.
+/// Integrates with analysis views, cash flow analysis, and consolidation scenarios requiring hierarchical dimension setup.
+/// </remarks>
 page 564 "Dimension Selection-Level"
 {
     Caption = 'Dimension Selection';
@@ -80,6 +89,11 @@ page 564 "Dimension Selection-Level"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 
+    /// <summary>
+    /// Retrieves all dimension selections with their level assignments from the temporary buffer.
+    /// Transfers complete dimension configuration including levels and filters to calling process.
+    /// </summary>
+    /// <param name="TheDimSelectionBuf">Target buffer to receive dimension selection configuration</param>
     procedure GetDimSelBuf(var TheDimSelectionBuf: Record "Dimension Selection Buffer")
     begin
         TheDimSelectionBuf.DeleteAll();
@@ -90,6 +104,15 @@ page 564 "Dimension Selection-Level"
             until Rec.Next() = 0;
     end;
 
+    /// <summary>
+    /// Adds a dimension to the selection buffer with level assignment and value filtering capabilities.
+    /// Automatically resolves dimension descriptions and configures lookup tables for various entity types.
+    /// </summary>
+    /// <param name="NewSelected">Whether the dimension is initially selected</param>
+    /// <param name="NewCode">Dimension code to add</param>
+    /// <param name="NewDescription">Description for the dimension, auto-resolved if empty</param>
+    /// <param name="NewDimValueFilter">Filter criteria for dimension values</param>
+    /// <param name="NewLevel">Priority level for the dimension in analysis hierarchy</param>
     procedure InsertDimSelBuf(NewSelected: Boolean; NewCode: Text[30]; NewDescription: Text[30]; NewDimValueFilter: Text[250]; NewLevel: Option)
     var
         Dim: Record Dimension;

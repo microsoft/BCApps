@@ -10,6 +10,10 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.Utilities;
 
+/// <summary>
+/// Batch validation report for VAT registration numbers across customers, vendors, and contacts.
+/// Verifies format compliance and checks for duplicates using country-specific validation rules.
+/// </summary>
 report 32 "VAT Registration No. Check"
 {
     DefaultLayout = RDLC;

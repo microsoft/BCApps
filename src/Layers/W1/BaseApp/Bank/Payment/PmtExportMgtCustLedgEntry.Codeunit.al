@@ -7,9 +7,9 @@ namespace Microsoft.Bank.Payment;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Setup;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
-using Microsoft.Foundation.Company;
 using System.IO;
 
 /// <summary>
@@ -95,8 +95,8 @@ codeunit 1208 "Pmt Export Mgt Cust Ledg Entry"
     end;
 
     /// <summary>
-    /// Exports customer payment file without user prompts.
-    /// This procedure validates and exports customer ledger entries and sets export flags.
+    /// Exports customer payment file after validation without user prompts.
+    /// This procedure validates and exports customer ledger entries for payment processing.
     /// </summary>
     /// <param name="CustLedgerEntry">Customer ledger entries to export for payment processing.</param>
     [Scope('OnPrem')]
@@ -151,6 +151,14 @@ codeunit 1208 "Pmt Export Mgt Cust Ledg Entry"
         PaymentExportMgt.CreatePaymentLines(PaymentExportData);
     end;
 
+    /// <summary>
+    /// Prepares payment export data from customer ledger entry information.
+    /// This procedure converts customer ledger entry data into payment export format for refund file generation.
+    /// </summary>
+    /// <param name="TempPaymentExportData">Temporary payment export data record to populate.</param>
+    /// <param name="CustLedgerEntry">Source customer ledger entry containing payment information.</param>
+    /// <param name="DataExchEntryNo">Data exchange entry number for linking.</param>
+    /// <param name="LineNo">Line number for the payment export data entry.</param>
     procedure PreparePaymentExportDataCLE(var TempPaymentExportData: Record "Payment Export Data" temporary; CustLedgerEntry: Record "Cust. Ledger Entry"; DataExchEntryNo: Integer; LineNo: Integer)
     var
         Customer: Record Customer;
@@ -212,11 +220,22 @@ codeunit 1208 "Pmt Export Mgt Cust Ledg Entry"
         TempPaymentExportData.Insert(true);
     end;
 
+    /// <summary>
+    /// Enables export of payment files to server temporary location.
+    /// This procedure configures customer payment export to use server-side temporary files.
+    /// </summary>
+    /// <param name="SilentServerMode">True to enable silent server mode without user interaction.</param>
+    /// <param name="ServerFileExtension">File extension to use for the temporary server file.</param>
     procedure EnableExportToServerTempFile(SilentServerMode: Boolean; ServerFileExtension: Text[3])
     begin
         PaymentExportMgt.EnableExportToServerTempFile(SilentServerMode, ServerFileExtension);
     end;
 
+    /// <summary>
+    /// Gets the file name of the server temporary file used for customer payment export.
+    /// This procedure returns the path to the temporary file created during customer payment export.
+    /// </summary>
+    /// <returns>The full path and file name of the server temporary file.</returns>
     procedure GetServerTempFileName(): Text[1024]
     begin
         exit(PaymentExportMgt.GetServerTempFileName());
@@ -233,18 +252,46 @@ codeunit 1208 "Pmt Export Mgt Cust Ledg Entry"
         until CustLedgerEntry2.Next() = 0;
     end;
 
+    /// <summary>
+    /// Integration event that allows customization of customer ledger entry payment export processing.
+    /// This event enables custom handling of the payment export process for customer entries.
+    /// </summary>
+    /// <param name="BalAccountNo">Balance account number used for the payment export.</param>
+    /// <param name="DataExchEntryNo">Data exchange entry number for the export operation.</param>
+    /// <param name="LineCount">Number of lines being processed in the export.</param>
+    /// <param name="TotalAmount">Total amount of all payments being exported.</param>
+    /// <param name="TransferDate">Date for the payment transfer.</param>
+    /// <param name="Handled">Set to true if the export processing has been handled by an external extension.</param>
     [IntegrationEvent(false, false)]
     [Scope('OnPrem')]
     procedure OnBeforePaymentExportCustLedgerEntry(BalAccountNo: Code[20]; DataExchEntryNo: Integer; LineCount: Integer; TotalAmount: Decimal; TransferDate: Date; var Handled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event that allows customization of customer ledger data exchange line creation.
+    /// This event enables custom processing before creating data exchange lines for customer payments.
+    /// </summary>
+    /// <param name="DataExch">Data exchange record being processed.</param>
+    /// <param name="CustLedgerEntry">Customer ledger entry being processed for export.</param>
+    /// <param name="LineNo">Line number for the data exchange entry.</param>
+    /// <param name="LineAmount">Amount for the specific line being processed.</param>
+    /// <param name="TotalAmount">Running total amount for all processed lines.</param>
+    /// <param name="TransferDate">Date for the payment transfer.</param>
+    /// <param name="Handled">Set to true if the line creation has been handled by an external extension.</param>
     [IntegrationEvent(false, false)]
     [Scope('OnPrem')]
     procedure OnBeforeCreateCustLedgerDataExchLine(DataExch: Record "Data Exch."; CustLedgerEntry: Record "Cust. Ledger Entry"; LineNo: Integer; var LineAmount: Decimal; var TotalAmount: Decimal; var TransferDate: Date; var Handled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event that allows customization of payment export data before insertion from customer ledger entries.
+    /// This event enables modifications to payment export data during customer payment file generation.
+    /// </summary>
+    /// <param name="TempPaymentExportData">Payment export data record that can be modified.</param>
+    /// <param name="CustLedgerEntry">Source customer ledger entry containing the payment information.</param>
+    /// <param name="GeneralLedgerSetup">General ledger setup record for accessing configuration.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPreparePaymentExportDataCLEOnBeforeTempPaymentExportDataInsert(var TempPaymentExportData: Record "Payment Export Data" temporary; CustLedgerEntry: Record "Cust. Ledger Entry"; GeneralLedgerSetup: Record "General Ledger Setup")
     begin

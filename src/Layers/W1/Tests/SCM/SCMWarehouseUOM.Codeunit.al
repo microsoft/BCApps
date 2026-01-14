@@ -412,7 +412,7 @@ codeunit 137150 "SCM Warehouse UOM"
           StrSubstNo(
             ExceedsAvailableCapacity, WarehouseActivityLine.FieldCaption("Qty. (Base)"),
             Quantity * ItemUnitOfMeasure."Qty. per Unit of Measure",
-            BinContent."Max. Qty.", BinContent.TableCaption(), BinContent."Bin Code"));
+            BinContent."Max. Qty." * ItemUnitOfMeasure."Qty. per Unit of Measure", BinContent.TableCaption(), BinContent."Bin Code"));
     end;
 
     [Test]
@@ -4777,9 +4777,65 @@ ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name
                 ExceedsAvailableCapacity,
                 WarehouseActivityLine.FieldCaption("Qty. (Base)"),
                 Quantity * ItemUnitOfMeasure."Qty. per Unit of Measure",
-                BinContent."Max. Qty.",
+                BinContent."Max. Qty." * ItemUnitOfMeasure."Qty. per Unit of Measure",
                 BinContent.TableCaption(),
                 BinContent."Bin Code"));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure BinContentCapacityValidationConsistentUnitConversion()
+    var
+        Bin: Record Bin;
+        BinContent: Record "Bin Content";
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        Location: Record Location;
+        PurchaseHeader: Record "Purchase Header";
+        WarehouseReceiptLine: Record "Warehouse Receipt Line";
+        MaxQtyInBaseUnits: Decimal;
+        QtyToPlace: Decimal;
+        ConversionFactor: Decimal;
+    begin
+        // [SCENARIO 615947] Bin content capacity validation uses consistent unit conversion for both capacity policies
+        // [GIVEN] This test verifies the fix ensures both "Prohibit More Than Max. Cap." and "Allow More Than Max. Capacity" 
+        // policies use consistent unit conversion when validating bin capacity
+        Initialize();
+
+        // [GIVEN] Create Full Warehouse Location with "Allow More Than Max. Capacity" policy
+        LibraryWarehouse.CreateFullWMSLocation(Location, LibraryRandom.RandInt(2));
+        Location.Validate("Bin Capacity Policy", Location."Bin Capacity Policy"::"Allow More Than Max. Capacity");
+        Location.Modify(true);
+
+        // [GIVEN] Create an Item with conversion factor > 1
+        CreateItem(Item, '');
+        ConversionFactor := LibraryRandom.RandInt(5) + 2; // Ensure conversion factor > 1
+        CreateItemUnitOfMeasure(ItemUnitOfMeasure, Item."No.", ConversionFactor);
+
+        // [GIVEN] Find receiving bin and create bin content with max quantity in alternative UOM
+        FindBin(Bin, Location.Code, true, false, false);
+        MaxQtyInBaseUnits := LibraryRandom.RandDec(50, 2);
+        CreateBinContent(BinContent, Bin, Item."No.", ItemUnitOfMeasure.Code, MaxQtyInBaseUnits / ConversionFactor);
+
+        // [GIVEN] Quantity to place that should fit within capacity when properly converted to base units
+        // The quantity is less than max capacity when both are in base units
+        QtyToPlace := (MaxQtyInBaseUnits * 0.8) / ConversionFactor; // 80% of capacity in alternative UOM
+
+        // [GIVEN] Create and release purchase order with quantity that should fit
+        CreateAndReleasePurchaseOrderWithMultipleUOM(
+            PurchaseHeader, Item."No.", ItemUnitOfMeasure.Code, '',
+            Location.Code, QtyToPlace, false);
+
+        // [WHEN] Create warehouse receipt and attempt to post it
+        LibraryWarehouse.CreateWhseReceiptFromPO(PurchaseHeader);
+        FindWarehouseReceiptLine(
+            WarehouseReceiptLine,
+            WarehouseReceiptLine."Source Document"::"Purchase Order",
+            PurchaseHeader."No.");
+
+        // [THEN] No error should occur - the operation should succeed because
+        // capacity validation now consistently converts both quantities to base units
+        PostWarehouseReceipt(WarehouseReceiptLine."No.");
     end;
 
     local procedure FindBin(var Bin: Record Bin; LocationCode: Code[10])

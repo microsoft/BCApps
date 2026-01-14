@@ -17,6 +17,20 @@ using Microsoft.HumanResources.Payables;
 using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Receivables;
 
+/// <summary>
+/// Provides comprehensive reversal functionality for posted payment reconciliation journals.
+/// This codeunit handles the complex process of unapplying payment applications, reversing
+/// general ledger entries, and restoring customer and vendor ledger entry statuses to their
+/// pre-application state. Supports both partial and complete journal reversals with full
+/// audit trail maintenance and proper handling of cross-ledger entry relationships.
+/// </summary>
+/// <remarks>
+/// Key capabilities include automatic detection of related entries across multiple ledgers, validation
+/// of reversal eligibility based on transaction dependencies, preservation of original posting dates
+/// and references, and comprehensive error handling for complex reversal scenarios. Integrates with
+/// the standard AL reversal framework while providing specialized logic for payment application reversals.
+/// Maintains data integrity through transaction control and provides detailed logging for audit purposes.
+/// </remarks>
 codeunit 386 "Reverse Payment Rec. Journal"
 {
     EventSubscriberInstance = Manual;

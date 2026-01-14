@@ -34,9 +34,6 @@ codeunit 103526 "Test - Sales Pricing"
         SRUtil: Codeunit SRUtil;
         GetShipment: Codeunit "Sales-Get Shipment";
         ReleaseSalesDoc: Codeunit "Release Sales Document";
-#if not CLEAN25
-        CopyFromToPriceListLine: Codeunit CopyFromToPriceListLine;
-#endif
         CurrTest: Text[30];
         ShowScriptResult: Boolean;
 
@@ -74,27 +71,8 @@ codeunit 103526 "Test - Sales Pricing"
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-#if not CLEAN25
-        SalesPrice: Record "Sales Price";
-#endif
     begin
         CurrTest := 'S.1';
-#if not CLEAN25
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '10000', 'A', 0D, 0D, 0, '', '', '', 22.21);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '10000', 'A', 20020301D, 20020501D, 0, '', '', '', 20);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '10000', 'A', 20020401D, 20020401D, 0, '', '', '', 18);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '10000', 'A', 20020601D, 0D, 0, '', '', '', 14);
-
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::"Customer Price Group", 'CPG1', 'B', 0D, 0D, 0, '', '', '', 333.31);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::"Customer Price Group", 'CPG1', 'B', 20020301D, 20020501D, 0, '', '', '', 330);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::"Customer Price Group", 'CPG1', 'B', 20020401D, 20020401D, 0, '', '', '', 320);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::"Customer Price Group", 'CPG1', 'B', 20020601D, 0D, 0, '', '', '', 300);
-
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::"All Customers", '', 'C', 0D, 0D, 0, '', '', '', 4444.41);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::"All Customers", '', 'C', 20020301D, 20020501D, 0, '', '', '', 4440);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::"All Customers", '', 'C', 20020401D, 20020401D, 0, '', '', '', 4430);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::"All Customers", '', 'C', 20020601D, 0D, 0, '', '', '', 4410);
-#else
         SRUtil.InsertSalesPrice("Price Source Type"::Customer, '10000', 'A', 0D, 0D, 0, '', '', '', 22.21);
         SRUtil.InsertSalesPrice("Price Source Type"::Customer, '10000', 'A', 20020301D, 20020501D, 0, '', '', '', 20);
         SRUtil.InsertSalesPrice("Price Source Type"::Customer, '10000', 'A', 20020401D, 20020401D, 0, '', '', '', 18);
@@ -109,7 +87,6 @@ codeunit 103526 "Test - Sales Pricing"
         SRUtil.InsertSalesPrice("Price Source Type"::"All Customers", '', 'C', 20020301D, 20020501D, 0, '', '', '', 4440);
         SRUtil.InsertSalesPrice("Price Source Type"::"All Customers", '', 'C', 20020401D, 20020401D, 0, '', '', '', 4430);
         SRUtil.InsertSalesPrice("Price Source Type"::"All Customers", '', 'C', 20020601D, 0D, 0, '', '', '', 4410);
-#endif
 
         InsertSalesHeader(SalesHeader, SalesLine, SalesHeader."Document Type"::Order, '10000', '', 20020201D);
         InsertAndTestSalesLine(SalesHeader, SalesLine, SalesLine.Type::Item, 'A', 1, 'PCS', '', 22.21);
@@ -142,32 +119,8 @@ codeunit 103526 "Test - Sales Pricing"
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-#if not CLEAN25
-        SalesPrice: Record "Sales Price";
-#endif
     begin
         CurrTest := 'S.2';
-#if not CLEAN25
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '20000', 'A', 0D, 0D, 5, '', '', '', 10);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '20000', 'A', 0D, 0D, 10, '', '', '', 8);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '20000', 'A', 20010101D, 20010101D, 5, '', '', '', 11);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '20000', 'A', 20020401D, 20020401D, 0, '', '', '', 6);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '20000', 'A', 20020401D, 20020401D, 5, '', '', '', 4);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '20000', 'A', 20020401D, 20020401D, 10, '', '', '', 2);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '20000', 'B', 0D, 0D, 0, 'USD', '', '', 500);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '20000', 'B', 0D, 0D, 100, 'USD', '', '', 430);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '20000', 'B', 20020401D, 20020401D, 0, 'USD', '', '', 465);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '20000', 'B', 20020401D, 20020401D, 5, 'USD', '', '', 455);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '20000', 'B', 20020401D, 20020401D, 10, 'USD', '', '', 430);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '20000', 'D', 0D, 0D, 0, '', 'BOX', '', 13200);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '20000', 'D', 0D, 0D, 0, 'USD', 'BOX', '', 20000);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '20000', 'D', 0D, 0D, 100, '', 'BOX', '', 12900);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '20000', 'D', 20020401D, 20020401D, 0, '', 'BOX', '', 13050);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '20000', 'D', 20020401D, 20020401D, 0, 'USD', 'BOX', '', 19500);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '20000', 'D', 20020401D, 20020401D, 5, 'USD', 'BOX', '', 19200);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '20000', 'D', 20020401D, 20020401D, 10, 'USD', 'BOX', '', 18900);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '20000', 'D', 20020401D, 20020401D, 10, 'USD', 'BOX', 'VAR', 17000);
-#else
         SRUtil.InsertSalesPrice("Price Source Type"::Customer, '20000', 'A', 0D, 0D, 5, '', '', '', 10);
         SRUtil.InsertSalesPrice("Price Source Type"::Customer, '20000', 'A', 0D, 0D, 10, '', '', '', 8);
         SRUtil.InsertSalesPrice("Price Source Type"::Customer, '20000', 'A', 20010101D, 20010101D, 5, '', '', '', 11);
@@ -187,7 +140,6 @@ codeunit 103526 "Test - Sales Pricing"
         SRUtil.InsertSalesPrice("Price Source Type"::Customer, '20000', 'D', 20020401D, 20020401D, 5, 'USD', 'BOX', '', 19200);
         SRUtil.InsertSalesPrice("Price Source Type"::Customer, '20000', 'D', 20020401D, 20020401D, 10, 'USD', 'BOX', '', 18900);
         SRUtil.InsertSalesPrice("Price Source Type"::Customer, '20000', 'D', 20020401D, 20020401D, 10, 'USD', 'BOX', 'VAR', 17000);
-#endif
 
         InsertSalesHeader(SalesHeader, SalesLine, SalesHeader."Document Type"::Order, '20000', '', 20020301D);
         InsertAndTestSalesLine(SalesHeader, SalesLine, SalesLine.Type::Item, 'A', 2, '', '', 22.22);
@@ -237,9 +189,6 @@ codeunit 103526 "Test - Sales Pricing"
         PriceListLine: Record "Price List Line";
         SalesHeader: array[5] of Record "Sales Header";
         SalesLine: Record "Sales Line";
-#if not CLEAN25
-        SalesPrice: Record "Sales Price";
-#endif
         SalesInvHeader: Record "Sales Invoice Header";
         SalesInvLine: Record "Sales Invoice Line";
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
@@ -250,17 +199,6 @@ codeunit 103526 "Test - Sales Pricing"
         FromSalesCrMemoNo: Code[20];
     begin
         CurrTest := 'S.3';
-#if not CLEAN25
-        Clear(SalesPrice);
-
-        SalesPrice.SetRange("Sales Code", '20000');
-        SalesPrice.Find('-');
-        repeat
-            SRUtil.InsertSalesPrice(
-              SalesPrice."Sales Type"::Customer, '30000', SalesPrice."Item No.", SalesPrice."Starting Date", SalesPrice."Ending Date",
-              SalesPrice."Minimum Quantity", SalesPrice."Currency Code", SalesPrice."Unit of Measure Code", SalesPrice."Variant Code", SalesPrice."Unit Price");
-        until SalesPrice.Next() = 0;
-#else
         PriceListLine.SetRange("Source Type", "Price Source Type"::Customer);
         PriceListLine.SetRange("Source No.", '20000');
         PriceListLine.Find('-');
@@ -269,7 +207,6 @@ codeunit 103526 "Test - Sales Pricing"
               PriceListLine."Source Type"::Customer, '30000', PriceListLine."Asset No.", PriceListLine."Starting Date", PriceListLine."Ending Date",
               PriceListLine."Minimum Quantity", PriceListLine."Currency Code", PriceListLine."Unit of Measure Code", PriceListLine."Variant Code", PriceListLine."Unit Price");
         until PriceListLine.Next() = 0;
-#endif
 
         for i := 1 to 5 do
             InsertSalesHeader(SalesHeader[i], SalesLine, "Sales Document Type".FromInteger(i), '30000', '', 20020301D);
@@ -342,35 +279,6 @@ codeunit 103526 "Test - Sales Pricing"
         SRUtil.PostSales(SalesHeader[SalesLine."Document Type"::Order.AsInteger()], true, true);
 
         FromSalesInvNo := GLUtil.GetLastDocNo(SalesSetup."Posted Invoice Nos.");
-#if not CLEAN25
-        SalesPrice.Get('A', SalesPrice."Sales Type"::Customer, '30000', 0D, '', '', '', 5);
-        SalesPrice.Rename('A', SalesPrice."Sales Type"::Customer, '30000', 0D, '', '', '', 3);
-
-        SalesPrice.Get('A', SalesPrice."Sales Type"::Customer, '30000', 0D, '', '', '', 10);
-        SalesPrice.Validate("Unit Price", 8.25);
-        SalesPrice.Modify(true);
-
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '30000', 'A', 0D, 0D, 20, '', '', '', 7.5);
-
-        SalesPrice.Get('A', SalesPrice."Sales Type"::Customer, '30000', 20020401D, '', '', '', 5);
-        SalesPrice.Validate("Ending Date", 20030401D);
-        SalesPrice.Modify(true);
-
-        SalesPrice.Get('A', SalesPrice."Sales Type"::Customer, '30000', 20020401D, '', '', '', 5);
-        SalesPrice.Validate("Ending Date", 0D);
-        SalesPrice.Modify(true);
-
-        SalesPrice.Get('D', SalesPrice."Sales Type"::Customer, '30000', 0D, '', '', 'BOX', 100);
-        SalesPrice.Rename('D', SalesPrice."Sales Type"::Customer, '30000', 0D, '', '', '', 100);
-
-        SalesPrice.Get('D', SalesPrice."Sales Type"::Customer, '30000', 20020401D, 'USD', '', 'BOX', 5);
-        SalesPrice.Delete();
-
-        PriceListLine.Reset();
-        PriceListLine.DeleteAll();
-        SalesPrice.Reset();
-        CopyFromToPriceListLine.CopyFrom(SalesPrice, PriceListLine);
-#else
         GetSalesPrice(PriceListLine, 'A', PriceListLine."Source Type"::Customer.AsInteger(), '30000', 0D, '', '', '', 5);
         PriceListLine."Minimum Quantity" := 3;
         PriceListLine.Modify(true);
@@ -395,7 +303,6 @@ codeunit 103526 "Test - Sales Pricing"
 
         GetSalesPrice(PriceListLine, 'D', PriceListLine."Source Type"::Customer.AsInteger(), '30000', 20020401D, 'USD', '', 'BOX', 5);
         PriceListLine.Delete();
-#endif
 
         for i := 1 to 5 do begin
             SalesHeader[i].Find();
@@ -447,11 +354,7 @@ codeunit 103526 "Test - Sales Pricing"
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-#if not CLEAN25
-        SalesPrice: Record "Sales Price";
-#else
         PriceListLine: Record "Price List Line";
-#endif
         SalesInvHeader: Record "Sales Invoice Header";
         SalesInvLine: Record "Sales Invoice Line";
         FromSalesInvNo: Code[20];
@@ -465,15 +368,6 @@ codeunit 103526 "Test - Sales Pricing"
         InsertSalesHeader(SalesHeader, SalesLine, SalesHeader."Document Type"::Order, '20000', '', 20020301D);
         InsertAndTestSalesLine(SalesHeader, SalesLine, SalesLine.Type::Item, 'A', 5, '', '', UnitPrice[1]);
         InsertAndTestSalesLine(SalesHeader, SalesLine, SalesLine.Type::Item, 'D', 100, 'BOX', '', UnitPrice[2]);
-#if not CLEAN25
-        SalesPrice.Get('A', SalesPrice."Sales Type"::Customer, '20000', 0D, '', '', '', 5);
-        SalesPrice.Validate("Unit Price", 10.5);
-        SalesPrice.Modify(true);
-
-        SalesPrice.Get('D', SalesPrice."Sales Type"::Customer, '20000', 0D, '', '', 'BOX', 100);
-        SalesPrice.Validate("Unit Price", 12900.5);
-        SalesPrice.Modify(true);
-#else
         GetSalesPrice(PriceListLine, 'A', PriceListLine."Source Type"::Customer.AsInteger(), '20000', 0D, '', '', '', 5);
         PriceListLine."Unit Price" := 10.5;
         PriceListLine.Modify(true);
@@ -481,7 +375,6 @@ codeunit 103526 "Test - Sales Pricing"
         GetSalesPrice(PriceListLine, 'D', PriceListLine."Source Type"::Customer.AsInteger(), '20000', 0D, '', '', 'BOX', 100);
         PriceListLine."Unit Price" := 12900.5;
         PriceListLine.Modify(true);
-#endif
 
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
@@ -512,15 +405,6 @@ codeunit 103526 "Test - Sales Pricing"
                   SalesInvLine."Unit Price", UnitPrice[SalesInvLine."Line No." / 10000]);
             until SalesInvLine.Next() = 0;
         until SalesInvHeader.Next() = 0;
-#if not CLEAN25
-        SalesPrice.Get('A', SalesPrice."Sales Type"::Customer, '20000', 0D, '', '', '', 5);
-        SalesPrice.Validate("Unit Price", 10);
-        SalesPrice.Modify(true);
-
-        SalesPrice.Get('D', SalesPrice."Sales Type"::Customer, '20000', 0D, '', '', 'BOX', 100);
-        SalesPrice.Validate("Unit Price", 12900);
-        SalesPrice.Modify(true);
-#else
         GetSalesPrice(PriceListLine, 'A', PriceListLine."Source Type"::Customer.AsInteger(), '20000', 0D, '', '', '', 5);
         PriceListLine."Unit Price" := 10;
         PriceListLine.Modify(true);
@@ -529,7 +413,6 @@ codeunit 103526 "Test - Sales Pricing"
         PriceListLine."Unit Price" := 12900;
         PriceListLine.Modify(true);
 
-#endif
     end;
 
     [Scope('OnPrem')]
@@ -540,11 +423,7 @@ codeunit 103526 "Test - Sales Pricing"
         SalesShptLine: Record "Sales Shipment Line";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-#if not CLEAN25
-        SalesPrice: Record "Sales Price";
-#else
         PriceListLine: Record "Price List Line";
-#endif
         UnitPrice: array[5] of Decimal;
         i: Integer;
     begin
@@ -572,15 +451,9 @@ codeunit 103526 "Test - Sales Pricing"
         SalesLine.Get(SalesHeader."Document Type", SalesHeader."No.", 30000);
         SalesLine.Validate("Unit Price", UnitPrice[3]);
         SalesLine.Modify(true);
-#if not CLEAN25
-        SalesPrice.Get('A', SalesPrice."Sales Type"::Customer, '20000', 20020401D, '', '', '', 0);
-        SalesPrice.Validate("Unit Price", 6.5);
-        SalesPrice.Modify(true);
-#else
         GetSalesPrice(PriceListLine, 'A', PriceListLine."Source Type"::Customer.AsInteger(), '20000', 20020401D, '', '', '', 0);
         PriceListLine."Unit Price" := 6.5;
         PriceListLine.Modify(true);
-#endif
 
         SalesHeader.Find();
         SalesShptLine.SetRange("Document No.", SalesHeader."Last Shipping No.");
@@ -635,22 +508,9 @@ codeunit 103526 "Test - Sales Pricing"
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-#if not CLEAN25
-        SalesPrice: Record "Sales Price";
-#else
         PriceListLine: Record "Price List Line";
-#endif
     begin
         CurrTest := 'S.8';
-#if not CLEAN25
-        if SalesPrice.Get('D', SalesPrice."Sales Type"::Customer, '20000', 0D, '', 'VAR', '', 1) then
-            SalesPrice.Delete(true);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '20000', 'D', 0D, 0D, 1, '', '', 'VAR', 4000);
-
-        if SalesPrice.Get('D', SalesPrice."Sales Type"::Customer, '20000', 0D, '', 'VAR', 'BOX', 1) then
-            SalesPrice.Delete(true);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '20000', 'D', 0D, 0D, 1, '', 'BOX', 'VAR', 11000);
-#else
         if GetSalesPrice(PriceListLine, 'D', PriceListLine."Source Type"::Customer.AsInteger(), '20000', 0D, '', 'VAR', '', 1) then
             PriceListLine.Delete(true);
         SRUtil.InsertSalesPrice(PriceListLine."Source Type"::Customer, '20000', 'D', 0D, 0D, 1, '', '', 'VAR', 4000);
@@ -658,7 +518,6 @@ codeunit 103526 "Test - Sales Pricing"
         if GetSalesPrice(PriceListLine, 'D', PriceListLine."Source Type"::Customer.AsInteger(), '20000', 0D, '', 'VAR', 'BOX', 1) then
             PriceListLine.Delete(true);
         SRUtil.InsertSalesPrice(PriceListLine."Source Type"::Customer, '20000', 'D', 0D, 0D, 1, '', 'BOX', 'VAR', 11000);
-#endif
 
         InsertSalesHeader(SalesHeader, SalesLine, SalesHeader."Document Type"::Order, '20000', '', 20020301D);
         InsertAndTestSalesLine(SalesHeader, SalesLine, SalesLine.Type::Item, 'A', 1, 'PCS', '', 22.22);
@@ -690,21 +549,12 @@ codeunit 103526 "Test - Sales Pricing"
     [Scope('OnPrem')]
     procedure Test10()
     var
-#if not CLEAN25
-        SalesPrice: Record "Sales Price";
-#else
         PriceListLine: Record "Price List Line";
-#endif
         ItemJnlLine: Record "Item Journal Line";
     begin
         CurrTest := 'S.10';
-#if not CLEAN25
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::"All Customers", '', 'A', 0D, 0D, 5, '', '', '', 20);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::"All Customers", '', 'A', 20010101D, 20040101D, 10, '', '', '', 18);
-#else
         SRUtil.InsertSalesPrice(PriceListLine."Source Type"::"All Customers", '', 'A', 0D, 0D, 5, '', '', '', 20);
         SRUtil.InsertSalesPrice(PriceListLine."Source Type"::"All Customers", '', 'A', 20010101D, 20040101D, 10, '', '', '', 18);
-#endif
 
         INVTUtil.InitItemJournal(ItemJnlLine);
         InsertAndTestItemJnlLine(ItemJnlLine, 20020401D, ItemJnlLine."Entry Type"::Sale, 'A', 2, 22.22);
@@ -816,7 +666,6 @@ codeunit 103526 "Test - Sales Pricing"
     begin
         ShowScriptResult := NewShowScriptResult;
     end;
-#if CLEAN25
     local procedure GetSalesPrice(var PriceListLine: Record "Price List Line"; "Item No.": code[20]; "Sales Type": Option; "Sales Code": Code[20]; "Starting Date": Date; "Currency Code": Code[10]; "Variant Code": Code[10]; "Unit of Measure Code": Code[10]; "Minimum Quantity": Decimal): Boolean;
     begin
         PriceListLine.SetRange("Asset Type", "Price Asset Type"::Item);
@@ -830,5 +679,4 @@ codeunit 103526 "Test - Sales Pricing"
         PriceListLine.SetRange("Minimum Quantity", "Minimum Quantity");
         exit(PriceListLine.FindFirst())
     end;
-#endif
 }

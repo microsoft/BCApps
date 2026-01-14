@@ -4,19 +4,19 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
-using Microsoft.Inventory.Journal;
-using System.TestLibraries.Utilities;
-using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Location;
 using Microsoft.Assembly.Document;
-using Microsoft.Warehouse.Activity;
-using Microsoft.Warehouse.Structure;
-using Microsoft.Warehouse.Ledger;
-using Microsoft.Inventory.BOM;
-using Microsoft.Warehouse.Setup;
-using Microsoft.Inventory.Setup;
-using Microsoft.Inventory.Ledger;
 using Microsoft.Assembly.Setup;
+using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Setup;
+using Microsoft.Warehouse.Activity;
+using Microsoft.Warehouse.Ledger;
+using Microsoft.Warehouse.Setup;
+using Microsoft.Warehouse.Structure;
+using System.TestLibraries.Utilities;
 
 codeunit 137932 "SCM Assembly Whse. Handling"
 {

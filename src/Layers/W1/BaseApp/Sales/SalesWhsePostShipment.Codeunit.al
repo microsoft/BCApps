@@ -15,10 +15,6 @@ using Microsoft.Warehouse.Setup;
 
 codeunit 5746 "Sales Whse. Post Shipment"
 {
-#if not CLEAN25
-    var
-        WhsePostShipment: Codeunit "Whse.-Post Shipment";
-#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Shipment", 'OnGetSourceDocumentOnElseCase', '', false, false)]
     local procedure OnGetSourceDocument(var SourceHeader: Variant; var WhseShptLine: Record "Warehouse Shipment Line"; var GenJnlTemplateName: Code[10])
@@ -52,18 +48,12 @@ codeunit 5746 "Sales Whse. Post Shipment"
                     SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
                     IsHandled := false;
                     OnInitSourceDocumentHeaderOnBeforeValidatePostingDate(SalesHeader, WhseShptLine, ValidatePostingDate, IsHandled, ModifyHeader, WhseShptHeader);
-#if not CLEAN25
-                    WhsePostShipment.RunOnInitSourceDocumentHeaderOnBeforeValidatePostingDate(SalesHeader, WhseShptLine, ValidatePostingDate, IsHandled, ModifyHeader, WhseShptHeader);
-#endif
                     if not IsHandled then
                         if (SalesHeader."Posting Date" = 0D) or
                             (SalesHeader."Posting Date" <> WhseShptHeader."Posting Date") or ValidatePostingDate
                         then begin
                             NewCalledFromWhseDoc := true;
                             OnInitSourceDocumentHeaderOnBeforeReopenSalesHeader(SalesHeader, WhsePostParameters, NewCalledFromWhseDoc);
-#if not CLEAN25
-                            WhsePostShipment.RunOnInitSourceDocumentHeaderOnBeforeReopenSalesHeader(SalesHeader, WhsePostParameters, NewCalledFromWhseDoc);
-#endif
                             SalesRelease.SetSkipWhseRequestOperations(true);
                             SalesRelease.Reopen(SalesHeader);
                             SalesRelease.SetSkipCheckReleaseRestrictions();
@@ -71,9 +61,6 @@ codeunit 5746 "Sales Whse. Post Shipment"
                             SalesHeader.SetCalledFromWhseDoc(NewCalledFromWhseDoc);
                             SalesHeader.Validate("Posting Date", WhseShptHeader."Posting Date");
                             OnInitSourceDocumentHeaderOnBeforeReleaseSalesHeader(SalesHeader, WhseShptHeader, WhseShptLine);
-#if not CLEAN25
-                            WhsePostShipment.RunOnInitSourceDocumentHeaderOnBeforeReleaseSalesHeader(SalesHeader, WhseShptHeader, WhseShptLine);
-#endif
                             SalesRelease.Run(SalesHeader);
                             ModifyHeader := true;
                         end;
@@ -111,9 +98,6 @@ codeunit 5746 "Sales Whse. Post Shipment"
                         ModifyHeader := true;
                     end;
                     OnInitSourceDocumentHeaderOnBeforeSalesHeaderModify(SalesHeader, WhseShptHeader, ModifyHeader, WhsePostParameters, WhseShptLine);
-#if not CLEAN25
-                    WhsePostShipment.RunOnInitSourceDocumentHeaderOnBeforeSalesHeaderModify(SalesHeader, WhseShptHeader, ModifyHeader, WhsePostParameters, WhseShptLine);
-#endif
                     if ModifyHeader then
                         SalesHeader.Modify();
                 end;
@@ -152,27 +136,18 @@ codeunit 5746 "Sales Whse. Post Shipment"
     begin
         IsHandled := false;
         OnBeforeHandleSalesLine(WhseShptLine, SalesLine, SalesHeader, WhseShptHeader, ModifyLine, IsHandled, WhsePostParameters);
-#if not CLEAN25
-        WhsePostShipment.RunOnBeforeHandleSalesLine(WhseShptLine, SalesLine, SalesHeader, WhseShptHeader, ModifyLine, IsHandled, WhsePostParameters);
-#endif
         if IsHandled then
             exit;
 
         SalesLine.SetRange("Document Type", WhseShptLine."Source Subtype");
         SalesLine.SetRange("Document No.", WhseShptLine."Source No.");
         OnHandleSalesLineOnBeforeSalesLineFind(SalesLine);
-#if not CLEAN25
-        WhsePostShipment.RunOnHandleSalesLineOnBeforeSalesLineFind(SalesLine);
-#endif
         if SalesLine.Find('-') then
             repeat
                 WhseShptLine.SetRange(WhseShptLine."Source Line No.", SalesLine."Line No.");
                 OnHandleSalesLineOnFilterWhseShptLine(SalesLine, WhseShptLine);
                 if WhseShptLine.Find('-') then begin
                     OnAfterFindWhseShptLineForSalesLine(WhseShptLine, SalesLine);
-#if not CLEAN25
-                    WhsePostShipment.RunOnAfterFindWhseShptLineForSalesLine(WhseShptLine, SalesLine);
-#endif
                     if WhseShptLine."Source Document" = WhseShptLine."Source Document"::"Sales Order" then begin
                         SumOfQtyToShip := 0;
                         SumOfQtyToShipBase := 0;
@@ -187,9 +162,6 @@ codeunit 5746 "Sales Whse. Post Shipment"
                         end;
 
                         OnHandleSalesLineOnSourceDocumentSalesOrderOnBeforeModifyLine(SalesLine, WhseShptLine, WhsePostParameters);
-#if not CLEAN25
-                        WhsePostShipment.RunOnHandleSalesLineOnSourceDocumentSalesOrderOnBeforeModifyLine(SalesLine, WhseShptLine, WhsePostParameters);
-#endif
                         ModifyLine := SalesLine."Qty. to Ship" <> SumOfQtyToShip;
                         if ModifyLine then begin
                             UpdateSaleslineQtyToShip(SalesLine, WhseShptLine, ATOWhseShptLine, NonATOWhseShptLine, ATOLineFound, NonATOLineFound, SumOfQtyToShip, SumOfQtyToShipBase);
@@ -205,9 +177,6 @@ codeunit 5746 "Sales Whse. Post Shipment"
                         if ModifyLine then begin
                             SalesLine.Validate("Return Qty. to Receive", -WhseShptLine."Qty. to Ship");
                             OnHandleSalesLineOnAfterValidateRetQtytoReceive(SalesLine, WhseShptLine, WhsePostParameters);
-#if not CLEAN25
-                            WhsePostShipment.RunOnHandleSalesLineOnAfterValidateRetQtytoReceive(SalesLine, WhseShptLine, WhsePostParameters);
-#endif
                             if WhsePostParameters."Post Invoice" then
                                 SalesLine.Validate(
                                   "Qty. to Invoice",
@@ -216,9 +185,6 @@ codeunit 5746 "Sales Whse. Post Shipment"
                     end;
                     ShouldModifyShipmentDate := (WhseShptHeader."Shipment Date" <> 0D) and (SalesLine."Shipment Date" <> WhseShptHeader."Shipment Date") and (WhseShptLine."Qty. to Ship" = WhseShptLine."Qty. Outstanding");
                     OnHandleSalesLineOnAfterCalcShouldModifyShipmentDate(WhseShptHeader, WhseShptLine, SalesLine, ShouldModifyShipmentDate);
-#if not CLEAN25
-                    WhsePostShipment.RunOnHandleSalesLineOnAfterCalcShouldModifyShipmentDate(WhseShptHeader, WhseShptLine, SalesLine, ShouldModifyShipmentDate);
-#endif
                     if ShouldModifyShipmentDate then begin
                         SalesLine."Shipment Date" := WhseShptHeader."Shipment Date";
                         ModifyLine := true;
@@ -239,21 +205,12 @@ codeunit 5746 "Sales Whse. Post Shipment"
                         if not UpdateAttachedLine(SalesLine, WhseShptLine, ModifyLine) then
                             ClearSalesLineQtyToShipReceive(SalesHeader, SalesLine, WhseShptLine, ModifyLine);
                 OnBeforeSalesLineModify(SalesLine, WhseShptLine, ModifyLine, WhsePostParameters, WhseShptHeader);
-#if not CLEAN25
-                WhsePostShipment.RunOnBeforeSalesLineModify(SalesLine, WhseShptLine, ModifyLine, WhsePostParameters, WhseShptHeader);
-#endif
                 if ModifyLine then
                     SalesLine.Modify();
                 OnHandleSalesLineOnAfterSalesLineModify(SalesLine, ModifyLine, WhseShptHeader);
-#if not CLEAN25
-                WhsePostShipment.RunOnHandleSalesLineOnAfterSalesLineModify(SalesLine, ModifyLine, WhseShptHeader);
-#endif
             until SalesLine.Next() = 0;
 
         OnAfterHandleSalesLine(WhseShptLine, SalesHeader, WhseShptHeader, WhsePostParameters);
-#if not CLEAN25
-        WhsePostShipment.RunOnAfterHandleSalesLine(WhseShptLine, SalesHeader, WhseShptHeader, WhsePostParameters);
-#endif
     end;
 
     local procedure UpdateSaleslineQtyToShip(var SalesLine: Record "Sales Line"; var WhseShptLine: Record "Warehouse Shipment Line"; var ATOWhseShptLine: Record "Warehouse Shipment Line"; var NonATOWhseShptLine: Record "Warehouse Shipment Line"; var ATOLineFound: Boolean; var NonATOLineFound: Boolean; SumOfQtyToShip: Decimal; SumOfQtyToShipBase: Decimal)
@@ -262,9 +219,6 @@ codeunit 5746 "Sales Whse. Post Shipment"
     begin
         IsHandled := false;
         OnBeforeUpdateSaleslineQtyToShip(SalesLine, WhseShptLine, ATOWhseShptLine, NonATOWhseShptLine, ATOLineFound, NonATOLineFound, SumOfQtyToShip, SumOfQtyToShipBase, IsHandled);
-#if not CLEAN25
-        WhsePostShipment.RunOnBeforeUpdateSaleslineQtyToShip(SalesLine, WhseShptLine, ATOWhseShptLine, NonATOWhseShptLine, ATOLineFound, NonATOLineFound, SumOfQtyToShip, SumOfQtyToShipBase, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -307,9 +261,6 @@ codeunit 5746 "Sales Whse. Post Shipment"
             (SalesLine."Return Qty. to Receive" <> 0) or
             (SalesLine."Qty. to Invoice" <> 0));
         OnHandleSalesLineOnNonWhseLineOnAfterCalcModifyLine(SalesLine, ModifyLine, WarehouseShipmentLine);
-#if not CLEAN25
-        WhsePostShipment.RunOnHandleSalesLineOnNonWhseLineOnAfterCalcModifyLine(SalesLine, ModifyLine, WarehouseShipmentLine);
-#endif
 
         if ModifyLine then begin
             if WarehouseShipmentLine."Source Document" = WarehouseShipmentLine."Source Document"::"Sales Order" then
@@ -403,9 +354,6 @@ codeunit 5746 "Sales Whse. Post Shipment"
 
                     IsHandled := false;
                     OnPostSourceDocumentOnBeforePostSalesHeader(SalesPost, SalesHeader, WhseShptHeader, CounterDocOK, WhsePostParameters, IsHandled);
-#if not CLEAN25
-                    WhsePostShipment.RunOnPostSourceDocumentOnBeforePostSalesHeader(SalesPost, SalesHeader, WhseShptHeader, CounterDocOK, WhsePostParameters, IsHandled);
-#endif
                     if not IsHandled then
                         if WhsePostParameters."Preview Posting" then
                             PostSourceSalesDocument(SalesHeader, SalesPost, CounterDocOK)
@@ -420,25 +368,16 @@ codeunit 5746 "Sales Whse. Post Shipment"
                         end;
 
                     OnPostSourceDocumentOnBeforePrintSalesDocuments(SalesHeader."Last Shipping No.");
-#if not CLEAN25
-                    WhsePostShipment.RunOnPostSourceDocumentOnBeforePrintSalesDocuments(SalesHeader."Last Shipping No.");
-#endif
                     if WhsePostParameters."Print Documents" then
                         if WhseShptLine."Source Document" = WhseShptLine."Source Document"::"Sales Order" then begin
                             IsHandled := false;
                             OnPostSourceDocumentOnBeforePrintSalesShipment(SalesHeader, IsHandled, SalesShptHeader, WhseShptHeader);
-#if not CLEAN25
-                            WhsePostShipment.RunOnPostSourceDocumentOnBeforePrintSalesShipment(SalesHeader, IsHandled, SalesShptHeader, WhseShptHeader);
-#endif
                             if not IsHandled then
                                 InsertDocumentEntryToPrint(
                                     DocumentEntryToPrint, Database::"Sales Shipment Header", SalesHeader."Last Shipping No.");
                             if WhsePostParameters."Post Invoice" then begin
                                 IsHandled := false;
                                 OnPostSourceDocumentOnBeforePrintSalesInvoice(SalesHeader, IsHandled, WhseShptLine);
-#if not CLEAN25
-                                WhsePostShipment.RunOnPostSourceDocumentOnBeforePrintSalesInvoice(SalesHeader, IsHandled, WhseShptLine);
-#endif
                                 if not IsHandled then
                                     InsertDocumentEntryToPrint(
                                         DocumentEntryToPrint, Database::"Sales Invoice Header", SalesHeader."Last Posting No.");
@@ -446,9 +385,6 @@ codeunit 5746 "Sales Whse. Post Shipment"
                         end;
 
                     OnAfterSalesPost(WhseShptLine, SalesHeader, WhsePostParameters);
-#if not CLEAN25
-                    WhsePostShipment.RunOnAfterSalesPost(WhseShptLine, SalesHeader, WhsePostParameters);
-#endif
                     Clear(SalesPost);
                 end;
         end;
@@ -470,9 +406,6 @@ codeunit 5746 "Sales Whse. Post Shipment"
     begin
         IsHandled := false;
         OnPostSourceDocumentOnBeforeSalesPost(CounterSourceDocOK, SalesPost, SalesHeader, IsHandled);
-#if not CLEAN25
-        WhsePostShipment.RunOnPostSourceDocumentOnBeforeSalesPost(CounterSourceDocOK, SalesPost, SalesHeader, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -481,25 +414,16 @@ codeunit 5746 "Sales Whse. Post Shipment"
             Result := true;
         end;
         OnPostSourceDocumentOnAfterSalesPost(CounterSourceDocOK, SalesPost, SalesHeader, Result);
-#if not CLEAN25
-        WhsePostShipment.RunOnPostSourceDocumentOnAfterSalesPost(CounterSourceDocOK, SalesPost, SalesHeader, Result);
-#endif
     end;
 
     local procedure PostSourceSalesDocument(var SalesHeader: Record "Sales Header"; var SalesPost: Codeunit "Sales-Post"; var CounterSourceDocOK: Integer)
     begin
         OnBeforePostSourceSalesDocument(SalesPost);
-#if not CLEAN25
-        WhsePostShipment.RunOnBeforePostSourceSalesDocument(SalesPost);
-#endif
 
         SalesPost.RunWithCheck(SalesHeader);
         CounterSourceDocOK := CounterSourceDocOK + 1;
 
         OnAfterPostSourceSalesDocument(CounterSourceDocOK, SalesPost, SalesHeader);
-#if not CLEAN25
-        WhsePostShipment.RunOnAfterPostSourceSalesDocument(CounterSourceDocOK, SalesPost, SalesHeader);
-#endif
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Shipment", 'OnPrintDocuments', '', false, false)]
@@ -538,9 +462,6 @@ codeunit 5746 "Sales Whse. Post Shipment"
             SalesShipmentHeader.MarkedOnly(true);
             SalesShipmentHeader.PrintRecords(false);
             OnPrintDocumentsOnAfterPrintSalesShipment(SalesShipmentHeader."No.");
-#if not CLEAN25
-            WhsePostShipment.RunOnPrintDocumentsOnAfterPrintSalesShipment(SalesShipmentHeader."No.");
-#endif
         end;
     end;
 

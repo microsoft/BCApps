@@ -4,6 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.FinancialReports;
 
+/// <summary>
+/// Query for counting account schedule lines with duplicate descriptions within the same schedule.
+/// Identifies potential data quality issues by finding non-empty descriptions that occur more than once.
+/// </summary>
+/// <remarks>
+/// Used for data validation and cleanup processes to maintain unique line descriptions
+/// within account schedule definitions. Filters out empty descriptions and counts only duplicates.
+/// </remarks>
 query 762 "Acc. Sched. Line Desc. Count"
 {
     Caption = 'Acc. Sched. Line Desc. Count';

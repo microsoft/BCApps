@@ -9,6 +9,15 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Foundation.Enums;
 using System.Utilities;
 
+/// <summary>
+/// Generates budget analysis report with period-by-period budget breakdowns and variance analysis.
+/// Displays budgeted amounts across multiple periods with configurable rounding and period length options.
+/// </summary>
+/// <remarks>
+/// Data sources: G/L Account table with Budget Filter integration for budget vs. actual comparison.
+/// Supports period length configuration, thousands display option, and comprehensive dimension filtering.
+/// Output format: RDLC layout with columnar period display and variance calculation capabilities.
+/// </remarks>
 report 8 Budget
 {
     DefaultLayout = RDLC;
@@ -337,6 +346,13 @@ report 8 Budget
     protected var
         GLFilter: Text;
 
+    /// <summary>
+    /// Initializes report parameters for programmatic execution with period configuration and display options.
+    /// Sets starting date, period length formula, and thousands display option for automated budget report generation.
+    /// </summary>
+    /// <param name="NewPeriodStartDate">Starting date for budget period analysis</param>
+    /// <param name="NewPeriodLength">Period length formula as text (e.g., '1M', '1Q', '1Y')</param>
+    /// <param name="NewInThousands">Whether to display amounts in thousands</param>
     procedure InitializeRequest(NewPeriodStartDate: Date; NewPeriodLength: Text[30]; NewInThousands: Boolean)
     begin
         PeriodStartDate[1] := NewPeriodStartDate;
@@ -344,16 +360,31 @@ report 8 Budget
         InThousands := NewInThousands;
     end;
 
+    /// <summary>
+    /// Sets the rounding factor for amount display formatting in the budget report.
+    /// Controls precision level for budget amounts (ones, thousands, millions).
+    /// </summary>
+    /// <param name="NewRoundingFactor">Analysis rounding factor enum value for amount formatting</param>
     procedure SetRoundingFactor(NewRoundingFactor: Enum "Analysis Rounding Factor")
     begin
         RndFactor := NewRoundingFactor;
     end;
 
+    /// <summary>
+    /// Retrieves the configured period length formula for the budget report.
+    /// Returns the DateFormula used to calculate period intervals for budget analysis.
+    /// </summary>
+    /// <returns>DateFormula representing the period length (e.g., 1M for monthly, 1Q for quarterly)</returns>
     procedure GetPeriodLength(): DateFormula
     begin
         exit(PeriodLength);
     end;
 
+    /// <summary>
+    /// Retrieves the starting date configured for the budget report period analysis.
+    /// Returns the first period's starting date used in budget calculations.
+    /// </summary>
+    /// <returns>Starting date for the first budget period</returns>
     procedure GetPeriodStartDate(): Date
     begin
         exit(PeriodStartDate[1]);

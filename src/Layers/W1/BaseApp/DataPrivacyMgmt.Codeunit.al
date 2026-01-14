@@ -20,12 +20,12 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Utilities;
 using System.Diagnostics;
+using System.Environment;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.User;
-using System.Environment;
 
 codeunit 1180 "Data Privacy Mgmt"
 {

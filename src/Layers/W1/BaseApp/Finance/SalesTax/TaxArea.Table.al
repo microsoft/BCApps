@@ -9,6 +9,10 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using System.Globalization;
 
+/// <summary>
+/// Stores sales tax area definitions with associated jurisdictions.
+/// Tax areas group multiple tax jurisdictions for comprehensive tax calculations on transactions.
+/// </summary>
 table 318 "Tax Area"
 {
     Caption = 'Tax Area';
@@ -18,15 +22,24 @@ table 318 "Tax Area"
 
     fields
     {
+        /// <summary>
+        /// Unique identifier for the tax area.
+        /// </summary>
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
             NotBlank = true;
         }
+        /// <summary>
+        /// Descriptive name for the tax area.
+        /// </summary>
         field(2; Description; Text[100])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// Timestamp of the last modification to this tax area record.
+        /// </summary>
         field(10; "Last Modified Date Time"; DateTime)
         {
             Caption = 'Last Modified Date Time';
@@ -70,6 +83,12 @@ table 318 "Tax Area"
     var
         TaxAreaInUseErr: Label 'You cannot delete this tax rate because it is used on one or more existing documents.';
 
+    /// <summary>
+    /// Creates a new tax area with associated tax jurisdictions for city and state.
+    /// </summary>
+    /// <param name="NewTaxAreaCode">Code for the new tax area</param>
+    /// <param name="City">City name to create jurisdiction for</param>
+    /// <param name="State">State name to create jurisdiction for</param>
     procedure CreateTaxArea(NewTaxAreaCode: Code[20]; City: Text[50]; State: Text[50])
     begin
         Init();
@@ -99,6 +118,11 @@ table 318 "Tax Area"
         TaxJurisdiction.CreateTaxJurisdiction(NewJurisdictionCode);
     end;
 
+    /// <summary>
+    /// Returns the tax area description in the user's current language.
+    /// Falls back to the default description if no translation is available.
+    /// </summary>
+    /// <returns>Localized description text</returns>
     procedure GetDescriptionInCurrentLanguageFullLength(): Text[100]
     var
         TaxAreaTranslation: Record "Tax Area Translation";

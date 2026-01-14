@@ -6,6 +6,10 @@ namespace Microsoft.Intercompany.Dimension;
 
 using Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Stores intercompany dimension definitions for cross-company dimension mapping and synchronization.
+/// Enables consistent dimension structure across multiple intercompany partners.
+/// </summary>
 table 411 "IC Dimension"
 {
     Caption = 'IC Dimension';
@@ -15,19 +19,31 @@ table 411 "IC Dimension"
 
     fields
     {
+        /// <summary>
+        /// Unique code identifying the intercompany dimension.
+        /// </summary>
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
             NotBlank = true;
         }
+        /// <summary>
+        /// Descriptive name for the intercompany dimension.
+        /// </summary>
         field(2; Name; Text[30])
         {
             Caption = 'Name';
         }
+        /// <summary>
+        /// Indicates whether the intercompany dimension is blocked from use.
+        /// </summary>
         field(3; Blocked; Boolean)
         {
             Caption = 'Blocked';
         }
+        /// <summary>
+        /// Local dimension code that this intercompany dimension maps to for transaction processing.
+        /// </summary>
         field(4; "Map-to Dimension Code"; Code[20])
         {
             Caption = 'Map-to Dimension Code';

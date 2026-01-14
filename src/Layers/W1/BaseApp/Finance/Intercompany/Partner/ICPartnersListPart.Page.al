@@ -4,6 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.Partner;
 
+/// <summary>
+/// List part displaying intercompany partners for embedding in other pages or FactBoxes.
+/// Provides compact view of partner information with drill-down navigation and basic actions.
+/// </summary>
+/// <remarks>
+/// Primary data source: IC Partner table. Used as embedded component showing partner summary.
+/// Includes actions for adding and removing partners with drill-down to partner card.
+/// </remarks>
 page 622 "IC Partners List Part"
 {
     ApplicationArea = Intercompany;

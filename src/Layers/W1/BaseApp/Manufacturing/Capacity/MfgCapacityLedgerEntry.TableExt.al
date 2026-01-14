@@ -4,11 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Capacity;
 
+using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Manufacturing.Document;
 
 tableextension 99000801 "Mfg. Capacity Ledger Entry" extends "Capacity Ledger Entry"
 {

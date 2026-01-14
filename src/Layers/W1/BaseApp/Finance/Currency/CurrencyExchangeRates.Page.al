@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Currency;
 
+/// <summary>
+/// Provides a list interface for managing currency exchange rate records.
+/// Displays historical and current exchange rates for currencies with editing capabilities.
+/// </summary>
+/// <remarks>
+/// Source Table: Currency Exchange Rate. Supports date-effective exchange rate management
+/// and integration with currency setup. Used for maintaining accurate currency conversions
+/// across all business transactions and reporting.
+/// </remarks>
 page 483 "Currency Exchange Rates"
 {
     Caption = 'Currency Exchange Rates';

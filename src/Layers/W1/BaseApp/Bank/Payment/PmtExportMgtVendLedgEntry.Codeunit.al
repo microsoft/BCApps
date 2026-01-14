@@ -94,6 +94,11 @@ codeunit 1207 "Pmt Export Mgt Vend Ledg Entry"
         exit(false);
     end;
 
+    /// <summary>
+    /// Exports vendor payment file after validation without user confirmation.
+    /// This procedure performs validation and exports vendor ledger entries for payment processing.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">Vendor ledger entries to export for payment processing.</param>
     [Scope('OnPrem')]
     procedure ExportVendorPaymentFile(var VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
@@ -102,6 +107,11 @@ codeunit 1207 "Pmt Export Mgt Vend Ledg Entry"
         SetExportFlagOnVendorLedgerEntries(VendorLedgerEntry);
     end;
 
+    /// <summary>
+    /// Processes vendor ledger entries for payment export and creates data exchange lines.
+    /// This procedure handles the core export logic for vendor payment files.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">Vendor ledger entries to process for payment export.</param>
     [Scope('OnPrem')]
     procedure ExportVendLedgerEntry(var VendorLedgerEntry: Record "Vendor Ledger Entry")
     var
@@ -142,6 +152,14 @@ codeunit 1207 "Pmt Export Mgt Vend Ledg Entry"
         PaymentExportMgt.CreatePaymentLines(PaymentExportData);
     end;
 
+    /// <summary>
+    /// Prepares payment export data from vendor ledger entry information.
+    /// This procedure converts vendor ledger entry data into payment export format for file generation.
+    /// </summary>
+    /// <param name="TempPaymentExportData">Temporary payment export data record to populate.</param>
+    /// <param name="VendorLedgerEntry">Source vendor ledger entry containing payment information.</param>
+    /// <param name="DataExchEntryNo">Data exchange entry number for linking.</param>
+    /// <param name="LineNo">Line number for the payment export data entry.</param>
     procedure PreparePaymentExportDataVLE(var TempPaymentExportData: Record "Payment Export Data" temporary; VendorLedgerEntry: Record "Vendor Ledger Entry"; DataExchEntryNo: Integer; LineNo: Integer)
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -204,11 +222,22 @@ codeunit 1207 "Pmt Export Mgt Vend Ledg Entry"
         TempPaymentExportData.Insert(true);
     end;
 
+    /// <summary>
+    /// Enables export of payment files to server temporary location.
+    /// This procedure configures the payment export to use server-side temporary files.
+    /// </summary>
+    /// <param name="SilentServerMode">True to enable silent server mode without user interaction.</param>
+    /// <param name="ServerFileExtension">File extension to use for the temporary server file.</param>
     procedure EnableExportToServerTempFile(SilentServerMode: Boolean; ServerFileExtension: Text[3])
     begin
         PaymentExportMgt.EnableExportToServerTempFile(SilentServerMode, ServerFileExtension);
     end;
 
+    /// <summary>
+    /// Gets the file name of the server temporary file used for payment export.
+    /// This procedure returns the path to the temporary file created during payment export.
+    /// </summary>
+    /// <returns>The full path and file name of the server temporary file.</returns>
     procedure GetServerTempFileName(): Text[1024]
     begin
         exit(PaymentExportMgt.GetServerTempFileName());
@@ -225,18 +254,46 @@ codeunit 1207 "Pmt Export Mgt Vend Ledg Entry"
         until VendorLedgerEntry2.Next() = 0;
     end;
 
+    /// <summary>
+    /// Integration event that allows customization of payment export data before insertion from vendor ledger entries.
+    /// This event enables modifications to payment export data during vendor payment file generation.
+    /// </summary>
+    /// <param name="PaymentExportData">Payment export data record that can be modified.</param>
+    /// <param name="VendorLedgerEntry">Source vendor ledger entry containing the payment information.</param>
+    /// <param name="GeneralLedgerSetup">General ledger setup record for accessing configuration.</param>
     [IntegrationEvent(false, false)]
     [Scope('OnPrem')]
     procedure OnBeforeInsertPmtExportDataJnlFromVendorLedgerEntry(var PaymentExportData: Record "Payment Export Data"; VendorLedgerEntry: Record "Vendor Ledger Entry"; GeneralLedgerSetup: Record "General Ledger Setup")
     begin
     end;
 
+    /// <summary>
+    /// Integration event that allows customization of vendor ledger entry payment export processing.
+    /// This event enables custom handling of the payment export process for vendor entries.
+    /// </summary>
+    /// <param name="BalAccountNo">Balance account number used for the payment export.</param>
+    /// <param name="DataExchEntryNo">Data exchange entry number for the export operation.</param>
+    /// <param name="LineCount">Number of lines being processed in the export.</param>
+    /// <param name="TotalAmount">Total amount of all payments being exported.</param>
+    /// <param name="TransferDate">Date for the payment transfer.</param>
+    /// <param name="Handled">Set to true if the export processing has been handled by an external extension.</param>
     [IntegrationEvent(false, false)]
     [Scope('OnPrem')]
     procedure OnBeforePaymentExportVendorLedgerEntry(BalAccountNo: Code[20]; DataExchEntryNo: Integer; LineCount: Integer; TotalAmount: Decimal; TransferDate: Date; var Handled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event that allows customization of vendor ledger data exchange line creation.
+    /// This event enables custom processing before creating data exchange lines for vendor payments.
+    /// </summary>
+    /// <param name="DataExch">Data exchange record being processed.</param>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry being processed for export.</param>
+    /// <param name="LineNo">Line number for the data exchange entry.</param>
+    /// <param name="LineAmount">Amount for the specific line being processed.</param>
+    /// <param name="TotalAmount">Running total amount for all processed lines.</param>
+    /// <param name="TransferDate">Date for the payment transfer.</param>
+    /// <param name="Handled">Set to true if the line creation has been handled by an external extension.</param>
     [IntegrationEvent(false, false)]
     [Scope('OnPrem')]
     procedure OnBeforeCreateVendLedgerDataExchLine(DataExch: Record "Data Exch."; VendorLedgerEntry: Record "Vendor Ledger Entry"; LineNo: Integer; var LineAmount: Decimal; var TotalAmount: Decimal; var TransferDate: Date; var Handled: Boolean)

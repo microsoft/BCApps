@@ -509,15 +509,6 @@ codeunit 825 "Sales Post Invoice Events"
         OnPrepareLineOnBeforePrepareDeferralLine(SalesLine, InvoicePostingBuffer, UseDate, InvDefLineNo, DeferralLineNo, SuppressCommit, DeferralAccount, SalesAccount);
     end;
 
-#if not CLEAN25
-    [Obsolete('Use the method RunOnPrepareLineOnBeforePrepareDeferralLine(SalesLine: Record "Sales Line"; InvoicePostingBuffer: Record "Invoice Posting Buffer"; UseDate: Date; InvDefLineNo: Integer; DeferralLineNo: Integer; SuppressCommit: Boolean; var DeferralAccount: Code[20]; var SalesAccount: Code[20]) instead', '25.0')]
-    procedure RunOnPrepareLineOnBeforePrepareDeferralLine(SalesLine: Record "Sales Line"; InvoicePostingBuffer: Record "Invoice Posting Buffer"; UseDate: Date; InvDefLineNo: Integer; DeferralLineNo: Integer; SuppressCommit: Boolean)
-    var
-        DeferralAccount, SalesAccount : Code[20];
-    begin
-        OnPrepareLineOnBeforePrepareDeferralLine(SalesLine, InvoicePostingBuffer, UseDate, InvDefLineNo, DeferralLineNo, SuppressCommit, DeferralAccount, SalesAccount);
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnPrepareLineOnBeforePrepareDeferralLine(SalesLine: Record "Sales Line"; InvoicePostingBuffer: Record "Invoice Posting Buffer"; UseDate: Date; InvDefLineNo: Integer; DeferralLineNo: Integer; SuppressCommit: Boolean; var DeferralAccount: Code[20]; var SalesAccount: Code[20])
     begin

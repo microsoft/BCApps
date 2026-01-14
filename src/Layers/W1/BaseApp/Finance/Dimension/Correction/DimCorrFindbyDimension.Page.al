@@ -6,6 +6,9 @@ namespace Microsoft.Finance.Dimension.Correction;
 
 using Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Worksheet page for finding and selecting dimension combinations for correction operations.
+/// </summary>
 page 2586 "Dim Corr Find by Dimension"
 {
     PageType = Worksheet;
@@ -49,6 +52,10 @@ page 2586 "Dim Corr Find by Dimension"
         exit(false);
     end;
 
+    /// <summary>
+    /// Retrieves the selected dimension set entries from the search results.
+    /// </summary>
+    /// <param name="TempDimensionSetEntry">Temporary dimension set entry record to populate with search results</param>
     procedure GetRecords(var TempDimensionSetEntry: Record "Dimension Set Entry" temporary)
     begin
         if not Rec.FindFirst() then

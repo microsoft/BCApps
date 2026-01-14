@@ -7,6 +7,10 @@ namespace Microsoft.Finance.Analysis;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Ledger;
 
+/// <summary>
+/// Optimized query for extracting G/L entry data with dimension values for analysis view updates.
+/// Provides aggregated amounts and dimension breakdown for efficient analysis view entry creation.
+/// </summary>
 query 410 "Analysis View Source"
 {
     Caption = 'Analysis View Source';

@@ -7,6 +7,15 @@ namespace Microsoft.Finance.Consolidation;
 using Microsoft.Finance.GeneralLedger.Account;
 using System.Utilities;
 
+/// <summary>
+/// Generates consolidated trial balance report showing account balances from multiple business units.
+/// Provides comprehensive trial balance view across consolidated companies with period comparisons.
+/// </summary>
+/// <remarks>
+/// Report aggregates G/L account balances from consolidated business units with period and dimension filtering.
+/// Supports currency conversion and multiple reporting options including thousands display.
+/// Integration with consolidated G/L entries for multi-company reporting scenarios.
+/// </remarks>
 report 17 "Consolidated Trial Balance"
 {
     DefaultLayout = RDLC;

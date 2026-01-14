@@ -6,6 +6,15 @@ namespace Microsoft.Finance.FinancialReports;
 
 using Microsoft.CostAccounting.Account;
 
+/// <summary>
+/// Provides worksheet interface for creating and editing financial report column definitions.
+/// Enables detailed setup of column layouts including data sources, formulas, dimensions, and display options.
+/// </summary>
+/// <remarks>
+/// Primary functionality: Column definition creation, formula management, dimension filtering setup.
+/// Integration: Links with Account Schedule reporting and Analysis View functionality.
+/// Extensibility: Standard page extension patterns for additional column types and calculation methods.
+/// </remarks>
 page 489 "Column Layout"
 {
     AboutTitle = 'About (Financial Report) Column Definition';
@@ -376,6 +385,10 @@ page 489 "Column Layout"
         end;
     end;
 
+    /// <summary>
+    /// Sets the current column layout name for the page to display the associated column definitions.
+    /// </summary>
+    /// <param name="NewColumnName">Column layout name to display in the worksheet</param>
     procedure SetColumnLayoutName(NewColumnName: Code[10])
     begin
         CurrentColumnName := NewColumnName;

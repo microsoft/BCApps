@@ -5,19 +5,19 @@
 namespace Microsoft.Service.Test;
 
 using Microsoft.Bank.BankAccount;
+using Microsoft.CRM.Team;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Reporting;
-using Microsoft.CRM.Team;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
-using Microsoft.Projects.Resources.Resource;
 using Microsoft.Projects.Resources.Ledger;
+using Microsoft.Projects.Resources.Resource;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Pricing;
 using Microsoft.Sales.Receivables;

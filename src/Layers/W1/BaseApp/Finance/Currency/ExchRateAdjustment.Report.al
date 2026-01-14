@@ -12,6 +12,16 @@ using Microsoft.HumanResources.Employee;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 
+/// <summary>
+/// Report for performing comprehensive exchange rate adjustments across multiple account types.
+/// Processes currency revaluation for customer, vendor, employee, bank account, and G/L account balances
+/// to reflect current exchange rates and ensure accurate financial reporting.
+/// </summary>
+/// <remarks>
+/// Integrates with Exchange Rate Adjustment Process codeunit for calculation logic.
+/// Supports filtering by currency, account types, and date ranges. Creates journal entries
+/// for posting adjustment amounts and maintains audit trail through register tables.
+/// </remarks>
 report 596 "Exch. Rate Adjustment"
 {
     ApplicationArea = Basic, Suite;

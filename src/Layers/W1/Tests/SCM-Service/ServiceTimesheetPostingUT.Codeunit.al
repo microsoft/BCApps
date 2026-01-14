@@ -1,9 +1,9 @@
 namespace Microsoft.Service.Test;
 
-using Microsoft.Service.Document;
-using Microsoft.Projects.TimeSheet;
-using Microsoft.Service.History;
 using Microsoft.Projects.Resources.Resource;
+using Microsoft.Projects.TimeSheet;
+using Microsoft.Service.Document;
+using Microsoft.Service.History;
 
 codeunit 136511 "Service Timesheet Posting UT"
 {

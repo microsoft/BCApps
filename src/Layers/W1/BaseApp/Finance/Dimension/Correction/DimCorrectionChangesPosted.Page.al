@@ -6,6 +6,9 @@ namespace Microsoft.Finance.Dimension.Correction;
 
 using Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Read-only list part page displaying dimension value changes after posting. Shows the completed dimension correction transformations.
+/// </summary>
 page 2581 "Dim Correction Changes Posted"
 {
     PageType = ListPart;

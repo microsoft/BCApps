@@ -299,7 +299,8 @@ table 'Date Table Setup'
 				let
 				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
 				    TableData = Source{[Name = "dateSetups", Signature = "table"]}[Data],
-				    #"Convert UTC to Local" = ConvertUTC(TableData),
+				    #"Check TenantID" = if Table.HasColumns(TableData, "tenantID") then TableData else Table.AddColumn(TableData, "tenantID", each null, type text),
+				    #"Convert UTC to Local" = ConvertUTC(#"Check TenantID"),
 				    #"Removed Columns" = Table.RemoveColumns(#"Convert UTC to Local", {"ETag"}),
 				    #"Added Conditional Column" = Table.AddColumn(
 				        #"Removed Columns",

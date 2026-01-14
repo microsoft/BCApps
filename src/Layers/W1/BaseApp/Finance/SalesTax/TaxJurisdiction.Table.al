@@ -8,6 +8,10 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 using System.Globalization;
 
+/// <summary>
+/// Stores tax jurisdiction definitions with account mappings and calculation rules.
+/// Represents governmental tax authorities (city, county, state) with specific tax configuration.
+/// </summary>
 table 320 "Tax Jurisdiction"
 {
     Caption = 'Tax Jurisdiction';
@@ -17,61 +21,97 @@ table 320 "Tax Jurisdiction"
 
     fields
     {
+        /// <summary>
+        /// Unique identifier for the tax jurisdiction.
+        /// </summary>
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
             NotBlank = true;
         }
+        /// <summary>
+        /// Descriptive name for the tax jurisdiction.
+        /// </summary>
         field(2; Description; Text[100])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// G/L account for posting tax amounts on sales transactions.
+        /// </summary>
         field(3; "Tax Account (Sales)"; Code[20])
         {
             Caption = 'Tax Account (Sales)';
             TableRelation = "G/L Account";
         }
+        /// <summary>
+        /// G/L account for posting tax amounts on purchase transactions.
+        /// </summary>
         field(4; "Tax Account (Purchases)"; Code[20])
         {
             Caption = 'Tax Account (Purchases)';
             TableRelation = "G/L Account";
         }
+        /// <summary>
+        /// Parent jurisdiction for consolidated tax reporting.
+        /// </summary>
         field(5; "Report-to Jurisdiction"; Code[10])
         {
             Caption = 'Report-to Jurisdiction';
             TableRelation = "Tax Jurisdiction";
         }
+        /// <summary>
+        /// Date filter for tax calculation queries and reports.
+        /// </summary>
         field(6; "Date Filter"; Date)
         {
             Caption = 'Date Filter';
             FieldClass = FlowFilter;
         }
+        /// <summary>
+        /// Tax group filter for jurisdiction-specific tax calculations.
+        /// </summary>
         field(7; "Tax Group Filter"; Code[20])
         {
             Caption = 'Tax Group Filter';
             FieldClass = FlowFilter;
             TableRelation = "Tax Group";
         }
+        /// <summary>
+        /// G/L account for unrealized tax amounts on sales transactions.
+        /// </summary>
         field(8; "Unreal. Tax Acc. (Sales)"; Code[20])
         {
             Caption = 'Unreal. Tax Acc. (Sales)';
             TableRelation = "G/L Account";
         }
+        /// <summary>
+        /// G/L account for unrealized tax amounts on purchase transactions.
+        /// </summary>
         field(9; "Unreal. Tax Acc. (Purchases)"; Code[20])
         {
             Caption = 'Unreal. Tax Acc. (Purchases)';
             TableRelation = "G/L Account";
         }
+        /// <summary>
+        /// G/L account for reverse charge amounts on purchase transactions.
+        /// </summary>
         field(10; "Reverse Charge (Purchases)"; Code[20])
         {
             Caption = 'Reverse Charge (Purchases)';
             TableRelation = "G/L Account";
         }
+        /// <summary>
+        /// G/L account for unrealized reverse charge amounts on purchase transactions.
+        /// </summary>
         field(11; "Unreal. Rev. Charge (Purch.)"; Code[20])
         {
             Caption = 'Unreal. Rev. Charge (Purch.)';
             TableRelation = "G/L Account";
         }
+        /// <summary>
+        /// Method for calculating unrealized VAT on partial payments.
+        /// </summary>
         field(12; "Unrealized VAT Type"; Option)
         {
             Caption = 'Unrealized VAT Type';
@@ -86,6 +126,9 @@ table 320 "Tax Jurisdiction"
                 end;
             end;
         }
+        /// <summary>
+        /// Indicates whether tax is calculated on previously calculated taxes (compound taxation).
+        /// </summary>
         field(13; "Calculate Tax on Tax"; Boolean)
         {
             Caption = 'Calculate Tax on Tax';
@@ -97,6 +140,9 @@ table 320 "Tax Jurisdiction"
                 Modify();
             end;
         }
+        /// <summary>
+        /// Controls whether tax amounts are adjusted for payment discounts.
+        /// </summary>
         field(14; "Adjust for Payment Discount"; Boolean)
         {
             Caption = 'Adjust for Payment Discount';
@@ -109,6 +155,9 @@ table 320 "Tax Jurisdiction"
                 end;
             end;
         }
+        /// <summary>
+        /// Short name for the tax jurisdiction used in reports and displays.
+        /// </summary>
         field(15; Name; Text[30])
         {
             Caption = 'Name';
@@ -145,6 +194,11 @@ table 320 "Tax Jurisdiction"
         GLSetup: Record "General Ledger Setup";
         TaxDetail: Record "Tax Detail";
 
+    /// <summary>
+    /// Returns the appropriate sales tax G/L account based on realization status.
+    /// </summary>
+    /// <param name="Unrealized">Whether to return the unrealized tax account</param>
+    /// <returns>G/L account code for sales tax posting</returns>
     procedure GetSalesAccount(Unrealized: Boolean): Code[20]
     begin
         if Unrealized then begin
@@ -155,6 +209,11 @@ table 320 "Tax Jurisdiction"
         exit("Tax Account (Sales)");
     end;
 
+    /// <summary>
+    /// Returns the appropriate purchase tax G/L account based on realization status.
+    /// </summary>
+    /// <param name="Unrealized">Whether to return the unrealized tax account</param>
+    /// <returns>G/L account code for purchase tax posting</returns>
     procedure GetPurchAccount(Unrealized: Boolean): Code[20]
     begin
         if Unrealized then begin
@@ -165,6 +224,11 @@ table 320 "Tax Jurisdiction"
         exit("Tax Account (Purchases)");
     end;
 
+    /// <summary>
+    /// Returns the appropriate reverse charge G/L account based on realization status.
+    /// </summary>
+    /// <param name="Unrealized">Whether to return the unrealized reverse charge account</param>
+    /// <returns>G/L account code for reverse charge posting</returns>
     procedure GetRevChargeAccount(Unrealized: Boolean): Code[20]
     begin
         if Unrealized then begin
@@ -175,6 +239,10 @@ table 320 "Tax Jurisdiction"
         exit("Reverse Charge (Purchases)");
     end;
 
+    /// <summary>
+    /// Creates a new tax jurisdiction with the specified code and default account setup.
+    /// </summary>
+    /// <param name="NewJurisdictionCode">Code for the new tax jurisdiction</param>
     procedure CreateTaxJurisdiction(NewJurisdictionCode: Code[10])
     begin
         Init();
@@ -239,6 +307,11 @@ table 320 "Tax Jurisdiction"
         TaxDetail.DeleteAll();
     end;
 
+    /// <summary>
+    /// Returns the tax jurisdiction description in the user's current language.
+    /// Falls back to the default description if no translation is available.
+    /// </summary>
+    /// <returns>Localized description text</returns>
     procedure GetDescriptionInCurrentLanguageFullLength(): Text[100]
     var
         TaxJurisdictionTranslation: Record "Tax Jurisdiction Translation";
@@ -250,6 +323,10 @@ table 320 "Tax Jurisdiction"
         exit(Description);
     end;
 
+    /// <summary>
+    /// Returns the jurisdiction name, defaulting to the code if name is empty.
+    /// </summary>
+    /// <returns>Jurisdiction name or code</returns>
     procedure GetName(): Text[30]
     begin
         if Name = '' then

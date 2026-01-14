@@ -9,6 +9,15 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using System.Telemetry;
 
+/// <summary>
+/// Guided consolidation wizard for executing multi-company consolidation processes.
+/// Provides step-by-step consolidation setup and execution interface with business unit selection and parameter configuration.
+/// </summary>
+/// <remarks>
+/// Navigate page wizard guiding users through consolidation process setup and execution.
+/// Handles business unit selection, consolidation parameters, date ranges, and execution options.
+/// Integrates with consolidation engine for seamless multi-step consolidation workflow management.
+/// </remarks>
 page 242 "Consolidate Wizard"
 {
     Caption = 'Run Consolidation';

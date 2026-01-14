@@ -5961,6 +5961,41 @@
         LibrarySales.UndoSalesShipmentLine(SalesShipmentLine[2]);
     end;
 
+    [Test]
+    procedure TestDeleteSalesOrderSalesOrderEntityBufferDeleted()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        SalesLine: Record "Sales Line";
+        SalesHeader: Record "Sales Header";
+        SalesOrderEntityBuffer: Record "Sales Order Entity Buffer";
+        APIMockEvents: Codeunit "API Mock Events";
+    begin
+        // [SCENARIO] Sales Order is deleted and Sales Order Entity Buffer is also deleted
+        Initialize();
+        BindSubscription(APIMockEvents);
+
+        APIMockEvents.SetIsAPIEnabled(true);
+
+        // [GIVEN] Create an Item.
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] Create customer.
+        LibrarySales.CreateCustomer(Customer);
+
+        // [GIVEN] Create Sales Header.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+
+        // [GIVEN] Create Sales Line with Quanity as 1.
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", LibraryRandom.RandIntInRange(1, 1));
+
+        // [WHEN] Delete Sales Header
+        SalesHeader.Delete(true);
+
+        // [THEN] Sales Order Entity Buffer is also deleted
+        Assert.IsFalse(SalesOrderEntityBuffer.Get(SalesHeader."No."), 'Sales Order Entity Buffer should be deleted');
+    end;
+
     local procedure Initialize()
     var
         SalesHeader: Record "Sales Header";

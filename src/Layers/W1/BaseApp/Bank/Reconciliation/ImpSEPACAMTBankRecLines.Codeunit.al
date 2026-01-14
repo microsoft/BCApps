@@ -6,6 +6,10 @@ namespace Microsoft.Bank.Reconciliation;
 
 using System.IO;
 
+/// <summary>
+/// Imports bank reconciliation lines from SEPA CAMT format files.
+/// Processes structured payment data and creates reconciliation line entries.
+/// </summary>
 codeunit 1261 "Imp. SEPA CAMT Bank Rec. Lines"
 {
     TableNo = "Bank Acc. Reconciliation Line";

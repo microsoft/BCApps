@@ -6,6 +6,9 @@ namespace Microsoft.Finance.Dimension.Correction;
 
 using System.Threading;
 
+/// <summary>
+/// Dialog page for scheduling dimension correction execution. Allows users to run corrections immediately or schedule them for later execution through job queue.
+/// </summary>
 page 2593 "Dim Correction Schedule"
 {
     PageType = StandardDialog;
@@ -101,7 +104,10 @@ page 2593 "Dim Correction Schedule"
         OnAfterOnOpenPage(RunImmediately);
     end;
 
-
+    /// <summary>
+    /// Sets a custom caption for the schedule page dialog.
+    /// </summary>
+    /// <param name="NewCaption">Caption text to display on the page</param>
     procedure SetNewCaption(NewCaption: Text)
     begin
         NewPageCaption := NewCaption;
@@ -135,6 +141,9 @@ page 2593 "Dim Correction Schedule"
           Format(0, 0, '<Integer,2><Filler Character,0>'));
     end;
 
+    /// <summary>
+    /// Displays a warning message recommending to schedule large dimension corrections after business hours.
+    /// </summary>
     procedure ShowWarningMessage()
     begin
         Message(ScheduleAfterBusinessHoursMsg);
@@ -146,6 +155,10 @@ page 2593 "Dim Correction Schedule"
         AdvancedSettingsLbl: Label 'Advanced Settings';
         ScheduleAfterBusinessHoursMsg: Label 'If you are correcting dimensions for a large number of entries, such as more than 1000, we recommend that you schedule the update to happen after business hours. This helps avoid performance issues.';
 
+    /// <summary>
+    /// Integration event raised after the page opens to allow customization of default settings.
+    /// </summary>
+    /// <param name="RunImmediately">Boolean flag indicating whether to run correction immediately</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterOnOpenPage(var RunImmediately: boolean)
     begin

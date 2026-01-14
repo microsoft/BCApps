@@ -4,8 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Warehouse.Setup;
 
-using Microsoft.Warehouse.Activity.History;
+using Microsoft.Utilities;
 using Microsoft.Warehouse.Activity;
+using Microsoft.Warehouse.Activity.History;
 using Microsoft.Warehouse.ADCS;
 using Microsoft.Warehouse.Comment;
 using Microsoft.Warehouse.CrossDock;
@@ -20,7 +21,6 @@ using Microsoft.Warehouse.RoleCenters;
 using Microsoft.Warehouse.Structure;
 using Microsoft.Warehouse.Tracking;
 using Microsoft.Warehouse.Worksheet;
-using Microsoft.Utilities;
 using System.Privacy;
 
 codeunit 1769 "Warehouse-Data Classification"

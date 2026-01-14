@@ -463,6 +463,7 @@ table 23 Vendor
         field(59; "Balance (LCY)"; Decimal)
         {
             AutoFormatType = 1;
+            AutoFormatExpression = '';
             CalcFormula = - sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Vendor No." = field("No."),
                                                                                    "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                    "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
@@ -1188,6 +1189,10 @@ table 23 Vendor
         {
             Caption = 'Allow Multiple Posting Groups';
             DataClassification = SystemMetadata;
+        }
+        field(180; "Self-Billing Agreement"; Boolean)
+        {
+            Caption = 'Self-Billing Agreement';
         }
         field(288; "Preferred Bank Account Code"; Code[20])
         {

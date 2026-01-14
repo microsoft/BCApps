@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.RateChange;
 
+/// <summary>
+/// Configuration page for general product posting group conversion mappings during VAT rate changes.
+/// Provides interface for defining old-to-new general product posting group conversions and validation rules.
+/// </summary>
 page 552 "Gen. Prod. Posting Group Conv."
 {
     AdditionalSearchTerms = 'posting setup,general product posting group conversion';

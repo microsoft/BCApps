@@ -33,8 +33,9 @@ table 5966 "Contract Group"
         }
         field(5; "Contract Gain/Loss Amount"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
-            CalcFormula = sum ("Contract Gain/Loss Entry".Amount where("Contract Group Code" = field(Code),
+            CalcFormula = sum("Contract Gain/Loss Entry".Amount where("Contract Group Code" = field(Code),
                                                                        "Change Date" = field("Date Filter")));
             Caption = 'Contract Gain/Loss Amount';
             Editable = false;

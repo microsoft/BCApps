@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Costing;
 
-using Microsoft.Inventory.Ledger;
 using Microsoft.Foundation.Enums;
+using Microsoft.Inventory.Ledger;
 
 table 5812 "Item Application Trace"
 {

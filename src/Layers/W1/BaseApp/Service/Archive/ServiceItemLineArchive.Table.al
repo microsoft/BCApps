@@ -77,6 +77,7 @@ table 6011 "Service Item Line Archive"
         }
         field(11; "Response Time (Hours)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Response Time (Hours)';
             DecimalPlaces = 0 : 5;
         }
@@ -123,6 +124,7 @@ table 6011 "Service Item Line Archive"
         }
         field(22; "Warranty % (Parts)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Warranty % (Parts)';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -130,6 +132,7 @@ table 6011 "Service Item Line Archive"
         }
         field(23; "Warranty % (Labor)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Warranty % (Labor)';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -200,6 +203,7 @@ table 6011 "Service Item Line Archive"
         }
         field(42; "Actual Response Time (Hours)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Actual Response Time (Hours)';
             DecimalPlaces = 0 : 5;
         }
@@ -223,6 +227,7 @@ table 6011 "Service Item Line Archive"
         }
         field(46; "Base Amount to Adjust"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Base Amount to Adjust';
             Editable = false;
         }

@@ -2686,6 +2686,46 @@ codeunit 134480 "ERM Dimension General Part 2"
         // Verification in GLBalanceDimMatrixGlobalDim12ValueAsColumnPageHandler2
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure SalesAnalysisViewByWeekWithInternalDateFilter()
+    var
+        ItemAnalysisView: Record "Item Analysis View";
+        DimCodeBuf: Record "Dimension Code Buffer";
+        Item: Record Item;
+        ItemAnalysisMgt: Codeunit "Item Analysis Management";
+        DateFilter: Text[30];
+        InternalDateFilter: Text[30];
+        DimOption: Option Item,Period,Location,"Dimension 1","Dimension 2","Dimension 3";
+        PeriodType: Option Day,Week,Month,Quarter,Year,"Accounting Period";
+        PeriodStart: Date;
+        PeriodEnd: Date;
+        PeriodInitialized: Boolean;
+    begin
+        // [Scenario 609713]-Matrix Option View By Week does not work in Sales/Purchase Analysis Views for the Next Set showing the incorrect week filtering.
+
+        // Setup
+        ItemAnalysisView.Init();
+        PeriodInitialized := true;
+        DimOption := DimOption::Period;
+        PeriodType := PeriodType::Week;
+        PeriodStart := CalcDate('<-CW>', WorkDate());
+        PeriodEnd := CalcDate('<+1Y-1D>', PeriodStart);
+
+        DateFilter := '';
+        Item.SetRange("Date Filter", PeriodStart, PeriodEnd);
+        InternalDateFilter := CopyStr(Item.GetFilter("Date Filter"), 1, MaxStrLen(InternalDateFilter));
+
+        // Exercize
+        ItemAnalysisMgt.FindRecord(
+          ItemAnalysisView, "Item Analysis Dimension Type".FromInteger(DimOption), DimCodeBuf, '', '', '',
+          "Analysis Period Type".FromInteger(PeriodType), DateFilter, PeriodInitialized, InternalDateFilter, '', '', '');
+
+        // Verify
+        Assert.AreEqual(PeriodStart, DimCodeBuf."Period Start", StartPeriodErr);
+        Assert.AreEqual(CalcDate('<+1W-1D>', PeriodStart), DimCodeBuf."Period End", EndPeriodErr);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

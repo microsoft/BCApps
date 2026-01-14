@@ -1796,6 +1796,41 @@ codeunit 134379 "ERM Sales Quotes"
         LibrarySales.ReleaseSalesDocument(SalesHeader);
     end;
 
+    [Test]
+    procedure TestDeleteSalesQuoteSalesQuoteEntityBufferDeleted()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        SalesLine: Record "Sales Line";
+        SalesHeader: Record "Sales Header";
+        SalesQuoteEntityBuffer: Record "Sales Quote Entity Buffer";
+        APIMockEvents: Codeunit "API Mock Events";
+    begin
+        // [SCENARIO] Sales Quote is deleted and Sales Quote Entity Buffer is also deleted
+        Initialize();
+        BindSubscription(APIMockEvents);
+
+        APIMockEvents.SetIsAPIEnabled(true);
+
+        // [GIVEN] Create an Item.
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] Create customer.
+        LibrarySales.CreateCustomer(Customer);
+
+        // [GIVEN] Create Sales Header.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Quote, Customer."No.");
+
+        // [GIVEN] Create Sales Line with Quanity as 1.
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", LibraryRandom.RandIntInRange(1, 1));
+
+        // [WHEN] Delete Sales Header
+        SalesHeader.Delete(true);
+
+        // [THEN] Sales Quote Entity Buffer is also deleted
+        Assert.IsFalse(SalesQuoteEntityBuffer.Get(SalesHeader."No."), 'Sales Quote Entity Buffer should be deleted');
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension.Correction;
 
+/// <summary>
+/// List part page for managing dimensions that are blocked from dimension correction. Displays and allows editing of dimensions that cannot be modified through dimension correction operations.
+/// </summary>
 page 2580 "Dim Correction Blocked Setup"
 {
     PageType = ListPart;

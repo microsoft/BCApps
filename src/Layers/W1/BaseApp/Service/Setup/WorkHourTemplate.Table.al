@@ -24,6 +24,7 @@ table 5954 "Work-Hour Template"
         }
         field(3; Monday; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Monday';
             DecimalPlaces = 0 : 5;
             MaxValue = 24;
@@ -36,6 +37,7 @@ table 5954 "Work-Hour Template"
         }
         field(4; Tuesday; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Tuesday';
             DecimalPlaces = 0 : 5;
             MaxValue = 24;
@@ -48,6 +50,7 @@ table 5954 "Work-Hour Template"
         }
         field(5; Wednesday; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Wednesday';
             DecimalPlaces = 0 : 5;
             MaxValue = 24;
@@ -60,6 +63,7 @@ table 5954 "Work-Hour Template"
         }
         field(6; Thursday; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Thursday';
             DecimalPlaces = 0 : 5;
             MaxValue = 24;
@@ -72,6 +76,7 @@ table 5954 "Work-Hour Template"
         }
         field(7; Friday; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Friday';
             DecimalPlaces = 0 : 5;
             MaxValue = 24;
@@ -84,6 +89,7 @@ table 5954 "Work-Hour Template"
         }
         field(8; Saturday; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Saturday';
             DecimalPlaces = 0 : 5;
             MaxValue = 24;
@@ -96,6 +102,7 @@ table 5954 "Work-Hour Template"
         }
         field(9; Sunday; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Sunday';
             DecimalPlaces = 0 : 5;
             MaxValue = 24;
@@ -108,6 +115,7 @@ table 5954 "Work-Hour Template"
         }
         field(10; "Total per Week"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Total per Week';
             DecimalPlaces = 0 : 5;
             Editable = false;

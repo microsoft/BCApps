@@ -8,6 +8,7 @@ using Microsoft.Assembly.Document;
 using Microsoft.EServices.EDocument;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.Shipping;
+using Microsoft.Foundation.Task;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Vendor;
@@ -26,7 +27,6 @@ using System.Automation;
 using System.Email;
 using System.Threading;
 using System.Visualization;
-using Microsoft.Foundation.Task;
 
 page 9009 "Whse. Worker WMS Role Center"
 {

@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Display page for viewing dimension set entries in a read-only list format.
+/// Shows all dimension entries for a specific dimension set ID with codes, names, and values.
+/// </summary>
+/// <remarks>
+/// Used as a drill-down page from dimension set ID fields and as a lookup page for dimension set references.
+/// Provides detailed view of dimension combinations with optional shortcut dimension number update functionality.
+/// Supports custom captions when displayed in different contexts throughout the application.
+/// </remarks>
 page 479 "Dimension Set Entries"
 {
     Caption = 'Dimension Set Entries';
@@ -83,11 +92,20 @@ page 479 "Dimension Set Entries"
     var
         FormCaption: Text[250];
 
+    /// <summary>
+    /// Sets a custom caption for the page by appending text to the default caption.
+    /// Used to provide context-specific titles when the page is opened from different sources.
+    /// </summary>
+    /// <param name="NewFormCaption">Text to prepend to the default page caption</param>
     procedure SetFormCaption(NewFormCaption: Text[250])
     begin
         FormCaption := CopyStr(NewFormCaption + ' - ' + CurrPage.Caption, 1, MaxStrLen(FormCaption));
     end;
 
+    /// <summary>
+    /// Makes the "Update Shortcut Dimension No." action visible on the page.
+    /// Enables access to the utility for fixing incorrect global dimension number settings.
+    /// </summary>
     procedure SetUpdDimSetGlblDimNoVisible()
     begin
         UpdDimSetGlblDimNoVisible := true;

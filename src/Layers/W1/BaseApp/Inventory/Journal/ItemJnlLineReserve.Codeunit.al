@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -752,9 +752,6 @@ codeunit 99000835 "Item Jnl. Line-Reserve"
             ItemJnlLine."Quantity (Base)", 0, 0);
 
         OnAfterInitFromItemJnlLine(TrackingSpecification, ItemJnlLine);
-#if not CLEAN25
-        TrackingSpecification.RunOnAfterInitFromItemJnlLine(TrackingSpecification, ItemJnlLine);
-#endif
     end;
 
     [IntegrationEvent(false, false)]

@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+/// <summary>
+/// Request page interface for configuring ECSL report generation parameters.
+/// Provides user interface for selecting period, indicators, and processing options for EU Sales List reporting.
+/// </summary>
 report 323 "ECSL Report Request Page"
 {
     Caption = 'ECSL Report Request Page';

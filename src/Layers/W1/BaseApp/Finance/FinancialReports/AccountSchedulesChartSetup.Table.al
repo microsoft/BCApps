@@ -6,6 +6,15 @@ namespace Microsoft.Finance.FinancialReports;
 
 using System.Visualization;
 
+/// <summary>
+/// Stores chart configuration settings for account schedule visualizations.
+/// Manages chart setup parameters, period definitions, and chart type configurations for financial data presentation.
+/// </summary>
+/// <remarks>
+/// Central configuration table for account schedule chart functionality. Links account schedules
+/// and column layouts with chart visualization parameters including period settings, axis definitions,
+/// and chart line configurations. Supports measure and dimension-based chart presentations.
+/// </remarks>
 table 762 "Account Schedules Chart Setup"
 {
     Caption = 'Account Schedules Chart Setup';
@@ -14,20 +23,32 @@ table 762 "Account Schedules Chart Setup"
 
     fields
     {
+        /// <summary>
+        /// User ID that owns this chart setup configuration.
+        /// </summary>
         field(1; "User ID"; Text[132])
         {
             Caption = 'User ID';
             DataClassification = EndUserIdentifiableInformation;
             Editable = false;
         }
+        /// <summary>
+        /// Chart setup name for identification and selection.
+        /// </summary>
         field(2; Name; Text[30])
         {
             Caption = 'Name';
         }
+        /// <summary>
+        /// Detailed description of the chart setup purpose and configuration.
+        /// </summary>
         field(3; Description; Text[250])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// Account schedule name used as the row definition for the chart.
+        /// </summary>
         field(10; "Account Schedule Name"; Code[10])
         {
             Caption = 'Account Schedule Name';
@@ -41,6 +62,9 @@ table 762 "Account Schedules Chart Setup"
                 RefreshLines(false);
             end;
         }
+        /// <summary>
+        /// Column layout name used as the column definition for the chart.
+        /// </summary>
         field(20; "Column Layout Name"; Code[10])
         {
             Caption = 'Column Layout Name';
@@ -54,6 +78,9 @@ table 762 "Account Schedules Chart Setup"
                 RefreshLines(false);
             end;
         }
+        /// <summary>
+        /// Determines what the X-axis of the chart represents (Period, Account Schedule Line, or Column).
+        /// </summary>
         field(30; "Base X-Axis on"; Option)
         {
             Caption = 'Base X-Axis on';
@@ -67,6 +94,9 @@ table 762 "Account Schedules Chart Setup"
                     "End Date" := "Start Date";
             end;
         }
+        /// <summary>
+        /// Starting date for period-based chart analysis.
+        /// </summary>
         field(31; "Start Date"; Date)
         {
             Caption = 'Start Date';
@@ -76,6 +106,9 @@ table 762 "Account Schedules Chart Setup"
                 TestField("Start Date");
             end;
         }
+        /// <summary>
+        /// Ending date for period-based chart analysis.
+        /// </summary>
         field(32; "End Date"; Date)
         {
             Caption = 'End Date';
@@ -85,12 +118,18 @@ table 762 "Account Schedules Chart Setup"
                 TestField("End Date");
             end;
         }
+        /// <summary>
+        /// Length of each period in the chart (Day, Week, Month, Quarter, Year).
+        /// </summary>
         field(41; "Period Length"; Option)
         {
             Caption = 'Period Length';
             OptionCaption = 'Day,Week,Month,Quarter,Year';
             OptionMembers = Day,Week,Month,Quarter,Year;
         }
+        /// <summary>
+        /// Number of periods to display in the chart visualization.
+        /// </summary>
         field(42; "No. of Periods"; Integer)
         {
             Caption = 'No. of Periods';
@@ -102,6 +141,9 @@ table 762 "Account Schedules Chart Setup"
                     Error(Text002, FieldCaption("No. of Periods"), "No. of Periods");
             end;
         }
+        /// <summary>
+        /// Indicates whether this setup was the last viewed chart configuration.
+        /// </summary>
         field(50; "Last Viewed"; Boolean)
         {
             Caption = 'Last Viewed';
@@ -120,6 +162,9 @@ table 762 "Account Schedules Chart Setup"
                 AccountSchedulesChartSetup.ModifyAll("Last Viewed", false);
             end;
         }
+        /// <summary>
+        /// Indicates whether to include future periods in the chart analysis.
+        /// </summary>
         field(51; "Look Ahead"; Boolean)
         {
             Caption = 'Look Ahead';
@@ -151,42 +196,76 @@ table 762 "Account Schedules Chart Setup"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 
+    /// <summary>
+    /// Sets the account schedule name and updates the record.
+    /// Validates and modifies the chart setup with new account schedule configuration.
+    /// </summary>
+    /// <param name="AccSchedName">Account schedule name to set</param>
     procedure SetAccScheduleName(AccSchedName: Code[10])
     begin
         Validate("Account Schedule Name", AccSchedName);
         Modify(true);
     end;
 
+    /// <summary>
+    /// Sets the column layout name and updates the record.
+    /// Validates and modifies the chart setup with new column layout configuration.
+    /// </summary>
+    /// <param name="ColumnLayoutName">Column layout name to set</param>
     procedure SetColumnLayoutName(ColumnLayoutName: Code[10])
     begin
         Validate("Column Layout Name", ColumnLayoutName);
         Modify(true);
     end;
 
+    /// <summary>
+    /// Sets the chart axis display option and updates the record.
+    /// Configures what the X-axis represents in the chart visualization.
+    /// </summary>
+    /// <param name="ShowPer">Show period option to set</param>
     procedure SetShowPer(ShowPer: Option)
     begin
         Validate("Base X-Axis on", ShowPer);
         Modify(true);
     end;
 
+    /// <summary>
+    /// Sets the period length for chart analysis and updates the record.
+    /// Defines the time span for each period in the chart visualization.
+    /// </summary>
+    /// <param name="PeriodLength">Period length option to set</param>
     procedure SetPeriodLength(PeriodLength: Option)
     begin
         "Period Length" := PeriodLength;
         Modify(true);
     end;
 
+    /// <summary>
+    /// Marks this chart setup as the last viewed configuration.
+    /// Updates the record and clears last viewed flag from other setups.
+    /// </summary>
     procedure SetLastViewed()
     begin
         Validate("Last Viewed", true);
         Modify(true);
     end;
 
+    /// <summary>
+    /// Sets filters on chart setup lines based on current chart configuration.
+    /// Links chart setup lines to this configuration for data retrieval.
+    /// </summary>
+    /// <param name="AccSchedChartSetupLine">Chart setup line record to filter</param>
     procedure SetLinkToLines(var AccSchedChartSetupLine: Record "Acc. Sched. Chart Setup Line")
     begin
         AccSchedChartSetupLine.SetRange("User ID", "User ID");
         AccSchedChartSetupLine.SetRange(Name, Name);
     end;
 
+    /// <summary>
+    /// Sets filters on chart setup lines for measure-based chart display.
+    /// Configures line filtering based on X-axis configuration for measure presentation.
+    /// </summary>
+    /// <param name="AccSchedChartSetupLine">Chart setup line record to filter for measures</param>
     procedure SetLinkToMeasureLines(var AccSchedChartSetupLine: Record "Acc. Sched. Chart Setup Line")
     begin
         SetLinkToLines(AccSchedChartSetupLine);
@@ -200,6 +279,11 @@ table 762 "Account Schedules Chart Setup"
         end;
     end;
 
+    /// <summary>
+    /// Sets filters on chart setup lines for dimension-based chart display.
+    /// Configures line filtering based on X-axis configuration for dimension presentation.
+    /// </summary>
+    /// <param name="AccSchedChartSetupLine">Chart setup line record to filter for dimensions</param>
     procedure SetLinkToDimensionLines(var AccSchedChartSetupLine: Record "Acc. Sched. Chart Setup Line")
     begin
         SetLinkToLines(AccSchedChartSetupLine);
@@ -216,6 +300,11 @@ table 762 "Account Schedules Chart Setup"
         end;
     end;
 
+    /// <summary>
+    /// Refreshes chart setup lines based on current account schedule and column layout configuration.
+    /// Updates line data when configuration changes or when forced refresh is requested.
+    /// </summary>
+    /// <param name="Force">True to force refresh regardless of changes, false to refresh only on changes</param>
     procedure RefreshLines(Force: Boolean)
     var
         AccSchedChartSetupLine: Record "Acc. Sched. Chart Setup Line";
@@ -241,12 +330,22 @@ table 762 "Account Schedules Chart Setup"
             until TempAccSchedChartSetupLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Applies filters to account schedule lines based on current chart setup configuration.
+    /// Filters lines to match the assigned account schedule name and exclude empty descriptions.
+    /// </summary>
+    /// <param name="AccScheduleLine">Account schedule line record to filter</param>
     procedure FilterAccSchedLines(var AccScheduleLine: Record "Acc. Schedule Line")
     begin
         AccScheduleLine.SetRange("Schedule Name", "Account Schedule Name");
         AccScheduleLine.SetFilter(Description, '<>%1', '');
     end;
 
+    /// <summary>
+    /// Applies filters to column layout records based on current chart setup configuration.
+    /// Filters columns to match the assigned column layout name and exclude empty headers.
+    /// </summary>
+    /// <param name="ColumnLayout">Column layout record to filter</param>
     procedure FilterColumnLayout(var ColumnLayout: Record "Column Layout")
     begin
         ColumnLayout.SetRange("Column Layout Name", "Column Layout Name");
@@ -349,6 +448,11 @@ table 762 "Account Schedules Chart Setup"
             SetDimensionChartTypesToDefault(TempAccSchedChartSetupLine2);
     end;
 
+    /// <summary>
+    /// Sets default chart types for measure lines in chart setup configuration.
+    /// Assigns column chart types to unset measure lines up to maximum supported measures.
+    /// </summary>
+    /// <param name="AccSchedChartSetupLine">Chart setup line record to update with default chart types</param>
     procedure SetMeasureChartTypesToDefault(var AccSchedChartSetupLine: Record "Acc. Sched. Chart Setup Line")
     var
         BusinessChartBuffer: Record "Business Chart Buffer";
@@ -371,6 +475,11 @@ table 762 "Account Schedules Chart Setup"
         end;
     end;
 
+    /// <summary>
+    /// Sets default chart types for dimension lines in chart setup configuration.
+    /// Assigns default chart types to unset dimension lines for visualization.
+    /// </summary>
+    /// <param name="AccSchedChartSetupLine">Chart setup line record to update with default chart types</param>
     procedure SetDimensionChartTypesToDefault(var AccSchedChartSetupLine: Record "Acc. Sched. Chart Setup Line")
     begin
         AccSchedChartSetupLine.Reset();

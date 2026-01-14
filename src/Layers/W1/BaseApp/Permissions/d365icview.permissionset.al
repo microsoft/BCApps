@@ -1,11 +1,11 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.Intercompany.Comment;
-using Microsoft.Intercompany.Inbox;
-using Microsoft.Intercompany.Outbox;
 using Microsoft.Intercompany.BankAccount;
+using Microsoft.Intercompany.Comment;
 using Microsoft.Intercompany.Dimension;
 using Microsoft.Intercompany.GLAccount;
+using Microsoft.Intercompany.Inbox;
+using Microsoft.Intercompany.Outbox;
 using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
 

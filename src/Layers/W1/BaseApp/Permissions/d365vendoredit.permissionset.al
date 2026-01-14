@@ -1,44 +1,44 @@
 namespace System.Security.AccessControl;
 
+using Microsoft.Bank.BankAccount;
+using Microsoft.Bank.Check;
+using Microsoft.Bank.Ledger;
+using Microsoft.CRM.BusinessRelation;
+using Microsoft.CRM.Contact;
+using Microsoft.CRM.Duplicates;
+using Microsoft.CRM.Interaction;
+using Microsoft.CRM.Opportunity;
+using Microsoft.CRM.Task;
+using Microsoft.Finance.Analysis;
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.RateChange;
 using Microsoft.Finance.VAT.Registration;
-using Microsoft.Bank.Ledger;
-using Microsoft.Bank.Check;
-using Microsoft.CRM.Duplicates;
-using Microsoft.CRM.Contact;
-using Microsoft.CRM.BusinessRelation;
-using Microsoft.Finance.Currency;
-using Microsoft.Sales.Receivables;
-using Microsoft.Purchases.Payables;
-using Microsoft.Pricing.Calculation;
-using Microsoft.Pricing.PriceList;
-using Microsoft.Finance.GeneralLedger.Ledger;
-using Microsoft.CRM.Interaction;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Item.Catalog;
-using Microsoft.CRM.Opportunity;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Bank.BankAccount;
 using Microsoft.Pricing.Asset;
+using Microsoft.Pricing.Calculation;
+using Microsoft.Pricing.PriceList;
 using Microsoft.Pricing.Source;
 using Microsoft.Pricing.Worksheet;
-using Microsoft.Purchases.History;
-using Microsoft.Purchases.Pricing;
-using Microsoft.Purchases.Archive;
-using Microsoft.Purchases.Setup;
-using Microsoft.Warehouse.Activity.History;
-using Microsoft.Purchases.Remittance;
 using Microsoft.Projects.Resources.Resource;
-using Microsoft.Sales.History;
-using Microsoft.Sales.Customer;
+using Microsoft.Purchases.Archive;
 using Microsoft.Purchases.Document;
-using Microsoft.CRM.Task;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Pricing;
+using Microsoft.Purchases.Remittance;
+using Microsoft.Purchases.Setup;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Receivables;
 using Microsoft.Warehouse.Activity;
-using Microsoft.Warehouse.Request;
+using Microsoft.Warehouse.Activity.History;
 using Microsoft.Warehouse.Document;
+using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Worksheet;
-using Microsoft.Finance.Analysis;
 
 permissionset 9921 "D365 VENDOR, EDIT"
 {
@@ -88,10 +88,6 @@ permissionset 9921 "D365 VENDOR, EDIT"
                   tabledata "Purch. Rcpt. Line" = rm,
                   tabledata "Purchase Discount Access" = RIMD,
                   tabledata "Purchase Header Archive" = r,
-#if not CLEAN25
-                  tabledata "Purchase Line Discount" = RIMD,
-                  tabledata "Purchase Price" = RIMD,
-#endif
                   tabledata "Purchase Price Access" = RIMD,
                   tabledata "Purchases & Payables Setup" = M,
                   tabledata "Registered Whse. Activity Line" = rm,

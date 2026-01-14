@@ -2,6 +2,13 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+
+/// <summary>
+/// Table Dimension Value (ID 349).
+/// This table stores the individual values that can be assigned to dimensions.
+/// Dimension values represent the actual categories or items within a dimension that can be used for analysis.
+/// Supports hierarchical structures with heading, total, and begin/end-total types for reporting purposes.
+/// </summary>
 namespace Microsoft.Finance.Dimension;
 
 using Microsoft.CostAccounting.Setup;
@@ -12,6 +19,11 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Intercompany.Dimension;
 using Microsoft.Inventory.Analysis;
 
+/// <summary>
+/// Table Dimension Value (ID 349).
+/// Stores the individual values that can be assigned to dimensions for transaction analysis.
+/// Provides hierarchical organization with different value types for flexible reporting structures.
+/// </summary>
 table 349 "Dimension Value"
 {
     Caption = 'Dimension Value';
@@ -20,6 +32,10 @@ table 349 "Dimension Value"
 
     fields
     {
+        /// <summary>
+        /// The dimension code that this value belongs to.
+        /// Links this dimension value to its parent dimension definition.
+        /// </summary>
         field(1; "Dimension Code"; Code[20])
         {
             Caption = 'Dimension Code';
@@ -31,6 +47,10 @@ table 349 "Dimension Value"
                 UpdateMapToICDimensionCode();
             end;
         }
+        /// <summary>
+        /// The unique code that identifies this dimension value within its dimension.
+        /// This code is used in transactions to specify the dimension analysis category.
+        /// </summary>
         field(2; "Code"; Code[20])
         {
             Caption = 'Code';
@@ -44,11 +64,19 @@ table 349 "Dimension Value"
                       FieldCaption(Code));
             end;
         }
+        /// <summary>
+        /// The descriptive name of the dimension value that appears in the user interface.
+        /// Provides a user-friendly description of what this dimension value represents.
+        /// </summary>
         field(3; Name; Text[50])
         {
             Caption = 'Name';
             OptimizeForTextSearch = true;
         }
+        /// <summary>
+        /// Defines the type of dimension value for reporting hierarchy purposes.
+        /// Standard values can be posted to, while Heading, Total, Begin-Total, and End-Total are used for reporting structure.
+        /// </summary>
         field(4; "Dimension Value Type"; Option)
         {
             Caption = 'Dimension Value Type';
@@ -65,6 +93,10 @@ table 349 "Dimension Value"
                 Totaling := '';
             end;
         }
+        /// <summary>
+        /// Filter specification for Total and End-Total dimension value types.
+        /// Defines which dimension values are included in the total calculation for reporting.
+        /// </summary>
         field(5; Totaling; Text[250])
         {
             Caption = 'Totaling';
@@ -80,23 +112,43 @@ table 349 "Dimension Value"
                     FieldError("Dimension Value Type");
             end;
         }
+        /// <summary>
+        /// Indicates whether the dimension value is blocked from being used in new transactions.
+        /// Blocked dimension values cannot be selected in new documents but existing data remains unchanged.
+        /// </summary>
         field(6; Blocked; Boolean)
         {
             Caption = 'Blocked';
         }
+        /// <summary>
+        /// The consolidation code used when consolidating financial data across business units.
+        /// Links this dimension value to corresponding dimension values in subsidiary companies.
+        /// </summary>
         field(7; "Consolidation Code"; Code[20])
         {
             AccessByPermission = TableData "Business Unit" = R;
             Caption = 'Consolidation Code';
         }
+        /// <summary>
+        /// Controls the visual indentation level for hierarchical display in reports and forms.
+        /// Used to create structured layouts with heading and total dimension values.
+        /// </summary>
         field(8; Indentation; Integer)
         {
             Caption = 'Indentation';
         }
+        /// <summary>
+        /// Identifies which global dimension position this dimension value belongs to.
+        /// Values 1-8 correspond to Global Dimension 1, Global Dimension 2, and Shortcut Dimensions 3-8.
+        /// </summary>
         field(9; "Global Dimension No."; Integer)
         {
             Caption = 'Global Dimension No.';
         }
+        /// <summary>
+        /// Maps this dimension value to an intercompany dimension for transactions between related companies.
+        /// Must correspond to a valid IC dimension in the intercompany setup.
+        /// </summary>
         field(10; "Map-to IC Dimension Code"; Code[20])
         {
             Caption = 'Map-to IC Dimension Code';
@@ -107,11 +159,19 @@ table 349 "Dimension Value"
                     Validate("Map-to IC Dimension Value Code", '');
             end;
         }
+        /// <summary>
+        /// Maps this dimension value to a specific intercompany dimension value code.
+        /// Used for automatic translation during intercompany transactions.
+        /// </summary>
         field(11; "Map-to IC Dimension Value Code"; Code[20])
         {
             Caption = 'Map-to IC Dimension Value Code';
             TableRelation = "IC Dimension Value".Code where("Dimension Code" = field("Map-to IC Dimension Code"));
         }
+        /// <summary>
+        /// Unique system-generated identifier for the dimension value.
+        /// Used internally for performance optimization in dimension set operations.
+        /// </summary>
         field(12; "Dimension Value ID"; Integer)
         {
             AutoIncrement = true;
@@ -123,10 +183,18 @@ table 349 "Dimension Value"
                 Error(Text006, FieldCaption("Dimension Value ID"));
             end;
         }
+        /// <summary>
+        /// System field that tracks when the dimension value record was last modified.
+        /// Used for synchronization and audit purposes.
+        /// </summary>
         field(8001; "Last Modified Date Time"; DateTime)
         {
             Caption = 'Last Modified Date Time';
         }
+        /// <summary>
+        /// System identifier linking this dimension value to its parent dimension record.
+        /// Used for API integration and maintaining referential integrity.
+        /// </summary>
         field(8002; "Dimension Id"; Guid)
         {
             Caption = 'Dimension Id';
@@ -266,6 +334,11 @@ table 349 "Dimension Value"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 
+    /// <summary>
+    /// Checks whether this dimension value is being used in posted entries or dimension sets.
+    /// Prevents deletion or modification of dimension values that would cause data integrity issues.
+    /// </summary>
+    /// <returns>True if the dimension value is used in the system; false otherwise.</returns>
     procedure CheckIfDimValueUsed() Result: Boolean
     begin
         DimSetEntry.SetCurrentKey("Dimension Value ID");
@@ -591,6 +664,13 @@ table 349 "Dimension Value"
         end;
     end;
 
+    /// <summary>
+    /// Opens a lookup page for dimension values and returns a filter string of selected values.
+    /// Used in filter fields to allow multi-selection of dimension values.
+    /// </summary>
+    /// <param name="Dim">The dimension code to filter dimension values by.</param>
+    /// <param name="Text">Returns the filter string of selected dimension values.</param>
+    /// <returns>True if values were selected; false if cancelled.</returns>
     procedure LookUpDimFilter(Dim: Code[20]; var Text: Text): Boolean
     var
         DimVal: Record "Dimension Value";
@@ -608,6 +688,12 @@ table 349 "Dimension Value"
         exit(false)
     end;
 
+    /// <summary>
+    /// Opens a lookup page for selecting a single dimension value.
+    /// Used for dimension value selection in forms and fields.
+    /// </summary>
+    /// <param name="DimCode">The dimension code to filter dimension values by.</param>
+    /// <param name="DimValueCode">The current dimension value code, returns the selected value.</param>
     procedure LookupDimValue(DimCode: Code[20]; var DimValueCode: Code[20])
     var
         DimValue: Record "Dimension Value";
@@ -674,21 +760,49 @@ table 349 "Dimension Value"
             ICDimensionValue.ModifyAll("Map-to Dimension Value Code", '');
     end;
 
+    /// <summary>
+    /// Integration event raised after checking if a dimension value is used in the system.
+    /// Allows extensions to customize the dimension value usage validation logic.
+    /// </summary>
+    /// <param name="DimensionValue">The dimension value being checked for usage.</param>
+    /// <param name="DimensionSetEntry">The dimension set entry used in the usage check.</param>
+    /// <param name="Result">Returns true if the dimension value is used; can be modified by subscribers.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckIfDimValueUsed(DimensionValue: Record "Dimension Value"; DimensionSetEntry: Record "Dimension Set Entry"; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking if a dimension value is used during deletion.
+    /// Allows extensions to implement custom dimension value usage validation.
+    /// </summary>
+    /// <param name="DimensionValue">The dimension value being deleted.</param>
+    /// <param name="xDimensionValue">The original dimension value record before changes.</param>
+    /// <param name="IsHandled">Set to true to skip standard usage checking logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckIfDimValueUsedFromOnDelete(DimensionValue: Record "Dimension Value"; xDimensionValue: Record "Dimension Value"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating cost accounting accounts from dimension value changes.
+    /// Allows extensions to customize cost accounting integration logic.
+    /// </summary>
+    /// <param name="DimensionValue">The dimension value being modified.</param>
+    /// <param name="xDimensionValue">The original dimension value record before changes.</param>
+    /// <param name="CallingTrigger">Indicates which trigger called this event (OnInsert, OnModify, OnRename).</param>
+    /// <param name="IsHandled">Set to true to skip standard cost accounting update logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateCostAccFromDim(var DimensionValue: Record "Dimension Value"; var xDimensionValue: Record "Dimension Value"; CallingTrigger: Option OnInsert,OnModify,,OnRename; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before renaming a dimension value.
+    /// Allows extensions to perform custom validation or processing before the rename operation.
+    /// </summary>
+    /// <param name="DimensionValue">The dimension value after rename with new values.</param>
+    /// <param name="xDimensionValue">The original dimension value record before rename.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnRename(var DimensionValue: Record "Dimension Value"; var xDimensionValue: Record "Dimension Value")
     begin

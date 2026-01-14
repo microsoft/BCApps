@@ -16,8 +16,8 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Intrastat;
-using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Pricing.Calculation;
@@ -106,23 +106,27 @@ table 6012 "Service Line Archive"
         }
         field(15; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(16; "Outstanding Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Outstanding Quantity';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(17; "Qty. to Invoice"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Invoice';
             DecimalPlaces = 0 : 5;
 
         }
         field(18; "Qty. to Ship"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Ship';
             DecimalPlaces = 0 : 5;
         }
@@ -135,17 +139,20 @@ table 6012 "Service Line Archive"
         }
         field(23; "Unit Cost (LCY)"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 2;
             Caption = 'Unit Cost (LCY)';
         }
         field(25; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(27; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Line Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -178,21 +185,25 @@ table 6012 "Service Line Archive"
         }
         field(34; "Gross Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Gross Weight';
             DecimalPlaces = 0 : 5;
         }
         field(35; "Net Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Net Weight';
             DecimalPlaces = 0 : 5;
         }
         field(36; "Units per Parcel"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Units per Parcel';
             DecimalPlaces = 0 : 5;
         }
         field(37; "Unit Volume"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Unit Volume';
             DecimalPlaces = 0 : 5;
         }
@@ -247,6 +258,7 @@ table 6012 "Service Line Archive"
         }
         field(58; "Qty. Shipped Not Invoiced"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Shipped Not Invoiced';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -260,12 +272,14 @@ table 6012 "Service Line Archive"
         }
         field(60; "Quantity Shipped"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity Shipped';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(61; "Quantity Invoiced"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity Invoiced';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -382,12 +396,14 @@ table 6012 "Service Line Archive"
         }
         field(92; "Outstanding Amount (LCY)"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Outstanding Amount (LCY)';
             Editable = false;
         }
         field(93; "Shipped Not Invoiced (LCY)"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Shipped Not Invoiced (LCY)';
             Editable = false;

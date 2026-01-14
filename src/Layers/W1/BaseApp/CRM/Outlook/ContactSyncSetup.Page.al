@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEAN28
 namespace Microsoft.CRM.Outlook;
 
 using Microsoft.Utilities;
@@ -13,6 +14,9 @@ page 6701 "Contact Sync. Setup"
     InsertAllowed = false;
     LinksAllowed = false;
     PageType = Card;
+    ObsoleteReason = 'Contact sync has been moved to the assisted setup experience with the new Graph-based implementation.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
     SourceTable = "Exchange Sync";
 
     layout
@@ -215,3 +219,4 @@ page 6701 "Contact Sync. Setup"
         SetupTelemetryTxt: Label 'Contact Sync has been set up and validated.', Locked = true;
 
 }
+#endif

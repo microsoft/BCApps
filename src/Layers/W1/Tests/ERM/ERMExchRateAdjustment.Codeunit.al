@@ -14,6 +14,9 @@ codeunit 134883 "ERM Exch. Rate Adjustment"
         LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibrarySales: Codeunit "Library - Sales";
         IsInitialized: Boolean;
         ExpectNoAdjustmentErr: Label 'Expect no adjustment for entries before %1';
         ExchangeRateAdjmtTxt: Label 'Exchange Rate Adjmt. of %1 %2';
@@ -118,6 +121,57 @@ codeunit 134883 "ERM Exch. Rate Adjustment"
         Currencies.Code.AssertEquals(Currency.Code);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExchRateAdjmtRegisterSyncWithLedgerEntries()
+    var
+        Currency: Record Currency;
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        SalesHeader: Record "Sales Header";
+        PurchaseHeader: Record "Purchase Header";
+        DocumentNo: Code[20];
+        PostingDate: Date;
+    begin
+        // [SCENARIO 612802] Exchange Rate Adjustment Registers and Exch. Rate Adjmt. Ledger Entries are in synchrony after multiple adjustments.
+
+        // [GIVEN] Currency with exchange rate 1-0.5
+        Initialize();
+        CreateCurrencyWithExchangeRate(CurrencyExchangeRate);
+        Currency.Get(CurrencyExchangeRate."Currency Code");
+        UpdateExchangeRate(CurrencyExchangeRate, 1, 0.5);
+        PostingDate := WorkDate();
+
+        // [GIVEN] Posted Sales Invoice for 1000 with exchange rate 1-0.5
+        CreateAndPostSalesInvoice(SalesHeader, CurrencyExchangeRate."Currency Code", PostingDate, 1000);
+
+        // [GIVEN] Exchange rate changed to 1-0.6 and adjustment run
+        UpdateCurrencyExchangeRate(CurrencyExchangeRate, PostingDate, 1, 0.6);
+        DocumentNo := Format(LibraryRandom.RandInt(100));
+        LibraryERM.RunExchRateAdjustment(
+          CurrencyExchangeRate."Currency Code", PostingDate, PostingDate, ExchangeRateAdjmtTxt, PostingDate, DocumentNo, false);
+
+        // [GIVEN] Posted Purchase Invoice for 2000 with exchange rate 1-0.6
+        CreateAndPostPurchaseInvoice(PurchaseHeader, CurrencyExchangeRate."Currency Code", PostingDate, 2000);
+
+        // [GIVEN] Exchange rate changed to 1-0.4 and adjustment run
+        UpdateCurrencyExchangeRate(CurrencyExchangeRate, PostingDate, 1, 0.4);
+        DocumentNo := Format(LibraryRandom.RandInt(100));
+        LibraryERM.RunExchRateAdjustment(
+          CurrencyExchangeRate."Currency Code", PostingDate, PostingDate, ExchangeRateAdjmtTxt, PostingDate, DocumentNo, false);
+
+        // [GIVEN] Posted Sales Invoice for 1000 with exchange rate 1-0.4
+        CreateAndPostSalesInvoice(SalesHeader, CurrencyExchangeRate."Currency Code", PostingDate, 1000);
+
+        // [WHEN] Exchange rate changed to 1-0.8 and adjustment run
+        UpdateCurrencyExchangeRate(CurrencyExchangeRate, PostingDate, 1, 0.8);
+        DocumentNo := Format(LibraryRandom.RandInt(100));
+        LibraryERM.RunExchRateAdjustment(
+          CurrencyExchangeRate."Currency Code", PostingDate, PostingDate, ExchangeRateAdjmtTxt, PostingDate, DocumentNo, false);
+
+        // [THEN] Exchange Rate Adjustment Register amounts match sum of Exch. Rate Adjmt. Ledger Entry amounts
+        VerifyExchRateAdjmtRegisterSync(CurrencyExchangeRate."Currency Code");
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -131,6 +185,7 @@ codeunit 134883 "ERM Exch. Rate Adjustment"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"ERM Exch. Rate Adjustment");
 
         LibraryERMCountryData.UpdateJournalTemplMandatory(false);
+        LibraryERMCountryData.UpdatePurchasesPayablesSetup();
 
         IsInitialized := true;
         Commit();
@@ -248,5 +303,90 @@ codeunit 134883 "ERM Exch. Rate Adjustment"
         GLEntry.SetRange("Document No.", DocumentNo);
         exit(GLEntry.FindFirst())
     end;
+
+    local procedure CreateAndPostSalesInvoice(var SalesHeader: Record "Sales Header"; CurrencyCode: Code[10]; PostingDate: Date; Amount: Decimal)
+    var
+        SalesLine: Record "Sales Line";
+        Customer: Record Customer;
+        Item: Record Item;
+    begin
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Currency Code", CurrencyCode);
+        Customer.Modify(true);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        SalesHeader.Validate("Posting Date", PostingDate);
+        SalesHeader.Modify(true);
+
+        LibraryInventory.CreateItem(Item);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        SalesLine.Validate("Unit Price", Amount);
+        SalesLine.Modify(true);
+
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+    end;
+
+    local procedure CreateAndPostPurchaseInvoice(var PurchaseHeader: Record "Purchase Header"; CurrencyCode: Code[10]; PostingDate: Date; Amount: Decimal)
+    var
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        Item: Record Item;
+    begin
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("Currency Code", CurrencyCode);
+        Vendor.Modify(true);
+
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        PurchaseHeader.Validate("Posting Date", PostingDate);
+        PurchaseHeader.Modify(true);
+
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+        PurchaseLine.Validate("Direct Unit Cost", Amount);
+        PurchaseLine.Modify(true);
+
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+    end;
+
+    local procedure UpdateCurrencyExchangeRate(var CurrencyExchangeRate: Record "Currency Exchange Rate"; StartingDate: Date; ExchangeRateAmount: Decimal; RelationalExchRateAmount: Decimal)
+    var
+        CurrencyExchangeRate2: Record "Currency Exchange Rate";
+    begin
+        CurrencyExchangeRate2.SetRange("Currency Code", CurrencyExchangeRate."Currency Code");
+        CurrencyExchangeRate2.SetRange("Starting Date", StartingDate);
+        if CurrencyExchangeRate2.FindFirst() then begin
+            CurrencyExchangeRate2.Validate("Exchange Rate Amount", ExchangeRateAmount);
+            CurrencyExchangeRate2.Validate("Adjustment Exch. Rate Amount", ExchangeRateAmount);
+            CurrencyExchangeRate2.Validate("Relational Exch. Rate Amount", RelationalExchRateAmount);
+            CurrencyExchangeRate2.Validate("Relational Adjmt Exch Rate Amt", RelationalExchRateAmount);
+            CurrencyExchangeRate2.Modify(true);
+            CurrencyExchangeRate := CurrencyExchangeRate2;
+        end;
+    end;
+
+    local procedure VerifyExchRateAdjmtRegisterSync(CurrencyCode: Code[10])
+    var
+        ExchRateAdjmtReg: Record "Exch. Rate Adjmt. Reg.";
+        ExchRateAdjmtLedgEntry: Record "Exch. Rate Adjmt. Ledg. Entry";
+        TotalLedgerAmount: Decimal;
+    begin
+        ExchRateAdjmtReg.SetRange("Currency Code", CurrencyCode);
+        if ExchRateAdjmtReg.FindSet() then
+            repeat
+                TotalLedgerAmount := 0;
+                ExchRateAdjmtLedgEntry.SetRange("Register No.", ExchRateAdjmtReg."No.");
+                if ExchRateAdjmtLedgEntry.FindSet() then
+                    repeat
+                        TotalLedgerAmount += ExchRateAdjmtLedgEntry."Adjustment Amount";
+                    until ExchRateAdjmtLedgEntry.Next() = 0;
+
+                Assert.AreEqual(
+                    TotalLedgerAmount,
+                    ExchRateAdjmtReg."Adjusted Amt. (LCY)",
+                    StrSubstNo('Register %1 adjusted amount %2 does not match sum of ledger entries %3',
+                        ExchRateAdjmtReg."No.", ExchRateAdjmtReg."Adjusted Amt. (LCY)", TotalLedgerAmount));
+            until ExchRateAdjmtReg.Next() = 0;
+    end;
+
 }
 

@@ -8,6 +8,10 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using System.Threading;
 
+/// <summary>
+/// Executes dimension correction processing by updating G/L entries with corrected dimension values.
+/// Runs as background job queue entry with comprehensive error handling and progress tracking.
+/// </summary>
 codeunit 2581 "Dim Correction Run"
 {
     TableNo = "Job Queue Entry";
@@ -21,6 +25,10 @@ codeunit 2581 "Dim Correction Run"
         RunDimensionCorrection(DimensionCorrection);
     end;
 
+    /// <summary>
+    /// Processes dimension correction by updating all affected G/L entries with new dimension values.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction record to process</param>
     procedure RunDimensionCorrection(var DimensionCorrection: Record "Dimension Correction")
     var
         TempDimCorrectionSetBuffer: Record "Dim Correction Set Buffer" temporary;
@@ -172,11 +180,23 @@ codeunit 2581 "Dim Correction Run"
         CommitedLedgerEntriesUpdateTelemetryLbl: Label 'Commited G/L Entries update. Dimension Correction Entry No.: %1, Time from last commit: %2. Number of entries iterated: %3.', Locked = true, Comment = '%1 Dimension Correction Entry No., %2 - Time passed between commits, %3 Number';
         DimensionCorrectionTok: Label 'DimensionCorrection', Locked = true;
 
+    /// <summary>
+    /// Integration event raised after updating a G/L entry during dimension correction processing.
+    /// </summary>
+    /// <param name="GLEntry">G/L entry that was updated</param>
+    /// <param name="TempDimCorrectionSetBuffer">Temporary dimension correction set buffer</param>
+    /// <param name="Result">Processing result status</param>
+    /// <param name="DimensionCorrectionEntryNo">Entry number of the dimension correction</param>
+    /// <param name="TempInvalidatedDimCorrection">Temporary invalidated dimension correction record</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateGLEntry(var GLEntry: Record "G/L Entry"; var TempDimCorrectionSetBuffer: Record "Dim Correction Set Buffer"; var Result: Boolean; DimensionCorrectionEntryNo: Integer; var TempInvalidatedDimCorrection: Record "Invalidated Dim Correction" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after updating global dimensions from dimension set ID.
+    /// </summary>
+    /// <param name="GLEntry">G/L entry with updated global dimensions</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateGLEntryOnAfterUpdateGlobalDimFromDimSetID(var GLEntry: Record "G/L Entry")
     begin

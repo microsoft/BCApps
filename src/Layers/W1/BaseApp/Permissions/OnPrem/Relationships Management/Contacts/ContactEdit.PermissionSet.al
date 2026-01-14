@@ -1,28 +1,28 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.CRM.Task;
 using Microsoft.CRM.BusinessRelation;
+using Microsoft.CRM.Comment;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Duplicates;
-using Microsoft.CRM.Profiling;
-using Microsoft.Foundation.Address;
-using Microsoft.Finance.Currency;
-using Microsoft.Sales.Customer;
 using Microsoft.CRM.Interaction;
-using Microsoft.CRM.Setup;
 using Microsoft.CRM.Opportunity;
-using Microsoft.Purchases.History;
-using Microsoft.Purchases.Document;
-using Microsoft.Purchases.Archive;
-using Microsoft.Sales.History;
-using Microsoft.CRM.Comment;
-using Microsoft.Sales.Document;
-using Microsoft.Sales.Archive;
+using Microsoft.CRM.Profiling;
 using Microsoft.CRM.Segment;
-using Microsoft.Purchases.Vendor;
+using Microsoft.CRM.Setup;
+using Microsoft.CRM.Task;
 using Microsoft.CRM.Team;
-using Microsoft.Inventory.Intrastat;
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.VAT.Registration;
+using Microsoft.Foundation.Address;
+using Microsoft.Inventory.Intrastat;
+using Microsoft.Purchases.Archive;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Archive;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
 
 permissionset 257 "Contact - Edit"
 {

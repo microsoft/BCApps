@@ -176,7 +176,7 @@ codeunit 136908 "Report Settings"
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"Report Settings");
 
-        TestReportID := REPORT::"Customer - Top 10 List";
+        TestReportID := REPORT::"Chart of Accounts";
         IsInitialized := true;
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"Report Settings");
     end;
@@ -209,13 +209,13 @@ codeunit 136908 "Report Settings"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure TestReportRequestPageModalHandler(var CustomerTop10List: TestRequestPage "Customer - Top 10 List")
+    procedure TestReportRequestPageModalHandler(var ChartOfAccounts: TestRequestPage "Chart of Accounts")
     begin
         case LibraryVariableStorage.DequeueInteger() of
             PageAction::Cancel:
-                CustomerTop10List.Cancel().Invoke();
+                ChartOfAccounts.Cancel().Invoke();
             PageAction::OK:
-                CustomerTop10List.OK().Invoke();
+                ChartOfAccounts.OK().Invoke();
         end;
     end;
 }

@@ -6,8 +6,8 @@ namespace Microsoft.Sales.History;
 
 using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item.Catalog;
-using Microsoft.Utilities;
 using Microsoft.Sales.Document;
+using Microsoft.Utilities;
 
 page 5852 "Get Post.Doc - S.InvLn Subform"
 {

@@ -25,10 +25,6 @@ using Microsoft.Service.Reports;
 using Microsoft.Service.Resources;
 using Microsoft.Service.Setup;
 using Microsoft.Utilities;
-#if not CLEAN25
-using Microsoft.Integration.FieldService;
-using Microsoft.Integration.Dataverse;
-#endif
 
 page 8908 "Service Manager Role Center"
 {
@@ -669,45 +665,6 @@ page 8908 "Service Manager Role Center"
                     }
                 }
             }
-#if not CLEAN25
-            group("Group16")
-            {
-                Caption = 'Dynamics 365 Field Service';
-                Visible = false;
-                ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                ObsoleteState = Pending;
-                ObsoleteTag = '25.0';
-
-                action("Bookable Resources - Dynamics 365 Field Service")
-                {
-                    ApplicationArea = Suite;
-                    Caption = 'Bookable Resources - Dynamics 365 Field Service';
-                    RunObject = page "FS Bookable Resource List";
-                    ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-                }
-                action("Customer Assets - Dynamics 365 Field Service")
-                {
-                    ApplicationArea = Suite;
-                    Caption = 'Customer Assets - Dynamics 365 Field Service';
-                    RunObject = page "FS Customer Asset List";
-                    ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-                }
-                action("Records Skipped For Synchronization")
-                {
-                    ApplicationArea = Suite;
-                    Caption = 'Coupled Data Synchronization Errors';
-                    RunObject = page "CRM Skipped Records";
-                    AccessByPermission = TableData "CRM Integration Record" = R;
-                    ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-                }
-            }
-#endif
         }
     }
 }

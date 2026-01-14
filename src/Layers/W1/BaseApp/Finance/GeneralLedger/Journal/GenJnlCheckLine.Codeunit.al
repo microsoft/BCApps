@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,6 +29,15 @@ using Microsoft.Sales.Receivables;
 using System.Security.User;
 using System.Utilities;
 
+/// <summary>
+/// Provides comprehensive validation and checking functionality for general journal lines before posting.
+/// Performs critical business logic validation including account validation, dimension checking, and posting setup verification.
+/// </summary>
+/// <remarks>
+/// Core validation engine for journal line integrity including account existence, dimension validation, and posting setup verification.
+/// Key validations: Account and balancing account validation, dimension consistency, VAT setup verification, and business rule enforcement.
+/// Extensibility: Integration events enable custom validation rules and business logic checks throughout the validation process.
+/// </remarks>
 codeunit 11 "Gen. Jnl.-Check Line"
 {
     Permissions = tabledata "General Posting Setup" = rimd,
@@ -51,9 +60,6 @@ codeunit 11 "Gen. Jnl.-Check Line"
         CostAccMgt: Codeunit "Cost Account Mgt";
         ApplicationAreaMgmt: Codeunit System.Environment.Configuration."Application Area Mgmt.";
         ErrorMessageMgt: Codeunit "Error Message Management";
-#if not CLEAN25
-        FeatureKeyManagement: Codeunit System.Environment.Configuration."Feature Key Management";
-#endif
         SkipFiscalYearCheck: Boolean;
         GenJnlTemplateFound: Boolean;
         OverrideDimErr: Boolean;
@@ -91,6 +97,16 @@ codeunit 11 "Gen. Jnl.-Check Line"
         GLAccSourceCurrencyDoesNotMatchErr: Label 'The currency code %1 on general journal line does not match with the any source currency code of G/L account %2.', Comment = '%1 - currency code, %2 - G/L Account No.';
         GLAccSourceCurrencyDoesNotAllowedErr: Label 'The currency code %1 on general journal line does not allowed for posting to G/L account %2.', Comment = '%1 - currency code, %2 - G/L Account No.';
 
+    /// <summary>
+    /// Performs comprehensive validation checks on a general journal line before posting.
+    /// Validates account numbers, amounts, dimensions, dates, and posting setup requirements.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line record to validate</param>
+    /// <remarks>
+    /// Core validation procedure that ensures journal line integrity before posting.
+    /// Performs validation of accounts, balancing accounts, amounts, currency, dates, dimensions, and business rules.
+    /// Integration events enable custom validation logic throughout the checking process.
+    /// </remarks>
     procedure RunCheck(var GenJnlLine: Record "Gen. Journal Line")
     var
         ICGLAcount: Record "IC G/L Account";
@@ -201,9 +217,6 @@ codeunit 11 "Gen. Jnl.-Check Line"
         if not OverrideDimErr then
             CheckDimensions(GenJnlLine);
 
-#if not CLEAN25
-        if FeatureKeyManagement.IsGLCurrencyRevaluationEnabled() then
-#endif
         CheckCurrencyCode(GenJnlLine);
 
         if CostAccSetup.Get() then
@@ -270,6 +283,11 @@ codeunit 11 "Gen. Jnl.-Check Line"
             GenJnlLine.TestField("Applies-to ID", '', ErrorInfo.Create());
     end;
 
+    /// <summary>
+    /// Retrieves error messages collected during journal line validation checking.
+    /// Returns all validation errors found during the RunCheck procedure execution.
+    /// </summary>
+    /// <param name="NewTempErrorMessage">Temporary error message record to receive collected errors</param>
     procedure GetErrors(var NewTempErrorMessage: Record "Error Message" temporary)
     begin
         NewTempErrorMessage.Copy(TempErrorMessage, true);
@@ -285,6 +303,12 @@ codeunit 11 "Gen. Jnl.-Check Line"
         end;
     end;
 
+    /// <summary>
+    /// Checks if a posting date is not allowed based on general ledger setup restrictions.
+    /// Validates against posting date restrictions in general ledger setup.
+    /// </summary>
+    /// <param name="PostingDate">Date to validate for posting allowance</param>
+    /// <returns>True if the posting date is not allowed, false if it is allowed</returns>
     procedure DateNotAllowed(PostingDate: Date): Boolean
     var
         SetupRecordID: RecordID;
@@ -292,6 +316,12 @@ codeunit 11 "Gen. Jnl.-Check Line"
         exit(IsDateNotAllowed(PostingDate, SetupRecordID));
     end;
 
+    /// <summary>
+    /// Checks if a posting date is not allowed for deferral transactions based on setup restrictions.
+    /// Validates against deferral-specific posting date restrictions.
+    /// </summary>
+    /// <param name="PostingDate">Date to validate for deferral posting allowance</param>
+    /// <returns>True if the deferral posting date is not allowed, false if it is allowed</returns>
     procedure DeferralPostingDateNotAllowed(PostingDate: Date): Boolean
     var
         SetupRecordID: RecordID;
@@ -299,6 +329,13 @@ codeunit 11 "Gen. Jnl.-Check Line"
         exit(IsDeferralPostingDateNotAllowed(PostingDate, SetupRecordID));
     end;
 
+    /// <summary>
+    /// Checks if a posting date is not allowed for the specified journal template based on setup restrictions.
+    /// Validates posting date against template-specific and user-specific posting date limitations.
+    /// </summary>
+    /// <param name="PostingDate">Date to validate for posting allowance</param>
+    /// <param name="TemplateName">Journal template code to check posting date restrictions for</param>
+    /// <returns>True if the posting date is not allowed, false if it is allowed</returns>
     procedure DateNotAllowed(PostingDate: Date; TemplateName: Code[20]): Boolean
     var
         SetupRecordID: RecordID;
@@ -306,6 +343,13 @@ codeunit 11 "Gen. Jnl.-Check Line"
         exit(IsDateNotAllowed(PostingDate, SetupRecordID, TemplateName));
     end;
 
+    /// <summary>
+    /// Checks if a posting date is not allowed based on user setup and general ledger setup restrictions.
+    /// Provides detailed setup record information for troubleshooting date restriction issues.
+    /// </summary>
+    /// <param name="PostingDate">Date to validate for posting allowance</param>
+    /// <param name="SetupRecordID">Returns the record ID of the setup causing date restriction</param>
+    /// <returns>True if the posting date is not allowed, false if it is allowed</returns>
     procedure IsDateNotAllowed(PostingDate: Date; var SetupRecordID: RecordID) DateIsNotAllowed: Boolean
     var
         UserSetupManagement: Codeunit "User Setup Management";
@@ -321,6 +365,13 @@ codeunit 11 "Gen. Jnl.-Check Line"
         exit(DateIsNotAllowed);
     end;
 
+    /// <summary>
+    /// Checks if a posting date is not allowed for deferral transactions with detailed setup information.
+    /// Validates against deferral-specific posting date restrictions and provides setup record details.
+    /// </summary>
+    /// <param name="PostingDate">Date to validate for deferral posting allowance</param>
+    /// <param name="SetupRecordID">Returns the record ID of the setup causing date restriction</param>
+    /// <returns>True if the deferral posting date is not allowed, false if it is allowed</returns>
     procedure IsDeferralPostingDateNotAllowed(PostingDate: Date; var SetupRecordID: RecordID) DateIsNotAllowed: Boolean
     var
         UserSetupManagement: Codeunit "User Setup Management";
@@ -336,6 +387,14 @@ codeunit 11 "Gen. Jnl.-Check Line"
         exit(DateIsNotAllowed);
     end;
 
+    /// <summary>
+    /// Checks if a posting date is not allowed for the specified journal template with detailed setup information.
+    /// Validates posting date against template-specific restrictions and provides setup record details for troubleshooting.
+    /// </summary>
+    /// <param name="PostingDate">Date to validate for posting allowance</param>
+    /// <param name="SetupRecordID">Returns the record ID of the setup causing date restriction</param>
+    /// <param name="TemplateName">Journal template code to check posting date restrictions for</param>
+    /// <returns>True if the posting date is not allowed, false if it is allowed</returns>
     procedure IsDateNotAllowed(PostingDate: Date; var SetupRecordID: RecordID; TemplateName: Code[20]) DateIsNotAllowed: Boolean
     var
         UserSetupManagement: Codeunit "User Setup Management";
@@ -352,16 +411,31 @@ codeunit 11 "Gen. Jnl.-Check Line"
         exit(DateIsNotAllowed);
     end;
 
+    /// <summary>
+    /// Sets the general journal batch context for validation operations.
+    /// Configures the batch context used during journal line validation checks.
+    /// </summary>
+    /// <param name="NewGenJnlBatch">General journal batch record to set as validation context</param>
     procedure SetGenJnlBatch(NewGenJnlBatch: Record "Gen. Journal Batch")
     begin
         GenJnlBatch := NewGenJnlBatch;
     end;
 
+    /// <summary>
+    /// Sets whether to skip fiscal year validation during date checking.
+    /// Controls fiscal year boundary validation during journal line validation.
+    /// </summary>
+    /// <param name="NewValue">True to skip fiscal year validation, false to perform validation</param>
     procedure SetSkipFiscalYearCheck(NewValue: Boolean)
     begin
         SkipFiscalYearCheck := NewValue;
     end;
 
+    /// <summary>
+    /// Validates that journal line amount is not positive and raises error if it is.
+    /// Used for transaction types that should only have negative amounts (e.g., payments).
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line record to validate</param>
     procedure ErrorIfPositiveAmt(GenJnlLine: Record "Gen. Journal Line")
     var
         RaiseError: Boolean;
@@ -372,6 +446,11 @@ codeunit 11 "Gen. Jnl.-Check Line"
             GenJnlLine.FieldError(Amount, ErrorInfo.Create(Text008, true));
     end;
 
+    /// <summary>
+    /// Validates that journal line amount is not negative and raises error if it is.
+    /// Used for transaction types that should only have positive amounts (e.g., receipts).
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line record to validate</param>
     procedure ErrorIfNegativeAmt(GenJnlLine: Record "Gen. Journal Line")
     var
         RaiseError: Boolean;
@@ -382,11 +461,19 @@ codeunit 11 "Gen. Jnl.-Check Line"
             GenJnlLine.FieldError(Amount, ErrorInfo.Create(Text007, true));
     end;
 
+    /// <summary>
+    /// Sets flag to override dimension error handling during validation.
+    /// Allows dimension validation errors to be bypassed during checking process.
+    /// </summary>
     procedure SetOverDimErr()
     begin
         OverrideDimErr := true;
     end;
 
+    /// <summary>
+    /// Sets flag to ignore journal template name mandatory validation.
+    /// Bypasses the requirement for journal template name during validation checks.
+    /// </summary>
     procedure SetIgnoreJournalTemplNameMandatoryCheck()
     begin
         IgnoreJournalTemplNameMandatoryCheck := true;
@@ -668,6 +755,11 @@ codeunit 11 "Gen. Jnl.-Check Line"
         GenJnlLine.TestField("Job No.", '', ErrorInfo.Create());
     end;
 
+    /// <summary>
+    /// Validates that a sales document number is not already used in existing customer ledger entries.
+    /// Prevents duplicate sales document numbers to maintain document integrity and audit trail.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line containing sales document information to validate</param>
     procedure CheckSalesDocNoIsNotUsed(var GenJournalLine: Record "Gen. Journal Line")
     var
         OldCustLedgEntry: Record "Cust. Ledger Entry";
@@ -689,6 +781,11 @@ codeunit 11 "Gen. Jnl.-Check Line"
                     GenJournalLine));
     end;
 
+    /// <summary>
+    /// Validates that a purchase document number is not already used in existing vendor ledger entries.
+    /// Prevents duplicate purchase document numbers to maintain document integrity and audit trail.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line containing purchase document information to validate</param>
     procedure CheckPurchDocNoIsNotUsed(var GenJournalLine: Record "Gen. Journal Line")
     var
         OldVendLedgEntry: Record "Vendor Ledger Entry";
@@ -709,6 +806,11 @@ codeunit 11 "Gen. Jnl.-Check Line"
                     GenJournalLine));
     end;
 
+    /// <summary>
+    /// Validates document type compatibility with account types and enforces amount sign requirements.
+    /// Ensures document type and amount combinations comply with business logic for various account types.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line to validate for document type and amount consistency</param>
     procedure CheckDocType(GenJnlLine: Record "Gen. Journal Line")
     var
         IsPayment: Boolean;
@@ -839,6 +941,12 @@ codeunit 11 "Gen. Jnl.-Check Line"
             GenJnlLine.TestField(Amount, ErrorInfo.Create());
     end;
 
+    /// <summary>
+    /// Determines if a journal line represents a vendor payment being applied to a credit memo.
+    /// Used for payment logic and document type validation in payment journals.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line to analyze for vendor payment to credit memo scenario</param>
+    /// <returns>True if the line is a vendor payment applying to a credit memo, false otherwise</returns>
     procedure IsVendorPaymentToCrMemo(GenJournalLine: Record "Gen. Journal Line") Result: Boolean
     var
         GenJournalTemplate: Record "Gen. Journal Template";
@@ -860,6 +968,13 @@ codeunit 11 "Gen. Jnl.-Check Line"
         exit(false);
     end;
 
+    /// <summary>
+    /// Throws a formatted error for journal line validation failures with contextual information.
+    /// Provides structured error handling with journal line context and detailed error messages.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line that caused the validation error</param>
+    /// <param name="ErrorTemplate">Template string for formatting the error message with placeholders</param>
+    /// <param name="ErrorText">Specific error text describing the validation failure</param>
     procedure ThrowGenJnlLineError(GenJournalLine: Record "Gen. Journal Line"; ErrorTemplate: Text; ErrorText: Text)
     begin
         if LogErrorMode then
@@ -879,11 +994,21 @@ codeunit 11 "Gen. Jnl.-Check Line"
             ErrorInfo.Create(ErrorText, true, GenJournalLine));
     end;
 
+    /// <summary>
+    /// Sets batch processing mode to control validation behavior during bulk operations.
+    /// Modifies validation logic to accommodate batch processing requirements.
+    /// </summary>
+    /// <param name="NewBatchMode">True to enable batch mode processing, false for single line processing</param>
     procedure SetBatchMode(NewBatchMode: Boolean)
     begin
         IsBatchMode := NewBatchMode;
     end;
 
+    /// <summary>
+    /// Validates general product posting group is specified when VAT setup requires payment discount adjustment.
+    /// Ensures proper posting group configuration for payment discount VAT calculations.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line to validate for payment discount VAT setup requirements</param>
     procedure CheckGenProdPostingGroupWhenAdjustForPmtDisc(GenJnlLine: Record "Gen. Journal Line")
     var
         VATPostingSetup: Record "VAT Posting Setup";
@@ -900,6 +1025,11 @@ codeunit 11 "Gen. Jnl.-Check Line"
             GenJnlLine.TestField("Gen. Prod. Posting Group", ErrorInfo.Create());
     end;
 
+    /// <summary>
+    /// Validates balancing general product posting group is specified when VAT setup requires payment discount adjustment.
+    /// Ensures proper balancing posting group configuration for payment discount VAT calculations.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line to validate for balancing payment discount VAT setup requirements</param>
     procedure CheckBalGenProdPostingGroupWhenAdjustForPmtDisc(GenJnlLine: Record "Gen. Journal Line")
     var
         VATPostingSetup: Record "VAT Posting Setup";
@@ -964,6 +1094,11 @@ codeunit 11 "Gen. Jnl.-Check Line"
                     GenJnlLine));
     end;
 
+    /// <summary>
+    /// Sets error logging mode to control error handling behavior during validation.
+    /// Enables or disables error collection mode for dimension management and validation processing.
+    /// </summary>
+    /// <param name="NewLogErrorMode">True to enable error logging mode, false to throw errors immediately</param>
     procedure SetLogErrorMode(NewLogErrorMode: Boolean)
     begin
         LogErrorMode := NewLogErrorMode;
@@ -1175,174 +1310,394 @@ codeunit 11 "Gen. Jnl.-Check Line"
         IsDeferralPostingAllowed := DeferralPostingAllowed;
     end;
 
+    /// <summary>
+    /// Integration event raised after completing account number validation for journal lines.
+    /// Enables custom validation logic and processing after standard account number checks are completed.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record that was validated.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterCheckAccountNo(var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after completing balancing account number validation for journal lines.
+    /// Enables custom validation logic and processing after standard balancing account number checks are completed.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record that was validated.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterCheckBalAccountNo(var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after completing all journal line validation checks.
+    /// Enables custom validation logic and error handling after standard journal line validation is completed.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record that was validated.</param>
+    /// <param name="ErrorMessageMgt">Error message management codeunit for handling validation errors.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterCheckGenJnlLine(var GenJournalLine: Record "Gen. Journal Line"; var ErrorMessageMgt: Codeunit "Error Message Management")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after checking if a posting date is not allowed based on user permissions and setup.
+    /// Enables custom date validation logic and override of standard date restrictions.
+    /// </summary>
+    /// <param name="PostingDate">Posting date being validated.</param>
+    /// <param name="DateIsNotAllowed">Boolean indicating if the date should be considered invalid (can be modified).</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterDateNoAllowed(PostingDate: Date; var DateIsNotAllowed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after checking if a deferral posting date is not allowed based on deferral setup and permissions.
+    /// Enables custom deferral date validation logic and override of standard deferral date restrictions.
+    /// </summary>
+    /// <param name="PostingDate">Deferral posting date being validated.</param>
+    /// <param name="DateIsNotAllowed">Boolean indicating if the deferral date should be considered invalid (can be modified).</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterDeferralPostingDateNoAllowed(PostingDate: Date; var DateIsNotAllowed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before performing date validation checks for journal lines.
+    /// Enables custom logic to completely override standard date validation processing.
+    /// </summary>
+    /// <param name="GenJnlLine">Journal line record being validated.</param>
+    /// <param name="DateCheckDone">Set to true to skip standard date validation logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeDateNotAllowed(GenJnlLine: Record "Gen. Journal Line"; var DateCheckDone: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before determining if a posting date is not allowed.
+    /// Enables custom date validation logic to override standard date restriction checks.
+    /// </summary>
+    /// <param name="PostingDate">Posting date being validated.</param>
+    /// <param name="SetupRecordID">Record ID of the setup record used for validation context.</param>
+    /// <param name="GenJnlBatch">Journal batch record providing context for date validation.</param>
+    /// <param name="DateIsNotAllowed">Boolean indicating if date should be considered invalid (can be modified).</param>
+    /// <param name="IsHandled">Set to true to skip standard date validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIsDateNotAllowed(PostingDate: Date; SetupRecordID: RecordId; GenJnlBatch: Record "Gen. Journal Batch"; var DateIsNotAllowed: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before determining if a deferral posting date is not allowed.
+    /// Enables custom deferral date validation logic to override standard deferral date restriction checks.
+    /// </summary>
+    /// <param name="PostingDate">Deferral posting date being validated.</param>
+    /// <param name="SetupRecordID">Record ID of the setup record used for validation context.</param>
+    /// <param name="GenJnlBatch">Journal batch record providing context for deferral date validation.</param>
+    /// <param name="DateIsNotAllowed">Boolean indicating if deferral date should be considered invalid (can be modified).</param>
+    /// <param name="IsHandled">Set to true to skip standard deferral date validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIsDeferralPostingDateNotAllowed(PostingDate: Date; SetupRecordID: RecordId; GenJnlBatch: Record "Gen. Journal Batch"; var DateIsNotAllowed: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before performing account number validation for journal lines.
+    /// Enables custom logic to completely override standard account number validation processing.
+    /// </summary>
+    /// <param name="GenJnlLine">Journal line record being validated.</param>
+    /// <param name="CheckDone">Set to true to skip standard account number validation logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckAccountNo(var GenJnlLine: Record "Gen. Journal Line"; var CheckDone: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before performing balancing account number validation for journal lines.
+    /// Enables custom logic to completely override standard balancing account number validation processing.
+    /// </summary>
+    /// <param name="GenJnlLine">Journal line record being validated.</param>
+    /// <param name="CheckDone">Set to true to skip standard balancing account number validation logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckBalAccountNo(var GenJnlLine: Record "Gen. Journal Line"; var CheckDone: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before performing dimension validation for journal lines.
+    /// Enables custom logic to completely override standard dimension validation processing.
+    /// </summary>
+    /// <param name="GenJnlLine">Journal line record being validated for dimensions.</param>
+    /// <param name="CheckDone">Set to true to skip standard dimension validation logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckDimensions(var GenJnlLine: Record "Gen. Journal Line"; var CheckDone: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating document type and amount combinations for journal lines.
+    /// Enables custom logic to completely override standard document type validation processing.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record being validated for document type compatibility.</param>
+    /// <param name="IsHandled">Set to true to skip standard document type validation logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckDocType(GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating balancing document type and amount combinations for journal lines.
+    /// Enables custom logic to completely override standard balancing document type validation processing.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record being validated for balancing document type compatibility.</param>
+    /// <param name="IsHandled">Set to true to skip standard balancing document type validation logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckBalDocType(GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before performing intercompany partner validation for journal lines.
+    /// Enables custom logic to completely override standard IC partner validation processing.
+    /// </summary>
+    /// <param name="AccountType">Type of account being validated for IC partner relationships.</param>
+    /// <param name="AccountNo">Account number being validated for IC partner setup.</param>
+    /// <param name="DocumentType">Document type being processed for IC validation.</param>
+    /// <param name="CheckDone">Set to true to skip standard IC partner validation logic.</param>
+    /// <param name="GenJnlLine">Journal line record providing context for IC partner validation.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckICPartner(AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20]; DocumentType: Option; var CheckDone: Boolean; GenJnlLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating sales document number uniqueness in customer ledger entries.
+    /// Enables custom logic to completely override standard sales document number duplication checking.
+    /// </summary>
+    /// <param name="DocType">Document type being validated for uniqueness.</param>
+    /// <param name="DocNo">Document number being validated for uniqueness in customer ledger.</param>
+    /// <param name="IsHandled">Set to true to skip standard sales document number validation logic.</param>
+    /// <param name="GenJournalLine">Journal line record providing context for sales document validation.</param>
+    /// <param name="OldCustLedgerEntry">Customer ledger entry record used for duplication checking.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckSalesDocNoIsNotUsed(DocType: Option; DocNo: Code[20]; var IsHandled: Boolean; GenJournalLine: Record "Gen. Journal Line"; var OldCustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating purchase document number uniqueness in vendor ledger entries.
+    /// Enables custom logic to completely override standard purchase document number duplication checking.
+    /// </summary>
+    /// <param name="DocType">Document type being validated for uniqueness.</param>
+    /// <param name="DocNo">Document number being validated for uniqueness in vendor ledger.</param>
+    /// <param name="IsHandled">Set to true to skip standard purchase document number validation logic.</param>
+    /// <param name="GenJournalLine">Journal line record providing context for purchase document validation.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckPurchDocNoIsNotUsed(DocType: Option; DocNo: Code[20]; var IsHandled: Boolean; GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating that journal line amount is not negative.
+    /// Enables custom logic to override negative amount error handling for specific scenarios.
+    /// </summary>
+    /// <param name="GenJnlLine">Journal line record being validated for negative amount restrictions.</param>
+    /// <param name="RaiseError">Set to true to trigger negative amount error, false to suppress error.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeErrorIfNegativeAmt(GenJnlLine: Record "Gen. Journal Line"; var RaiseError: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating that journal line amount is not positive.
+    /// Enables custom logic to override positive amount error handling for specific scenarios.
+    /// </summary>
+    /// <param name="GenJnlLine">Journal line record being validated for positive amount restrictions.</param>
+    /// <param name="RaiseError">Set to true to trigger positive amount error, false to suppress error.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeErrorIfPositiveAmt(GenJnlLine: Record "Gen. Journal Line"; var RaiseError: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before performing the main journal line validation check.
+    /// Enables custom logic to completely override standard journal line validation processing.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record being validated.</param>
+    /// <param name="OverrideDimErr">Boolean indicating if dimension errors should be overridden.</param>
+    /// <param name="IsHandled">Set to true to skip standard journal line validation logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeRunCheck(var GenJournalLine: Record "Gen. Journal Line"; OverrideDimErr: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating document number field requirements for journal lines.
+    /// Enables custom logic to completely override standard document number validation processing.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record being validated for document number requirements.</param>
+    /// <param name="IsHandled">Set to true to skip standard document number field validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestDocumentNo(var GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating account and balancing account type compatibility for journal lines.
+    /// Enables custom logic to completely override standard account type compatibility validation processing.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record being validated for account type compatibility.</param>
+    /// <param name="IsHandled">Set to true to skip standard account type validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestAccountAndBalAccountType(var GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating applies-to ID field requirements for journal lines.
+    /// Enables custom logic to completely override standard applies-to ID validation processing.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record being validated for applies-to ID requirements.</param>
+    /// <param name="IsHandled">Set to true to skip standard applies-to ID validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestAppliesToID(var GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating posting date against fiscal year boundaries for journal lines.
+    /// Enables custom logic to completely override standard fiscal year date validation processing.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record being validated for fiscal year posting date compliance.</param>
+    /// <param name="IsHandled">Set to true to skip standard fiscal year validation logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckPostingDateInFiscalYear(GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after assigning dimension table IDs during dimension validation processing.
+    /// Enables custom dimension table assignments and modification of dimension validation scope.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record being validated for dimension requirements.</param>
+    /// <param name="TableID">Array of table IDs used for dimension validation context.</param>
+    /// <param name="No">Array of record numbers corresponding to table IDs for dimension validation.</param>
+    /// <param name="CheckDone">Set to true to skip remaining dimension validation logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnCheckDimensionsOnAfterAssignDimTableIDs(var GenJournalLine: Record "Gen. Journal Line"; var TableID: array[10] of Integer; var No: array[10] of Code[20]; var CheckDone: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating account type and posting type compatibility for journal lines.
+    /// Enables custom logic to completely override standard account type validation processing.
+    /// </summary>
+    /// <param name="GenJnlLine">Journal line record being validated for account type compatibility.</param>
+    /// <param name="IsHandled">Set to true to skip standard account type validation logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckAccountType(GenJnlLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating balancing account type and posting type compatibility for journal lines.
+    /// Enables custom logic to completely override standard balancing account type validation processing.
+    /// </summary>
+    /// <param name="GenJnlLine">Journal line record being validated for balancing account type compatibility.</param>
+    /// <param name="IsHandled">Set to true to skip standard balancing account type validation logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckBalAccountType(GenJnlLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating applies-to document number requirements for journal lines.
+    /// Enables custom logic to completely override standard applies-to document validation processing.
+    /// </summary>
+    /// <param name="GenJnlLine">Journal line record being validated for applies-to document requirements.</param>
+    /// <param name="IsHandled">Set to true to skip standard applies-to document validation logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckAppliesToDocNo(GenJnlLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating that job number field is empty for journal lines.
+    /// Enables custom logic to completely override standard job number validation processing.
+    /// </summary>
+    /// <param name="GenJnlLine">Journal line record being validated for job number field requirements.</param>
+    /// <param name="IsHandled">Set to true to skip standard job number validation logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckJobNoIsEmpty(GenJnlLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating that journal line amount is not zero.
+    /// Enables custom logic to completely override standard zero amount validation processing.
+    /// </summary>
+    /// <param name="GenJnlLine">Journal line record being validated for zero amount restrictions.</param>
+    /// <param name="IsBatchMode">Boolean indicating if validation is running in batch mode.</param>
+    /// <param name="IsHandled">Set to true to skip standard zero amount validation logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckZeroAmount(GenJnlLine: Record "Gen. Journal Line"; IsBatchMode: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating electronic payment fields for journal lines.
+    /// Enables custom logic to completely override standard electronic payment validation processing.
+    /// </summary>
+    /// <param name="GenJnlLine">Journal line record being validated for electronic payment requirements.</param>
+    /// <param name="IsHandled">Set to true to skip standard electronic payment validation logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckElectronicPaymentFields(var GenJnlLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before determining if a vendor payment applies to a credit memo.
+    /// Enables custom logic to completely override standard vendor payment to credit memo logic.
+    /// </summary>
+    /// <param name="GenJnlLine">Journal line record being analyzed for vendor payment to credit memo scenario.</param>
+    /// <param name="Result">Boolean result indicating if line is vendor payment to credit memo (can be modified).</param>
+    /// <param name="IsHandled">Set to true to skip standard vendor payment to credit memo logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeIsVendorPaymentToCrMemo(GenJnlLine: Record "Gen. Journal Line"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating VAT reporting date for journal lines.
+    /// Enables custom logic to completely override standard VAT date validation processing.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record being validated for VAT date requirements.</param>
+    /// <param name="IsHandled">Set to true to skip standard VAT date validation logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckVATDate(var GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters for sales document number duplication validation.
+    /// Enables custom filter modifications during sales document number uniqueness checking.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record providing context for sales document validation.</param>
+    /// <param name="OldCustLedgerEntry">Customer ledger entry record being filtered for duplication checking.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckSalesDocNoIsNotUsedOnAfterSetFilters(GenJournalLine: Record "Gen. Journal Line"; var OldCustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking intercompany partner setup during account number validation.
+    /// Enables custom logic to override IC partner checking for specific account scenarios.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record being validated for intercompany partner requirements.</param>
+    /// <param name="IsHandled">Set to true to skip standard IC partner checking logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckAccountNoOnBeforeCheckICPartner(var GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean);
     begin
     end;
 }
-

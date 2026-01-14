@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.RateChange;
 
+/// <summary>
+/// Configuration page for VAT rate change conversion settings and filters.
+/// Provides interface for defining conversion scope, posting group mappings, and data selection criteria.
+/// </summary>
 page 550 "VAT Rate Change Setup"
 {
     ApplicationArea = Basic, Suite;

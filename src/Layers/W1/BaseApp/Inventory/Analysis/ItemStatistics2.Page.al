@@ -13,7 +13,7 @@ page 5833 "Item Statistics 2"
     Editable = false;
     LinksAllowed = false;
     PageType = Card;
-    SourceTable = Item;
+    SourceTable = "Item Statistics Cache";
 
     layout
     {
@@ -22,7 +22,7 @@ page 5833 "Item Statistics 2"
             group(General)
             {
                 Caption = 'General';
-                field("Current Inventory Value"; CurrentInventoryValue)
+                field("Current Inventory Value"; Rec.CurrentInventoryValue)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Current Inventory Value (LCY)';
@@ -30,10 +30,10 @@ page 5833 "Item Statistics 2"
 
                     trigger OnDrillDown()
                     begin
-                        ItemStatistics.DrilldownCurrentInventoryValue(Rec);
+                        ItemStatistics.DrilldownCurrentInventoryValue(Item);
                     end;
                 }
-                field("Expired Stock Value"; ExpiredStockValue)
+                field("Expired Stock Value"; Rec.ExpiredStockValue)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Expired Inventory Value (LCY)';
@@ -41,7 +41,7 @@ page 5833 "Item Statistics 2"
 
                     trigger OnDrillDown()
                     begin
-                        ItemStatistics.DrilldownExpiredStockValue(Rec);
+                        ItemStatistics.DrilldownExpiredStockValue(Item);
                     end;
                 }
             }
@@ -54,12 +54,12 @@ page 5833 "Item Statistics 2"
                     group("This Period")
                     {
                         Caption = 'This Fiscal Period';
-                        field("ItemDateName[1]"; ItemDateName[1])
+                        field("ItemDateName[1]"; ItemDateNames[1])
                         {
                             ApplicationArea = Basic, Suite;
                             ShowCaption = false;
                         }
-                        field("SalesGrowthRate[1]"; SalesGrowthRate[1])
+                        field("SalesGrowthRate[1]"; Rec.SalesGrowthRateThisPeriod)
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 10;
@@ -69,10 +69,10 @@ page 5833 "Item Statistics 2"
 
                             trigger OnDrillDown()
                             begin
-                                ItemStatistics.DrilldownSalesGrowthRate(Rec, ItemDateFilter[1], PriorPeriodItemDateFilter[1]);
+                                ItemStatistics.DrilldownSalesGrowthRate(Item, ItemDateFilters[1], PriorPeriodItemDateFilters[1]);
                             end;
                         }
-                        field("NetSalesLCY[1]"; NetSales[1])
+                        field("NetSalesLCY[1]"; Rec.NetSalesLCYThisPeriod)
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
@@ -81,10 +81,10 @@ page 5833 "Item Statistics 2"
 
                             trigger OnDrillDown()
                             begin
-                                ItemStatistics.DrilldownSalesAmount(Rec, ItemDateFilter[1]);
+                                ItemStatistics.DrilldownSalesAmount(Item, ItemDateFilters[1]);
                             end;
                         }
-                        field("GrossMargin[1]"; GrossMargin[1])
+                        field("GrossMargin[1]"; Rec.GrossMarginThisPeriod)
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 10;
@@ -94,10 +94,10 @@ page 5833 "Item Statistics 2"
 
                             trigger OnDrillDown()
                             begin
-                                ItemStatistics.DrilldownSalesAmount(Rec, ItemDateFilter[1]);
+                                ItemStatistics.DrilldownSalesAmount(Item, ItemDateFilters[1]);
                             end;
                         }
-                        field("ReturnRate[1]"; ReturnRate[1])
+                        field("ReturnRate[1]"; Rec.ReturnRateThisPeriod)
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 10;
@@ -107,7 +107,7 @@ page 5833 "Item Statistics 2"
 
                             trigger OnDrillDown()
                             begin
-                                ItemStatistics.DrilldownProductReturnRate(Rec, ItemDateFilter[1]);
+                                ItemStatistics.DrilldownProductReturnRate(Item, ItemDateFilters[1]);
                             end;
                         }
                     }
@@ -120,7 +120,7 @@ page 5833 "Item Statistics 2"
                             ShowCaption = false;
                             Visible = false;
                         }
-                        field("SalesGrowthRate[2]"; SalesGrowthRate[2])
+                        field("SalesGrowthRate[2]"; Rec.SalesGrowthRateThisFY)
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 10;
@@ -130,10 +130,10 @@ page 5833 "Item Statistics 2"
 
                             trigger OnDrillDown()
                             begin
-                                ItemStatistics.DrilldownSalesGrowthRate(Rec, ItemDateFilter[2], PriorPeriodItemDateFilter[2]);
+                                ItemStatistics.DrilldownSalesGrowthRate(Item, ItemDateFilters[2], PriorPeriodItemDateFilters[2]);
                             end;
                         }
-                        field("NetSalesLCY[2]"; NetSales[2])
+                        field("NetSalesLCY[2]"; Rec.NetSalesLCYThisFY)
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
@@ -141,10 +141,10 @@ page 5833 "Item Statistics 2"
                             ToolTip = 'Specifies the total revenue (in local currency) from sales for the current fiscal year after deducting given discounts and returns. This value represents the actual income generated from sales transactions during the fiscal year. Calculated as: Net Sales = Total sales in the fiscal year - Total returns in the fiscal year - Total given discounts in the fiscal year.';
                             trigger OnDrillDown()
                             begin
-                                ItemStatistics.DrilldownSalesAmount(Rec, ItemDateFilter[2]);
+                                ItemStatistics.DrilldownSalesAmount(Item, ItemDateFilters[2]);
                             end;
                         }
-                        field("GrossMargin[2]"; GrossMargin[2])
+                        field("GrossMargin[2]"; Rec.GrossMarginThisFY)
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 10;
@@ -154,10 +154,10 @@ page 5833 "Item Statistics 2"
 
                             trigger OnDrillDown()
                             begin
-                                ItemStatistics.DrilldownSalesAmount(Rec, ItemDateFilter[2]);
+                                ItemStatistics.DrilldownSalesAmount(Item, ItemDateFilters[2]);
                             end;
                         }
-                        field("ReturnRate[2]"; ReturnRate[2])
+                        field("ReturnRate[2]"; Rec.ReturnRateThisFY)
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Return Rate (%)';
@@ -167,7 +167,7 @@ page 5833 "Item Statistics 2"
 
                             trigger OnDrillDown()
                             begin
-                                ItemStatistics.DrilldownProductReturnRate(Rec, ItemDateFilter[2]);
+                                ItemStatistics.DrilldownProductReturnRate(Item, ItemDateFilters[2]);
                             end;
                         }
                     }
@@ -180,7 +180,7 @@ page 5833 "Item Statistics 2"
                             ShowCaption = false;
                             Visible = false;
                         }
-                        field("SalesGrowthRate[3]"; SalesGrowthRate[3])
+                        field("SalesGrowthRate[3]"; Rec.SalesGrowthRateLastFY)
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 10;
@@ -190,10 +190,10 @@ page 5833 "Item Statistics 2"
 
                             trigger OnDrillDown()
                             begin
-                                ItemStatistics.DrilldownSalesGrowthRate(Rec, ItemDateFilter[3], PriorPeriodItemDateFilter[3]);
+                                ItemStatistics.DrilldownSalesGrowthRate(Item, ItemDateFilters[3], PriorPeriodItemDateFilters[3]);
                             end;
                         }
-                        field("NetSalesLCY[3]"; NetSales[3])
+                        field("NetSalesLCY[3]"; Rec.NetSalesLCYLastFY)
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
@@ -201,10 +201,10 @@ page 5833 "Item Statistics 2"
                             ToolTip = 'Specifies the total revenue (in local currency) from sales for the last fiscal year after deducting given discounts and returns. This value represents the actual income generated from sales transactions during the last fiscal year. Calculated as: Net Sales = Total sales in the last fiscal year - Total returns in the last fiscal year - Total given discounts in the last fiscal year.';
                             trigger OnDrillDown()
                             begin
-                                ItemStatistics.DrilldownSalesAmount(Rec, ItemDateFilter[3]);
+                                ItemStatistics.DrilldownSalesAmount(Item, ItemDateFilters[3]);
                             end;
                         }
-                        field("GrossMargin[3]"; GrossMargin[3])
+                        field("GrossMargin[3]"; Rec.GrossMarginLastFY)
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 10;
@@ -214,10 +214,10 @@ page 5833 "Item Statistics 2"
 
                             trigger OnDrillDown()
                             begin
-                                ItemStatistics.DrilldownSalesAmount(Rec, ItemDateFilter[3]);
+                                ItemStatistics.DrilldownSalesAmount(Item, ItemDateFilters[3]);
                             end;
                         }
-                        field("ReturnRate[3]"; ReturnRate[3])
+                        field("ReturnRate[3]"; Rec.ReturnRateLastFY)
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Return Rate (%)';
@@ -227,7 +227,7 @@ page 5833 "Item Statistics 2"
 
                             trigger OnDrillDown()
                             begin
-                                ItemStatistics.DrilldownProductReturnRate(Rec, ItemDateFilter[3]);
+                                ItemStatistics.DrilldownProductReturnRate(Item, ItemDateFilters[3]);
                             end;
                         }
                     }
@@ -246,7 +246,7 @@ page 5833 "Item Statistics 2"
                             ShowCaption = false;
                             Visible = false;
                         }
-                        field("NetSalesLCY[4]"; NetSales[4])
+                        field("NetSalesLCY[4]"; Rec.NetSalesLCYLifetime)
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
@@ -255,10 +255,10 @@ page 5833 "Item Statistics 2"
 
                             trigger OnDrillDown()
                             begin
-                                ItemStatistics.DrilldownSalesAmount(Rec, ItemDateFilter[4]);
+                                ItemStatistics.DrilldownSalesAmount(Item, ItemDateFilters[4]);
                             end;
                         }
-                        field("GrossMargin[4]"; GrossMargin[4])
+                        field("GrossMargin[4]"; Rec.GrossMarginLifetime)
                         {
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 10;
@@ -268,10 +268,10 @@ page 5833 "Item Statistics 2"
 
                             trigger OnDrillDown()
                             begin
-                                ItemStatistics.DrilldownSalesAmount(Rec, ItemDateFilter[4]);
+                                ItemStatistics.DrilldownSalesAmount(Item, ItemDateFilters[4]);
                             end;
                         }
-                        field("ReturnRate[4]"; ReturnRate[4])
+                        field("ReturnRate[4]"; Rec.ReturnRateLifetime)
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Return Rate';
@@ -281,7 +281,7 @@ page 5833 "Item Statistics 2"
 
                             trigger OnDrillDown()
                             begin
-                                ItemStatistics.DrilldownProductReturnRate(Rec, ItemDateFilter[4]);
+                                ItemStatistics.DrilldownProductReturnRate(Item, ItemDateFilters[4]);
                             end;
                         }
                     }
@@ -290,47 +290,89 @@ page 5833 "Item Statistics 2"
         }
     }
 
-    trigger OnAfterGetRecord()
+    trigger OnOpenPage()
+    var
+        Parameters: Dictionary of [Text, Text];
+        ItemNoFilter: Text;
     begin
-        if CurrentDate <> WorkDate() then begin
-            CurrentDate := WorkDate();
-            DateFilterCalc.CreateAccountingPeriodFilter(ItemDateFilter[1], ItemDateName[1], CurrentDate, 0);
-            DateFilterCalc.CreateFiscalYearFilter(ItemDateFilter[2], ItemDateName[2], CurrentDate, 0);
-            DateFilterCalc.CreateFiscalYearFilter(ItemDateFilter[3], ItemDateName[3], CurrentDate, -1);
+        ItemNoFilter := Rec.GetFilter("Item No.");
+        Item.SetFilter("No.", ItemNoFilter);
+        Item.FindFirst();
 
-            DateFilterCalc.CreateAccountingPeriodFilter(PriorPeriodItemDateFilter[1], PriorPeriodItemDateName[1], CurrentDate, -1);
-            DateFilterCalc.CreateFiscalYearFilter(PriorPeriodItemDateFilter[2], PriorPeriodItemDateName[2], CurrentDate, -1);
-            DateFilterCalc.CreateFiscalYearFilter(PriorPeriodItemDateFilter[3], PriorPeriodItemDateName[3], CurrentDate, -2);
-        end;
+        CurrentDate := WorkDate();
+        CreateDateFilters();
 
-        CurrentInventoryValue := ItemStatistics.CalculateCurrentInventoryValue(Rec);
-        ExpiredStockValue := ItemStatistics.CalculateExpiredStockValue(Rec);
+        if not Rec.Get(Item."No.") then
+            Rec.InitAndInsert(Item."No.");
 
-        for i := 1 to 4 do begin
-            if i <= 3 then
-                SalesGrowthRate[i] := ItemStatistics.CalculateSalesGrowthRate(Rec, ItemDateFilter[i], PriorPeriodItemDateFilter[i]) / 100;
-            NetSales[i] := ItemStatistics.CalculateNetSales(Rec, ItemDateFilter[i]);
-            GrossMargin[i] := ItemStatistics.CalculateGrossMarginPercentage(Rec, ItemDateFilter[i]) / 100;
-            ReturnRate[i] := ItemStatistics.CalculateProductReturnRate(Rec, ItemDateFilter[i]) / 100;
-        end;
-        Rec.SetRange("Date Filter", 0D, CurrentDate);
+        Commit();
+
+        SetPageBackgroundTaskParameters(Parameters);
+        CurrPage.EnqueueBackgroundTask(TaskId, Codeunit::ItemStatisticsCache, Parameters);
     end;
 
     var
+        Item: Record Item;
         ItemStatistics: Codeunit "Item Statistics";
-        DateFilterCalc: Codeunit "DateFilter-Calc";
-        CurrentInventoryValue: Decimal;
-        ExpiredStockValue: Decimal;
-        PlaceHolderLbl: Label 'Placeholder';
-
-        ItemDateFilter: array[4] of Text[30];
-        ItemDateName: array[4] of Text[30];
-        PriorPeriodItemDateFilter: array[4] of Text[30];
-        PriorPeriodItemDateName: array[4] of Text[30];
+        ItemDateFilters: array[4] of Text[30];
+        ItemDateNames: array[4] of Text[30];
+        PriorPeriodItemDateFilters: array[4] of Text[30];
+        PriorPeriodItemDateNames: array[4] of Text[30];
         CurrentDate: Date;
-        SalesGrowthRate: array[4] of Decimal;
-        NetSales: array[4] of Decimal;
-        GrossMargin: array[4] of Decimal;
-        ReturnRate: array[4] of Decimal;
-        i: Integer;
+        PlaceHolderLbl: Label 'Placeholder';
+        TaskId: Integer;
+
+    local procedure CreateDateFilters()
+    var
+        DateFilterCalc: Codeunit "DateFilter-Calc";
+    begin
+        DateFilterCalc.CreateAccountingPeriodFilter(ItemDateFilters[1], ItemDateNames[1], CurrentDate, 0);
+        DateFilterCalc.CreateFiscalYearFilter(ItemDateFilters[2], ItemDateNames[2], CurrentDate, 0);
+        DateFilterCalc.CreateFiscalYearFilter(ItemDateFilters[3], ItemDateNames[3], CurrentDate, -1);
+        DateFilterCalc.CreateAccountingPeriodFilter(PriorPeriodItemDateFilters[1], PriorPeriodItemDateNames[1], CurrentDate, -1);
+        DateFilterCalc.CreateFiscalYearFilter(PriorPeriodItemDateFilters[2], PriorPeriodItemDateNames[2], CurrentDate, -1);
+        DateFilterCalc.CreateFiscalYearFilter(PriorPeriodItemDateFilters[3], PriorPeriodItemDateNames[3], CurrentDate, -2);
+    end;
+
+    local procedure SetPageBackgroundTaskParameters(var Parameters: Dictionary of [Text, Text])
+    begin
+        Parameters.Add('ItemNo', Item."No.");
+        Parameters.Add('CurrentDate', Format(CurrentDate));
+        Parameters.Add('ItemDateFilter1', ItemDateFilters[1]);
+        Parameters.Add('ItemDateFilter2', ItemDateFilters[2]);
+        Parameters.Add('ItemDateFilter3', ItemDateFilters[3]);
+        Parameters.Add('ItemDateFilter4', ItemDateFilters[4]);
+        Parameters.Add('PriorPeriodItemDateFilter1', PriorPeriodItemDateFilters[1]);
+        Parameters.Add('PriorPeriodItemDateFilter2', PriorPeriodItemDateFilters[2]);
+        Parameters.Add('PriorPeriodItemDateFilter3', PriorPeriodItemDateFilters[3]);
+    end;
+
+    trigger OnPageBackgroundTaskCompleted(TaskId: Integer; Results: Dictionary of [Text, Text])
+    begin
+        Evaluate(Rec."LastUpdated", Results.Get('LastUpdated'));
+
+        Evaluate(Rec.CurrentInventoryValue, Results.Get('CurrentInventoryValue'));
+        Evaluate(Rec.ExpiredStockValue, Results.Get('ExpiredStockValue'));
+
+        Evaluate(Rec.SalesGrowthRateThisPeriod, Results.Get('SalesGrowthRateThisPeriod'));
+        Evaluate(Rec.SalesGrowthRateLastFY, Results.Get('SalesGrowthRateLastFY'));
+        Evaluate(Rec.SalesGrowthRateThisFY, Results.Get('SalesGrowthRateThisFY'));
+
+        Evaluate(Rec.ReturnRateThisPeriod, Results.Get('ReturnRateThisPeriod'));
+        Evaluate(Rec.ReturnRateThisFY, Results.Get('ReturnRateThisFY'));
+        Evaluate(Rec.ReturnRateLastFY, Results.Get('ReturnRateLastFY'));
+        Evaluate(Rec.ReturnRateLifetime, Results.Get('ReturnRateLifetime'));
+
+        Evaluate(Rec.NetSalesLCYThisPeriod, Results.Get('NetSalesLCYThisPeriod'));
+        Evaluate(Rec.NetSalesLCYThisFY, Results.Get('NetSalesLCYThisFY'));
+        Evaluate(Rec.NetSalesLCYLastFY, Results.Get('NetSalesLCYLastFY'));
+        Evaluate(Rec.NetSalesLCYLifetime, Results.Get('NetSalesLCYLifetime'));
+
+        Evaluate(Rec.GrossMarginThisPeriod, Results.Get('GrossMarginThisPeriod'));
+        Evaluate(Rec.GrossMarginThisFY, Results.Get('GrossMarginThisFY'));
+        Evaluate(Rec.GrossMarginLastFY, Results.Get('GrossMarginLastFY'));
+        Evaluate(Rec.GrossMarginLifetime, Results.Get('GrossMarginLifetime'));
+
+        Rec.Modify();
+    end;
 }

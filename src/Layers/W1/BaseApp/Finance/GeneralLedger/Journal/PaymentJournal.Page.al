@@ -18,11 +18,11 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Foundation.Reporting;
 using Microsoft.HumanResources.Payables;
-using Microsoft.Sales.Receivables;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Remittance;
 using Microsoft.Purchases.Reports;
 using Microsoft.Purchases.Setup;
+using Microsoft.Sales.Receivables;
 using Microsoft.Utilities;
 using System.Automation;
 using System.Environment;
@@ -32,6 +32,15 @@ using System.Privacy;
 using System.Threading;
 using System.Utilities;
 
+/// <summary>
+/// Specialized journal interface for vendor payments, employee reimbursements, and outbound cash transactions.
+/// Provides comprehensive payment processing capabilities including check printing, electronic payments, and bank export functionality.
+/// </summary>
+/// <remarks>
+/// Primary data source: Gen. Journal Line with payment-specific filtering and validation.
+/// Key features: Check printing, electronic payment export, payment application, positive pay integration, and payment method validation.
+/// Extensibility: Integration events support custom payment processing, export formats, and validation workflows.
+/// </remarks>
 page 256 "Payment Journal"
 {
     AdditionalSearchTerms = 'print check,payment file export,electronic payment';
@@ -1927,6 +1936,10 @@ page 256 "Payment Journal"
                         CODEUNIT.Run(BankExportImportSetup."Check Export Codeunit", Rec);
     end;
 
+    /// <summary>
+    /// Updates balance amounts and visibility for payment journal display and calculations.
+    /// Recalculates balance totals and configures balance field visibility based on current journal settings.
+    /// </summary>
     procedure UpdateBalance()
     var
         IsHandled: Boolean;
@@ -1967,6 +1980,10 @@ page 256 "Payment Journal"
         exit(GenJournalLine.FindSet());
     end;
 
+    /// <summary>
+    /// Sets control appearance and visibility based on current journal batch configuration.
+    /// Configures page controls and field visibility according to batch settings and journal template properties.
+    /// </summary>
     procedure SetControlAppearanceFromBatch()
     begin
         SetApprovalStateForBatch();
@@ -2174,71 +2191,168 @@ page 256 "Payment Journal"
         exit(true);
     end;
 
+    /// <summary>
+    /// Integration event raised after retrieving record information during OnAfterGetRecord trigger.
+    /// Enables custom processing of journal line data after standard record retrieval and field population.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record that was retrieved and processed.</param>
+    /// <param name="GenJnlManagement">Journal management codeunit used for record processing.</param>
+    /// <param name="AccName">Account name populated from account number lookup.</param>
+    /// <param name="BalAccName">Balancing account name populated from balancing account number lookup.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterOnAfterGetRecord(var GenJournalLine: Record "Gen. Journal Line"; var GenJnlManagement: Codeunit GenJnlManagement; var AccName: Text[100]; var BalAccName: Text[100])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after opening the payment journal page.
+    /// Enables custom initialization and setup logic after standard page opening procedures.
+    /// </summary>
+    /// <param name="CurrentJnlBatchName">Current journal batch name that was opened.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterOnOpenPage(var CurrentJnlBatchName: Code[10])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after creating a new journal line record during OnNewRecord trigger.
+    /// Enables custom initialization of new journal line fields and default values.
+    /// </summary>
+    /// <param name="GenJournalLine">New journal line record that was created.</param>
+    /// <param name="xGenJournalLine">Previous journal line record used for reference.</param>
+    /// <param name="GenJnlManagement">Journal management codeunit used for record initialization.</param>
+    /// <param name="AccName">Account name variable for account lookup display.</param>
+    /// <param name="BalAccName">Balancing account name variable for balancing account lookup display.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterOnNewRecord(var GenJournalLine: Record "Gen. Journal Line"; xGenJournalLine: Record "Gen. Journal Line"; var GenJnlManagement: Codeunit GenJnlManagement; var AccName: Text[100]; var BalAccName: Text[100])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after updating balance calculations and visibility for payment journal.
+    /// Enables custom balance display logic and total balance visibility control.
+    /// </summary>
+    /// <param name="TotalBalanceVisible">Boolean indicating if total balance should be visible (can be modified).</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterUpdateBalance(var TotalBalanceVisible: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating shortcut dimension code changes for payment journal lines.
+    /// Enables custom processing after dimension validation and dimension set updates.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record for which shortcut dimension was validated.</param>
+    /// <param name="ShortcutDimCode">Array of shortcut dimension codes with updated values.</param>
+    /// <param name="DimIndex">Index indicating which shortcut dimension was validated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateShortcutDimCode(var GenJournalLine: Record "Gen. Journal Line"; var ShortcutDimCode: array[8] of Code[20]; DimIndex: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before opening the payment journal page.
+    /// Enables custom setup and initialization logic before standard page opening procedures.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record providing context for page opening.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeOnOpenPage(var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating balance calculations for payment journal.
+    /// Enables custom balance calculation logic and modification of balance values.
+    /// </summary>
+    /// <param name="GenJournalLine">Current journal line record for balance calculation.</param>
+    /// <param name="xGenJournalLine">Previous version of journal line record for comparison.</param>
+    /// <param name="Balance">Current balance amount (can be modified).</param>
+    /// <param name="TotalBalance">Total balance amount (can be modified).</param>
+    /// <param name="ShowBalance">Boolean indicating if balance should be shown (can be modified).</param>
+    /// <param name="ShowTotalBalance">Boolean indicating if total balance should be shown (can be modified).</param>
+    /// <param name="IsHandled">Set to true to skip standard balance update logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeUpdateBalance(var GenJournalLine: Record "Gen. Journal Line"; xGenJournalLine: Record "Gen. Journal Line"; var Balance: Decimal; var TotalBalance: Decimal; var ShowBalance: Boolean; var ShowTotalBalance: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after enabling or disabling apply entries action for payment journal.
+    /// Enables custom control of apply entries action availability based on journal line context.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record providing context for apply entries action.</param>
+    /// <param name="ApplyEntriesActionEnabled">Boolean indicating if apply entries action should be enabled (can be modified).</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterEnableApplyEntriesAction(GenJournalLine: Record "Gen. Journal Line"; var ApplyEntriesActionEnabled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating account number for payment journal line.
+    /// Enables custom processing after account number validation and balance updates.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record for which account number was validated.</param>
+    /// <param name="LastGenJournalLine">Previous journal line record used for comparison and calculations.</param>
+    /// <param name="Balance">Current balance amount after account validation.</param>
+    /// <param name="TotalBalance">Total balance amount after account validation.</param>
+    /// <param name="ShowBalance">Boolean indicating if balance should be shown.</param>
+    /// <param name="ShowTotalBalance">Boolean indicating if total balance should be shown.</param>
+    /// <param name="BalanceVisible">Boolean indicating if balance field should be visible.</param>
+    /// <param name="TotalBalanceVisible">Boolean indicating if total balance field should be visible.</param>
+    /// <param name="NumberOfRecords">Count of records in the current journal batch.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateAccountNo(var GenJournalLine: Record "Gen. Journal Line"; LastGenJournalLine: Record "Gen. Journal Line"; var Balance: Decimal; var TotalBalance: Decimal; var ShowBalance: Boolean; var ShowTotalBalance: Boolean; var BalanceVisible: Boolean; var TotalBalanceVisible: Boolean; var NumberOfRecords: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting control appearance based on journal batch configuration.
+    /// Enables custom control appearance and field visibility logic after batch-specific settings are applied.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record providing context for control appearance.</param>
+    /// <param name="GenJournalBatch">Journal batch record with settings used for control configuration.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterSetControlAppearanceFromBatch(var GenJournalLine: Record "Gen. Journal Line"; GenJournalBatch: Record "Gen. Journal Batch")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting control appearance during journal batch name lookup.
+    /// Enables custom control configuration after batch lookup and selection processes.
+    /// </summary>
+    /// <param name="CurrentJnlBatchName">Current journal batch name after lookup and selection.</param>
     [IntegrationEvent(false, false)]
     local procedure OnLookupCurrentJnlBatchNameOnAfterSetControlAppearanceFromBatch(CurrentJnlBatchName: Code[10])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating current journal batch name changes.
+    /// Enables custom processing after batch name validation and batch switching operations.
+    /// </summary>
+    /// <param name="CurrentJnlBatchName">Current journal batch name that was validated and set.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateCurrentJnlBatchName(CurrentJnlBatchName: Code[10])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before executing suggest vendor payments action in payment journal.
+    /// Enables custom logic to override or extend standard vendor payment suggestion functionality.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record providing context for payment suggestion.</param>
+    /// <param name="IsHanlded">Set to true to skip standard vendor payment suggestion logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeSuggestVendorPaymentsAction(var GenJournalLine: Record "Gen. Journal Line"; var IsHanlded: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking if payment amounts match applied ledger entries.
+    /// Enables custom validation logic for payment application amount matching.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record being validated for amount matching.</param>
+    /// <param name="IsHanlded">Set to true to skip standard amount matching validation logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckAmountMatchedToAppliedLines(var GenJournalLine: Record "Gen. Journal Line"; var IsHanlded: Boolean)
     begin

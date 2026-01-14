@@ -1,7 +1,10 @@
+#if not CLEAN28
 codeunit 131014 "Library - Booking Manager"
 {
     EventSubscriberInstance = Manual;
-
+    ObsoleteReason = 'Bookings is no longer part of Business Central 365.';
+    ObsoleteState = pending;
+    ObsoleteTag = '28.0';
     trigger OnRun()
     begin
     end;
@@ -102,3 +105,4 @@ codeunit 131014 "Library - Booking Manager"
     end;
 }
 
+#endif

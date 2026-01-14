@@ -6,6 +6,10 @@ namespace Microsoft.Finance.VAT.Reporting;
 
 using Microsoft.Foundation.Address;
 
+/// <summary>
+/// Request page interface for configuring VAT report generation parameters and options.
+/// Provides user interface for setting up VAT report criteria, periods, and processing preferences.
+/// </summary>
 report 742 "VAT Report Request Page"
 {
     Caption = 'VAT Report Request Page';
@@ -222,6 +226,12 @@ report 742 "VAT Report Request Page"
         Selection: Enum "VAT Statement Report Selection";
         PeriodSelection: Enum "VAT Statement Report Period Selection";
 
+    /// <summary>
+    /// Integration event raised after determining whether the period field should be editable.
+    /// Enables custom logic for controlling period field editability based on VAT report configuration.
+    /// </summary>
+    /// <param name="VATReportHeader">VAT report header providing context for editability determination</param>
+    /// <param name="PeriodIsEditable">Whether the period field should be editable, can be modified</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetPeriodIsEditable(VATReportHeader: Record "VAT Report Header"; var PeriodIsEditable: Boolean)
     begin

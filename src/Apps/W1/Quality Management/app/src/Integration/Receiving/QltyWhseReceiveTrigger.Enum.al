@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Integration.Receiving;
 
 /// <summary>
-/// The warehouse receipt behavior to create a test.
+/// The warehouse receipt behavior to create an inspection.
 /// </summary>
 enum 20450 "Qlty. Whse. Receive Trigger"
 {

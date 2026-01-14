@@ -9,9 +9,9 @@ using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Document;
-using System.Utilities;
 using Microsoft.Warehouse.Request;
 using System.Environment.Configuration;
+using System.Utilities;
 
 codeunit 8510 "Over-Receipt Mgt."
 {

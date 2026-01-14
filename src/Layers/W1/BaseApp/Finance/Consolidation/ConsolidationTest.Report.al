@@ -11,6 +11,14 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Projects.Project.Job;
 using System.Utilities;
 
+/// <summary>
+/// Validates consolidation setup and data integrity before running consolidation processing.
+/// Tests business unit configuration, G/L account mapping, dimension alignment, and data consistency.
+/// </summary>
+/// <remarks>
+/// Comprehensive validation report covering business unit setup, account mapping, dimension configuration,
+/// and subsidiary data validation. Identifies potential consolidation issues before processing begins.
+/// </remarks>
 report 1826 "Consolidation - Test"
 {
     DefaultLayout = RDLC;
@@ -565,6 +573,10 @@ report 1826 "Consolidation - Test"
                 TestTranslationMethod();
     end;
 
+    /// <summary>
+    /// Sets the consolidated company name for validation testing and report output.
+    /// </summary>
+    /// <param name="CompanyName">Name of the company receiving consolidated data</param>
     procedure SetConsolidatedCompany(CompanyName: Text[30])
     begin
         ConsolidatedCompany := CompanyName;

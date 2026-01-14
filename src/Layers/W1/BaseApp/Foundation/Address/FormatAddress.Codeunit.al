@@ -33,9 +33,6 @@ codeunit 365 "Format Address"
     var
         GLSetup: Record "General Ledger Setup";
         CompanyInfo: Record "Company Information";
-#if not CLEAN25
-        ServiceFormatAddress: Codeunit "Service Format Address";
-#endif
         GLSetupRead: Boolean;
         i: Integer;
         LanguageCode: Code[10];
@@ -1264,118 +1261,19 @@ codeunit 365 "Format Address"
             Cont.City, Cont."Post Code", Cont.County, Cont."Country/Region Code");
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by same procedure in codeunit ServiceFormatAddress', '25.0')]
-    procedure ServiceOrderSellto(var AddrArray: array[8] of Text[100]; ServHeader: Record Microsoft.Service.Document."Service Header")
-    begin
-        ServiceFormatAddress.ServiceOrderSellto(AddrArray, ServHeader);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by same procedure in codeunit ServiceFormatAddress', '25.0')]
-    procedure ServiceOrderShipto(var AddrArray: array[8] of Text[100]; ServHeader: Record Microsoft.Service.Document."Service Header")
-    begin
-        ServiceFormatAddress.ServiceOrderShipto(AddrArray, ServHeader);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by same procedure in codeunit ServiceFormatAddress', '25.0')]
-    procedure ServContractSellto(var AddrArray: array[8] of Text[100]; ServContract: Record Microsoft.Service.Contract."Service Contract Header")
-    begin
-        ServiceFormatAddress.ServContractSellto(AddrArray, ServContract);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by same procedure in codeunit ServiceFormatAddress', '25.0')]
-    procedure ServContractShipto(var AddrArray: array[8] of Text[100]; ServiceContractHeader: Record Microsoft.Service.Contract."Service Contract Header")
-    begin
-        ServiceFormatAddress.ServContractShipto(AddrArray, ServiceContractHeader);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by same procedure in codeunit ServiceFormatAddress', '25.0')]
-    procedure ServiceInvBillTo(var AddrArray: array[8] of Text[100]; var ServiceInvHeader: Record Microsoft.Service.History."Service Invoice Header")
-    begin
-        ServiceFormatAddress.ServiceInvBillTo(AddrArray, ServiceInvHeader);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by same procedure in codeunit ServiceFormatAddress', '25.0')]
-    procedure ServiceInvShipTo(var AddrArray: array[8] of Text[100]; CustAddr: array[8] of Text[100]; var ServiceInvHeader: Record Microsoft.Service.History."Service Invoice Header") Result: Boolean
-    var
-    begin
-        exit(ServiceFormatAddress.ServiceInvShipTo(AddrArray, CustAddr, ServiceInvHeader));
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by same procedure in codeunit ServiceFormatAddress', '25.0')]
-    procedure ServiceShptShipTo(var AddrArray: array[8] of Text[100]; var ServiceShptHeader: Record Microsoft.Service.History."Service Shipment Header")
-    begin
-        ServiceFormatAddress.ServiceShptShipTo(AddrArray, ServiceShptHeader);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by same procedure in codeunit ServiceFormatAddress', '25.0')]
-    procedure ServiceShptSellTo(var AddrArray: array[8] of Text[100]; var ServiceShptHeader: Record Microsoft.Service.History."Service Shipment Header")
-    begin
-        ServiceFormatAddress.ServiceShptSellTo(AddrArray, ServiceShptHeader);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by same procedure in codeunit ServiceFormatAddress', '25.0')]
-    procedure ServiceShptBillTo(var AddrArray: array[8] of Text[100]; ShipToAddr: array[8] of Text[100]; var ServiceShptHeader: Record Microsoft.Service.History."Service Shipment Header") Result: Boolean
-    begin
-        exit(ServiceFormatAddress.ServiceShptBillTo(AddrArray, ShipToAddr, ServiceShptHeader));
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by same procedure in codeunit ServiceFormatAddress', '25.0')]
-    procedure ServiceCrMemoBillTo(var AddrArray: array[8] of Text[100]; var ServiceCrMemoHeader: Record Microsoft.Service.History."Service Cr.Memo Header")
-    begin
-        ServiceFormatAddress.ServiceCrMemoBillTo(AddrArray, ServiceCrMemoHeader);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by same procedure in codeunit ServiceFormatAddress', '25.0')]
-    procedure ServiceCrMemoShipTo(var AddrArray: array[8] of Text[100]; CustAddr: array[8] of Text[100]; var ServiceCrMemoHeader: Record Microsoft.Service.History."Service Cr.Memo Header") Result: Boolean
-    begin
-        exit(ServiceFormatAddress.ServiceCrMemoShipTo(AddrArray, CustAddr, ServiceCrMemoHeader));
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by same procedure in codeunit ServiceFormatAddress', '25.0')]
-    procedure ServiceHeaderSellTo(var AddrArray: array[8] of Text[100]; var ServiceHeader: Record Microsoft.Service.Document."Service Header")
-    begin
-        ServiceFormatAddress.ServiceHeaderSellTo(AddrArray, ServiceHeader);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by same procedure in codeunit ServiceFormatAddress', '25.0')]
-    procedure ServiceHeaderBillTo(var AddrArray: array[8] of Text[100]; var ServiceHeader: Record Microsoft.Service.Document."Service Header")
-    begin
-        ServiceFormatAddress.ServiceHeaderBillTo(AddrArray, ServiceHeader);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by same procedure in codeunit ServiceFormatAddress', '25.0')]
-    procedure ServiceHeaderShipTo(var AddrArray: array[8] of Text[100]; var ServiceHeader: Record Microsoft.Service.Document."Service Header")
-    begin
-        ServiceFormatAddress.ServiceHeaderShipTo(AddrArray, ServiceHeader);
-    end;
-#endif
 
     procedure PostalBarCode(AddressType: Option): Text[100]
     begin
@@ -1979,187 +1877,19 @@ codeunit 365 "Format Address"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforeServContractShipTo(var AddrArray: array[8] of Text[100]; var ServiceContractHeader: Record Microsoft.Service.Contract."Service Contract Header"; var IsHandled: Boolean)
-    begin
-        OnBeforeServContractShipTo(AddrArray, ServiceContractHeader, IsHandled);
-    end;
 
-    [Obsolete('Replaced by same event in codeunit ServiceFormatAddress', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeServContractShipTo(var AddrArray: array[8] of Text[100]; var ServiceContractHeader: Record Microsoft.Service.Contract."Service Contract Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnBeforeServContractSellto(var AddrArray: array[8] of Text[100]; var ServiceContractHeader: Record Microsoft.Service.Contract."Service Contract Header"; var IsHandled: Boolean)
-    begin
-        OnBeforeServContractSellto(AddrArray, ServiceContractHeader, IsHandled);
-    end;
 
-    [Obsolete('Replaced by same event in codeunit ServiceFormatAddress', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeServContractSellto(var AddrArray: array[8] of Text[100]; var ServiceContractHeader: Record Microsoft.Service.Contract."Service Contract Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnBeforeServiceCrMemoBillTo(var AddrArray: array[8] of Text[100]; var ServiceCrMemoHeader: Record Microsoft.Service.History."Service Cr.Memo Header"; var IsHandled: Boolean)
-    begin
-        OnBeforeServiceCrMemoBillTo(AddrArray, ServiceCrMemoHeader, IsHandled);
-    end;
 
-    [Obsolete('Replaced by same event in codeunit ServiceFormatAddress', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeServiceCrMemoBillTo(var AddrArray: array[8] of Text[100]; var ServiceCrMemoHeader: Record Microsoft.Service.History."Service Cr.Memo Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnBeforeServiceCrMemoShipTo(var AddrArray: array[8] of Text[100]; CustAddr: array[8] of Text[100]; var ServiceCrMemoHeader: Record Microsoft.Service.History."Service Cr.Memo Header"; var IsHandled: Boolean; var Result: Boolean)
-    begin
-        OnBeforeServiceCrMemoShipTo(AddrArray, CustAddr, ServiceCrMemoHeader, IsHandled, Result);
-    end;
 
-    [Obsolete('Replaced by same event in codeunit ServiceFormatAddress', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeServiceCrMemoShipTo(var AddrArray: array[8] of Text[100]; CustAddr: array[8] of Text[100]; var ServiceCrMemoHeader: Record Microsoft.Service.History."Service Cr.Memo Header"; var IsHandled: Boolean; var Result: Boolean)
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnBeforeServiceHeaderBillTo(var AddrArray: array[8] of Text[100]; var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var IsHandled: Boolean)
-    begin
-        OnBeforeServiceHeaderBillTo(AddrArray, ServiceHeader, IsHandled);
-    end;
 
-    [Obsolete('Replaced by same event in codeunit ServiceFormatAddress', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeServiceHeaderBillTo(var AddrArray: array[8] of Text[100]; var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnBeforeServiceHeaderSellTo(var AddrArray: array[8] of Text[100]; var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var IsHandled: Boolean)
-    begin
-        OnBeforeServiceHeaderSellTo(AddrArray, ServiceHeader, IsHandled);
-    end;
 
-    [Obsolete('Replaced by same event in codeunit ServiceFormatAddress', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeServiceHeaderSellTo(var AddrArray: array[8] of Text[100]; var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnBeforeServiceHeaderShipTo(var AddrArray: array[8] of Text[100]; var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var IsHandled: Boolean)
-    begin
-        OnBeforeServiceHeaderShipTo(AddrArray, ServiceHeader, IsHandled);
-    end;
 
-    [Obsolete('Replaced by same event in codeunit ServiceFormatAddress', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeServiceHeaderShipTo(var AddrArray: array[8] of Text[100]; var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnBeforeServiceInvBillTo(var AddrArray: array[8] of Text[100]; var ServiceInvHeader: Record Microsoft.Service.History."Service Invoice Header"; var IsHandled: Boolean)
-    begin
-        OnBeforeServiceInvBillTo(AddrArray, ServiceInvHeader, IsHandled);
-    end;
-
-    [Obsolete('Replaced by same event in codeunit ServiceFormatAddress', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeServiceInvBillTo(var AddrArray: array[8] of Text[100]; var ServiceInvHeader: Record Microsoft.Service.History."Service Invoice Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnBeforeServiceInvShipTo(var AddrArray: array[8] of Text[100]; CustAddr: array[8] of Text[100]; var ServiceInvHeader: Record Microsoft.Service.History."Service Invoice Header"; var IsHandled: Boolean; var Result: Boolean)
-    begin
-        OnBeforeServiceInvShipTo(AddrArray, CustAddr, ServiceInvHeader, IsHandled, Result);
-    end;
-
-    [Obsolete('Replaced by same event in codeunit ServiceFormatAddress', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeServiceInvShipTo(var AddrArray: array[8] of Text[100]; CustAddr: array[8] of Text[100]; var ServiceInvHeader: Record Microsoft.Service.History."Service Invoice Header"; var IsHandled: Boolean; var Result: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnBeforeServiceOrderSellto(var AddrArray: array[8] of Text[100]; var ServHeader: Record Microsoft.Service.Document."Service Header"; var IsHandled: Boolean)
-    begin
-        OnBeforeServiceOrderSellto(AddrArray, ServHeader, IsHandled);
-    end;
-
-    [Obsolete('Replaced by same event in codeunit ServiceFormatAddress', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeServiceOrderSellto(var AddrArray: array[8] of Text[100]; var ServHeader: Record Microsoft.Service.Document."Service Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnBeforeServiceOrderShipto(var AddrArray: array[8] of Text[100]; var ServHeader: Record Microsoft.Service.Document."Service Header"; var IsHandled: Boolean)
-    begin
-        OnBeforeServiceOrderShipto(AddrArray, ServHeader, IsHandled);
-    end;
-
-    [Obsolete('Replaced by same event in codeunit ServiceFormatAddress', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeServiceOrderShipto(var AddrArray: array[8] of Text[100]; var ServHeader: Record Microsoft.Service.Document."Service Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnBeforeServiceShptShipTo(var AddrArray: array[8] of Text[100]; var ServiceShptHeader: Record Microsoft.Service.History."Service Shipment Header"; var IsHandled: Boolean)
-    begin
-        OnBeforeServiceShptShipTo(AddrArray, ServiceShptHeader, IsHandled);
-    end;
-
-    [Obsolete('Replaced by same event in codeunit ServiceFormatAddress', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeServiceShptShipTo(var AddrArray: array[8] of Text[100]; var ServiceShptHeader: Record Microsoft.Service.History."Service Shipment Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnBeforeServiceShptSellTo(var AddrArray: array[8] of Text[100]; var ServiceShptHeader: Record Microsoft.Service.History."Service Shipment Header"; var IsHandled: Boolean)
-    begin
-        OnBeforeServiceShptSellTo(AddrArray, ServiceShptHeader, IsHandled);
-    end;
-
-    [Obsolete('Replaced by same event in codeunit ServiceFormatAddress', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeServiceShptSellTo(var AddrArray: array[8] of Text[100]; var ServiceShptHeader: Record Microsoft.Service.History."Service Shipment Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnBeforeServiceShptBillTo(var AddrArray: array[8] of Text[100]; ShipToAddr: array[8] of Text[100]; var ServiceShptHeader: Record Microsoft.Service.History."Service Shipment Header"; var IsHandled: Boolean; var Result: Boolean)
-    begin
-        OnBeforeServiceShptBillTo(AddrArray, ShipToAddr, ServiceShptHeader, IsHandled, Result);
-    end;
-
-    [Obsolete('Replaced by same event in codeunit ServiceFormatAddress', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeServiceShptBillTo(var AddrArray: array[8] of Text[100]; ShipToAddr: array[8] of Text[100]; var ServiceShptHeader: Record Microsoft.Service.History."Service Shipment Header"; var IsHandled: Boolean; var Result: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetLineNos(Country: Record "Country/Region"; var NameLineNo: Integer; var Name2LineNo: Integer; var AddrLineNo: Integer; var Addr2LineNo: Integer; var ContLineNo: Integer; var PostCodeCityLineNo: Integer; var CountyLineNo: Integer; var CountryLineNo: Integer; var IsHandled: Boolean)
@@ -2246,4 +1976,3 @@ codeunit 365 "Format Address"
     begin
     end;
 }
-

@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Item.Catalog;
 
+using Microsoft.Inventory.Item;
 using Microsoft.Service.Archive;
 using Microsoft.Service.Document;
-using Microsoft.Inventory.Item;
 
 codeunit 6479 "Serv. Catalog Item Mgt."
 {
@@ -20,9 +20,6 @@ codeunit 6479 "Serv. Catalog Item Mgt."
     begin
         IsHandled := false;
         OnBeforeDelNonStockFSM(ServInvLine2, IsHandled);
-#if not CLEAN25
-        CatalogItemManagement.RunOnBeforeDelNonStockFSM(ServInvLine2, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -52,9 +49,6 @@ codeunit 6479 "Serv. Catalog Item Mgt."
         NonStockItem.Modify();
         ServInvLine2."No." := NonStockItem."Item No.";
         OnNonStockFSMOnBeforeInsertItemUnitOfMeasure(NonStockItem);
-#if not CLEAN25
-        CatalogItemManagement.RunOnNonStockFSMOnBeforeInsertItemUnitOfMeasure(NonStockItem);
-#endif
         CatalogItemManagement.InsertItemUnitOfMeasure(NonStockItem."Unit of Measure", ServInvLine2."No.");
 
         NewItem.SetRange("No.", ServInvLine2."No.");
@@ -63,17 +57,11 @@ codeunit 6479 "Serv. Catalog Item Mgt."
 
         IsHandled := false;
         OnNonStockFSMOnBeforeProgWindowOpen(ServInvLine2, IsHandled);
-#if not CLEAN25
-        CatalogItemManagement.RunOnNonStockFSMOnBeforeProgWindowOpen(ServInvLine2, IsHandled);
-#endif
         if not IsHandled and GuiAllowed() then
             CatalogItemManagement.OpenProgressDialog(NonStockItem, ServInvLine2."No.");
 
         CatalogItemManagement.CreateNewItem(NonStockItem);
         OnNonStockFSMOnAfterCreateNewItem(NewItem);
-#if not CLEAN25
-        CatalogItemManagement.RunOnNonStockFSMOnAfterCreateNewItem(NewItem);
-#endif
 
         if CatalogItemManagement.CheckLicensePermission(DATABASE::"Item Vendor") then
             CatalogItemManagement.NonstockItemVend(NonStockItem);
@@ -82,9 +70,6 @@ codeunit 6479 "Serv. Catalog Item Mgt."
 
         IsHandled := false;
         OnNonStockFSMOnBeforeProgWindowClose(ServInvLine2, IsHandled);
-#if not CLEAN25
-        CatalogItemManagement.RunOnNonStockFSMOnBeforeProgWindowClose(IsHandled, ServInvLine2);
-#endif
         if not IsHandled and GuiAllowed() then
             CatalogItemManagement.CloseProgressDialog();
     end;

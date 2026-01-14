@@ -264,19 +264,6 @@ page 22 "Customer List"
                 SubPageLink = "No." = field("No.");
                 Visible = CRMIsCoupledToRecord and CRMIntegrationEnabled;
             }
-#if not CLEAN25
-            part("Attached Documents"; "Document Attachment Factbox")
-            {
-                ObsoleteTag = '25.0';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The "Document Attachment FactBox" has been replaced by "Doc. Attachment List Factbox", which supports multiple files upload.';
-                ApplicationArea = All;
-                Visible = false;
-                Caption = 'Attachments';
-                SubPageLink = "Table ID" = const(Database::Customer),
-                              "No." = field("No.");
-            }
-#endif
             part("Attached Documents List"; "Doc. Attachment List Factbox")
             {
                 ApplicationArea = All;
@@ -1227,14 +1214,19 @@ page 22 "Customer List"
                 {
                     Caption = 'Sales Reports';
                     Image = "Report";
+#if not CLEAN28
                     action(ReportCustomerTop10List)
                     {
                         ApplicationArea = Basic, Suite;
-                        Caption = 'Customer - Top 10 List';
+                        Caption = 'Customer - Top 10 List (Obsolete)';
                         Image = "Report";
                         RunObject = Report "Customer - Top 10 List";
                         ToolTip = 'View which customers purchase the most or owe the most in a selected period. Only customers that have either purchases during the period or a balance at the end of the period will be included.';
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'This report has been replaced by the report Customer - Top List (Excel). This report will be removed in a future release.';
+                        ObsoleteTag = '28.0';
                     }
+#endif
                     action(ReportCustomerSalesList)
                     {
                         ApplicationArea = Basic, Suite;
@@ -1318,14 +1310,19 @@ page 22 "Customer List"
                         RunObject = Report "Customer Detailed Aging";
                         ToolTip = 'View, print, or save a detailed list of each customer''s total payments due, divided into three time periods. The report can be used to decide when to issue reminders, to evaluate a customer''s creditworthiness, or to prepare liquidity analyses.';
                     }
+#if not CLEAN28
                     action(ReportAgedAccountsReceivable)
                     {
                         ApplicationArea = Basic, Suite;
-                        Caption = 'Aged Accounts Receivable';
+                        Caption = 'Aged Accounts Receivable (Obsolete)';
                         Image = "Report";
                         RunObject = Report "Aged Accounts Receivable";
                         ToolTip = 'View an overview of when customer payments are due or overdue, divided into four periods. You must specify the date you want aging calculated from and the length of the period that each column will contain data for.';
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'This report has been replaced by the report Aged Accounts Receivable (Excel). This report will be removed in a future release.';
+                        ObsoleteTag = '28.0';
                     }
+#endif
                     action(ReportCustomerPaymentReceipt)
                     {
                         ApplicationArea = Suite;
@@ -1363,14 +1360,19 @@ page 22 "Customer List"
                     RunObject = Report "Customer Register";
                     ToolTip = 'View posted customer ledger entries divided into, and sorted according to, registers. By using a filter, you can select exactly the entries in the registers that you need to see. If you have created many entries and you do not set a filter, the report will print a large amount of information.';
                 }
+#if not CLEAN28
                 action("Customer - Top 10 List")
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Customer - Top 10 List';
+                    Caption = 'Customer - Top 10 List (Obsolete)';
                     Image = "Report";
                     RunObject = Report "Customer - Top 10 List";
                     ToolTip = 'View which customers purchase the most or owe the most in a selected period. Only customers that have either purchases during the period or a balance at the end of the period will be included.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the report Customer - Top List (Excel). This report will be removed in a future release.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
             }
             group(Sales)
             {
@@ -1731,4 +1733,3 @@ page 22 "Customer List"
     begin
     end;
 }
-

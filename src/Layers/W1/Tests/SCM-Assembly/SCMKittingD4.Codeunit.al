@@ -4,28 +4,28 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
+using Microsoft.Assembly.Document;
+using Microsoft.Assembly.History;
+using Microsoft.Assembly.Posting;
+using Microsoft.Assembly.Setup;
+using Microsoft.Foundation.Company;
+using Microsoft.Foundation.UOM;
+using Microsoft.Inventory;
+using Microsoft.Inventory.Availability;
+using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Location;
-using System.Environment.Configuration;
-using Microsoft.Inventory;
-using Microsoft.Assembly.Setup;
-using Microsoft.Purchases.Setup;
-using Microsoft.Sales.Setup;
+using Microsoft.Inventory.Setup;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
-using Microsoft.Warehouse.Setup;
-using Microsoft.Inventory.Item;
-using Microsoft.Inventory.BOM;
-using Microsoft.Assembly.Document;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Setup;
 using Microsoft.Sales.Document;
-using Microsoft.Assembly.History;
-using Microsoft.Foundation.Company;
-using Microsoft.Inventory.Tracking;
-using Microsoft.Inventory.Availability;
-using Microsoft.Foundation.UOM;
-using Microsoft.Assembly.Posting;
-using Microsoft.Inventory.Setup;
+using Microsoft.Sales.Setup;
+using Microsoft.Warehouse.Setup;
+using System.Environment.Configuration;
 
 codeunit 137093 "SCM Kitting - D4"
 {

@@ -7,6 +7,16 @@ namespace Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Utilities;
 using System.Utilities;
 
+/// <summary>
+/// Provides real-time error checking results for general journal lines in a factbox format.
+/// Displays validation issues, error counts, and error details to assist users with journal entry correction.
+/// </summary>
+/// <remarks>
+/// Real-time validation factbox for journal error management. Integrates with background error checking to provide
+/// immediate feedback on journal line validation issues without blocking user interface interactions.
+/// Key features: Error count display, real-time validation feedback, issue severity indication, error detail access.
+/// Integration: Works with background error checking system and journal error management functionality.
+/// </remarks>
 page 9121 "Journal Errors Factbox"
 {
     PageType = ListPart;

@@ -1,11 +1,11 @@
 namespace Microsoft.Service.Test;
 
 using Microsoft.Finance.Dimension;
-using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Absence;
-using Microsoft.Projects.TimeSheet;
+using Microsoft.HumanResources.Employee;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Resources.Resource;
+using Microsoft.Projects.TimeSheet;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Setup;

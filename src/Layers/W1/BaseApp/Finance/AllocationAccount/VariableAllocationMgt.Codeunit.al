@@ -8,6 +8,10 @@ using Microsoft.Bank.Ledger;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Foundation.Period;
 
+/// <summary>
+/// Manages variable allocation calculations based on dynamic account balances and configurable time periods.
+/// Provides comprehensive balance calculation logic for G/L accounts and bank accounts with dimension filtering.
+/// </summary>
 codeunit 2670 "Variable Allocation Mgt."
 {
     var
@@ -340,6 +344,16 @@ codeunit 2670 "Variable Allocation Mgt."
         end;
     end;
 
+    /// <summary>
+    /// Integration event raised to retrieve account balance for custom account types or calculation methods.
+    /// </summary>
+    /// <param name="AllocAccountDistribution">Allocation account distribution record being processed</param>
+    /// <param name="StartDate">Start date for balance calculation period</param>
+    /// <param name="EndDate">End date for balance calculation period</param>
+    /// <param name="AccountBalance">Account balance to be populated by custom logic</param>
+    /// <param name="ShareDistributions">Dictionary for storing distribution shares</param>
+    /// <param name="TotalBalance">Total balance across all accounts</param>
+    /// <param name="Handled">Set to true to indicate custom balance calculation was handled</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetAccountBalance(var AllocAccountDistribution: Record "Alloc. Account Distribution"; StartDate: Date; EndDate: Date; var AccountBalance: Decimal; var ShareDistributions: Dictionary of [Guid, Decimal]; var TotalBalance: Decimal; var Handled: Boolean);
     begin

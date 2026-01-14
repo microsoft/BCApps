@@ -29,12 +29,14 @@ table 223 "Drop Shpt. Post. Buffer"
         }
         field(4; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
         }
         field(5; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
@@ -53,4 +55,3 @@ table 223 "Drop Shpt. Post. Buffer"
     {
     }
 }
-

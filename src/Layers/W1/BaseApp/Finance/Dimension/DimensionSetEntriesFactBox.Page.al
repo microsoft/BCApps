@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// FactBox displaying dimension set entries for the current record in a read-only format.
+/// Provides a compact view of dimension information in pages without requiring navigation to dimension details.
+/// </summary>
+/// <remarks>
+/// Commonly used as a FactBox on document pages to show associated dimension values.
+/// Automatically displays dimension codes, names, and values for the current dimension set ID.
+/// Caption can be customized to reflect the context of the parent page or document.
+/// </remarks>
 page 699 "Dimension Set Entries FactBox"
 {
     Caption = 'Dimensions';
@@ -62,6 +71,11 @@ page 699 "Dimension Set Entries FactBox"
     var
         FormCaption: Text[250];
 
+    /// <summary>
+    /// Sets a custom caption for the FactBox by appending text to the default caption.
+    /// Used to provide context-specific titles when the FactBox is displayed on different pages.
+    /// </summary>
+    /// <param name="NewFormCaption">Text to prepend to the default FactBox caption</param>
     procedure SetFormCaption(NewFormCaption: Text[250])
     begin
         FormCaption := CopyStr(NewFormCaption + ' - ' + CurrPage.Caption, 1, MaxStrLen(FormCaption));

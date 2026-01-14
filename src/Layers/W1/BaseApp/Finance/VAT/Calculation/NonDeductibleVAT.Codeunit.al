@@ -13,9 +13,9 @@ using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.Foundation.Enums;
+using Microsoft.Projects.Project.Journal;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
-using Microsoft.Projects.Project.Journal;
 
 /// <summary>
 /// Provides an interface of the Non-Deductible VAT functionality.
@@ -431,6 +431,11 @@ codeunit 6200 "Non-Deductible VAT"
         NonDedVATImpl.CopyNonDedVATFromGenJnlLineToFALedgEntry(FALedgEntry, GenJnlLine);
     end;
 
+    /// <summary>
+    /// Copies non-deductible VAT information from general journal line to job journal line for job-related transactions.
+    /// </summary>
+    /// <param name="JobJnlLine">Job journal line to receive non-deductible VAT information</param>
+    /// <param name="GenJnlLine">Source general journal line containing non-deductible VAT data</param>
     procedure CopyNonDedVATFromGenJnlLineToJobJnlLine(var JobJnlLine: Record "Job Journal Line"; GenJnlLine: Record "Gen. Journal Line")
     begin
         NonDedVATImpl.CopyNonDedVATFromGenJnlLineToJobJnlLine(JobJnlLine, GenJnlLine);
@@ -771,11 +776,25 @@ codeunit 6200 "Non-Deductible VAT"
         NonDedVATImpl.ApplyRoundingForFinalPostingFromInvoicePostingBuffer(RoundingInvoicePostingBuffer, CurrInvoicePostingBuffer);
     end;
 
+    /// <summary>
+    /// Integration event raised before determining non-deductible VAT percentage for purchase line.
+    /// Enables custom logic for non-deductible VAT percentage calculation.
+    /// </summary>
+    /// <param name="NonDeductibleVATPct">Non-deductible VAT percentage to be set</param>
+    /// <param name="PurchaseLine">Purchase line for which non-deductible VAT percentage is determined</param>
+    /// <param name="IsHandled">Set to true to skip standard non-deductible VAT percentage determination</param>
     [IntegrationEvent(false, false)]
     internal procedure OnBeforeGetNonDeductibleVATPctForPurchLine(var NonDeductibleVATPct: Decimal; PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before determining non-deductible VAT percentage for general journal line.
+    /// Enables custom logic for non-deductible VAT percentage calculation in journal processing.
+    /// </summary>
+    /// <param name="NonDeductibleVATPct">Non-deductible VAT percentage to be set</param>
+    /// <param name="GenJournalLine">General journal line for which non-deductible VAT percentage is determined</param>
+    /// <param name="IsHandled">Set to true to skip standard non-deductible VAT percentage determination</param>
     [IntegrationEvent(false, false)]
     internal procedure OnBeforeGetNonDedVATPctForGenJnlLine(var NonDeductibleVATPct: Decimal; GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin

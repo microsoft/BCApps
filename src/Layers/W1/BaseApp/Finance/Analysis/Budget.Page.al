@@ -15,6 +15,15 @@ using Microsoft.Foundation.Period;
 using System.Text;
 using System.Utilities;
 
+/// <summary>
+/// Provides comprehensive budget management interface with multi-dimensional analysis capabilities.
+/// Enables budget entry, modification, and analysis across various dimensions and time periods.
+/// </summary>
+/// <remarks>
+/// Primary interface for G/L budget management with matrix-based data entry.
+/// Supports dimension filtering, period-based views, and budget variance analysis.
+/// Integrates with dimension selection and budget name management.
+/// </remarks>
 page 113 Budget
 {
     Caption = 'Budget';
@@ -525,18 +534,23 @@ page 113 Budget
             {
                 Caption = 'Report';
                 Image = "Report";
+#if not CLEAN28
                 action(ReportTrialBalance)
                 {
                     ApplicationArea = Suite;
-                    Caption = 'Trial Balance/Budget';
+                    Caption = 'Trial Balance/Budget (Obsolete)';
                     Image = "Report";
                     ToolTip = 'View budget details for the specified period.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the report Trial Balance/Budget (Excel). This report will be removed in a future release.';
+                    ObsoleteTag = '28.0';
 
                     trigger OnAction()
                     begin
                         REPORT.Run(REPORT::"Trial Balance/Budget");
                     end;
                 }
+#endif
                 action(ReportBudget)
                 {
                     ApplicationArea = Suite;
@@ -703,9 +717,14 @@ page 113 Budget
                 actionref(ReportBudget_Promoted; ReportBudget)
                 {
                 }
+#if not CLEAN28
                 actionref(ReportTrialBalance_Promoted; ReportTrialBalance)
                 {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the report Trial Balance/Budget (Excel). This report will be removed in a future release.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
                 actionref(GLBalanceBudget_Promoted; GLBalanceBudget)
                 {
                 }
@@ -1207,17 +1226,32 @@ page 113 Budget
         end;
     end;
 
+    /// <summary>
+    /// Sets the budget name for the page to display and work with specific budget data.
+    /// Initializes budget context for filtering and data operations.
+    /// </summary>
+    /// <param name="NextBudgetName">Budget name code to set for page operations</param>
     procedure SetBudgetName(NextBudgetName: Code[10])
     begin
         NewBudgetName := NextBudgetName;
     end;
 
+    /// <summary>
+    /// Retrieves the currently active budget name for the page operations.
+    /// Returns the budget name being used for data filtering and display.
+    /// </summary>
+    /// <returns>Budget name code currently active on the page</returns>
     procedure GetBudgetName(): Code[10]
     begin
         exit(BudgetName);
     end;
 
 #if not CLEAN26
+    /// <summary>
+    /// Sets G/L account filter for budget data display and analysis operations.
+    /// This procedure is obsolete and will be removed. Use SetGLAccountFilter(NewGLAccFilter: Text) instead.
+    /// </summary>
+    /// <param name="NewGLAccFilter">G/L account filter code to apply to budget data</param>
     [Obsolete('Replaced by SetGLAccountFilter(NewGLAccFilter: Text)', '26.0')]
     procedure SetGLAccountFilter(NewGLAccFilter: Code[250])
     begin
@@ -1226,22 +1260,47 @@ page 113 Budget
     end;
 #endif
 
+    /// <summary>
+    /// Sets G/L account filter for budget data display and analysis operations.
+    /// Applies account-based filtering to budget entries and updates page display.
+    /// </summary>
+    /// <param name="NewGLAccFilter">G/L account filter text to apply to budget data</param>
     procedure SetGLAccountFilter(NewGLAccFilter: Text)
     begin
         GLAccFilter := NewGLAccFilter;
         GLAccFilterOnAfterValidate();
     end;
 
+    /// <summary>
+    /// Sets G/L account category filter for focused budget analysis by account groupings.
+    /// Filters budget data based on account category classifications.
+    /// </summary>
+    /// <param name="NewGLAccCategoryFilter">G/L account category to filter budget data by</param>
     procedure SetGLAccountCategoryFilter(NewGLAccCategoryFilter: Enum "G/L Account Category")
     begin
         GLAccCategoryFilter := NewGLAccCategoryFilter;
     end;
 
+    /// <summary>
+    /// Sets income/balance filter for budget analysis focused on income statement or balance sheet accounts.
+    /// Controls whether budget data displays income, balance, or both account types.
+    /// </summary>
+    /// <param name="NewIncomeBalanceGLAccFilter">Income/balance option to filter account types</param>
     procedure SetIncomeBalanceGLAccFilter(NewIncomeBalanceGLAccFilter: Option)
     begin
         IncomeBalanceGLAccFilter := "G/L Account Income/Balance".FromInteger(NewIncomeBalanceGLAccFilter);
     end;
 
+    /// <summary>
+    /// Sets dimension filters for budget analysis across global and budget-specific dimensions.
+    /// Configures filtering for multi-dimensional budget data analysis and reporting.
+    /// </summary>
+    /// <param name="NewGlobalDim1Filter">Filter for global dimension 1</param>
+    /// <param name="NewGlobalDim2Filter">Filter for global dimension 2</param>
+    /// <param name="NewBudgetDim1Filter">Filter for budget dimension 1</param>
+    /// <param name="NewBudgetDim2Filter">Filter for budget dimension 2</param>
+    /// <param name="NewBudgetDim3Filter">Filter for budget dimension 3</param>
+    /// <param name="NewBudgetDim4Filter">Filter for budget dimension 4</param>
     procedure SetBudgetDimFilters(NewGlobalDim1Filter: Text; NewGlobalDim2Filter: Text; NewBudgetDim1Filter: Text; NewBudgetDim2Filter: Text; NewBudgetDim3Filter: Text; NewBudgetDim4Filter: Text);
     begin
         GlobalDim1Filter := NewGlobalDim1Filter;
@@ -1304,6 +1363,10 @@ page 113 Budget
         UpdateMatrixSubform();
     end;
 
+    /// <summary>
+    /// Validates and applies Global Dimension 2 filter for budget matrix display.
+    /// Updates budget data view when Global Dimension 2 filter changes.
+    /// </summary>
     procedure GlobalDim2FilterOnAfterValidate()
     begin
         GLAccBudgetBuf.SetFilter("Global Dimension 2 Filter", GlobalDim2Filter);
@@ -1312,6 +1375,10 @@ page 113 Budget
         UpdateMatrixSubform();
     end;
 
+    /// <summary>
+    /// Validates and applies Global Dimension 1 filter for budget matrix display.
+    /// Updates budget data view when Global Dimension 1 filter changes.
+    /// </summary>
     procedure GlobalDim1FilterOnAfterValidate()
     begin
         GLAccBudgetBuf.SetFilter("Global Dimension 1 Filter", GlobalDim1Filter);
@@ -1320,6 +1387,10 @@ page 113 Budget
         UpdateMatrixSubform();
     end;
 
+    /// <summary>
+    /// Validates and applies Budget Dimension 2 filter for budget matrix display.
+    /// Updates budget data view when Budget Dimension 2 filter changes.
+    /// </summary>
     procedure BudgetDim2FilterOnAfterValidate()
     begin
         GLAccBudgetBuf.SetFilter("Budget Dimension 2 Filter", BudgetDim2Filter);
@@ -1328,6 +1399,10 @@ page 113 Budget
         UpdateMatrixSubform();
     end;
 
+    /// <summary>
+    /// Validates and applies Budget Dimension 1 filter for budget matrix display.
+    /// Updates budget data view when Budget Dimension 1 filter changes.
+    /// </summary>
     procedure BudgetDim1FilterOnAfterValidate()
     begin
         GLAccBudgetBuf.SetFilter("Budget Dimension 1 Filter", BudgetDim1Filter);
@@ -1336,6 +1411,10 @@ page 113 Budget
         UpdateMatrixSubform();
     end;
 
+    /// <summary>
+    /// Validates and applies Budget Dimension 4 filter for budget matrix display.
+    /// Updates budget data view when Budget Dimension 4 filter changes.
+    /// </summary>
     procedure BudgetDim4FilterOnAfterValidate()
     begin
         GLAccBudgetBuf.SetFilter("Budget Dimension 4 Filter", BudgetDim4Filter);
@@ -1344,6 +1423,10 @@ page 113 Budget
         UpdateMatrixSubform();
     end;
 
+    /// <summary>
+    /// Validates and applies Budget Dimension 3 filter for budget matrix display.
+    /// Updates budget data view when Budget Dimension 3 filter changes.
+    /// </summary>
     procedure BudgetDim3FilterOnAfterValidate()
     begin
         GLAccBudgetBuf.SetFilter("Budget Dimension 3 Filter", BudgetDim3Filter);
@@ -1376,46 +1459,102 @@ page 113 Budget
         DateFilterOnAfterValidate();
     end;
 
+    /// <summary>
+    /// Integration event raised after generating column captions for budget matrix display.
+    /// Enables customization of matrix column headers and caption formatting.
+    /// </summary>
+    /// <param name="ColumnDimCode">Dimension code used for column generation</param>
+    /// <param name="StepType">Matrix step type for navigation</param>
+    /// <param name="PrimKeyFirstCaptionInCu">Primary key of first caption</param>
+    /// <param name="CaptionSet">Array of generated column captions</param>
+    /// <param name="CaptionRange">Caption range description</param>
+    /// <param name="CurrentNoOfColumns">Current number of columns</param>
+    /// <param name="MatrixRecords">Array of dimension code buffer records</param>
+    /// <param name="ShowColumnName">Whether to show column names</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGenerateColumnCaptions(ColumnDimCode: Text[30]; StepType: Enum "Matrix Page Step Type"; var PrimKeyFirstCaptionInCu: Text; var CaptionSet: array[32] of Text[80]; var CaptionRange: Text; var CurrentNoOfColumns: Integer; var MatrixRecords: array[32] of Record "Dimension Code Buffer"; ShowColumnName: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after converting dimension code to matrix dimension type.
+    /// Enables custom mapping of dimension codes to G/L Budget Matrix dimension types.
+    /// </summary>
+    /// <param name="DimCode">Dimension code to convert</param>
+    /// <param name="Result">Resulting G/L Budget Matrix dimension type</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterDimCodeToType(DimCode: Text[30]; var Result: Enum "G/L Budget Matrix Dimensions")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating budget name selection.
+    /// Enables custom processing when budget name is changed or validated.
+    /// </summary>
+    /// <param name="GLAccBudgetBuf">G/L Account Budget Buffer with updated budget context</param>
+    /// <param name="GLBudgetName">G/L Budget Name record being validated</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateBudgetName(var GLAccBudgetBuf: Record "G/L Acc. Budget Buffer"; var GLBudgetName: Record "G/L Budget Name")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before clearing dimension code when dimension changes.
+    /// Enables custom handling of dimension code clearing operations.
+    /// </summary>
+    /// <param name="DimensionCode">Dimension code being cleared</param>
+    /// <param name="IsHandled">Set to true to skip standard clearing logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeClearDimCodeOnChange(DimensionCode: Text[30]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters on G/L Budget Entry during budget deletion.
+    /// Enables additional filtering logic for budget entry deletion operations.
+    /// </summary>
+    /// <param name="GLBudgetEntry">G/L Budget Entry record with applied filters</param>
     [IntegrationEvent(false, false)]
     local procedure OnDeleteBudgetOnAfterGLBudgetEntrySetFilters(var GLBudgetEntry: Record "G/L Budget Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before opening dimension selection lookup page.
+    /// Enables customization of dimension selection page before display.
+    /// </summary>
+    /// <param name="DimensionSelection">Dimension Selection page being opened</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetDimSelectionOnBeforeDimSelectionLookup(var DimensionSelection: Page "Dimension Selection")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before setting default period type to Month on page opening.
+    /// Enables custom period type initialization logic.
+    /// </summary>
+    /// <param name="PeriodType">Period type being set</param>
+    /// <param name="IsHandled">Set to true to skip standard period type setting</param>
     [IntegrationEvent(false, false)]
     local procedure OnOpenPageOnBeforeSetPeriodTypeMonth(var PeriodType: Enum "Analysis Period Type"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before setting Income/Balance G/L Account filter on page opening.
+    /// Enables custom account filtering logic during page initialization.
+    /// </summary>
+    /// <param name="GLAccountIncomeBalanceFilter">G/L Account Income/Balance filter being applied</param>
+    /// <param name="IsHandled">Set to true to skip standard filter application</param>
     [IntegrationEvent(false, false)]
     local procedure OnOpenPageOnBeforeIncomeBalanceGLAccFilter(GLAccountIncomeBalanceFilter: Enum "G/L Account Income/Balance"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before opening the budget page.
+    /// Enables custom initialization logic before page display.
+    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnOpenPage()
     begin

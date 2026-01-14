@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
-using System.EMail;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Sales.History;
+using System.EMail;
 using System.Utilities;
 
 codeunit 6753 "Send Reminder Event Handler"
@@ -264,6 +264,6 @@ codeunit 6753 "Send Reminder Event Handler"
             TempBlob.CreateInStream(AttachmentStream);
 
             TempEmailItem.AddAttachment(AttachmentStream, AttachmentFileName);
-        until ReportSelections.Next() = 0;
+        until TempAttachementReportSelections.Next() = 0;
     end;
 }

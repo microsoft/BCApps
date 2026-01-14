@@ -200,6 +200,7 @@ codeunit 99000810 "Calculate Planning Route Line"
 
         ProdOrderCapNeed.UpdateDatetime();
 
+        OnCreatePlanningCapNeedOnBeforeInsertProdOrderCapNeed(ProdOrderCapNeed, ReqLine, PlanningRoutingLine);
         ProdOrderCapNeed.Insert();
 
         NextCapNeedLineNo := NextCapNeedLineNo + 1;
@@ -1714,5 +1715,9 @@ codeunit 99000810 "Calculate Planning Route Line"
     local procedure OnCreatingLoadBackOnAfterUpdateRemainNeedQtyBase(PlanningRoutingLine: Record "Planning Routing Line"; CalendarEntry: Record "Calendar Entry"; var StartingTime: Time)
     begin
     end;
-}
 
+    [IntegrationEvent(false, false)]
+    local procedure OnCreatePlanningCapNeedOnBeforeInsertProdOrderCapNeed(var ProdOrderCapacityNeed: Record "Prod. Order Capacity Need"; var RequisitionLine: Record "Requisition Line"; var PlanningRoutingLine: Record "Planning Routing Line")
+    begin
+    end;
+}

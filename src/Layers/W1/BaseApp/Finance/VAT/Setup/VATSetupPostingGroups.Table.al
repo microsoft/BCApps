@@ -7,6 +7,15 @@ namespace Microsoft.Finance.VAT.Setup;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Inventory.Item;
 
+/// <summary>
+/// Stores VAT product posting group templates and configurations used during VAT assisted setup process.
+/// Provides predefined VAT rates, account assignments, and classification options for standardized VAT configuration.
+/// </summary>
+/// <remarks>
+/// Used by VAT Setup Wizard to create standardized VAT posting group combinations with appropriate account assignments.
+/// Supports both item and service classifications with default templates for common VAT scenarios.
+/// Extensible through events for custom initialization and validation logic.
+/// </remarks>
 table 1877 "VAT Setup Posting Groups"
 {
     Caption = 'VAT Setup Posting Groups';
@@ -14,11 +23,17 @@ table 1877 "VAT Setup Posting Groups"
 
     fields
     {
+        /// <summary>
+        /// VAT product posting group code for categorizing taxable products and services.
+        /// </summary>
         field(2; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
             NotBlank = true;
         }
+        /// <summary>
+        /// VAT percentage rate applied to transactions using this posting group configuration.
+        /// </summary>
         field(4; "VAT %"; Decimal)
         {
             AutoFormatType = 0;
@@ -27,40 +42,64 @@ table 1877 "VAT Setup Posting Groups"
             MaxValue = 100;
             MinValue = 0;
         }
+        /// <summary>
+        /// G/L account for posting sales VAT amounts for this product posting group.
+        /// </summary>
         field(7; "Sales VAT Account"; Code[20])
         {
             Caption = 'Sales VAT Account';
             TableRelation = "G/L Account";
         }
+        /// <summary>
+        /// G/L account for posting purchase VAT amounts for this product posting group.
+        /// </summary>
         field(9; "Purchase VAT Account"; Code[20])
         {
             Caption = 'Purchase VAT Account';
             TableRelation = "G/L Account";
         }
+        /// <summary>
+        /// G/L account for posting reverse charge VAT amounts for this product posting group.
+        /// </summary>
         field(11; "Reverse Chrg. VAT Acc."; Code[20])
         {
             Caption = 'Reverse Chrg. VAT Acc.';
             TableRelation = "G/L Account";
         }
+        /// <summary>
+        /// Description text for the VAT product posting group displayed in setup interfaces.
+        /// </summary>
         field(18; "VAT Prod. Posting Grp Desc."; Text[100])
         {
             Caption = 'VAT Prod. Posting Grp Desc.';
         }
+        /// <summary>
+        /// VAT clause description text providing additional information about VAT treatment.
+        /// </summary>
         field(19; "VAT Clause Desc"; Text[250])
         {
             Caption = 'VAT Clause Desc';
         }
+        /// <summary>
+        /// Indicates whether this posting group template is selected for use during VAT setup.
+        /// </summary>
         field(22; Selected; Boolean)
         {
             Caption = 'Selected';
             FieldClass = Normal;
         }
+        /// <summary>
+        /// Specifies whether this template applies to items, services, or both types of transactions.
+        /// </summary>
         field(23; "Application Type"; Option)
         {
             Caption = 'Application Type';
             OptionCaption = ',Items,Services';
             OptionMembers = ,Items,Services;
         }
+        /// <summary>
+        /// Indicates whether this is a default template provided by the system for standard VAT scenarios.
+        /// </summary>
         field(24; Default; Boolean)
         {
             Caption = 'Default';
@@ -97,6 +136,11 @@ table 1877 "VAT Setup Posting Groups"
         InvalidGLAccountsTxt: Label '%1 is not valid G/L Account.', Comment = '%1 is placeholder for the invalid gl account code';
         VATAssistedAccountsMsg: Label 'You have not assigned general ledger accounts for sales and purchases for all VAT amounts. You won''t be able to calculate and post VAT for the missing accounts. If you''re skipping this step on purpose, you can manually assign accounts later in the VAT Posting Setup page.';
 
+    /// <summary>
+    /// Validates that at least one non-default VAT setup posting group is selected for configuration.
+    /// Used by VAT setup process to ensure user has made meaningful selections.
+    /// </summary>
+    /// <returns>True if selected non-default groups exist, false otherwise</returns>
     procedure ValidateVATRates(): Boolean
     var
         VATSetupPostingGroups: Record "VAT Setup Posting Groups";
@@ -107,6 +151,10 @@ table 1877 "VAT Setup Posting Groups"
         exit(not VATSetupPostingGroups.IsEmpty);
     end;
 
+    /// <summary>
+    /// Populates working VAT product posting group records from default templates for setup configuration.
+    /// Creates non-default copies of default templates for user modification during VAT setup process.
+    /// </summary>
     procedure PopulateVATProdGroups()
     var
         VATSetupPostingGroups: Record "VAT Setup Posting Groups";
@@ -132,6 +180,18 @@ table 1877 "VAT Setup Posting Groups"
         until Next() = 0;
     end;
 
+    /// <summary>
+    /// Adds or updates a VAT product posting group template with specified configuration parameters.
+    /// Creates new template or modifies existing one with VAT rate, account assignments, and classification.
+    /// </summary>
+    /// <param name="ProdGrpCode">VAT product posting group code</param>
+    /// <param name="GrpDesc">Description for the posting group</param>
+    /// <param name="VatRate">VAT percentage rate to apply</param>
+    /// <param name="SalesAccount">G/L account for sales VAT posting</param>
+    /// <param name="PurchAccount">G/L account for purchase VAT posting</param>
+    /// <param name="IsService">Whether template applies to services instead of items</param>
+    /// <param name="IsDefault">Whether this is a system default template</param>
+    /// <returns>True if template was successfully modified, false otherwise</returns>
     procedure AddOrUpdateProdPostingGrp(ProdGrpCode: Code[20]; GrpDesc: Text[100]; VatRate: Decimal; SalesAccount: Code[20]; PurchAccount: Code[20]; IsService: Boolean; IsDefault: Boolean): Boolean
     var
         GLAccount: Record "G/L Account";
@@ -157,6 +217,13 @@ table 1877 "VAT Setup Posting Groups"
         exit(Modify());
     end;
 
+    /// <summary>
+    /// Checks whether existing items or services are already configured with the specified VAT product posting group.
+    /// Validates impact of VAT configuration changes on existing master data.
+    /// </summary>
+    /// <param name="VATProdPostingGroupCode">VAT product posting group code to check</param>
+    /// <param name="IsService">Whether to check services instead of items</param>
+    /// <returns>True if existing items/services use this posting group, false otherwise</returns>
     procedure CheckExistingItemAndServiceWithVAT(VATProdPostingGroupCode: Code[20]; IsService: Boolean): Boolean
     var
         Item: Record Item;
@@ -170,6 +237,12 @@ table 1877 "VAT Setup Posting Groups"
         exit(not Item.IsEmpty);
     end;
 
+    /// <summary>
+    /// Validates that all selected VAT posting group templates have valid G/L account assignments.
+    /// Ensures VAT setup completion by checking required account configurations for posting.
+    /// </summary>
+    /// <param name="ErrorMessage">Returns detailed error message if validation fails</param>
+    /// <returns>True if all accounts are valid and assigned, false if validation errors exist</returns>
     procedure ValidateGLAccountsExist(var ErrorMessage: Text): Boolean
     var
         VATSetupPostingGroups: Record "VAT Setup Posting Groups";
@@ -203,6 +276,12 @@ table 1877 "VAT Setup Posting Groups"
         exit(true);
     end;
 
+    /// <summary>
+    /// Retrieves predefined label token codes used for standard VAT product posting group setup.
+    /// Provides consistent codes for creating standardized VAT configurations across implementations.
+    /// </summary>
+    /// <param name="LabelName">Name of the label token to retrieve</param>
+    /// <returns>Code value for the specified label token</returns>
     procedure GetLabelTok(LabelName: Text): Code[20]
     begin
         case LabelName of
@@ -221,6 +300,12 @@ table 1877 "VAT Setup Posting Groups"
         end
     end;
 
+    /// <summary>
+    /// Retrieves predefined label text descriptions used for standard VAT product posting group setup.
+    /// Provides consistent descriptions for creating standardized VAT configurations across implementations.
+    /// </summary>
+    /// <param name="LabelName">Name of the label text to retrieve</param>
+    /// <returns>Description text for the specified label</returns>
     procedure GetLabelTxt(LabelName: Text): Text[100]
     begin
         case LabelName of
@@ -250,11 +335,23 @@ table 1877 "VAT Setup Posting Groups"
         AddOrUpdateProdPostingGrp(ZEROTok, ZEROTxt, 0, '5610', '5630', false, true);
     end;
 
+    /// <summary>
+    /// Integration event raised before initializing VAT setup posting groups with standard values.
+    /// Enables extensions to provide custom default VAT configurations instead of system defaults.
+    /// </summary>
+    /// <param name="Handled">Set to true to skip standard initialization logic</param>
+    /// <param name="VATSetupPostingGroups">VAT setup posting groups record for custom initialization</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitWithStandardValues(var Handled: Boolean; VATSetupPostingGroups: Record "VAT Setup Posting Groups")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking existing items and services with VAT product posting group.
+    /// Enables extensions to provide custom validation logic for VAT group usage verification.
+    /// </summary>
+    /// <param name="VATProdPostingGroupCode">VAT product posting group code being checked</param>
+    /// <param name="Result">Custom result for the existence check</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckExistingItemAndServiceWithVAT(VATProdPostingGroupCode: Code[20]; var Result: Boolean)
     begin

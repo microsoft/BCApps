@@ -30,7 +30,6 @@ codeunit 134164 "Company Init Unit Test II"
 
         // [GIVEN] Job Queue Entry for codeunit "O365 Sync. Management" doesn't exist
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
-        JobQueueEntry.SetRange("Object ID to Run", CODEUNIT::"O365 Sync. Management");
         JobQueueEntry.DeleteAll();
 
         // [GIVEN] Invoke "Company-Initialize" at the first time

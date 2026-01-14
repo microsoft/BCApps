@@ -8,6 +8,10 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 using System.Text;
 
+/// <summary>
+/// Generates standard financial report account schedules from G/L account categories.
+/// Creates balance sheet, income statement, cash flow, and retained earnings templates.
+/// </summary>
 codeunit 571 "Categ. Generate Acc. Schedules"
 {
 
@@ -437,6 +441,11 @@ codeunit 571 "Categ. Generate Acc. Schedules"
         exit(CopyStr(SelectionFilterManagement.GetSelectionFilterForGLAccount(GLAccount), 1, 250));
     end;
 
+    /// <summary>
+    /// Executes account schedule generation from notification trigger.
+    /// Calls G/L account category management to confirm and run generation process.
+    /// </summary>
+    /// <param name="AccSchedUpdateNeededNotification">Notification triggering the generation process</param>
     procedure RunGenerateAccSchedules(var AccSchedUpdateNeededNotification: Notification)
     var
         GLAccountCategoryMgt: Codeunit "G/L Account Category Mgt.";
@@ -444,6 +453,11 @@ codeunit 571 "Categ. Generate Acc. Schedules"
         GLAccountCategoryMgt.ConfirmAndRunGenerateAccountSchedules();
     end;
 
+    /// <summary>
+    /// Disables account schedule update notifications for current user session.
+    /// Sets user preference to hide future generation notifications.
+    /// </summary>
+    /// <param name="AccSchedUpdateNeededNotification">Notification to disable for current user</param>
     procedure HideAccSchedUpdateNeededNotificationForCurrentUser(var AccSchedUpdateNeededNotification: Notification)
     var
         GLAccountCategory: Record "G/L Account Category";
@@ -451,26 +465,53 @@ codeunit 571 "Categ. Generate Acc. Schedules"
         GLAccountCategory.DontNotifyCurrentUserAgain(AccSchedUpdateNeededNotification.Id);
     end;
 
+    /// <summary>
+    /// Integration event raised after adding account schedule line during generation.
+    /// </summary>
+    /// <param name="AccScheduleLine">Account schedule line being added</param>
+    /// <param name="ParentGLAccountCategory">Parent G/L account category for the line</param>
+    /// <param name="RowNo">Current row number for line positioning</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAddAccSchedLine(var AccScheduleLine: Record "Acc. Schedule Line"; ParentGLAccountCategory: Record "G/L Account Category"; var RowNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after adding parent account schedule line during generation.
+    /// </summary>
+    /// <param name="AccScheduleLine">Parent account schedule line being added</param>
+    /// <param name="ParentGLAccountCategory">G/L account category for the parent line</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAddParentAccSchedLine(var AccScheduleLine: Record "Acc. Schedule Line"; ParentGLAccountCategory: Record "G/L Account Category")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after creating balance sheet account schedule structure.
+    /// </summary>
+    /// <param name="AccScheduleName">Account schedule name for balance sheet</param>
+    /// <param name="LiabilitiesRowNo">Row number for liabilities section</param>
+    /// <param name="EquityRowNo">Row number for equity section</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateBalanceSheet(AccScheduleName: Record "Acc. Schedule Name"; LiabilitiesRowNo: Code[10]; EquityRowNo: Code[10])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after creating cost of goods sold group in income statement.
+    /// </summary>
+    /// <param name="AccScheduleLine">Account schedule line for COGS group</param>
+    /// <param name="IsHandled">Set to true to skip standard COGS group processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateIncomeStatementOnAfterCreateCOGSGroup(var AccScheduleLine: Record "Acc. Schedule Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after adding parent account schedule line with posting accounts totaling type.
+    /// </summary>
+    /// <param name="AccScheduleLine">Account schedule line with posting accounts totaling</param>
+    /// <param name="ParentGLAccountCategory">Parent G/L account category</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAddParentAccSchedLineTotalingTypePostingAccounts(var AccScheduleLine: Record "Acc. Schedule Line"; ParentGLAccountCategory: Record "G/L Account Category")
     begin

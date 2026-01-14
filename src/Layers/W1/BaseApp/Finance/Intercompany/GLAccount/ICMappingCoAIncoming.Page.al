@@ -6,6 +6,10 @@ namespace Microsoft.Intercompany.GLAccount;
 
 using Microsoft.Finance.GeneralLedger.Account;
 
+/// <summary>
+/// List interface for mapping incoming intercompany G/L accounts to local G/L accounts.
+/// Provides selection and mapping capabilities for IC account synchronization from partners.
+/// </summary>
 page 627 "IC Mapping CoA Incoming"
 {
     PageType = ListPart;
@@ -63,6 +67,11 @@ page 627 "IC Mapping CoA Incoming"
         Emphasize: Boolean;
         NameIndent: Integer;
 
+    /// <summary>
+    /// Returns the currently selected intercompany G/L accounts from the page.
+    /// Used for batch operations on multiple selected accounts.
+    /// </summary>
+    /// <param name="ICAccounts">Record set to be populated with selected IC accounts</param>
     procedure GetSelectedLines(var ICAccounts: Record "IC G/L Account")
     begin
         CurrPage.SetSelectionFilter(ICAccounts);

@@ -4,29 +4,29 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
-using Microsoft.Warehouse.Journal;
-using Microsoft.Inventory.Journal;
-using Microsoft.Inventory.Location;
-using System.TestLibraries.Utilities;
-using Microsoft.Inventory.Tracking;
 using Microsoft.Assembly.Document;
-using Microsoft.Sales.Document;
-using Microsoft.Inventory.Item;
-using Microsoft.Purchases.Document;
-using Microsoft.Warehouse.Structure;
-using Microsoft.Warehouse.Request;
-using Microsoft.Warehouse.Document;
 using Microsoft.Assembly.History;
-using Microsoft.Warehouse.Tracking;
-using Microsoft.Warehouse.Setup;
 using Microsoft.Assembly.Setup;
-using Microsoft.Manufacturing.Document;
 using Microsoft.Inventory.BOM;
-using Microsoft.Warehouse.Activity;
-using Microsoft.Warehouse.Worksheet;
-using Microsoft.Sales.History;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Setup;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Purchases.Document;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
+using Microsoft.Warehouse.Activity;
+using Microsoft.Warehouse.Document;
+using Microsoft.Warehouse.Journal;
+using Microsoft.Warehouse.Request;
+using Microsoft.Warehouse.Setup;
+using Microsoft.Warehouse.Structure;
+using Microsoft.Warehouse.Tracking;
+using Microsoft.Warehouse.Worksheet;
+using System.TestLibraries.Utilities;
 
 codeunit 137099 "SCM Kitting Reservation"
 {

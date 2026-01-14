@@ -8,6 +8,15 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using System.Utilities;
 
+/// <summary>
+/// Generates G/L consolidation elimination entries report for intercompany transaction elimination.
+/// Identifies and reports intercompany balances requiring elimination during consolidation processing.
+/// </summary>
+/// <remarks>
+/// Elimination report for identifying intercompany transactions that must be removed during consolidation.
+/// Analyzes G/L accounts for intercompany balances and generates elimination entry recommendations.
+/// Essential for proper consolidation accounting ensuring elimination of internal transactions and balances.
+/// </remarks>
 report 16 "G/L Consolidation Eliminations"
 {
     DefaultLayout = RDLC;

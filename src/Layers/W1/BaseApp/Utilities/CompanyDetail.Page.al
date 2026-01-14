@@ -357,47 +357,6 @@ page 1156 "Company Detail"
                             ObsoleteState = Pending;
                             ObsoleteTag = '26.0';
                         }
-#if not CLEAN25
-                        action(ExcelTemplateTrialBalance)
-                        {
-                            ApplicationArea = All;
-                            Caption = 'Trial Balance';
-                            Image = Excel;
-                            RunObject = Codeunit "Run Template Trial Balance";
-                            ToolTip = 'Open a spreadsheet that shows a summary trial balance by account. This report is deprecated and will be removed in a future release.';
-#pragma warning disable AS0072
-                            ObsoleteReason = 'Functionality replaced by "EXR Trial Balance Excel". Extend this report object with Excel layout instead.';
-                            ObsoleteState = Pending;
-                            ObsoleteTag = '25.0';
-#pragma warning restore AS0072
-                        }
-                        action(ExcelTemplateAgedAccPay)
-                        {
-                            ApplicationArea = All;
-                            Caption = 'Aged Accounts Payable';
-                            Image = Excel;
-                            RunObject = Codeunit "Run Template Aged Acc. Pay.";
-                            ToolTip = 'Open a spreadsheet that shows a list of aged remaining balances for each vendor by period. This report is deprecated and will be removed in a future release.';
-#pragma warning disable AS0072
-                            ObsoleteReason = 'Functionality replaced by "EXR Aged Acc Payable Excel". Extend this report object with Excel layout instead.';
-                            ObsoleteState = Pending;
-                            ObsoleteTag = '25.0';
-#pragma warning restore AS0072
-                        }
-                        action(ExcelTemplateAgedAccRec)
-                        {
-                            ApplicationArea = All;
-                            Caption = 'Aged Accounts Receivable';
-                            Image = Excel;
-                            RunObject = Codeunit "Run Template Aged Acc. Rec.";
-                            ToolTip = 'Open a spreadsheet that shows when customer payments are due or overdue by period. This report is deprecated and will be removed in a future release.';
-#pragma warning disable AS0072
-                            ObsoleteReason = 'Functionality replaced by "EXR Aged Acc Receivable Excel". Extend this report object with Excel layout instead.';
-                            ObsoleteState = Pending;
-                            ObsoleteTag = '25.0';
-#pragma warning restore AS0072
-                        }
-#endif
                     }
 #endif
                 }
@@ -459,32 +418,6 @@ page 1156 "Company Detail"
                     ObsoleteState = Pending;
                     ObsoleteTag = '26.0';
                 }
-#if not CLEAN25
-                actionref(ExcelTemplateTrialBalance_Promoted; ExcelTemplateTrialBalance)
-                {
-#pragma warning disable AS0072
-                    ObsoleteReason = 'Functionality replaced by "EXR Trial Balance Excel". Extend this report object with Excel layout instead.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-#pragma warning restore AS0072
-                }
-                actionref(ExcelTemplateAgedAccPay_Promoted; ExcelTemplateAgedAccPay)
-                {
-#pragma warning disable AS0072
-                    ObsoleteReason = 'Functionality replaced by "EXR Aged Acc Payable Excel". Extend this report object with Excel layout instead.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-#pragma warning restore AS0072
-                }
-                actionref(ExcelTemplateAgedAccRec_Promoted; ExcelTemplateAgedAccRec)
-                {
-#pragma warning disable AS0072
-                    ObsoleteReason = 'Functionality replaced by "EXR Aged Acc Receivable Excel". Extend this report object with Excel layout instead.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-#pragma warning restore AS0072
-                }
-#endif
             }
 #endif
         }
@@ -614,4 +547,3 @@ page 1156 "Company Detail"
         // This event is called when an accountant goes to their client and enables us to capture telemetry for this action.
     end;
 }
-

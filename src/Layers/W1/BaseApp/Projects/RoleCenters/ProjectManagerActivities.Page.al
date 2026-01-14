@@ -11,10 +11,6 @@ using Microsoft.Projects.Project.WIP;
 using System;
 using System.Environment;
 using System.Visualization;
-#if not CLEAN25
-using Microsoft.Integration.SyncEngine;
-using Microsoft.Integration.Dataverse;
-#endif
 
 page 9068 "Project Manager Activities"
 {
@@ -166,37 +162,6 @@ page 9068 "Project Manager Activities"
                     }
                 }
             }
-#if not CLEAN25
-            cuegroup("Data Integration")
-            {
-                Caption = 'Data Integration';
-                Visible = false;
-                ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                ObsoleteState = Pending;
-                ObsoleteTag = '25.0';
-
-                field("CDS Integration Errors"; Rec."FS Integration Errors")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Integration Errors';
-                    DrillDownPageID = "Integration Synch. Error List";
-                    ToolTip = 'Specifies the number of errors related to data integration with Dynamics 365 Field Service.';
-                    ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-                }
-                field("Coupled Data Synch Errors"; Rec."Coupled Data Synch Errors")
-                {
-                    ApplicationArea = RelationshipMgmt;
-                    Caption = 'Coupled Data Synchronization Errors';
-                    DrillDownPageID = "CRM Skipped Records";
-                    ToolTip = 'Specifies the number of errors that occurred in the latest synchronization of coupled data between Business Central and Dynamics 365 Field Service.';
-                    ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-                }
-            }
-#endif
         }
     }
 
@@ -294,4 +259,3 @@ page 9068 "Project Manager Activities"
     begin
     end;
 }
-

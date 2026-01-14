@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,12 +20,14 @@ table 5214 "Misc. Article Information"
         field(1; "Employee No."; Code[20])
         {
             Caption = 'Employee No.';
+            ToolTip = 'Specifies a number for the employee.';
             NotBlank = true;
             TableRelation = Employee;
         }
         field(2; "Misc. Article Code"; Code[10])
         {
             Caption = 'Misc. Article Code';
+            ToolTip = 'Specifies a code to define the type of miscellaneous article.';
             NotBlank = true;
             TableRelation = "Misc. Article";
 
@@ -42,18 +44,22 @@ table 5214 "Misc. Article Information"
         field(4; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the miscellaneous article.';
         }
         field(5; "From Date"; Date)
         {
             Caption = 'From Date';
+            ToolTip = 'Specifies the date when the employee first received the miscellaneous article.';
         }
         field(6; "To Date"; Date)
         {
             Caption = 'To Date';
+            ToolTip = 'Specifies the date when the employee no longer possesses the miscellaneous article.';
         }
         field(7; "In Use"; Boolean)
         {
             Caption = 'In Use';
+            ToolTip = 'Specifies that the miscellaneous article is in use.';
         }
         field(8; Comment; Boolean)
         {
@@ -62,12 +68,14 @@ table 5214 "Misc. Article Information"
                                                                      "Alternative Address Code" = field("Misc. Article Code"),
                                                                      "Table Line No." = field("Line No.")));
             Caption = 'Comment';
+            ToolTip = 'Specifies if a comment is associated with this entry.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(9; "Serial No."; Text[50])
         {
             Caption = 'Serial No.';
+            ToolTip = 'Specifies the serial number of the miscellaneous article.';
         }
     }
 

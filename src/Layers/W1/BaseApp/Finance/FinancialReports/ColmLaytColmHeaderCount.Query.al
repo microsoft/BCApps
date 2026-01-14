@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.FinancialReports;
 
+/// <summary>
+/// Query to count column layouts by column header for duplicate detection.
+/// Identifies column headers used more than once within the same column layout.
+/// </summary>
 query 763 "Colm. Layt. Colm. Header Count"
 {
     Caption = 'Colm. Layt. Colm. Header Count';

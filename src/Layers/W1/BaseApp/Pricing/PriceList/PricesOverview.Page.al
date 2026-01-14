@@ -13,8 +13,8 @@ using Microsoft.Pricing.Source;
 using Microsoft.Pricing.Worksheet;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Pricing;
-using System.Text;
 using System.Globalization;
+using System.Text;
 
 page 7024 "Prices Overview"
 {

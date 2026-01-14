@@ -17,6 +17,20 @@ using System.Integration.Excel;
 using System.Telemetry;
 using System.Utilities;
 
+/// <summary>
+/// Main interface for processing payment reconciliation and automatic payment application.
+/// This page provides comprehensive tools for importing bank statement data, applying automatic
+/// matching algorithms, manually reviewing and adjusting payment applications, and posting
+/// finalized payment reconciliations. Serves as the primary workspace for payment processing
+/// with integrated matching confidence indicators, application details, and difference management.
+/// </summary>
+/// <remarks>
+/// Key features include automatic payment application with confidence scoring, manual application
+/// override capabilities, text-to-account mapping integration, difference posting options, and
+/// comprehensive validation before posting. Supports multi-line selection for batch operations,
+/// Excel integration for data export, and detailed drill-down to application specifics.
+/// Integration with bank statement import, payment application rules, and posting workflows.
+/// </remarks>
 page 1290 "Payment Reconciliation Journal"
 {
     AutoSplitKey = true;
@@ -401,24 +415,6 @@ page 1290 "Payment Reconciliation Journal"
                         {
                             ShowCaption = false;
 
-#if not CLEAN25
-                            group("Number of Lines")
-                            {
-                                Visible = false;
-                                ShowCaption = false;
-                                ObsoleteState = Pending;
-                                ObsoleteReason = 'Rearranging the footer fields.';
-                                ObsoleteTag = '25.0';
-                            }
-                            group(LinesWithDifferenceGroup)
-                            {
-                                Visible = false;
-                                ShowCaption = false;
-                                ObsoleteState = Pending;
-                                ObsoleteReason = 'Rearranging the footer fields.';
-                                ObsoleteTag = '25.0';
-                            }
-#endif
                             field(TotalLines; TotalLinesCount)
                             {
                                 Caption = 'Number of Lines';
@@ -469,24 +465,6 @@ page 1290 "Payment Reconciliation Journal"
                             ShowCaption = false;
                             Editable = false;
 
-#if not CLEAN25
-                            group("Transaction Total")
-                            {
-                                Visible = false;
-                                ShowCaption = false;
-                                ObsoleteState = Pending;
-                                ObsoleteReason = 'Rearranging the footer fields.';
-                                ObsoleteTag = '25.0';
-                            }
-                            group(CreditDebit)
-                            {
-                                Visible = false;
-                                ShowCaption = false;
-                                ObsoleteState = Pending;
-                                ObsoleteReason = 'Rearranging the footer fields.';
-                                ObsoleteTag = '25.0';
-                            }
-#endif
                             field(TotalTransactionAmountFixedLayout; BankAccReconciliation."Total Transaction Amount")
                             {
                                 ApplicationArea = Basic, Suite;
@@ -519,32 +497,6 @@ page 1290 "Payment Reconciliation Journal"
                         group(Balances1)
                         {
                             ShowCaption = false;
-#if not CLEAN25
-                            group(BalanceOnBankAccountGroup)
-                            {
-                                Visible = false;
-                                ShowCaption = false;
-                                ObsoleteState = Pending;
-                                ObsoleteReason = 'Rearranging the footer fields.';
-                                ObsoleteTag = '25.0';
-                            }
-                            group(BalanceOnBankAccountAfterPostingGroup)
-                            {
-                                Visible = false;
-                                ShowCaption = false;
-                                ObsoleteState = Pending;
-                                ObsoleteReason = 'Rearranging the footer fields.';
-                                ObsoleteTag = '25.0';
-                            }
-                            group(StatementEndingBalanceGroup)
-                            {
-                                Visible = false;
-                                ShowCaption = false;
-                                ObsoleteState = Pending;
-                                ObsoleteReason = 'Rearranging the footer fields.';
-                                ObsoleteTag = '25.0';
-                            }
-#endif
                             field(BalanceOnBankAccountFixedLayout; BankAccReconciliation."Total Balance on Bank Account")
                             {
                                 ApplicationArea = Basic, Suite;
@@ -1456,18 +1408,36 @@ page 1290 "Payment Reconciliation Journal"
         Clear(DimMgt);
     end;
 
+    /// <summary>
+    /// Integration event raised when the Apply Automatically action is triggered in the payment reconciliation journal.
+    /// Enables customization of the automatic application process with custom matching logic or pre-processing steps.
+    /// </summary>
+    /// <param name="BankAccReconciliation">Bank reconciliation header containing statement and processing details.</param>
+    /// <param name="SubscriberInvoked">Set to true by subscribers to indicate custom processing was performed.</param>
     [IntegrationEvent(false, false)]
     [Scope('OnPrem')]
     procedure OnAtActionApplyAutomatically(BankAccReconciliation: Record "Bank Acc. Reconciliation"; var SubscriberInvoked: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when line sorting is updated in the payment reconciliation journal.
+    /// Enables custom sorting logic implementation or additional processing when sort order changes.
+    /// </summary>
+    /// <param name="BankAccReconciliation">Bank reconciliation header containing statement context.</param>
+    /// <param name="SubscriberInvoked">Set to true by subscribers to indicate custom sorting was applied.</param>
     [IntegrationEvent(true, false)]
     [Scope('OnPrem')]
     procedure OnUpdateSorting(BankAccReconciliation: Record "Bank Acc. Reconciliation"; var SubscriberInvoked: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after importing bank transactions into the payment reconciliation journal.
+    /// Enables custom post-processing of imported transaction data or additional validation steps.
+    /// </summary>
+    /// <param name="SubscriberInvoked">Set to true by subscribers to indicate custom post-processing was performed.</param>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation lines that were created during import.</param>
     [IntegrationEvent(false, false)]
     [Scope('OnPrem')]
     procedure OnAfterImportBankTransactions(var SubscriberInvoked: Boolean; var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line")
@@ -1489,4 +1459,3 @@ page 1290 "Payment Reconciliation Journal"
     begin
     end;
 }
-

@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.Dimension;
 
+/// <summary>
+/// Manages intercompany dimension values for cross-company dimension value mapping and synchronization.
+/// Provides hierarchical view and editing capabilities for dimension values within an intercompany dimension.
+/// </summary>
 page 601 "IC Dimension Values"
 {
     Caption = 'Intercompany Dimension Values';
@@ -134,6 +138,10 @@ page 601 "IC Dimension Values"
         NameIndent: Integer;
         DimensionCode: Code[20];
 
+    /// <summary>
+    /// Sets the dimension code filter for displaying dimension values.
+    /// </summary>
+    /// <param name="DimCode">Dimension code to filter dimension values by</param>
     procedure SetDimensionCode(DimCode: Code[20])
     begin
         DimensionCode := DimCode;

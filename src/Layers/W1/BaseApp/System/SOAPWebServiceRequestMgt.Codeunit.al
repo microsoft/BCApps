@@ -1,4 +1,4 @@
-﻿namespace System.Integration;
+namespace System.Integration;
 
 using Microsoft.Utilities;
 using System;
@@ -222,18 +222,6 @@ codeunit 1290 "SOAP Web Service Request Mgt."
 
         Error(ErrorText);
     end;
-#if not CLEAN25
-
-    [Obsolete('Replaced by SetGlobals(RequestBodyInStream: InStream; URL: Text; Username: Text; Password: SecretText)', '25.0')]
-    [NonDebuggable]
-    procedure SetGlobals(RequestBodyInStream: InStream; URL: Text; Username: Text; Password: Text)
-    var
-        PasswordAsSecretText: SecretText;
-    begin
-        PasswordAsSecretText := Password;
-        SetGlobals(RequestBodyInStream, URL, Username, PasswordAsSecretText);
-    end;
-#endif
 
     [NonDebuggable]
     procedure SetGlobals(RequestBodyInStream: InStream; URL: Text; Username: Text; Password: SecretText)
@@ -252,18 +240,6 @@ codeunit 1290 "SOAP Web Service Request Mgt."
 
         TraceLogEnabled := false;
     end;
-#if not CLEAN25
-
-    [NonDebuggable]
-    [Obsolete('Replaced by SetBasicCredentials(Username: Text; Password: SecretText)', '25.0')]
-    procedure SetBasicCredentials(Username: Text; Password: Text)
-    var
-        PasswordAsSecretText: SecretText;
-    begin
-        PasswordAsSecretText := Password;
-        SetBasicCredentials(Username, PasswordAsSecretText);
-    end;
-#endif
 
     [NonDebuggable]
     procedure SetBasicCredentials(Username: Text; Password: SecretText)
@@ -360,18 +336,6 @@ codeunit 1290 "SOAP Web Service Request Mgt."
     begin
         GlobalProgressDialogEnabled := false;
     end;
-#if not CLEAN25
-
-    [Obsolete('Replaced by HasJWTExpired(JsonWebToken: SecretText)', '25.0')]
-    [NonDebuggable]
-    procedure HasJWTExpired(JsonWebToken: Text): Boolean
-    var
-        JsonWebTokenAsSecretText: SecretText;
-    begin
-        JsonWebTokenAsSecretText := JsonWebToken;
-        exit(HasJWTExpired(JsonWebTokenAsSecretText));
-    end;
-#endif
 
     procedure HasJWTExpired(JsonWebToken: SecretText): Boolean
     var
@@ -407,19 +371,6 @@ codeunit 1290 "SOAP Web Service Request Mgt."
             exit;
         exit(TypeHelper.EvaluateUnixTimestamp(Timestamp));
     end;
-#if not CLEAN25
-
-    [TryFunction]
-    [NonDebuggable]
-    [Obsolete('Replaced by GetTokenDetailsAsJson(JsonWebToken: SecretText; var WebTokenAsJson: Text)', '25.0')]
-    procedure GetTokenDetailsAsJson(JsonWebToken: Text; var WebTokenAsJson: Text)
-    var
-        JsonWebTokenAsSecretText: SecretText;
-    begin
-        JsonWebTokenAsSecretText := JsonWebToken;
-        GetTokenDetailsAsJson(JsonWebTokenAsSecretText, WebTokenAsJson);
-    end;
-#endif
 
     [TryFunction]
     [NonDebuggable]
@@ -444,19 +395,6 @@ codeunit 1290 "SOAP Web Service Request Mgt."
 
         WebTokenAsJson := JObject.ToString();
     end;
-#if not CLEAN25
-
-    [TryFunction]
-    [Obsolete('Replaced by GetTokenDetailsAsNameBuffer(JsonWebToken: SecretText; var Buffer: Record "Name/Value Buffer")', '25.0')]
-    [NonDebuggable]
-    procedure GetTokenDetailsAsNameBuffer(JsonWebToken: Text; var Buffer: Record "Name/Value Buffer")
-    var
-        JsonWebTokenAsSecretText: SecretText;
-    begin
-        JsonWebTokenAsSecretText := JsonWebToken;
-        GetTokenDetailsAsNameBuffer(JsonWebTokenAsSecretText, Buffer)
-    end;
-#endif
 
     [TryFunction]
     [NonDebuggable]
@@ -481,4 +419,3 @@ codeunit 1290 "SOAP Web Service Request Mgt."
     begin
     end;
 }
-

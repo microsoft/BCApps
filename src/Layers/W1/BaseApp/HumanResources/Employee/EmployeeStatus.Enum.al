@@ -6,7 +6,7 @@ namespace Microsoft.HumanResources.Employee;
 
 enum 5200 "Employee Status"
 {
-    Extensible = false;
+    Extensible = true;
     AssignmentCompatibility = true;
 
     value(0; Active)

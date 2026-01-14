@@ -5,6 +5,10 @@
 namespace Microsoft.Finance.FinancialReports;
 using System.Telemetry;
 
+/// <summary>
+/// Creates copy of existing account schedule with all associated line definitions.
+/// Enables duplication of row structure for new financial report configurations.
+/// </summary>
 report 26 "Copy Account Schedule"
 {
     Caption = 'Copy Rows';
@@ -103,6 +107,10 @@ report 26 "Copy Account Schedule"
         MultipleSourcesErr: Label 'You can only copy one rows definition at a time.';
         CopyEventTxt: Label 'Financial Report Row Definition copied: %1', Comment = '%1 = rows definition name', Locked = true;
 
+    /// <summary>
+    /// Returns the name of the newly created account schedule after copy operation.
+    /// </summary>
+    /// <returns>New account schedule name as Code[10]</returns>
     procedure GetNewAccountScheduleName(): Code[10]
     begin
         exit(NewAccScheduleName);

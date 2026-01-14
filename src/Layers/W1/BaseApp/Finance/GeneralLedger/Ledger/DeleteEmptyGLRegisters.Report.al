@@ -12,6 +12,15 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Receivables;
 using System.Utilities;
 
+/// <summary>
+/// Deletes G/L registers that contain no ledger entries to clean up the register table.
+/// Verifies that registers are truly empty across all related ledger entry tables before deletion.
+/// </summary>
+/// <remarks>
+/// Data sources: G/L Register table. Validates against G/L Entry, Customer Ledger Entry, Vendor Ledger Entry, 
+/// VAT Entry, Bank Account Ledger Entry, FA Ledger Entry, and Maintenance Ledger Entry tables.
+/// Includes confirmation dialog and detailed deletion progress reporting.
+/// </remarks>
 report 99 "Delete Empty G/L Registers"
 {
     Caption = 'Delete Empty G/L Registers';
@@ -140,6 +149,9 @@ report 99 "Delete Empty G/L Registers"
         DeleteRegistersQst: Label 'Do you want to delete the registers?';
         RequestFilterDate: Date;
 
+    /// <summary>
+    /// Skips the confirmation dialog when deleting empty registers.
+    /// </summary>
     procedure SetSkipConfirm()
     begin
         SkipConfirm := true;

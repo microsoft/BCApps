@@ -8,6 +8,10 @@ using Microsoft.Intercompany;
 using Microsoft.Intercompany.Comment;
 using Microsoft.Intercompany.Outbox;
 
+/// <summary>
+/// Displays archived intercompany inbox transactions that have been processed and completed.
+/// Provides historical view and audit trail of IC transactions with details access and analysis capabilities.
+/// </summary>
 page 617 "Handled IC Inbox Transactions"
 {
     ApplicationArea = Intercompany;

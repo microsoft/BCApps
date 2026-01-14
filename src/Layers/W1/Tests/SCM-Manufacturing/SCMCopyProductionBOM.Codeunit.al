@@ -4,15 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Test;
 
-using System.TestLibraries.Utilities;
-using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Finance.Analysis;
+using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Foundation.UOM;
-using Microsoft.Foundation.NoSeries;
-using Microsoft.Finance.Analysis;
+using System.TestLibraries.Utilities;
 
 codeunit 137210 "SCM Copy Production BOM"
 {

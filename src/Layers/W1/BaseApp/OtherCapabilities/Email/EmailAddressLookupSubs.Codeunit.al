@@ -1,9 +1,9 @@
 namespace System.Email;
 
-using Microsoft.Sales.Customer;
-using Microsoft.Purchases.Vendor;
 using Microsoft.CRM.Contact;
 using Microsoft.HumanResources.Employee;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
 using System.Security.AccessControl;
 using System.Security.User;
 

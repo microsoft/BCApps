@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+/// <summary>
+/// Stores error messages generated during VAT report validation and processing.
+/// Provides temporary storage for displaying validation errors to users before report release.
+/// </summary>
 table 745 "VAT Report Error Log"
 {
     Caption = 'VAT Report Error Log';
@@ -12,10 +16,16 @@ table 745 "VAT Report Error Log"
 
     fields
     {
+        /// <summary>
+        /// Unique identifier for the error log entry within the validation session.
+        /// </summary>
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
         }
+        /// <summary>
+        /// Error message text describing the validation issue or processing error.
+        /// </summary>
         field(2; "Error Message"; Text[250])
         {
             Caption = 'Error Message';

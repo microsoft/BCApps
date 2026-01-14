@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.Security.AccessControl;
 
-using Microsoft.Service.Pricing;
-using Microsoft.Service.Setup;
 using Microsoft.Service.Document;
 using Microsoft.Service.Maintenance;
+using Microsoft.Service.Pricing;
+using Microsoft.Service.Setup;
 
 permissionsetextension 6466 "Service Foundation UI" extends "Foundation UI"
 {

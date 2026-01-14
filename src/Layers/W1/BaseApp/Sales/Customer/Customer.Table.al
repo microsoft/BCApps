@@ -1053,21 +1053,6 @@ table 18 Customer
             TableRelation = "Reminder Terms";
             ToolTip = 'Specifies how reminders about late payments are handled for this customer.';
 
-#if not CLEAN25
-            trigger OnLookup()
-            var
-                ReminderTermsRecord: Record "Reminder Terms";
-                ReminderTerms: Page "Reminder Terms List";
-            begin
-                ReminderTerms.LookupMode(true);
-                if ReminderTerms.RunModal() <> ACTION::LookupOK then
-                    exit;
-
-                ReminderTerms.SetSelectionFilter(ReminderTermsRecord);
-                ReminderTermsRecord.FindFirst();
-                Rec."Reminder Terms Code" := ReminderTermsRecord.Code;
-            end;
-#endif
         }
         field(105; "Reminder Amounts"; Decimal)
         {

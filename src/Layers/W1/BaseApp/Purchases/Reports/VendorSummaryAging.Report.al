@@ -1,3 +1,4 @@
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -15,9 +16,12 @@ report 305 "Vendor - Summary Aging"
     DefaultLayout = RDLC;
     RDLCLayout = './Purchases/Reports/VendorSummaryAging.rdlc';
     ApplicationArea = Basic, Suite;
-    Caption = 'Vendor - Summary Aging';
+    Caption = 'Vendor - Summary Aging (Obsolete)';
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'This report is obsolete and will be removed in a future release. See the documentation for alternative options.';
+    ObsoleteTag = '28.0';
 
     dataset
     {
@@ -295,8 +299,8 @@ report 305 "Vendor - Summary Aging"
 
     requestpage
     {
-        AboutTitle = 'About Vendor - Summary Aging';
-        AboutText = 'This is a legacy report for aged accounts payable. See report documentation for alternatives.';
+        AboutTitle = 'About Vendor - Summary Aging (Obsolete)';
+        AboutText = 'This is a legacy report for aged accounts payable.** This report is obsolete and will be removed in a future release.** Please refer to the report documentation for alternative ways to retrieve this information.';
         SaveValues = true;
 
         layout
@@ -398,3 +402,4 @@ report 305 "Vendor - Summary Aging"
     end;
 }
 
+#endif

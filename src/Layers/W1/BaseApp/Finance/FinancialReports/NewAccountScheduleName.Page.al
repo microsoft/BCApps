@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.FinancialReports;
 
+/// <summary>
+/// Dialog page for creating new account schedule names during row definition import.
+/// Provides naming validation and duplicate checking for account schedule creation workflow.
+/// </summary>
 page 105 "New Account Schedule Name"
 {
     Caption = 'New Row Definition';
@@ -52,6 +56,10 @@ page 105 "New Account Schedule Name"
         AlreadyExistsTxt: Text;
         AlreadyExistsErr: Label 'Row definition %1 will be overwritten.', Comment = '%1 - name of the row definition.';
 
+    /// <summary>
+    /// Sets source account schedule name and initializes new name field.
+    /// </summary>
+    /// <param name="Name">Source account schedule name to set</param>
     procedure Set(Name: Code[10])
     begin
         OldName := Name;
@@ -59,6 +67,10 @@ page 105 "New Account Schedule Name"
         CheckAlreadyExists();
     end;
 
+    /// <summary>
+    /// Returns the new account schedule name entered by the user.
+    /// </summary>
+    /// <returns>New account schedule name as Code[10]</returns>
     procedure GetName(): Code[10]
     begin
         exit(NewName);

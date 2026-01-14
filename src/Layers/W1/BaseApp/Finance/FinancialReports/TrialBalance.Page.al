@@ -7,6 +7,15 @@ namespace Microsoft.Finance.FinancialReports;
 using Microsoft.Foundation.Period;
 using System.Environment;
 
+/// <summary>
+/// Provides interactive trial balance interface with period-based analysis and drill-down capabilities.
+/// Displays general ledger account balances with period-over-period comparison and trend analysis.
+/// </summary>
+/// <remarks>
+/// Card part page designed for embedding in trial balance analysis forms. Supports configurable
+/// period types, interactive drilling into account details, and balance verification workflows.
+/// Integrates with general ledger posting for real-time balance updates and reconciliation.
+/// </remarks>
 page 1393 "Trial Balance"
 {
     Caption = 'Trial Balance';

@@ -6,6 +6,16 @@ namespace Microsoft.Finance.Currency;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 
+/// <summary>
+/// Provides a dialog interface for changing exchange rates in transactions and documents.
+/// Allows users to modify currency exchange rates and view the impact on amounts
+/// before confirming changes to currency-related calculations.
+/// </summary>
+/// <remarks>
+/// Standard dialog page for exchange rate modifications. Supports both direct rate changes
+/// and relational currency calculations. Updates affect currency factor calculations
+/// and amount conversions in the calling context.
+/// </remarks>
 page 511 "Change Exchange Rate"
 {
     Caption = 'Change Exchange Rate';

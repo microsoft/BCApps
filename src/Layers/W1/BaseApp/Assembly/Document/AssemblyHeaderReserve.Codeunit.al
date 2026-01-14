@@ -4,13 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Document;
 
+using Microsoft.Foundation.Navigate;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
-using Microsoft.Inventory.Tracking;
-using Microsoft.Foundation.Navigate;
 using Microsoft.Inventory.Requisition;
+using Microsoft.Inventory.Tracking;
 
 codeunit 925 "Assembly Header-Reserve"
 {
@@ -590,13 +590,6 @@ codeunit 925 "Assembly Header-Reserve"
         ReservQty: Decimal;
         IsReserved: Boolean;
     begin
-#if not CLEAN25
-        IsReserved := false;
-        sender.RunOnBeforeAutoReserveAssemblyHeader(
-          ReservSummEntryNo, RemainingQtyToReserve, RemainingQtyToReserve, Description, AvailabilityDate, IsReserved, Search, NextStep, CalcReservEntry);
-        if IsReserved then
-            exit;
-#endif
         IsReserved := false;
         OnBeforeAutoReserveAssemblyHeader(
           ReservSummEntryNo, RemainingQtyToReserve, RemainingQtyToReserve, Description, AvailabilityDate, IsReserved, Search, NextStep, CalcReservEntry);
@@ -726,9 +719,6 @@ codeunit 925 "Assembly Header-Reserve"
             AsmHeader."Assembled Quantity (Base)", AsmHeader."Assembled Quantity (Base)");
 
         OnAfterInitFromAsmHeader(TrackingSpecification, AsmHeader);
-#if not CLEAN25
-        TrackingSpecification.RunOnAfterInitFromAsmHeader(TrackingSpecification, AsmHeader);
-#endif
     end;
 
     [IntegrationEvent(false, false)]

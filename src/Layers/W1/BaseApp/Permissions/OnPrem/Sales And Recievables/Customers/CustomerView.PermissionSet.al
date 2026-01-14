@@ -1,16 +1,16 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.Foundation.Comment;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Profiling;
 using Microsoft.Finance.Currency;
-using Microsoft.Sales.Receivables;
-using Microsoft.Sales.Customer;
 using Microsoft.Finance.Dimension;
+using Microsoft.Foundation.Comment;
+using Microsoft.Foundation.Shipping;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Location;
+using Microsoft.Sales.Customer;
 using Microsoft.Sales.FinanceCharge;
-using Microsoft.Foundation.Shipping;
+using Microsoft.Sales.Receivables;
 
 permissionset 4970 "Customer - View"
 {

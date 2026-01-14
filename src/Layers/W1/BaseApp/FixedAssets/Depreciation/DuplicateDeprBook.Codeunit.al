@@ -67,6 +67,7 @@ codeunit 5640 "Duplicate Depr. Book"
     var
         FADeprBook: Record "FA Depreciation Book";
     begin
+        OnBeforeDuplicateFAJnlLine(FAJnlLine);
         DeprBook.Get(FAJnlLine."Depreciation Book Code");
         if FAJnlLine."Insurance No." <> '' then
             InsertInsurance(false, GenJnlLine2, FAJnlLine);
@@ -487,6 +488,11 @@ codeunit 5640 "Duplicate Depr. Book"
 
     [IntegrationEvent(false, false)]
     local procedure OnDuplicateGenJnlLineOnAfterCreateLine(GenJnlLine: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeDuplicateFAJnlLine(var FAJnlLine: Record "FA Journal Line")
     begin
     end;
 }

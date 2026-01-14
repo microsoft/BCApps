@@ -1,3 +1,4 @@
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -12,6 +13,9 @@ using System.Utilities;
 codeunit 5428 "E-Doc ADI Handler Mock" implements IStructureReceivedEDocument, IStructuredFormatReader, IStructuredDataType
 {
     Access = Internal;
+    ObsoleteReason = 'A new implementation in Contoso Inb.Inv. Handler codeunit is used instead.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
 
     var
         StructuredData: Text;
@@ -72,3 +76,4 @@ codeunit 5428 "E-Doc ADI Handler Mock" implements IStructureReceivedEDocument, I
     end;
 
 }
+#endif

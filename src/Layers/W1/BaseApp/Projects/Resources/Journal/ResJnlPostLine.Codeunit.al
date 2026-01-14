@@ -5,11 +5,11 @@
 namespace Microsoft.Projects.Resources.Journal;
 
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Projects.Resources.Ledger;
 using Microsoft.Projects.Resources.Resource;
-using Microsoft.Projects.TimeSheet;
-using Microsoft.Foundation.NoSeries;
 using Microsoft.Projects.Resources.Setup;
+using Microsoft.Projects.TimeSheet;
 
 codeunit 212 "Res. Jnl.-Post Line"
 {

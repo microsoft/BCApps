@@ -7,6 +7,15 @@ namespace Microsoft.Finance.GeneralLedger.Reports;
 using Microsoft.Finance.GeneralLedger.Account;
 using System.Utilities;
 
+/// <summary>
+/// Generates trial balance with previous year comparison showing current period balances against prior year amounts.
+/// Provides year-over-year analysis with current and previous year balance comparisons for trend analysis.
+/// </summary>
+/// <remarks>
+/// Data source: G/L Account table with current and previous year balance calculations.
+/// Automatically calculates previous year dates and displays comparative balance information.
+/// Used for year-over-year financial analysis, trend reporting, and comparative financial statement preparation.
+/// </remarks>
 report 7 "Trial Balance/Previous Year"
 {
     DefaultLayout = RDLC;

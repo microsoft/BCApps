@@ -6,6 +6,10 @@ namespace Microsoft.Bank.Reconciliation;
 
 using Microsoft.Bank.Statement;
 
+/// <summary>
+/// Displays list of bank reconciliation lines for manual entry and editing.
+/// Provides interface for adding, modifying, and managing reconciliation line items.
+/// </summary>
 page 380 "Bank Acc. Reconciliation Lines"
 {
     AutoSplitKey = true;

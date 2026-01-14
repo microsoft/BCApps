@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.SalesTax;
 
+/// <summary>
+/// Management page for tax area configuration and jurisdiction line maintenance.
+/// Provides interface for creating tax areas and associating them with jurisdictions.
+/// </summary>
 page 464 "Tax Area"
 {
     Caption = 'Tax Area';

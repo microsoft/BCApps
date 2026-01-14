@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Integration.Manufacturing;
 
 /// <summary>
-/// The trigger for when to create tests for production orders.
+/// The trigger for when to create inspections for production orders.
 /// </summary>
 enum 20406 "Qlty. Production Trigger"
 {

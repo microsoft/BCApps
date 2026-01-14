@@ -8,6 +8,15 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
 
+/// <summary>
+/// Provides interface for managing general journal line allocations to distribute transaction amounts across multiple G/L accounts.
+/// Supports percentage-based, amount-based, and quantity-based allocation methods with dimension management capabilities.
+/// </summary>
+/// <remarks>
+/// Primary data source: Gen. Jnl. Allocation table. Enables allocation of journal line amounts using predefined allocation keys and distribution methods.
+/// Key workflows: Allocation key setup, distribution percentage/amount configuration, dimension assignment for allocated amounts.
+/// Extensibility: Integration with dimension management system and G/L account validation for allocation targets.
+/// </remarks>
 page 284 Allocations
 {
     AutoSplitKey = true;

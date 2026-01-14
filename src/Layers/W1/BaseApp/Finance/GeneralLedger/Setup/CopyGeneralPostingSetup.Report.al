@@ -6,6 +6,10 @@ namespace Microsoft.Finance.GeneralLedger.Setup;
 
 using System.Utilities;
 
+/// <summary>
+/// Copies selected sets of posting accounts from one General Posting Setup to another.
+/// Supports copying Sales, Purchase, Inventory, and Manufacturing account mappings.
+/// </summary>
 report 87 "Copy - General Posting Setup"
 {
     Caption = 'Copy - General Posting Setup';
@@ -194,9 +198,27 @@ report 87 "Copy - General Posting Setup"
     protected var
         Selection: Option "All fields","Selected fields";
 
+    /// <summary>
+    /// Sets the source General Posting Setup record to copy from.
+    /// </summary>
+    /// <param name="GenPostingSetup2">Source General Posting Setup</param>
     procedure SetGenPostingSetup(GenPostingSetup2: Record "General Posting Setup")
     begin
         UseGenPostingSetup := GenPostingSetup2;
+    end;
+
+    /// <summary>
+    /// Integration event raised after copying fields from the source to the current General Posting Setup.
+    /// </summary>
+    /// <param name="ToGeneralPostingSetup">Target record being modified</param>
+    /// <param name="FromGeneralPostingSetup">Source record</param>
+    /// <param name="CopySales">True when copying sales accounts</param>
+    /// <param name="CopyPurchases">True when copying purchase accounts</param>
+    /// <param name="CopyInventory">True when copying inventory accounts</param>
+    /// <param name="CopyManufacturing">True when copying manufacturing accounts</param>
+    [IntegrationEvent(true, false)]
+    local procedure OnAfterCopyGenPostingSetup(var ToGeneralPostingSetup: Record "General Posting Setup"; FromGeneralPostingSetup: Record "General Posting Setup"; var CopySales: Boolean; var CopyPurchases: Boolean; var CopyInventory: Boolean; var CopyManufacturing: Boolean)
+    begin
     end;
 
     local procedure AllFieldsSelectionOnPush()
@@ -210,11 +232,6 @@ report 87 "Copy - General Posting Setup"
     local procedure AllFieldsSelectionOnValidate()
     begin
         AllFieldsSelectionOnPush();
-    end;
-
-    [IntegrationEvent(true, false)]
-    local procedure OnAfterCopyGenPostingSetup(var ToGeneralPostingSetup: Record "General Posting Setup"; FromGeneralPostingSetup: Record "General Posting Setup"; var CopySales: Boolean; var CopyPurchases: Boolean; var CopyInventory: Boolean; var CopyManufacturing: Boolean)
-    begin
     end;
 }
 

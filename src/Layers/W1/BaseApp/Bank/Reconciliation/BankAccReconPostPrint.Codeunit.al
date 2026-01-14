@@ -7,6 +7,10 @@ namespace Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.Statement;
 using Microsoft.Foundation.Reporting;
 
+/// <summary>
+/// Posts bank account reconciliation and prints the resulting statements.
+/// Combines posting and reporting functionality for completed reconciliations.
+/// </summary>
 codeunit 372 "Bank Acc. Recon. Post+Print"
 {
     TableNo = "Bank Acc. Reconciliation";
@@ -34,6 +38,11 @@ codeunit 372 "Bank Acc. Recon. Post+Print"
         DocPrint: Codeunit "Document-Print";
         PostAndPrintReconciliationQst: Label 'Do you want to post and print the Reconciliation?';
 
+    /// <summary>
+    /// Integration event raised before running the bank account reconciliation post and print process.
+    /// Allows subscribers to perform validation, modify data, or implement custom logic before posting begins.
+    /// </summary>
+    /// <param name="BankAccReconciliation">Bank account reconciliation record to be posted and printed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnRun(var BankAccReconciliation: Record "Bank Acc. Reconciliation")
     begin

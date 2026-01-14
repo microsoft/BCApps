@@ -5,10 +5,10 @@
 namespace Microsoft.Assembly.Test;
 
 using Microsoft.Assembly.Document;
-using Microsoft.Sales.Document;
-using Microsoft.Purchases.Document;
-using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Purchases.Document;
+using Microsoft.Sales.Document;
 
 codeunit 137925 "SCM Assembly Reservation II"
 {

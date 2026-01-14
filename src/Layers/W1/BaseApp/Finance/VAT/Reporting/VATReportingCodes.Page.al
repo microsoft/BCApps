@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+/// <summary>
+/// Master data interface for defining VAT reporting codes used in tax authority submissions.
+/// Enables configuration of reporting codes with descriptions for VAT statement and regulatory compliance.
+/// </summary>
 page 349 "VAT Reporting Codes"
 {
     ApplicationArea = Basic, Suite;

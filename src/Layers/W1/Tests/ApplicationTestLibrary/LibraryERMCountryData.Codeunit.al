@@ -1,7 +1,8 @@
+/// <summary>
+/// Provides procedures to create and initialize country-specific demo data for ERM scenarios that exists in W1 but may be missing in localized versions.
+/// </summary>
 codeunit 131305 "Library - ERM Country Data"
 {
-    // Procedures to create demo data present in W1 but missing in countries
-
 
     trigger OnRun()
     begin

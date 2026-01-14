@@ -6,6 +6,15 @@ namespace Microsoft.Finance.VAT.Setup;
 
 using Microsoft.Finance.VAT.Calculation;
 
+/// <summary>
+/// VAT posting setup list page displaying all combinations of VAT business and product posting groups with their configuration.
+/// Provides overview and management interface for VAT calculation rules, account assignments, and non-deductible VAT settings.
+/// </summary>
+/// <remarks>
+/// Key functionality: Browse and filter VAT posting setups, access individual setup cards, view VAT rates and account assignments.
+/// Data source: VAT Posting Setup table with combinations of business and product posting groups.
+/// User workflow: Navigate from overview to detailed setup cards for specific posting group combinations.
+/// </remarks>
 page 472 "VAT Posting Setup"
 {
     ApplicationArea = Basic, Suite;

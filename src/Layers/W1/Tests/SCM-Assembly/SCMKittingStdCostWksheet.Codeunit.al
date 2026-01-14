@@ -7,11 +7,11 @@ namespace Microsoft.Assembly.Test;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.StandardCost;
+using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.StandardCost;
 using Microsoft.Projects.Resources.Resource;
-using Microsoft.Inventory.StandardCost;
-using Microsoft.Inventory.Journal;
-using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Utilities;
 
 codeunit 137109 "SCM Kitting - Std Cost Wksheet"

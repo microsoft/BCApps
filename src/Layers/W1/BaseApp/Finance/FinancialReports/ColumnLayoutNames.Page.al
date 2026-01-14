@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.FinancialReports;
 
+/// <summary>
+/// Provides management interface for financial report column definitions used in financial reporting.
+/// Enables creation, editing, copying, import/export, and where-used analysis of column layout templates.
+/// </summary>
+/// <remarks>
+/// Primary functionality: Column definition management, copy operations, RapidStart import/export integration.
+/// Navigation: Links to Column Layout page for detailed column editing and Financial Report usage tracking.
+/// Extensibility: Standard page extension patterns for additional fields and actions.
+/// </remarks>
 page 488 "Column Layout Names"
 {
     AboutTitle = 'About (Financial Report) Column Definitions';

@@ -1,15 +1,15 @@
 namespace Microsoft.EServices.EDocumentConnector.Continia;
 
 using Microsoft.eServices.EDocument;
-using System.TestLibraries.Environment;
-using Microsoft.Sales.Customer;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.Foundation.Company;
+using Microsoft.Sales.Customer;
+using System.TestLibraries.Environment;
 
 codeunit 148204 "Continia Reg. Integr. Tests"
 {
     Subtype = Test;
-    TestType = Uncategorized;
+    TestType = IntegrationTest;
     TestHttpRequestPolicy = AllowOutboundFromHandler;
     Access = Internal;
 
@@ -1024,6 +1024,14 @@ codeunit 148204 "Continia Reg. Integr. Tests"
         LibraryEDocument.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::"PEPPOL BIS 3.0", Enum::"Service Integration"::Continia);
         CompanyInformation.Get();
         CompanyInformation."Country/Region Code" := 'GB';
+        CompanyInformation.Name := 'Test Company Ltd';
+        CompanyInformation.Address := '1 Test Street';
+        CompanyInformation.City := 'Test City';
+        CompanyInformation."Post Code" := 'DK';
+        CompanyInformation."VAT Registration No." := 'GB777777771';
+        CompanyInformation.IBAN := 'TEST1234';
+        CompanyInformation."Bank Branch No." := '1234';
+        CompanyInformation."SWIFT Code" := 'TESTSWIFT';
         CompanyInformation.Modify(false);
 
         IsInitialized := true;

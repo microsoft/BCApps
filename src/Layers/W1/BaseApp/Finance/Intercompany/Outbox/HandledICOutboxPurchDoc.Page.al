@@ -6,6 +6,15 @@ namespace Microsoft.Intercompany.Outbox;
 
 using Microsoft.Intercompany.Dimension;
 
+/// <summary>
+/// Handled intercompany outbox purchase document interface for viewing completed outbound purchase transactions.
+/// Provides read-only access to purchase documents that have been successfully processed and sent to intercompany partners.
+/// </summary>
+/// <remarks>
+/// Primary data source: Handled IC Outbox Purch. Hdr. Used for historical tracking and audit of completed intercompany purchase transactions.
+/// Navigation: Document header view → Related handled purchase lines and transaction details.
+/// Extensible via page extensions for additional handled document fields and custom analysis capabilities.
+/// </remarks>
 page 642 "Handled IC Outbox Purch. Doc."
 {
     Caption = 'Handled IC Outbox Purch. Doc.';

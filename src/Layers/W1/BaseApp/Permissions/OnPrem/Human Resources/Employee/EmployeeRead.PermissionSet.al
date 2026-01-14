@@ -1,10 +1,10 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.HumanResources.Employee;
 using Microsoft.Finance.Dimension;
-using Microsoft.HumanResources.Comment;
-using Microsoft.HumanResources.Setup;
 using Microsoft.HumanResources.Absence;
+using Microsoft.HumanResources.Comment;
+using Microsoft.HumanResources.Employee;
+using Microsoft.HumanResources.Setup;
 
 permissionset 2084 "Employee - Read"
 {

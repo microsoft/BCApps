@@ -4,21 +4,21 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Test;
 
-using Microsoft.Inventory.Item;
+using Microsoft.Assembly.Document;
 using Microsoft.Inventory.Availability;
-using Microsoft.Service.Document;
-using Microsoft.Inventory.Tracking;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Inventory.Transfer;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Project.Planning;
 using Microsoft.Purchases.Document;
-using Microsoft.Sales.Document;
-using Microsoft.Manufacturing.Document;
-using Microsoft.Inventory.Transfer;
-using Microsoft.Inventory.Location;
-using Microsoft.Assembly.Document;
-using Microsoft.Service.Item;
-using Microsoft.Projects.Project.Job;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using Microsoft.Service.Document;
+using Microsoft.Service.Item;
 
 codeunit 136131 "Service Demand Overview"
 {

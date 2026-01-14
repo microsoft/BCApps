@@ -53,35 +53,8 @@ codeunit 99000889 AvailabilityManagement
             error(IncorrectSourceTableErr, SourceRecRef.Name);
     end;
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit ServAvailabilityMgt', '25.0')]
-    procedure SetSalesHeader(var OrderPromisingLine: Record "Order Promising Line"; var SalesHeader: Record Microsoft.Sales.Document."Sales Header")
-    var
-        SalesAvailabilityMgt: Codeunit Microsoft.Sales.Document."Sales Availability Mgt.";
-    begin
-        SalesAvailabilityMgt.SetSalesHeader(OrderPromisingLine, SalesHeader, CaptionText);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit ServAvailabilityMgt', '25.0')]
-    procedure SetServHeader(var OrderPromisingLine: Record "Order Promising Line"; var ServHeader: Record Microsoft.Service.Document."Service Header")
-    var
-        ServAvailabilityMgt: Codeunit Microsoft.Service.Document."Serv. Availability Mgt.";
-    begin
-        ServAvailabilityMgt.SetServiceHeader(OrderPromisingLine, ServHeader, CaptionText);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit JobPlanningAvailabilityMgt', '25.0')]
-    procedure SetJob(var OrderPromisingLine: Record "Order Promising Line"; var Job: Record Microsoft.Projects.Project.Job.Job)
-    var
-        JobPlanningAvailabilityMgt: Codeunit Microsoft.Projects.Project.Planning."Job Planning Availability Mgt.";
-    begin
-        JobPlanningAvailabilityMgt.SetJob(OrderPromisingLine, Job, CaptionText);
-    end;
-#endif
 
     internal procedure InsertPromisingLine(var OrderPromisingLine: Record "Order Promising Line"; UnavailableQty: Decimal)
     var
@@ -415,4 +388,3 @@ codeunit 99000889 AvailabilityManagement
     begin
     end;
 }
-

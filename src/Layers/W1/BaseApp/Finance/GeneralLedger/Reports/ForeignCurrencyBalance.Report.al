@@ -8,6 +8,15 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.Currency;
 using System.Utilities;
 
+/// <summary>
+/// Generates foreign currency balance report showing currency positions across bank accounts and G/L accounts.
+/// Displays detailed breakdown of foreign currency balances by currency code with bank account and G/L account analysis.
+/// </summary>
+/// <remarks>
+/// Data sources: Currency, Bank Account, and G/L Entry tables with currency filtering and balance calculations.
+/// Shows both bank account balances and G/L account balances by currency for comprehensive foreign currency exposure analysis.
+/// Used for currency risk management, regulatory reporting, and foreign exchange position monitoring.
+/// </remarks>
 report 503 "Foreign Currency Balance"
 {
     DefaultLayout = RDLC;

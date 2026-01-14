@@ -10,6 +10,15 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.Period;
 using System.Utilities;
 
+/// <summary>
+/// Generates fiscal year balance report with period analysis and account hierarchy display options.
+/// Provides fiscal year-end balance information with configurable indentation levels and results filtering.
+/// </summary>
+/// <remarks>
+/// Data source: G/L Account table with fiscal year date filtering and balance calculations by period.
+/// Supports multiple display options: indentation levels, rounding factors, and results filtering for zero balances.
+/// Used for fiscal year-end analysis, regulatory reporting, and financial statement preparation procedures.
+/// </remarks>
 report 36 "Fiscal Year Balance"
 {
     DefaultLayout = RDLC;
@@ -555,6 +564,10 @@ report 36 "Fiscal Year Balance"
         SummTotals: array[10] of Decimal;
         GLAccountTypePosting: Boolean;
 
+    /// <summary>
+    /// Calculates ending date for the fiscal period based on the starting date and accounting periods.
+    /// Uses the next accounting period's starting date minus one day as the fiscal period ending date.
+    /// </summary>
     procedure SetEndingDate()
     begin
         AccountingPeriod.Reset();
@@ -563,11 +576,26 @@ report 36 "Fiscal Year Balance"
         PeriodEndingDate := AccountingPeriod."Starting Date" - 1;
     end;
 
+    /// <summary>
+    /// Formats decimal amounts according to the specified rounding factor for fiscal year balance display.
+    /// Utilizes Matrix Management codeunit for consistent amount formatting across fiscal year reports.
+    /// </summary>
+    /// <param name="Value">Decimal amount to be formatted</param>
+    /// <returns>Formatted amount as text with appropriate rounding applied</returns>
     procedure RoundAmount(Value: Decimal): Text[30]
     begin
         exit(MatrixMgt.FormatAmount(Value, RoundingFactor, false));
     end;
 
+    /// <summary>
+    /// Initializes report parameters for programmatic execution with fiscal period configuration and display options.
+    /// Sets period dates, rounding factors, indentation levels, and results filtering for automated fiscal year balance generation.
+    /// </summary>
+    /// <param name="NewPeriodStartingDate">Starting date for fiscal period analysis</param>
+    /// <param name="NewPeriodEndingDate">Ending date for fiscal period analysis</param>
+    /// <param name="NewRoundingFactor">Rounding factor option for amount display</param>
+    /// <param name="NewIndent">Indentation level option for account hierarchy display</param>
+    /// <param name="NewShowResults">Whether to show accounts with zero balances in results</param>
     procedure InitializeRequest(NewPeriodStartingDate: Date; NewPeriodEndingDate: Date; NewRoundingFactor: Option; NewIndent: Option; NewShowResults: Boolean)
     begin
         PeriodStartingDate := NewPeriodStartingDate;

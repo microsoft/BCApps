@@ -164,24 +164,23 @@ codeunit 137463 "Phys. Invt. Item Journal"
 
     [Test]
     [Scope('OnPrem')]
-    [HandlerFunctions('ItemJournalTemplateListModalPageHandler,ItemReferenceList1ItemReferenceModalPageHandler')]
+    [HandlerFunctions('ItemReferenceList1ItemReferenceModalPageHandler')]
     procedure ItemReferenceOnLookupPhysInvtJournalItemJournal()
     var
         ItemReference: Record "Item Reference";
         ItemJournalLine: Record "Item Journal Line";
-        PhysInventoryJournal: TestPage "Phys. Inventory Journal";
+        ItemRefernceManagement: Codeunit "Item Reference Management";
     begin
         // [GIVEN] Empty Physical Journal Line (Item Journal Line) exists
-        CreatePhysInvtJournalLineWithNoItem(ItemJournalLine);
+        LibraryVariableStorage.Clear();
+        CreatePhysInvtJournalLine(ItemJournalLine);
 
         // [GIVEN] Different item references exist
         CreateDifferentItemReferencesWithSameReferenceNo(ItemReference);
 
         // [WHEN] Lookup references
-        PhysInventoryJournal.OpenEdit();
-        PhysInventoryJournal.GoToRecord(ItemJournalLine);
-        PhysInventoryJournal."Item Reference No.".Lookup();
-        PhysInventoryJournal.Close();
+        ItemRefernceManagement.ItemJournalReferenceNoLookup(ItemJournalLine);
+        ItemJournalLine.Modify(true);
 
         // [THEN] Info from item reference is copied
         TestItemJournalLineReferenceFields(ItemJournalLine, ItemReference);
@@ -253,6 +252,19 @@ codeunit 137463 "Phys. Invt. Item Journal"
     begin
         LibraryInventory.CreateItemJournalTemplate(ItemJournalTemplate);
         LibraryVariableStorage.Enqueue(ItemJournalTemplate.Name);
+        ItemJournalTemplate.Validate(Type, ItemJournalTemplate.Type::"Phys. Inventory");
+        ItemJournalTemplate.Modify();
+        LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
+        LibraryInventory.CreateItemJnlLineWithNoItem(ItemJournalLine, ItemJournalBatch, ItemJournalTemplate.Name, ItemJournalBatch.Name, EntryType::"Positive Adjmt.");
+    end;
+
+    local procedure CreatePhysInvtJournalLine(var ItemJournalLine: Record "Item Journal Line")
+    var
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: Record "Item Journal Batch";
+        EntryType: Enum "Item Ledger Entry Type";
+    begin
+        LibraryInventory.CreateItemJournalTemplate(ItemJournalTemplate);
         ItemJournalTemplate.Validate(Type, ItemJournalTemplate.Type::"Phys. Inventory");
         ItemJournalTemplate.Modify();
         LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);

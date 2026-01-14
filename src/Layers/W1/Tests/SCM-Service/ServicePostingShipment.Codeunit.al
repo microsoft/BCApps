@@ -17,12 +17,12 @@ using Microsoft.Service.History;
 using Microsoft.Service.Item;
 using Microsoft.Service.Ledger;
 using Microsoft.Service.Pricing;
+using Microsoft.Utilities;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
-using Microsoft.Utilities;
 using System.TestLibraries.Utilities;
 
 codeunit 136107 "Service Posting - Shipment"

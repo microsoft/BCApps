@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument;
 
-using System.Email;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using System.Email;
 
 tableextension 9900 "Email Item Attach Document" extends "Email Item"
 {

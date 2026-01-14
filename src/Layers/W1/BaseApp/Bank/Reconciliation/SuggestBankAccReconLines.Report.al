@@ -9,6 +9,18 @@ using Microsoft.Bank.Check;
 using Microsoft.Bank.Ledger;
 using System.Telemetry;
 
+/// <summary>
+/// Report for automatically suggesting bank account reconciliation lines based on open bank ledger entries.
+/// Analyzes unmatched bank account ledger entries within a specified date range and creates
+/// corresponding reconciliation lines for processing. Supports filtering options for reversed
+/// entries and provides automatic matching with existing reconciliation data.
+/// </summary>
+/// <remarks>
+/// Key functionality includes date-based filtering of open bank entries, automatic creation
+/// of reconciliation lines from ledger entries, optional exclusion of reversed transactions,
+/// and integration with automatic payment matching workflows. Used to populate reconciliation
+/// worksheets with unprocessed bank transactions for efficient reconciliation processing.
+/// </remarks>
 report 1496 "Suggest Bank Acc. Recon. Lines"
 {
     Caption = 'Suggest Bank Acc. Recon. Lines';

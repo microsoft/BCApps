@@ -49,7 +49,7 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
-    /// Allows create, update and delete tools for the specified MCP configuration.
+    /// Allows create, update and delete tools for the specified MCP configuration. Disallowing this will make the tools read-only.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
     /// <param name="Allow">True to allow create, update and delete tools, false to disallow.</param>

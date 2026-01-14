@@ -199,7 +199,7 @@ codeunit 2680 "Data Search in Table"
         RecRef.SetView(StrSubstNo(SetViewLbl, FldRef.Name));
         SetListedFieldFiltersOnRecRef(RecRef, TableType, SearchString1, UseTextSearch, FieldList);
         DataSearchEvents.OnBeforeSearchTable(RecRef);
-        if RecRef.FindSet() then
+        if RecRef.Find('-') then  // results in TOP(50) as we only need the first 4
             repeat
                 FldRef := RecRef.Field(RecRef.SystemIdNo);
                 if not Results.ContainsKey(Format(FldRef.Value)) then

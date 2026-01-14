@@ -4,6 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Manages dimension buffer operations for temporary storage and retrieval of dimension data.
+/// Provides functionality to insert, find, retrieve, and manage dimension entries in temporary buffers
+/// used for dimension analysis and reporting scenarios.
+/// </summary>
 codeunit 411 "Dimension Buffer Management"
 {
 
@@ -17,6 +22,12 @@ codeunit 411 "Dimension Buffer Management"
         TempDimEntryBuf: Record "Dimension Entry Buffer" temporary;
         NextDimBufNo: Integer;
 
+    /// <summary>
+    /// Inserts dimension entries into the buffer and returns a new entry number.
+    /// Creates a new entry set in the dimension buffer with sequential entry numbering.
+    /// </summary>
+    /// <param name="DimBuf">Dimension buffer containing dimensions to insert</param>
+    /// <returns>Entry number assigned to the inserted dimension set, zero if no dimensions provided</returns>
     procedure InsertDimensions(var DimBuf: Record "Dimension Buffer"): Integer
     var
         NewEntryNo: Integer;
@@ -34,6 +45,12 @@ codeunit 411 "Dimension Buffer Management"
         exit(0);
     end;
 
+    /// <summary>
+    /// Inserts dimension entries into the buffer using a specific entry number.
+    /// Assigns the provided entry number to all dimensions in the buffer set.
+    /// </summary>
+    /// <param name="DimBuf">Dimension buffer containing dimensions to insert</param>
+    /// <param name="EntryNo">Specific entry number to assign to the dimension set</param>
     procedure InsertDimensionsUsingEntryNo(var DimBuf: Record "Dimension Buffer"; EntryNo: Integer)
     var
         DimCount: Integer;
@@ -53,11 +70,24 @@ codeunit 411 "Dimension Buffer Management"
             until DimBuf.Next() = 0;
     end;
 
+    /// <summary>
+    /// Finds existing dimension set in the buffer and returns its entry number.
+    /// Searches for a matching set of dimensions and returns the entry number if found.
+    /// </summary>
+    /// <param name="DimBuf">Dimension buffer containing dimensions to search for</param>
+    /// <returns>Entry number of matching dimension set, zero if not found</returns>
     procedure FindDimensions(var DimBuf: Record "Dimension Buffer"): Integer
     begin
         exit(FindDimensionsKnownDimBufCount(DimBuf, DimBuf.Count));
     end;
 
+    /// <summary>
+    /// Finds existing dimension set with known dimension count and returns its entry number.
+    /// Optimized search method when the number of dimensions in the set is already known.
+    /// </summary>
+    /// <param name="DimBuf">Dimension buffer containing dimensions to search for</param>
+    /// <param name="DimBufCount">Known count of dimensions in the buffer for optimization</param>
+    /// <returns>Entry number of matching dimension set, zero if not found</returns>
     procedure FindDimensionsKnownDimBufCount(var DimBuf: Record "Dimension Buffer"; DimBufCount: Integer): Integer
     var
         Found: Boolean;
@@ -109,6 +139,13 @@ codeunit 411 "Dimension Buffer Management"
         exit(0);
     end;
 
+    /// <summary>
+    /// Retrieves all dimensions for a specific entry number into the dimension buffer.
+    /// Populates the provided dimension buffer with all dimensions associated with the entry number.
+    /// </summary>
+    /// <param name="EntryNo">Entry number to retrieve dimensions for</param>
+    /// <param name="DimBuf">Dimension buffer to populate with the retrieved dimensions</param>
+    /// <returns>True if dimensions were found and retrieved, false if entry number not found</returns>
     procedure GetDimensions(EntryNo: Integer; var DimBuf: Record "Dimension Buffer"): Boolean
     begin
         TempDimBuf.SetRange("Entry No.", EntryNo);
@@ -123,12 +160,26 @@ codeunit 411 "Dimension Buffer Management"
         exit(true);
     end;
 
+    /// <summary>
+    /// Clears all dimension entries from the temporary dimension buffer.
+    /// Removes all stored dimension data to prepare for new operations.
+    /// </summary>
     procedure DeleteAllDimensions()
     begin
         TempDimBuf.Reset();
         TempDimBuf.DeleteAll();
     end;
 
+    /// <summary>
+    /// Collects dimension entry numbers for selected dimensions in analysis scenarios.
+    /// Manages dimension entry collection for analysis views and reporting with optional collection control.
+    /// </summary>
+    /// <param name="SelectedDim">Selected dimensions to collect entries for</param>
+    /// <param name="DimSetID">Dimension set ID to process</param>
+    /// <param name="EntryNo">Entry number being processed</param>
+    /// <param name="ForgetDimEntryNo">Dimension entry number to remove from collection</param>
+    /// <param name="DoCollect">Whether to actually collect the dimension entry</param>
+    /// <param name="DimEntryNo">Variable to receive the collected dimension entry number</param>
     procedure CollectDimEntryNo(var SelectedDim: Record "Selected Dimension"; DimSetID: Integer; EntryNo: Integer; ForgetDimEntryNo: Integer; DoCollect: Boolean; var DimEntryNo: Integer)
     var
         TempDimBuf: Record "Dimension Buffer" temporary;
@@ -155,6 +206,13 @@ codeunit 411 "Dimension Buffer Management"
         end;
     end;
 
+    /// <summary>
+    /// Finds the first dimension entry number and corresponding entry number in the collection.
+    /// Initializes iteration through collected dimension entries for analysis processing.
+    /// </summary>
+    /// <param name="DimEntryNo">Variable to receive the first dimension entry number</param>
+    /// <param name="EntryNo">Variable to receive the first entry number</param>
+    /// <returns>True if entries exist and first entry found, false if collection is empty</returns>
     procedure FindFirstDimEntryNo(var DimEntryNo: Integer; var EntryNo: Integer): Boolean
     var
         Found: Boolean;
@@ -166,6 +224,13 @@ codeunit 411 "Dimension Buffer Management"
         exit(Found);
     end;
 
+    /// <summary>
+    /// Advances to the next dimension entry number and corresponding entry number in the collection.
+    /// Continues iteration through collected dimension entries for analysis processing.
+    /// </summary>
+    /// <param name="DimEntryNo">Variable to receive the next dimension entry number</param>
+    /// <param name="EntryNo">Variable to receive the next entry number</param>
+    /// <returns>True if next entry exists, false if end of collection reached</returns>
     procedure NextDimEntryNo(var DimEntryNo: Integer; var EntryNo: Integer): Boolean
     var
         Found: Boolean;
@@ -176,11 +241,21 @@ codeunit 411 "Dimension Buffer Management"
         exit(Found);
     end;
 
+    /// <summary>
+    /// Clears all collected dimension entry numbers from the collection.
+    /// Removes all entries from the dimension entry buffer to prepare for new collection.
+    /// </summary>
     procedure DeleteAllDimEntryNo()
     begin
         TempDimEntryBuf.DeleteAll();
     end;
 
+    /// <summary>
+    /// Gets or creates a unique dimension ID for a dimension combination.
+    /// Returns an existing ID if the dimension combination already exists, or creates a new one.
+    /// </summary>
+    /// <param name="Dimbuf">Dimension buffer containing dimensions to get ID for</param>
+    /// <returns>Unique dimension ID for the dimension combination, zero if no dimensions provided</returns>
     procedure GetDimensionId(var Dimbuf: Record "Dimension Buffer"): Integer
     var
         NewDimensionComb: Boolean;
@@ -206,6 +281,12 @@ codeunit 411 "Dimension Buffer Management"
         exit(TempDimensionIDBuffer.ID);
     end;
 
+    /// <summary>
+    /// Retrieves all dimensions for a specific dimension ID into a dimension buffer.
+    /// Reconstructs the dimension combination from the dimension ID buffer into the provided buffer.
+    /// </summary>
+    /// <param name="DimId">Dimension ID to retrieve dimensions for</param>
+    /// <param name="DimBuf">Dimension buffer to populate with the retrieved dimensions</param>
     procedure RetrieveDimensions(DimId: Integer; var DimBuf: Record "Dimension Buffer")
     begin
         DimBuf.Reset();
@@ -237,16 +318,36 @@ codeunit 411 "Dimension Buffer Management"
         TempDimensionIDBuffer.Insert();
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting a dimension buffer entry during dimension insertion.
+    /// Allows customization of dimension buffer data before the entry is inserted.
+    /// </summary>
+    /// <param name="TempDimBuf">Temporary dimension buffer being prepared for insertion</param>
+    /// <param name="DimBuf">Source dimension buffer containing original dimension data</param>
+    /// <param name="EntryNo">Entry number being assigned to the dimension set</param>
+    /// <param name="IsHandled">Set to true to skip the standard insertion logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertDimensionsUsingEntryNoOnBeforeTempDimBufInsert(var TempDimBuf: Record "Dimension Buffer"; var DimBuf: Record "Dimension Buffer"; EntryNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after filtering temporary dimension buffer during dimension search.
+    /// Allows additional filtering logic before processing dimension matching lines.
+    /// </summary>
+    /// <param name="TempDimensionBuffer">Temporary dimension buffer with applied filters</param>
+    /// <param name="DimensionBuffer">Source dimension buffer being searched for</param>
     [IntegrationEvent(false, false)]
     local procedure OnFindDimensionsKnownDimBufCountBeforeProcessingLinesOnAfterFilterTempDimBuf(var TempDimensionBuffer: Record "Dimension Buffer"; DimensionBuffer: Record "Dimension Buffer")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after filtering temporary dimension buffer during dimension search.
+    /// Allows additional filtering logic during the dimension matching process.
+    /// </summary>
+    /// <param name="TempDimensionBuffer">Temporary dimension buffer with applied filters</param>
+    /// <param name="DimensionBuffer">Source dimension buffer being searched for</param>
     [IntegrationEvent(false, false)]
     local procedure OnFindDimensionsKnownDimBufCountOnAfterFilterTempDimBuf(var TempDimensionBuffer: Record "Dimension Buffer"; DimensionBuffer: Record "Dimension Buffer")
     begin

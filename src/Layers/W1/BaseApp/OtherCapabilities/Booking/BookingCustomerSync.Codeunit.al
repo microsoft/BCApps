@@ -1,3 +1,4 @@
+#if not CLEAN28
 namespace Microsoft.Booking;
 
 using Microsoft.CRM.BusinessRelation;
@@ -7,6 +8,9 @@ using Microsoft.Sales.Customer;
 
 codeunit 6704 "Booking Customer Sync."
 {
+    ObsoleteReason= 'Bookings is no longer part of Business Central 365.';
+    ObsoleteState= pending;
+    ObsoleteTag= '28.0';
     trigger OnRun()
     var
         LocalBookingSync: Record "Booking Sync";
@@ -171,3 +175,4 @@ codeunit 6704 "Booking Customer Sync."
         end;
     end;
 }
+#endif

@@ -16,9 +16,9 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Pricing;
 using Microsoft.Purchases.Vendor;
-using Microsoft.Warehouse.Structure;
 using Microsoft.Upgrade;
 using Microsoft.Utilities;
+using Microsoft.Warehouse.Structure;
 using System.Environment;
 using System.Threading;
 
@@ -103,6 +103,11 @@ table 312 "Purchases & Payables Setup"
         {
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             Caption = 'Posted Receipt Nos.';
+            TableRelation = "No. Series";
+        }
+        field(17; "Posted Self-Billing Inv. Nos."; Code[20])
+        {
+            Caption = 'Posted Self-Billing Invoice Nos.';
             TableRelation = "No. Series";
         }
         field(19; "Blanket Order Nos."; Code[20])

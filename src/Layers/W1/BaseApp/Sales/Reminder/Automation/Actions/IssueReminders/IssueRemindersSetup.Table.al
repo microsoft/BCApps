@@ -5,9 +5,10 @@
 namespace Microsoft.Sales.Reminder;
 
 using Microsoft.Finance.GeneralLedger.Journal;
-using System.Automation;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Sales.Setup;
+using System.Automation;
+using System.Utilities;
 
 table 6756 "Issue Reminders Setup"
 {
@@ -67,18 +68,26 @@ table 6756 "Issue Reminders Setup"
     procedure SetReminderSelectionFilter()
     var
         RequestPageParametersHelper: Codeunit "Request Page Parameters Helper";
+        TempBlob: Codeunit "Temp Blob";
         ReminderHeaderRecordRef: RecordRef;
         SelectionFilterOutStream: OutStream;
+        SelectionFilterInStream: InStream;
         ExistingFilters: Text;
     begin
         ReminderHeaderRecordRef.Open(Database::"Reminder Header");
-        Clear(Rec."Reminder Filter");
-        Rec."Reminder Filter".CreateOutStream(SelectionFilterOutStream, TextEncoding::UTF16);
         ExistingFilters := GetReminderSelectionFilter();
+
+        TempBlob.CreateOutStream(SelectionFilterOutStream, TextEncoding::UTF16);
         if not RequestPageParametersHelper.OpenPageToGetFilter(ReminderHeaderRecordRef, SelectionFilterOutStream, ExistingFilters) then
             exit;
 
+        Clear(Rec."Reminder Filter");
+        TempBlob.CreateInStream(SelectionFilterInStream, TextEncoding::UTF16);
+        Rec."Reminder Filter".CreateOutStream(SelectionFilterOutStream, TextEncoding::UTF16);
+        CopyStream(SelectionFilterOutStream, SelectionFilterInStream);
+
         Rec.Modify();
+        Rec.CalcFields("Reminder Filter");
     end;
 
     procedure GetReminderSelectionDisplayText(): Text

@@ -1,3 +1,4 @@
+#if not CLEAN28
 namespace Microsoft.Booking;
 
 using Microsoft.Finance.GeneralLedger.Posting;
@@ -8,7 +9,9 @@ using System.DateTime;
 
 codeunit 6721 "Booking Manager"
 {
-
+    obsoleteReason = 'Bookings is no longer part of Business Central 365.';
+    obsoleteState = pending;
+    obsoleteTag = '28.0';
     trigger OnRun()
     begin
     end;
@@ -306,3 +309,4 @@ codeunit 6721 "Booking Manager"
     end;
 }
 
+#endif

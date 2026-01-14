@@ -1,7 +1,7 @@
 namespace System.Security.AccessControl;
 
-using System.Environment;
 using System.Diagnostics;
+using System.Environment;
 using System.Threading;
 
 permissionset 7871 "Outlook Sync. - Edit"

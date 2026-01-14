@@ -14,13 +14,8 @@ table 6408 "FS Work Order Substatus"
     Description = 'Specify custom work order substatuses, which can be used to specify the current work order status more precisely.';
     DataClassification = SystemMetadata;
     ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-#if not CLEAN25
-    ObsoleteState = Pending;
-    ObsoleteTag = '25.0';
-#else
     ObsoleteState = Removed;
     ObsoleteTag = '28.0';
-#endif
 
     fields
     {

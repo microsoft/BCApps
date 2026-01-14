@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,9 +22,6 @@ codeunit 9136 "Check BOM Component"
     begin
         IsHandled := false;
         OnBeforeCheckBOMComponents(Item, CurrentFieldNo, CheckFieldNo, CheckFieldCaption, IsHandled);
-#if not CLEAN25
-        Item.RunOnBeforeCheckBOM(Item, CurrentFieldNo, CheckFieldNo, CheckFieldCaption, IsHandled);
-#endif
         if IsHandled then
             exit;
 

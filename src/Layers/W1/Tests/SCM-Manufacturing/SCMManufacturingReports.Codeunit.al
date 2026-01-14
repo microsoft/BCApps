@@ -4,27 +4,26 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Test;
 
-using Microsoft.Inventory.Journal;
-using System.TestLibraries.Utilities;
-using Microsoft.Manufacturing.Document;
-using Microsoft.Inventory.Item;
+using Microsoft.Assembly.Reports;
+using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Costing;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Reports;
+using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Family;
 #if not CLEAN27
 using Microsoft.Manufacturing.Forecast;
 #endif
-using Microsoft.Manufacturing.Routing;
-using Microsoft.Manufacturing.Family;
-using Microsoft.Sales.Document;
-using Microsoft.Inventory.BOM;
-using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.MachineCenter;
-using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Reports;
+using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
-using Microsoft.Manufacturing.Capacity;
-using Microsoft.Inventory.Reports;
-using Microsoft.Assembly.Reports;
-
+using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Sales.Document;
+using System.TestLibraries.Utilities;
 codeunit 137304 "SCM Manufacturing Reports"
 {
     Subtype = Test;

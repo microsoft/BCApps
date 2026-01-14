@@ -35,6 +35,7 @@ codeunit 137046 "SCM Order Planning - I"
         LineCountError: Label 'There should be '' %1 '' line(s) in the planning worksheet for item. ';
         CostIsAdjustedErr: Label '"Cost Is Adjusted" in Inventory Adjmt. Entry (Order) should be TRUE if Item was deleted';
         UnitOfMeasureErr: Label 'Unit of Measure Code on Requisition Line doesn''t equal to the Purch. Unit of Measure of Item';
+        RequisitionLineQtyErr: Label 'Requisition quantity not qual to expected quantity of %1', Comment = '%1 - Requisition Line Expected Quantity';
 
     [Test]
     [Scope('OnPrem')]
@@ -1097,6 +1098,79 @@ codeunit 137046 "SCM Order Planning - I"
 
         // [THEN] Run Capable-to-Promise action and "Planned Delivery Date" and "Earliest Shipment Date" 
         // are equal to PlannedDeliveryDate in OrderPromisingHandler.
+    end;
+
+    [Test]
+    procedure JobDemandWithMultiplePlanningLines()
+    var
+        Item: Record Item;
+        Vendor: Record Vendor;
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        JobPlanningLine: Record "Job Planning Line";
+        JobPlanningLine2: Record "Job Planning Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        LibraryJob: Codeunit "Library - Job";
+        FirstQuantity: Decimal;
+        SecondQuantity: Decimal;
+    begin
+        // [SCENARIO 611683] Order Planning for Job Demand with multiple planning lines should not net received quantities across lines.
+        Initialize();
+
+        // [GIVEN] Create Item with Replenishment Method = Purchase
+        LibraryPurchase.CreateVendor(Vendor);
+        CreateItem(Item, Item."Replenishment System"::Purchase, '', '', Vendor."No.");
+
+        // [GIVEN] Create Job with Apply Usage Link = TRUE
+        LibraryJob.CreateJob(Job);
+        Job.Validate("Apply Usage Link", true);
+        Job.Modify(true);
+
+        // [GIVEN] Create Job Task Line of type Posting
+        LibraryJob.CreateJobTask(Job, JobTask);
+
+        // [GIVEN] Create first Job Planning Line with Quantity = 2
+        FirstQuantity := 2;
+        LibraryJob.CreateJobPlanningLine(JobPlanningLine."Line Type"::Budget, JobPlanningLine.Type::Item, JobTask, JobPlanningLine);
+        JobPlanningLine.Validate("No.", Item."No.");
+        JobPlanningLine.Validate(Quantity, FirstQuantity);
+        JobPlanningLine.Modify(true);
+
+        // [GIVEN] Run Order Planning for Job Demand
+        LibraryPlanning.CalculateOrderPlanJob(RequisitionLine);
+
+        // [GIVEN] Make Purchase Order from Requisition Line
+        LibraryPlanning.CarryOutActionMsgPlanWksh(RequisitionLine);
+
+        // [GIVEN] Purchase Order is created
+        PurchaseLine.SetRange("Job No.", Job."No.");
+        PurchaseLine.SetRange("No.", Item."No.");
+        PurchaseLine.FindFirst();
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+
+        // [GIVEN] Post Receipt only (not invoice)
+        PurchaseHeader.Validate("Vendor Invoice No.", LibraryUtility.GenerateGUID());
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [GIVEN] Create second Job Planning Line for same item with Quantity = 10
+        SecondQuantity := 10;
+        LibraryJob.CreateJobPlanningLine(JobPlanningLine2."Line Type"::Budget, JobPlanningLine2.Type::Item, JobTask, JobPlanningLine2);
+        JobPlanningLine2.Validate("No.", Item."No.");
+        JobPlanningLine2.Validate(Quantity, SecondQuantity);
+        JobPlanningLine2.Modify(true);
+
+        // [WHEN] Run Order Planning again for Job Demand
+        RequisitionLine.DeleteAll();
+        LibraryPlanning.CalculateOrderPlanJob(RequisitionLine);
+
+        // [THEN] Requisition Line is created with Quantity = 10 (not 8)
+        RequisitionLine.SetRange("No.", Item."No.");
+        RequisitionLine.SetRange("Demand Order No.", Job."No.");
+        RequisitionLine.FindFirst();
+        Assert.AreEqual(SecondQuantity, RequisitionLine.Quantity, StrSubstNo(RequisitionLineQtyErr, SecondQuantity));
     end;
 
     local procedure Initialize()

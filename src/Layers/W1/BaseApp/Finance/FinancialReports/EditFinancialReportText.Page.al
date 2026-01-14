@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.FinancialReports;
 
+/// <summary>
+/// Dialog page for editing introductory and closing paragraphs in financial reports.
+/// Provides text input fields for custom report header and footer content.
+/// </summary>
 page 5787 "Edit Financial Report Text"
 {
     Caption = 'Edit Financial Report Introductory/Closing Paragraph';

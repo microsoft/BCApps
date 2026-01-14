@@ -13,6 +13,14 @@ using Microsoft.Foundation.Period;
 using System.Environment;
 using System.IO;
 
+/// <summary>
+/// Exports G/L account and entry data for consolidation processing to external files.
+/// Supports XML and text file formats for data transfer to consolidated companies.
+/// </summary>
+/// <remarks>
+/// Export report for consolidation data transfer supporting multiple file formats and comprehensive
+/// G/L data export including dimensions, exchange rates, and selected account filtering.
+/// </remarks>
 report 91 "Export Consolidation"
 {
     ApplicationArea = Suite;
@@ -555,6 +563,12 @@ report 91 "Export Consolidation"
             TransferPerDay := TransferPerDayReq;
     end;
 
+    /// <summary>
+    /// Initializes export parameters for consolidation data export processing.
+    /// Sets file format and output filename for the consolidation export operation.
+    /// </summary>
+    /// <param name="NewFileFormat">File format option for consolidation export (XML, text, or F&amp;O format)</param>
+    /// <param name="NewFileName">Output filename for the exported consolidation data</param>
     procedure InitializeRequest(NewFileFormat: Option; NewFileName: Text)
     begin
         FileFormat := NewFileFormat;
@@ -572,11 +586,23 @@ report 91 "Export Consolidation"
         FOLegalEntityIDVisible := FileFormat = FileFormat::"Version F&O";
     end;
 
+    /// <summary>
+    /// Integration event raised after processing G/L Entry record during consolidation export.
+    /// Enables custom post-processing of G/L entry data and dimension handling.
+    /// </summary>
+    /// <param name="GLEntry">G/L Entry record being processed for export</param>
+    /// <param name="TempSelectedDim">Selected Dimension temporary record for dimension processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGLEntryOnAfterGetRecord(var GLEntry: Record "G/L Entry"; var TempSelectedDim: Record "Selected Dimension" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before processing G/L Entry record during consolidation export.
+    /// Enables custom pre-processing of G/L entry data and dimension selection.
+    /// </summary>
+    /// <param name="GLEntry">G/L Entry record about to be processed for export</param>
+    /// <param name="TempSelectedDim">Selected Dimension temporary record for dimension processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGLEntryOnAfterGetRecord(var GLEntry: Record "G/L Entry"; var TempSelectedDim: Record "Selected Dimension" temporary)
     begin

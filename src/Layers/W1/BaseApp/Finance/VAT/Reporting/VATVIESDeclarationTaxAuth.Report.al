@@ -10,6 +10,10 @@ using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using System.Utilities;
 
+/// <summary>
+/// Generates VIES (VAT Information Exchange System) declaration report for tax authority submission.
+/// Produces formatted report of intra-community EU sales transactions for regulatory compliance and audit purposes.
+/// </summary>
 report 19 "VAT- VIES Declaration Tax Auth"
 {
     DefaultLayout = RDLC;
@@ -314,6 +318,14 @@ report 19 "VAT- VIES Declaration Tax Auth"
 #pragma warning restore AA0074
         VATRegistrationNoFilter: Text[250];
 
+    /// <summary>
+    /// Initializes VIES declaration tax authority report with currency and period parameters.
+    /// Configures report criteria including currency display, date range, and VAT registration filtering.
+    /// </summary>
+    /// <param name="NewUseAmtsInAddCurr">True to display amounts in additional reporting currency, false for local currency</param>
+    /// <param name="NewStartDate">Start date for VIES declaration period</param>
+    /// <param name="NedEndDate">End date for VIES declaration period</param>
+    /// <param name="SetVATRegistrationNoFilter">VAT registration number filter for specific customers</param>
     procedure InitializeRequest(NewUseAmtsInAddCurr: Boolean; NewStartDate: Date; NedEndDate: Date; SetVATRegistrationNoFilter: Text[250])
     begin
         UseAmtsInAddCurr := NewUseAmtsInAddCurr;

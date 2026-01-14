@@ -4,18 +4,18 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
-using System.Environment.Configuration;
-using Microsoft.Assembly.Setup;
-using Microsoft.Inventory.Item;
-using Microsoft.Sales.Document;
 using Microsoft.Assembly.Document;
-using Microsoft.Inventory.Journal;
+using Microsoft.Assembly.Setup;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Availability;
+using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
+using Microsoft.Sales.Document;
+using System.Environment.Configuration;
 
 codeunit 137089 "SCM Kitting - Planning"
 {

@@ -7,6 +7,15 @@ namespace Microsoft.Finance.Dimension;
 using Microsoft.Finance.Analysis;
 using Microsoft.Foundation.Enums;
 
+/// <summary>
+/// Matrix page for viewing and managing dimension value combinations.
+/// Provides matrix display of allowed dimension value combinations with navigation and filtering capabilities.
+/// </summary>
+/// <remarks>
+/// Part of the dimension value combination management system for controlling valid dimension value pairings.
+/// Supports matrix navigation through dimension value combinations and column-based display options.
+/// Integrates with dimension value combination validation and management processes.
+/// </remarks>
 page 9252 "MyDim Value Combinations"
 {
     Caption = 'Dimension Value Combinations';
@@ -144,6 +153,15 @@ page 9252 "MyDim Value Combinations"
         Row: Code[20];
         MATRIX_CurrSetLength: Integer;
 
+    /// <summary>
+    /// Sets the selected dimension value combination for matrix display.
+    /// Configures the matrix to show the specified dimension combination with default display settings.
+    /// </summary>
+    /// <param name="NewDimensionValueCombination">Dimension value combination record to display in matrix</param>
+    /// <remarks>
+    /// Extracts dimension codes from the combination and loads the matrix with show column name enabled.
+    /// Used to initialize the matrix display based on a specific dimension value combination context.
+    /// </remarks>
     procedure SetSelectedDimValueComb(NewDimensionValueCombination: Record "Dimension Value Combination")
     begin
         DimensionValueCombination := NewDimensionValueCombination;
@@ -151,6 +169,17 @@ page 9252 "MyDim Value Combinations"
           DimensionValueCombination."Dimension 1 Code", DimensionValueCombination."Dimension 2 Code", true);
     end;
 
+    /// <summary>
+    /// Loads matrix configuration with specified row and column dimensions.
+    /// Sets up matrix display parameters including dimension codes and column name visibility.
+    /// </summary>
+    /// <param name="_Row">Dimension code for matrix rows</param>
+    /// <param name="_Column">Dimension code for matrix columns</param>
+    /// <param name="_ShowColumnName">Whether to display column names in matrix</param>
+    /// <remarks>
+    /// Configures matrix record filtering and display settings for dimension value combination visualization.
+    /// Provides extensibility through OnAfterLoad integration event.
+    /// </remarks>
     procedure Load(_Row: Code[20]; _Column: Code[20]; _ShowColumnName: Boolean)
     begin
         Row := _Row;
@@ -199,11 +228,25 @@ page 9252 "MyDim Value Combinations"
         UpdateMatrixSubform();
     end;
 
+    /// <summary>
+    /// Integration event raised after loading matrix configuration parameters.
+    /// Enables customization of matrix setup and dimension value filtering after initial load.
+    /// </summary>
+    /// <param name="MatrixRecordDimensionValue">Dimension value record used for matrix column configuration</param>
+    /// <param name="_Row">Row dimension code</param>
+    /// <param name="_Column">Column dimension code</param>
+    /// <param name="_ShowColumnName">Column name display setting</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterLoad(var MatrixRecordDimensionValue: Record "Dimension Value"; _Row: Code[20]; _Column: Code[20]; _ShowColumnName: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before generating matrix column captions.
+    /// Allows customization of dimension value filtering and caption generation logic.
+    /// </summary>
+    /// <param name="MatrixRecordDimensionValue">Dimension value record for column caption generation</param>
+    /// <param name="StepType">Matrix navigation step type for pagination</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGenerateColumnCaptions(var MatrixRecordDimensionValue: Record "Dimension Value"; StepType: Enum "Matrix Page Step Type")
     begin

@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Ledger;
 
+/// <summary>
+/// Query object providing G/L entry data aggregated by dimensions for analytical reporting.
+/// Enables dimensional analysis with sum calculations for amounts, debits, and credits.
+/// </summary>
+/// <remarks>
+/// Data source: G/L Entry table. Aggregates amounts by dimension combinations.
+/// Supports filtering by G/L account, posting date, business unit, and global dimensions.
+/// Used for dimensional financial analysis and reporting with sum calculations.
+/// </remarks>
 query 250 "G/L Entry Dimensions"
 {
     Caption = 'G/L Entry Dimensions';

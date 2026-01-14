@@ -359,6 +359,7 @@ page 1328 "Purch. Order From Sales Order"
         Rec.FilterGroup(0);
         if ShowAll then begin
             Rec.SetRange("Needed Quantity");
+            Rec.SetRange("Replenishment System");
             ShowAllDocsIsEnable := false;
         end else begin
             Rec.SetFilter("Needed Quantity", '>%1', 0);

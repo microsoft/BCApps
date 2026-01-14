@@ -6,6 +6,10 @@ namespace Microsoft.Finance.SalesTax;
 
 using System.Environment;
 
+/// <summary>
+/// Provides functionality to copy tax setup data from one company to another.
+/// Handles the migration of tax jurisdictions, areas, groups, and detail configurations.
+/// </summary>
 codeunit 399 "Copy Tax Setup From Company"
 {
 
@@ -24,6 +28,12 @@ codeunit 399 "Copy Tax Setup From Company"
         CurrentRecord: Integer;
         RecordCount: Integer;
 
+    /// <summary>
+    /// Copies selected tax setup tables from the specified source company.
+    /// Displays progress dialog during the copy operation.
+    /// </summary>
+    /// <param name="SourceCompany">Source company to copy tax setup from</param>
+    /// <param name="CopyTable">Array indicating which tables to copy (TaxGroup, TaxJurisdiction, TaxArea, TaxDetail)</param>
     procedure CopyTaxInfo(SourceCompany: Record Company; CopyTable: array[4] of Boolean)
     begin
         Window.Open(Text000 +

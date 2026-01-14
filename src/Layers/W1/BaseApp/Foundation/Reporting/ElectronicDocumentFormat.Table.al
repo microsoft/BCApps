@@ -191,15 +191,6 @@ table 61 "Electronic Document Format"
         RecordExportBuffer.DeleteAll();
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by same procedure in codeunit "Serv. Electr. Doc. Format"', '25.0')]
-    procedure ValidateElectronicServiceDocument(ServiceHeader: Record Microsoft.Service.Document."Service Header"; ElectronicFormat: Code[20])
-    var
-        ServElectrDocFormat: Codeunit "Serv. Electr. Doc. Format";
-    begin
-        ServElectrDocFormat.ValidateElectronicServiceDocument(ServiceHeader, ElectronicFormat);
-    end;
-#endif
 
     procedure ValidateElectronicSalesDocument(SalesHeader: Record "Sales Header"; ElectronicFormat: Code[20])
     var
@@ -244,33 +235,14 @@ table 61 "Electronic Document Format"
                     StrSubstNo('%1 - %2 %3.%4', FileMgt.StripNotsupportChrInFileName(CompanyName), DocumentType, DocumentNo, Extension), 1, 250);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by GetDocumentFormatUsage() with enum parameter', '25.0')]
-    procedure GetDocumentUsage(var DocumentUsage: Option; DocumentVariant: Variant)
-    var
-        DocumentFormatUsage: Enum "Electronic Document Format Usage";
-    begin
-        DocumentFormatUsage := "Electronic Document Format Usage".FromInteger(DocumentUsage);
-        GetDocumentFormatUsage(DocumentFormatUsage, DocumentVariant);
-        DocumentUsage := DocumentFormatUsage.AsInteger();
-    end;
-#endif
 
     procedure GetDocumentFormatUsage(var DocumentFormatUsage: Enum "Electronic Document Format Usage"; DocumentVariant: Variant)
     var
         DocumentRecordRef: RecordRef;
-#if not CLEAN25
-        DocumentUsage: Option;
-#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
         OnBeforeGetDocumentFormatUsage(Rec, DocumentVariant, DocumentFormatUsage, IsHandled);
-#if not CLEAN25
-        DocumentUsage := DocumentFormatUsage.AsInteger();
-        OnBeforeGetDocumentUsage(Rec, DocumentVariant, DocumentUsage, IsHandled);
-        DocumentFormatUsage := "Electronic Document Format Usage".FromInteger(DocumentUsage);
-#endif
         if IsHandled then
             exit;
 
@@ -345,18 +317,10 @@ table 61 "Electronic Document Format"
 
     local procedure GetDocumentUsageForSalesHeader(var DocumentFormatUsage: Enum "Electronic Document Format Usage"; SalesHeader: Record "Sales Header")
     var
-#if not CLEAN25
-        DocumentUsage: Option;
-#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
         OnBeforeGetDocumentFormatUsageForSalesHeader(Rec, SalesHeader, DocumentFormatUsage, IsHandled);
-#if not CLEAN25
-        DocumentUsage := DocumentFormatUsage.AsInteger();
-        OnBeforeGetDocumentUsageForSalesHeader(Rec, SalesHeader, DocumentUsage, IsHandled);
-        DocumentFormatUsage := "Electronic Document Format Usage".FromInteger(DocumentUsage);
-#endif
         if IsHandled then
             exit;
 
@@ -454,44 +418,18 @@ table 61 "Electronic Document Format"
     begin
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by event OnBeforeGetDocumentFormatUsage', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetDocumentUsage(ElectronicDocumentFormat: Record "Electronic Document Format"; DocumentVariant: Variant; var DocumentUsage: Option; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetDocumentFormatUsage(ElectronicDocumentFormat: Record "Electronic Document Format"; DocumentVariant: Variant; var DocumentFormatUsage: Enum "Electronic Document Format Usage"; var IsHandled: Boolean)
     begin
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by event OnBeforeGetDocumentFormatUsageForSalesHeader', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetDocumentUsageForSalesHeader(ElectronicDocumentFormat: Record "Electronic Document Format"; SalesHeader: Record "Sales Header"; var DocumentUsage: Option; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetDocumentFormatUsageForSalesHeader(ElectronicDocumentFormat: Record "Electronic Document Format"; SalesHeader: Record "Sales Header"; var DocumentUsage: Enum "Electronic Document Format Usage"; var IsHandled: Boolean)
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforeGetDocumentUsageForServiceHeader(ElectronicDocumentFormat: Record "Electronic Document Format"; ServiceHeader: Record Microsoft.Service.Document."Service Header"; var DocumentUsage: Option; var IsHandled: Boolean)
-    begin
-        OnBeforeGetDocumentUsageForServiceHeader(ElectronicDocumentFormat, ServiceHeader, DocumentUsage, IsHandled);
-    end;
-
-    [Obsolete('Replaced by event OnBeforeGetDocumentFormatUsageForServiceHeader in codeunit "Serv. Electr. Doc. Format"', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetDocumentUsageForServiceHeader(ElectronicDocumentFormat: Record "Electronic Document Format"; ServiceHeader: Record Microsoft.Service.Document."Service Header"; var DocumentUsage: Option; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnGetDocumentNoCaseElse(DocumentVariant: Variant; var DocumentNo: Code[20]; var IsHandled: Boolean; DocumentRecordRef: RecordRef)
@@ -533,4 +471,3 @@ table 61 "Electronic Document Format"
     begin
     end;
 }
-

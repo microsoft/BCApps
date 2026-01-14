@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Integration.SyncEngine;
 
-using System.Reflection;
 using System.IO;
+using System.Reflection;
 
 table 5325 "Table Config Template"
 {

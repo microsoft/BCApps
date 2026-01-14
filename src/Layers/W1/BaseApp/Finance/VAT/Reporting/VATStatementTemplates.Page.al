@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+/// <summary>
+/// Management interface for VAT statement templates.
+/// Provides template creation, modification, and configuration for VAT statement structure and formatting.
+/// </summary>
 page 318 "VAT Statement Templates"
 {
     ApplicationArea = Basic, Suite;

@@ -61,8 +61,8 @@ codeunit 7304 "Whse. Jnl.-Register Batch"
         Text002: Label 'Checking lines        #2######\';
         Text003: Label 'Registering lines     #3###### @4@@@@@@@@@@@@@';
 #pragma warning restore AA0470
-        Text005: Label 'Item tracking lines defined for the source line must account for the same quantity as you have entered.';
-        Text006: Label 'Item tracking lines do not match the bin content.';
+        Text005: Label 'Item tracking lines for journal line %1 (Item %2, Location %3, Bin %4) must account for the same quantity as entered. Expected: %5, Tracking total: %6.', Comment = 'Item tracking lines for journal line 10000 (Item ITEM001, Location BLUE, Bin BIN-01) must account for the same quantity as entered. Expected: 100, Tracking total: 85.';
+        Text006: Label 'Item tracking lines for journal line %1 (Item %2, Location %3, From Bin %4) do not match the available bin content. Tracking quantity %5 exceeds available bin quantity %6.', Comment = 'Item tracking lines for journal line 10000 (Item ITEM001, Location BLUE, From Bin BIN-01) do not match the available bin content. Tracking quantity 50 exceeds available bin quantity 30.';
 #pragma warning disable AA0470
         Text007: Label 'One or more reservation entries exist for the item with %1 = %2, %3 = %4, %5 = %6 which may be disrupted if you post this negative adjustment. Do you want to continue?', Comment = 'One or more reservation entries exist for the item with Item No. = 1000, Location Code = BLUE, Variant Code = NEW which may be disrupted if you post this negative adjustment. Do you want to continue?';
 #pragma warning restore AA0470
@@ -344,7 +344,8 @@ codeunit 7304 "Whse. Jnl.-Register Batch"
         WhseItemTrkgLine.CalcSums("Qty. to Handle (Base)");
 
         if WhseItemTrkgLine."Qty. to Handle (Base)" <> Abs(WhseJnlLine."Qty. (Absolute, Base)") then
-            Error(Text005);
+            Error(Text005, WhseJnlLine."Line No.", WhseJnlLine."Item No.", WhseJnlLine."Location Code", WhseJnlLine."From Bin Code", 
+                  Abs(WhseJnlLine."Qty. (Absolute, Base)"), WhseItemTrkgLine."Qty. to Handle (Base)");
 
         if WhseItemTrkgLine.Find('-') then
             repeat
@@ -362,7 +363,8 @@ codeunit 7304 "Whse. Jnl.-Register Batch"
                     BinContent.SetTrackingFilterFromWhseItemTrackingLine(WhseItemTrkgLine);
                     BinContent.CalcFields("Quantity (Base)");
                     if WhseItemTrkgLine."Quantity (Base)" > BinContent."Quantity (Base)" then
-                        Error(Text006);
+                        Error(Text006, WhseJnlLine."Line No.", WhseJnlLine."Item No.", WhseJnlLine."Location Code", WhseJnlLine."From Bin Code", 
+                              WhseItemTrkgLine."Quantity (Base)", BinContent."Quantity (Base)");
                 until WhseItemTrkgLine.Next() = 0;
 
         if WhseItemTrkgLine.Find('-') then

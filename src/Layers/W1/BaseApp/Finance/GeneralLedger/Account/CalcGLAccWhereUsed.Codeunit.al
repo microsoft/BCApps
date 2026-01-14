@@ -23,6 +23,16 @@ using Microsoft.Sales.Setup;
 using System.Reflection;
 using System.Utilities;
 
+/// <summary>
+/// Calculates and displays all setup locations where a general ledger account is referenced or used.
+/// Provides comprehensive analysis of account dependencies before deletion or modification operations.
+/// </summary>
+/// <remarks>
+/// Key functions: Account usage analysis, dependency checking, setup reference validation.
+/// Scans multiple setup tables including posting groups, journal templates, currency setup, and VAT configuration.
+/// Used to prevent deletion of accounts that are actively referenced in system configuration.
+/// Provides navigation to setup forms where accounts are used for easy maintenance.
+/// </remarks>
 codeunit 100 "Calc. G/L Acc. Where-Used"
 {
 
@@ -38,6 +48,11 @@ codeunit 100 "Calc. G/L Acc. Where-Used"
 #pragma warning restore AA0074
         ShowWhereUsedQst: Label 'You cannot delete a %1 that is used in one or more setup windows.\Do you want to open the G/L Account No. Where-Used List Window?', Comment = '%1 -  Table Caption';
 
+    /// <summary>
+    /// Opens the appropriate setup form for the table referenced in the where-used entry.
+    /// Navigates directly to the configuration page where the G/L account is being used.
+    /// </summary>
+    /// <param name="GLAccWhereUsed">Where-used record containing table and key information</param>
     procedure ShowSetupForm(GLAccWhereUsed: Record "G/L Account Where-Used")
     var
         Currency: Record Currency;
@@ -162,6 +177,12 @@ codeunit 100 "Calc. G/L Acc. Where-Used"
         end;
     end;
 
+    /// <summary>
+    /// Validates if a G/L account can be deleted by checking for usage in setup tables.
+    /// Displays where-used information if account is referenced, preventing deletion.
+    /// </summary>
+    /// <param name="GLAccNo">G/L account number to validate for deletion</param>
+    /// <returns>True if account can be deleted, false if validation fails</returns>
     procedure DeleteGLNo(GLAccNo: Code[20]): Boolean
     var
         GLSetup: Record "General Ledger Setup";
@@ -182,6 +203,11 @@ codeunit 100 "Calc. G/L Acc. Where-Used"
         exit(true);
     end;
 
+    /// <summary>
+    /// Analyzes where a G/L account is used and displays the results in the where-used list.
+    /// Provides comprehensive analysis of account dependencies across all setup tables.
+    /// </summary>
+    /// <param name="GLAccNo">G/L account number to analyze for usage</param>
     procedure CheckGLAcc(GLAccNo: Code[20])
     begin
         CheckPostingGroups(GLAccNo);
@@ -196,6 +222,17 @@ codeunit 100 "Calc. G/L Acc. Where-Used"
         PAGE.RunModal(0, TempGLAccWhereUsed);
     end;
 
+    /// <summary>
+    /// Inserts a where-used entry group for a specific record using table metadata.
+    /// Creates standardized entries for account usage tracking with table and field information.
+    /// </summary>
+    /// <param name="TempGLAccountWhereUsed">Temporary where-used record to populate</param>
+    /// <param name="TableID">Database table ID being analyzed</param>
+    /// <param name="TableCaption">Display caption for the table</param>
+    /// <param name="GLAccNo">G/L account number found in the record</param>
+    /// <param name="GLAccNo2">G/L account number to compare against</param>
+    /// <param name="FieldCaption">Caption of the field containing the account</param>
+    /// <param name="Key">Array of key field names and values for record identification</param>
     procedure InsertGroupForRecord(var TempGLAccountWhereUsed: Record "G/L Account Where-Used" temporary; TableID: Integer; TableCaption: Text[80]; GLAccNo: Code[20]; GLAccNo2: Code[20]; FieldCaption: Text[80]; "Key": array[8] of Text[80])
     begin
         TempGLAccountWhereUsed."Table ID" := TableID;
@@ -269,6 +306,11 @@ codeunit 100 "Calc. G/L Acc. Where-Used"
         TempGLAccWhereUsed.Insert();
     end;
 
+    /// <summary>
+    /// Performs comprehensive analysis of posting group tables to identify where a G/L account is used.
+    /// Scans all relevant setup tables using metadata relationships to build complete usage report.
+    /// </summary>
+    /// <param name="GLAccNo">G/L account number to analyze for posting group usage</param>
     procedure CheckPostingGroups(GLAccNo: Code[20])
     var
         GLAcc: Record "G/L Account";
@@ -319,6 +361,12 @@ codeunit 100 "Calc. G/L Acc. Where-Used"
         exit(TableBuffer.FindSet());
     end;
 
+    /// <summary>
+    /// Adds a table to the buffer of tables to be checked for G/L account usage.
+    /// Prevents duplicate entries when building the list of tables to analyze.
+    /// </summary>
+    /// <param name="TableBuffer">Integer buffer containing table IDs to check</param>
+    /// <param name="TableID">Database table ID to add to the analysis list</param>
     procedure AddTable(var TableBuffer: Record "Integer"; TableID: Integer)
     begin
         if not TableBuffer.Get(TableID) then begin
@@ -377,31 +425,63 @@ codeunit 100 "Calc. G/L Acc. Where-Used"
         end;
     end;
 
+    /// <summary>
+    /// Integration event raised to allow extensions to handle custom setup page navigation.
+    /// Enables custom object types to be included in the where-used analysis with specialized page handling.
+    /// </summary>
+    /// <param name="GLAccountWhereUsed">Where-used record containing table and key information for custom navigation</param>
     [IntegrationEvent(false, false)]
     local procedure OnShowExtensionPage(GLAccountWhereUsed: Record "G/L Account Where-Used")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after completing posting group analysis for a G/L account.
+    /// Allows extensions to add custom table checks or modify the where-used results before display.
+    /// </summary>
+    /// <param name="TempGLAccountWhereUsed">Temporary buffer containing all where-used entries found</param>
+    /// <param name="GLAccNo">G/L account number that was analyzed</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckPostingGroups(var TempGLAccountWhereUsed: Record "G/L Account Where-Used" temporary; GLAccNo: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after building the list of tables to check for G/L account usage.
+    /// Enables extensions to add custom tables to the where-used analysis scope.
+    /// </summary>
+    /// <param name="TableBuffer">Integer buffer containing table IDs to be analyzed</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFillTableBuffer(var TableBuffer: Record "Integer")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before displaying the where-used list to the user.
+    /// Allows extensions to filter or modify the results before presentation.
+    /// </summary>
+    /// <param name="GLAccountWhereUsed">Where-used records to be displayed</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowGLAccWhereUsed(var GLAccountWhereUsed: Record "G/L Account Where-Used")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before opening the FA Allocation page from where-used navigation.
+    /// Enables extensions to customize FA allocation page behavior or apply additional filters.
+    /// </summary>
+    /// <param name="FAAllocation">FA allocation record being navigated to</param>
+    /// <param name="GLAccountWhereUsed">Where-used record containing the source reference information</param>
     [IntegrationEvent(false, false)]
     local procedure OnShowSetupFormOnBeforeFAAllocationRunPage(var FAAllocation: Record "FA Allocation"; var GLAccountWhereUsed: Record "G/L Account Where-Used")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking if where-used entries exist during G/L account deletion validation.
+    /// Allows extensions to perform custom where-used checks or modify validation logic.
+    /// </summary>
+    /// <param name="TempGLAccountWhereUsed">Temporary where-used buffer to check for account references</param>
     [IntegrationEvent(false, false)]
     local procedure OnDeleteGLNoOnBeforeTempGLAccWhereUsedFindFirst(var TempGLAccountWhereUsed: Record "G/L Account Where-Used" temporary)
     begin

@@ -2336,6 +2336,39 @@ codeunit 134344 "Document Totals Pages"
             VATAmountErr);
     end;
 
+    [Test]
+    procedure NoInvoiceDiscountRoundingMsgWhenSetCalcInvDiscountInSalesSetup()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesSetup: Record "Sales & Receivables Setup";
+        SalesOrder: TestPage "Sales Order";
+    begin
+        // [SCENARIO 610966] No Invoice Discount rounding message will be shown when Invoice Discount Percentage is set from Customer Invoice Discount
+        Initialize();
+
+        // [GIVEN] Invoice Discount in Sales & Receivables Setup set to true
+        SalesSetup.Get();
+        SalesSetup.Validate("Calc. Inv. Discount", true);
+        SalesSetup.Modify(true);
+
+        // [GIVEN] Create sales order
+        CreateSalesDocumentWithCustInvDisc(SalesHeader, SalesLine, SalesHeader."Document Type"::Order);
+        Commit();
+
+        // [GIVEN] Open the Sales Order Page
+        SalesOrder.OpenEdit();
+        SalesOrder.Filter.SetFilter("No.", SalesHeader."No.");
+
+        // [WHEN] Set the Quantity to 1 to trigger recalculation of Invoice Discount Percentage
+        SalesOrder.SalesLines.Quantity.SetValue(1);
+
+        // [THEN] Verify Invoice Discount Percentage is not zero and no message will be shown
+        Assert.IsTrue(SalesOrder.SalesLines."Invoice Disc. Pct.".AsDecimal() <> 0, InvoiceDiscountPercentErr);
+
+        LibraryNotificationMgt.RecallNotificationsForRecord(SalesLine);
+    end;
+
     local procedure Initialize()
     begin
         LibrarySetupStorage.Restore();
@@ -2590,6 +2623,19 @@ codeunit 134344 "Document Totals Pages"
     begin
         PurchaseHeader.CalcFields("Invoice Discount Amount");
         PurchaseHeader.TestField("Invoice Discount Amount", InvoiceDiscountAmount);
+    end;
+
+    local procedure CreateSalesDocumentWithCustInvDisc(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; DocumentType: Enum "Sales Document Type")
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+    begin
+        CreateCustomerWithDiscount(Customer);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, DocumentType, Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(10, 20, 2));
+        SalesLine.Modify();
     end;
 
     [ConfirmHandler]

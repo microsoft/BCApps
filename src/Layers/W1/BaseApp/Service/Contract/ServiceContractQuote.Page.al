@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -613,20 +613,6 @@ page 6053 "Service Contract Quote"
         }
         area(factboxes)
         {
-#if not CLEAN25
-            part("Attached Documents"; "Document Attachment Factbox")
-            {
-                ObsoleteTag = '25.0';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The "Document Attachment FactBox" has been replaced by "Doc. Attachment List Factbox", which supports multiple files upload.';
-                ApplicationArea = Service;
-                Caption = 'Attachments';
-                Visible = false;
-                SubPageLink = "Table ID" = const(Database::"Service Contract Header"),
-                              "Document Type" = const("Service Contract Quote"),
-                              "No." = field("Contract No.");
-            }
-#endif
             part("Attached Documents List"; "Doc. Attachment List Factbox")
             {
                 ApplicationArea = Service;
@@ -1145,4 +1131,3 @@ page 6053 "Service Contract Quote"
         CurrPage.Update();
     end;
 }
-

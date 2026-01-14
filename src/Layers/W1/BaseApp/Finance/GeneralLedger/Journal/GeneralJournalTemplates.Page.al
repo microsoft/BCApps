@@ -8,6 +8,16 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using System.Reflection;
 using System.Utilities;
 
+/// <summary>
+/// Administrative page for managing general journal templates that define journal types and configurations.
+/// Provides template setup including journal type, recurring options, balancing account defaults, and page assignments.
+/// </summary>
+/// <remarks>
+/// Template management interface for configuring journal template structures and behaviors.
+/// Key features: Template type configuration, recurring journal setup, balancing account defaults, page assignment management.
+/// Integration: Links to journal batches, provides template-level configuration for all journal operations.
+/// Actions: Navigate to batches, configure posting restrictions, manage source codes and reason codes.
+/// </remarks>
 page 101 "General Journal Templates"
 {
     ApplicationArea = Basic, Suite;

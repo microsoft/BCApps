@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Integration.Warehouse;
 
 /// <summary>
-/// Determines what triggers a test from a warehouse movement.
+/// Determines what triggers an inspection from a warehouse movement.
 /// </summary>
 enum 20438 "Qlty. Warehouse Trigger"
 {

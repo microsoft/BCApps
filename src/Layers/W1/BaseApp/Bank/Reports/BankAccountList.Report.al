@@ -7,6 +7,15 @@ namespace Microsoft.Bank.Reports;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Foundation.Address;
 
+/// <summary>
+/// Generates comprehensive list of bank accounts with balance and contact information.
+/// Displays bank account details, balances, address information, and account settings.
+/// </summary>
+/// <remarks>
+/// Data Sources: Bank Account. 
+/// Features: Address formatting, currency balance options, contact details, account configuration display.
+/// Usage: Bank account directory, account overview reporting, balance verification, setup documentation.
+/// </remarks>
 report 1402 "Bank Account - List"
 {
     DefaultLayout = RDLC;

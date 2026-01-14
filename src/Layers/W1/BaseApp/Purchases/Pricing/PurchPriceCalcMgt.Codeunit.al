@@ -884,15 +884,15 @@ codeunit 7010 "Purch. Price Calc. Mgt."
         SalesLine.Validate("Unit Cost (LCY)", ResCost."Unit Cost" * SalesLine."Qty. per Unit of Measure");
     end;
 
+#if not CLEAN28
+    [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     procedure FindResUnitCost(var ServiceLine: Record Microsoft.Service.Document."Service Line")
+    var
+        ServPriceCalcMgt: Codeunit Microsoft.Sales.Pricing."Serv. Price Calc. Mgt.";
     begin
-        ResCost.Init();
-        ResCost.Code := ServiceLine."No.";
-        ResCost."Work Type Code" := ServiceLine."Work Type Code";
-        CODEUNIT.Run(CODEUNIT::"Resource-Find Cost", ResCost);
-        ServiceLine.AfterResourseFindCost(ResCost);
-        ServiceLine.Validate("Unit Cost (LCY)", ResCost."Unit Cost" * ServiceLine."Qty. per Unit of Measure");
+        ServPriceCalcMgt.FindResUnitCost(ServiceLine);
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcBestDirectUnitCostFound(var PurchPrice: Record "Purchase Price"; var BestPurchPriceFound: Boolean; var IsHandled: Boolean)

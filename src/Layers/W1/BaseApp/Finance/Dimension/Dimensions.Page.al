@@ -6,6 +6,15 @@ namespace Microsoft.Finance.Dimension;
 
 using Microsoft.Intercompany.GLAccount;
 
+/// <summary>
+/// Main administration page for dimension setup and management in Business Central.
+/// Provides comprehensive dimension configuration including creation, editing, and access to related dimension values and default dimension assignments.
+/// </summary>
+/// <remarks>
+/// Primary entry point for dimension administration. Supports dimension value management, default dimension setup, 
+/// intercompany dimension mapping, and dimension translations. Includes actions for mapping to intercompany dimensions
+/// and managing allowed dimension values per account.
+/// </remarks>
 page 536 Dimensions
 {
     ApplicationArea = Dimensions;

@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.RoleCenters;
 
 using Microsoft.EServices.EDocument;
 using Microsoft.Foundation.Navigate;
+using Microsoft.Foundation.Task;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
@@ -33,7 +34,6 @@ using Microsoft.Sales.Document;
 using System.Automation;
 using System.Email;
 using System.Integration.PowerBI;
-using Microsoft.Foundation.Task;
 using System.Threading;
 using System.Visualization;
 

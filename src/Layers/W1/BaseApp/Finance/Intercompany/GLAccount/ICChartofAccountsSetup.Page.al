@@ -8,6 +8,10 @@ using Microsoft.Intercompany.DataExchange;
 using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
 
+/// <summary>
+/// Setup dialog for configuring intercompany chart of accounts synchronization parameters.
+/// Provides interface for selecting synchronization partner and synchronization options.
+/// </summary>
 page 629 "IC Chart of Accounts Setup"
 {
     ApplicationArea = Intercompany;

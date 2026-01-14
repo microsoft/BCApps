@@ -5,15 +5,15 @@
 namespace Microsoft.QualityManagement.Document;
 
 /// <summary>
-/// Used to help lists and filters quickly identify which test is the most recent retest.
+/// Used to help lists and filters quickly identify which inspection is the most recent re-inspection.
 /// </summary>
 enum 20412 "Qlty. Iteration State"
 {
     Caption = 'Quality Iteration State';
 
-    value(0; "Newer retest available")
+    value(0; "Newer re-inspection available")
     {
-        Caption = 'Newer retest available';
+        Caption = 'Newer re-inspection available';
     }
     value(1; "Most recent")
     {

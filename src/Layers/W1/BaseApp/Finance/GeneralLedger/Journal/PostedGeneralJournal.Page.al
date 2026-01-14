@@ -10,6 +10,16 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Foundation.Navigate;
 using System.Automation;
 
+/// <summary>
+/// Provides read-only access to posted general journal lines for historical analysis and audit trail purposes.
+/// Displays completed journal transactions with full posting details including dimensions, amounts, and posting references.
+/// </summary>
+/// <remarks>
+/// Historical journal view for posted transaction analysis and audit purposes. Provides comprehensive access to
+/// posted journal line details including G/L register references, dimension information, and transaction history.
+/// Key features: Posted transaction browsing, dimension analysis, audit trail access, navigation to related entries.
+/// Integration: Links to G/L entries, dimension corrections, and navigation functions for complete transaction traceability.
+/// </remarks>
 page 182 "Posted General Journal"
 {
     ApplicationArea = Basic, Suite;

@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Currency;
 
+/// <summary>
+/// Provides a list interface for managing currency exchange rate service configurations.
+/// Displays available exchange rate services with status information and setup access.
+/// </summary>
+/// <remarks>
+/// Source Table: Curr. Exch. Rate Update Setup (1650). Key features include service
+/// status monitoring, quick access to service configuration, and bulk operations
+/// for enabling/disabling multiple exchange rate services.
+/// </remarks>
 page 1650 "Curr. Exch. Rate Service List"
 {
     ApplicationArea = Suite;

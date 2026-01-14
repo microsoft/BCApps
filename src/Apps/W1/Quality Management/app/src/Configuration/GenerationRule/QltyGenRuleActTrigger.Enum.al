@@ -9,7 +9,7 @@ namespace Microsoft.QualityManagement.Configuration.GenerationRule;
 /// </summary>
 enum 20459 "Qlty. Gen. Rule Act. Trigger"
 {
-    Caption = 'Quality Test Generation Rule Activation Trigger';
+    Caption = 'Quality Inspection Generation Rule Activation Trigger';
     Extensible = false;
 
     value(0; "Manual or Automatic")

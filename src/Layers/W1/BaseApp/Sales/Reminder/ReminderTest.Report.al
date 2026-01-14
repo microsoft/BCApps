@@ -13,8 +13,8 @@ using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Sales.Customer;
-using System.Security.User;
 using System.Globalization;
+using System.Security.User;
 using System.Utilities;
 
 report 122 "Reminder - Test"

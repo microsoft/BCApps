@@ -8,8 +8,8 @@ using Microsoft.Finance.Currency;
 using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.Source;
 using Microsoft.Utilities;
-using System.Reflection;
 using System.Globalization;
+using System.Reflection;
 
 table 7021 "Price Line Filters"
 {

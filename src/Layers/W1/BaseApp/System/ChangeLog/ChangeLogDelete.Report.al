@@ -1,7 +1,7 @@
 namespace System.Diagnostics;
 
-using System.Utilities;
 using System.Reflection;
+using System.Utilities;
 
 report 510 "Change Log - Delete"
 {

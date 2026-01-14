@@ -9,22 +9,22 @@ using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Purchases.History;
-using Microsoft.Purchases.Payables;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
-using Microsoft.Inventory.Item;
-using Microsoft.Finance.VAT.Setup;
-using Microsoft.Service.Setup;
-using Microsoft.Service.Document;
 using Microsoft.Foundation.Reporting;
-using Microsoft.Service.Test;
+using Microsoft.Inventory.Item;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
+using Microsoft.Service.Document;
+using Microsoft.Service.Setup;
+using Microsoft.Service.Test;
 using System.IO;
 using System.TestLibraries.Utilities;
 
-codeunit 139616 "E-Doc. Format Tests"
+codeunit 139519 "E-Doc. Format Tests"
 {
     Subtype = Test;
     TestType = IntegrationTest;

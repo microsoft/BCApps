@@ -4,22 +4,22 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
-using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Location;
-using Microsoft.Inventory.BOM;
 using Microsoft.Assembly.Document;
-using Microsoft.Projects.Resources.Resource;
-using Microsoft.Warehouse.Structure;
-using Microsoft.Warehouse.Setup;
-using System.Environment.Configuration;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Planning;
+using Microsoft.Inventory.Requisition;
+using Microsoft.Inventory.Setup;
+using Microsoft.Projects.Resources.Resource;
+using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Request;
-using Microsoft.Inventory.Setup;
-using Microsoft.Warehouse.Activity;
-using Microsoft.Inventory.Requisition;
-using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Inventory.Planning;
+using Microsoft.Warehouse.Setup;
+using Microsoft.Warehouse.Structure;
+using System.Environment.Configuration;
 
 codeunit 137913 "SCM Whse.-Asm. To Stock"
 {

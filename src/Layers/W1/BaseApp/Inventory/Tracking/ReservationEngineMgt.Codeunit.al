@@ -120,6 +120,7 @@ codeunit 99000831 "Reservation Engine Mgt."
 
         if ReservEntry."Reservation Status" <> ReservEntry."Reservation Status"::Surplus then begin
             GetItem(ReservEntry."Item No.");
+            OnCloseReservEntryOnAfterGetItem(ReservEntry, Item);
             ReservEntry2.Get(ReservEntry."Entry No.", not ReservEntry.Positive);
             OnCloseReservEntryOnAfterReservEntry2Get(ReservEntry2, ReservEntry);
             OriginalReservEntry2 := ReservEntry2;
@@ -1248,6 +1249,11 @@ codeunit 99000831 "Reservation Engine Mgt."
 
     [IntegrationEvent(false, false)]
     local procedure OnCloseReservEntryOnAfterReservEntry2Get(var ReservEntry2: Record "Reservation Entry"; var ReservEntry: Record "Reservation Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCloseReservEntryOnAfterGetItem(var ReservationEntry: Record "Reservation Entry"; var Item: Record Item)
     begin
     end;
 

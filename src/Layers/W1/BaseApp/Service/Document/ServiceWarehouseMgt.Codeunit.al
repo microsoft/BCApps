@@ -4,19 +4,19 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Document;
 
+using Microsoft.Finance.ReceivablesPayables;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Inventory.Tracking;
+using Microsoft.Service.History;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.CrossDock;
 using Microsoft.Warehouse.Document;
-using Microsoft.Service.History;
+using Microsoft.Warehouse.History;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Structure;
 using Microsoft.Warehouse.Worksheet;
 using System.Security.User;
-using Microsoft.Finance.ReceivablesPayables;
-using Microsoft.Foundation.AuditCodes;
-using Microsoft.Warehouse.History;
 
 codeunit 5995 "Service Warehouse Mgt."
 {
@@ -369,12 +369,6 @@ codeunit 5995 "Service Warehouse Mgt."
         QtyPickedBase: Decimal;
         IsHandled: Boolean;
     begin
-#if not CLEAN25
-        IsHandled := false;
-        sender.RunOnBeforeCalcCrossDockToServiceOrder(WhseCrossDockOpportunity, ItemNo, VariantCode, LocationCode, CrossDockDate, QtyOnPick, QtyPicked, LineNo, IsHandled);
-        if IsHandled then
-            exit;
-#endif
         IsHandled := false;
         OnBeforeCalcCrossDockToServiceOrder(WhseCrossDockOpportunity, ItemNo, VariantCode, LocationCode, CrossDockDate, QtyOnPick, QtyPicked, LineNo, IsHandled);
         if IsHandled then
@@ -387,9 +381,6 @@ codeunit 5995 "Service Warehouse Mgt."
         ServiceLine.SetRange("Location Code", LocationCode);
         ServiceLine.SetRange("Needed by Date", 0D, CrossDockDate);
         ServiceLine.SetFilter("Outstanding Qty. (Base)", '>0');
-#if not CLEAN25
-        sender.RunOnCalcCrossDockToServiceOrderOnAfterServiceLineSetFilters(ServiceLine, WhseCrossDockOpportunity, QtyOnPick, QtyPicked, ItemNo, VariantCode, LocationCode, CrossDockDate, LineNo);
-#endif
         OnCalcCrossDockToServiceOrderOnAfterServiceLineSetFilters(ServiceLine, WhseCrossDockOpportunity, QtyOnPick, QtyPicked, ItemNo, VariantCode, LocationCode, CrossDockDate, LineNo);
         if ServiceLine.Find('-') then
             repeat
@@ -401,9 +392,6 @@ codeunit 5995 "Service Warehouse Mgt."
                         Database::"Service Line", ServiceLine."Document Type".AsInteger(), ServiceLine."Document No.", ServiceLine."Line No.",
                         QtyOnPick, QtyOnPickBase, QtyPicked, QtyPickedBase, ServiceLine.Quantity, ServiceLine."Quantity (Base)",
                         ServiceLine."Outstanding Quantity", ServiceLine."Outstanding Qty. (Base)");
-#if not CLEAN25
-                    sender.RunOnCalcCrossDockToServiceOrderOnBeforeInsertCrossDockLine(ServiceLine, WhseCrossDockOpportunity, QtyOnPick, QtyPicked, ItemNo, VariantCode, LocationCode, CrossDockDate, LineNo);
-#endif
                     OnCalcCrossDockToServiceOrderOnBeforeInsertCrossDockLine(ServiceLine, WhseCrossDockOpportunity, QtyOnPick, QtyPicked, ItemNo, VariantCode, LocationCode, CrossDockDate, LineNo);
                     sender.InsertCrossDockOpp(
                         WhseCrossDockOpportunity,
@@ -412,9 +400,6 @@ codeunit 5995 "Service Warehouse Mgt."
                         QtyOnPick, QtyOnPickBase, QtyPicked, QtyPickedBase,
                         ServiceLine."Unit of Measure Code", ServiceLine."Qty. per Unit of Measure", ServiceLine."Needed by Date",
                         ServiceLine."No.", ServiceLine."Variant Code", LineNo);
-#if not CLEAN25
-                    sender.RunOnCalcCrossDockToServiceOrderOnAfterInsertCrossDockLine(ServiceLine, WhseCrossDockOpportunity, QtyOnPick, QtyPicked, ItemNo, VariantCode, LocationCode, CrossDockDate, LineNo);
-#endif
                     OnCalcCrossDockToServiceOrderOnAfterInsertCrossDockLine(ServiceLine, WhseCrossDockOpportunity, QtyOnPick, QtyPicked, ItemNo, VariantCode, LocationCode, CrossDockDate, LineNo);
                 end;
             until ServiceLine.Next() = 0;

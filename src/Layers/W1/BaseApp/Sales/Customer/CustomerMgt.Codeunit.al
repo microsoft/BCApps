@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Customer;
 
+using Microsoft.CRM.Interaction;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Foundation.Period;
-using Microsoft.CRM.Interaction;
 using Microsoft.Inventory.Costing;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;

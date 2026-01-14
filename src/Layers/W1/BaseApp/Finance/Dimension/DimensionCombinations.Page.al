@@ -7,6 +7,15 @@ namespace Microsoft.Finance.Dimension;
 using Microsoft.Finance.Analysis;
 using Microsoft.Foundation.Enums;
 
+/// <summary>
+/// Matrix page for managing dimension combination restrictions across all dimension pairs.
+/// Provides visual matrix interface for setting Limited or Blocked restrictions on dimension combinations.
+/// </summary>
+/// <remarks>
+/// Displays dimensions in both row and column headers with combination restrictions at intersections.
+/// Supports drill-down to specific dimension value combinations for detailed restriction setup.
+/// Essential tool for dimension validation configuration and business rule enforcement.
+/// </remarks>
 page 538 "Dimension Combinations"
 {
     ApplicationArea = Dimensions;
@@ -192,6 +201,11 @@ page 538 "Dimension Combinations"
         CurrPage.Update(false);
     end;
 
+    /// <summary>
+    /// Sets the selected dimension combination record for page initialization and context.
+    /// Used to position the page matrix on a specific dimension combination for focused editing.
+    /// </summary>
+    /// <param name="DimensionCombination">Dimension combination record to select and display</param>
     procedure SetSelectedRecord(DimensionCombination: Record "Dimension Combination")
     begin
         SelectedDimensionCombination := DimensionCombination;

@@ -694,10 +694,10 @@ page 99000827 "Recurring Output Journal"
         ReportPrint: Codeunit "Test Report-Print";
         ProdOrderDescription: Text[50];
         OperationName: Text[50];
-        CurrentJnlBatchName: Code[10];
 
     protected var
         ShortcutDimCode: array[8] of Code[20];
+        CurrentJnlBatchName: Code[10];
         DimVisible1: Boolean;
         DimVisible2: Boolean;
         DimVisible3: Boolean;

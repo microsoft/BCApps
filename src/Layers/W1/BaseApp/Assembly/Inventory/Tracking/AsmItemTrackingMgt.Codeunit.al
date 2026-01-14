@@ -5,12 +5,12 @@
 namespace Microsoft.Inventory.Tracking;
 
 using Microsoft.Assembly.Document;
-using Microsoft.Inventory.Ledger;
-using Microsoft.Sales.Document;
-using Microsoft.Warehouse.Activity;
 using Microsoft.Assembly.History;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using Microsoft.Warehouse.Activity;
 
 codeunit 935 "Asm. Item Tracking Mgt."
 {

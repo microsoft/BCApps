@@ -9,6 +9,14 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.BatchProcessing;
 using System.Threading;
 
+/// <summary>
+/// Manages background posting of general journal lines through the job queue system.
+/// Handles asynchronous posting operations with status tracking, error handling, and optional document printing.
+/// </summary>
+/// <remarks>
+/// Supports both immediate job queue scheduling and UI-driven background posting.
+/// Integrates with job queue status management, recurring journal processing, and print functionality.
+/// </remarks>
 codeunit 250 "Gen. Jnl.-Post via Job Queue"
 {
     TableNo = "Job Queue Entry";
@@ -73,11 +81,22 @@ codeunit 250 "Gen. Jnl.-Post via Job Queue"
         end;
     end;
 
+    /// <summary>
+    /// Schedules general journal lines for background posting via job queue with default UI confirmation.
+    /// Creates job queue entries for asynchronous processing with user notifications enabled.
+    /// </summary>
+    /// <param name="GenJrnlLine">Journal line record to be posted in background</param>
     procedure EnqueueGenJrnlLine(var GenJrnlLine: Record "Gen. Journal Line")
     begin
         EnqueueGenJrnlLineWithUI(GenJrnlLine, true);
     end;
 
+    /// <summary>
+    /// Schedules general journal lines for background posting via job queue with configurable UI behavior.
+    /// Creates job queue entries for asynchronous processing with optional user confirmation messages.
+    /// </summary>
+    /// <param name="GenJrnlLine">Journal line record to be posted in background</param>
+    /// <param name="WithUI">True to show confirmation messages, false for silent operation</param>
     procedure EnqueueGenJrnlLineWithUI(var GenJrnlLine: Record "Gen. Journal Line"; WithUI: Boolean)
     var
         Handled: Boolean;
@@ -137,6 +156,11 @@ codeunit 250 "Gen. Jnl.-Post via Job Queue"
           CopyStr(StrSubstNo(JobQueueEntry.Description, GenJrnlLine."Journal Template Name", GenJrnlLine."Journal Batch Name", GenJrnlLine."Document No."), 1, MaxStrLen(JobQueueEntry.Description));
     end;
 
+    /// <summary>
+    /// Cancels scheduled background posting job queue entries for general journal lines.
+    /// Removes associated job queue entries and resets job queue status to allow manual posting.
+    /// </summary>
+    /// <param name="GenJrnlLine">Journal line record with scheduled job queue entries to cancel</param>
     procedure CancelQueueEntry(var GenJrnlLine: Record "Gen. Journal Line")
     begin
         if GenJrnlLine."Job Queue Status" <> GenJrnlLine."Job Queue Status"::" " then begin
@@ -183,11 +207,22 @@ codeunit 250 "Gen. Jnl.-Post via Job Queue"
             WorkDate := WorkDate(GenJrnlLine."Posting Date");
     end;
 
+    /// <summary>
+    /// Integration event raised before enqueuing general journal lines for background posting.
+    /// Enables custom validation or preprocessing before job queue entry creation.
+    /// </summary>
+    /// <param name="GenJrnlLine">Journal line record being prepared for background posting</param>
+    /// <param name="Handled">Set to true to skip standard job queue enqueuing process</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeEnqueueGenJrnlLine(var GenJrnlLine: Record "Gen. Journal Line"; var Handled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before releasing general journal lines to job queue processing.
+    /// Enables final validation or modification before lines are scheduled for background posting.
+    /// </summary>
+    /// <param name="GenJrnlLine">Journal line record being released for job queue processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReleaseGenJrnlLine(var GenJrnlLine: Record "Gen. Journal Line")
     begin

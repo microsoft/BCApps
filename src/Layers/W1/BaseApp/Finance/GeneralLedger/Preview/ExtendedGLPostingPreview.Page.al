@@ -7,6 +7,15 @@ namespace Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Foundation.Navigate;
 
+/// <summary>
+/// Extended posting preview page providing comprehensive view of preview results with detailed entry analysis.
+/// Combines document entry overview with detailed subpages for thorough preview examination.
+/// </summary>
+/// <remarks>
+/// Features card-style layout with integrated subpages showing document entries and detailed G/L entries.
+/// Enables comprehensive analysis of posting preview results including hierarchical G/L entry views.
+/// Provides enhanced navigation and drill-down capabilities for complex posting scenarios.
+/// </remarks>
 page 1570 "Extended G/L Posting Preview"
 {
     PageType = Card;
@@ -95,6 +104,12 @@ page 1570 "Extended G/L Posting Preview"
         InconsistencyNotification.Send();
     end;
 
+    /// <summary>
+    /// Initializes the extended posting preview page with document entries and event handler.
+    /// Sets up the page for comprehensive preview display with integrated subforms and analysis.
+    /// </summary>
+    /// <param name="NewTempDocumentEntry">Temporary document entry records from posting preview operations</param>
+    /// <param name="NewPostingPreviewEventHandler">Event handler for accessing detailed preview entries</param>
     procedure Set(var NewTempDocumentEntry: Record "Document Entry" temporary; NewPostingPreviewEventHandler: Codeunit "Posting Preview Event Handler")
     begin
         PostingPreviewEventHandler := NewPostingPreviewEventHandler;

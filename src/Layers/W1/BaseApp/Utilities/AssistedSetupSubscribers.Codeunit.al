@@ -7,7 +7,6 @@ namespace Microsoft.Utilities;
 using Microsoft.AccountantPortal;
 using Microsoft.Bank.Setup;
 using Microsoft.CashFlow.Forecast;
-using Microsoft.System.Threading;
 using Microsoft.CRM.Outlook;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Currency;
@@ -17,7 +16,9 @@ using Microsoft.Foundation.Reporting;
 using Microsoft.Integration.D365Sales;
 using Microsoft.Integration.Dataverse;
 using Microsoft.Projects.Timesheet;
+using Microsoft.System.Threading;
 using System.AI;
+using System.Apps;
 using System.Automation;
 using System.Azure.Identity;
 using System.Email;
@@ -29,7 +30,6 @@ using System.Integration;
 using System.Integration.Excel;
 using System.Media;
 using System.Security.User;
-using System.Apps;
 
 codeunit 1814 "Assisted Setup Subscribers"
 {
@@ -141,11 +141,6 @@ codeunit 1814 "Assisted Setup Subscribers"
         SetupPaymentServicesShortTitleTxt: Label 'Set up payment services', MaxLength = 50;
         SetupPaymentServicesHelpTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2115183', Locked = true;
         SetupPaymentServicesDescriptionTxt: Label 'Connect to a payment service so that your customers can pay you electronically.';
-#if not CLEAN25
-        SetupConsolidationReportingTitleTxt: Label 'Process Consolidations';
-        SetupConsolidationReportingShortTitleTxt: Label 'Consolidate companies', MaxLength = 50;
-        SetupConsolidationReportingDescriptionTxt: Label 'Consolidate the general ledger entries of two or more separate companies (subsidiaries) into a consolidated company.';
-#endif
         AccessAllFeaturesTxt: Label 'Access all features';
         VideoAccessAllFeaturesTxt: Label 'https://go.microsoft.com/fwlink/?linkid=857610', Locked = true;
         AnalyzeDataUsingAccSchedulesTxt: Label 'Analyze data using account schedules';
@@ -168,6 +163,10 @@ codeunit 1814 "Assisted Setup Subscribers"
         UpdateUsersFromOfficeTitleTxt: Label 'Fetch users from Microsoft 365';
         UpdateUsersFromOfficeShortTitleTxt: Label 'Update users', MaxLength = 50;
         UpdateUsersFromOfficeDescriptionTxt: Label 'Get the latest information about users and licenses for Business Central from Microsoft 365.';
+        SetupContactsTitleTxt: Label 'Set up Contact Sync';
+        SetupContactsShortTitleTxt: Label 'Set up Contact Sync', MaxLength = 50;
+        SetupContactsDescriptionTxt: Label 'Synchronize contacts between Business Central and Outlook to keep your contact information up to date in both applications.';
+        SetupContactsHelpTxt: Label 'https://learn.microsoft.com/en-us/dynamics365/business-central/admin-synchronize-outlook-contacts', Locked = true;
         SetupTimeSheetsTitleTxt: Label 'Set Up Time Sheets';
         SetupTimeSheetsShortTitleTxt: Label 'Set up Time Sheets', MaxLength = 50;
         SetupTimeSheetsHelpTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2166666';
@@ -180,6 +179,7 @@ codeunit 1814 "Assisted Setup Subscribers"
         SetupJobQueueNotificationShortTitleTxt: Label 'Set up Job Queue Notifications', MaxLength = 50;
         SetupJobQueueNotificationDescriptionTxt: Label 'Set up Job Queue Notifications to receive notifications when jobs are failed.';
         SetupJobQueueNotificationHelpTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2282396', Locked = true;
+
 
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Guided Experience", 'OnRegisterAssistedSetup', '', false, false)]
@@ -203,6 +203,13 @@ codeunit 1814 "Assisted Setup Subscribers"
 
         GuidedExperience.InsertAssistedSetup(SetupCopilotAICapabilitiesTitleTxt, SetupCopilotAICapabilitiesShortTitleTxt, SetupCopilotAICapabilitiesDescriptionTxt, 5, ObjectType::Page,
             Page::"Copilot AI Capabilities", AssistedSetupGroup::GettingStarted, '', VideoCategory::GettingStarted, SetupCopilotAICapabilitiesHelpTxt);
+
+        GuidedExperience.InsertAssistedSetup(SetupContactsTitleTxt, SetupContactsShortTitleTxt, SetupContactsDescriptionTxt, 15,
+             ObjectType::Page, Page::"Contact Sync", AssistedSetupGroup::Connect, '', VideoCategory::GettingStarted, SetupContactsHelpTxt);
+        GlobalLanguage(Language.GetDefaultApplicationLanguageId());
+        GuidedExperience.AddTranslationForSetupObjectTitle(GuidedExperienceType::"Assisted Setup", ObjectType::Page,
+            Page::"Contact Sync", Language.GetDefaultApplicationLanguageId(), SetupContactsTitleTxt);
+        GlobalLanguage(CurrentGlobalLanguage);
 
         GuidedExperience.InsertAssistedSetup(VATSetupWizardTitleTxt, VATSetupWizardShortTitleTxt, VATSetupWizardDescriptionTxt, 15,
             ObjectType::Page, Page::"VAT Setup Wizard", AssistedSetupGroup::GettingStarted, '', VideoCategory::GettingStarted, VATSetupWizardLinkTxt);
@@ -368,15 +375,6 @@ codeunit 1814 "Assisted Setup Subscribers"
         GlobalLanguage(Language.GetDefaultApplicationLanguageId());
         GuidedExperience.AddTranslationForSetupObjectTitle(GuidedExperienceType::"Assisted Setup", ObjectType::Page,
             Page::"Payment Services", Language.GetDefaultApplicationLanguageId(), SetupPaymentServicesTitleTxt);
-#if not CLEAN25
-        GlobalLanguage(CurrentGlobalLanguage);
-
-        GuidedExperience.InsertAssistedSetup(SetupConsolidationReportingTitleTxt, SetupConsolidationReportingShortTitleTxt, SetupConsolidationReportingDescriptionTxt, 5, ObjectType::Page,
-            Page::"Company Consolidation Wizard", AssistedSetupGroup::FinancialReporting, '', VideoCategory::Uncategorized, '');
-        GlobalLanguage(Language.GetDefaultApplicationLanguageId());
-        GuidedExperience.AddTranslationForSetupObjectTitle(GuidedExperienceType::"Assisted Setup", ObjectType::Page,
-            Page::"Company Consolidation Wizard", Language.GetDefaultApplicationLanguageId(), SetupConsolidationReportingTitleTxt);
-#endif
         GlobalLanguage(CurrentGlobalLanguage);
 
         GuidedExperience.InsertAssistedSetup(SetupJobQueueNotificationTitleTxt, SetupJobQueueNotificationShortTitleTxt, SetupJobQueueNotificationDescriptionTxt, 5, ObjectType::Page,

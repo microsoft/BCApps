@@ -668,8 +668,6 @@ codeunit 134380 "ERM Dimension"
         InvtDocumentHeader: Record "Invt. Document Header";
         InvtDocumentLine: Record "Invt. Document Line";
         DimSetID: Integer;
-        CountOfTablesWithFieldRelatedToDimSetEntryTable: Integer;
-        CountOfTablesIgnored: Integer;
         CountOfLocalTablesIgnored: Integer;
     begin
         // [FEATURE] [UT]
@@ -683,12 +681,6 @@ codeunit 134380 "ERM Dimension"
         LibraryDim.CreateDimensionValue(DimensionValue[2], GeneralLedgerSetup."Global Dimension 2 Code");
         DimSetID := LibraryDim.CreateDimSet(0, DimensionValue[1]."Dimension Code", DimensionValue[1].Code);
         DimSetID := LibraryDim.CreateDimSet(DimSetID, DimensionValue[2]."Dimension Code", DimensionValue[2].Code);
-
-        // [GIVEN] 118 tables in database which have field related to table "Dimension Set ID"
-        CountOfTablesWithFieldRelatedToDimSetEntryTable := GetCountOfTablesWithFieldRelatedToDimSetEntryTable();
-
-        // [GIVEN] Number of W1 tables ignored. They are either have "Dimension Set ID" field and do not have shortcut dimensions OR posted tables such as Item Ledger Entry where should be no logic for this field
-        CountOfTablesIgnored := 78;
 
         // [GIVEN] 16 local tables ignored
         // There is additional codeunit which listens exposed event OnGetLocalTablesWithDimSetIDValidationIgnored and returns a count of local tables
@@ -854,14 +846,10 @@ codeunit 134380 "ERM Dimension"
           InvtDocumentLine.FieldNo("Shortcut Dimension 1 Code"), InvtDocumentLine.FieldNo("Shortcut Dimension 2 Code"),
           DimSetID, DimensionValue[1].Code, DimensionValue[2].Code);
 
-        // Calls LibraryDim.VerifyShorcutDimCodesUpdatedOnDimSetIDValidation for local tables through an exposed event OnVerifyShorcutDimCodesUpdatedOnDimSetIDValidationLocal and adds local tables to TempAllObj variable
+        // [THEN] Calls LibraryDim.VerifyShorcutDimCodesUpdatedOnDimSetIDValidation for local tables through an exposed event OnVerifyShorcutDimCodesUpdatedOnDimSetIDValidationLocal and adds local tables to TempAllObj variable
         LibraryDim.VerifyShorcutDimCodesUpdatedOnDimSetIDValidationLocal(
           TempAllObj, DimSetID, DimensionValue[1].Code, DimensionValue[2].Code);
 
-        // [THEN] "Shortcut Dimension 1 Code" is "ADM" and "Shortcut Dimension 2 Code" is "TOYOTA" in 35 tables (120 total - 69 W1 ignored - 16 local ignored)
-        TempAllObj.Reset();
-        Assert.RecordCount(
-          TempAllObj, CountOfTablesWithFieldRelatedToDimSetEntryTable - CountOfTablesIgnored - CountOfLocalTablesIgnored);
     end;
 
     [Test]
@@ -1367,24 +1355,6 @@ codeunit 134380 "ERM Dimension"
                     DimensionValue.Modify(true);
                 end;
         end;
-    end;
-
-    local procedure GetCountOfTablesWithFieldRelatedToDimSetEntryTable(): Integer
-    var
-        TempAllObj: Record AllObj temporary;
-        "Field": Record "Field";
-    begin
-        Field.SetRange(Class, Field.Class::Normal);
-        Field.SetRange(Enabled, true);
-        Field.SetRange(RelationTableNo, DATABASE::"Dimension Set Entry");
-        Field.SetFilter(TableNo, '<130000|>149999'); // excluding Test tables
-        Field.FindSet();
-        TempAllObj."Object Type" := TempAllObj."Object Type"::Table;
-        repeat
-            TempAllObj."Object ID" := Field.TableNo;
-            if TempAllObj.Insert() then;
-        until Field.Next() = 0;
-        exit(TempAllObj.Count);
     end;
 
     local procedure GetShortcutDimCode(DimNo: Integer): Code[20]

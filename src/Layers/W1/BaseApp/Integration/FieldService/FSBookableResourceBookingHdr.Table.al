@@ -14,13 +14,8 @@ table 6413 "FS BookableResourceBookingHdr"
     Description = 'Reservation entity representing the summary of the associated resource bookings.';
     DataClassification = SystemMetadata;
     ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-#if not CLEAN25
-    ObsoleteState = Pending;
-    ObsoleteTag = '25.0';
-#else
     ObsoleteState = Removed;
     ObsoleteTag = '28.0';
-#endif
 
     fields
     {

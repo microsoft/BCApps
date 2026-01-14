@@ -6,8 +6,8 @@ namespace Microsoft.Inventory.Reports;
 
 using Microsoft.Foundation.Navigate;
 using Microsoft.Inventory.Item;
-using System.Utilities;
 using System.IO;
+using System.Utilities;
 
 report 6529 "Item Tracking Navigate"
 {

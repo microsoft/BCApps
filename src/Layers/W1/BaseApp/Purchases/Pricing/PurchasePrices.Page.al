@@ -6,8 +6,8 @@ namespace Microsoft.Purchases.Pricing;
 
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Vendor;
-using System.Text;
 using System.Globalization;
+using System.Text;
 
 page 7012 "Purchase Prices"
 {

@@ -280,6 +280,8 @@ table 9053 "Sales Cue"
                     SalesHeader.SetFilter("Date Filter", GetFilter("Date Filter"));
                     SalesHeader.SetRange("Late Order Shipping", true);
                 end;
+            else
+                OnFilterOrdersOnCaseElseFieldNumber(SalesHeader, Rec, FieldNumber);
         end;
         FilterGroup(2);
         SalesHeader.SetFilter("Responsibility Center", GetFilter("Responsibility Center Filter"));
@@ -376,6 +378,11 @@ table 9053 "Sales Cue"
 
     [IntegrationEvent(false, false)]
     local procedure OnFilterOrdersOnAfterSalesHeaderSetFilters(var SalesHeader: Record "Sales Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnFilterOrdersOnCaseElseFieldNumber(var SalesHeader: Record "Sales Header"; var SalesCue: Record "Sales Cue"; FieldNumber: Integer)
     begin
     end;
 

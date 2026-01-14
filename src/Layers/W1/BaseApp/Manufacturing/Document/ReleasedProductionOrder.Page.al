@@ -768,6 +768,7 @@ page 99000831 "Released Production Order"
     begin
         if Rec."Variant Code" = '' then
             VariantCodeMandatory := Item.IsVariantMandatory(Rec."Source Type" = Rec."Source Type"::Item, Rec."Source No.");
+        Rec.CalcFields("Completely Picked");
     end;
 
     var

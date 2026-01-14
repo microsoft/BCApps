@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Item;
 
-using Microsoft.Service.Item;
 using Microsoft.Service.Document;
+using Microsoft.Service.Item;
 using Microsoft.Service.Maintenance;
 using Microsoft.Service.Resources;
 

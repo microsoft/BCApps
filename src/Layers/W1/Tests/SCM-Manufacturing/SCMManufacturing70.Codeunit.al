@@ -4,39 +4,39 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Test;
 
-using Microsoft.Manufacturing.Setup;
-using Microsoft.Inventory.Location;
-using Microsoft.Inventory.Journal;
-using System.TestLibraries.Utilities;
-using Microsoft.Foundation.NoSeries;
-using Microsoft.Manufacturing.Routing;
-using Microsoft.Inventory.Requisition;
-using Microsoft.Manufacturing.ProductionBOM;
-using Microsoft.Inventory.Item;
-using Microsoft.Manufacturing.Capacity;
-using Microsoft.Manufacturing.Document;
-using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Finance.Dimension;
-using Microsoft.Inventory.Planning;
-using Microsoft.Sales.Document;
-using Microsoft.Purchases.Document;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Sales.Setup;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.Enums;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
-using Microsoft.Manufacturing.Family;
 using Microsoft.Inventory.Availability;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Planning;
+using Microsoft.Inventory.Posting;
+using Microsoft.Inventory.Requisition;
+using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
-using Microsoft.Inventory.Ledger;
-using Microsoft.Inventory.Item.Catalog;
-using Microsoft.Purchases.Setup;
-using Microsoft.Manufacturing.MachineCenter;
-using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Family;
 using Microsoft.Manufacturing.Journal;
+using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
+using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Setup;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.Setup;
+using System.TestLibraries.Utilities;
 using System.Utilities;
-using Microsoft.Foundation.Enums;
-using Microsoft.Inventory.Setup;
-using Microsoft.Inventory.Posting;
 
 codeunit 137063 "SCM Manufacturing 7.0"
 {
@@ -3649,6 +3649,58 @@ codeunit 137063 "SCM Manufacturing 7.0"
         ProductionOrder[3].SetRange("No.", ProductionOrder[1]."No.");
         ProductionOrder[3].FindFirst();
         Assert.RecordIsNotEmpty(ProductionOrder[1]);
+    end;
+
+    [Test]
+    [HandlerFunctions('ReleasedProdOrderMessageHandler')]
+    [Scope('OnPrem')]
+    procedure CapableToPromiseWithReservedProductionOrder()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        SalesHeader: Record "Sales Header";
+        SalesHeader2: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesLine2: Record "Sales Line";
+        ProductionOrder: Record "Production Order";
+        TempOrderPromisingLine: Record "Order Promising Line" temporary;
+        RequisitionLine: Record "Requisition Line";
+        Qty: Decimal;
+    begin
+        // [SCENARIO 616920] Capable-to-Promise should suggest full quantity in planning worksheet 
+        Initialize();
+        CreateItem(Item, Item."Replenishment System"::"Prod. Order", Item."Reordering Policy"::" ", false, 0, 0, 0, '');
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+
+        // [GIVEN] First Sales Order
+        Qty := LibraryRandom.RandIntInRange(1, 9);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", Qty);
+        SalesLine.Validate("Location Code", Location.Code);
+        SalesLine.Modify(true);
+
+        // [GIVEN] Released Production Order created from first Sales Order
+        LibraryManufacturing.CreateProductionOrderFromSalesOrder(
+            SalesHeader, ProductionOrder.Status::Released, "Create Production Order Type"::ProjectOrder);
+        FindProductionOrder(ProductionOrder, SalesHeader."No.", ProductionOrder."Source Type"::"Sales Header");
+
+        // [GIVEN] First Sales Order line is reserved against the Production Order
+        SalesLine.Find();
+        LibrarySales.AutoReserveSalesLine(SalesLine);
+
+        // [GIVEN] Second Sales Order 
+        Qty := LibraryRandom.RandIntInRange(10, 100);
+        LibrarySales.CreateSalesHeader(SalesHeader2, SalesHeader2."Document Type"::Order, '');
+        LibrarySales.CreateSalesLine(SalesLine2, SalesHeader2, SalesLine2.Type::Item, Item."No.", Qty);
+        SalesLine2.Validate("Location Code", Location.Code);
+        SalesLine2.Modify(true);
+
+        // [WHEN] Calculate Capable to Promise for second Sales Order
+        CalcCapableToPromise(TempOrderPromisingLine, SalesHeader2);
+
+        // [THEN] Planning Worksheet should suggest Qty of second Sales order
+        // The reserved qty units on the production order should not be considered available
+        VerifyQuantityOnRequisitionLine(Item."No.", RequisitionLine."Replenishment System"::"Prod. Order", Qty);
     end;
 
     local procedure Initialize()

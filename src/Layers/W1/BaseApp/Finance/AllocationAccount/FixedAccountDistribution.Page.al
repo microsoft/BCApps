@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.AllocationAccount;
 
+/// <summary>
+/// Configuration interface for fixed allocation distribution rules with predefined shares and percentages.
+/// Provides direct entry of destination accounts and allocation shares for fixed allocation methods.
+/// </summary>
 page 2672 "Fixed Account Distribution"
 {
     PageType = ListPart;

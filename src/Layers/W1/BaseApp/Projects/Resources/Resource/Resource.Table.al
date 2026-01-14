@@ -43,6 +43,7 @@ table 156 Resource
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            OptimizeForTextSearch = true;
 
             trigger OnValidate()
             var
@@ -67,6 +68,7 @@ table 156 Resource
         field(3; Name; Text[100])
         {
             Caption = 'Name';
+            OptimizeForTextSearch = true;
 
             trigger OnValidate()
             begin
@@ -77,22 +79,27 @@ table 156 Resource
         field(4; "Search Name"; Code[100])
         {
             Caption = 'Search Name';
+            OptimizeForTextSearch = true;
         }
         field(5; "Name 2"; Text[50])
         {
             Caption = 'Name 2';
+            OptimizeForTextSearch = true;
         }
         field(6; Address; Text[100])
         {
             Caption = 'Address';
+            OptimizeForTextSearch = true;
         }
         field(7; "Address 2"; Text[50])
         {
             Caption = 'Address 2';
+            OptimizeForTextSearch = true;
         }
         field(8; City; Text[30])
         {
             Caption = 'City';
+            OptimizeForTextSearch = true;
             TableRelation = if ("Country/Region Code" = const('')) "Post Code".City
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Country/Region Code"));
@@ -116,6 +123,7 @@ table 156 Resource
         field(9; "Social Security No."; Text[30])
         {
             Caption = 'Social Security No.';
+            OptimizeForTextSearch = true;
         }
         field(10; "Job Title"; Text[30])
         {
@@ -264,6 +272,7 @@ table 156 Resource
         }
         field(22; "Profit %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Profit %';
             DecimalPlaces = 0 : 5;
 
@@ -665,7 +674,7 @@ table 156 Resource
 
     fieldgroups
     {
-        fieldgroup(DropDown; "No.", Name, Type, "Base Unit of Measure")
+        fieldgroup(DropDown; "No.", Name, Type, "Base Unit of Measure", Address, City)
         {
         }
         fieldgroup(Brick; "No.", Name, Type, "Base Unit of Measure", Image)

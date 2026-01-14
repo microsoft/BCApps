@@ -186,7 +186,7 @@ table 5996 "Standard Service Code"
                                     StdServLine."Amount Excl. VAT" *
                                     (ServLine."VAT %" / 100 * Factor + 1), Currency."Unit-Amount Rounding Precision"));
                         end;
-                    ServLine."Dimension Set ID" := StdServLine."Dimension Set ID";
+                    ServLine.Validate("Dimension Set ID", StdServLine."Dimension Set ID");
                     if StdServLine.InsertLine() then begin
                         ServLine."Line No." := ServLine.GetLineNo();
                         OnBeforeInsertServLine(ServLine);

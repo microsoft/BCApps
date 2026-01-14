@@ -4,6 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Consolidation;
 
+/// <summary>
+/// Displays detailed information about consolidation process execution for business units.
+/// Shows consolidation status, progress tracking, and business unit processing details.
+/// </summary>
+/// <remarks>
+/// Read-only detail page for monitoring consolidation process execution and business unit status.
+/// Provides comprehensive view of consolidation workflow progress and individual business unit processing results.
+/// </remarks>
 page 252 "Cons. Process Details"
 {
     PageType = ListPlus;

@@ -5,10 +5,10 @@
 namespace Microsoft.Sales.Posting;
 
 using Microsoft.Foundation.BatchProcessing;
+using Microsoft.Inventory.Setup;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Setup;
 using System.Threading;
-using Microsoft.Inventory.Setup;
 
 codeunit 88 "Sales Post via Job Queue"
 {

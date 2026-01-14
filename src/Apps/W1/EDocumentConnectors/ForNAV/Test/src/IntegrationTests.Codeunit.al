@@ -5,12 +5,12 @@
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.Sales.Customer;
-using Microsoft.Purchases.Document;
-using Microsoft.Foundation.Company;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Sales.History;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.Company;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.History;
 
 codeunit 148221 "Integration Tests"
 {

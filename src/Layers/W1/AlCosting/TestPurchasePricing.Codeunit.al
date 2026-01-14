@@ -35,9 +35,6 @@ codeunit 103528 "Test - Purchase Pricing"
         CurrTest: Text[30];
         ReleasePurchDoc: Codeunit "Release Purchase Document";
         PurchGetReceipt: Codeunit "Purch.-Get Receipt";
-#if not CLEAN25        
-        CopyFromToPriceListLine: Codeunit CopyFromToPriceListLine;
-#endif
         ReqLine: Record "Requisition Line";
         ShowScriptResult: Boolean;
 
@@ -202,13 +199,8 @@ codeunit 103528 "Test - Purchase Pricing"
     var
         item: Record Item;
         SKU: Record "Stockkeeping Unit";
-#if not CLEAN25
-        PurchPrice: Record "Purchase Price";
-        FromPurchPrice: Record "Purchase Price";
-#else
         PriceListLine: Record "Price List Line";
         FromPriceListLine: Record "Price List Line";
-#endif
         PurchHeader: array[5] of Record "Purchase Header";
         PurchLine: Record "Purchase Line";
         PurchInvHeader: Record "Purch. Inv. Header";
@@ -244,15 +236,6 @@ codeunit 103528 "Test - Purchase Pricing"
         SKU.Get('BLUE', 'B', '');
         SKU.Validate("Standard Cost", 33);
         SKU.Modify(true);
-#if not CLEAN25
-        FromPurchPrice.SetRange("Vendor No.", '20000');
-        FromPurchPrice.Find('-');
-        repeat
-            PPUtil.InsertPurchPrice(
-              '30000', FromPurchPrice."Item No.", FromPurchPrice."Starting Date", FromPurchPrice."Ending Date",
-              FromPurchPrice."Minimum Quantity", FromPurchPrice."Currency Code", FromPurchPrice."Unit of Measure Code", FromPurchPrice."Variant Code", FromPurchPrice."Direct Unit Cost");
-        until FromPurchPrice.Next() = 0;
-#else
         FromPriceListLine.SetRange("Source Type", "Price Source Type"::Vendor);
         FromPriceListLine.SetRange("Source No.", '20000');
         FromPriceListLine.Find('-');
@@ -261,7 +244,6 @@ codeunit 103528 "Test - Purchase Pricing"
               '30000', FromPriceListLine."Asset No.", FromPriceListLine."Starting Date", FromPriceListLine."Ending Date",
               FromPriceListLine."Minimum Quantity", FromPriceListLine."Currency Code", FromPriceListLine."Unit of Measure Code", FromPriceListLine."Variant Code", FromPriceListLine."Direct Unit Cost");
         until FromPriceListLine.Next() = 0;
-#endif
 
         for i := 1 to 5 do
             InsertPurchHeader(PurchHeader[i], PurchLine, "Purchase Document Type".FromInteger(i), '30000', '', 20020301D);
@@ -377,25 +359,6 @@ codeunit 103528 "Test - Purchase Pricing"
 
         FromPurchInvNo := GLUtil.GetLastDocNo(PurchaseSetup."Posted Invoice Nos.");
 
-#if not CLEAN25
-        GetPurchPrice(PurchPrice, '30000', 'A', 0D, 5, '', '', '');
-        UpdatePurchPrice(PurchPrice, '30000', 'A', 0D, 0D, 3, '', '', '', 10.25);
-
-        GetPurchPrice(PurchPrice, '30000', 'A', 0D, 10, '', '', '');
-        UpdatePurchPrice(PurchPrice, '30000', 'A', 0D, 0D, 10, '', '', '', 8.25);
-
-        PPUtil.InsertPurchPrice('30000', 'A', 0D, 0D, 20, '', '', '', 7.5);
-
-        GetPurchPrice(PurchPrice, '30000', 'A', 20020401D, 5, '', '', '');
-        UpdatePurchPrice(PurchPrice, '30000', 'A', 20020401D, 0D, 5, '', '', '', 4);
-
-        GetPurchPrice(PurchPrice, '30000', 'D', 0D, 100, '', 'BOX', '');
-        UpdatePurchPrice(PurchPrice, '30000', 'D', 0D, 0D, 100, '', '', '', 12900);
-
-        GetPurchPrice(PurchPrice, '30000', 'D', 20020401D, 5, 'USD', 'BOX', '');
-        PurchPrice.Delete(true);
-        CopyAllPricesToPriceListLines();
-#else
         GetPurchPrice(PriceListLine, '30000', 'A', 0D, 5, '', '', '');
         UpdatePurchPrice(PriceListLine, '30000', 'A', 0D, 0D, 3, '', '', '', 10.25);
 
@@ -414,7 +377,6 @@ codeunit 103528 "Test - Purchase Pricing"
         PPUtil.AllowEditingActivePrice(true);
         PriceListLine.Delete(true);
         PPUtil.AllowEditingActivePrice(false);
-#endif
 
         WorkDate := 20020402D;
 
@@ -493,11 +455,7 @@ codeunit 103528 "Test - Purchase Pricing"
         DirectUnitCost: array[2] of Decimal;
         PurchHeader: Record "Purchase Header";
         PurchLine: Record "Purchase Line";
-#if not CLEAN25
-        PurchPrice: Record "Purchase Price";
-#else
         PriceListLine: Record "Price List Line";
-#endif
         FromPurchInvNo: Code[20];
         PurchInvHeader: Record "Purch. Inv. Header";
         PurchInvLine: Record "Purch. Inv. Line";
@@ -510,16 +468,6 @@ codeunit 103528 "Test - Purchase Pricing"
         InsertPurchHeader(PurchHeader, PurchLine, PurchHeader."Document Type"::Order, '20000', '', 20020301D);
         InsertAndTestPurchLine(PurchHeader, PurchLine, PurchLine.Type::Item, 'A', 5, '', '', '', DirectUnitCost[1]);
         InsertAndTestPurchLine(PurchHeader, PurchLine, PurchLine.Type::Item, 'D', 100, 'BOX', '', '', DirectUnitCost[2]);
-#if not CLEAN25
-        PurchPrice.Get('A', '20000', 0D, '', '', '', 5);
-        PurchPrice.Validate("Direct Unit Cost", 10.5);
-        PurchPrice.Modify(true);
-
-        PurchPrice.Get('D', '20000', 0D, '', '', 'BOX', 100);
-        PurchPrice.Validate("Direct Unit Cost", 12900.5);
-        PurchPrice.Modify(true);
-        CopyAllPricesToPriceListLines();
-#else
         PPUtil.AllowEditingActivePrice(true);
         GetPurchPrice(PriceListLine, '20000', 'A', 0D, 5, '', '', '');
         PriceListLine.Validate("Direct Unit Cost", 10.5);
@@ -529,7 +477,6 @@ codeunit 103528 "Test - Purchase Pricing"
         PriceListLine.Validate("Direct Unit Cost", 12900.5);
         PriceListLine.Modify(true);
         PPUtil.AllowEditingActivePrice(false);
-#endif
 
         PurchLine.SetRange(PurchLine."Document Type", PurchHeader."Document Type");
         PurchLine.SetRange("Document No.", PurchHeader."No.");
@@ -560,16 +507,6 @@ codeunit 103528 "Test - Purchase Pricing"
                   PurchInvLine."Direct Unit Cost", DirectUnitCost[PurchInvLine."Line No." / 10000]);
             until PurchInvLine.Next() = 0;
         until PurchInvHeader.Next() = 0;
-#if not CLEAN25
-        PurchPrice.Get('A', '20000', 0D, '', '', '', 5);
-        PurchPrice.Validate("Direct Unit Cost", 10);
-        PurchPrice.Modify(true);
-
-        PurchPrice.Get('D', '20000', 0D, '', '', 'BOX', 100);
-        PurchPrice.Validate("Direct Unit Cost", 12900);
-        PurchPrice.Modify(true);
-        CopyAllPricesToPriceListLines();
-#else
         GetPurchPrice(PriceListLine, '20000', 'A', 0D, 5, '', '', '');
         PriceListLine.Validate("Direct Unit Cost", 10);
         PriceListLine.Status := PriceListLine.Status::Active;
@@ -579,7 +516,6 @@ codeunit 103528 "Test - Purchase Pricing"
         PriceListLine.Validate("Direct Unit Cost", 12900);
         PriceListLine.Status := PriceListLine.Status::Active;
         PriceListLine.Modify(true);
-#endif
     end;
 
     [Scope('OnPrem')]
@@ -589,11 +525,7 @@ codeunit 103528 "Test - Purchase Pricing"
         PurchInvLine: Record "Purch. Inv. Line";
         PurchHeader: Record "Purchase Header";
         PurchLine: Record "Purchase Line";
-#if not CLEAN25
-        PurchPrice: Record "Purchase Price";
-#else
         PriceListLine: Record "Price List Line";
-#endif
         DirectUnitCost: array[5] of Decimal;
         i: Integer;
         PurchRcptLine: Record "Purch. Rcpt. Line";
@@ -622,16 +554,6 @@ codeunit 103528 "Test - Purchase Pricing"
         PurchLine.Get(PurchHeader."Document Type", PurchHeader."No.", 30000);
         PurchLine.Validate("Direct Unit Cost", DirectUnitCost[3]);
         PurchLine.Modify(true);
-#if not CLEAN25
-        PurchPrice.Get('A', '20000', 20020401D, '', '', '', 0);
-        PurchPrice.Validate("Direct Unit Cost", 6.5);
-        PurchPrice.Modify(true);
-
-        PurchPrice.Get('D', '20000', 20020401D, '', '', 'BOX', 0);
-        PurchPrice.Validate("Direct Unit Cost", 12900.5);
-        PurchPrice.Modify(true);
-        CopyAllPricesToPriceListLines();
-#else
         PPUtil.AllowEditingActivePrice(true);
         GetPurchPrice(PriceListLine, '20000', 'A', 20020401D, 0, '', '', '');
         PriceListLine.Validate("Direct Unit Cost", 6.5);
@@ -643,7 +565,6 @@ codeunit 103528 "Test - Purchase Pricing"
         PriceListLine.Status := PriceListLine.Status::Active;
         PriceListLine.Modify(true);
         PPUtil.AllowEditingActivePrice(false);
-#endif
 
         PurchHeader.Find();
         PurchRcptLine.SetRange("Document No.", PurchHeader."Last Receiving No.");
@@ -662,16 +583,6 @@ codeunit 103528 "Test - Purchase Pricing"
               PurchInvLine."Direct Unit Cost", DirectUnitCost[i]);
             i += 1;
         until PurchInvLine.Next() = 0;
-#if not CLEAN25
-        PurchPrice.Get('A', '20000', 20020401D, '', '', '', 0);
-        PurchPrice.Validate("Direct Unit Cost", 6);
-        PurchPrice.Modify(true);
-
-        PurchPrice.Get('D', '20000', 0D, '', '', 'BOX', 100);
-        PurchPrice.Validate("Direct Unit Cost", 12900);
-        PurchPrice.Modify(true);
-        CopyAllPricesToPriceListLines();
-#else
         PPUtil.AllowEditingActivePrice(true);
         GetPurchPrice(PriceListLine, '20000', 'A', 20020401D, 0, '', '', '');
         PriceListLine.Validate("Direct Unit Cost", 6);
@@ -683,7 +594,6 @@ codeunit 103528 "Test - Purchase Pricing"
         PriceListLine.Status := PriceListLine.Status::Active;
         PriceListLine.Modify(true);
         PPUtil.AllowEditingActivePrice(false);
-#endif
     end;
 
     [Scope('OnPrem')]
@@ -691,33 +601,11 @@ codeunit 103528 "Test - Purchase Pricing"
     var
         PurchHeader: Record "Purchase Header";
         PurchLine: Record "Purchase Line";
-#if not CLEAN25
-        PurchPrice: Record "Purchase Price";
-#else
         PriceListLine: Record "Price List Line";
-#endif
         Item: Record Item;
         SKU: Record "Stockkeeping Unit";
     begin
         CurrTest := 'P.8';
-#if not CLEAN25
-        if PurchPrice.Get('D', '20000', 0D, '', 'VAR', '', 1) then
-            PurchPrice.Delete(true);
-        PPUtil.InsertPurchPrice('20000', 'D', 0D, 0D, 1, '', '', 'VAR', 4000);
-
-        if PurchPrice.Get('D', '20000', 0D, '', 'VAR', 'BOX', 1) then
-            PurchPrice.Delete(true);
-        PPUtil.InsertPurchPrice('20000', 'D', 0D, 0D, 1, '', 'BOX', 'VAR', 11000);
-
-        if PurchPrice.Get('A', '20000', 0D, '', '', '', 5) then
-            PurchPrice.Delete(true);
-        PPUtil.InsertPurchPrice('20000', 'A', 0D, 0D, 5, '', '', '', 10);
-
-        if PurchPrice.Get('D', '20000', 0D, '', '', 'BOX', 100) then
-            PurchPrice.Delete(true);
-        PPUtil.InsertPurchPrice('20000', 'D', 0D, 0D, 100, '', 'BOX', '', 12900);
-        CopyAllPricesToPriceListLines();
-#else
         PPUtil.AllowEditingActivePrice(true);
         if GetPurchPrice(PriceListLine, '20000', 'D', 0D, 1, '', '', 'VAR') then
             PriceListLine.Delete(true);
@@ -735,7 +623,6 @@ codeunit 103528 "Test - Purchase Pricing"
             PriceListLine.Delete(true);
         PPUtil.InsertPurchPrice('20000', 'D', 0D, 0D, 100, '', 'BOX', '', 12900);
         PPUtil.AllowEditingActivePrice(false);
-#endif
 
         Item.Get('A');
         Item.Validate("Last Direct Cost", 5.55);
@@ -998,39 +885,6 @@ codeunit 103528 "Test - Purchase Pricing"
         PriceListLine.Modify(true);
     end;
 
-#if not CLEAN25
-    [Scope('OnPrem')]
-    procedure GetPurchPrice(var PurchPrice: Record "Purchase Price"; VendorNo: Code[20]; ItemNo: Code[20]; StartDate: Date; MinQty: Decimal; CurrencyCode: Code[10]; UOMCode: Code[20]; VarCode: Code[20]): Boolean
-    begin
-        exit(
-          PurchPrice.Get(
-            ItemNo,
-            VendorNo,
-            StartDate,
-            CurrencyCode,
-            VarCode,
-            UOMCode,
-            MinQty));
-    end;
-
-    [Scope('OnPrem')]
-    procedure UpdatePurchPrice(var Purchprice: Record "Purchase Price"; VendorNo: Code[20]; ItemNo: Code[20]; StartDate: Date; EndDate: Date; MinQty: Decimal; CurrencyCode: Code[10]; UOMCode: Code[20]; VarCode: Code[20]; DirectUnitCost: Decimal)
-    begin
-        Purchprice.Rename(
-            ItemNo,
-            VendorNo,
-            StartDate,
-            CurrencyCode,
-            VarCode,
-            UOMCode,
-            MinQty);
-        if EndDate <> Purchprice."Ending Date" then
-            Purchprice.Validate("Ending Date", EndDate);
-        if DirectUnitCost <> Purchprice."Direct Unit Cost" then
-            Purchprice.Validate("Direct Unit Cost", DirectUnitCost);
-        Purchprice.Modify(true)
-    end;
-#endif
 
     local procedure InsertSalesHeader(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; DocType: Enum "Sales Line Type"; CustNo: Code[20]; CurrencyCode: Code[20]; Date: Date)
     begin
@@ -1078,15 +932,4 @@ codeunit 103528 "Test - Purchase Pricing"
         ShowScriptResult := NewShowScriptResult;
     end;
 
-#if not CLEAN25
-    local procedure CopyAllPricesToPriceListLines()
-    var
-        PriceListLine: Record "Price List Line";
-        PurchasePrice: Record "Purchase Price";
-    begin
-        PriceListLine.DeleteAll();
-        CopyFromToPriceListLine.CopyFrom(PurchasePrice, PriceListLine);
-    end;
-#endif
 }
-

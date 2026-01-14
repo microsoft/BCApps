@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Setup;
 
+/// <summary>
+/// List page displaying General Posting Setup combinations of business and product posting groups with their G/L account assignments.
+/// Provides overview and access to posting group configurations that determine automatic G/L account posting for transactions.
+/// </summary>
+/// <remarks>
+/// Shows matrix of posting group combinations with configurable account visibility options.
+/// Essential for reviewing and managing automated posting configurations across sales, purchases, and inventory.
+/// Links to General Posting Setup Card for detailed configuration of each combination.
+/// </remarks>
 page 314 "General Posting Setup"
 {
     ApplicationArea = Basic, Suite;

@@ -1,7 +1,8 @@
+/// <summary>
+/// Provides utility functions for creating and managing various journal types in test scenarios, including general journals, item journals, and resource journals.
+/// </summary>
 codeunit 131306 "Library - Journals"
 {
-    // Library containing functions related to various Journals.
-
 
     trigger OnRun()
     begin

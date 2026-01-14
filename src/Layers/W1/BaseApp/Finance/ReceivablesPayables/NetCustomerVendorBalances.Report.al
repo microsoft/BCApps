@@ -7,6 +7,15 @@ namespace Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Purchases.Vendor;
 
+/// <summary>
+/// Generates general journal entries to net customer and vendor balances for the same business partner.
+/// Automatically identifies linked customer-vendor relationships and creates offsetting entries.
+/// </summary>
+/// <remarks>
+/// Processes vendors with linked customers, calculates net amounts, and creates journal entries.
+/// Integrates with General Journal for posting netted balances with configurable parameters.
+/// Supports filtering by vendor number and ordering options for entry application.
+/// </remarks>
 report 199 "Net Customer/Vendor Balances"
 {
     Caption = 'Net Customer/Vendor Balances';
@@ -98,6 +107,11 @@ report 199 "Net Customer/Vendor Balances"
     var
         NetBalancesParameters: Record "Net Balances Parameters";
 
+    /// <summary>
+    /// Sets journal template and batch names from the provided general journal line.
+    /// Used to configure target journal for netted balance entries.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line containing template and batch information</param>
     procedure SetGenJnlLine(GenJournalLine: Record "Gen. Journal Line")
     begin
         NetBalancesParameters.Validate("Journal Template Name", GenJournalLine."Journal Template Name");

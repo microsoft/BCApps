@@ -814,9 +814,6 @@ table 472 "Job Queue Entry"
         TaskGUID: Guid;
         IsHandled: Boolean;
         JobTimeout: Duration;
-#if not CLEAN25
-        ShouldChangeUserID: Boolean;
-#endif
     begin
         CheckRequiredPermissions();
         IsHandled := false;
@@ -826,11 +823,6 @@ table 472 "Job Queue Entry"
         if not IsNullGuid(TaskGUID) then
             exit(TaskGUID);
 
-#if not CLEAN25
-#pragma warning disable AL0432
-        OnScheduleTaskOnAfterCalcShouldChangeUserID(Rec, ShouldChangeUserID);
-#pragma warning restore AL0432
-#endif
         if Rec."Job Timeout" <> 0 then
             JobTimeout := Rec."Job Timeout"
         else
@@ -1649,13 +1641,6 @@ table 472 "Job Queue Entry"
     begin
     end;
 
-#if not CLEAN25
-    [Obsolete('Function ScheduleTask no longer changes user ID.', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnScheduleTaskOnAfterCalcShouldChangeUserID(var JobQueueEntry: Record "Job Queue Entry"; var ShouldChangeUserID: Boolean)
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnSetXmlContentOnBeforeModify(var JobQueueEntry: Record "Job Queue Entry"; var Params: Text)
     begin

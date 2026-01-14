@@ -41,6 +41,10 @@ codeunit 134394 "ERM Purchase Subform"
         MustMatchErr: Label '%1 and %2 must match.';
         InvoiceDiscPct: Label 'Invoice Disc. Pct.';
         ItemTestDescriptionLbl: Label 'Test Description';
+        LineNoRemainsZeroLbl: Label 'Line No. should remain zero as zero is allowed';
+        LineNoPositiveAfterInsertNegativeLbl: Label 'Line No. should be positive after insert with negative';
+        NewLineNoGreaterThanPreviousLbl: Label 'New Line No. should be greater than previous';
+        PositiveLineNoRemainUnchangedLbl: Label 'Positive Line No. should remain unchanged';
 
 #if not CLEAN26
     [Obsolete('The statistics action will be replaced with the PurchaseOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
@@ -6981,6 +6985,67 @@ codeunit 134394 "ERM Purchase Subform"
 
         // [THEN] Quantity should be Zero
         PurchaseReturnOrder.PurchLines.Quantity.AssertEquals(0);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure OrderLineNoRemainsPositiveWhenAutoSplitKeyExhausted()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        PreviousLineNo: Integer;
+    begin
+        // [SCENARIO 612776] When AutoSplitKey exhausts line numbering space causing negative line numbers, new lines get positive line numbers
+        Initialize();
+
+        // [GIVEN] A purchase order with a base line
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+
+        // [GIVEN] Create a base line to establish max line number
+        PurchaseLine.Init();
+        PurchaseLine."Document Type" := PurchaseHeader."Document Type";
+        PurchaseLine."Document No." := PurchaseHeader."No.";
+        PurchaseLine."Line No." := 10000;
+        PurchaseLine.Insert(true);
+        PreviousLineNo := PurchaseLine."Line No.";
+
+        // [WHEN] Inserting a purchase line with negative Line No. (simulating AutoSplitKey exhaustion)
+        PurchaseLine.Init();
+        PurchaseLine."Document Type" := PurchaseHeader."Document Type";
+        PurchaseLine."Document No." := PurchaseHeader."No.";
+        PurchaseLine."Line No." := -10000; // Simulate AutoSplitKey assigning negative
+        PurchaseLine.Insert(true);
+
+        // [THEN] Line No. is reassigned to a positive value greater than previous
+        PurchaseLine.Find();
+        Assert.IsTrue(PurchaseLine."Line No." > 0, LineNoPositiveAfterInsertNegativeLbl);
+        Assert.IsTrue(PurchaseLine."Line No." > PreviousLineNo, NewLineNoGreaterThanPreviousLbl);
+
+        // [WHEN] Inserting a line with Line No. = 0 (zero is allowed, should remain zero)
+        PurchaseLine.Init();
+        PurchaseLine."Document Type" := PurchaseHeader."Document Type";
+        PurchaseLine."Document No." := PurchaseHeader."No.";
+        PurchaseLine."Line No." := 0;
+        PurchaseLine.Insert(true);
+
+        // [THEN] Line No. remains zero (zero is allowed)
+        PurchaseLine.Find();
+        Assert.AreEqual(0, PurchaseLine."Line No.", LineNoRemainsZeroLbl);
+
+        // [WHEN] Inserting a normal line with positive Line No.
+        PurchaseLine.Init();
+        PurchaseLine."Document Type" := PurchaseHeader."Document Type";
+        PurchaseLine."Document No." := PurchaseHeader."No.";
+        PurchaseLine."Line No." := PreviousLineNo + 20000;
+        PurchaseLine.Insert(true);
+
+        // [THEN] Line No. remains unchanged
+        PurchaseLine.Find();
+        Assert.AreEqual(PreviousLineNo + 20000, PurchaseLine."Line No.", PositiveLineNoRemainUnchangedLbl);
     end;
 
     local procedure Initialize()

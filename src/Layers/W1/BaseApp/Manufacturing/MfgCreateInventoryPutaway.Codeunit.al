@@ -4,11 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Warehouse.Activity;
 
-using Microsoft.Warehouse.Request;
-using Microsoft.Manufacturing.Document;
-using Microsoft.Inventory.Tracking;
-using System.Telemetry;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Warehouse.Request;
+using System.Telemetry;
 
 codeunit 99000878 "Mfg. Create Inventory Put-Away"
 {

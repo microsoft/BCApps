@@ -94,6 +94,7 @@ table 1013 "Job Item Price"
         }
         field(8; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Line Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;

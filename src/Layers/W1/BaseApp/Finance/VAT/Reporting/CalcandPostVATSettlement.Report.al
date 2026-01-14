@@ -19,6 +19,10 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Enums;
 using System.Utilities;
 
+/// <summary>
+/// Calculates VAT settlement amounts for a specified period and posts VAT settlement entries to General Ledger.
+/// Processes open VAT entries by posting setup and transfers amounts to designated VAT settlement accounts.
+/// </summary>
 report 20 "Calc. and Post VAT Settlement"
 {
     DefaultLayout = RDLC;
@@ -536,6 +540,9 @@ report 20 "Calc. and Post VAT Settlement"
                     GenJnlLine."Source Currency Amount" := VATAmountAddCurr;
                     GenJnlLine."Source Code" := SourceCodeSetup."VAT Settlement";
                     GenJnlLine."VAT Posting" := GenJnlLine."VAT Posting"::"Manual VAT Entry";
+
+                    OnVATPostingSetupOnPostDataItemOnBeforePostSettlement(GenJnlLine);
+
                     if PostSettlement then
                         PostGenJnlLine(GenJnlLine);
                     OnVATPostingSetupOnAfterOnPostDataItem(GenJnlLine, PostSettlement);
@@ -742,7 +749,6 @@ report 20 "Calc. and Post VAT Settlement"
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         PrintVATEntries: Boolean;
         NextVATEntryNo: Integer;
-        PostingDate: Date;
         VATDate: Date;
         DocNo: Code[20];
         VATType: Enum "General Posting Type";
@@ -792,6 +798,7 @@ report 20 "Calc. and Post VAT Settlement"
         PostSettlement: Boolean;
         EntrdStartDate: Date;
         EnteredEndDate: Date;
+        PostingDate: Date;
 
     /// <summary>
     /// InitializeRequest with "VAT Date" default to "Posting Date"
@@ -817,6 +824,11 @@ report 20 "Calc. and Post VAT Settlement"
         Initialized := true;
     end;
 
+    /// <summary>
+    /// Initializes the report to use amounts in additional reporting currency.
+    /// Sets flag for currency conversion in VAT settlement calculations.
+    /// </summary>
+    /// <param name="NewUseAmtsInAddCurr">True to use additional reporting currency amounts</param>
     procedure InitializeRequest2(NewUseAmtsInAddCurr: Boolean)
     begin
         UseAmtsInAddCurr := NewUseAmtsInAddCurr;
@@ -855,6 +867,11 @@ report 20 "Calc. and Post VAT Settlement"
         GenJnlPostLine.Run(GenJnlLine);
     end;
 
+    /// <summary>
+    /// Sets the initialization status for the VAT settlement report.
+    /// Controls whether the report parameters have been properly configured.
+    /// </summary>
+    /// <param name="NewInitialized">True if report is initialized with parameters</param>
     procedure SetInitialized(NewInitialized: Boolean)
     begin
         Initialized := NewInitialized;
@@ -955,73 +972,179 @@ report 20 "Calc. and Post VAT Settlement"
         exit(NextVATEntryNo);
     end;
 
+    /// <summary>
+    /// Integration event raised after VAT settlement report preparation is complete.
+    /// Enables custom validation and data preparation before VAT settlement processing.
+    /// </summary>
+    /// <param name="VATEntry">VAT entry record used for filter setup and processing scope</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPreReport(var VATEntry: Record "VAT Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after VAT settlement report processing is complete.
+    /// Enables custom cleanup operations and finalization logic after settlement posting.
+    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostReport()
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking VAT entries for print output.
+    /// Enables custom filtering and validation of VAT entries included in settlement report.
+    /// </summary>
+    /// <param name="VATEntry">VAT entry record to validate for report inclusion</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckPrintVATEntries(var VATEntry: Record "VAT Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before posting general journal line for reverse charge VAT settlement.
+    /// Enables custom amount calculations and journal line modifications for reverse charge scenarios.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line being prepared for reverse charge VAT posting</param>
+    /// <param name="VATEntry">Source VAT entry for reverse charge calculation</param>
+    /// <param name="VATAmount">VAT amount in local currency</param>
+    /// <param name="VATAmountAddCurr">VAT amount in additional reporting currency</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostGenJnlLineReverseChargeVAT(var GenJnlLine: Record "Gen. Journal Line"; var VATEntry: Record "VAT Entry"; var VATAmount: Decimal; var VATAmountAddCurr: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before VAT settlement report execution begins.
+    /// Enables custom setup validation and parameter modification before settlement processing starts.
+    /// </summary>
+    /// <param name="VATPostingSetup">VAT posting setup record defining settlement processing rules</param>
+    /// <param name="PostSettlement">Whether settlement entries will be posted to General Ledger</param>
+    /// <param name="GLAccountSettle">G/L account designated for VAT settlement entries</param>
+    /// <param name="DocNo">Document number for settlement journal entries</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePreReport(var VATPostingSetup: Record "VAT Posting Setup"; PostSettlement: Boolean; GLAccountSettle: Record "G/L Account"; var DocNo: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before closing VAT entries during settlement posting.
+    /// Enables custom validation and modification of VAT entries before they are marked as closed.
+    /// </summary>
+    /// <param name="VATEntry">VAT entry being processed for closure</param>
+    /// <param name="NextVATEntryNo">Next available VAT entry number for new entries</param>
+    /// <param name="IsHandled">Set to true to skip standard VAT entry closure processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCloseVATEntriesOnPostSettlement(var VATEntry: Record "VAT Entry"; NextVATEntryNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after incrementing general posting type during VAT settlement processing.
+    /// Enables custom logic for posting type progression and settlement sequence control.
+    /// </summary>
+    /// <param name="OldGenPostingType">Previous general posting type value</param>
+    /// <param name="NewGenPostingType">New general posting type value after increment</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterIncrementGenPostingType(OldGenPostingType: Enum "General Posting Type"; var NewGenPostingType: Enum "General Posting Type")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting VAT entry filters during settlement processing.
+    /// Enables custom filter modifications and VAT entry selection logic for closing operations.
+    /// </summary>
+    /// <param name="VATPostingSetup">VAT posting setup defining processing context</param>
+    /// <param name="VATEntry">Primary VAT entry record with applied filters</param>
+    /// <param name="VATEntry2">Secondary VAT entry record for additional filtering</param>
     [IntegrationEvent(true, false)]
     local procedure OnClosingGLAndVATEntryOnAfterGetRecordOnAfterSetVATEntryFilters(VATPostingSetup: Record "VAT Posting Setup"; var VATEntry: Record "VAT Entry"; var VATEntry2: Record "VAT Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after posting general journal line for reverse charge VAT sales during settlement.
+    /// Enables custom processing and validation after reverse charge VAT entries are posted.
+    /// </summary>
+    /// <param name="VATEntry">VAT entry being processed for closure</param>
+    /// <param name="GenJnlLine">General journal line that was posted</param>
+    /// <param name="GenJnlPostLine">General journal posting codeunit instance</param>
+    /// <param name="VATPostingSetup">VAT posting setup defining processing rules</param>
+    /// <param name="PostSettlement">Whether settlement is being posted to General Ledger</param>
+    /// <param name="ReversingEntry">Whether this is a reversing entry</param>
+    /// <param name="DocNo">Document number for the journal entry</param>
+    /// <param name="PostingDate">Posting date for the journal entry</param>
+    /// <param name="GenJnlLine2">Secondary general journal line for additional processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnCloseVATEntriesOnAfterPostGenJnlLineReverseChargeVATSales(var VATEntry: Record "VAT Entry"; GenJnlLine: Record "Gen. Journal Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; VATPostingSetup: Record "VAT Posting Setup"; PostSettlement: Boolean; var ReversingEntry: Boolean; DocNo: Code[20]; PostingDate: Date; var GenJnlLine2: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting VAT entry filters for normal VAT processing during settlement.
+    /// Enables custom filter adjustments and VAT entry selection logic for normal VAT scenarios.
+    /// </summary>
+    /// <param name="VATPostingSetup">VAT posting setup defining processing context</param>
+    /// <param name="VATType">General posting type being processed</param>
+    /// <param name="VATEntry">VAT entry record with applied filters</param>
+    /// <param name="FindFirstEntry">Whether to find the first entry in the filtered set</param>
     [IntegrationEvent(false, false)]
     local procedure OnClosingGLAndVATEntryOnAfterGetRecordOnNormalVATOnAfterVATEntrySetFilter(VATPostingSetup: Record "VAT Posting Setup"; VATType: enum "General Posting Type"; var VATEntry: Record "VAT Entry"; FindFirstEntry: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting VAT entry filters for sales tax processing during settlement.
+    /// Enables custom filter adjustments and VAT entry selection logic for sales tax scenarios.
+    /// </summary>
+    /// <param name="VATPostingSetup">VAT posting setup defining processing context</param>
+    /// <param name="VATType">General posting type being processed</param>
+    /// <param name="VATEntry">VAT entry record with applied filters</param>
+    /// <param name="FindFirstEntry">Whether to find the first entry in the filtered set</param>
     [IntegrationEvent(false, false)]
     local procedure OnClosingGLAndVATEntryOnAfterGetRecordOnSalesTaxOnAfterVATEntrySetFilter(VATPostingSetup: Record "VAT Posting Setup"; VATType: enum "General Posting Type"; var VATEntry: Record "VAT Entry"; FindFirstEntry: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before running general journal posting line during VAT settlement.
+    /// Enables custom validation and modification of journal lines before posting to General Ledger.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line being prepared for posting</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostGenJnlLineOnBeforeGenJnlPostLineRun(var GenJnlLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after copying amounts from VAT entry to general journal line.
+    /// Enables custom amount calculations and journal line adjustments during settlement processing.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line with copied amounts</param>
+    /// <param name="VATEntry">Source VAT entry providing amount data</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyAmounts(var GenJournalLine: Record "Gen. Journal Line"; var VATEntry: Record "VAT Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after processing VAT posting setup data item during settlement.
+    /// Enables custom finalization logic and data validation after VAT posting setup processing.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line created during processing</param>
+    /// <param name="PostSettlement">Whether settlement entries are being posted to General Ledger</param>
     [IntegrationEvent(false, false)]
     local procedure OnVATPostingSetupOnAfterOnPostDataItem(GenJnlLine: Record "Gen. Journal Line"; PostSettlement: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised before posting settlement entry during VAT posting setup processing.
+    /// Enables custom validation and modification of journal lines before settlement posting.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line being prepared for posting</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnVATPostingSetupOnPostDataItemOnBeforePostSettlement(var GenJnlLine: Record "Gen. Journal Line")
     begin
     end;
 }

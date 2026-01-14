@@ -6,6 +6,15 @@ namespace Microsoft.Finance.Consolidation;
 
 using Microsoft.Finance.Currency;
 
+/// <summary>
+/// Configuration page for setting up business unit currency relationships and exchange rate management.
+/// Manages currency assignments and exchange rate setup for multi-currency consolidation scenarios.
+/// </summary>
+/// <remarks>
+/// Card page for configuring business unit currency settings and exchange rate relationships.
+/// Enables setup of currency codes, exchange rate sources, and currency conversion parameters for consolidation.
+/// Critical for accurate multi-currency consolidation processing and currency conversion management.
+/// </remarks>
 page 150 "Setup Business Unit Currency"
 {
     PageType = Card;

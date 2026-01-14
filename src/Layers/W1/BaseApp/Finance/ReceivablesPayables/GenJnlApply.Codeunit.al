@@ -15,6 +15,16 @@ using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
 using System.Utilities;
 
+/// <summary>
+/// Handles application of general journal lines to customer, vendor, and employee ledger entries.
+/// Provides payment application functionality with automatic settlement calculation and currency handling.
+/// </summary>
+/// <remarks>
+/// Primary application engine for general journal posting with ledger entry application.
+/// Supports multi-currency applications with exchange rate validation and payment tolerance handling.
+/// Integrates with customer, vendor, and employee ledger entry application processes.
+/// Extensible through application events for custom settlement logic and validation.
+/// </remarks>
 codeunit 225 "Gen. Jnl.-Apply"
 {
     TableNo = "Gen. Journal Line";
@@ -259,6 +269,15 @@ codeunit 225 "Gen. Jnl.-Apply"
           Round(EmplLedgEntry."Amount to Apply", Currency."Amount Rounding Precision");
     end;
 
+    /// <summary>
+    /// Validates currency compatibility between application currency and comparison currency for payment applications.
+    /// Checks application between currencies setup and EMU currency configuration.
+    /// </summary>
+    /// <param name="ApplnCurrencyCode">Currency code of the payment being applied</param>
+    /// <param name="CompareCurrencyCode">Currency code to compare against</param>
+    /// <param name="AccType">Account type for determining applicable setup</param>
+    /// <param name="Message">Whether to show error messages for validation failures</param>
+    /// <returns>True if currencies are compatible for application, false otherwise</returns>
     procedure CheckAgainstApplnCurrency(ApplnCurrencyCode: Code[10]; CompareCurrencyCode: Code[10]; AccType: Enum "Gen. Journal Account Type"; Message: Boolean): Boolean
     var
         Currency: Record Currency;
@@ -430,6 +449,12 @@ codeunit 225 "Gen. Jnl.-Apply"
                 exit;
     end;
 
+    /// <summary>
+    /// Sets vendor application ID for API-based vendor ledger entry applications.
+    /// Validates currency compatibility and updates vendor ledger entry for application.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line containing payment information</param>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry to apply payment against</param>
     procedure SetVendApplIdAPI(GenJournalLine: Record "Gen. Journal Line"; VendorLedgerEntry: Record "Vendor Ledger Entry")
     var
         TempApplyingVendorLedgerEntry: Record "Vendor Ledger Entry" temporary;
@@ -477,6 +502,11 @@ codeunit 225 "Gen. Jnl.-Apply"
         VendEntrySetApplID.SetApplId(VendorLedgerEntry, TempApplyingVendorLedgerEntry, GenJournalLine."Applies-to ID");
     end;
 
+    /// <summary>
+    /// Applies vendor ledger entries through API with comprehensive validation and currency checking.
+    /// Processes application IDs and validates currency compatibility for API-based applications.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line with application information</param>
     procedure ApplyVendorLedgerEntryAPI(var GenJournalLine: Record "Gen. Journal Line")
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
@@ -765,216 +795,496 @@ codeunit 225 "Gen. Jnl.-Apply"
         exit(EntrySelected);
     end;
 
+    /// <summary>
+    /// Integration event raised after the application process completes.
+    /// Enables custom post-processing logic after general journal line application.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line that was processed for application</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterRun(var GenJnlLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters on customer ledger entries during application selection.
+    /// Enables custom filtering logic for customer entry selection processes.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Customer ledger entry with applied filters</param>
+    /// <param name="GenJournalLine">General journal line context for application</param>
+    /// <param name="AccNo">Account number for filtering</param>
+    /// <param name="CustomAppliesToId">Custom application ID for filtering</param>
+    /// <param name="IsHandled">Set to true to skip standard processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCustLedgEntrySetFilters(var CustLedgerEntry: Record "Cust. Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line"; AccNo: Code[20]; var CustomAppliesToId: Code[50]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters on vendor ledger entries during application selection.
+    /// Enables custom filtering logic for vendor entry selection processes.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry with applied filters</param>
+    /// <param name="GenJournalLine">General journal line context for application</param>
+    /// <param name="AccNo">Account number for filtering</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterVendLedgEntrySetFilters(var VendorLedgerEntry: Record "Vendor Ledger Entry"; GenJournalLine: Record "Gen. Journal Line"; AccNo: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after applying employee ledger entry with general journal line.
+    /// Enables custom post-processing logic for employee payment applications.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line used for application</param>
+    /// <param name="EmployeeLedgerEntry">Employee ledger entry that was applied</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterApplyEmployeeLedgerEntry(var GenJournalLine: Record "Gen. Journal Line"; EmployeeLedgerEntry: Record "Employee Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after selecting a customer ledger entry for application.
+    /// Enables customization of the customer selection process and additional validation.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being processed</param>
+    /// <param name="AccNo">Customer account number selected</param>
+    /// <param name="Selected">Boolean indicating if selection was successful</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSelectCustLedgEntry(var GenJournalLine: Record "Gen. Journal Line"; var AccNo: Code[20]; var Selected: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after selecting an employee ledger entry for application.
+    /// Enables customization of the employee selection process and additional validation.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being processed</param>
+    /// <param name="AccNo">Employee account number selected</param>
+    /// <param name="Selected">Boolean indicating if selection was successful</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSelectEmplLedgEntry(var GenJournalLine: Record "Gen. Journal Line"; var AccNo: Code[20]; var Selected: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after selecting a vendor ledger entry for application.
+    /// Enables customization of the vendor selection process and additional validation.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being processed</param>
+    /// <param name="AccNo">Vendor account number selected</param>
+    /// <param name="Selected">Boolean indicating if selection was successful</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSelectVendLedgEntry(var GenJournalLine: Record "Gen. Journal Line"; var AccNo: Code[20]; var Selected: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking application currency for customer ledger entries.
+    /// Enables custom currency validation logic for customer applications.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being applied</param>
+    /// <param name="CustLedgerEntry">Customer ledger entry being applied to</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyCustomerLedgerEntryOnBeforeCheckAgainstApplnCurrency(var GenJournalLine: Record "Gen. Journal Line"; CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying a customer ledger entry during application.
+    /// Enables custom field updates and validation before the ledger entry is modified.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line being applied</param>
+    /// <param name="CustLedgerEntry">Customer ledger entry being modified</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyCustomerLedgerEntryOnBeforeModify(var GenJnlLine: Record "Gen. Journal Line"; CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking application currency for vendor ledger entries.
+    /// Enables custom currency validation logic for vendor applications.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being applied</param>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry being applied to</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyVendorLedgerEntryOnBeforeCheckAgainstApplnCurrency(var GenJournalLine: Record "Gen. Journal Line"; VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying a vendor ledger entry during application.
+    /// Enables custom field updates and validation before the ledger entry is modified.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being applied</param>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry being modified</param>
+    /// <param name="VendorLedgerEntryLocal">Local copy of vendor ledger entry for comparison</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyVendorLedgerEntryOnBeforeModify(var GenJournalLine: Record "Gen. Journal Line"; VendorLedgerEntry: Record "Vendor Ledger Entry"; VendorLedgerEntryLocal: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating amount for employee ledger entry applications.
+    /// Enables custom amount calculation logic for employee transactions.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being applied</param>
+    /// <param name="EmployeeLedgerEntry">Employee ledger entry being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyEmployeeLedgerEntryOnBeforeUpdateAmount(var GenJournalLine: Record "Gen. Journal Line"; EmployeeLedgerEntry: Record "Employee Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before starting the general journal application process.
+    /// Enables custom preprocessing logic and allows complete replacement of standard application logic.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line to be processed for application</param>
+    /// <param name="IsHandled">Set to true to skip standard application processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRun(var GenJnlLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking currency compatibility during application.
+    /// Enables custom currency validation logic and currency code modification.
+    /// </summary>
+    /// <param name="ApplnCurrencyCode">Application currency code to validate</param>
+    /// <param name="CompareCurrencyCode">Comparison currency code for validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckAgainstApplnCurrency(var ApplnCurrencyCode: Code[10]; var CompareCurrencyCode: Code[10])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before finding customer ledger entries for application.
+    /// Enables custom application logic and amount calculation for customer entries.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line to apply</param>
+    /// <param name="CustLedgerEntry">Customer ledger entry being evaluated</param>
+    /// <param name="Amount">Amount to apply (by reference)</param>
+    /// <param name="IsHandled">Set to true to skip standard application logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFindCustApply(GenJournalLine: Record "Gen. Journal Line"; CustLedgerEntry: Record "Cust. Ledger Entry"; var Amount: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before finding vendor ledger entries for application.
+    /// Enables custom application logic and amount calculation for vendor entries.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line to apply</param>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry being evaluated</param>
+    /// <param name="Amount">Amount to apply (by reference)</param>
+    /// <param name="IsHandled">Set to true to skip standard application logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFindVendApply(GenJournalLine: Record "Gen. Journal Line"; VendorLedgerEntry: Record "Vendor Ledger Entry"; var Amount: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before selecting customer ledger entries for application.
+    /// Enables custom selection logic and filtering for customer applications.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being processed</param>
+    /// <param name="AccNo">Customer account number (by reference)</param>
+    /// <param name="Selected">Selection result (by reference)</param>
+    /// <param name="IsHandled">Set to true to skip standard selection logic</param>
+    /// <param name="CustomAppliesToId">Custom application ID for filtering</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSelectCustLedgEntry(var GenJournalLine: Record "Gen. Journal Line"; var AccNo: Code[20]; var Selected: Boolean; var IsHandled: Boolean; var CustomAppliesToId: Code[50])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before selecting employee ledger entries for application.
+    /// Enables custom selection logic and filtering for employee applications.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being processed</param>
+    /// <param name="AccNo">Employee account number (by reference)</param>
+    /// <param name="Selected">Selection result (by reference)</param>
+    /// <param name="IsHandled">Set to true to skip standard selection logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSelectEmplLedgEntry(var GenJournalLine: Record "Gen. Journal Line"; var AccNo: Code[20]; var Selected: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before selecting vendor ledger entries for application.
+    /// Enables custom selection logic and filtering for vendor applications.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being processed</param>
+    /// <param name="AccNo">Vendor account number (by reference)</param>
+    /// <param name="Selected">Selection result (by reference)</param>
+    /// <param name="IsHandled">Set to true to skip standard selection logic</param>
+    /// <param name="CustomAppliesToId">Custom application ID for filtering</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSelectVendLedgEntry(var GenJournalLine: Record "Gen. Journal Line"; var AccNo: Code[20]; var Selected: Boolean; var IsHandled: Boolean; var CustomAppliesToId: Code[50])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters for customer ledger entry selection.
+    /// Enables custom filtering and additional selection criteria for customer entries.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Customer ledger entry record with filters applied</param>
+    /// <param name="GenJournalLine">General journal line driving the selection</param>
     [IntegrationEvent(false, false)]
     local procedure OnSelectCustLedgEntryOnAfterSetFilters(var CustLedgerEntry: Record "Cust. Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters for employee ledger entry selection.
+    /// Enables custom filtering and additional selection criteria for employee entries.
+    /// </summary>
+    /// <param name="EmployeeLedgerEntry">Employee ledger entry record with filters applied</param>
+    /// <param name="GenJournalLine">General journal line driving the selection</param>
     [IntegrationEvent(false, false)]
     local procedure OnSelectEmplLedgEntryOnAfterSetFilters(var EmployeeLedgerEntry: Record "Employee Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters for vendor ledger entry selection.
+    /// Enables custom filtering and additional selection criteria for vendor entries.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry record with filters applied</param>
+    /// <param name="GenJournalLine">General journal line driving the selection</param>
     [IntegrationEvent(false, false)]
     local procedure OnSelectVendLedgEntryOnAfterSetFilters(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before confirming currency update for vendor applications.
+    /// Enables custom confirmation logic and currency update handling.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being processed</param>
+    /// <param name="CurrencyCode">Currency code requiring confirmation</param>
+    /// <param name="IsHandled">Set to true to skip standard confirmation dialog</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyVendorLedgerEntryOnBeforeConfirmUpdateCurrency(var GenJournalLine: Record "Gen. Journal Line"; CurrencyCode: Code[10]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before confirming currency update for customer applications.
+    /// Enables custom confirmation logic and currency update handling.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being processed</param>
+    /// <param name="CurrencyCode">Currency code requiring confirmation</param>
+    /// <param name="IsHandled">Set to true to skip standard confirmation dialog</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyCustomerLedgerEntryOnBeforeConfirmUpdateCurrency(var GenJournalLine: Record "Gen. Journal Line"; CurrencyCode: Code[10]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking application currency when customer amount is not zero.
+    /// Enables custom currency validation for non-zero customer application amounts.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being applied</param>
+    /// <param name="CustLedgerEntry">Customer ledger entry with non-zero amount</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyCustomerLedgerEntryOnBeforeCheckAgainstApplnCurrencyCustomerAmountNotZero(GenJournalLine: Record "Gen. Journal Line"; CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking application currency for customer applications.
+    /// Enables custom currency validation logic for customer ledger entries.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being applied</param>
+    /// <param name="CustLedgerEntry">Customer ledger entry being checked</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyCustomerLedgerEntryOnBeforeCheckAgainstApplnCurrencyCustomer(GenJournalLine: Record "Gen. Journal Line"; CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating amount in customer ledger entry application.
+    /// Enables custom processing after amount validation is complete.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line with validated amount</param>
+    /// <param name="CustLedgEntry">Customer ledger entry being applied</param>
     [IntegrationEvent(true, false)]
     local procedure OnApplyCustomerLedgerEntryOnAfterValidateAmount(var GenJnlLine: Record "Gen. Journal Line"; var CustLedgEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking application currency in vendor API operations.
+    /// Enables custom currency validation for vendor applications via API.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being processed</param>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry being applied via API</param>
     [IntegrationEvent(false, false)]
     local procedure OnSetVendApplIdAPIOnBeforeCheckAgainstApplnCurrency(GenJournalLine: Record "Gen. Journal Line"; VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking application currency when vendor API amount is zero.
+    /// Enables custom currency validation for zero-amount vendor applications via API.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being applied</param>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry with zero amount</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyVendorLedgerEntryAPIOnBeforeCheckAgainstApplnCurrencyAmountZero(GenJournalLine: Record "Gen. Journal Line"; VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking application currency when vendor API amount is non-zero.
+    /// Enables custom currency validation for non-zero vendor applications via API.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being applied</param>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry with non-zero amount</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyVendorLedgerEntryAPIOnBeforeCheckAgainstApplnCurrencyAmountNonZero(GenJournalLine: Record "Gen. Journal Line"; VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking application currency for different currencies with non-zero vendor API amounts.
+    /// Enables custom currency validation when vendor API applications involve different currencies.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being applied</param>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry with different currency</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyVendorLedgerEntryAPIOnBeforeCheckAgainstApplnCurrencyDifferentCurrenciesAmountNonZero(GenJournalLine: Record "Gen. Journal Line"; VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting applies-to document number for vendor applications.
+    /// Enables custom processing after vendor application document linking is established.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line with updated applies-to document number</param>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry being applied</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyVendorLedgerEntryOnAfterSetGenJnlLineAppliesToDocNo(var GenJournalLine: Record "Gen. Journal Line"; var VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking application currency when vendor amount is not zero.
+    /// Enables custom currency validation for non-zero vendor application amounts.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being applied</param>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry with non-zero amount</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyVendorLedgerEntryOnBeforeCheckAgainstApplnCurrencyAmountNotZero(GenJournalLine: Record "Gen. Journal Line"; VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking application currency for different currencies with non-zero vendor amounts.
+    /// Enables custom currency validation when vendor applications involve different currencies and non-zero amounts.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being applied</param>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry with different currency and non-zero amount</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyVendorLedgerEntryOnBeforeCheckAgainstApplnCurrencyDifferentCurrenciesAmountNotZero(GenJournalLine: Record "Gen. Journal Line"; VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting applies-to document number for customer applications.
+    /// Enables custom processing after customer application document linking is established.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line with updated applies-to document number</param>
+    /// <param name="CustLedgerEntry">Customer ledger entry being applied</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyCustomerLedgerEntryOnAfterSetCustomerAppliesToDocNo(var GenJournalLine: Record "Gen. Journal Line"; var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting applies-to document number for vendor applications.
+    /// Enables custom processing after vendor application document linking is established.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line with updated applies-to document number</param>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry being applied</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyVendorLedgerEntryOnAfterSetVendorAppliesToDocNo(var GenJournalLine: Record "Gen. Journal Line"; VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating customer ledger entries during application.
+    /// Enables custom update logic and validation before customer ledger entry modification.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Customer ledger entry being updated</param>
+    /// <param name="GenJournalLine">General journal line driving the update</param>
+    /// <param name="IsHandled">Set to true to skip standard update logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateCustLedgEntry(var CustLedgerEntry: Record "Cust. Ledger Entry"; GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating vendor ledger entries during application.
+    /// Enables custom update logic and validation before vendor ledger entry modification.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry being updated</param>
+    /// <param name="GenJournalLine">General journal line driving the update</param>
+    /// <param name="IsHandled">Set to true to skip standard update logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateVendLedgEntry(var VendorLedgerEntry: Record "Vendor Ledger Entry"; GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after updating vendor ledger entries during application.
+    /// Enables custom processing after vendor ledger entry modification is complete.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line that drove the update</param>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry that was updated</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateVendLedgEntry(var GenJournalLine: Record "Gen. Journal Line"; var VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating amount in vendor API applications.
+    /// Enables custom amount validation logic for vendor applications via API.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being validated</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyVendorLedgerEntryAPIOnBeforeValidateAmount(var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating amount in vendor applications.
+    /// Enables custom amount validation logic for standard vendor ledger entry applications.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being validated</param>
+    /// <param name="VendorLedgEntry">Vendor ledger entry being applied</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyVendorLedgerEntryOnBeforeValidateAmount(var GenJournalLine: Record "Gen. Journal Line"; var VendorLedgEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking posting date in vendor API applications.
+    /// Enables custom posting date validation for vendor applications via API.
+    /// </summary>
+    /// <param name="TempApplyingVendorLedgerEntry">Temporary vendor ledger entry being applied</param>
+    /// <param name="GenJournalLine">General journal line driving the application</param>
+    /// <param name="VendorLedgerEntry">Target vendor ledger entry for application</param>
     [IntegrationEvent(false, false)]
     local procedure OnSetVendApplIdAPIOnBeforeCheckPostingDate(var TempApplyingVendorLedgerEntry: Record "Vendor Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line"; var VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after calculating remaining amount in customer ledger entry applied amount calculation.
+    /// Enables custom processing after remaining amount calculation is complete.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Customer ledger entry with calculated remaining amount</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcAppliedAmountOnCustLedgerEntryOnAfterCalcRemainingAmount(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin

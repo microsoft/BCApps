@@ -11,6 +11,14 @@ using Microsoft.Intercompany.Outbox;
 using Microsoft.Intercompany.Partner;
 using System.Telemetry;
 
+/// <summary>
+/// Event subscribers for IC inbox and outbox transaction processing automation.
+/// Handles auto-acceptance of incoming transactions and auto-sending of outgoing transactions.
+/// </summary>
+/// <remarks>
+/// Subscribes to ICInboxOutboxMgt events to automatically process transactions based on partner configuration.
+/// Integrates with telemetry for feature usage tracking and data exchange interfaces for partner communication.
+/// </remarks>
 codeunit 790 "IC Inbox Outbox Subscribers"
 {
     TableNo = "IC Inbox Transaction";

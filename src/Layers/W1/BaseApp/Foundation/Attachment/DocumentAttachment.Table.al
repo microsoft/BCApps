@@ -4,16 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Attachment;
 
+using Microsoft.EServices.EDocument;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Purchases.History;
 using Microsoft.Sales.History;
-using Microsoft.EServices.EDocument;
+using System.Environment;
+using System.Integration;
 using System.IO;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Utilities;
-using System.Environment;
-using System.Integration;
 
 table 1173 "Document Attachment"
 {

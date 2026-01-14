@@ -37,9 +37,6 @@ codeunit 103527 "Test - Sales Line Discounting"
         SRUtil: Codeunit SRUtil;
         GetShipment: Codeunit "Sales-Get Shipment";
         ReleaseSalesDoc: Codeunit "Release Sales Document";
-#if not CLEAN25
-        CopyFromToPriceListLine: Codeunit CopyFromToPriceListLine;
-#endif
         CurrTest: Text[30];
         ShowScriptResult: Boolean;
 
@@ -83,7 +80,6 @@ codeunit 103527 "Test - Sales Line Discounting"
         Cust.Modify(true);
     end;
 
-#if CLEAN25
     local procedure AllowEditingActivePrice(Allow: Boolean)
     var
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
@@ -92,34 +88,14 @@ codeunit 103527 "Test - Sales Line Discounting"
         SalesReceivablesSetup."Allow Editing Active Price" := Allow;
         SalesReceivablesSetup.Modify();
     end;
-#endif
 
     [Scope('OnPrem')]
     procedure Test1()
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-#if not CLEAN25
-        SalesLineDisc: Record "Sales Line Discount";
-#endif
     begin
         CurrTest := 'S.1';
-#if not CLEAN25
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '10000', SalesLineDisc.Type::"Item Disc. Group", 'AGRP', 0D, 0D, 0, '', '', '', 0.2);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '10000', SalesLineDisc.Type::"Item Disc. Group", 'AGRP', 20020301D, 20020501D, 0, '', '', '', 0.4);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '10000', SalesLineDisc.Type::"Item Disc. Group", 'AGRP', 20020401D, 20020401D, 0, '', '', '', 0.6);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '10000', SalesLineDisc.Type::"Item Disc. Group", 'AGRP', 20020601D, 0D, 0, '', '', '', 0.8);
-
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::"Customer Disc. Group", 'CDG1', SalesLineDisc.Type::Item, 'B', 0D, 0D, 0, '', '', '', 1.2);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::"Customer Disc. Group", 'CDG1', SalesLineDisc.Type::Item, 'B', 20020301D, 20020501D, 0, '', '', '', 1.4);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::"Customer Disc. Group", 'CDG1', SalesLineDisc.Type::Item, 'B', 20020401D, 20020401D, 0, '', '', '', 1.6);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::"Customer Disc. Group", 'CDG1', SalesLineDisc.Type::Item, 'B', 20020601D, 0D, 0, '', '', '', 1.8);
-
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::"All Customers", '', SalesLineDisc.Type::"Item Disc. Group", 'CGRP', 0D, 0D, 0, '', '', '', 12);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::"All Customers", '', SalesLineDisc.Type::"Item Disc. Group", 'CGRP', 20020301D, 20020501D, 0, '', '', '', 14);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::"All Customers", '', SalesLineDisc.Type::"Item Disc. Group", 'CGRP', 20020401D, 20020401D, 0, '', '', '', 16);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::"All Customers", '', SalesLineDisc.Type::"Item Disc. Group", 'CGRP', 20020601D, 0D, 0, '', '', '', 18);
-#else
         SRUtil.InsertSalesLineDisc("Price Source Type"::Customer.AsInteger(), '10000', "Price Asset Type"::"Item Discount Group", 'AGRP', 0D, 0D, 0, '', '', '', 0.2);
         SRUtil.InsertSalesLineDisc("Price Source Type"::Customer.AsInteger(), '10000', "Price Asset Type"::"Item Discount Group", 'AGRP', 20020301D, 20020501D, 0, '', '', '', 0.4);
         SRUtil.InsertSalesLineDisc("Price Source Type"::Customer.AsInteger(), '10000', "Price Asset Type"::"Item Discount Group", 'AGRP', 20020401D, 20020401D, 0, '', '', '', 0.6);
@@ -134,7 +110,6 @@ codeunit 103527 "Test - Sales Line Discounting"
         SRUtil.InsertSalesLineDisc("Price Source Type"::"All Customers".AsInteger(), '', "Price Asset Type"::"Item Discount Group", 'CGRP', 20020301D, 20020501D, 0, '', '', '', 14);
         SRUtil.InsertSalesLineDisc("Price Source Type"::"All Customers".AsInteger(), '', "Price Asset Type"::"Item Discount Group", 'CGRP', 20020401D, 20020401D, 0, '', '', '', 16);
         SRUtil.InsertSalesLineDisc("Price Source Type"::"All Customers".AsInteger(), '', "Price Asset Type"::"Item Discount Group", 'CGRP', 20020601D, 0D, 0, '', '', '', 18);
-#endif
         commit();
         InsertSalesHeader(SalesHeader, SalesLine, SalesHeader."Document Type"::Order, '10000', '', 20020201D);
         InsertAndTestSalesLine(SalesHeader, SalesLine, SalesLine.Type::Item, 'A', 1, 'PCS', '', 0.2);
@@ -166,9 +141,6 @@ codeunit 103527 "Test - Sales Line Discounting"
     procedure Test2()
     var
         Cust: Record Customer;
-#if not CLEAN25
-        SalesLineDisc: Record "Sales Line Discount";
-#endif
         SalesHeader: Record "Sales Header";
         SalesHeader2: Record "Sales Header";
         SalesLine: Record "Sales Line";
@@ -178,27 +150,6 @@ codeunit 103527 "Test - Sales Line Discounting"
         Cust.Get('20000');
         Cust.Validate("Allow Line Disc.", true);
         Cust.Modify(true);
-#if not CLEAN25
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '20000', SalesLineDisc.Type::"Item Disc. Group", 'AGRP', 0D, 0D, 5, '', '', '', 2);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '20000', SalesLineDisc.Type::"Item Disc. Group", 'AGRP', 0D, 0D, 10, '', '', '', 4);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '20000', SalesLineDisc.Type::"Item Disc. Group", 'AGRP', 20010101D, 20010101D, 5, '', '', '', 3.33);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '20000', SalesLineDisc.Type::"Item Disc. Group", 'AGRP', 20020401D, 20020401D, 0, '', '', '', 8);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '20000', SalesLineDisc.Type::"Item Disc. Group", 'AGRP', 20020401D, 20020401D, 5, '', '', '', 10);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '20000', SalesLineDisc.Type::"Item Disc. Group", 'AGRP', 20020401D, 20020401D, 10, '', '', '', 12);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '20000', SalesLineDisc.Type::Item, 'B', 0D, 0D, 0, 'USD', '', '', 3);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '20000', SalesLineDisc.Type::Item, 'B', 0D, 0D, 100, 'USD', '', '', 6);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '20000', SalesLineDisc.Type::Item, 'B', 20020401D, 20020401D, 0, 'USD', '', '', 9);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '20000', SalesLineDisc.Type::Item, 'B', 20020401D, 20020401D, 5, 'USD', '', '', 12);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '20000', SalesLineDisc.Type::Item, 'B', 20020401D, 20020401D, 10, 'USD', '', '', 15);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '20000', SalesLineDisc.Type::Item, 'D', 0D, 0D, 0, '', 'BOX', '', 1.25);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '20000', SalesLineDisc.Type::Item, 'D', 0D, 0D, 0, 'USD', 'BOX', '', 2.5);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '20000', SalesLineDisc.Type::Item, 'D', 0D, 0D, 100, '', 'BOX', '', 3.75);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '20000', SalesLineDisc.Type::Item, 'D', 20020401D, 20020401D, 0, '', 'BOX', '', 3.5);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '20000', SalesLineDisc.Type::Item, 'D', 20020401D, 20020401D, 0, 'USD', 'BOX', '', 6.25);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '20000', SalesLineDisc.Type::Item, 'D', 20020401D, 20020401D, 5, 'USD', 'BOX', '', 7.5);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '20000', SalesLineDisc.Type::Item, 'D', 20020401D, 20020401D, 10, 'USD', 'BOX', '', 8.75);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '20000', SalesLineDisc.Type::Item, 'D', 20020401D, 20020401D, 10, 'USD', 'BOX', 'VAR', 10);
-#else
         SRUtil.InsertSalesLineDisc("Price Source Type"::Customer.AsInteger(), '20000', "Price Asset Type"::"Item Discount Group", 'AGRP', 0D, 0D, 5, '', '', '', 2);
         SRUtil.InsertSalesLineDisc("Price Source Type"::Customer.AsInteger(), '20000', "Price Asset Type"::"Item Discount Group", 'AGRP', 0D, 0D, 10, '', '', '', 4);
         SRUtil.InsertSalesLineDisc("Price Source Type"::Customer.AsInteger(), '20000', "Price Asset Type"::"Item Discount Group", 'AGRP', 20010101D, 20010101D, 5, '', '', '', 3.33);
@@ -218,7 +169,6 @@ codeunit 103527 "Test - Sales Line Discounting"
         SRUtil.InsertSalesLineDisc("Price Source Type"::Customer.AsInteger(), '20000', "Price Asset Type"::Item, 'D', 20020401D, 20020401D, 5, 'USD', 'BOX', '', 7.5);
         SRUtil.InsertSalesLineDisc("Price Source Type"::Customer.AsInteger(), '20000', "Price Asset Type"::Item, 'D', 20020401D, 20020401D, 10, 'USD', 'BOX', '', 8.75);
         SRUtil.InsertSalesLineDisc("Price Source Type"::Customer.AsInteger(), '20000', "Price Asset Type"::Item, 'D', 20020401D, 20020401D, 10, 'USD', 'BOX', 'VAR', 10);
-#endif
         commit();
         InsertSalesHeader(SalesHeader, SalesLine, SalesHeader."Document Type"::Order, '20000', '', 20020301D);
         SalesHeader2 := SalesHeader;
@@ -291,12 +241,7 @@ codeunit 103527 "Test - Sales Line Discounting"
     var
         SalesHeader: array[5] of Record "Sales Header";
         SalesLine: Record "Sales Line";
-#if not CLEAN25
-        SalesLineDisc: Record "Sales Line Discount";
-        FromSalesLineDisc: Record "Sales Line Discount";
-#else
         PriceListLine: Record "Price List Line";
-#endif
         SalesInvHeader: Record "Sales Invoice Header";
         SalesInvLine: Record "Sales Invoice Line";
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
@@ -307,16 +252,6 @@ codeunit 103527 "Test - Sales Line Discounting"
         FromSalesCrMemoNo: Code[20];
     begin
         CurrTest := 'S.3';
-#if not CLEAN25
-        FromSalesLineDisc.SetRange("Sales Type", FromSalesLineDisc."Sales Type"::Customer);
-        FromSalesLineDisc.SetRange("Sales Code", '20000');
-        FromSalesLineDisc.Find('-');
-        repeat
-            SRUtil.InsertSalesLineDisc(
-              FromSalesLineDisc."Sales Type"::Customer, '30000', FromSalesLineDisc.Type, FromSalesLineDisc.Code, FromSalesLineDisc."Starting Date", FromSalesLineDisc."Ending Date",
-              FromSalesLineDisc."Minimum Quantity", FromSalesLineDisc."Currency Code", FromSalesLineDisc."Unit of Measure Code", FromSalesLineDisc."Variant Code", FromSalesLineDisc."Line Discount %");
-        until FromSalesLineDisc.Next() = 0;
-#else
         PriceListLine.SetRange("Source Type", PriceListLine."Source Type"::Customer);
         PriceListLine.SetRange("Source No.", '20000');
         PriceListLine.SetRange("Amount Type", PriceListLine."Amount Type"::Discount);
@@ -326,7 +261,6 @@ codeunit 103527 "Test - Sales Line Discounting"
               PriceListLine."Source Type"::Customer.AsInteger(), '30000', PriceListLine."Asset Type", PriceListLine."Asset No.", PriceListLine."Starting Date", PriceListLine."Ending Date",
               PriceListLine."Minimum Quantity", PriceListLine."Currency Code", PriceListLine."Unit of Measure Code", PriceListLine."Variant Code", PriceListLine."Line Discount %");
         until PriceListLine.Next() = 0;
-#endif
 
         for i := 1 to 5 do
             InsertSalesHeader(SalesHeader[i], SalesLine, "Sales Document Type".FromInteger(i), '30000', '', 20020301D);
@@ -401,24 +335,6 @@ codeunit 103527 "Test - Sales Line Discounting"
         SRUtil.PostSales(SalesHeader[SalesLine."Document Type"::Order.AsInteger()], true, true);
 
         FromSalesInvNo := GLUtil.GetLastDocNo(SalesSetup."Posted Invoice Nos.");
-#if not CLEAN25
-        SalesLineDisc.Get(SalesLineDisc.Type::"Item Disc. Group", 'AGRP', SalesLineDisc."Sales Type"::Customer, '30000', 0D, '', '', '', 5);
-        SalesLineDisc.Rename(SalesLineDisc.Type::"Item Disc. Group", 'AGRP', SalesLineDisc."Sales Type"::Customer, '30000', 0D, '', '', '', 3);
-
-        SalesLineDisc.Get(SalesLineDisc.Type::"Item Disc. Group", 'AGRP', SalesLineDisc."Sales Type"::Customer, '30000', 0D, '', '', '', 10);
-        SalesLineDisc.Validate("Line Discount %", 4.25);
-        SalesLineDisc.Modify(true);
-
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '30000', SalesLineDisc.Type::"Item Disc. Group", 'AGRP', 0D, 0D, 20, '', '', '', 7.5);
-
-        SalesLineDisc.Get(SalesLineDisc.Type::Item, 'D', SalesLineDisc."Sales Type"::Customer, '30000', 0D, '', '', 'BOX', 100);
-        SalesLineDisc.Rename(SalesLineDisc.Type::Item, 'D', SalesLineDisc."Sales Type"::Customer, '30000', 0D, '', '', '', 100);
-
-        SalesLineDisc.Get(SalesLineDisc.Type::Item, 'D', SalesLineDisc."Sales Type"::Customer, '30000', 20020401D, 'USD', '', 'BOX', 5);
-        SalesLineDisc.Delete();
-
-        CopyAllDiscountsToPriceListLines();
-#else
         GetSalesDisc(PriceListLine, PriceListLine."Asset Type"::"Item Discount Group".AsInteger(), 'AGRP', PriceListLine."Source Type"::Customer.AsInteger(), '30000', 0D, '', '', '', 5);
         PriceListLine."Minimum Quantity" := 3;
         PriceListLine.Modify(true);
@@ -435,7 +351,6 @@ codeunit 103527 "Test - Sales Line Discounting"
 
         GetSalesDisc(PriceListLine, PriceListLine."Asset Type"::Item.AsInteger(), 'D', PriceListLine."Source Type"::Customer.AsInteger(), '30000', 20020401D, 'USD', '', 'BOX', 5);
         PriceListLine.Delete();
-#endif
         commit();
         for i := 1 to 5 do begin
             SalesHeader[i].Find();
@@ -494,11 +409,7 @@ codeunit 103527 "Test - Sales Line Discounting"
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-#if not CLEAN25
-        SalesLineDisc: Record "Sales Line Discount";
-#else
         PriceListLine: Record "Price List Line";
-#endif
         SalesInvHeader: Record "Sales Invoice Header";
         SalesInvLine: Record "Sales Invoice Line";
         FromSalesInvNo: Code[20];
@@ -512,17 +423,6 @@ codeunit 103527 "Test - Sales Line Discounting"
         InsertSalesHeader(SalesHeader, SalesLine, SalesHeader."Document Type"::Order, '20000', '', 20020301D);
         InsertAndTestSalesLine(SalesHeader, SalesLine, SalesLine.Type::Item, 'A', 5, '', '', LineDisc[1]);
         InsertAndTestSalesLine(SalesHeader, SalesLine, SalesLine.Type::Item, 'D', 100, 'BOX', '', LineDisc[2]);
-#if not CLEAN25
-        SalesLineDisc.Get(SalesLineDisc.Type::"Item Disc. Group", 'AGRP', SalesLineDisc."Sales Type"::Customer, '20000', 0D, '', '', '', 5);
-        SalesLineDisc.Validate("Line Discount %", 2.5);
-        SalesLineDisc.Modify(true);
-
-        SalesLineDisc.Get(SalesLineDisc.Type::Item, 'D', SalesLineDisc."Sales Type"::Customer, '20000', 0D, '', '', 'BOX', 100);
-        SalesLineDisc.Validate("Line Discount %", 3.95);
-        SalesLineDisc.Modify(true);
-
-        CopyAllDiscountsToPriceListLines();
-#else
         GetSalesDisc(PriceListLine, PriceListLine."Asset Type"::"Item Discount Group".AsInteger(), 'AGRP', PriceListLine."Source Type"::Customer.AsInteger(), '20000', 0D, '', '', '', 5);
         PriceListLine."Line Discount %" := 2.5;
         PriceListLine.Modify(true);
@@ -530,7 +430,6 @@ codeunit 103527 "Test - Sales Line Discounting"
         GetSalesDisc(PriceListLine, PriceListLine."Asset Type"::Item.AsInteger(), 'D', PriceListLine."Source Type"::Customer.AsInteger(), '20000', 0D, '', '', 'BOX', 100);
         PriceListLine."Line Discount %" := 3.95;
         PriceListLine.Modify(true);
-#endif
         commit();
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
@@ -571,11 +470,7 @@ codeunit 103527 "Test - Sales Line Discounting"
         SalesShptLine: Record "Sales Shipment Line";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-#if not CLEAN25
-        SalesLineDisc: Record "Sales Line Discount";
-#else
         PriceListLine: Record "Price List Line";
-#endif
         LineDisc: array[5] of Decimal;
         i: Integer;
     begin
@@ -603,17 +498,9 @@ codeunit 103527 "Test - Sales Line Discounting"
         SalesLine.Get(SalesHeader."Document Type", SalesHeader."No.", 30000);
         SalesLine.Validate("Line Discount %", LineDisc[3]);
         SalesLine.Modify(true);
-#if not CLEAN25
-        SalesLineDisc.Get(SalesLineDisc.Type::"Item Disc. Group", 'AGRP', SalesLineDisc."Sales Type"::Customer, '20000', 20020401D, '', '', '', 0);
-        SalesLineDisc.Validate("Line Discount %", 8.5);
-        SalesLineDisc.Modify(true);
-
-        CopyAllDiscountsToPriceListLines();
-#else
         GetSalesDisc(PriceListLine, PriceListLine."Asset Type"::"Item Discount Group".AsInteger(), 'AGRP', PriceListLine."Source Type"::Customer.AsInteger(), '20000', 20020401D, '', '', '', 0);
         PriceListLine."Line Discount %" := 8.5;
         PriceListLine.Modify(true);
-#endif
         commit();
         SalesHeader.Find();
         SalesShptLine.SetRange("Document No.", SalesHeader."Last Shipping No.");
@@ -639,19 +526,11 @@ codeunit 103527 "Test - Sales Line Discounting"
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-#if not CLEAN25
-        SalesPrice: Record "Sales Price";
-#endif
         SalesInvLine: Record "Sales Invoice Line";
     begin
         CurrTest := 'S.7';
-#if not CLEAN25
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '20000', 'A', 0D, 0D, 5, '', '', '', 20);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::Customer, '20000', 'A', 0D, 0D, 100, '', '', '', 15.5);
-#else
         SRUtil.InsertSalesPrice("Price Source Type"::Customer, '20000', 'A', 0D, 0D, 5, '', '', '', 20);
         SRUtil.InsertSalesPrice("Price Source Type"::Customer, '20000', 'A', 0D, 0D, 100, '', '', '', 15.5);
-#endif
         commit();
         InsertSalesHeader(SalesHeader, SalesLine, SalesHeader."Document Type"::Order, '20000', '', 20020301D);
         InsertAndTestSalesLine(SalesHeader, SalesLine, SalesLine.Type::Item, 'A', 5, '', '', 2.5);
@@ -674,40 +553,9 @@ codeunit 103527 "Test - Sales Line Discounting"
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-#if not CLEAN25
-        SalesLineDisc: Record "Sales Line Discount";
-#else
         PriceListLine: Record "Price List Line";
-#endif
     begin
         CurrTest := 'S.8';
-#if not CLEAN25
-        if SalesLineDisc.Get(SalesLineDisc.Type::Item, 'D', SalesLineDisc."Sales Type"::Customer, '20000', 0D, '', 'VAR', '', 1) then
-            SalesLineDisc.Delete(true);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '20000', SalesLineDisc.Type::Item, 'D', 0D, 0D, 1, '', '', 'VAR', 20.25);
-
-        if SalesLineDisc.Get(SalesLineDisc.Type::Item, 'D', SalesLineDisc."Sales Type"::Customer, '20000', 0D, '', 'VAR', 'BOX', 1) then
-            SalesLineDisc.Delete(true);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '20000', SalesLineDisc.Type::Item, 'D', 0D, 0D, 1, '', 'BOX', 'VAR', 20.75);
-
-        if SalesLineDisc.Get(SalesLineDisc.Type::Item, 'A', SalesLineDisc."Sales Type"::Customer, '20000', 0D, '', '', '', 5) then
-            SalesLineDisc.Delete(true);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '20000', SalesLineDisc.Type::Item, 'A', 0D, 0D, 5, '', '', '', 2.5);
-
-        if SalesLineDisc.Get(SalesLineDisc.Type::Item, 'D', SalesLineDisc."Sales Type"::Customer, '20000', 0D, '', '', 'BOX', 0) then
-            SalesLineDisc.Delete(true);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '20000', SalesLineDisc.Type::Item, 'D', 0D, 0D, 1, '', 'BOX', '', 1.25);
-
-        if SalesLineDisc.Get(SalesLineDisc.Type::Item, 'D', SalesLineDisc."Sales Type"::Customer, '20000', 0D, '', '', 'BOX', 5) then
-            SalesLineDisc.Delete(true);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '20000', SalesLineDisc.Type::Item, 'D', 0D, 0D, 5, '', 'BOX', '', 3.8);
-
-        if SalesLineDisc.Get(SalesLineDisc.Type::Item, 'D', SalesLineDisc."Sales Type"::Customer, '20000', 0D, '', '', 'BOX', 100) then
-            SalesLineDisc.Delete(true);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '20000', SalesLineDisc.Type::Item, 'D', 0D, 0D, 100, '', 'BOX', '', 3.95);
-
-        CopyAllDiscountsToPriceListLines();
-#else
         AllowEditingActivePrice(true);
         if GetSalesDisc(PriceListLine, PriceListLine."Asset Type"::Item.AsInteger(), 'D', PriceListLine."Source Type"::Customer.AsInteger(), '20000', 0D, '', 'VAR', '', 1) then
             PriceListLine.Delete(true);
@@ -733,7 +581,6 @@ codeunit 103527 "Test - Sales Line Discounting"
             PriceListLine.Delete(true);
         SRUtil.InsertSalesLineDisc(PriceListLine."Source Type"::Customer.AsInteger(), '20000', PriceListLine."Asset Type"::Item, 'D', 0D, 0D, 100, '', 'BOX', '', 3.95);
         AllowEditingActivePrice(false);
-#endif
         commit();
         InsertSalesHeader(SalesHeader, SalesLine, SalesHeader."Document Type"::Order, '20000', '', 20020301D);
         InsertAndTestSalesLine(SalesHeader, SalesLine, SalesLine.Type::Item, 'A', 1, 'PCS', '', 0);
@@ -765,27 +612,14 @@ codeunit 103527 "Test - Sales Line Discounting"
     [Scope('OnPrem')]
     procedure Test10()
     var
-#if not CLEAN25
-        SalesPrice: Record "Sales Price";
-        SalesLineDisc: Record "Sales Line Discount";
-#else
         PriceListLine: Record "Price List Line";
-#endif
         ItemJnlLine: Record "Item Journal Line";
     begin
         CurrTest := 'S.10';
-#if not CLEAN25
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::"All Customers", '', 'A', 0D, 0D, 5, '', '', '', 20);
-        SRUtil.InsertSalesPrice(SalesPrice."Sales Type"::"All Customers", '', 'A', 20010101D, 20040101D, 10, '', '', '', 18);
-
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::"All Customers", '', SalesLineDisc.Type::Item, 'A', 0D, 0D, 5, '', '', '', 20);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::"All Customers", '', SalesLineDisc.Type::Item, 'A', 20010101D, 20040101D, 10, '', '', '', 18);
-#else
         SRUtil.InsertSalesPrice(PriceListLine."Source Type"::"All Customers", '', 'A', 0D, 0D, 5, '', '', '', 20);
         SRUtil.InsertSalesPrice(PriceListLine."Source Type"::"All Customers", '', 'A', 20010101D, 20040101D, 10, '', '', '', 18);
         SRUtil.InsertSalesLineDisc(PriceListLine."Source Type"::"All Customers".AsInteger(), '', PriceListLine."Asset Type"::Item, 'A', 0D, 0D, 5, '', '', '', 20);
         SRUtil.InsertSalesLineDisc(PriceListLine."Source Type"::"All Customers".AsInteger(), '', PriceListLine."Asset Type"::Item, 'A', 20010101D, 20040101D, 10, '', '', '', 18);
-#endif
         commit();
         INVTUtil.InitItemJournal(ItemJnlLine);
         InsertAndTestItemJnlLine(ItemJnlLine, 20020401D, ItemJnlLine."Entry Type"::Sale, 'A', 2, 22.22);
@@ -796,12 +630,7 @@ codeunit 103527 "Test - Sales Line Discounting"
     [Scope('OnPrem')]
     procedure Test11()
     var
-#if not CLEAN25
-        SalesLineDisc: Record "Sales Line Discount";
-        SalesPrice: Record "Sales Price";
-#else
         PriceListLine: Record "Price List Line";
-#endif
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         CustPriceGrp: Record "Customer Price Group";
@@ -837,56 +666,6 @@ codeunit 103527 "Test - Sales Line Discounting"
         SetupItemDisc('B', true);
         SetupItemDisc('C', false);
         SetupItemDisc('D', true);
-#if not CLEAN25
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '40000', SalesLineDisc.Type::Item, 'A', 0D, 0D, 0, '', '', '', 10);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '40000', SalesLineDisc.Type::Item, 'B', 0D, 0D, 0, '', '', '', 10);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '50000', SalesLineDisc.Type::Item, 'A', 0D, 0D, 0, '', '', '', 11);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '50000', SalesLineDisc.Type::Item, 'B', 0D, 0D, 0, '', '', '', 11);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '40000', SalesLineDisc.Type::Item, 'C', 0D, 0D, 0, '', '', '', 10);
-        SRUtil.InsertSalesLineDisc(SalesLineDisc."Sales Type"::Customer, '50000', SalesLineDisc.Type::Item, 'C', 0D, 0D, 0, '', '', '', 15);
-
-        InsertAndTestSalesPrice(SalesPrice."Sales Type"::Customer, '40000', 'A', 1, 100, false, false, false, '');
-        InsertAndTestSalesPrice(SalesPrice."Sales Type"::Customer, '40000', 'B', 1, 101, false, true, false, '');
-        InsertAndTestSalesPrice(SalesPrice."Sales Type"::Customer, '50000', 'A', 1, 110, true, false, false, '');
-        InsertAndTestSalesPrice(SalesPrice."Sales Type"::Customer, '50000', 'B', 1, 111, true, true, false, '');
-        InsertAndTestSalesPrice(SalesPrice."Sales Type"::"Customer Price Group", 'CPG00', 'A', 1, 100, false, false, false, '');
-        InsertAndTestSalesPrice(SalesPrice."Sales Type"::"Customer Price Group", 'CPG01', 'B', 1, 101, false, true, false, '');
-        InsertAndTestSalesPrice(SalesPrice."Sales Type"::"Customer Price Group", 'CPG10', 'A', 1, 110, true, false, false, '');
-        InsertAndTestSalesPrice(SalesPrice."Sales Type"::"Customer Price Group", 'CPG11', 'A', 1, 111, true, true, false, '');
-        InsertAndTestSalesPrice(SalesPrice."Sales Type"::"All Customers", '', 'A', 1, 210, true, false, false, '');
-        InsertAndTestSalesPrice(SalesPrice."Sales Type"::"All Customers", '', 'B', 1, 211, true, true, false, '');
-        InsertAndTestSalesPrice(SalesPrice."Sales Type"::Customer, '40000', 'A', 10, 90, false, false, false, '');
-        SalesPrice.Get('A', SalesPrice."Sales Type"::Customer, '40000', 0D, '', '', '', 10);
-        SalesPrice.Validate("Allow Line Disc.", true);
-        SalesPrice.Modify(true);
-        InsertAndTestSalesPrice(SalesPrice."Sales Type"::Customer, '50000', 'B', 10, 90.9, true, true, false, '');
-        SalesPrice.Get('B', SalesPrice."Sales Type"::Customer, '50000', 0D, '', '', '', 10);
-        SalesPrice.Validate("Allow Line Disc.", false);
-        SalesPrice.Modify(true);
-
-        InsertAndTestSalesPrice(SalesPrice."Sales Type"::Customer, '40000', 'A', 20, 80, false, false, false, '');
-        SalesPrice.Get('A', SalesPrice."Sales Type"::Customer, '40000', 0D, '', '', '', 20);
-        SalesPrice.Validate("Allow Invoice Disc.", true);
-        SalesPrice.Modify(true);
-
-        InsertAndTestSalesPrice(SalesPrice."Sales Type"::Customer, '40000', 'B', 10, 90, false, true, false, '');
-        SalesPrice.Get('B', SalesPrice."Sales Type"::Customer, '40000', 0D, '', '', '', 10);
-        SalesPrice.Validate("Allow Invoice Disc.", false);
-        SalesPrice.Modify(true);
-
-        SalesLineDisc.SetRange("Sales Type", SalesLineDisc."Sales Type"::"All Customers");
-        SalesLineDisc.SetRange(Type, SalesLineDisc.Type::Item);
-        SalesLineDisc.SetFilter(Code, '%1|%2|%3', 'A', 'B', 'C');
-        SalesLineDisc.DeleteAll(true);
-
-        SalesPrice.SetRange("Sales Type", SalesPrice."Sales Type"::"All Customers");
-        SalesPrice.SetFilter("Item No.", '%1|%2', 'A', 'B');
-        SalesPrice.DeleteAll(true);
-
-        CopyAllPricesToPriceListLines();
-        CopyAllDiscountsToPriceListLines();
-
-#else
         SRUtil.InsertSalesLineDisc(PriceListLine."Source Type"::Customer.AsInteger(), '40000', PriceListLine."Asset Type"::Item, 'A', 0D, 0D, 0, '', '', '', 10);
         SRUtil.InsertSalesLineDisc(PriceListLine."Source Type"::Customer.AsInteger(), '40000', PriceListLine."Asset Type"::Item, 'B', 0D, 0D, 0, '', '', '', 10);
         SRUtil.InsertSalesLineDisc(PriceListLine."Source Type"::Customer.AsInteger(), '50000', PriceListLine."Asset Type"::Item, 'A', 0D, 0D, 0, '', '', '', 11);
@@ -937,7 +716,6 @@ codeunit 103527 "Test - Sales Line Discounting"
         PriceListLine.SetRange("Amount Type", PriceListLine."Amount Type"::Price);
         PriceListLine.DeleteAll(true);
         AllowEditingActivePrice(false);
-#endif
         commit();
         InsertSalesHeader(SalesHeader, SalesLine, SalesHeader."Document Type"::Order, '40000', '', 20020301D);
         InsertAndTestSalesLine(SalesHeader, SalesLine, SalesLine.Type::Item, 'A', 10, '', '', 10);
@@ -997,11 +775,7 @@ codeunit 103527 "Test - Sales Line Discounting"
     procedure Test12()
     var
         CustPriceGrp: Record "Customer Price Group";
-#if not CLEAN25
-        SalesPrice: Record "Sales Price";
-#else
         PriceListLine: Record "Price List Line";
-#endif
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         Customer: Record Customer;
@@ -1028,11 +802,6 @@ codeunit 103527 "Test - Sales Line Discounting"
         Customer.Validate("Prices Including VAT", false);
         Customer.Validate("Customer Price Group", 'CPG00');
         Customer.Modify(true);
-#if not CLEAN25
-        SalesPrice.SetRange("Sales Type", SalesPrice."Sales Type"::Customer);
-        SalesPrice.SetFilter("Sales Code", '50000');
-        SalesPrice.DeleteAll(true);
-#else
         AllowEditingActivePrice(true);
         PriceListLine.Reset();
         PriceListLine.SetRange("Source Type", PriceListLine."Source Type"::Customer);
@@ -1040,7 +809,6 @@ codeunit 103527 "Test - Sales Line Discounting"
         PriceListLine.SetRange("Amount Type", PriceListLine."Amount Type"::Price);
         PriceListLine.DeleteAll(true);
         AllowEditingActivePrice(false);
-#endif
         Item.Get('A');
         Item.Validate("VAT Prod. Posting Group", 'VAT10');
         Item.Modify(true);
@@ -1048,16 +816,6 @@ codeunit 103527 "Test - Sales Line Discounting"
         Item.Get('B');
         Item.Validate("VAT Prod. Posting Group", 'VAT25');
         Item.Modify(true);
-#if not CLEAN25
-        InsertAndTestSalesPrice(SalesPrice."Sales Type"::Customer, '40000', 'A', 2, 100, false, false, true, '');
-        SalesPrice.Get('A', SalesPrice."Sales Type"::Customer, '40000', 0D, '', '', '', 2);
-        SalesPrice.Validate("Price Includes VAT", false);
-        SalesPrice.Modify(true);
-        InsertAndTestSalesPrice(SalesPrice."Sales Type"::Customer, '40000', 'B', 2, 101, false, true, true, 'DOMESTIC');
-        InsertAndTestSalesPrice(SalesPrice."Sales Type"::"Customer Price Group", 'CPG00', 'A', 2, 100, false, false, false, '');
-        InsertAndTestSalesPrice(SalesPrice."Sales Type"::"Customer Price Group", 'CPG01', 'B', 2, 101, false, true, true, 'DOMESTIC');
-        CopyAllPricesToPriceListLines();
-#else
         InsertAndTestSalesPrice(PriceListLine."Source Type"::Customer, '40000', 'A', 2, 100, false, false, true, '');
         GetSalesPrice(PriceListLine, 'A', PriceListLine."Source Type"::Customer.AsInteger(), '40000', 0D, '', '', '', 2);
         PriceListLine."Price Includes VAT" := false;
@@ -1065,7 +823,6 @@ codeunit 103527 "Test - Sales Line Discounting"
         InsertAndTestSalesPrice(PriceListLine."Source Type"::Customer, '40000', 'B', 2, 101, false, true, true, 'DOMESTIC');
         InsertAndTestSalesPrice(PriceListLine."Source Type"::"Customer Price Group", 'CPG00', 'A', 2, 100, false, false, false, '');
         InsertAndTestSalesPrice(PriceListLine."Source Type"::"Customer Price Group", 'CPG01', 'B', 2, 101, false, true, true, 'DOMESTIC');
-#endif
         commit();
         InsertSalesHeader(SalesHeader, SalesLine, SalesHeader."Document Type"::Order, '40000', '', 20020401D);
         InsertAndTestSalesLine(SalesHeader, SalesLine, SalesLine.Type::Item, 'A', 2, '', '', 0);
@@ -1151,30 +908,9 @@ codeunit 103527 "Test - Sales Line Discounting"
     [Scope('OnPrem')]
     procedure InsertAndTestSalesPrice(SalesType: Enum "Sales Price Type"; SalesCode: Code[20]; ItemNo: Code[20]; MinQty: Decimal; UnitPrice: Decimal; ExpAllowLineDisc: Boolean; ExpAllowInvDisc: Boolean; ExpPriceInclVAT: Boolean; ExpVATBusPostGrp: Code[20])
     var
-#if not CLEAN25
-        SalesPrice: Record "Sales Price";
-#else
         PriceListLine: Record "Price List Line";
-#endif
     begin
         SRUtil.InsertSalesPrice(SalesType, SalesCode, ItemNo, 0D, 0D, MinQty, '', '', '', UnitPrice);
-#if not CLEAN25
-        SalesPrice.Get(ItemNo, SalesType, SalesCode, 0D, '', '', '', MinQty);
-        SalesPrice.Validate("VAT Bus. Posting Gr. (Price)", ExpVATBusPostGrp);
-        SalesPrice.Modify(true);
-        TestscriptMgt.TestBooleanValue(
-          StrSubstNo('%1 - %2 %3 %4', CurrTest, SalesPrice."Sales Type", SalesPrice."Sales Code", SalesPrice.FieldName("Allow Line Disc.")),
-          SalesPrice."Allow Line Disc.", ExpAllowLineDisc);
-        TestscriptMgt.TestBooleanValue(
-          StrSubstNo('%1 - %2 %3 %4', CurrTest, SalesPrice."Sales Type", SalesPrice."Sales Code", SalesPrice.FieldName("Allow Invoice Disc.")),
-          SalesPrice."Allow Invoice Disc.", ExpAllowInvDisc);
-        TestscriptMgt.TestBooleanValue(
-          StrSubstNo('%1 - %2 %3 %4', CurrTest, SalesPrice."Sales Type", SalesPrice."Sales Code", SalesPrice.FieldName("Price Includes VAT")),
-          SalesPrice."Price Includes VAT", ExpPriceInclVAT);
-        TestscriptMgt.TestTextValue(
-          StrSubstNo('%1 - %2 %3 %4', CurrTest, SalesPrice."Sales Type", SalesPrice."Sales Code", SalesPrice.FieldName("VAT Bus. Posting Gr. (Price)")),
-          SalesPrice."VAT Bus. Posting Gr. (Price)", ExpVATBusPostGrp);
-#else
         GetSalesPrice(PriceListLine, ItemNo, SalesType.AsInteger(), SalesCode, 0D, '', '', '', MinQty);
         PriceListLine."VAT Bus. Posting Gr. (Price)" := ExpVATBusPostGrp;
         PriceListLine.Modify(true);
@@ -1190,7 +926,6 @@ codeunit 103527 "Test - Sales Line Discounting"
         TestscriptMgt.TestTextValue(
           StrSubstNo('%1 - %2 %3 %4', CurrTest, PriceListLine."Source Type", PriceListLine."Source No.", PriceListLine.FieldName("VAT Bus. Posting Gr. (Price)")),
           PriceListLine."VAT Bus. Posting Gr. (Price)", ExpVATBusPostGrp);
-#endif
     end;
 
     [Scope('OnPrem')]
@@ -1290,28 +1025,6 @@ codeunit 103527 "Test - Sales Line Discounting"
         ShowScriptResult := NewShowScriptResult;
     end;
 
-#if not CLEAN25
-    local procedure CopyAllDiscountsToPriceListLines()
-    var
-        PriceListLine: Record "Price List Line";
-        SalesLineDisc: Record "Sales Line Discount";
-    begin
-        PriceListLine.SetRange("Amount Type", PriceListLine."Amount Type"::Discount);
-        PriceListLine.DeleteAll();
-        CopyFromToPriceListLine.CopyFrom(SalesLineDisc, PriceListLine);
-    end;
-
-    local procedure CopyAllPricesToPriceListLines()
-    var
-        PriceListLine: Record "Price List Line";
-        SalesPrice: Record "Sales Price";
-    begin
-        PriceListLine.SetRange("Amount Type", PriceListLine."Amount Type"::Price);
-        PriceListLine.DeleteAll();
-        CopyFromToPriceListLine.CopyFrom(SalesPrice, PriceListLine);
-    end;
-#endif
-#if CLEAN25
     local procedure GetSalesDisc(var PriceListLine: Record "Price List Line"; Type: Option; "Code": code[20]; "Sales Type": Option; "Sales Code": Code[20]; "Starting Date": Date; "Currency Code": Code[10]; "Variant Code": Code[10]; "Unit of Measure Code": Code[10]; "Minimum Quantity": Decimal): Boolean;
     begin
         PriceListLine.Reset();
@@ -1343,5 +1056,4 @@ codeunit 103527 "Test - Sales Line Discounting"
         PriceListLine.SetRange("Amount Type", PriceListLine."Amount Type"::Price);
         exit(PriceListLine.FindFirst())
     end;
-#endif
 }

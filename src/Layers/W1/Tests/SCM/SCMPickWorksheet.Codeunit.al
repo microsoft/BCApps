@@ -1407,6 +1407,94 @@ codeunit 137015 "SCM Pick Worksheet"
         WhseWorksheetLine.TestField("Qty. (Base)", 1);
     end;
 
+    [Test]
+    procedure PickWorksheetCorrectUsingDifferentUnitOfMeasure()
+    var
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        Location: Record Location;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        UnitOfMeasure: Record "Unit of Measure";
+        WhseActivityLine: Record "Warehouse Activity Line";
+        WhseReceiptHeader: Record "Warehouse Receipt Header";
+        WhseShipmentHeader: Record "Warehouse Shipment Header";
+        WhseWorksheetLine: Record "Whse. Worksheet Line";
+        WhseWorksheetName: Record "Whse. Worksheet Name";
+        WhseWorksheetTemplate: Record "Whse. Worksheet Template";
+        BaseQuantity: Decimal;
+        SalesQuantity: Decimal;
+        QuantityPerUOM: Decimal;
+    begin
+        // [SCENARIO 610657] "Qty. to Handle" on Pick Worksheet is correct when using different Unit of Measure.
+        Initialize();
+
+        // [GIVEN] Location set up for Warehouse picking.
+        GetPickWksheetTemplate(WhseWorksheetTemplate);
+        SetupLocation(Location, WhseWorksheetTemplate.Name, true, true, true);
+        WhseWorksheetLine.DeleteAll();
+
+        // [GIVEN] Crete an item.
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] Create two Unit of Measure with different quantities per Unit of Measure.
+        QuantityPerUOM := LibraryRandom.RandIntInRange(12, 12);
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure, Item."No.", UnitOfMeasure.Code, QuantityPerUOM);
+
+        // [GIVEN] Set the Sales Unit of Measure to the created UOM.
+        Item.Validate("Sales Unit of Measure", UnitOfMeasure.Code);
+        Item.Modify(true);
+
+        // [GIVEN] Store Base Quantity of random value.
+        BaseQuantity := LibraryRandom.RandIntInRange(100, 200);
+
+        // [GIVEN] Create a Purchase Header.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, LibraryPurchase.CreateVendorNo());
+
+        // [GIVEN] Create a Purchase Line with Location.
+        CreatePurchaseLineWithLocation(PurchaseLine, PurchaseHeader, Item."No.", BaseQuantity, Location.Code);
+
+        // [GIVEN] Receive and post the Purchase Order in Warehouse Receipt.
+        CreateWarehouseReceiptFromPurchOrder(WhseReceiptHeader, PurchaseHeader);
+        LibraryWarehouse.PostWhseReceipt(WhseReceiptHeader);
+
+        // [GIVEN] Register Put-away Warehouse Activity for the Received quantity.
+        RegisterWhseActivity(
+            WhseActivityLine."Activity Type"::"Put-away",
+            DATABASE::"Purchase Line",
+            WhseActivityLine."Source Document"::"Purchase Order",
+            PurchaseHeader."No.",
+            0,
+            '',
+            '');
+
+        // [GIVEN] Store Sales Quantity as 1 CTN in Base Unit of Measure.
+        SalesQuantity := LibraryRandom.RandInt(1);
+
+        // [GIVEN] Create Sales Order with Sales Quantity.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", SalesQuantity);
+        SalesLine.Validate("Location Code", Location.Code);
+        SalesLine.Validate("Unit of Measure Code", UnitOfMeasure.Code);
+        SalesLine.Modify(true);
+
+        // [GIVEN] Auto Reserve Sales Line and Create Warehouse Shipment from Sales Order.
+        LibrarySales.AutoReserveSalesLine(SalesLine);
+        CreateWarehouseShipmentFromSalesOrder(WhseShipmentHeader, SalesHeader);
+
+        // [WHEN] Get warehouse documents in pick worksheet
+        GetPickWksheetName(WhseWorksheetName);
+        PickWorksheetGetSourceDocument(WhseWorksheetName."Worksheet Template Name", WhseWorksheetName.Name, Location.Code, 0, WhseShipmentHeader."No.");
+
+        // [THEN] "Qty. to Handle" on Pick Worksheet Line should be equal to Sales Quantity in Base Unit of Measure.
+        WhseWorksheetLine.SetRange("Item No.", Item."No.");
+        WhseWorksheetLine.FindFirst();
+        Assert.AreEqual(SalesQuantity, WhseWorksheetLine."Qty. to Handle", ErrorDifferentQtyToHandle);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

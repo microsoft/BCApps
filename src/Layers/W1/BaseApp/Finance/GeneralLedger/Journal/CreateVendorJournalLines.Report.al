@@ -6,6 +6,16 @@ namespace Microsoft.Finance.GeneralLedger.Journal;
 
 using Microsoft.Purchases.Vendor;
 
+/// <summary>
+/// Report for bulk creation of vendor journal lines from vendor master data and standard journal templates.
+/// Generates journal lines for multiple vendors using standard journal line templates with vendor-specific account assignments.
+/// </summary>
+/// <remarks>
+/// Mass journal line creation functionality for vendor-related transactions.
+/// Uses standard journal templates as the basis for line creation with automatic vendor account assignment.
+/// Key features: Bulk vendor processing, standard template application, customizable document types and posting dates.
+/// Integration: Creates lines in specified journal batch, applies vendor posting group settings, supports filtering criteria.
+/// </remarks>
 report 8612 "Create Vendor Journal Lines"
 {
     ApplicationArea = Basic, Suite;
@@ -295,6 +305,12 @@ report 8612 "Create Vendor Journal Lines"
         exit(not StdGenJounalLine.IsEmpty());
     end;
 
+    /// <summary>
+    /// Initializes vendor journal line creation process with standard journal configuration and batch settings.
+    /// Sets up journal template context, batch assignment, and line numbering for vendor-specific journal line generation.
+    /// </summary>
+    /// <param name="StdGenJnl">Standard general journal record containing vendor journal template and configuration settings</param>
+    /// <param name="JnlBatchName">Target journal batch name where new vendor journal lines will be created</param>
     procedure Initialize(var StdGenJnl: Record "Standard General Journal"; JnlBatchName: Code[10])
     begin
         GenJnlLine."Journal Template Name" := StdGenJnl."Journal Template Name";
@@ -347,6 +363,13 @@ report 8612 "Create Vendor Journal Lines"
         LastGenJnlLine := GenJnlLine;
     end;
 
+    /// <summary>
+    /// Initializes report request parameters for document type, posting date, and document date configuration.
+    /// Sets up basic posting parameters for vendor journal line creation from external calls or batch processing.
+    /// </summary>
+    /// <param name="DocumentTypesFrom">Document type option for vendor journal lines (Invoice, Credit Memo, Payment, etc.)</param>
+    /// <param name="PostingDateFrom">Posting date to be applied to all created vendor journal lines</param>
+    /// <param name="DocumentDateFrom">Document date to be applied to all created vendor journal lines</param>
     procedure InitializeRequest(DocumentTypesFrom: Option; PostingDateFrom: Date; DocumentDateFrom: Date)
     begin
         DocumentTypes := DocumentTypesFrom;
@@ -354,6 +377,13 @@ report 8612 "Create Vendor Journal Lines"
         DocumentDate := DocumentDateFrom;
     end;
 
+    /// <summary>
+    /// Initializes report template configuration parameters for vendor journal creation with template and batch settings.
+    /// Sets up the target journal destination and optional standard template for vendor transaction automation.
+    /// </summary>
+    /// <param name="JournalTemplateFrom">General journal template name for vendor journal line creation</param>
+    /// <param name="BatchNameFrom">Journal batch name for organizing created vendor journal lines</param>
+    /// <param name="TemplateCodeFrom">Optional standard journal template code for predefined vendor line configurations</param>
     procedure InitializeRequestTemplate(JournalTemplateFrom: Text[10]; BatchNameFrom: Code[10]; TemplateCodeFrom: Code[20])
     begin
         JournalTemplate := JournalTemplateFrom;
@@ -361,6 +391,11 @@ report 8612 "Create Vendor Journal Lines"
         TemplateCode := TemplateCodeFrom;
     end;
 
+    /// <summary>
+    /// Sets the default document number to be applied to created vendor journal lines when no document number is specified.
+    /// Provides centralized document numbering control for bulk vendor journal line creation and vendor transaction management.
+    /// </summary>
+    /// <param name="NewDocumentNo">Document number to use as default for all created vendor journal lines</param>
     procedure SetDefaultDocumentNo(NewDocumentNo: Code[20])
     begin
         DocumentNo := NewDocumentNo;

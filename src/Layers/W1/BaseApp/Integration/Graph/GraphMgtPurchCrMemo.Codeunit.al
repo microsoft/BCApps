@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Integration.Graph;
 
+using Microsoft.API.Upgrade;
 using Microsoft.Integration.Entity;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
@@ -11,7 +12,6 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Posting;
 using Microsoft.Utilities;
 using System.Reflection;
-using Microsoft.API.Upgrade;
 
 codeunit 5511 "Graph Mgt - Purch. Cr. Memo"
 {

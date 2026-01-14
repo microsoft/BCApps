@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Integration.Graph;
 
-using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.API.Upgrade;
+using Microsoft.Finance.GeneralLedger.Journal;
 
 codeunit 5479 "Graph Mgt - Customer Payments"
 {

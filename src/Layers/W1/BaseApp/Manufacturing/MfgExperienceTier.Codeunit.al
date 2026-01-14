@@ -4,16 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.Environment;
 
-using Microsoft.Manufacturing.Document;
-using Microsoft.Manufacturing.Setup;
-using Microsoft.Manufacturing.Capacity;
-using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Manufacturing.MachineCenter;
-using Microsoft.Manufacturing.Routing;
-using Microsoft.Manufacturing.Comment;
-using Microsoft.Manufacturing.ProductionBOM;
-using Microsoft.Manufacturing.Family;
 using Microsoft.Inventory.Tracking;
+using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Comment;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Family;
+using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
+using Microsoft.Manufacturing.WorkCenter;
 
 codeunit 99000788 "Mfg. Experience Tier"
 {

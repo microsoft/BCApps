@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Document;
 
+using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.UOM;
 using Microsoft.Purchases.History;
 
@@ -39,11 +40,13 @@ codeunit 6648 "Purch.-Get Return Shipments"
         ReturnShptLine: Record "Return Shipment Line";
         UOMMgt: Codeunit "Unit of Measure Management";
         GetReturnShptLines: Page "Get Return Shipment Lines";
+        LineListHasAttachments: Dictionary of [Code[20], Boolean];
 
     procedure CreateInvLines(var ReturnShptLine2: Record "Return Shipment Line")
     var
         DifferentCurrencies: Boolean;
         ShouldInsertReturnRcptLine: Boolean;
+        OrderNoList: List of [Code[20]];
     begin
         ReturnShptLine2.SetFilter("Return Qty. Shipped Not Invd.", '<>0');
         OnCreateInvLinesOnAfterReturnShptLine2SetFilters(ReturnShptLine2, PurchHeader);
@@ -74,11 +77,16 @@ codeunit 6648 "Purch.-Get Return Shipments"
                     ReturnShptLine := ReturnShptLine2;
                     CheckReturnShipmentLineVATBusPostingGroup(ReturnShptLine, PurchHeader);
                     ReturnShptLine.InsertInvLineFromRetShptLine(PurchLine);
+                    CopyDocumentAttachments(ReturnShptLine2, PurchLine);
                     if ReturnShptLine2.Type = ReturnShptLine2.Type::"Charge (Item)" then
                         GetItemChargeAssgnt(ReturnShptLine2, PurchLine."Qty. to Invoice");
                 end;
                 OnCreateInvLinesOnAfterLoopIteration(ReturnShptHeader, ReturnShptLine2, PurchHeader, PurchLine, ShouldInsertReturnRcptLine);
+                if ReturnShptLine2."Return Order No." <> '' then
+                    if not OrderNoList.Contains(ReturnShptLine2."Return Order No.") then
+                        OrderNoList.Add(ReturnShptLine2."Return Order No.");
             until ReturnShptLine2.Next() = 0;
+            CopyDocumentAttachments(OrderNoList, PurchHeader);
         end;
 
         OnAfterCreateInvLines(PurchHeader);
@@ -244,6 +252,58 @@ codeunit 6648 "Purch.-Get Return Shipments"
             TempPurchCrMemoHdr := PurchCrMemoHdr;
             TempPurchCrMemoHdr.Insert();
         end;
+    end;
+
+    local procedure AnyLineHasAttachments(DocNo: Code[20]): boolean
+    begin
+        if not LineListHasAttachments.ContainsKey(DocNo) then
+            LineListHasAttachments.Add(DocNo, EntityHasAttachments(DocNo, Database::"Purchase Line"));
+        exit(LineListHasAttachments.Get(DocNo));
+    end;
+
+    local procedure EntityHasAttachments(DocNo: Code[20]; TableNo: Integer): boolean
+    var
+        DocumentAttachment: Record "Document Attachment";
+    begin
+        DocumentAttachment.ReadIsolation := IsolationLevel::ReadUncommitted;
+        DocumentAttachment.SetRange("Table ID", TableNo);
+        DocumentAttachment.SetRange("Document Type", DocumentAttachment."Document Type"::"Return Order");
+        DocumentAttachment.SetRange("No.", DocNo);
+        exit(not DocumentAttachment.IsEmpty());
+    end;
+
+    local procedure CopyDocumentAttachments(OrderNoList: List of [Code[20]]; var PurchaseHeader: Record "Purchase Header")
+    var
+        OrderPurchaseHeader: Record "Purchase Header";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+        OrderNo: Code[20];
+    begin
+        OrderPurchaseHeader.ReadIsolation := IsolationLevel::ReadCommitted;
+        OrderPurchaseHeader.SetLoadFields("Document Type", "No.");
+        foreach OrderNo in OrderNoList do
+            if OrderHasAttachments(OrderNo) then
+                if OrderPurchaseHeader.Get(OrderPurchaseHeader."Document Type"::"Return Order", OrderNo) then
+                    DocumentAttachmentMgmt.CopyAttachments(OrderPurchaseHeader, PurchaseHeader);
+    end;
+
+    local procedure CopyDocumentAttachments(var ReturnShptLine2: Record "Return Shipment Line"; var PurchaseLine: Record "Purchase Line")
+    var
+        OrderPurchaseLine: Record "Purchase Line";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+    begin
+        if (ReturnShptLine2."Return Order No." = '') or (ReturnShptLine2."Return Order Line No." = 0) then
+            exit;
+        if not AnyLineHasAttachments(ReturnShptLine2."Return Order No.") then
+            exit;
+        OrderPurchaseLine.ReadIsolation := IsolationLevel::ReadCommitted;
+        OrderPurchaseLine.SetLoadFields("Document Type", "Document No.", "Line No.");
+        if OrderPurchaseLine.Get(OrderPurchaseLine."Document Type"::"Return Order", ReturnShptLine2."Return Order No.", ReturnShptLine2."Return Order Line No.") then
+            DocumentAttachmentMgmt.CopyAttachments(OrderPurchaseLine, PurchaseLine);
+    end;
+
+    local procedure OrderHasAttachments(DocNo: Code[20]): boolean
+    begin
+        exit(EntityHasAttachments(DocNo, Database::"Purchase Header"));
     end;
 
     [IntegrationEvent(false, false)]

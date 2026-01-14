@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.Environment.Configuration;
 
-using System.Reflection;
 using System.Apps;
+using System.Reflection;
 
 pageextension 2510 "Extension Subscribers" extends "Extension Management"
 {

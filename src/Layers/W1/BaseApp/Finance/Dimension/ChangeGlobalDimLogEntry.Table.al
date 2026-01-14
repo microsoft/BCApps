@@ -28,6 +28,15 @@ using System.Environment;
 using System.Reflection;
 using System.Threading;
 
+/// <summary>
+/// Logs the progress and status of the Change Global Dimensions background process.
+/// Tracks table-by-table progress, error counts, and processing statistics for dimension restructuring operations.
+/// </summary>
+/// <remarks>
+/// Used by the Change Global Dimensions functionality to monitor multi-table dimension updates.
+/// Provides audit trail and progress tracking for critical dimension restructuring operations.
+/// Integrates with session management and background task processing systems.
+/// </remarks>
 table 483 "Change Global Dim. Log Entry"
 {
     Caption = 'Change Global Dim. Log Entry';
@@ -104,18 +113,30 @@ table 483 "Change Global Dim. Log Entry"
 
     fields
     {
+        /// <summary>
+        /// Unique identifier of the table being processed during dimension change operation.
+        /// </summary>
         field(1; "Table ID"; Integer)
         {
             Caption = 'Table ID';
         }
+        /// <summary>
+        /// Name of the table being processed for display purposes.
+        /// </summary>
         field(2; "Table Name"; Text[50])
         {
             Caption = 'Table Name';
         }
+        /// <summary>
+        /// Total number of records in the table that need to be processed.
+        /// </summary>
         field(3; "Total Records"; Integer)
         {
             Caption = 'Total Records';
         }
+        /// <summary>
+        /// Number of records that have been successfully processed.
+        /// </summary>
         field(4; "Completed Records"; Integer)
         {
             Caption = 'Completed Records';
@@ -125,70 +146,115 @@ table 483 "Change Global Dim. Log Entry"
                 CalcProgress();
             end;
         }
+        /// <summary>
+        /// Processing progress percentage for tracking completion status.
+        /// </summary>
         field(5; Progress; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Progress';
             ExtendedDatatype = Ratio;
         }
+        /// <summary>
+        /// Current processing status of the table dimension change operation.
+        /// </summary>
         field(6; Status; Option)
         {
             Caption = 'Status';
             OptionCaption = ' ,Scheduled,In Progress,Completed,Incomplete';
             OptionMembers = " ",Scheduled,"In Progress",Completed,Incomplete;
         }
+        /// <summary>
+        /// Unique identifier of the scheduled task processing this table.
+        /// </summary>
         field(7; "Task ID"; Guid)
         {
             Caption = 'Task ID';
         }
+        /// <summary>
+        /// Session identifier for tracking the processing session.
+        /// </summary>
         field(8; "Session ID"; Integer)
         {
             Caption = 'Session ID';
         }
+        /// <summary>
+        /// Type of change operation for global dimension 1 (None, Blank, Replace, or New).
+        /// </summary>
         field(9; "Change Type 1"; Option)
         {
             Caption = 'Change Type 1';
             OptionCaption = 'None,Blank,Replace,New';
             OptionMembers = "None",Blank,Replace,New;
         }
+        /// <summary>
+        /// Type of change operation for global dimension 2 (None, Blank, Replace, or New).
+        /// </summary>
         field(10; "Change Type 2"; Option)
         {
             Caption = 'Change Type 2';
             OptionCaption = 'None,Blank,Replace,New';
             OptionMembers = "None",Blank,Replace,New;
         }
+        /// <summary>
+        /// Field number for global dimension 1 in this table.
+        /// </summary>
         field(11; "Global Dim.1 Field No."; Integer)
         {
             Caption = 'Global Dim.1 Field No.';
         }
+        /// <summary>
+        /// Field number for global dimension 2 in this table.
+        /// </summary>
         field(12; "Global Dim.2 Field No."; Integer)
         {
             Caption = 'Global Dim.2 Field No.';
         }
+        /// <summary>
+        /// Field number for dimension set ID in this table.
+        /// </summary>
         field(13; "Dim. Set ID Field No."; Integer)
         {
             Caption = 'Dim. Set ID Field No.';
         }
+        /// <summary>
+        /// Field number of the primary key field used for record processing.
+        /// </summary>
         field(14; "Primary Key Field No."; Integer)
         {
             Caption = 'Primary Key Field No.';
         }
+        /// <summary>
+        /// Table ID of the parent table when processing related tables in hierarchy.
+        /// </summary>
         field(15; "Parent Table ID"; Integer)
         {
             Caption = 'Parent Table ID';
         }
+        /// <summary>
+        /// Indicates whether this table is a parent table in the processing hierarchy.
+        /// </summary>
         field(16; "Is Parent Table"; Boolean)
         {
             Caption = 'Is Parent Table';
         }
+        /// <summary>
+        /// Earliest date and time when processing can start for this table.
+        /// </summary>
         field(17; "Earliest Start Date/Time"; DateTime)
         {
             Caption = 'Earliest Start Date/Time';
         }
+        /// <summary>
+        /// Estimated remaining time to complete processing this table.
+        /// </summary>
         field(18; "Remaining Duration"; Duration)
         {
             Caption = 'Remaining Duration';
         }
+        /// <summary>
+        /// Identifier of the server instance processing this table.
+        /// </summary>
         field(19; "Server Instance ID"; Integer)
         {
             Caption = 'Server Instance ID';
@@ -227,6 +293,13 @@ table 483 "Change Global Dim. Log Entry"
             Progress := "Completed Records" / "Total Records" * 10000;
     end;
 
+    /// <summary>
+    /// Updates the progress of dimension change processing for this table entry.
+    /// Returns true if the processing is complete, false if still in progress.
+    /// </summary>
+    /// <param name="CurrentRecNo">Current record number being processed</param>
+    /// <param name="StartedFromRecord">Record number where processing started</param>
+    /// <returns>True if processing is complete, false if still in progress</returns>
     procedure Update(CurrentRecNo: Integer; StartedFromRecord: Integer): Boolean
     begin
         if "Completed Records" = CurrentRecNo then
@@ -253,6 +326,12 @@ table 483 "Change Global Dim. Log Entry"
         exit(Modify());
     end;
 
+    /// <summary>
+    /// Updates progress with automatic commit and returns completion status.
+    /// </summary>
+    /// <param name="CurrentRecNo">Current record number being processed</param>
+    /// <param name="StartedFromRecord">Record number where processing started</param>
+    /// <returns>True if processing is complete, false if still in progress</returns>
     procedure UpdateWithCommit(CurrentRecNo: Integer; StartedFromRecord: Integer) Completed: Boolean
     begin
         if Update(CurrentRecNo, StartedFromRecord) then
@@ -260,12 +339,22 @@ table 483 "Change Global Dim. Log Entry"
         Completed := Status = Status::Completed;
     end;
 
+    /// <summary>
+    /// Updates progress without committing transaction and returns completion status.
+    /// </summary>
+    /// <param name="CurrentRecNo">Current record number being processed</param>
+    /// <param name="StartedFromRecord">Record number where processing started</param>
+    /// <returns>True if processing is complete, false if still in progress</returns>
     procedure UpdateWithoutCommit(CurrentRecNo: Integer; StartedFromRecord: Integer) Completed: Boolean
     begin
         Update(CurrentRecNo, StartedFromRecord);
         Completed := Status = Status::Completed;
     end;
 
+    /// <summary>
+    /// Cancels the scheduled task associated with this dimension change operation.
+    /// Clears the Task ID field after canceling the scheduled task.
+    /// </summary>
     procedure CancelTask()
     var
         ScheduledTask: Record "Scheduled Task";
@@ -277,6 +366,13 @@ table 483 "Change Global Dim. Log Entry"
         end;
     end;
 
+    /// <summary>
+    /// Changes the dimension value on a specific record field during dimension change processing.
+    /// </summary>
+    /// <param name="RecRef">Record reference to modify</param>
+    /// <param name="DimNo">Dimension number (1 or 2)</param>
+    /// <param name="GlobalDimFieldRef">Field reference for the global dimension field</param>
+    /// <param name="OldDimValueCode">Previous dimension value code</param>
     procedure ChangeDimOnRecord(var RecRef: RecordRef; DimNo: Integer; GlobalDimFieldRef: FieldRef; OldDimValueCode: Code[20])
     var
         NewValue: Code[20];
@@ -294,6 +390,12 @@ table 483 "Change Global Dim. Log Entry"
         GlobalDimFieldRef.Value(NewValue);
     end;
 
+    /// <summary>
+    /// Retrieves field references and current dimension values for global dimension fields.
+    /// </summary>
+    /// <param name="RecRef">Record reference to examine</param>
+    /// <param name="GlobalDimFieldRef">Array of field references for global dimensions</param>
+    /// <param name="DimValueCode">Array of current dimension value codes</param>
     procedure GetFieldRefValues(RecRef: RecordRef; var GlobalDimFieldRef: array[2] of FieldRef; var DimValueCode: array[2] of Code[20])
     begin
         if "Global Dim.1 Field No." <> 0 then begin
@@ -306,6 +408,11 @@ table 483 "Change Global Dim. Log Entry"
         end;
     end;
 
+    /// <summary>
+    /// Locates and stores the field number for the Dimension Set ID field in the specified table.
+    /// </summary>
+    /// <param name="RecRef">Record reference to examine for dimension set ID field</param>
+    /// <returns>True if dimension set ID field is found, false otherwise</returns>
     procedure FindDimensionSetIDField(RecRef: RecordRef): Boolean
     var
         "Field": Record "Field";
@@ -332,6 +439,12 @@ table 483 "Change Global Dim. Log Entry"
         OnAfterFindDefaultDimSetIDFieldNo(RecRef, Found);
     end;
 
+    /// <summary>
+    /// Finds the dimension value code for a specific dimension on a given record.
+    /// </summary>
+    /// <param name="RecRef">Record reference to examine</param>
+    /// <param name="DimNo">Dimension number (1 or 2) to find value for</param>
+    /// <returns>Dimension value code for the specified dimension</returns>
     procedure FindDimensionValueCode(RecRef: RecordRef; DimNo: Integer): Code[20]
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -404,6 +517,10 @@ table 483 "Change Global Dim. Log Entry"
         end;
     end;
 
+    /// <summary>
+    /// Initializes log entry data by analyzing the table structure and populating field numbers.
+    /// </summary>
+    /// <param name="RecRef">Record reference to analyze for dimension processing setup</param>
     procedure FillData(RecRef: RecordRef)
     var
         PKeyFieldRef: FieldRef;
@@ -437,6 +554,11 @@ table 483 "Change Global Dim. Log Entry"
         exit("Change Type 2");
     end;
 
+    /// <summary>
+    /// Retrieves the primary key field reference for the table record.
+    /// </summary>
+    /// <param name="RecRef">Record reference to examine</param>
+    /// <param name="PKeyFieldRef">Returns the primary key field reference</param>
     procedure GetPrimaryKeyFieldRef(RecRef: RecordRef; var PKeyFieldRef: FieldRef)
     var
         PKeyRef: KeyRef;
@@ -454,21 +576,34 @@ table 483 "Change Global Dim. Log Entry"
         RecRef.Close();
     end;
 
+    /// <summary>
+    /// Logs error trace information for dimension change processing failures.
+    /// </summary>
     procedure SendTraceTagOnError()
     begin
         Session.LogMessage('00001ZB', StrSubstNo(ErrorTraceTagMsg, "Table ID", "Completed Records", "Total Records", GetLastErrorText), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TagCategoryTxt);
     end;
 
+    /// <summary>
+    /// Logs trace information when dimension change processing is rerun.
+    /// </summary>
     procedure SendTraceTagOnRerun()
     begin
         Session.LogMessage('00001ZC', StrSubstNo(RerunTraceTagMsg, "Table ID", "Completed Records", "Total Records"), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TagCategoryTxt);
     end;
 
+    /// <summary>
+    /// Logs trace information when dimension change processing is scheduled.
+    /// </summary>
     procedure SendTraceTagOnScheduling()
     begin
         Session.LogMessage('00001ZD', StrSubstNo(ScheduledTraceTagMsg, "Table ID", "Total Records", Format("Earliest Start Date/Time", 0, 9)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TagCategoryTxt);
     end;
 
+    /// <summary>
+    /// Sets the session ID to track the current processing session.
+    /// Marks the status as "In Progress" for active processing tracking.
+    /// </summary>
     procedure SetSessionInProgress()
     begin
         "Session ID" := SessionId();
@@ -477,6 +612,11 @@ table 483 "Change Global Dim. Log Entry"
         Modify();
     end;
 
+    /// <summary>
+    /// Updates the processing status based on current task and session state.
+    /// Returns the previous status value for comparison.
+    /// </summary>
+    /// <returns>Previous status value before the update</returns>
     procedure UpdateStatus() OldStatus: Integer
     begin
         OldStatus := Status;
@@ -503,6 +643,11 @@ table 483 "Change Global Dim. Log Entry"
                     end;
     end;
 
+    /// <summary>
+    /// Checks if the session associated with this log entry is currently active.
+    /// Returns true if the session is running on the current server instance or another instance.
+    /// </summary>
+    /// <returns>True if the session is active, false if inactive or logged off</returns>
     local procedure IsSessionActive(): Boolean;
     var
         ActiveSession: Record "Active Session";
@@ -514,6 +659,11 @@ table 483 "Change Global Dim. Log Entry"
         exit(not IsSessionLoggedOff());
     end;
 
+    /// <summary>
+    /// Checks if the session associated with this log entry has logged off.
+    /// Searches session event records for logoff events after the earliest start date/time.
+    /// </summary>
+    /// <returns>True if the session has logged off, false if still active</returns>
     local procedure IsSessionLoggedOff(): Boolean;
     var
         SessionEvent: Record "Session Event";
@@ -526,6 +676,10 @@ table 483 "Change Global Dim. Log Entry"
         exit(not SessionEvent.IsEmpty);
     end;
 
+    /// <summary>
+    /// Displays error details from job queue log entries for failed dimension change tasks.
+    /// Opens the Job Queue Log Entries page filtered to show errors for this table.
+    /// </summary>
     procedure ShowError()
     var
         JobQueueLogEntry: Record "Job Queue Log Entry";
@@ -549,16 +703,36 @@ table 483 "Change Global Dim. Log Entry"
             exit(ScheduledTask.Get("Task ID"));
     end;
 
+    /// <summary>
+    /// Integration event raised after attempting to find default dimension set ID field number.
+    /// Enables extensions to provide custom logic for identifying dimension set ID fields.
+    /// </summary>
+    /// <param name="RecRef">Record reference being examined</param>
+    /// <param name="Found">Indicates whether the field was found by standard logic</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterFindDefaultDimSetIDFieldNo(RecRef: RecordRef; var Found: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when checking if a scheduled task exists.
+    /// Enables extensions to provide custom task existence verification.
+    /// </summary>
+    /// <param name="TaskID">GUID of the task to check</param>
+    /// <param name="IsTaskExist">Returns whether the task exists</param>
     [IntegrationEvent(false, false)]
     local procedure OnFindingScheduledTask(TaskID: Guid; var IsTaskExist: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before finding default dimension value code.
+    /// Enables extensions to provide custom dimension value code lookup logic.
+    /// </summary>
+    /// <param name="RecRef">Record reference being examined</param>
+    /// <param name="DimensionCode">Dimension code to find value for</param>
+    /// <param name="DimensionValueCode">Returns the dimension value code</param>
+    /// <param name="IsHandled">Set to true to skip standard lookup logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFindDefaultDimensionValueCode(RecRef: RecordRef; DimensionCode: Code[20]; var DimensionValueCode: Code[20]; var IsHandled: Boolean)
     begin

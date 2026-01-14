@@ -520,11 +520,20 @@ codeunit 7153 "Item Analysis Management"
                         DateFilter := '';
                     PeriodInitialized := true;
                     Period."Period Start" := DimCodeBuf."Period Start";
-                    if DateFilter <> '' then
-                        Period.SetFilter("Period Start", DateFilter)
-                    else
-                        if InternalDateFilter <> '' then
-                            Period.SetFilter("Period Start", InternalDateFilter);
+                    case PeriodType of
+                        PeriodType::Week:
+                            if (InternalDateFilter <> '') then
+                                Period.SetFilter("Period Start", InternalDateFilter)
+                            else
+                                if DateFilter <> '' then
+                                    Period.SetFilter("Period Start", DateFilter);
+                        else
+                            if DateFilter <> '' then
+                                Period.SetFilter("Period Start", DateFilter)
+                            else
+                                if InternalDateFilter <> '' then
+                                    Period.SetFilter("Period Start", InternalDateFilter);
+                    end;
                     Found := PeriodPageMgt.FindDate(Which, Period, PeriodType);
                     if Found then
                         CopyPeriodToBuf(Period, DimCodeBuf, DateFilter);

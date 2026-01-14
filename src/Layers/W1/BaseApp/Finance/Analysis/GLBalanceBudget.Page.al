@@ -16,6 +16,10 @@ using Microsoft.Foundation.Period;
 using System.Text;
 using System.Utilities;
 
+/// <summary>
+/// Matrix worksheet for comparing G/L account balances with budget amounts across time periods.
+/// Provides budget variance analysis with period-based columns and flexible filtering options.
+/// </summary>
 page 422 "G/L Balance/Budget"
 {
     Caption = 'G/L Balance/Budget';
@@ -511,6 +515,11 @@ page 422 "G/L Balance/Budget"
         ClosingEntryFilter: Option Include,Exclude;
         DateFilter: Text;
 
+    /// <summary>
+    /// Finds and navigates to specific periods in the matrix based on search criteria.
+    /// Updates date filters and refreshes matrix display for period-based analysis.
+    /// </summary>
+    /// <param name="SearchText">Period navigation command (e.g., '+', '-', '=')</param>
     procedure FindPeriod(SearchText: Code[10])
     var
         Calendar: Record Date;
@@ -761,16 +770,34 @@ page 422 "G/L Balance/Budget"
         OnAfterInitDefaultFilters(GlobalDim1Filter, GlobalDim2Filter, DateFilter);
     end;
 
+    /// <summary>
+    /// Integration event raised before validating period type changes in the analysis view.
+    /// Enables custom validation logic for period type selection and filtering requirements.
+    /// </summary>
+    /// <param name="PeriodType">Period type being validated for the analysis display</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeValidatePeriodType(var PeriodType: Enum "Analysis Period Type")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before opening the page to allow custom initialization.
+    /// Enables modification of G/L account filters and default settings before page display.
+    /// </summary>
+    /// <param name="GLAccount">G/L account record being used as data source</param>
+    /// <param name="IsHandled">Set to true to skip standard page opening logic</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeOpenPage(var GLAccount: Record "G/L Account"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after initializing default filters for balance/budget analysis.
+    /// Enables customization of default dimension and date filters for analysis display.
+    /// </summary>
+    /// <param name="GlobalDim1Filter">Global dimension 1 filter that can be modified</param>
+    /// <param name="GlobalDim2Filter">Global dimension 2 filter that can be modified</param>
+    /// <param name="DateFilter">Date filter expression that can be modified</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterInitDefaultFilters(var GlobalDim1Filter: Text; var GlobalDim2Filter: Text; var DateFilter: Text)
     begin

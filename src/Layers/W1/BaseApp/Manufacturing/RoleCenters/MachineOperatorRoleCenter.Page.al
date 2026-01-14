@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.RoleCenters;
 
 using Microsoft.EServices.EDocument;
 using Microsoft.Foundation.Navigate;
+using Microsoft.Foundation.Task;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Location;
@@ -16,7 +17,6 @@ using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.Reports;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Warehouse.Activity;
-using Microsoft.Foundation.Task;
 using System.Threading;
 
 page 9013 "Machine Operator Role Center"

@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Journal;
 
+/// <summary>
+/// Stores parameters for copying general journal lines between batches with optional data replacement and transformation options.
+/// Supports batch-to-batch copying with configurable field updates including posting dates, document numbers, and reference information.
+/// </summary>
+/// <remarks>
+/// Temporary parameter storage for journal copying operations. Enables bulk journal line replication with customizable field transformations.
+/// Key features: Template and batch selection, posting date replacement, document number updating, reference field modifications.
+/// Integration: Used by copy journal management functions and journal copying user interfaces for parameter passing.
+/// </remarks>
 table 183 "Copy Gen. Journal Parameters"
 {
     Caption = 'Copy Gen. Jnl. Line Parameters';
@@ -11,29 +20,47 @@ table 183 "Copy Gen. Journal Parameters"
 
     fields
     {
+        /// <summary>
+        /// Primary key field for parameter record identification.
+        /// </summary>
         field(1; "Primary Key"; Code[10])
         {
             AllowInCustomizations = Never;
             Caption = 'Primary Key';
         }
+        /// <summary>
+        /// Source journal template name for copying journal lines.
+        /// </summary>
         field(2; "Journal Template Name"; Code[10])
         {
             Caption = 'Journal Template Name';
             TableRelation = "Gen. Journal Template";
         }
+        /// <summary>
+        /// Source journal batch name containing lines to be copied.
+        /// </summary>
         field(3; "Journal Batch Name"; Code[10])
         {
             Caption = 'Journal Batch Name';
             TableRelation = "Gen. Journal Batch".Name where("Journal Template Name" = field("Journal Template Name"));
         }
+        /// <summary>
+        /// Optional replacement posting date to apply to all copied journal lines.
+        /// </summary>
         field(4; "Replace Posting Date"; Date)
         {
             Caption = 'Replace Posting Date';
         }
+        /// <summary>
+        /// Optional replacement document number to apply to copied journal lines.
+        /// </summary>
         field(5; "Replace Document No."; Code[20])
         {
             Caption = 'Replace Document No.';
         }
+        /// <summary>
+        /// Indicates whether to reverse the sign of amounts in copied journal lines.
+        /// </summary>
         field(6; "Reverse Sign"; Boolean)
         {
             Caption = 'Reverse Sign';

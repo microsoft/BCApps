@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.CashFlow.Forecast;
 
-using Microsoft.Service.Document;
 using Microsoft.CashFlow.Setup;
+using Microsoft.Service.Document;
 
 codeunit 891 "Serv. Cash Flow Management"
 {

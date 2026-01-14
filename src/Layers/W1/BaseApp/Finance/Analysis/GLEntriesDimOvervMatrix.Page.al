@@ -9,6 +9,10 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Foundation.Navigate;
 
+/// <summary>
+/// Matrix page displaying G/L entries organized by dimensional overview with configurable column perspectives.
+/// Provides interactive matrix view of G/L entry data filtered by dimensions with drill-down and navigation capabilities.
+/// </summary>
 page 9241 "G/L Entries Dim. Overv. Matrix"
 {
     Caption = 'G/L Entries Dim. Overv. Matrix';
@@ -700,6 +704,13 @@ page 9241 "G/L Entries Dim. Overv. Matrix"
         exit(MatrixRecord.Next(Steps));
     end;
 
+    /// <summary>
+    /// Loads matrix configuration with captions and positioning for dimensional overview display.
+    /// Initializes the matrix page with column captions, set positioning, and length parameters for dimensional analysis.
+    /// </summary>
+    /// <param name="NewMATRIX_Captions">Array of column captions for matrix display</param>
+    /// <param name="PKFirstCaptionInSet">Primary key caption for first column positioning</param>
+    /// <param name="LengthOfCurrSet">Number of active columns in current matrix set</param>
     procedure Load(NewMATRIX_Captions: array[32] of Text[80]; PKFirstCaptionInSet: Text; LengthOfCurrSet: Integer)
     begin
         CopyArray(MATRIX_ColumnCaptions, NewMATRIX_Captions, 1);
@@ -717,6 +728,11 @@ page 9241 "G/L Entries Dim. Overv. Matrix"
         PAGE.RunModal(PAGE::"Dimension Value List", DimVal);
     end;
 
+    /// <summary>
+    /// Configures the matrix to use temporary G/L entry records for analysis.
+    /// Loads a temporary record set for dimensional analysis when working with filtered or processed G/L entries.
+    /// </summary>
+    /// <param name="NewGLEntry">G/L Entry record set to load into temporary table</param>
     procedure SetTempGLEntry(var NewGLEntry: Record "G/L Entry")
     begin
         RunOnTempRec := true;
@@ -728,6 +744,10 @@ page 9241 "G/L Entries Dim. Overv. Matrix"
             until NewGLEntry.Next() = 0;
     end;
 
+    /// <summary>
+    /// Configures visibility of matrix columns based on current set length.
+    /// Controls which matrix field columns are displayed based on the number of active columns in the current dimensional view.
+    /// </summary>
     procedure SetColumnVisibility()
     begin
         Field1Visible := MATRIX_CurrSetLength >= 1;

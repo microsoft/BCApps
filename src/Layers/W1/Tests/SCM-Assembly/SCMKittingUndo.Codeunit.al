@@ -4,30 +4,30 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
-using Microsoft.Inventory.Journal;
-using Microsoft.Inventory.Location;
-using System.TestLibraries.Utilities;
-using Microsoft.Warehouse.Setup;
-using Microsoft.Inventory.Setup;
-using Microsoft.Assembly.Setup;
-using Microsoft.Purchases.Setup;
-using Microsoft.Sales.Setup;
-using Microsoft.Manufacturing.Setup;
-using Microsoft.Warehouse.Structure;
-using Microsoft.Inventory.Item;
 using Microsoft.Assembly.Document;
-using Microsoft.Projects.Resources.Resource;
-using Microsoft.Inventory.BOM;
-using Microsoft.Warehouse.InternalDocument;
 using Microsoft.Assembly.History;
-using Microsoft.Sales.Document;
 using Microsoft.Assembly.Posting;
-using Microsoft.Sales.History;
-using Microsoft.Warehouse.Activity;
-using Microsoft.Warehouse.Request;
-using Microsoft.Warehouse.Ledger;
-using Microsoft.Inventory.Tracking;
+using Microsoft.Assembly.Setup;
+using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Setup;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Manufacturing.Setup;
+using Microsoft.Projects.Resources.Resource;
+using Microsoft.Purchases.Setup;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Setup;
+using Microsoft.Warehouse.Activity;
+using Microsoft.Warehouse.InternalDocument;
+using Microsoft.Warehouse.Ledger;
+using Microsoft.Warehouse.Request;
+using Microsoft.Warehouse.Setup;
+using Microsoft.Warehouse.Structure;
+using System.TestLibraries.Utilities;
 
 codeunit 137097 "SCM Kitting - Undo"
 {

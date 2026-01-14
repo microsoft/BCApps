@@ -1,12 +1,12 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.Warehouse.Structure;
-using Microsoft.Foundation.Comment;
 using Microsoft.Finance.Dimension;
-using Microsoft.FixedAssets.Setup;
 using Microsoft.FixedAssets.Insurance;
+using Microsoft.FixedAssets.Setup;
+using Microsoft.Foundation.Comment;
 using Microsoft.Inventory.Location;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Warehouse.Structure;
 
 permissionset 5107 "Insurance - Edit"
 {

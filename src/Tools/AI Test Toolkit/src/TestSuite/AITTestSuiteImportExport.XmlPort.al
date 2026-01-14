@@ -62,9 +62,92 @@ xmlport 149031 "AIT Test Suite Import/Export"
                 {
                     Occurrence = Required;
                 }
+                fieldattribute(Capability; "AITSuite"."Copilot Capability")
+                {
+                    Occurrence = Optional;
+                }
+                fieldattribute(Frequency; "AITSuite"."Run Frequency")
+                {
+                    Occurrence = Optional;
+                }
                 fieldattribute(TestRunnerId; "AITSuite"."Test Runner Id")
                 {
                     Occurrence = Optional;
+                }
+                fieldattribute(TestType; "AITSuite"."Test Type")
+                {
+                    Occurrence = Optional;
+                }
+                textattribute(ValidationAttr)
+                {
+                    XmlName = 'Validation';
+                    Occurrence = Optional;
+
+                    trigger OnBeforePassVariable()
+                    begin
+                        if AITSuite.Validation then
+                            ValidationAttr := 'true'
+                        else
+                            ValidationAttr := '';
+                    end;
+
+                    trigger OnAfterAssignVariable()
+                    begin
+                        AITSuite.Validation := UpperCase(ValidationAttr) = 'TRUE';
+                    end;
+                }
+                tableelement(AITLanguage; "AIT Test Suite Language")
+                {
+                    LinkFields = "Test Suite Code" = field("Code");
+                    LinkTable = "AITSuite";
+                    MinOccurs = Zero;
+                    XmlName = 'Language';
+
+                    textattribute(Tag)
+                    {
+                        Occurrence = Required;
+
+                        trigger OnBeforePassVariable()
+                        begin
+                            AITLanguage.CalcFields("Language Tag");
+                            Tag := AITLanguage."Language Tag";
+                        end;
+
+                        trigger OnAfterAssignVariable()
+                        var
+                            AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
+                        begin
+                            AITLanguage."Language ID" := AITTestSuiteLanguage.GetLanguageIDByTag(Tag);
+                        end;
+                    }
+                    fieldattribute(Frequency; AITLanguage."Run Frequency")
+                    {
+                        Occurrence = Optional;
+                    }
+                    textattribute(LanguageValidationAttr)
+                    {
+                        XmlName = 'Validation';
+                        Occurrence = Optional;
+
+                        trigger OnBeforePassVariable()
+                        begin
+                            if AITLanguage.Validation then
+                                LanguageValidationAttr := 'True'
+                            else
+                                LanguageValidationAttr := '';
+                        end;
+
+                        trigger OnAfterAssignVariable()
+                        begin
+                            AITLanguage.Validation := UpperCase(LanguageValidationAttr) = 'TRUE';
+                        end;
+                    }
+
+                    trigger OnAfterInitRecord()
+                    begin
+                        if SkipTestSuites.Contains(AITSuite.Code) then
+                            currXMLport.Skip();
+                    end;
                 }
                 tableelement(AITEvaluator; "AIT Evaluator")
                 {

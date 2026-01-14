@@ -35,6 +35,9 @@ codeunit 7000 "Sales Price Calc. Mgt."
         Currency: Record Currency;
         TempSalesPrice: Record "Sales Price" temporary;
         TempSalesLineDisc: Record "Sales Line Discount" temporary;
+#if not CLEAN28
+        ServPriceCalcMgt: Codeunit "Serv. Price Calc. Mgt.";
+#endif
         LineDiscPerCent: Decimal;
         Qty: Decimal;
         AllowLineDisc: Boolean;
@@ -48,14 +51,12 @@ codeunit 7000 "Sales Price Calc. Mgt."
         CurrencyFactor: Decimal;
         ExchRateDate: Date;
         FoundSalesPrice: Boolean;
-        HideResUnitPriceMessage: Boolean;
         DateCaption: Text[30];
 
 #pragma warning disable AA0074
 #pragma warning disable AA0470
         Text000: Label '%1 is less than %2 in the %3.';
         Text010: Label 'Prices including VAT cannot be calculated when %1 is %2.';
-        Text018: Label '%1 %2 is greater than %3 and was adjusted to %4.';
         Text001: Label 'The %1 in the %2 must be same as in the %3.';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
@@ -143,86 +144,13 @@ codeunit 7000 "Sales Price Calc. Mgt."
         OnAfterFindItemJnlLinePrice(ItemJnlLine, TempSalesPrice, CalledByFieldNo, FoundSalesPrice);
     end;
 
+#if not CLEAN28
+    [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     procedure FindServLinePrice(ServHeader: Record Microsoft.Service.Document."Service Header"; var ServLine: Record Microsoft.Service.Document."Service Line"; CalledByFieldNo: Integer)
-    var
-        ServCost: Record Microsoft.Service.Pricing."Service Cost";
-        Res: Record Resource;
-        IsHandled: Boolean;
     begin
-        IsHandled := false;
-        OnBeforeFindServLinePrice(ServLine, ServHeader, CalledByFieldNo, IsHandled);
-        if IsHandled then
-            exit;
-
-        ServHeader.Get(ServLine."Document Type", ServLine."Document No.");
-        if ServLine.Type <> ServLine.Type::" " then begin
-            SetCurrency(
-              ServHeader."Currency Code", ServHeader."Currency Factor", ServHeaderExchDate(ServHeader));
-            SetVAT(ServHeader."Prices Including VAT", ServLine."VAT %", ServLine."VAT Calculation Type".AsInteger(), ServLine."VAT Bus. Posting Group");
-            SetUoM(Abs(ServLine.Quantity), ServLine."Qty. per Unit of Measure");
-            SetLineDisc(ServLine."Line Discount %", ServLine."Allow Line Disc.", false);
-
-            ServLine.TestField("Qty. per Unit of Measure");
-            if PricesInCurrency then
-                ServHeader.TestField("Currency Factor");
-        end;
-
-        case ServLine.Type of
-            ServLine.Type::Item:
-                begin
-                    ServLinePriceExists(ServHeader, ServLine, false);
-                    CalcBestUnitPrice(TempSalesPrice);
-                    if FoundSalesPrice or
-                       not ((CalledByFieldNo = ServLine.FieldNo(Quantity)) or
-                            (CalledByFieldNo = ServLine.FieldNo("Variant Code")))
-                    then begin
-                        if ServLine."Line Discount Type" = ServLine."Line Discount Type"::"Line Disc." then
-                            ServLine."Allow Line Disc." := TempSalesPrice."Allow Line Disc.";
-                        ServLine."Unit Price" := TempSalesPrice."Unit Price";
-                    end;
-                    if not ServLine."Allow Line Disc." and (ServLine."Line Discount Type" = ServLine."Line Discount Type"::"Line Disc.") then
-                        ServLine."Line Discount %" := 0;
-                end;
-            ServLine.Type::Resource:
-                begin
-                    SetResPrice(ServLine."No.", ServLine."Work Type Code", ServLine."Currency Code");
-                    CODEUNIT.Run(CODEUNIT::"Resource-Find Price", ResPrice);
-                    IsHandled := false;
-                    OnAfterFindServLineResPrice(ServLine, ResPrice, HideResUnitPriceMessage, CalledByFieldNo, IsHandled);
-                    if IsHandled then
-                        exit;
-                    ConvertPriceToVAT(false, '', '', ResPrice."Unit Price");
-                    ResPrice."Unit Price" := ResPrice."Unit Price" * ServLine."Qty. per Unit of Measure";
-                    ConvertPriceLCYToFCY(ResPrice."Currency Code", ResPrice."Unit Price");
-                    if (ResPrice."Unit Price" > ServHeader."Max. Labor Unit Price") and
-                       (ServHeader."Max. Labor Unit Price" <> 0)
-                    then begin
-                        Res.Get(ServLine."No.");
-                        ServLine."Unit Price" := ServHeader."Max. Labor Unit Price";
-                        if (HideResUnitPriceMessage = false) and
-                           (CalledByFieldNo <> ServLine.FieldNo(Quantity))
-                        then
-                            Message(
-                              StrSubstNo(
-                                Text018,
-                                Res.TableCaption(), ServLine.FieldCaption("Unit Price"),
-                                ServHeader.FieldCaption("Max. Labor Unit Price"),
-                                ServHeader."Max. Labor Unit Price"));
-                        HideResUnitPriceMessage := true;
-                    end else
-                        ServLine."Unit Price" := ResPrice."Unit Price";
-                end;
-            ServLine.Type::Cost:
-                begin
-                    ServCost.Get(ServLine."No.");
-
-                    ConvertPriceToVAT(false, '', '', ServCost."Default Unit Price");
-                    ConvertPriceLCYToFCY('', ServCost."Default Unit Price");
-                    ServLine."Unit Price" := ServCost."Default Unit Price";
-                end;
-        end;
-        OnAfterFindServLinePrice(ServLine, ServHeader, TempSalesPrice, ResPrice, ServCost, CalledByFieldNo);
+        ServPriceCalcMgt.FindServLinePrice(ServHeader, ServLine, CalledByFieldNo);
     end;
+#endif
 
     procedure FindSalesLineLineDisc(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
     var
@@ -250,40 +178,13 @@ codeunit 7000 "Sales Price Calc. Mgt."
         OnAfterFindSalesLineLineDisc(SalesLine, SalesHeader, TempSalesLineDisc);
     end;
 
+#if not CLEAN28
+    [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     procedure FindServLineDisc(ServHeader: Record Microsoft.Service.Document."Service Header"; var ServLine: Record Microsoft.Service.Document."Service Line")
-    var
-        IsHandled: Boolean;
     begin
-        IsHandled := false;
-        OnBeforeFindServLineDisc(ServHeader, ServLine, IsHandled);
-        if IsHandled then
-            exit;
-
-        SetCurrency(ServHeader."Currency Code", 0, 0D);
-        SetUoM(Abs(ServLine.Quantity), ServLine."Qty. per Unit of Measure");
-
-        ServLine.TestField("Qty. per Unit of Measure");
-
-        if ServLine.Type = ServLine.Type::Item then begin
-            Item.Get(ServLine."No.");
-            FindSalesLineDisc(
-              TempSalesLineDisc, ServLine."Bill-to Customer No.", ServHeader."Contact No.",
-              ServLine."Customer Disc. Group", '', ServLine."No.", Item."Item Disc. Group", ServLine."Variant Code",
-              ServLine."Unit of Measure Code", ServHeader."Currency Code", ServHeader."Order Date", false);
-            CalcBestLineDisc(TempSalesLineDisc);
-            ServLine."Line Discount %" := TempSalesLineDisc."Line Discount %";
-        end;
-        if ServLine.Type in [ServLine.Type::Resource, ServLine.Type::Cost, ServLine.Type::"G/L Account"] then begin
-            ServLine."Line Discount %" := 0;
-            ServLine."Line Discount Amount" :=
-              Round(
-                Round(ServLine.CalcChargeableQty() * ServLine."Unit Price", Currency."Amount Rounding Precision") *
-                ServLine."Line Discount %" / 100, Currency."Amount Rounding Precision");
-            ServLine."Inv. Discount Amount" := 0;
-            ServLine."Inv. Disc. Amount to Invoice" := 0;
-        end;
-        OnAfterFindServLineDisc(ServLine, ServHeader, TempSalesLineDisc);
+        ServPriceCalcMgt.FindServLineDisc(ServHeader, ServLine);
     end;
+#endif
 
     procedure FindStdItemJnlLinePrice(var StdItemJnlLine: Record "Standard Item Journal Line"; CalledByFieldNo: Integer)
     var
@@ -896,111 +797,21 @@ codeunit 7000 "Sales Price Calc. Mgt."
         exit(false);
     end;
 
+#if not CLEAN28
+    [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     procedure GetServLinePrice(ServHeader: Record Microsoft.Service.Document."Service Header"; var ServLine: Record Microsoft.Service.Document."Service Line")
-    var
-        IsHandled: Boolean;
     begin
-        IsHandled := false;
-        OnBeforeGetServLinePrice(ServHeader, ServLine, IsHandled);
-        if IsHandled then
-            exit;
-
-        ServLinePriceExists(ServHeader, ServLine, true);
-
-        if PAGE.RunModal(PAGE::"Get Sales Price", TempSalesPrice) = ACTION::LookupOK then begin
-            SetVAT(
-              ServHeader."Prices Including VAT", ServLine."VAT %", ServLine."VAT Calculation Type".AsInteger(), ServLine."VAT Bus. Posting Group");
-            SetUoM(Abs(ServLine.Quantity), ServLine."Qty. per Unit of Measure");
-            SetCurrency(
-              ServHeader."Currency Code", ServHeader."Currency Factor", ServHeaderExchDate(ServHeader));
-
-            if not IsInMinQty(TempSalesPrice."Unit of Measure Code", TempSalesPrice."Minimum Quantity") then
-                Error(
-                  Text000,
-                  ServLine.FieldCaption(Quantity),
-                  TempSalesPrice.FieldCaption("Minimum Quantity"),
-                  TempSalesPrice.TableCaption());
-            if not (TempSalesPrice."Currency Code" in [ServLine."Currency Code", '']) then
-                Error(
-                  Text001,
-                  ServLine.FieldCaption("Currency Code"),
-                  ServLine.TableCaption,
-                  TempSalesPrice.TableCaption());
-            if not (TempSalesPrice."Unit of Measure Code" in [ServLine."Unit of Measure Code", '']) then
-                Error(
-                  Text001,
-                  ServLine.FieldCaption("Unit of Measure Code"),
-                  ServLine.TableCaption,
-                  TempSalesPrice.TableCaption());
-            if TempSalesPrice."Starting Date" > ServHeaderStartDate(ServHeader, DateCaption) then
-                Error(
-                  Text000,
-                  DateCaption,
-                  TempSalesPrice.FieldCaption("Starting Date"),
-                  TempSalesPrice.TableCaption());
-
-            ConvertPriceToVAT(
-              TempSalesPrice."Price Includes VAT", Item."VAT Prod. Posting Group",
-              TempSalesPrice."VAT Bus. Posting Gr. (Price)", TempSalesPrice."Unit Price");
-            ConvertPriceToUoM(TempSalesPrice."Unit of Measure Code", TempSalesPrice."Unit Price");
-            ConvertPriceLCYToFCY(TempSalesPrice."Currency Code", TempSalesPrice."Unit Price");
-
-            ServLine."Allow Invoice Disc." := TempSalesPrice."Allow Invoice Disc.";
-            ServLine."Allow Line Disc." := TempSalesPrice."Allow Line Disc.";
-            if not ServLine."Allow Line Disc." then
-                ServLine."Line Discount %" := 0;
-
-            ServLine.Validate("Unit Price", TempSalesPrice."Unit Price");
-            ServLine.ConfirmAdjPriceLineChange();
-        end;
+        ServPriceCalcMgt.GetServLinePrice(ServHeader, ServLine);
     end;
+#endif
 
+#if not CLEAN28
+    [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     procedure GetServLineLineDisc(ServHeader: Record Microsoft.Service.Document."Service Header"; var ServLine: Record Microsoft.Service.Document."Service Line")
-    var
-        IsHandled: Boolean;
     begin
-        IsHandled := false;
-        OnBeforeGetServLineDisc(ServHeader, ServLine, IsHandled);
-        if IsHandled then
-            exit;
-
-        ServLineLineDiscExists(ServHeader, ServLine, true);
-
-        if PAGE.RunModal(PAGE::"Get Sales Line Disc.", TempSalesLineDisc) = ACTION::LookupOK then begin
-            SetCurrency(ServHeader."Currency Code", 0, 0D);
-            SetUoM(Abs(ServLine.Quantity), ServLine."Qty. per Unit of Measure");
-
-            if not IsInMinQty(TempSalesLineDisc."Unit of Measure Code", TempSalesLineDisc."Minimum Quantity")
-            then
-                Error(
-                  Text000, ServLine.FieldCaption(Quantity),
-                  TempSalesLineDisc.FieldCaption("Minimum Quantity"),
-                  TempSalesLineDisc.TableCaption());
-            if not (TempSalesLineDisc."Currency Code" in [ServLine."Currency Code", '']) then
-                Error(
-                  Text001,
-                  ServLine.FieldCaption("Currency Code"),
-                  ServLine.TableCaption,
-                  TempSalesLineDisc.TableCaption());
-            if not (TempSalesLineDisc."Unit of Measure Code" in [ServLine."Unit of Measure Code", '']) then
-                Error(
-                  Text001,
-                  ServLine.FieldCaption("Unit of Measure Code"),
-                  ServLine.TableCaption,
-                  TempSalesLineDisc.TableCaption());
-            if TempSalesLineDisc."Starting Date" > ServHeaderStartDate(ServHeader, DateCaption) then
-                Error(
-                  Text000,
-                  DateCaption,
-                  TempSalesLineDisc.FieldCaption("Starting Date"),
-                  TempSalesLineDisc.TableCaption());
-
-            ServLine.TestField("Allow Line Disc.");
-            ServLine.CheckLineDiscount(TempSalesLineDisc."Line Discount %");
-            ServLine.Validate("Line Discount %", TempSalesLineDisc."Line Discount %");
-            ServLine.ConfirmAdjPriceLineChange();
-        end;
+        ServPriceCalcMgt.GetServLineLineDisc(ServHeader, ServLine);
     end;
+#endif
 
     local procedure GetCustNoForSalesHeader(SalesHeader: Record "Sales Header"): Code[20]
     var
@@ -1011,43 +822,25 @@ codeunit 7000 "Sales Price Calc. Mgt."
         exit(CustNo);
     end;
 
+#if not CLEAN28
+    [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     [Scope('OnPrem')]
     procedure ServLinePriceExists(ServHeader: Record Microsoft.Service.Document."Service Header"; var ServLine: Record Microsoft.Service.Document."Service Line"; ShowAll: Boolean): Boolean
     var
         IsHandled: Boolean;
     begin
-        if (ServLine.Type = ServLine.Type::Item) and Item.Get(ServLine."No.") then begin
-            IsHandled := false;
-            OnBeforeServLinePriceExists(ServLine, ServHeader, TempSalesPrice, ShowAll, IsHandled);
-            if not IsHandled then
-                FindSalesPrice(
-                  TempSalesPrice, ServLine."Bill-to Customer No.", ServHeader."Bill-to Contact No.",
-                  ServLine."Customer Price Group", '', ServLine."No.", ServLine."Variant Code", ServLine."Unit of Measure Code",
-                  ServHeader."Currency Code", ServHeaderStartDate(ServHeader, DateCaption), ShowAll);
-            OnAfterServLinePriceExists(ServLine);
-            exit(TempSalesPrice.Find('-'));
-        end;
-        exit(false);
+        exit(ServPriceCalcMgt.ServLinePriceExists(ServHeader, ServLine, ShowAll));
     end;
+#endif
 
+#if not CLEAN28
+    [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     [Scope('OnPrem')]
     procedure ServLineLineDiscExists(ServHeader: Record Microsoft.Service.Document."Service Header"; var ServLine: Record Microsoft.Service.Document."Service Line"; ShowAll: Boolean): Boolean
-    var
-        IsHandled: Boolean;
     begin
-        if (ServLine.Type = ServLine.Type::Item) and Item.Get(ServLine."No.") then begin
-            IsHandled := false;
-            OnBeforeServLineLineDiscExists(ServLine, ServHeader, TempSalesLineDisc, ShowAll, IsHandled);
-            if not IsHandled then
-                FindSalesLineDisc(
-                  TempSalesLineDisc, ServLine."Bill-to Customer No.", ServHeader."Bill-to Contact No.",
-                  ServLine."Customer Disc. Group", '', ServLine."No.", Item."Item Disc. Group", ServLine."Variant Code", ServLine."Unit of Measure Code",
-                  ServHeader."Currency Code", ServHeaderStartDate(ServHeader, DateCaption), ShowAll);
-            OnAfterServLineLineDiscExists(ServLine);
-            exit(TempSalesLineDisc.Find('-'));
-        end;
-        exit(false);
+        exit(ServLineLineDiscExists(ServHeader, ServLine, ShowAll));
     end;
+#endif
 
     procedure ActivatedCampaignExists(var ToCampaignTargetGr: Record "Campaign Target Group"; CustNo: Code[20]; ContNo: Code[20]; CampaignNo: Code[20]): Boolean
     var
@@ -1117,25 +910,21 @@ codeunit 7000 "Sales Price Calc. Mgt."
         end;
     end;
 
+#if not CLEAN28
+    [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     procedure ServHeaderExchDate(ServHeader: Record Microsoft.Service.Document."Service Header"): Date
     begin
-        if (ServHeader."Document Type" = ServHeader."Document Type"::Quote) and
-           (ServHeader."Posting Date" = 0D)
-        then
-            exit(WorkDate());
-        exit(ServHeader."Posting Date");
+        exit(ServPriceCalcMgt.ServHeaderExchDate(ServHeader));
     end;
+#endif
 
+#if not CLEAN28
+    [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     procedure ServHeaderStartDate(ServHeader: Record Microsoft.Service.Document."Service Header"; var DateCaption: Text[30]): Date
     begin
-        if ServHeader."Document Type" in [ServHeader."Document Type"::Invoice, ServHeader."Document Type"::"Credit Memo"] then begin
-            DateCaption := ServHeader.FieldCaption("Posting Date");
-            exit(ServHeader."Posting Date")
-        end else begin
-            DateCaption := ServHeader.FieldCaption("Order Date");
-            exit(ServHeader."Order Date");
-        end;
+        exit(ServPriceCalcMgt.ServHeaderStartDate(ServHeader, DateCaption));
     end;
+#endif
 
     procedure NoOfSalesLinePrice(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; ShowAll: Boolean) Result: Integer
     var
@@ -1163,31 +952,21 @@ codeunit 7000 "Sales Price Calc. Mgt."
             exit(TempSalesLineDisc.Count);
     end;
 
+#if not CLEAN28
+    [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     procedure NoOfServLinePrice(ServHeader: Record Microsoft.Service.Document."Service Header"; var ServLine: Record Microsoft.Service.Document."Service Line"; ShowAll: Boolean) Result: Integer
-    var
-        IsHandled: Boolean;
     begin
-        IsHandled := false;
-        OnBeforeNoOfServLinePrice(ServHeader, ServLine, ShowAll, Result, IsHandled);
-        if IsHandled then
-            exit(Result);
-
-        if ServLinePriceExists(ServHeader, ServLine, ShowAll) then
-            exit(TempSalesPrice.Count);
+        exit(ServPriceCalcMgt.NoOfServLinePrice(ServHeader, ServLine, ShowAll));
     end;
+#endif
 
+#if not CLEAN28
+    [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     procedure NoOfServLineLineDisc(ServHeader: Record Microsoft.Service.Document."Service Header"; var ServLine: Record Microsoft.Service.Document."Service Line"; ShowAll: Boolean) Result: Integer
-    var
-        IsHandled: Boolean;
     begin
-        IsHandled := false;
-        OnBeforeNoOfServLineLineDisc(ServHeader, ServLine, ShowAll, Result, IsHandled);
-        if IsHandled then
-            exit(Result);
-
-        if ServLineLineDiscExists(ServHeader, ServLine, ShowAll) then
-            exit(TempSalesLineDisc.Count);
+        exit(ServPriceCalcMgt.NoOfServLineLineDisc(ServHeader, ServLine, ShowAll));
     end;
+#endif
 
     procedure FindJobPlanningLinePrice(var JobPlanningLine: Record "Job Planning Line"; CalledByFieldNo: Integer)
     var
@@ -1668,15 +1447,36 @@ codeunit 7000 "Sales Price Calc. Mgt."
         ResJournalLine.Validate("Unit Price");
     end;
 
+#if not CLEAN28
+    internal procedure RunOnAfterCalcBestUnitPrice(var SalesPrice: Record "Sales Price"; var BestSalesPrice: Record "Sales Price")
+    begin
+        OnAfterCalcBestUnitPrice(SalesPrice, BestSalesPrice);
+    end;
+#endif
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcBestUnitPrice(var SalesPrice: Record "Sales Price"; var BestSalesPrice: Record "Sales Price")
     begin
     end;
 
+#if not CLEAN28
+    internal procedure RunOnAfterCalcBestUnitPriceAsItemUnitPrice(var SalesPrice: Record "Sales Price"; var Item2: Record Item)
+    begin
+        OnAfterCalcBestUnitPriceAsItemUnitPrice(SalesPrice, Item2);
+    end;
+#endif
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcBestUnitPriceAsItemUnitPrice(var SalesPrice: Record "Sales Price"; var Item: Record Item)
     begin
     end;
+
+#if not CLEAN28
+    internal procedure RunOnAfterCalcLineAmount(SalesPrice: Record "Sales Price"; var LineAmount: Decimal; var LineDiscPerCent: Decimal)
+    begin
+        OnAfterCalcLineAmount(SalesPrice, LineAmount, LineDiscPerCent);
+    end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcLineAmount(SalesPrice: Record "Sales Price"; var LineAmount: Decimal; var LineDiscPerCent: Decimal)
@@ -1728,6 +1528,13 @@ codeunit 7000 "Sales Price Calc. Mgt."
     begin
     end;
 
+#if not CLEAN28
+    internal procedure RunOnAfterFindSalesPrice(var ToSalesPrice: Record "Sales Price"; var FromSalesPrice: Record "Sales Price"; QtyPerUOM: Decimal; Qty: Decimal; CustNo: Code[20]; ContNo: Code[20]; CustPriceGrCode: Code[10]; CampaignNo: Code[20]; ItemNo: Code[20]; VariantCode: Code[10]; UOM: Code[10]; CurrencyCode: Code[10]; StartingDate: Date; ShowAll: Boolean)
+    begin
+        OnAfterFindSalesPrice(ToSalesPrice, FromSalesPrice, QtyPerUOM, Qty, CustNo, ContNo, CustPriceGrCode, CampaignNo, ItemNo, VariantCode, UOM, CurrencyCode, StartingDate, ShowAll);
+    end;
+#endif
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterFindSalesPrice(var ToSalesPrice: Record "Sales Price"; var FromSalesPrice: Record "Sales Price"; QtyPerUOM: Decimal; Qty: Decimal; CustNo: Code[20]; ContNo: Code[20]; CustPriceGrCode: Code[10]; CampaignNo: Code[20]; ItemNo: Code[20]; VariantCode: Code[10]; UOM: Code[10]; CurrencyCode: Code[10]; StartingDate: Date; ShowAll: Boolean)
     begin
@@ -1743,25 +1550,56 @@ codeunit 7000 "Sales Price Calc. Mgt."
     begin
     end;
 
+#if not CLEAN28
+    internal procedure RunOnAfterFindSalesLineDisc(var ToSalesLineDisc: Record "Sales Line Discount"; CustNo: Code[20]; ContNo: Code[20]; CustDiscGrCode: Code[20]; CampaignNo: Code[20]; ItemNo: Code[20]; ItemDiscGrCode: Code[20]; VariantCode: Code[10]; UOM: Code[10]; CurrencyCode: Code[10]; StartingDate: Date; ShowAll: Boolean)
+    begin
+        OnAfterFindSalesLineDisc(ToSalesLineDisc, CustNo, ContNo, CustDiscGrCode, CampaignNo, ItemNo, ItemDiscGrCode, VariantCode, UOM, CurrencyCode, StartingDate, ShowAll);
+    end;
+#endif
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterFindSalesLineDisc(var ToSalesLineDisc: Record "Sales Line Discount"; CustNo: Code[20]; ContNo: Code[20]; CustDiscGrCode: Code[20]; CampaignNo: Code[20]; ItemNo: Code[20]; ItemDiscGrCode: Code[20]; VariantCode: Code[10]; UOM: Code[10]; CurrencyCode: Code[10]; StartingDate: Date; ShowAll: Boolean)
     begin
     end;
 
+#if not CLEAN28
+    internal procedure RunOnAfterFindServLinePrice(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var SalesPrice: Record "Sales Price"; var ResourcePrice: Record "Resource Price"; var ServiceCost: Record Microsoft.Service.Pricing."Service Cost"; CalledByFieldNo: Integer)
+    begin
+        OnAfterFindServLinePrice(ServiceLine, ServiceHeader, SalesPrice, ResourcePrice, ServiceCost, CalledByFieldNo);
+    end;
+
+    [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterFindServLinePrice(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var SalesPrice: Record "Sales Price"; var ResourcePrice: Record "Resource Price"; var ServiceCost: Record Microsoft.Service.Pricing."Service Cost"; CalledByFieldNo: Integer)
     begin
     end;
+#endif
 
+#if not CLEAN28
+    internal procedure RunOnAfterFindServLineResPrice(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var ResPrice: Record "Resource Price"; var HideResUnitPriceMessage: Boolean; CalledByFieldNo: Integer; var IsHandled: Boolean)
+    begin
+        OnAfterFindServLineResPrice(ServiceLine, ResPrice, HideResUnitPriceMessage, CalledByFieldNo, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterFindServLineResPrice(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var ResPrice: Record "Resource Price"; var HideResUnitPriceMessage: Boolean; CalledByFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
+#endif
 
+#if not CLEAN28
+    internal procedure RunOnAfterFindServLineDisc(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var SalesLineDiscount: Record "Sales Line Discount")
+    begin
+        OnAfterFindServLineDisc(ServiceLine, ServiceHeader, SalesLineDiscount);
+    end;
+
+    [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterFindServLineDisc(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var SalesLineDiscount: Record "Sales Line Discount")
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetSalesLinePrice(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempSalesPrice: Record "Sales Price" temporary)
@@ -1813,30 +1651,67 @@ codeunit 7000 "Sales Price Calc. Mgt."
     begin
     end;
 
+#if not CLEAN28
+    internal procedure RunOnAfterServLinePriceExists(var ServiceLine: Record Microsoft.Service.Document."Service Line")
+    begin
+        OnAfterServLinePriceExists(ServiceLine);
+    end;
+
+    [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterServLinePriceExists(var ServiceLine: Record Microsoft.Service.Document."Service Line")
     begin
     end;
+#endif
 
+#if not CLEAN28
+    internal procedure RunOnAfterServLineLineDiscExists(var ServiceLine: Record Microsoft.Service.Document."Service Line")
+    begin
+        OnAfterServLineLineDiscExists(ServiceLine);
+    end;
+
+    [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterServLineLineDiscExists(var ServiceLine: Record Microsoft.Service.Document."Service Line")
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeActivatedCampaignExists(var ToCampaignTargetGr: Record "Campaign Target Group"; CustNo: Code[20]; ContNo: Code[20]; CampaignNo: Code[20]; var IsHandled: Boolean);
     begin
     end;
 
+#if not CLEAN28
+    internal procedure RunOnBeforeCalcBestLineDisc(var SalesLineDisc: Record "Sales Line Discount"; Item2: Record Item; var IsHandled: Boolean; QtyPerUOM2: Decimal; Qty2: Decimal);
+    begin
+        OnBeforeCalcBestLineDisc(SalesLineDisc, Item2, IsHandled, QtyPerUOM2, Qty2);
+    end;
+#endif
+
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcBestLineDisc(var SalesLineDisc: Record "Sales Line Discount"; Item: Record Item; var IsHandled: Boolean; QtyPerUOM: Decimal; Qty: Decimal);
     begin
     end;
 
+#if not CLEAN28
+    internal procedure RunOnBeforeCalcBestUnitPrice(var SalesPrice: Record "Sales Price"; var IsHandled: Boolean)
+    begin
+        OnBeforeCalcBestUnitPrice(SalesPrice, IsHandled);
+    end;
+#endif
+
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcBestUnitPrice(var SalesPrice: Record "Sales Price"; var IsHandled: Boolean)
     begin
     end;
+
+#if not CLEAN28
+    internal procedure RunOnBeforeConvertPriceToVAT(var VATPostingSetup: Record "VAT Posting Setup"; var UnitPrice: Decimal; var IsHandled: Boolean)
+    begin
+        OnBeforeConvertPriceToVAT(VATPostingSetup, UnitPrice, IsHandled);
+    end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeConvertPriceToVAT(var VATPostingSetup: Record "VAT Posting Setup"; var UnitPrice: Decimal; var IsHandled: Boolean)
@@ -1853,11 +1728,17 @@ codeunit 7000 "Sales Price Calc. Mgt."
     begin
     end;
 
+#if not CLEAN28
+    internal procedure RunOnBeforeCopySalesPriceToSalesPrice(var FromSalesPrice: Record "Sales Price"; var ToSalesPrice: Record "Sales Price"; var IsHandled: Boolean)
+    begin
+        OnBeforeCopySalesPriceToSalesPrice(FromSalesPrice, ToSalesPrice, IsHandled);
+    end;
+#endif
+
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCopySalesPriceToSalesPrice(var FromSalesPrice: Record "Sales Price"; var ToSalesPrice: Record "Sales Price"; var IsHandled: Boolean)
     begin
     end;
-
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFindAnalysisReportPrice(ItemNo: Code[20]; Date: Date; var UnitPrice: Decimal; var IsHandled: Boolean; var FoundSalesPrice: Boolean)
@@ -1884,6 +1765,13 @@ codeunit 7000 "Sales Price Calc. Mgt."
     begin
     end;
 
+#if not CLEAN28
+    internal procedure RunOnBeforeFindSalesPrice(var ToSalesPrice: Record "Sales Price"; var FromSalesPrice: Record "Sales Price"; var QtyPerUOM: Decimal; var Qty: Decimal; var CustNo: Code[20]; var ContNo: Code[20]; var CustPriceGrCode: Code[10]; var CampaignNo: Code[20]; var ItemNo: Code[20]; var VariantCode: Code[10]; var UOM: Code[10]; var CurrencyCode: Code[10]; var StartingDate: Date; var ShowAll: Boolean)
+    begin
+        OnBeforeFindSalesPrice(ToSalesPrice, FromSalesPrice, QtyPerUOM, Qty, CustNo, ContNo, CustPriceGrCode, CampaignNo, ItemNo, VariantCode, UOM, CurrencyCode, StartingDate, ShowAll);
+    end;
+#endif
+
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFindSalesPrice(var ToSalesPrice: Record "Sales Price"; var FromSalesPrice: Record "Sales Price"; var QtyPerUOM: Decimal; var Qty: Decimal; var CustNo: Code[20]; var ContNo: Code[20]; var CustPriceGrCode: Code[10]; var CampaignNo: Code[20]; var ItemNo: Code[20]; var VariantCode: Code[10]; var UOM: Code[10]; var CurrencyCode: Code[10]; var StartingDate: Date; var ShowAll: Boolean)
     begin
@@ -1893,6 +1781,13 @@ codeunit 7000 "Sales Price Calc. Mgt."
     local procedure OnBeforeFindSalesLinePrice(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; CalledByFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
+
+#if not CLEAN28
+    internal procedure RunOnBeforeFindSalesLineDisc(var ToSalesLineDisc: Record "Sales Line Discount"; var CustNo: Code[20]; ContNo: Code[20]; var CustDiscGrCode: Code[20]; var CampaignNo: Code[20]; var ItemNo: Code[20]; var ItemDiscGrCode: Code[20]; var VariantCode: Code[10]; var UOM: Code[10]; var CurrencyCode: Code[10]; var StartingDate: Date; var ShowAll: Boolean)
+    begin
+        OnBeforeFindSalesLineDisc(ToSalesLineDisc, CustNo, ContNo, CustDiscGrCode, CampaignNo, ItemNo, ItemDiscGrCode, VariantCode, UOM, CurrencyCode, StartingDate, ShowAll);
+    end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFindSalesLineDisc(var ToSalesLineDisc: Record "Sales Line Discount"; var CustNo: Code[20]; ContNo: Code[20]; var CustDiscGrCode: Code[20]; var CampaignNo: Code[20]; var ItemNo: Code[20]; var ItemDiscGrCode: Code[20]; var VariantCode: Code[10]; var UOM: Code[10]; var CurrencyCode: Code[10]; var StartingDate: Date; var ShowAll: Boolean)
@@ -1904,15 +1799,31 @@ codeunit 7000 "Sales Price Calc. Mgt."
     begin
     end;
 
+#if not CLEAN28
+    internal procedure RunOnBeforeFindServLinePrice(var ServiceLine: Record Microsoft.Service.Document."Service Line"; ServiceHeader: Record Microsoft.Service.Document."Service Header"; CalledByFieldNo: Integer; var IsHandled: Boolean)
+    begin
+        OnBeforeFindServLinePrice(ServiceLine, ServiceHeader, CalledByFieldNo, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFindServLinePrice(var ServiceLine: Record Microsoft.Service.Document."Service Line"; ServiceHeader: Record Microsoft.Service.Document."Service Header"; CalledByFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
+#endif
 
+#if not CLEAN28
+    internal procedure RunOnBeforeFindServLineDisc(var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var ServiceLine: Record Microsoft.Service.Document."Service Line"; var IsHandled: Boolean)
+    begin
+        OnBeforeFindServLineDisc(ServiceHeader, ServiceLine, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFindServLineDisc(var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var ServiceLine: Record Microsoft.Service.Document."Service Line"; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFindStdItemJnlLinePrice(var StandardItemJournalLine: Record "Standard Item Journal Line"; CalledByFieldNo: Integer; var IsHandled: Boolean)
@@ -1929,15 +1840,31 @@ codeunit 7000 "Sales Price Calc. Mgt."
     begin
     end;
 
+#if not CLEAN28
+    internal procedure RunOnBeforeGetServLinePrice(ServHeader: Record Microsoft.Service.Document."Service Header"; var ServLine: Record Microsoft.Service.Document."Service Line"; var IsHandled: Boolean)
+    begin
+        OnBeforeGetServLinePrice(ServHeader, ServLine, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetServLinePrice(ServHeader: Record Microsoft.Service.Document."Service Header"; var ServLine: Record Microsoft.Service.Document."Service Line"; var IsHandled: Boolean)
     begin
     end;
+#endif
 
+#if not CLEAN28
+    internal procedure RunOnBeforeGetServLineDisc(var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var ServiceLine: Record Microsoft.Service.Document."Service Line"; var IsHandled: Boolean)
+    begin
+        OnBeforeGetServLineDisc(ServiceHeader, ServiceLine, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetServLineDisc(var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var ServiceLine: Record Microsoft.Service.Document."Service Line"; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeJobJnlLineLineDiscExists(var JobJournalLine: Record "Job Journal Line")
@@ -1969,15 +1896,31 @@ codeunit 7000 "Sales Price Calc. Mgt."
     begin
     end;
 
+#if not CLEAN28
+    internal procedure RunOnBeforeNoOfServLineLineDisc(var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var ServiceLine: Record Microsoft.Service.Document."Service Line"; ShowAll: Boolean; var Result: Integer; var IsHandled: Boolean)
+    begin
+        OnBeforeNoOfServLineLineDisc(ServiceHeader, ServiceLine, ShowAll, Result, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeNoOfServLineLineDisc(var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var ServiceLine: Record Microsoft.Service.Document."Service Line"; ShowAll: Boolean; var Result: Integer; var IsHandled: Boolean)
     begin
     end;
+#endif
 
+#if not CLEAN28
+    internal procedure RunOnBeforeNoOfServLinePrice(var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var ServiceLine: Record Microsoft.Service.Document."Service Line"; ShowAll: Boolean; var Result: Integer; var IsHandled: Boolean)
+    begin
+        OnBeforeNoOfServLinePrice(ServiceHeader, ServiceLine, ShowAll, Result, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeNoOfServLinePrice(var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var ServiceLine: Record Microsoft.Service.Document."Service Line"; ShowAll: Boolean; var Result: Integer; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSalesLineLineDiscExists(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var TempSalesLineDisc: Record "Sales Line Discount" temporary; StartingDate: Date; Qty: Decimal; QtyPerUOM: Decimal; ShowAll: Boolean; var IsHandled: Boolean)
@@ -1994,15 +1937,31 @@ codeunit 7000 "Sales Price Calc. Mgt."
     begin
     end;
 
+#if not CLEAN28
+    internal procedure RunOnBeforeServLinePriceExists(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var TempSalesPrice: Record "Sales Price" temporary; ShowAll: Boolean; var IsHandled: Boolean)
+    begin
+        OnBeforeServLinePriceExists(ServiceLine, ServiceHeader, TempSalesPrice, ShowAll, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeServLinePriceExists(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var TempSalesPrice: Record "Sales Price" temporary; ShowAll: Boolean; var IsHandled: Boolean)
     begin
     end;
+#endif
 
+#if not CLEAN28
+    internal procedure RunOnBeforeServLineLineDiscExists(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var TempSalesLineDisc: Record "Sales Line Discount" temporary; ShowAll: Boolean; var IsHandled: Boolean)
+    begin
+        OnBeforeServLineLineDiscExists(ServiceLine, ServiceHeader, TempSalesLineDisc, ShowAll, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit ServPriceCalcMgt', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeServLineLineDiscExists(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var TempSalesLineDisc: Record "Sales Line Discount" temporary; ShowAll: Boolean; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnGetCustNoForSalesHeader(var SalesHeader: Record "Sales Header"; var CustomerNo: Code[20])
@@ -2018,6 +1977,13 @@ codeunit 7000 "Sales Price Calc. Mgt."
     local procedure OnFindJobJnlLinePriceOnBeforeResourceGetJob(var JobJnlLine: Record "Job Journal Line"; var IsHandled: Boolean)
     begin
     end;
+
+#if not CLEAN28
+    internal procedure RunOnFindSalesLineDiscOnAfterSetFilters(var SalesLineDiscount: Record "Sales Line Discount")
+    begin
+        OnFindSalesLineDiscOnAfterSetFilters(SalesLineDiscount);
+    end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnFindSalesLineDiscOnAfterSetFilters(var SalesLineDiscount: Record "Sales Line Discount")
@@ -2069,15 +2035,36 @@ codeunit 7000 "Sales Price Calc. Mgt."
     begin
     end;
 
+#if not CLEAN28
+    internal procedure RunOnBeforeCalcBestUnitPriceConvertPrice(var SalesPrice: Record "Sales Price"; var IsHandled: Boolean; Item: Record "Item")
+    begin
+        OnBeforeCalcBestUnitPriceConvertPrice(SalesPrice, IsHandled, Item);
+    end;
+#endif
+
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCalcBestUnitPriceConvertPrice(var SalesPrice: Record "Sales Price"; var IsHandled: Boolean; Item: Record "Item")
     begin
     end;
 
+#if not CLEAN28
+    internal procedure RunOnCalcBestUnitPriceOnBeforeCalcBestUnitPriceConvertPrice(var SalesPrice: Record "Sales Price"; Qty: Decimal; var IsHandled: Boolean; var Item: Record Item)
+    begin
+        OnCalcBestUnitPriceOnBeforeCalcBestUnitPriceConvertPrice(SalesPrice, Qty, IsHandled, Item);
+    end;
+#endif
+
     [IntegrationEvent(false, false)]
     local procedure OnCalcBestUnitPriceOnBeforeCalcBestUnitPriceConvertPrice(var SalesPrice: Record "Sales Price"; Qty: Decimal; var IsHandled: Boolean; var Item: Record Item)
     begin
     end;
+
+#if not CLEAN28
+    internal procedure RunOnSetResPriceOnAfterInit(var ResourcePrice: Record "Resource Price")
+    begin
+        OnSetResPriceOnAfterInit(ResourcePrice);
+    end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnSetResPriceOnAfterInit(var ResourcePrice: Record "Resource Price")

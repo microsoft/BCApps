@@ -5,8 +5,8 @@
 namespace Microsoft.Inventory.Journal;
 
 using Microsoft.Assembly.Document;
-using Microsoft.Inventory.Ledger;
 using Microsoft.Assembly.History;
+using Microsoft.Inventory.Ledger;
 
 tableextension 907 "Asm. Item Journal Line" extends "Item Journal Line"
 {

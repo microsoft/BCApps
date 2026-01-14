@@ -8,6 +8,15 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Foundation.Period;
 using System.Environment;
 
+/// <summary>
+/// Updates account schedule KPI buffer data for web service consumption and external reporting.
+/// Manages data refresh operations, period calculations, and KPI buffer population for published web services.
+/// </summary>
+/// <remarks>
+/// Automated data update codeunit for KPI web service functionality. Handles period-based data collection,
+/// account schedule calculations, and buffer table maintenance for real-time KPI exposure through web services.
+/// Integrates with G/L entries and budget data for comprehensive financial KPI reporting.
+/// </remarks>
 codeunit 197 "Update Acc. Sched. KPI Data"
 {
     Permissions = TableData "Acc. Sched. KPI Web Srv. Setup" = rim,
@@ -211,11 +220,24 @@ codeunit 197 "Update Acc. Sched. KPI Data"
         AccSchedKPIBuffer.Insert();
     end;
 
+    /// <summary>
+    /// Integration event raised after calculating values during KPI data update process.
+    /// Enables custom modification of calculated values before final buffer insertion.
+    /// </summary>
+    /// <param name="TempAccScheduleLine">Temporary account schedule line being processed</param>
+    /// <param name="TempColumnLayout">Temporary column layout being processed</param>
+    /// <param name="CalculatedValue">Calculated value that can be modified</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcValuesOnAfterCalculateValue(var TempAccScheduleLine: Record "Acc. Schedule Line" temporary; var TempColumnLayout: Record "Column Layout" temporary; var CalculatedValue: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting temporary account schedule lines during setup data initialization.
+    /// Enables custom modifications to account schedule line setup and line counting logic.
+    /// </summary>
+    /// <param name="TempAccScheduleLine">Temporary account schedule line that was inserted</param>
+    /// <param name="NoOfLines">Number of lines processed, can be modified</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitSetupDataAnAfterTempAccScheduleLineInsert(var TempAccScheduleLine: Record "Acc. Schedule Line" temporary; var NoOfLines: Integer)
     begin

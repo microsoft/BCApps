@@ -285,15 +285,6 @@ codeunit 5703 "Catalog Item Management"
         DelNonStockItem(NewItem);
     end;
 
-#if not CLEAN25 
-    [Obsolete('Moved to codeunit Serv. Catalog Item Mgt.', '25.0')]
-    procedure DelNonStockFSM(var ServInvLine2: Record Microsoft.Service.Document."Service Line")
-    var
-        ServCatalogItemMgt: Codeunit "Serv. Catalog Item Mgt.";
-    begin
-        ServCatalogItemMgt.DelNonStockFSM(ServInvLine2);
-    end;
-#endif
 
     procedure DelNonStockSalesArch(var SalesLineArchive2: Record "Sales Line Archive")
     var
@@ -312,15 +303,6 @@ codeunit 5703 "Catalog Item Management"
         end;
     end;
 
-#if not CLEAN25 
-    [Obsolete('Moved to codeunit Serv. Catalog Item Mgt.', '25.0')]
-    procedure NonStockFSM(var ServiceLine: Record Microsoft.Service.Document."Service Line")
-    var
-        ServCatalogItemMgt: Codeunit "Serv. Catalog Item Mgt.";
-    begin
-        ServCatalogItemMgt.NonStockFSM(ServiceLine);
-    end;
-#endif
 
     procedure CreateItemFromNonstock(Nonstock2: Record "Nonstock Item")
     begin
@@ -785,31 +767,7 @@ codeunit 5703 "Catalog Item Management"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnNonStockFSMOnAfterCreateNewItem(var NewItem: Record Item)
-    begin
-        OnNonStockFSMOnAfterCreateNewItem(NewItem);
-    end;
 
-    [Obsolete('Moved to codeunit Serv. Catalog Item Mgt.', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnNonStockFSMOnAfterCreateNewItem(var NewItem: Record Item)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnNonStockFSMOnBeforeInsertItemUnitOfMeasure(var NonStockItem: Record "Nonstock Item")
-    begin
-        OnNonStockFSMOnBeforeInsertItemUnitOfMeasure(NonStockItem);
-    end;
-
-    [Obsolete('Moved to codeunit Serv. Catalog Item Mgt.', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnNonStockFSMOnBeforeInsertItemUnitOfMeasure(var NonStockItem: Record "Nonstock Item")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterNonstockItemCrossRef(var NonStock2: Record "Nonstock Item")
@@ -851,31 +809,7 @@ codeunit 5703 "Catalog Item Management"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnNonStockFSMOnBeforeProgWindowOpen(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var IsHandled: Boolean)
-    begin
-        OnNonStockFSMOnBeforeProgWindowOpen(ServiceLine, IsHandled);
-    end;
 
-    [Obsolete('Moved to codeunit Serv. Catalog Item Mgt.', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnNonStockFSMOnBeforeProgWindowOpen(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnBeforeDelNonStockFSM(var ServiceLine2: Record Microsoft.Service.Document."Service Line"; var IsHandled: Boolean)
-    begin
-        OnBeforeDelNonStockFSM(ServiceLine2, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit Serv. Catalog Item Mgt.', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeDelNonStockFSM(var ServiceLine2: Record Microsoft.Service.Document."Service Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDelNonStockSalesArch(var SalesLineArchive2: Record "Sales Line Archive"; var IsHandled: Boolean)
@@ -887,18 +821,6 @@ codeunit 5703 "Catalog Item Management"
     begin
     end;
 
-#if not CLEAN25 
-    internal procedure RunOnNonStockFSMOnBeforeProgWindowClose(var IsHandled: Boolean; ServiceLine2: Record Microsoft.Service.Document."Service Line")
-    begin
-        OnNonStockFSMOnBeforeProgWindowClose(IsHandled, ServiceLine2);
-    end;
-
-    [Obsolete('Moved to codeunit Serv. Catalog Item Mgt.', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnNonStockFSMOnBeforeProgWindowClose(var IsHandled: Boolean; ServiceLine2: Record Microsoft.Service.Document."Service Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnCreateNewItemOnBeforeItemModify(var Item: Record Item; NonstockItem: Record "Nonstock Item")

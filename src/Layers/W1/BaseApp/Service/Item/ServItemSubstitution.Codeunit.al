@@ -8,8 +8,8 @@ using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Enums;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Item.Substitution;
 using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Inventory.Item.Substitution;
 using Microsoft.Service.Document;
 
 codeunit 6474 "Serv. Item Substitution"

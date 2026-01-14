@@ -4,6 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Read-only list page displaying available dimensions for selection and lookup operations.
+/// Provides dimension code and name display with multi-language support for dimension names.
+/// </summary>
+/// <remarks>
+/// Used as lookup page for dimension selection across the application.
+/// Integrates with dimension setup and multi-language functionality.
+/// </remarks>
 page 548 "Dimension List"
 {
     Caption = 'Dimension List';

@@ -4,6 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Journal;
 
+/// <summary>
+/// Provides interface for managing standard general journal templates including header information and line definitions.
+/// Enables users to configure reusable journal patterns with predefined account assignments and posting parameters.
+/// </summary>
+/// <remarks>
+/// Standard journal template management interface combining header information with line details in a single view.
+/// Supports creation and maintenance of reusable journal templates for common business transaction patterns.
+/// Key features: Template code and description management, line detail configuration, template reuse workflows.
+/// Integration: Works with standard journal creation processes and journal line generation from templates.
+/// </remarks>
 page 751 "Standard General Journal"
 {
     Caption = 'Standard General Journal';

@@ -7,6 +7,15 @@ namespace Microsoft.Intercompany.Outbox;
 using Microsoft.Intercompany.Dimension;
 using Microsoft.Intercompany.Setup;
 
+/// <summary>
+/// XML import/export port for intercompany outbox transaction data exchange.
+/// Handles serialization and deserialization of intercompany transactions for transmission between partner companies.
+/// </summary>
+/// <remarks>
+/// Core XML processing component for intercompany data exchange. Supports journal lines, sales documents, purchase documents, and dimensions.
+/// Key workflows: Export outbox transactions to XML format, import transaction responses from partners.
+/// Extensible via customization of XML schema elements and data mapping logic.
+/// </remarks>
 xmlport 12 "IC Outbox Imp/Exp"
 {
     Caption = 'IC Outbox Imp/Exp';
@@ -630,6 +639,11 @@ xmlport 12 "IC Outbox Imp/Exp"
         ICSetup: Record "IC Setup";
         ToICPartnerCode2: Code[20];
 
+    /// <summary>
+    /// Sets up the XmlPort for export by copying outbox transaction data to internal tables.
+    /// Prepares all related transaction data including journal lines, sales documents, purchase documents, and dimensions.
+    /// </summary>
+    /// <param name="NewICOutboxTrans">IC Outbox Transaction records to prepare for export</param>
     procedure SetICOutboxTrans(var NewICOutboxTrans: Record "IC Outbox Transaction")
     var
         NewICOutBoxJnlLine: Record "IC Outbox Jnl. Line";
@@ -743,6 +757,10 @@ xmlport 12 "IC Outbox Imp/Exp"
             until NewICDocDim.Next() = 0;
     end;
 
+    /// <summary>
+    /// Retrieves all IC outbox transaction records and inserts them into the provided record variable.
+    /// </summary>
+    /// <param name="NewICOutboxTrans">Record variable to receive the IC outbox transaction data</param>
     procedure GetICOutboxTrans(var NewICOutboxTrans: Record "IC Outbox Transaction")
     begin
         ICOutboxTrans.Reset();
@@ -753,6 +771,10 @@ xmlport 12 "IC Outbox Imp/Exp"
             until ICOutboxTrans.Next() = 0;
     end;
 
+    /// <summary>
+    /// Retrieves all IC outbox journal line records and inserts them into the provided record variable.
+    /// </summary>
+    /// <param name="NewICOutBoxJnlLine">Record variable to receive the IC outbox journal line data</param>
     procedure GetICOutBoxJnlLine(var NewICOutBoxJnlLine: Record "IC Outbox Jnl. Line")
     begin
         ICOutBoxJnlLine.Reset();
@@ -763,6 +785,10 @@ xmlport 12 "IC Outbox Imp/Exp"
             until ICOutBoxJnlLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Retrieves all IC inbox/outbox journal line dimension records and inserts them into the provided record variable.
+    /// </summary>
+    /// <param name="NewICIOBoxJnlDim">Record variable to receive the IC journal line dimension data</param>
     procedure GetICIOBoxJnlDim(var NewICIOBoxJnlDim: Record "IC Inbox/Outbox Jnl. Line Dim.")
     begin
         ICIOBoxJnlDim.Reset();
@@ -773,6 +799,10 @@ xmlport 12 "IC Outbox Imp/Exp"
             until ICIOBoxJnlDim.Next() = 0;
     end;
 
+    /// <summary>
+    /// Retrieves all IC outbox sales header records and inserts them into the provided record variable.
+    /// </summary>
+    /// <param name="NewICOutBoxSalesHdr">Record variable to receive the IC outbox sales header data</param>
     procedure GetICOutBoxSalesHdr(var NewICOutBoxSalesHdr: Record "IC Outbox Sales Header")
     begin
         ICOutBoxSalesHdr.Reset();
@@ -783,6 +813,10 @@ xmlport 12 "IC Outbox Imp/Exp"
             until ICOutBoxSalesHdr.Next() = 0;
     end;
 
+    /// <summary>
+    /// Retrieves all IC outbox sales line records and inserts them into the provided record variable.
+    /// </summary>
+    /// <param name="NewICOutBoxSalesLine">Record variable to receive the IC outbox sales line data</param>
     procedure GetICOutBoxSalesLine(var NewICOutBoxSalesLine: Record "IC Outbox Sales Line")
     begin
         ICOutBoxSalesLine.Reset();
@@ -793,6 +827,10 @@ xmlport 12 "IC Outbox Imp/Exp"
             until ICOutBoxSalesLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Retrieves all IC outbox purchase header records and inserts them into the provided record variable.
+    /// </summary>
+    /// <param name="NewICOutBoxPurchHdr">Record variable to receive the IC outbox purchase header data</param>
     procedure GetICOutBoxPurchHdr(var NewICOutBoxPurchHdr: Record "IC Outbox Purchase Header")
     begin
         ICOutBoxPurchHdr.Reset();
@@ -803,6 +841,10 @@ xmlport 12 "IC Outbox Imp/Exp"
             until ICOutBoxPurchHdr.Next() = 0;
     end;
 
+    /// <summary>
+    /// Retrieves all IC outbox purchase line records and inserts them into the provided record variable.
+    /// </summary>
+    /// <param name="NewICOutBoxPurchLine">Record variable to receive the IC outbox purchase line data</param>
     procedure GetICOutBoxPurchLine(var NewICOutBoxPurchLine: Record "IC Outbox Purchase Line")
     begin
         ICOutBoxPurchLine.Reset();
@@ -813,35 +855,59 @@ xmlport 12 "IC Outbox Imp/Exp"
             until ICOutBoxPurchLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Retrieves IC sales document dimension records and transfers them to the provided record variable.
+    /// </summary>
+    /// <param name="NewICDocDim">Record variable to receive the IC sales document dimension data</param>
     procedure GetICSalesDocDim(var NewICDocDim: Record "IC Document Dimension")
     begin
         ICSalesDocDim.Reset();
         SetICDocDim(ICSalesDocDim, NewICDocDim);
     end;
 
+    /// <summary>
+    /// Retrieves IC sales document line dimension records and transfers them to the provided record variable.
+    /// </summary>
+    /// <param name="NewICDocDim">Record variable to receive the IC sales document line dimension data</param>
     procedure GetICSalesDocLineDim(var NewICDocDim: Record "IC Document Dimension")
     begin
         ICSalesDocLineDim.Reset();
         SetICDocDim(ICSalesDocLineDim, NewICDocDim);
     end;
 
+    /// <summary>
+    /// Retrieves IC purchase document dimension records and transfers them to the provided record variable.
+    /// </summary>
+    /// <param name="NewICDocDim">Record variable to receive the IC purchase document dimension data</param>
     procedure GetICPurchDocDim(var NewICDocDim: Record "IC Document Dimension")
     begin
         ICPurDocDim.Reset();
         SetICDocDim(ICPurDocDim, NewICDocDim);
     end;
 
+    /// <summary>
+    /// Retrieves IC purchase document line dimension records and transfers them to the provided record variable.
+    /// </summary>
+    /// <param name="NewICDocDim">Record variable to receive the IC purchase document line dimension data</param>
     procedure GetICPurchDocLineDim(var NewICDocDim: Record "IC Document Dimension")
     begin
         ICPurDocLineDim.Reset();
         SetICDocDim(ICPurDocLineDim, NewICDocDim);
     end;
 
+    /// <summary>
+    /// Returns the source IC partner code for the import/export operation.
+    /// </summary>
+    /// <returns>IC partner code from which data is being imported</returns>
     procedure GetFromICPartnerCode(): Code[20]
     begin
         exit(FromICPartnerCode);
     end;
 
+    /// <summary>
+    /// Returns the destination IC partner code for the import/export operation.
+    /// </summary>
+    /// <returns>IC partner code to which data is being exported</returns>
     procedure GetToICPartnerCode(): Code[20]
     begin
         exit(ToICPartnerCode2);

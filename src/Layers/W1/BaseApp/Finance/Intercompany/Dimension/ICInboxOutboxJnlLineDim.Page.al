@@ -6,6 +6,10 @@ namespace Microsoft.Intercompany.Dimension;
 
 using System.Globalization;
 
+/// <summary>
+/// Displays and manages dimension information for intercompany inbox/outbox journal lines.
+/// Provides dimension code and value viewing for intercompany journal line transactions.
+/// </summary>
 page 619 "IC Inbox/Outbox Jnl. Line Dim."
 {
     Caption = 'Intercompany Inbox/Outbox Jnl. Line Dim.';

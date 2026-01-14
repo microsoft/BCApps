@@ -6,6 +6,10 @@ namespace Microsoft.Bank.Reconciliation;
 
 using System.Telemetry;
 
+/// <summary>
+/// Journal overview page for payment reconciliation workflow.
+/// Displays reconciliation summary and provides access to detailed reconciliation processes.
+/// </summary>
 page 1291 "Pmt. Recon. Journal Overview"
 {
     Caption = 'Payment Reconciliation Journal Overview';

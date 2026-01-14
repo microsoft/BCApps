@@ -6,6 +6,10 @@ namespace Microsoft.Finance.Dimension;
 
 using System.Threading;
 
+/// <summary>
+/// Handles error recovery and logging for the Change Global Dimensions process.
+/// Manages incomplete change operations by resetting session information and logging errors for later retry attempts.
+/// </summary>
 codeunit 485 "Change Global Dim Err. Handler"
 {
     TableNo = "Change Global Dim. Log Entry";

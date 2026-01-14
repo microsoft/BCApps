@@ -5,8 +5,8 @@
 namespace Microsoft.Sales.Customer;
 
 using Microsoft.Foundation.Reporting;
-Using System.Utilities;
 using System.Environment;
+Using System.Utilities;
 
 codeunit 8812 "Customer Statement Subscr"
 {

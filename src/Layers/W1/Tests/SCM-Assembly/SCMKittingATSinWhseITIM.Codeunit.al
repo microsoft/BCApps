@@ -4,25 +4,25 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
-using Microsoft.Inventory.Location;
-using Microsoft.Inventory.Item;
-using System.Environment.Configuration;
-using Microsoft.Warehouse.Setup;
-using Microsoft.Sales.Setup;
-using Microsoft.Purchases.Setup;
-using Microsoft.Assembly.Setup;
-using Microsoft.Warehouse.Ledger;
 using Microsoft.Assembly.Document;
+using Microsoft.Assembly.Setup;
 using Microsoft.Foundation.AuditCodes;
-using Microsoft.Warehouse.Structure;
-using Microsoft.Warehouse.InventoryDocument;
-using Microsoft.Warehouse.Request;
-using Microsoft.Warehouse.Activity;
-using Microsoft.Purchases.Document;
-using Microsoft.Inventory.Tracking;
-using Microsoft.Warehouse.Document;
-using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Setup;
+using Microsoft.Sales.Setup;
+using Microsoft.Warehouse.Activity;
+using Microsoft.Warehouse.Document;
+using Microsoft.Warehouse.InventoryDocument;
+using Microsoft.Warehouse.Ledger;
+using Microsoft.Warehouse.Request;
+using Microsoft.Warehouse.Setup;
+using Microsoft.Warehouse.Structure;
+using System.Environment.Configuration;
 
 codeunit 137105 "SCM Kitting ATS in Whse/IT IM"
 {

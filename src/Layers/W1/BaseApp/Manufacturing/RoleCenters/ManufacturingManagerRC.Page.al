@@ -259,17 +259,6 @@ page 8903 "Manufacturing Manager RC"
                         Caption = 'Assembly Orders';
                         RunObject = page "Assembly Orders";
                     }
-#if not CLEAN25
-                    action("Orders2")
-                    {
-                        ApplicationArea = Service;
-                        Caption = 'Service Orders';
-                        RunObject = page Microsoft.Service.Document."Service Orders";
-                        ObsoleteReason = 'Moving Service Management to separate extension';
-                        ObsoleteState = Pending;
-                        ObsoleteTag = '25.0';
-                    }
-#endif
                 }
                 group("Group9")
                 {

@@ -1,3 +1,6 @@
+/// <summary>
+/// Provides utility functions for creating and managing configuration templates in test scenarios.
+/// </summary>
 codeunit 132210 "Library - Templates"
 {
     EventSubscriberInstance = Manual;

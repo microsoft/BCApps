@@ -24,12 +24,12 @@ using Microsoft.Intercompany.Partner;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
+using Microsoft.Pricing.Calculation;
+using Microsoft.Pricing.PriceList;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Pricing;
 using Microsoft.Sales.Reminder;
-using Microsoft.Pricing.Calculation;
-using Microsoft.Pricing.PriceList;
 using System.Globalization;
 
 table 1381 "Customer Templ."

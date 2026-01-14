@@ -30,6 +30,7 @@ codeunit 392 "Reminder-Make"
         GlobalReminderEntry: Record "Reminder/Fin. Charge Entry";
         TempCustLedgerEntryOnHold: Record "Cust. Ledger Entry" temporary;
         GlobalCustLedgEntryLineFeeFilters: Record "Cust. Ledger Entry";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
         AmountsNotDueLineInserted: Boolean;
         OverdueEntriesOnly: Boolean;
         HeaderExists: Boolean;
@@ -41,13 +42,9 @@ codeunit 392 "Reminder-Make"
     procedure "Code"() RetVal: Boolean
     var
         ReminderLine: Record "Reminder Line";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
         IsHandled: Boolean;
     begin
         CustLedgEntryLastIssuedReminderLevelFilter := GlobalCustLedgEntry.GetFilter("Last Issued Reminder Level");
-        FeatureTelemetry.LogUptake('0000LB0', 'Reminder', Enum::"Feature Uptake Status"::"Set up");
-        FeatureTelemetry.LogUptake('0000LB1', 'Reminder', Enum::"Feature Uptake Status"::Used);
-        FeatureTelemetry.LogUsage('0000LB2', 'Reminder', 'Make Reminder called.');
         if GlobalReminderHeader."No." <> '' then begin
             HeaderExists := true;
             GlobalReminderHeader.TestField("Customer No.");
@@ -580,6 +577,13 @@ codeunit 392 "Reminder-Make"
         ReminderLine.Validate("Due Date", CalcDate(ReminderLevel."Due Date Calculation", GlobalReminderHeader."Document Date"));
         OnAddLineFeeForCustLedgEntryOnReminderLineInsert(ReminderLine);
         ReminderLine.Insert(true);
+    end;
+
+    internal procedure EmitCreateReminderTelemetry()
+    begin
+        FeatureTelemetry.LogUptake('0000LB0', 'Reminder', Enum::"Feature Uptake Status"::"Set up");
+        FeatureTelemetry.LogUptake('0000LB1', 'Reminder', Enum::"Feature Uptake Status"::Used);
+        FeatureTelemetry.LogUsage('0000LB2', 'Reminder', 'Make Reminder called.');
     end;
 
     local procedure GetLastLineNo(ReminderNo: Code[50]): Integer

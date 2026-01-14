@@ -690,6 +690,7 @@ table 5876 "Phys. Invt. Order Line"
     var
         PhysInvtRecordLine: Record "Phys. Invt. Record Line";
         "Sum": Decimal;
+        SkipTestFieldBinCode: Boolean;
     begin
         Sum := 0;
 
@@ -700,10 +701,13 @@ table 5876 "Phys. Invt. Order Line"
         OnTestQtyRecordedOnAfterPhysInvtRecordLineSetFilters(Rec, PhysInvtRecordLine);
         if PhysInvtRecordLine.Find('-') then
             repeat
+                SkipTestFieldBinCode := false;
+                OnTestQtyRecordedOnBeforeValidateRecordLine(Rec, PhysInvtRecordLine, SkipTestFieldBinCode);
                 PhysInvtRecordLine.TestField("Item No.", "Item No.");
                 PhysInvtRecordLine.TestField("Variant Code", "Variant Code");
                 PhysInvtRecordLine.TestField("Location Code", "Location Code");
-                PhysInvtRecordLine.TestField("Bin Code", "Bin Code");
+                if not SkipTestFieldBinCode then
+                    PhysInvtRecordLine.TestField("Bin Code", "Bin Code");
                 if "Use Item Tracking" then
                     if (PhysInvtRecordLine."Quantity (Base)" <> 0) and (not PhysInvtRecordLine.TrackingExists()) then
                         Error(
@@ -1190,6 +1194,11 @@ table 5876 "Phys. Invt. Order Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnTestQtyRecordedOnAfterPhysInvtRecordLineSetFilters(var PhysInvtOrderLine: Record "Phys. Invt. Order Line"; var PhysInvtRecordLine: Record "Phys. Invt. Record Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnTestQtyRecordedOnBeforeValidateRecordLine(var PhysInvtOrderLine: Record "Phys. Invt. Order Line"; var PhysInvtRecordLine: Record "Phys. Invt. Record Line"; var SkipTestFieldBinCode: Boolean)
     begin
     end;
 

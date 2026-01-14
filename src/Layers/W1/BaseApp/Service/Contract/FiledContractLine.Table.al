@@ -77,6 +77,7 @@ table 5971 "Filed Contract Line"
         }
         field(13; "Response Time (Hours)"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Response Time (Hours)';
             DecimalPlaces = 0 : 5;
@@ -119,12 +120,14 @@ table 5971 "Filed Contract Line"
         }
         field(22; "Line Value"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Line Value';
         }
         field(23; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Line Discount %';
             DecimalPlaces = 0 : 5;
@@ -133,6 +136,7 @@ table 5971 "Filed Contract Line"
         }
         field(24; "Line Amount"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Line Amount';
@@ -158,18 +162,21 @@ table 5971 "Filed Contract Line"
         }
         field(32; "Line Cost"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Line Cost';
         }
         field(33; "Line Discount Amount"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Line Discount Amount';
         }
         field(34; Profit; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Profit';

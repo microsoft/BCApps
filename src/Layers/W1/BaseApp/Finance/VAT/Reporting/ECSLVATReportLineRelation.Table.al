@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+/// <summary>
+/// Links VAT entries to ECSL report lines for tracking which transactions are included in EU sales list reports.
+/// Provides audit trail between source VAT entries and summarized ECSL reporting data.
+/// </summary>
 table 143 "ECSL VAT Report Line Relation"
 {
     Caption = 'ECSL VAT Report Line Relation';
@@ -11,14 +15,23 @@ table 143 "ECSL VAT Report Line Relation"
 
     fields
     {
+        /// <summary>
+        /// VAT entry number that contributes to the ECSL report line totals.
+        /// </summary>
         field(1; "VAT Entry No."; Integer)
         {
             Caption = 'VAT Entry No.';
         }
+        /// <summary>
+        /// ECSL report line number that includes this VAT entry in its calculations.
+        /// </summary>
         field(2; "ECSL Line No."; Integer)
         {
             Caption = 'ECSL Line No.';
         }
+        /// <summary>
+        /// ECSL report number containing the related line and VAT entry.
+        /// </summary>
         field(3; "ECSL Report No."; Code[20])
         {
             Caption = 'ECSL Report No.';

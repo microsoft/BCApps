@@ -18,13 +18,13 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
 using System.Email;
 using System.Globalization;
-using System.Utilities;
 using System.Text;
-using Microsoft.Sales.FinanceCharge;
+using System.Utilities;
 
 report 117 Reminder
 {

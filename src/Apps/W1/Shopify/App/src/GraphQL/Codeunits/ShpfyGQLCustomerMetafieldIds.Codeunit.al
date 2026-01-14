@@ -27,7 +27,7 @@ codeunit 30374 "Shpfy GQL CustomerMetafieldIds" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     procedure GetExpectedCost(): Integer
     begin
-        exit(50);
+        exit(10);
     end;
 
 }

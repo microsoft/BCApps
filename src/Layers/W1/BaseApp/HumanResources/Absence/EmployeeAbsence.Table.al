@@ -22,6 +22,7 @@ table 5207 "Employee Absence"
         field(1; "Employee No."; Code[20])
         {
             Caption = 'Employee No.';
+            ToolTip = 'Specifies a number for the employee.';
             NotBlank = true;
             TableRelation = Employee;
 
@@ -39,14 +40,17 @@ table 5207 "Employee Absence"
         field(3; "From Date"; Date)
         {
             Caption = 'From Date';
+            ToolTip = 'Specifies the first day of the employee''s absence registered on this line.';
         }
         field(4; "To Date"; Date)
         {
             Caption = 'To Date';
+            ToolTip = 'Specifies the last day of the employee''s absence registered on this line.';
         }
         field(5; "Cause of Absence Code"; Code[10])
         {
             Caption = 'Cause of Absence Code';
+            ToolTip = 'Specifies a cause of absence code to define the type of absence.';
             TableRelation = "Cause of Absence";
 
             trigger OnValidate()
@@ -59,10 +63,12 @@ table 5207 "Employee Absence"
         field(6; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the absence.';
         }
         field(7; Quantity; Decimal)
         {
             Caption = 'Quantity';
+            ToolTip = 'Specifies the quantity associated with absences, in hours or days.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -73,6 +79,7 @@ table 5207 "Employee Absence"
         field(8; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
+            ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
             TableRelation = "Human Resource Unit of Measure";
 
             trigger OnValidate()
@@ -87,6 +94,7 @@ table 5207 "Employee Absence"
             CalcFormula = exist("Human Resource Comment Line" where("Table Name" = const("Employee Absence"),
                                                                      "Table Line No." = field("Entry No.")));
             Caption = 'Comment';
+            ToolTip = 'Specifies if a comment is associated with this entry.';
             Editable = false;
             FieldClass = FlowField;
         }

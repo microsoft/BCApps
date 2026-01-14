@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Analysis;
 
+/// <summary>
+/// Provides detailed configuration and setup interface for analysis views.
+/// Allows users to create, modify, and manage analysis view settings including dimensions, filters, and update options.
+/// </summary>
 page 555 "Analysis View Card"
 {
     Caption = 'Analysis View Card';

@@ -841,7 +841,7 @@ codeunit 22 "Item Jnl.-Post Line"
                     GlobalItemLedgEntry.Modify();
                 IsHandled := false;
                 xValueEntryNo := ValueEntryNo;
-                OnItemValuePostingOnBeforeInsertOHValueEntry(ItemJnlLine, GlobalValueEntry, GlobalItemLedgEntry, ValueEntryNo, IsHandled, VarianceAmount, VarianceAmountACY, OverheadAmount, OverheadAmountACY);
+                OnItemValuePostingOnBeforeInsertOHValueEntry(ItemJnlLine, GlobalValueEntry, GlobalItemLedgEntry, ValueEntryNo, IsHandled, VarianceAmount, VarianceAmountACY, OverheadAmount, OverheadAmountACY, VarianceRequired);
                 ValidateSequenceNo(ValueEntryNo, xValueEntryNo, Database::"Value Entry");
                 if not IsHandled then
                     if ((GlobalValueEntry."Valued Quantity" > 0) or
@@ -864,7 +864,7 @@ codeunit 22 "Item Jnl.-Post Line"
 
             IsHandled := false;
             xValueEntryNo := ValueEntryNo;
-            OnItemValuePostingOnBeforeInsertOHValueEntry(ItemJnlLine, GlobalValueEntry, GlobalItemLedgEntry, ValueEntryNo, IsHandled, VarianceAmount, VarianceAmountACY, OverheadAmount, OverheadAmountACY);
+            OnItemValuePostingOnBeforeInsertOHValueEntry(ItemJnlLine, GlobalValueEntry, GlobalItemLedgEntry, ValueEntryNo, IsHandled, VarianceAmount, VarianceAmountACY, OverheadAmount, OverheadAmountACY, VarianceRequired);
             ValidateSequenceNo(ValueEntryNo, xValueEntryNo, Database::"Value Entry");
             if not IsHandled then
                 if ((GlobalValueEntry."Valued Quantity" > 0) or
@@ -5728,7 +5728,8 @@ codeunit 22 "Item Jnl.-Post Line"
            (ItemJnlLine."Value Entry Type" = ItemJnlLine."Value Entry Type"::"Direct Cost") and
            (ItemJnlLine."Item Charge No." = '') and
            (ItemJnlLine."Applies-from Entry" = 0) and
-           not ItemJnlLine.Adjustment and (ItemJnlLine."Document Type" <> ItemJnlLine."Document Type"::"Inventory Receipt") then
+           not ItemJnlLine.Adjustment and (ItemJnlLine."Document Type" <> ItemJnlLine."Document Type"::"Inventory Receipt") and
+           (ItemJnlLine."Entry Type" <> ItemJnlLine."Entry Type"::Sale) then
             exit(true);
 
         exit(false);
@@ -7946,7 +7947,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnItemValuePostingOnBeforeInsertOHValueEntry(var ItemJnlLine: Record "Item Journal Line"; var GlobalValueEntry: Record "Value Entry"; var GlobalItemLedgEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer; var IsHandled: Boolean; var VarianceAmount: Decimal; var VarianceAmountACY: Decimal; var OverheadAmount: Decimal; var OverheadAmountACY: Decimal)
+    local procedure OnItemValuePostingOnBeforeInsertOHValueEntry(var ItemJnlLine: Record "Item Journal Line"; var GlobalValueEntry: Record "Value Entry"; var GlobalItemLedgEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer; var IsHandled: Boolean; var VarianceAmount: Decimal; var VarianceAmountACY: Decimal; var OverheadAmount: Decimal; var OverheadAmountACY: Decimal; var VarianceRequired: Boolean)
     begin
     end;
 

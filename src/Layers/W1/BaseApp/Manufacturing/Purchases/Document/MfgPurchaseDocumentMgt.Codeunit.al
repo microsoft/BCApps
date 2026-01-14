@@ -5,11 +5,11 @@
 namespace Microsoft.Manufacturing.Integration;
 
 using Microsoft.Finance.Dimension;
+using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
 using Microsoft.Purchases.Reports;
-using Microsoft.Manufacturing.WorkCenter;
 
 codeunit 99000789 "Mfg. Purchase Document Mgt."
 {

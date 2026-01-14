@@ -1,3 +1,4 @@
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -8,14 +9,26 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Foundation.Period;
 using System.Utilities;
 
+/// <summary>
+/// Generates trial balance with budget comparison analysis showing actual vs. budgeted amounts and variances.
+/// Displays actual balances alongside budget figures with variance calculations for performance analysis.
+/// </summary>
+/// <remarks>
+/// Data source: G/L Account table with budget filter integration for actual vs. budget comparison.
+/// Shows period movements, budget amounts, and variance analysis for comprehensive budget monitoring.
+/// Used for budget performance evaluation, variance analysis, and management reporting requirements.
+/// </remarks>
 report 9 "Trial Balance/Budget"
 {
     DefaultLayout = RDLC;
     RDLCLayout = './Finance/GeneralLedger/Reports/TrialBalanceBudget.rdlc';
     ApplicationArea = Basic, Suite;
-    Caption = 'Trial Balance/Budget';
+    Caption = 'Trial Balance/Budget (Obsolete)';
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'This report has been replaced by the report Trial Balance/Budget (Excel). This report will be removed in a future release.';
+    ObsoleteTag = '28.0';
 
     dataset
     {
@@ -218,8 +231,8 @@ report 9 "Trial Balance/Budget"
 
     requestpage
     {
-        AboutTitle = 'About Trial Balance/Budget';
-        AboutText = 'View a snapshot of your chart of accounts to check the debit and credit net change and closing balance compared to the budget. Shows the percentage of actual vs. budget.';
+        AboutTitle = 'About Trial Balance/Budget (Obsolete)';
+        AboutText = 'View a snapshot of your chart of accounts to check the debit and credit net change and closing balance compared to the budget. Shows the percentage of actual vs. budget.** This report is obsolete and will be removed in a future release.** Please refer to the report documentation for alternative ways to retrieve this information.';
 
         layout
         {
@@ -276,3 +289,4 @@ report 9 "Trial Balance/Budget"
         GLFilter: Text;
 }
 
+#endif

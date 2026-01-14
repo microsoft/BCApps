@@ -94,6 +94,7 @@
         SourceCurrencyErr: Label '%1 must be negative.', Comment = '%1=Field Caption.';
         PurchaseLineQtyErr: Label 'Purchase Line %1 must be equal to %2', Comment = '%1= Field ,%2= Value';
         ItemFilterOnAnalysisViewCardMatchesCreatedItemErr: Label 'The created item should be selected in the analysis view card.';
+        ItemChargeCalculatedProportionallyErr: Label 'Item Charge %1 should be calculated proportionally to avoid rounding differences', Comment = '%1=Field Caption';
         OptionString: Option PostedReturnReceipt,PostedInvoices,PostedShipments,PostedCrMemo;
 
     [Test]
@@ -8942,6 +8943,68 @@
         VerifyPurchaseOrderQuantityforManualPurchaseCreditMemo(PurchaseHeader."No.", 10);
     end;
 
+    [Test]
+    [HandlerFunctions('ItemChargeSetupHandler')]
+    [Scope('OnPrem')]
+    procedure ItemChargeAssignmentRoundingOnGetReceiptLines()
+    var
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)";
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        Qty: Decimal;
+        UnitCost: Decimal;
+        ExpectedAmount: Decimal;
+    begin
+        // [SCENARIO 616450] Item Charge Assignment amounts should be calculated proportionally when using Get Receipt Lines to avoid rounding differences
+        Initialize();
+
+        // [GIVEN] Create Purchase Order with item and item charge lines with specific quantities that can cause rounding issues
+        Qty := 1023; //A fixed value was used to reproduce the rounding issue.
+        UnitCost := 6.72355; //A fixed value was used to reproduce the rounding issue.
+        CreatePurchaseHeader(PurchaseHeaderOrder, PurchaseHeaderOrder."Document Type"::Order);
+        CreatePurchaseLineWithDirectUnitCost(
+            PurchaseLine, PurchaseHeaderOrder, PurchaseLine.Type::Item, CreateItem(), Qty, UnitCost);
+        CreatePurchaseLineWithDirectUnitCost(
+            PurchaseLine, PurchaseHeaderOrder, PurchaseLine.Type::"Charge (Item)", LibraryInventory.CreateItemChargeNo(), Qty, UnitCost);
+
+        // [GIVEN] Assign item charge to the item line
+        OpenItemChargeAssgnt(PurchaseLine, true, Qty);
+
+        // [GIVEN] Get the Amount to Assign from the order
+        FindItemChargeAssignmentPurch(ItemChargeAssignmentPurch, PurchaseHeaderOrder);
+
+        // [GIVEN] Receive the purchase order
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder, true, false);
+
+        // [WHEN] Create Purchase Invoice using Get Receipt Lines for partial quantity
+        LibraryPurchase.CreatePurchHeader(
+            PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, PurchaseHeaderOrder."Buy-from Vendor No.");
+        PurchRcptLine.SetRange("Order No.", PurchaseHeaderOrder."No.");
+        PurchGetReceipt.SetPurchHeader(PurchaseHeaderInvoice);
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
+
+        // [THEN] Item charge assignment amount should be proportional to the original amount
+        FindItemChargeAssignmentPurch(ItemChargeAssignmentPurch, PurchaseHeaderInvoice);
+
+        // [THEN] Calculate expected proportional amount
+        ExpectedAmount := Round(Qty * UnitCost, LibraryERM.GetAmountRoundingPrecision());
+
+        // [THEN] Verify the Amount to Assign matches the expected proportional amount
+        Assert.AreEqual(
+            ExpectedAmount, ItemChargeAssignmentPurch."Amount to Assign",
+            StrSubstNo(
+                ItemChargeCalculatedProportionallyErr, ItemChargeAssignmentPurch.FieldCaption("Amount to Assign")));
+
+        // [THEN] Verify the Amount to Handle also matches the expected proportional amount
+        Assert.AreEqual(
+            ExpectedAmount, ItemChargeAssignmentPurch."Amount to Handle",
+            StrSubstNo(
+                ItemChargeCalculatedProportionallyErr, ItemChargeAssignmentPurch.FieldCaption("Amount to Handle")));
+    end;
+
     local procedure Initialize()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -12403,6 +12466,13 @@
             Assert.AreEqual(ExpectedQuantity, PurchaseLine."Qty. to Invoice", StrSubstNo(
                 PurchaseLineQtyErr, PurchaseLine.FieldName("Qty. to Invoice"), ExpectedQuantity));
         until PurchaseLine.Next() = 0;
+    end;
+
+    local procedure FindItemChargeAssignmentPurch(var ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)"; PurchaseHeader: Record "Purchase Header")
+    begin
+        ItemChargeAssignmentPurch.SetRange("Document Type", PurchaseHeader."Document Type");
+        ItemChargeAssignmentPurch.SetRange("Document No.", PurchaseHeader."No.");
+        ItemChargeAssignmentPurch.FindFirst();
     end;
 
     [ModalPageHandler]

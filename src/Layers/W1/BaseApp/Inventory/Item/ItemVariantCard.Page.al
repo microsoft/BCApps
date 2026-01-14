@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Item;
 
+using Microsoft.Inventory.Item.Attribute;
 using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Inventory.Item.Picture;
 
 page 5405 "Item Variant Card"
 {
@@ -71,6 +73,17 @@ page 5405 "Item Variant Card"
         }
         area(factboxes)
         {
+            part(ItemVariantPicture; "Item Variant Picture")
+            {
+                ApplicationArea = All;
+                Caption = 'Picture';
+                SubPageLink = "Item No." = field("Item No."),
+                              Code = field(Code);
+            }
+            part(ItemAttributesFactbox; "Item Attributes Factbox")
+            {
+                ApplicationArea = Basic, Suite;
+            }
             systempart(LinksPart; Links)
             {
                 ApplicationArea = RecordLinks;
@@ -96,6 +109,9 @@ page 5405 "Item Variant Card"
                 {
                 }
                 actionref(Translation_Promoted; Translations)
+                {
+                }
+                actionref(Attributes_Promoted; Attributes)
                 {
                 }
             }
@@ -125,8 +141,27 @@ page 5405 "Item Variant Card"
                     RunPageLink = "Item No." = field("Item No."), "Variant Code" = field(Code);
                     ToolTip = 'Set up a customer''s or vendor''s own identification of the selected item variant.';
                 }
+                action(Attributes)
+                {
+                    AccessByPermission = TableData "Item Attribute" = R;
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Attributes';
+                    Image = Category;
+                    ToolTip = 'View or edit the item''s variant attributes, such as color, size, or other characteristics that help to describe the item variant.';
+
+                    trigger OnAction()
+                    begin
+                        Page.RunModal(Page::"Item Variant Attribute Editor", Rec);
+                        CurrPage.SaveRecord();
+                        CurrPage.ItemAttributesFactbox.Page.LoadItemVariantAttributesData(Rec."Item No.", Rec.Code);
+                    end;
+                }
             }
         }
     }
-}
 
+    trigger OnAfterGetCurrRecord()
+    begin
+        CurrPage.ItemAttributesFactBox.Page.LoadItemVariantAttributesData(Rec."Item No.", Rec.Code);
+    end;
+}

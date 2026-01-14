@@ -4,12 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Registration;
 
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
-using Microsoft.Finance.GeneralLedger.Setup;
-using System.Telemetry;
 using System.Diagnostics;
 using System.Environment.Configuration;
+using System.Telemetry;
 
 codeunit 205 "Alt. Cust. VAT Reg. Doc. Impl." implements "Alt. Cust. VAT Reg. Doc."
 {

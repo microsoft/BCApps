@@ -6,8 +6,8 @@ namespace Microsoft.Inventory.Posting;
 
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Preview;
-using Microsoft.Inventory.Journal;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Inventory.Journal;
 
 codeunit 241 "Item Jnl.-Post"
 {

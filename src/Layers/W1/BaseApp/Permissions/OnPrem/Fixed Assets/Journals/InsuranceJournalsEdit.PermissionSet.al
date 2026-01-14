@@ -1,15 +1,15 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.Warehouse.Structure;
-using Microsoft.Foundation.Comment;
 using Microsoft.Finance.Dimension;
-using Microsoft.FixedAssets.Setup;
-using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Insurance;
+using Microsoft.FixedAssets.Journal;
+using Microsoft.FixedAssets.Setup;
+using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.Comment;
 using Microsoft.Inventory.Location;
 using Microsoft.Purchases.Vendor;
-using Microsoft.Foundation.AuditCodes;
+using Microsoft.Warehouse.Structure;
 
 permissionset 5577 "Insurance Journals - Edit"
 {

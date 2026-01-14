@@ -5,9 +5,9 @@
 namespace Microsoft.Inventory;
 
 using Microsoft.Foundation.Enums;
-using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.History;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Transfer;
 
 codeunit 5858 "Invt. Ledger Invt. Source"

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -47,9 +47,6 @@ codeunit 9069 "Check Sales Document Line"
     begin
         IsHandled := false;
         OnBeforeCheckSalesLines(Item, CurrentFieldNo, CheckFieldNo, CheckFieldCaption, IsHandled);
-#if not CLEAN25
-        Item.RunOnBeforeCheckSalesLine(Item, CurrentFieldNo, CheckFieldNo, CheckFieldCaption, IsHandled);
-#endif
         if IsHandled then
             exit;
 

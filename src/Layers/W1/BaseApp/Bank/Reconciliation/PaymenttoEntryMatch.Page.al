@@ -7,6 +7,10 @@ namespace Microsoft.Bank.Reconciliation;
 using Microsoft.Finance.GeneralLedger.Journal;
 using System.Reflection;
 
+/// <summary>
+/// Interface page for manual payment to entry matching.
+/// Allows users to manually match payments with specific ledger entries.
+/// </summary>
 page 1288 "Payment-to-Entry Match"
 {
     Caption = 'Payment-to-Entry Match';

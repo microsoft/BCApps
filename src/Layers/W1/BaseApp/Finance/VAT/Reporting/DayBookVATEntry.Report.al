@@ -11,6 +11,10 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.Utilities;
 
+/// <summary>
+/// Generates day book style report of VAT entries with chronological listing and detailed breakdowns.
+/// Provides daily VAT transaction summary with customer/vendor details and currency conversion options.
+/// </summary>
 report 2500 "Day Book VAT Entry"
 {
     DefaultLayout = RDLC;

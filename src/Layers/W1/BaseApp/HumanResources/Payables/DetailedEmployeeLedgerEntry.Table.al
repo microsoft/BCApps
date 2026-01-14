@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,33 +27,40 @@ table 5223 "Detailed Employee Ledger Entry"
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the entry number of the detailed employee ledger entry.';
         }
         field(2; "Employee Ledger Entry No."; Integer)
         {
             Caption = 'Employee Ledger Entry No.';
+            ToolTip = 'Specifies the entry number of the employee ledger entry that the detailed employee ledger entry line was created for.';
             TableRelation = "Employee Ledger Entry";
         }
         field(3; "Entry Type"; Enum "Detailed CV Ledger Entry Type")
         {
             Caption = 'Entry Type';
+            ToolTip = 'Specifies the entry type of the detailed employee ledger entry.';
         }
         field(4; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date of the detailed employee ledger entry.';
         }
         field(5; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the document type of the detailed employee ledger entry.';
         }
         field(6; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the document number of the transaction that created the entry.';
         }
         field(7; Amount; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Amount';
+            ToolTip = 'Specifies the amount of the detailed employee ledger entry.';
         }
         field(8; "Amount (LCY)"; Decimal)
         {
@@ -63,16 +70,19 @@ table 5223 "Detailed Employee Ledger Entry"
         field(9; "Employee No."; Code[20])
         {
             Caption = 'Employee No.';
+            ToolTip = 'Specifies the number of the employee to which the entry is posted.';
             TableRelation = Employee;
         }
         field(10; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the code for the currency if the amount is in a foreign currency.';
             TableRelation = Currency;
         }
         field(11; "User ID"; Code[50])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
             ValidateTableRelation = false;
@@ -87,6 +97,7 @@ table 5223 "Detailed Employee Ledger Entry"
         field(12; "Source Code"; Code[10])
         {
             Caption = 'Source Code';
+            ToolTip = 'Specifies the source code that specifies where the entry was created.';
             TableRelation = "Source Code";
         }
         field(13; "Transaction No."; Integer)
@@ -100,6 +111,7 @@ table 5223 "Detailed Employee Ledger Entry"
         field(15; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
+            ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
             TableRelation = "Reason Code";
         }
         field(16; "Debit Amount"; Decimal)
@@ -108,6 +120,7 @@ table 5223 "Detailed Employee Ledger Entry"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Debit Amount';
+            ToolTip = 'Specifies the total of the ledger entries that represent debits.';
         }
         field(17; "Credit Amount"; Decimal)
         {
@@ -115,6 +128,7 @@ table 5223 "Detailed Employee Ledger Entry"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Credit Amount';
+            ToolTip = 'Specifies the total of the ledger entries that represent credits.';
         }
         field(18; "Debit Amount (LCY)"; Decimal)
         {
@@ -131,16 +145,19 @@ table 5223 "Detailed Employee Ledger Entry"
         field(21; "Initial Entry Global Dim. 1"; Code[20])
         {
             Caption = 'Initial Entry Global Dim. 1';
+            ToolTip = 'Specifies the Global Dimension 1 code of the initial employee ledger entry.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         field(22; "Initial Entry Global Dim. 2"; Code[20])
         {
             Caption = 'Initial Entry Global Dim. 2';
+            ToolTip = 'Specifies the Global Dimension 2 code of the initial employee ledger entry.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         field(35; "Initial Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Initial Document Type';
+            ToolTip = 'Specifies the document type that the initial vendor ledger entry was created with.';
         }
         field(36; "Applied Empl. Ledger Entry No."; Integer)
         {
@@ -149,10 +166,12 @@ table 5223 "Detailed Employee Ledger Entry"
         field(37; Unapplied; Boolean)
         {
             Caption = 'Unapplied';
+            ToolTip = 'Specifies whether the entry has been unapplied (undone) from the Unapply Employee Entries window by the entry number shown in the Unapplied by Entry No. field.';
         }
         field(38; "Unapplied by Entry No."; Integer)
         {
             Caption = 'Unapplied by Entry No.';
+            ToolTip = 'Specifies the number of the correcting entry, if the original entry has been unapplied (undone) from the Unapply Employee Entries window.';
             TableRelation = "Detailed Employee Ledger Entry";
         }
         field(42; "Application No."; Integer)
@@ -168,6 +187,7 @@ table 5223 "Detailed Employee Ledger Entry"
         field(44; "Posting Group"; Code[20])
         {
             Caption = 'Employee Posting Group';
+            ToolTip = 'Specifies the employee''s market type to link business transactions to.';
             Editable = false;
             TableRelation = "Employee Posting Group";
         }

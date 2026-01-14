@@ -6,6 +6,17 @@ namespace Microsoft.Finance.GeneralLedger.Journal;
 
 using Microsoft.Finance.GeneralLedger.Account;
 
+/// <summary>
+/// Report for bulk creation of general journal lines for G/L accounts using standard journal templates.
+/// Generates journal lines for multiple G/L accounts based on standard journal line templates with account-specific assignments.
+/// </summary>
+/// <remarks>
+/// Mass journal line creation functionality for G/L account transactions. Uses standard journal templates as the foundation
+/// for creating multiple journal lines with automatic G/L account assignment and consistent posting parameters.
+/// Key features: Bulk G/L account processing, standard template application, configurable document types and posting dates.
+/// Integration: Creates lines in specified journal batch, applies G/L account posting settings, supports account filtering criteria.
+/// Usage: Ideal for recurring G/L transactions, period-end adjustments, and bulk journal entry creation scenarios.
+/// </remarks>
 report 8610 "Create G/L Acc. Journal Lines"
 {
     ApplicationArea = Basic, Suite;
@@ -256,6 +267,12 @@ report 8610 "Create G/L Acc. Journal Lines"
         exit(not StdGenJounalLine.IsEmpty());
     end;
 
+    /// <summary>
+    /// Initializes the journal line creation process with standard journal configuration and target batch settings.
+    /// Sets up journal template context, batch name assignment, and line numbering sequence for G/L account journal creation.
+    /// </summary>
+    /// <param name="StdGenJnl">Standard general journal record containing template configuration and line definitions</param>
+    /// <param name="JnlBatchName">Target journal batch name where new general journal lines will be created</param>
     procedure Initialize(var StdGenJnl: Record "Standard General Journal"; JnlBatchName: Code[10])
     begin
         GenJnlLine."Journal Template Name" := StdGenJnl."Journal Template Name";
@@ -308,6 +325,15 @@ report 8610 "Create G/L Acc. Journal Lines"
         LastGenJnlLine := GenJnlLine;
     end;
 
+    /// <summary>
+    /// Initializes report request parameters for document type, posting date, and journal configuration settings.
+    /// Sets up all required parameters for G/L account journal line creation from external procedure calls or batch processing.
+    /// </summary>
+    /// <param name="DocumentTypesFrom">Document type option for created journal lines</param>
+    /// <param name="PostingDateFrom">Posting date to be applied to all created journal lines</param>
+    /// <param name="JournalTemplateFrom">General journal template name for line creation context</param>
+    /// <param name="BatchNameFrom">Journal batch name where lines will be created</param>
+    /// <param name="StandardTemplateCodeFrom">Standard journal template code for predefined line configurations</param>
     procedure InitializeRequest(DocumentTypesFrom: Option; PostingDateFrom: Date; JournalTemplateFrom: Text[10]; BatchNameFrom: Code[10]; StandardTemplateCodeFrom: Code[20])
     begin
         DocumentTypes := DocumentTypesFrom;
@@ -317,6 +343,11 @@ report 8610 "Create G/L Acc. Journal Lines"
         TemplateCode := StandardTemplateCodeFrom;
     end;
 
+    /// <summary>
+    /// Sets the default document number to be applied to created G/L account journal lines when no document number is specified.
+    /// Provides centralized document numbering control for bulk journal line creation operations.
+    /// </summary>
+    /// <param name="NewDocumentNo">Document number to use as default for all created journal lines</param>
     procedure SetDefaultDocumentNo(NewDocumentNo: Code[20])
     begin
         DocumentNo := NewDocumentNo;

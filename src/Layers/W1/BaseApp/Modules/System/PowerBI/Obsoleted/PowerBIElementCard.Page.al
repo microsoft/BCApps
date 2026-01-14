@@ -1,8 +1,9 @@
 #if not CLEAN26
 namespace System.Integration.PowerBI;
-using System.Telemetry;
+
 using System.Environment.Configuration;
 using System.Globalization;
+using System.Telemetry;
 
 page 6323 "Power BI Element Card"
 {
@@ -71,36 +72,6 @@ page 6323 "Power BI Element Card"
                         Session.LogMessage('0000LK8', FailedToUpdatePageTelemetryMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PowerBiServiceMgt.GetPowerBiTelemetryCategory());
                 end;
             }
-#if not CLEAN25
-            group(ReportGroup)
-            {
-                ShowCaption = false;
-                Visible = false;
-                ObsoleteReason = 'This group has been removed and its content is now directly added to the content area of the page.';
-                ObsoleteState = Pending;
-                ObsoleteTag = '25.0';
-            }
-            group(ErrorGroup)
-            {
-                ShowCaption = false;
-                Visible = false;
-                ObsoleteReason = 'Error messages are now shown as page notifications.';
-                ObsoleteState = Pending;
-                ObsoleteTag = '25.0';
-                field(ErrorMessageText; ErrorMessageText)
-                {
-                    ApplicationArea = All;
-                    MultiLine = true;
-                    Editable = false;
-                    ShowCaption = false;
-                    ToolTip = 'Specifies the error message from Power BI.';
-                    Visible = false;
-                    ObsoleteReason = 'Error messages are now shown as page notifications.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-                }
-            }
-#endif
         }
     }
 
@@ -146,9 +117,6 @@ page 6323 "Power BI Element Card"
         PowerBIServiceMgt: Codeunit "Power BI Service Mgt.";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         PowerBiFilterHelper: Codeunit "Power BI Filter Helper";
-#if not CLEAN25
-        ErrorMessageText: Text;
-#endif
         AvailableReportLevelFilters: JsonArray;
         ErrorNotificationMsg: Label 'An error occurred while loading Power BI. Your Power BI embedded content might not work. Here are the error details: "%1: %2"', Comment = '%1: a short error code. %2: a verbose error message in english';
         UnsupportedElementTypeErr: Label 'Displaying Power BI elements of type %1 is currently not supported.', Comment = '%1 = an element type, such as Report or Workspace';

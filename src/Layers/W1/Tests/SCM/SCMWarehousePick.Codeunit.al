@@ -13,7 +13,9 @@ codeunit 137055 "SCM Warehouse Pick"
         WarehouseJournalBatch: Record "Warehouse Journal Batch";
         WarehouseJournalTemplate: Record "Warehouse Journal Template";
         ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalTemplatePhysInvt: Record "Item Journal Template";
         ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalBatchPhysInvt: Record "Item Journal Batch";
         LocationWhite: Record Location;
         LocationBlue: Record Location;
         LocationYellow: Record Location;
@@ -190,7 +192,7 @@ codeunit 137055 "SCM Warehouse Pick"
 
         // Create Blank Item Journal Line.
         LibraryInventory.CreateItemJournalLine(
-          ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name,
+          ItemJournalLine, ItemJournalBatchPhysInvt."Journal Template Name", ItemJournalBatchPhysInvt.Name,
           ItemJournalLine."Entry Type"::"Positive Adjmt.", '', 0.0);
         Commit();
 
@@ -1815,10 +1817,7 @@ codeunit 137055 "SCM Warehouse Pick"
         SetupItemTrackingWithExpirationDates(Item);
 
         // [GIVEN] Add secondary UOM with problematic conversion factor and very small rounding precision
-        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
-        LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure, Item."No.", UnitOfMeasure.Code, QtyPerUOM);
-        ItemUnitOfMeasure.Validate("Qty. Rounding Precision", QtyRoundingPrecision);
-        ItemUnitOfMeasure.Modify(true);
+        CreateItemUnitOfMeasure(ItemUnitOfMeasure, UnitOfMeasure, Item, QtyPerUOM, QtyRoundingPrecision);
 
         // [GIVEN] Set Sales Unit of Measure to the secondary UOM
         Item.Validate("Sales Unit of Measure", UnitOfMeasure.Code);
@@ -2017,6 +2016,8 @@ codeunit 137055 "SCM Warehouse Pick"
     begin
         LibraryInventory.SelectItemJournalTemplateName(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
         LibraryInventory.SelectItemJournalBatchName(ItemJournalBatch, ItemJournalTemplate.Type::Item, ItemJournalTemplate.Name);
+        LibraryInventory.SelectItemJournalTemplateName(ItemJournalTemplatePhysInvt, ItemJournalTemplatePhysInvt.Type::"Phys. Inventory");
+        LibraryInventory.SelectItemJournalBatchName(ItemJournalBatchPhysInvt, ItemJournalTemplatePhysInvt.Type::"Phys. Inventory", ItemJournalTemplatePhysInvt.Name);
         ItemJournalBatch.Validate("No. Series", LibraryUtility.GetGlobalNoSeriesCode());
         ItemJournalBatch.Modify(true);
     end;
@@ -2818,6 +2819,24 @@ codeunit 137055 "SCM Warehouse Pick"
         ItemJournalLine."Expiration Date" := ExpiryDate;
         ItemJournalLine.Modify(true);
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
+    end;
+
+    local procedure CreateItemUnitOfMeasure(
+        var ItemUnitOfMeasure: Record "Item Unit of Measure";
+        var UnitOfMeasure: Record "Unit of Measure";
+        Item: Record Item;
+        QtyPerUOM: Decimal;
+        QtyRoundingPrecision: Decimal)
+    begin
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
+        ItemUnitOfMeasure.SetRange("Item No.", Item."No.");
+        ItemUnitOfMeasure.SetRange(Code, Item."Base Unit of Measure");
+        ItemUnitOfMeasure.FindFirst();
+        ItemUnitOfMeasure.Validate("Qty. Rounding Precision", QtyRoundingPrecision);
+        ItemUnitOfMeasure.Modify(true);
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure, Item."No.", UnitOfMeasure.Code, QtyPerUOM);
+        ItemUnitOfMeasure.Validate("Qty. Rounding Precision", QtyRoundingPrecision);
+        ItemUnitOfMeasure.Modify(true);
     end;
 
     [ModalPageHandler]

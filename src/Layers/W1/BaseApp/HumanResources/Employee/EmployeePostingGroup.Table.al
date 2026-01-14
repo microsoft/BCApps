@@ -1,12 +1,12 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.HumanResources.Employee;
 
 using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.HumanResources.Payables;
 using Microsoft.Finance.ReceivablesPayables;
+using Microsoft.HumanResources.Payables;
 
 table 5221 "Employee Posting Group"
 {
@@ -19,11 +19,13 @@ table 5221 "Employee Posting Group"
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies an identifier for the employee posting group.';
             NotBlank = true;
         }
         field(2; "Payables Account"; Code[20])
         {
             Caption = 'Payables Account';
+            ToolTip = 'Specifies the general ledger account to use when you post payables to employees in this posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -34,6 +36,7 @@ table 5221 "Employee Posting Group"
         field(10; "Debit Curr. Appln. Rndg. Acc."; Code[20])
         {
             Caption = 'Debit Curr. Appln. Rndg. Acc.';
+            ToolTip = 'Specifies the general ledger account to use when you post rounding differences. These differences can occur when you apply entries in different currencies to one another.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -44,6 +47,7 @@ table 5221 "Employee Posting Group"
         field(11; "Credit Curr. Appln. Rndg. Acc."; Code[20])
         {
             Caption = 'Credit Curr. Appln. Rndg. Acc.';
+            ToolTip = 'Specifies the general ledger account to use when you post rounding differences. These differences can occur when you apply entries in different currencies to one another.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -54,6 +58,7 @@ table 5221 "Employee Posting Group"
         field(12; "Debit Rounding Account"; Code[20])
         {
             Caption = 'Debit Rounding Account';
+            ToolTip = 'Specifies the general ledger account number to use when you post rounding differences from a remaining amount.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -64,6 +69,7 @@ table 5221 "Employee Posting Group"
         field(13; "Credit Rounding Account"; Code[20])
         {
             Caption = 'Credit Rounding Account';
+            ToolTip = 'Specifies the general ledger account number to use when you post rounding differences from a remaining amount.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()

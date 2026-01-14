@@ -13,6 +13,15 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.Period;
 using System.Utilities;
 
+/// <summary>
+/// Matrix page displaying budget data in grid format with configurable dimensions and periods.
+/// Provides interactive budget entry and editing capabilities with multi-dimensional analysis.
+/// </summary>
+/// <remarks>
+/// Used as matrix part by Budget page for data entry and analysis.
+/// Supports up to 32 matrix columns with editable budget amounts and dimension drill-down.
+/// Integrates with G/L Budget Entry creation and dimension filtering.
+/// </remarks>
 page 9203 "Budget Matrix"
 {
     Caption = 'Budget Matrix';
@@ -870,6 +879,29 @@ page 9203 "Budget Matrix"
         exit(NewAmount);
     end;
 
+    /// <summary>
+    /// Loads matrix data with dimension filters and configuration for budget analysis display.
+    /// Configures matrix columns, filters, and parameters for multi-dimensional budget reporting.
+    /// </summary>
+    /// <param name="NewMatrixColumns">Array of column captions for matrix display</param>
+    /// <param name="NewMatrixRecords">Array of dimension code buffer records for matrix data</param>
+    /// <param name="CurrentNoOfMatrixColumns">Current number of active matrix columns</param>
+    /// <param name="NewLineDimCode">Dimension code for matrix rows</param>
+    /// <param name="NewLineDimType">Dimension type for matrix rows</param>
+    /// <param name="NewColumnDimType">Dimension type for matrix columns</param>
+    /// <param name="NewGlobalDim1Filter">Filter for global dimension 1</param>
+    /// <param name="NewGlobalDim2Filter">Filter for global dimension 2</param>
+    /// <param name="NewBudgetDim1Filter">Filter for budget dimension 1</param>
+    /// <param name="NewBudgetDim2Filter">Filter for budget dimension 2</param>
+    /// <param name="NewBudgetDim3Filter">Filter for budget dimension 3</param>
+    /// <param name="NewBudgetDim4Filter">Filter for budget dimension 4</param>
+    /// <param name="NewGLBudgetName">G/L Budget Name record for data source</param>
+    /// <param name="NewDateFilter">Date filter for budget period analysis</param>
+    /// <param name="NewGLAccFilter">G/L account filter for budget scope</param>
+    /// <param name="NewIncomeBalanceGLAccFilter">Income/balance account type filter</param>
+    /// <param name="NewGLAccCategoryFilter">G/L account category filter</param>
+    /// <param name="NewRoundingFactor">Rounding factor for amount display</param>
+    /// <param name="NewPeriodType">Period type for analysis</param>
     procedure LoadMatrix(NewMatrixColumns: array[32] of Text[80]; var NewMatrixRecords: array[12] of Record "Dimension Code Buffer"; CurrentNoOfMatrixColumns: Integer; NewLineDimCode: Text[30]; NewLineDimType: Enum "G/L Budget Matrix Dimensions"; NewColumnDimType: Enum "G/L Budget Matrix Dimensions"; NewGlobalDim1Filter: Code[250]; NewGlobalDim2Filter: Code[250]; NewBudgetDim1Filter: Code[250]; NewBudgetDim2Filter: Code[250]; NewBudgetDim3Filter: Code[250]; NewBudgetDim4Filter: Code[250]; var NewGLBudgetName: Record "G/L Budget Name"; NewDateFilter: Text[30]; NewGLAccFilter: Text; NewIncomeBalanceGLAccFilter: Enum "G/L Account Income/Balance"; NewGLAccCategoryFilter: Enum "G/L Account Category"; NewRoundingFactor: Enum "Analysis Rounding Factor"; NewPeriodType: Enum "Analysis Period Type")
     var
         i: Integer;
@@ -909,6 +941,29 @@ page 9203 "Budget Matrix"
     end;
 
 #if not CLEAN26
+    /// <summary>
+    /// Loads matrix data with dimension filters and configuration for budget analysis display.
+    /// This procedure is obsolete and will be removed. Use LoadMatrix with NewGLAccFilter: Text instead.
+    /// </summary>
+    /// <param name="NewMatrixColumns">Array of column captions for matrix display</param>
+    /// <param name="NewMatrixRecords">Array of dimension code buffer records for matrix data</param>
+    /// <param name="CurrentNoOfMatrixColumns">Current number of active matrix columns</param>
+    /// <param name="NewLineDimCode">Dimension code for matrix rows</param>
+    /// <param name="NewLineDimType">Dimension type for matrix rows</param>
+    /// <param name="NewColumnDimType">Dimension type for matrix columns</param>
+    /// <param name="NewGlobalDim1Filter">Filter for global dimension 1</param>
+    /// <param name="NewGlobalDim2Filter">Filter for global dimension 2</param>
+    /// <param name="NewBudgetDim1Filter">Filter for budget dimension 1</param>
+    /// <param name="NewBudgetDim2Filter">Filter for budget dimension 2</param>
+    /// <param name="NewBudgetDim3Filter">Filter for budget dimension 3</param>
+    /// <param name="NewBudgetDim4Filter">Filter for budget dimension 4</param>
+    /// <param name="NewGLBudgetName">G/L Budget Name record for data source</param>
+    /// <param name="NewDateFilter">Date filter for budget period analysis</param>
+    /// <param name="NewGLAccFilter">G/L account filter for budget scope</param>
+    /// <param name="NewIncomeBalanceGLAccFilter">Income/balance account type filter</param>
+    /// <param name="NewGLAccCategoryFilter">G/L account category filter</param>
+    /// <param name="NewRoundingFactor">Rounding factor for amount display</param>
+    /// <param name="NewPeriodType">Period type for analysis</param>
     [Obsolete('Replaced by LoadMatrix with NewGLAccFilter: Text instead of Code[250]', '26.0')]
     procedure LoadMatrix(NewMatrixColumns: array[32] of Text[80]; var NewMatrixRecords: array[12] of Record "Dimension Code Buffer"; CurrentNoOfMatrixColumns: Integer; NewLineDimCode: Text[30]; NewLineDimType: Enum "G/L Budget Matrix Dimensions"; NewColumnDimType: Enum "G/L Budget Matrix Dimensions"; NewGlobalDim1Filter: Code[250]; NewGlobalDim2Filter: Code[250]; NewBudgetDim1Filter: Code[250]; NewBudgetDim2Filter: Code[250]; NewBudgetDim3Filter: Code[250]; NewBudgetDim4Filter: Code[250]; var NewGLBudgetName: Record "G/L Budget Name"; NewDateFilter: Text[30]; NewGLAccFilter: Code[250]; NewIncomeBalanceGLAccFilter: Enum "G/L Account Income/Balance"; NewGLAccCategoryFilter: Enum "G/L Account Category"; NewRoundingFactor: Enum "Analysis Rounding Factor"; NewPeriodType: Enum "Analysis Period Type")
     var
@@ -1048,71 +1103,158 @@ page 9203 "Budget Matrix"
         OnAfterSetIncomeBalanceGLAccFilterOnGLAcc(GLAccount);
     end;
 
+    /// <summary>
+    /// Integration event raised after finding records in budget matrix dimension navigation.
+    /// Enables custom record finding logic for dimension-based matrix navigation.
+    /// </summary>
+    /// <param name="DimType">Dimension type being processed</param>
+    /// <param name="Which">Navigation direction or specific position</param>
+    /// <param name="DimensionCodeBuffer">Dimension code buffer record containing found data</param>
+    /// <param name="Found">Whether the record was found</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFindRec(DimType: Enum "G/L Budget Matrix Dimensions"; Which: Text[250]; var DimensionCodeBuffer: Record "Dimension Code Buffer"; var Found: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after performing lookup for dimension codes in budget matrix.
+    /// Enables custom processing after dimension code lookup operations.
+    /// </summary>
+    /// <param name="DimType">Dimension type being looked up</param>
+    /// <param name="DimCode">Dimension code being processed</param>
+    /// <param name="FieldCode">Field code used in lookup</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterLookUpCode(DimType: Enum "G/L Budget Matrix Dimensions"; DimCode: Text[30]; FieldCode: Text[30])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after navigating to next record in budget matrix dimension data.
+    /// Enables custom processing for record navigation results.
+    /// </summary>
+    /// <param name="DimType">Dimension type being navigated</param>
+    /// <param name="Steps">Number of steps to navigate</param>
+    /// <param name="DimensionCodeBuffer">Dimension code buffer record after navigation</param>
+    /// <param name="ResultSteps">Actual number of steps taken</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterNextRec(DimType: Enum "G/L Budget Matrix Dimensions"; Steps: Integer; var DimensionCodeBuffer: Record "Dimension Code Buffer"; var ResultSteps: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting common filters on G/L Account Budget Buffer.
+    /// Enables additional filtering logic for budget data retrieval.
+    /// </summary>
+    /// <param name="TheGLAccBudgetBuffer">G/L Account Budget Buffer with applied common filters</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetCommonFilters(var TheGLAccBudgetBuffer: Record "G/L Acc. Budget Buffer")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting dimension-specific filters on G/L Account Budget Buffer.
+    /// Enables additional dimension-based filtering logic for budget matrix data.
+    /// </summary>
+    /// <param name="TheGLAccBudgetBuffer">G/L Account Budget Buffer with applied dimension filters</param>
+    /// <param name="DimType">Dimension type being filtered</param>
+    /// <param name="DimCodeBuf">Dimension code buffer containing filter criteria</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetDimFilters(var TheGLAccBudgetBuffer: Record "G/L Acc. Budget Buffer"; DimType: Enum "G/L Budget Matrix Dimensions"; DimCodeBuf: Record "Dimension Code Buffer")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting Income/Balance filter on G/L Account records.
+    /// Enables additional account type filtering for budget analysis.
+    /// </summary>
+    /// <param name="GLAccount">G/L Account record with applied Income/Balance filters</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetIncomeBalanceGLAccFilterOnGLAcc(var GLAccount: Record "G/L Account")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters on Dimension Value records.
+    /// Enables additional dimension value filtering for budget matrix analysis.
+    /// </summary>
+    /// <param name="DimensionValue">Dimension Value record with applied filters</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetDimensionValueFilters(var DimensionValue: Record "Dimension Value")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after updating amount in budget matrix cell.
+    /// Enables post-processing logic after budget amount modifications.
+    /// </summary>
     [IntegrationEvent(true, false)]
     local procedure OnAfterUpdateAmount()
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating amount in budget matrix cell.
+    /// Enables pre-processing logic and validation before budget amount modifications.
+    /// </summary>
+    /// <param name="MATRIX_ColumnOrdinal">Matrix column ordinal being updated</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeUpdateAmount(MATRIX_ColumnOrdinal: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before calculating fields and getting budgeted amount.
+    /// Enables custom budget amount calculation logic.
+    /// </summary>
+    /// <param name="GLAccBudgetBuffer">G/L Account Budget Buffer for amount calculation</param>
+    /// <param name="Result">Calculated budget amount result</param>
+    /// <param name="IsHandled">Set to true to skip standard calculation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcFieldsAndGetBudgetedAmount(var GLAccBudgetBuffer: Record "G/L Acc. Budget Buffer"; var Result: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before calculating fields and setting new budgeted amount.
+    /// Enables custom budget amount setting logic.
+    /// </summary>
+    /// <param name="GLAccBudgetBuf">G/L Account Budget Buffer for amount update</param>
+    /// <param name="NewAmount">New budget amount to set</param>
+    /// <param name="IsHandled">Set to true to skip standard amount setting</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcFieldsAndSetNewBudgetedAmount(var GLAccBudgetBuf: Record "G/L Acc. Budget Buffer"; NewAmount: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before running budget drill-down page.
+    /// Enables custom page handling for budget drill-down operations.
+    /// </summary>
+    /// <param name="GLAccBudgetBuffer">G/L Account Budget Buffer for drill-down</param>
+    /// <param name="GLBudgetEntry">G/L Budget Entry record for page display</param>
+    /// <param name="IsHandled">Set to true to skip standard page run</param>
     [IntegrationEvent(false, false)]
     local procedure OnBudgetDrillDownOnBeforePageRun(var GLAccBudgetBuffer: Record "G/L Acc. Budget Buffer"; var GLBudgetEntry: Record "G/L Budget Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after copying G/L Account data to dimension code buffer.
+    /// Enables custom data processing when copying account information to buffer.
+    /// </summary>
+    /// <param name="GLAcc">G/L Account record being copied</param>
+    /// <param name="DimCodeBuf">Dimension code buffer receiving the data</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyGLAccToBuf(GLAcc: Record "G/L Account"; var DimCodeBuf: Record "Dimension Code Buffer")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after copying Dimension Value data to dimension code buffer.
+    /// Enables custom data processing when copying dimension value information to buffer.
+    /// </summary>
+    /// <param name="DimVal">Dimension Value record being copied</param>
+    /// <param name="DimCodeBuf">Dimension code buffer receiving the data</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyDimValueToBuf(DimVal: Record "Dimension Value"; var DimCodeBuf: Record "Dimension Code Buffer")
     begin

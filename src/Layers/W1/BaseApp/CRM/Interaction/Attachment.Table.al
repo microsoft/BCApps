@@ -387,7 +387,7 @@ table 5062 Attachment
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeImportAttachmentFromServerFile(Rec, ImportFromFile, Result, IsHandled);
+        OnBeforeImportAttachmentFromServerFile(Rec, ImportFromFile, Result, IsTemporary, Overwrite, IsHandled);
         if IsHandled then
             exit(Result);
 
@@ -832,7 +832,7 @@ table 5062 Attachment
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeImportAttachmentFromServerFile(var Attachment: Record Attachment; ImportFromFile: Text; var Result: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeImportAttachmentFromServerFile(var Attachment: Record Attachment; ImportFromFile: Text; var Result: Boolean; IsTemporary: Boolean; Overwrite: Boolean; var IsHandled: Boolean)
     begin
     end;
 

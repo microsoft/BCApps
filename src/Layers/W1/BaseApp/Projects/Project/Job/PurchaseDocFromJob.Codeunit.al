@@ -6,8 +6,8 @@ namespace Microsoft.Projects.Project.Job;
 
 using Microsoft.Foundation.Navigate;
 using Microsoft.Inventory.Requisition;
-using Microsoft.Purchases.Document;
 using Microsoft.Projects.Project.Planning;
+using Microsoft.Purchases.Document;
 
 codeunit 1018 "Purchase Doc. From Job"
 {

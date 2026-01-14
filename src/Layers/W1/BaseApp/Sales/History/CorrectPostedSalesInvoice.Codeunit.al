@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
@@ -25,7 +26,6 @@ using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Request;
-using Microsoft.Finance.Currency;
 using System.Environment.Configuration;
 
 codeunit 1303 "Correct Posted Sales Invoice"
@@ -1241,13 +1241,6 @@ codeunit 1303 "Correct Posted Sales Invoice"
     end;
 
 #pragma warning disable AS0018
-#if not CLEAN25
-    [Obsolete('OnBeforeTestSalesInvoiceHeaderAmount is not supported anymore.', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeTestSalesInvoiceHeaderAmount(var SalesInvoiceHeader: Record "Sales Invoice Header"; Cancelling: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 #pragma warning restore AS0018
 
     [IntegrationEvent(false, false)]
@@ -1355,4 +1348,3 @@ codeunit 1303 "Correct Posted Sales Invoice"
     begin
     end;
 }
-

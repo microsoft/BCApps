@@ -20,11 +20,13 @@ codeunit 137801 "SCM - Planning UT"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        LibraryPlanning: Codeunit "Library - Planning";
         LibraryRandom: Codeunit "Library - Random";
         IsInitialized: Boolean;
         UnexpectedRequisitionLineErr: Label 'Requisition line is unexpected.';
         LeadTimeCalcNegativeErr: Label 'The amount of time to replenish the item must not be negative.';
         WrongQuantityInReqLine: Label 'The quantity %1 is wrong. It must be either %2 or %3.', Comment = 'Example: The quantity 11 is wrong. It must be either 12 or 8.';
+        ReplenishmentSystemPurchaseErr: Label 'Item %1 in Location %2 should have %3 set to %4. Current %3 is %5.', Comment = '%1= Item No., %2= Location Code, %3= Replenishment System Caption, %4= Replenishment System::Purchase, %5= Field Value.';
 
     [Test]
     [Scope('OnPrem')]
@@ -578,6 +580,64 @@ codeunit 137801 "SCM - Planning UT"
         TempSKU.TestField("Transfer-Level Code", -3);
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure NonInventoryItemWithTransferReplenishmentShowsDetailedError()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        RequisitionLine: Record "Requisition Line";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        StockkeepingUnit: Record "Stockkeeping Unit";
+    begin
+        // [SCENARIO 611358] Error message includes Item No. and Location when validating Transfer replenishment for non-inventory items.
+        Initialize();
+
+        // [GIVEN] Create a Non-Inventory Item.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate(Type, Item.Type::"Non-Inventory");
+        Item.Modify(true);
+
+        // [GIVEN] Create a Location.
+        LibraryWarehouse.CreateLocation(Location);
+
+        // [GIVEN] Create SKU for the Item at the Location with Replenishment System = Transfer.
+        LibraryInventory.CreateStockKeepingUnit(Item, "SKU Creation Method"::Location, false, false);
+        StockkeepingUnit.SetRange("Location Code", Location.Code);
+        StockkeepingUnit.SetRange("Item No.", Item."No.");
+        StockkeepingUnit.FindFirst();
+        StockkeepingUnit.Validate("Replenishment System", StockkeepingUnit."Replenishment System"::Transfer);
+        StockkeepingUnit.Modify(true);
+
+        LibrarySales.CreateSalesInvoiceForCustomerNo(SalesHeader, LibrarySales.CreateCustomerNo());
+        SalesHeader.Validate("Location Code", Location.Code);
+        SalesHeader.Modify(true);
+
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", LibraryRandom.RandIntInRange(1, 10));
+
+        ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::"Req.");
+        ReqWkshTemplate.FindFirst();
+        LibraryPlanning.CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplate.Name);
+        LibraryPlanning.CreateRequisitionLine(RequisitionLine, RequisitionWkshName."Worksheet Template Name", RequisitionWkshName.Name);
+        RequisitionLine.Validate(Type, RequisitionLine.Type::Item);
+        RequisitionLine.Validate("No.", Item."No.");
+        RequisitionLine."Replenishment System" := RequisitionLine."Replenishment System"::Transfer;
+        asserterror RequisitionLine.Validate("Location Code", Location.Code);
+
+        // [THEN] Error message includes Item No., Location Code, and current Replenishment System.
+        Assert.ExpectedError(
+            StrSubstNo(
+                ReplenishmentSystemPurchaseErr,
+                Item."No.",
+                Location.Code,
+                RequisitionLine.FieldCaption("Replenishment System"),
+                RequisitionLine."Replenishment System"::Purchase,
+                RequisitionLine."Replenishment System"));
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -800,6 +860,11 @@ codeunit 137801 "SCM - Planning UT"
     procedure StrMenuHandler(Option: Text; var Choice: Integer; Instruction: Text)
     begin
         Choice := 1;
+    end;
+
+    [MessageHandler]
+    procedure MessageHandler(Message: Text[1024])
+    begin
     end;
 }
 

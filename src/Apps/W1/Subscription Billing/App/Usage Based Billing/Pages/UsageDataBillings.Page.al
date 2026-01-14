@@ -55,6 +55,8 @@ page 8035 "Usage Data Billings"
                 {
                     ToolTip = 'Specifies the Subscription Line for which the usage data is billed.';
                 }
+                field("Product ID"; Rec."Product ID") { }
+                field("Product Name"; Rec."Product Name") { }
                 field("Processing Date"; Rec."Processing Date")
                 {
                     ToolTip = 'Specifies the date of processing.';

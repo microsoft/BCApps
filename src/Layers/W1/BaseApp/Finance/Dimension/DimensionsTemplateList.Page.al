@@ -4,6 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Displays a list of available dimension templates for selection and management.
+/// Provides interface for choosing predefined dimension configurations during setup processes.
+/// </summary>
+/// <remarks>
+/// Used in dimension configuration scenarios where users need to select from predefined dimension templates.
+/// Operates on temporary dimension template records for flexible template management and selection.
+/// </remarks>
 page 1343 "Dimensions Template List"
 {
     Caption = 'Dimension Templates';

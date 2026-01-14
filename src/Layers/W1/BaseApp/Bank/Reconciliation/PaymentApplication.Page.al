@@ -7,6 +7,10 @@ namespace Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.Statement;
 using System.IO;
 
+/// <summary>
+/// Worksheet page for manual payment application and matching.
+/// Provides interface for applying payments to ledger entries and managing matches.
+/// </summary>
 page 1292 "Payment Application"
 {
     Caption = 'Payment Application';

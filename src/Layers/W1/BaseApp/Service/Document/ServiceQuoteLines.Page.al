@@ -8,8 +8,8 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.ExtendedText;
 using Microsoft.Inventory.Availability;
-using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Location;
 using Microsoft.Service.Setup;
 
@@ -452,21 +452,6 @@ page 5966 "Service Quote Lines"
         }
         area(factboxes)
         {
-#if not CLEAN25
-            part("Attached Documents"; "Document Attachment Factbox")
-            {
-                ObsoleteTag = '25.0';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The "Document Attachment FactBox" has been replaced by "Doc. Attachment List Factbox", which supports multiple files upload.';
-                ApplicationArea = Service;
-                Caption = 'Attachments';
-                Visible = false;
-                SubPageLink = "Table ID" = const(Database::"Service Line"),
-                              "No." = field("Document No."),
-                              "Document Type" = field("Document Type"),
-                              "Line No." = field("Line No.");
-            }
-#endif
             part("Attached Documents List"; "Doc. Attachment List Factbox")
             {
                 ApplicationArea = Service;
@@ -1011,4 +996,3 @@ page 5966 "Service Quote Lines"
     begin
     end;
 }
-

@@ -7,8 +7,8 @@ namespace Microsoft.Finance.Currency;
 using System.Integration;
 using System.IO;
 using System.Privacy;
-using System.Threading;
 using System.Telemetry;
+using System.Threading;
 
 /// <summary>
 /// Manages configuration for automated currency exchange rate update services.

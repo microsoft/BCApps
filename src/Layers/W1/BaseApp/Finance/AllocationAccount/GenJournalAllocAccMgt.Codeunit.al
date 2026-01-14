@@ -5,11 +5,15 @@
 namespace Microsoft.Finance.AllocationAccount;
 
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Posting;
-using Microsoft.Finance.GeneralLedger.Account;
 
+/// <summary>
+/// Manages allocation account operations for general journal entries including line creation and validation.
+/// Handles conversion of allocation accounts to detailed general journal lines with proper account assignments.
+/// </summary>
 codeunit 2677 "Gen. Journal Alloc. Acc. Mgt."
 {
     internal procedure GetOrGenerateAllocationLines(var AllocationLine: Record "Allocation Line"; var ParentSystemId: Guid)
@@ -234,6 +238,10 @@ codeunit 2677 "Gen. Journal Alloc. Acc. Mgt."
         AllocationAccountGenJournalLine.DeleteAll();
     end;
 
+    /// <summary>
+    /// Creates detailed general journal lines from allocation account entries.
+    /// </summary>
+    /// <param name="AllocationAccountGenJournalLine">General journal line containing allocation account to expand</param>
     procedure CreateLines(var AllocationAccountGenJournalLine: Record "Gen. Journal Line")
     begin
         AllocationAccountGenJournalLine.ReadIsolation := IsolationLevel::ReadCommitted;
@@ -536,16 +544,32 @@ codeunit 2677 "Gen. Journal Alloc. Acc. Mgt."
         VerifyGeneralJournalLine(Rec);
     end;
 
+    /// <summary>
+    /// Integration event raised before determining general journal account type for allocation line processing.
+    /// </summary>
+    /// <param name="AllocationLine">Allocation line being processed</param>
+    /// <param name="GenJournalAccountType">General journal account type to be assigned</param>
+    /// <param name="Handled">Set to true to indicate custom type assignment was handled</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetGeneralJournalLineType(var AllocationLine: Record "Allocation Line"; var GenJournalAccountType: Enum "Gen. Journal Account Type"; var Handled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before creating general journal line from allocation line for customization.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being created</param>
+    /// <param name="AllocationLine">Source allocation line</param>
+    /// <param name="AllocationAccountGenJournalLine">Parent allocation account general journal line</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateGeneralJournalLine(var GenJournalLine: Record "Gen. Journal Line"; var AllocationLine: Record "Allocation Line"; var AllocationAccountGenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before verifying general journal line for custom validation logic.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being verified</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeVerifyGeneralJournalLine(var GenJournalLine: Record "Gen. Journal Line")
     begin
@@ -583,6 +607,10 @@ codeunit 2677 "Gen. Journal Alloc. Acc. Mgt."
             VerifySelectedAllocationAccountNo(GenJournalLine);
     end;
 
+    /// <summary>
+    /// Validates that the selected allocation account configuration is compatible with the general journal line setup.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line to validate for allocation account usage</param>
     procedure VerifySelectedAllocationAccountNo(var GenJournalLine: Record "Gen. Journal Line")
     begin
         if GenJournalLine."Selected Alloc. Account No." = '' then

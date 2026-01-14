@@ -4,9 +4,18 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.FinancialReports;
 
-using Microsoft.Foundation.Enums;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.Enums;
 
+/// <summary>
+/// Stores financial report definitions with configuration parameters and filter settings.
+/// Central table for financial report setup including row/column definitions, period settings, and dimensional filters.
+/// </summary>
+/// <remarks>
+/// Primary configuration table for financial reporting system. Links account schedules and column layouts
+/// with report-specific parameters including period types, dimension filters, budget filters, and formatting options.
+/// Supports advanced filtering, Excel template integration, and paragraph text management for comprehensive financial reporting.
+/// </remarks>
 table 88 "Financial Report"
 {
     Caption = 'Financial Report';
@@ -16,6 +25,9 @@ table 88 "Financial Report"
 
     fields
     {
+        /// <summary>
+        /// Unique name identifying the financial report.
+        /// </summary>
         field(2; Name; Code[10])
         {
             Caption = 'Name';
@@ -23,12 +35,18 @@ table 88 "Financial Report"
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the unique name (code) of the financial report.';
         }
+        /// <summary>
+        /// Indicates whether to use amounts in additional reporting currency for calculations.
+        /// </summary>
         field(3; UseAmountsInAddCurrency; Boolean)
         {
             Caption = 'Use Amounts in Additional Currency';
             DataClassification = SystemMetadata;
         }
 #if not CLEANSCHEMA30
+        /// <summary>
+        /// Period type used for financial report analysis and calculations.
+        /// </summary>
         field(4; PeriodType; Enum "Analysis Period Type")
         {
             Caption = 'Period Type';
@@ -43,61 +61,97 @@ table 88 "Financial Report"
 #endif
         }
 #endif
+        /// <summary>
+        /// Controls whether to show account schedule lines marked with Show = No.
+        /// </summary>
         field(5; ShowLinesWithShowNo; Boolean)
         {
             Caption = 'Show All Lines';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Filter expression for Dimension 1 values in financial report calculations.
+        /// </summary>
         field(6; Dim1Filter; Text[2048])
         {
             Caption = 'Dimension 1 Filter';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Filter expression for Dimension 2 values in financial report calculations.
+        /// </summary>
         field(7; Dim2Filter; Text[2048])
         {
             Caption = 'Dimension 2 Filter';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Filter expression for Dimension 3 values in financial report calculations.
+        /// </summary>
         field(8; Dim3Filter; Text[2048])
         {
             Caption = 'Dimension 3 Filter';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Filter expression for Dimension 4 values in financial report calculations.
+        /// </summary>
         field(9; Dim4Filter; Text[2048])
         {
             Caption = 'Dimension 4 Filter';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Filter expression for Cost Center values in financial report calculations.
+        /// </summary>
         field(10; CostCenterFilter; Text[2048])
         {
             Caption = 'Cost Center Filter';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Filter expression for Cost Object values in financial report calculations.
+        /// </summary>
         field(11; CostObjectFilter; Text[2048])
         {
             Caption = 'Cost Object Filter';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Filter expression for Cash Flow values in financial report calculations.
+        /// </summary>
         field(12; CashFlowFilter; Text[2048])
         {
             Caption = 'Cash Flow Filter';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Filter expression for G/L Budget entries in financial report calculations.
+        /// </summary>
         field(13; GLBudgetFilter; Text[2048])
         {
             Caption = 'G/L Budget Filter';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Filter expression for Cost Budget entries in financial report calculations.
+        /// </summary>
         field(14; CostBudgetFilter; Text[2048])
         {
             Caption = 'Cost Budget Filter';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Date filter expression for financial report period selection.
+        /// </summary>
         field(15; DateFilter; Text[2048])
         {
             Caption = 'Date Filter';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Excel template code for default layout when exporting financial reports.
+        /// </summary>
         field(16; "Excel Template Code"; Code[50])
         {
             Caption = 'Default Excel Layout';
@@ -106,6 +160,9 @@ table 88 "Financial Report"
             ToolTip = 'Specifies the Excel Layout that will be used when exporting to Excel.';
         }
 #if not CLEANSCHEMA30
+        /// <summary>
+        /// Format specification for displaying negative amounts in the financial report.
+        /// </summary>
         field(17; NegativeAmountFormat; Enum "Analysis Negative Format")
         {
             Caption = 'Negative Amount Format';
@@ -133,12 +190,18 @@ table 88 "Financial Report"
             ToolTip = 'Specifies the default negative amount format for this financial report.';
         }
         // Fields not in "FinancialReportUserFilters"
+        /// <summary>
+        /// Display title shown on the final financial report output.
+        /// </summary>
         field(50; Description; Text[80])
         {
             Caption = 'Display Title';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies a title of the financial report. The text is shown as a title on the final report when you run it to get a PDF or to print it.';
         }
+        /// <summary>
+        /// Account schedule name used as the row definition for this financial report.
+        /// </summary>
         field(51; "Financial Report Row Group"; Code[10])
         {
             Caption = 'Financial Report Row Group';
@@ -150,6 +213,9 @@ table 88 "Financial Report"
                 AccSchedManagement.CheckAnalysisView(Rec."Financial Report Row Group", Rec."Financial Report Column Group", true);
             end;
         }
+        /// <summary>
+        /// Column layout name used as the column definition for this financial report.
+        /// </summary>
         field(52; "Financial Report Column Group"; Code[10])
         {
             Caption = 'Financial Report Column Group';
@@ -161,37 +227,58 @@ table 88 "Financial Report"
                 AccSchedManagement.CheckAnalysisView(Rec."Financial Report Row Group", Rec."Financial Report Column Group", true);
             end;
         }
+        /// <summary>
+        /// Internal description for administrative purposes and report management.
+        /// </summary>
         field(53; "Internal Description"; Text[250])
         {
             Caption = 'Internal Description';
             ToolTip = 'Specifies the internal description of this financial report.';
             DataClassification = CustomerContent;
         }
+        /// <summary>
+        /// Introductory paragraph text displayed at the beginning of the financial report.
+        /// </summary>
         field(54; "Introductory Paragraph"; Blob)
         {
             Caption = 'Introductory Paragraph';
             DataClassification = CustomerContent;
         }
+        /// <summary>
+        /// Closing paragraph text displayed at the end of the financial report.
+        /// </summary>
         field(55; "Closing Paragraph"; Blob)
         {
             Caption = 'Closing Paragraph';
             DataClassification = CustomerContent;
         }
+        /// <summary>
+        /// Date formula for calculating the start date of the report period.
+        /// </summary>
         field(56; StartDateFilterFormula; DateFormula)
         {
             Caption = 'Start Date Filter Formula';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Date formula for calculating the end date of the report period.
+        /// </summary>
         field(57; EndDateFilterFormula; DateFormula)
         {
             Caption = 'End Date Filter Formula';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Period formula code for date filter calculations.
+        /// </summary>
         field(58; DateFilterPeriodFormula; Code[20])
         {
             Caption = 'Date Filter Period Formula';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Language ID for period formula localization.
+        /// </summary>
         field(59; DateFilterPeriodFormulaLID; Integer)
         {
             Caption = 'Date Filter Period Formula Lang. ID';
@@ -202,15 +289,15 @@ table 88 "Financial Report"
             Caption = 'Logo Position';
             ToolTip = 'Specifies how your company logo is displayed on the financial report.';
         }
-        field(61; SheetDefinition; Code[10])
+        field(61; DimPerspective; Code[10])
         {
-            Caption = 'Sheet Definition';
-            TableRelation = "Sheet Definition Name";
+            Caption = 'Dimension Perspective';
+            TableRelation = "Dimension Perspective Name";
 
             trigger OnValidate()
             begin
-                if SheetDefinition <> '' then
-                    AccSchedManagement.CheckSheetAnalysisView(Rec."Financial Report Row Group", Rec.SheetDefinition);
+                if DimPerspective <> '' then
+                    AccSchedManagement.CheckPerspectiveAnalysisView(Rec."Financial Report Row Group", Rec.DimPerspective);
             end;
         }
     }
@@ -245,6 +332,11 @@ table 88 "Financial Report"
         FinancialReportSchedule.DeleteAll(true);
     end;
 
+    /// <summary>
+    /// Retrieves the introductory paragraph text from the BLOB field.
+    /// Returns the formatted text content for display in financial reports.
+    /// </summary>
+    /// <returns>Introductory paragraph text content</returns>
     procedure GetIntroductoryParagraph(): Text
     var
         InStream: InStream;
@@ -256,6 +348,11 @@ table 88 "Financial Report"
         exit(TextValue);
     end;
 
+    /// <summary>
+    /// Sets the introductory paragraph text in the BLOB field.
+    /// Stores formatted text content for inclusion in financial reports.
+    /// </summary>
+    /// <param name="TextValue">Text content to store as introductory paragraph</param>
     procedure SetIntroductionParagraph(TextValue: Text)
     var
         OutStream: OutStream;
@@ -264,6 +361,11 @@ table 88 "Financial Report"
         OutStream.Write(TextValue);
     end;
 
+    /// <summary>
+    /// Retrieves the closing paragraph text from the BLOB field.
+    /// Returns the formatted text content for display in financial reports.
+    /// </summary>
+    /// <returns>Closing paragraph text content</returns>
     procedure GetClosingParagraph(): Text
     var
         InStream: InStream;
@@ -275,6 +377,11 @@ table 88 "Financial Report"
         exit(TextValue);
     end;
 
+    /// <summary>
+    /// Sets the closing paragraph text in the BLOB field.
+    /// Stores formatted text content for financial report footer display.
+    /// </summary>
+    /// <param name="TextValue">Closing paragraph text to store</param>
     procedure SetClosingParagraph(TextValue: Text)
     var
         OutStream: OutStream;

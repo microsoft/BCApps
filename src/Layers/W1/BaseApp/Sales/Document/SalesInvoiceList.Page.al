@@ -298,19 +298,6 @@ page 9301 "Sales Invoice List"
         }
         area(factboxes)
         {
-#if not CLEAN25
-            part(AttachedDocuments; "Document Attachment Factbox")
-            {
-                ObsoleteTag = '25.0';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The "Document Attachment FactBox" has been replaced by "Doc. Attachment List Factbox", which supports multiple files upload.';
-                ApplicationArea = All;
-                Caption = 'Attachments';
-                SubPageLink = "Table ID" = const(Database::"Sales Header"),
-                              "No." = field("No."),
-                              "Document Type" = field("Document Type");
-            }
-#endif
             part("Attached Documents List"; "Doc. Attachment List Factbox")
             {
                 ApplicationArea = All;
@@ -708,14 +695,19 @@ page 9301 "Sales Invoice List"
                         RunObject = Report "Customer Detailed Aging";
                         ToolTip = 'View, print, or save a detailed list of each customer''s total payments due, divided into three time periods. The report can be used to decide when to issue reminders, to evaluate a customer''s creditworthiness, or to prepare liquidity analyses.';
                     }
+#if not CLEAN28
                     action("Aged Accounts Receivable")
                     {
                         ApplicationArea = Basic, Suite;
-                        Caption = 'Aged Accounts Receivable';
+                        Caption = 'Aged Accounts Receivable (Obsolete)';
                         Image = "Report";
                         RunObject = Report "Aged Accounts Receivable";
                         ToolTip = 'View an overview of when customer payments are due or overdue, divided into four periods. You must specify the date you want aging calculated from and the length of the period that each column will contain data for.';
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'This report has been replaced by the report Aged Accounts Receivable (Excel). This report will be removed in a future release.';
+                        ObsoleteTag = '28.0';
                     }
+#endif
                     action("Customer - Payment Receipt")
                     {
                         ApplicationArea = Suite;
@@ -729,14 +721,19 @@ page 9301 "Sales Invoice List"
                 {
                     Caption = 'Sales Reports';
                     Image = "Report";
+#if not CLEAN28
                     action("Customer - Top 10 List")
                     {
                         ApplicationArea = Basic, Suite;
-                        Caption = 'Customer - Top 10 List';
+                        Caption = 'Customer - Top 10 List (Obsolete)';
                         Image = "Report";
                         RunObject = Report "Customer - Top 10 List";
                         ToolTip = 'View which customers purchase the most or owe the most in a selected period. Only customers that have either purchases during the period or a balance at the end of the period will be included.';
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'This report has been replaced by the report Customer - Top List (Excel). This report will be removed in a future release.';
+                        ObsoleteTag = '28.0';
                     }
+#endif
                     action("Customer - Sales List")
                     {
                         ApplicationArea = Basic, Suite;

@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Registration;
 
+/// <summary>
+/// List page for managing VAT registration number format rules by country/region.
+/// Provides interface for defining and maintaining country-specific VAT number validation patterns.
+/// </summary>
 page 575 "VAT Registration No. Formats"
 {
     AutoSplitKey = true;

@@ -10,6 +10,14 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Period;
 
+/// <summary>
+/// Provides functionality to retrieve and process G/L entries and cash flow entries from analysis view entries.
+/// Handles drill-down navigation from analysis view entries to underlying ledger entries with dimension filtering.
+/// </summary>
+/// <remarks>
+/// Key functionality includes G/L entry retrieval, cash flow entry processing, and dimension validation.
+/// Supports both date-compressed and detailed analysis view entry drill-down scenarios.
+/// </remarks>
 codeunit 413 AnalysisViewEntryToGLEntries
 {
 
@@ -22,6 +30,12 @@ codeunit 413 AnalysisViewEntryToGLEntries
         GLSetup: Record "General Ledger Setup";
         DimSetEntry: Record "Dimension Set Entry";
 
+    /// <summary>
+    /// Retrieves G/L entries that correspond to an analysis view entry for drill-down functionality.
+    /// Applies appropriate filters based on analysis view configuration and dimension settings.
+    /// </summary>
+    /// <param name="AnalysisViewEntry">Analysis view entry to drill down from</param>
+    /// <param name="TempGLEntry">Temporary G/L Entry record to populate with matching entries</param>
     procedure GetGLEntries(var AnalysisViewEntry: Record "Analysis View Entry"; var TempGLEntry: Record "G/L Entry")
     var
         GLEntry: Record "G/L Entry";
@@ -96,6 +110,12 @@ codeunit 413 AnalysisViewEntryToGLEntries
         OnAfterGetGLEntries(AnalysisViewEntry, TempGLEntry);
     end;
 
+    /// <summary>
+    /// Retrieves cash flow forecast entries that correspond to an analysis view entry for drill-down functionality.
+    /// Applies appropriate filters based on analysis view configuration and cash flow dimension settings.
+    /// </summary>
+    /// <param name="AnalysisViewEntry">Analysis view entry to drill down from</param>
+    /// <param name="CFForecastEntry">Cash Flow Forecast Entry record to populate with matching entries</param>
     procedure GetCFLedgEntries(var AnalysisViewEntry: Record "Analysis View Entry"; var CFForecastEntry: Record "Cash Flow Forecast Entry")
     var
         CFForecastEntry2: Record "Cash Flow Forecast Entry";
@@ -161,6 +181,14 @@ codeunit 413 AnalysisViewEntryToGLEntries
             until CFForecastEntry2.Next() = 0;
     end;
 
+    /// <summary>
+    /// Validates whether a dimension set entry matches expected dimension value for analysis view filtering.
+    /// Checks if the dimension value in a dimension set matches the required value for analysis view drill-down.
+    /// </summary>
+    /// <param name="DimSetID">Dimension set ID to check</param>
+    /// <param name="Dim">Dimension code to validate</param>
+    /// <param name="DimValue">Expected dimension value</param>
+    /// <returns>True if dimension entry matches expected value or dimension is not used, false otherwise</returns>
     procedure DimEntryOK(DimSetID: Integer; Dim: Code[20]; DimValue: Code[20]): Boolean
     begin
         if Dim = '' then
@@ -197,6 +225,14 @@ codeunit 413 AnalysisViewEntryToGLEntries
         end;
     end;
 
+    /// <summary>
+    /// Retrieves global dimension value from analysis view entry for specified dimension code.
+    /// Maps analysis view dimension codes to corresponding dimension values for filtering purposes.
+    /// </summary>
+    /// <param name="GlobalDim">Global dimension code to retrieve value for</param>
+    /// <param name="AnalysisViewEntry">Analysis view entry containing dimension values</param>
+    /// <param name="GlobalDimValue">Retrieved dimension value for the specified global dimension</param>
+    /// <returns>True if the dimension code is a global dimension in the analysis view, false otherwise</returns>
     procedure GetGlobalDimValue(GlobalDim: Code[20]; var AnalysisViewEntry: Record "Analysis View Entry"; var GlobalDimValue: Code[20]): Boolean
     var
         IsGlobalDim: Boolean;
@@ -226,21 +262,46 @@ codeunit 413 AnalysisViewEntryToGLEntries
         exit(IsGlobalDim);
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters on G/L Entry record during drill-down process.
+    /// Enables custom filtering logic for G/L entries retrieved from analysis view entries.
+    /// </summary>
+    /// <param name="GLEntry">G/L Entry record with applied filters</param>
+    /// <param name="AnalysisView">Analysis view configuration being processed</param>
+    /// <param name="AnalysisViewEntry">Source analysis view entry for drill-down</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetGLEntriesOnAfterGLEntrySetFilters(var GLEntry: Record "G/L Entry"; var AnalysisView: Record "Analysis View"; var AnalysisViewEntry: Record "Analysis View Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after retrieving G/L entry when date compression is disabled.
+    /// Allows custom processing of G/L entries in non-compressed analysis view scenarios.
+    /// </summary>
+    /// <param name="AnalysisViewEntry">Source analysis view entry for drill-down</param>
+    /// <param name="TempGLEntry">Temporary G/L Entry record containing retrieved data</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetGLEntryIfDateCompressionNone(var AnalysisViewEntry: Record "Analysis View Entry"; var TempGLEntry: Record "G/L Entry" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after completing G/L entry retrieval process.
+    /// Enables final processing or validation of retrieved G/L entries from analysis view drill-down.
+    /// </summary>
+    /// <param name="AnalysisViewEntry">Source analysis view entry for drill-down</param>
+    /// <param name="TempGLEntry">Temporary G/L Entry record containing all retrieved entries</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetGLEntries(var AnalysisViewEntry: Record "Analysis View Entry"; var TempGLEntry: Record "G/L Entry" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before copying G/L entries during analysis view drill-down process.
+    /// Allows custom handling or skipping of standard G/L entry retrieval logic.
+    /// </summary>
+    /// <param name="AnalysisViewEntry">Source analysis view entry for drill-down</param>
+    /// <param name="IsHandled">Set to true to skip standard G/L entry copying logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetGLEntriesOnBeforeCopyGLEntries(var AnalysisViewEntry: Record "Analysis View Entry"; var IsHandled: Boolean)
     begin

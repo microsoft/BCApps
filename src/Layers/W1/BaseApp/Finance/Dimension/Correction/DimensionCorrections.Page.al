@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension.Correction;
 
+/// <summary>
+/// List page for viewing and managing multiple dimension correction entries. Provides overview and navigation to individual dimension correction records.
+/// </summary>
 page 2592 "Dimension Corrections"
 {
     PageType = List;

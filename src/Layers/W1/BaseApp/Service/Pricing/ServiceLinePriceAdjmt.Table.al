@@ -65,6 +65,7 @@ table 6084 "Service Line Price Adjmt."
         }
         field(10; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             Editable = false;
         }
@@ -138,6 +139,7 @@ table 6084 "Service Line Price Adjmt."
         }
         field(19; "Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Discount %';
             Editable = false;
         }
@@ -177,6 +179,7 @@ table 6084 "Service Line Price Adjmt."
         }
         field(24; Weight; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Weight';
             Editable = false;
         }
@@ -200,11 +203,14 @@ table 6084 "Service Line Price Adjmt."
         }
         field(28; "Vat %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Vat %';
             Editable = false;
         }
         field(29; "New Amount Excl. VAT"; Decimal)
         {
+            AutoFormatExpression = GetCurrency();
+            AutoFormatType = 1;
             Caption = 'New Amount Excl. VAT';
             Editable = false;
         }

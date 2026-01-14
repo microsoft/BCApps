@@ -53,6 +53,7 @@ codeunit 7321 "Create Inventory Put-away"
         CheckLineExist: Boolean;
         AutoCreation: Boolean;
         ApplySourceFilters: Boolean;
+        SuppressCommit: Boolean;
         NothingToHandleMsg: Label 'Nothing to handle.';
         BinPolicyTelemetryCategoryTok: Label 'Bin Policy', Locked = true;
         DefaultBinPutawayPolicyTelemetryTok: Label 'Default Bin Put-away Policy in used for inventory put-away.', Locked = true;
@@ -1093,14 +1094,8 @@ codeunit 7321 "Create Inventory Put-away"
             NewWarehouseActivityLine, TempTrackingSpecification, ReservationFound,
             WhseItemTrackingSetup."Serial No. Required", WhseItemTrackingSetup."Lot No. Required");
 
-        if AutoCreation and not LineCreated then begin
-            CurrWarehouseActivityHeader."No." := '';
-            CurrWarehouseActivityHeader.Insert(true);
-            UpdateWhseActivHeader(CurrWarehouseRequest);
-            NextLineNo := 10000;
-            OnInsertWhseActivLineOnBeforeCommit(NewWarehouseActivityLine, CurrWarehouseActivityHeader);
-            Commit();
-        end;
+        MakeWarehouseActivityHeader(NewWarehouseActivityLine);
+
         NewWarehouseActivityLine."No." := CurrWarehouseActivityHeader."No.";
         NewWarehouseActivityLine."Line No." := NextLineNo;
         IsHandled := false;
@@ -1264,6 +1259,31 @@ codeunit 7321 "Create Inventory Put-away"
     begin
         if not HideDialog then
             Message(NothingToHandleMsg);
+    end;
+
+    local procedure MakeWarehouseActivityHeader(var NewWarehouseActivityLine: Record "Warehouse Activity Line")
+    var
+        IsHandled: Boolean;
+    begin
+        IsHandled := false;
+        OnBeforeMakeWarehouseActivityHeader(CurrWarehouseActivityHeader, NewWarehouseActivityLine, AutoCreation, IsHandled);
+        if IsHandled then
+            exit;
+
+        if AutoCreation and not LineCreated then begin
+            CurrWarehouseActivityHeader."No." := '';
+            CurrWarehouseActivityHeader.Insert(true);
+            UpdateWhseActivHeader(CurrWarehouseRequest);
+            NextLineNo := 10000;
+            OnInsertWhseActivLineOnBeforeCommit(NewWarehouseActivityLine, CurrWarehouseActivityHeader);
+            if not SuppressCommit then
+                Commit();
+        end;
+    end;
+
+    procedure SetSuppressCommit(NewSuppressCommit: Boolean)
+    begin
+        SuppressCommit := NewSuppressCommit;
     end;
 
     [IntegrationEvent(false, false)]
@@ -1588,6 +1608,11 @@ codeunit 7321 "Create Inventory Put-away"
 
     [InternalEvent(false, false)]
     local procedure OnCreatePutAwayLinesFromPurchaseOnAfterSetRemQtyToPutAway(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var WarehouseActivityHeader: Record "Warehouse Activity Header"; var RemQtyToPutAway: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeMakeWarehouseActivityHeader(var WarehouseActivityHeader: Record "Warehouse Activity Header"; var WarehouseActivityLine: Record "Warehouse Activity Line"; var AutoCreation: Boolean; var IsHandled: Boolean)
     begin
     end;
 }

@@ -10,6 +10,9 @@ using System.Automation;
 using System.Security.User;
 using System.Utilities;
 
+/// <summary>
+/// List part page displaying G/L entries selected for dimension correction. Shows entries that will be modified during the correction process.
+/// </summary>
 page 2583 "Dim. Correct Ledger Entries"
 {
     PageType = ListPart;
@@ -546,6 +549,7 @@ page 2583 "Dim. Correct Ledger Entries"
         if RecordCount > DimensionCorrectionMgt.GetPreviewGLEntriesLimit() then
             exit;
 
+        ExcludedEntriesDimCorrectSelectionCriteria.SetRange("Dimension Correction Entry No.", DimensionCorrectionEntryNo);
         ExcludedEntriesDimCorrectSelectionCriteria.SetRange("Filter Type", DimCorrectSelectionCriteria."Filter Type"::Excluded);
         ExcluedEntriesExist := not ExcludedEntriesDimCorrectSelectionCriteria.IsEmpty();
         LoadRecordsForSelection(DimCorrectSelectionCriteria, ExcludedEntriesDimCorrectSelectionCriteria, ExcluedEntriesExist);
@@ -590,6 +594,10 @@ page 2583 "Dim. Correct Ledger Entries"
             until GLEntry.Next() = 0;
     end;
 
+    /// <summary>
+    /// Sets the dimension correction entry number for filtering and processing G/L entries.
+    /// </summary>
+    /// <param name="NewDimensionCorrectionEntryNo">The dimension correction entry number to associate with the ledger entries</param>
     procedure SetDimensionCorrectionEntryNo(NewDimensionCorrectionEntryNo: Integer)
     begin
         if NewDimensionCorrectionEntryNo <> DimensionCorrectionEntryNo then begin

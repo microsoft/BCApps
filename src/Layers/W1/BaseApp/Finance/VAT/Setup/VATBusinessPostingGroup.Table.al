@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Setup;
 
+/// <summary>
+/// Defines VAT business posting groups that categorize customers and vendors by their VAT characteristics.
+/// Used in combination with VAT product posting groups to determine VAT calculation rules and G/L account assignments.
+/// </summary>
+/// <remarks>
+/// Key relationships: Combined with VAT Product Posting Groups in VAT Posting Setup for VAT calculations.
+/// Integration points: Customer/Vendor cards, sales/purchase documents, VAT ledger entry creation.
+/// Extensibility: VAT business posting group extensions support additional VAT categorization requirements.
+/// </remarks>
 table 323 "VAT Business Posting Group"
 {
     Caption = 'VAT Business Posting Group';
@@ -14,15 +23,24 @@ table 323 "VAT Business Posting Group"
 
     fields
     {
+        /// <summary>
+        /// Unique identifier code for the VAT business posting group.
+        /// </summary>
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
             NotBlank = true;
         }
+        /// <summary>
+        /// Descriptive name explaining the VAT business posting group's purpose and scope.
+        /// </summary>
         field(2; Description; Text[100])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// Timestamp indicating when this VAT business posting group was last modified.
+        /// </summary>
         field(10; "Last Modified Date Time"; DateTime)
         {
             Caption = 'Last Modified Date Time';

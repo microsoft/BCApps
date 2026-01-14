@@ -9,8 +9,7 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 
 report 330 "Audit Trail"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Finance/GeneralLedger/Reports/AuditTrail.rdlc';
+    DefaultRenderingLayout = "AuditTrail.rdlc";
     ApplicationArea = Basic, Suite;
     Caption = 'Audit Trail';
     PreviewMode = PrintLayout;
@@ -203,6 +202,24 @@ report 330 "Audit Trail"
                     SetRange("Entry No.", "G/L Register"."From Entry No.", "G/L Register"."To Entry No.");
                 end;
             }
+        }
+    }
+
+    requestpage
+    {
+        AboutTitle = 'About Audit Trail';
+        AboutText = 'The Audit Trail report provides a detailed register and entry trace for auditing purposes. It includes information about the creation of G/L registers, such as creation date, time, and user ID, as well as details about each G/L entry within the registers. This report is useful for tracking changes, verifying transactions, and ensuring compliance with accounting standards. It also highlights reversed entries and their corresponding details to maintain transparency in financial records.';
+        SaveValues = true;
+    }
+
+    rendering
+    {
+        layout("AuditTrail.rdlc")
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/GeneralLedger/Reports/AuditTrail.rdlc';
+            Caption = 'Audit Trail (RDLC)';
+            Summary = 'Provides a detailed register and entry trace for auditing, including creation metadata and reversal information.';
         }
     }
 

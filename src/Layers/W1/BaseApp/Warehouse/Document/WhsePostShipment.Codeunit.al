@@ -38,7 +38,7 @@ codeunit 5763 "Whse.-Post Shipment"
         Code();
         Rec := WhseShptLine;
 
-        OnAfterRun(Rec, WhsePostParameters."Preview Posting");
+        OnAfterRun(Rec, WhsePostParameters."Preview Posting", WhsePostParameters."Suppress Commit");
     end;
 
     var
@@ -81,25 +81,16 @@ codeunit 5763 "Whse.-Post Shipment"
 
     local procedure "Code"()
     var
-#if not CLEAN25
-        SalesHeader: Record Microsoft.Sales.Document."Sales Header";
-        PurchHeader: Record Microsoft.Purchases.Document."Purchase Header";
-        TransHeader: Record Microsoft.Inventory.Transfer."Transfer Header";
-        ServiceHeader: Record Microsoft.Service.Document."Service Header";
-#endif
         GenJnlPostPreview: Codeunit "Gen. Jnl.-Post Preview";
         NoSeries: Codeunit "No. Series";
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
-#if not CLEAN25
-        SourceRecRef: RecordRef;
-#endif
         IsHandled: Boolean;
     begin
         SequenceNoMgt.SetPreviewMode(WhsePostParameters."Preview Posting");
         WhseShptLine.SetCurrentKey(WhseShptLine."No.");
         WhseShptLine.SetRange("No.", WhseShptLine."No.");
         IsHandled := false;
-        OnBeforeCheckWhseShptLines(WhseShptLine, WhseShptHeader, WhsePostParameters."Post Invoice", WhsePostParameters."Suppress Commit", IsHandled);
+        OnBeforeCheckWhseShptLines(WhseShptLine, WhseShptHeader, WhsePostParameters."Post Invoice", WhsePostParameters."Suppress Commit", IsHandled, WhsePostParameters."Preview Posting");
         if IsHandled then
             exit;
         WhseShptLine.SetFilter("Qty. to Ship", '>0');
@@ -168,20 +159,6 @@ codeunit 5763 "Whse.-Post Shipment"
 
                 CounterSourceDocTotal := CounterSourceDocTotal + 1;
 
-#if not CLEAN25
-                SourceRecRef.GetTable(GlobalSourceHeader);
-                case SourceRecRef.Number of
-                    Database::Microsoft.Sales.Document."Sales Header":
-                        SalesHeader := GlobalSourceHeader;
-                    Database::Microsoft.Purchases.Document."Purchase Header":
-                        PurchHeader := GlobalSourceHeader;
-                    Database::Microsoft.Inventory.Transfer."Transfer Header":
-                        TransHeader := GlobalSourceHeader;
-                    Database::Microsoft.Service.Document."Service Header":
-                        ServiceHeader := GlobalSourceHeader;
-                end;
-                OnBeforePostSourceDocument(WhseShptLine, PurchHeader, SalesHeader, TransHeader, ServiceHeader, WhsePostParameters."Suppress Commit");
-#endif
                 OnBeforePostSourceHeader(WhseShptLine, GlobalSourceHeader, WhsePostParameters);
                 PostSourceDocument(WhseShptLine, GlobalSourceHeader);
 
@@ -284,23 +261,7 @@ codeunit 5763 "Whse.-Post Shipment"
 
     local procedure PrintDocuments(var DocumentEntryToPrint2: Record "Document Entry")
     var
-#if not CLEAN25
-        SalesInvHeader: Record Microsoft.Sales.History."Sales Invoice Header";
-        SalesShptHeader: Record Microsoft.Sales.History."Sales Shipment Header";
-        PurchCrMemHeader: Record Microsoft.Purchases.History."Purch. Cr. Memo Hdr.";
-        ReturnShptHeader: Record Microsoft.Purchases.History."Return Shipment Header";
-        TransShptHeader: Record Microsoft.Inventory.Transfer."Transfer Shipment Header";
-        ServiceInvHeader: Record Microsoft.Service.History."Service Invoice Header";
-        ServiceShptHeader: Record Microsoft.Service.History."Service Shipment Header";
-        IsHandled: Boolean;
-#endif
     begin
-#if not CLEAN25
-        IsHandled := false;
-        OnBeforePrintDocuments(SalesInvHeader, SalesShptHeader, PurchCrMemHeader, ReturnShptHeader, TransShptHeader, ServiceInvHeader, ServiceShptHeader, IsHandled);
-        if IsHandled then
-            exit;
-#endif
 
         OnPrintDocuments(DocumentEntryToPrint2);
     end;
@@ -691,7 +652,7 @@ codeunit 5763 "Whse.-Post Shipment"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterRun(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; PreviewMode: Boolean)
+    local procedure OnAfterRun(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; PreviewMode: Boolean; SuppressCommit: Boolean)
     begin
     end;
 
@@ -705,18 +666,6 @@ codeunit 5763 "Whse.-Post Shipment"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforeValidateTransferLineQtyToShip(var TransferLine: Record Microsoft.Inventory.Transfer."Transfer Line"; WarehouseShipmentLine: Record "Warehouse Shipment Line"; var IsHandled: Boolean)
-    begin
-        OnBeforeValidateTransferLineQtyToShip(TransferLine, WarehouseShipmentLine, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit Trans. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeValidateTransferLineQtyToShip(var TransferLine: Record Microsoft.Inventory.Transfer."Transfer Line"; WarehouseShipmentLine: Record "Warehouse Shipment Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckWhseShptLine(var WarehouseShipmentLine: Record "Warehouse Shipment Line")
@@ -738,44 +687,8 @@ codeunit 5763 "Whse.-Post Shipment"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnAfterFindWhseShptLineForSalesLine(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var SalesLine: Record Microsoft.Sales.Document."Sales Line")
-    begin
-        OnAfterFindWhseShptLineForSalesLine(WarehouseShipmentLine, SalesLine);
-    end;
 
-    [Obsolete('Moved to codeunit Sales Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterFindWhseShptLineForSalesLine(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var SalesLine: Record Microsoft.Sales.Document."Sales Line")
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnAfterFindWhseShptLineForPurchLine(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var PurchaseLine: Record Microsoft.Purchases.Document."Purchase Line")
-    begin
-        OnAfterFindWhseShptLineForPurchLine(WarehouseShipmentLine, PurchaseLine);
-    end;
-
-    [Obsolete('Moved to codeunit Purch. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterFindWhseShptLineForPurchLine(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var PurchaseLine: Record Microsoft.Purchases.Document."Purchase Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnAfterFindWhseShptLineForTransLine(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var TransferLine: Record Microsoft.Inventory.Transfer."Transfer Line"; var IsHandled: Boolean; var ModifyLine: Boolean)
-    begin
-        OnAfterFindWhseShptLineForTransLine(WarehouseShipmentLine, TransferLine, IsHandled, ModifyLine);
-    end;
-
-    [Obsolete('Moved to codeunit Trans. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterFindWhseShptLineForTransLine(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var TransferLine: Record Microsoft.Inventory.Transfer."Transfer Line"; var IsHandled: Boolean; var ModifyLine: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitSourceDocumentHeader(var WhseShipmentLine: Record "Warehouse Shipment Line")
@@ -787,31 +700,7 @@ codeunit 5763 "Whse.-Post Shipment"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnAfterHandlePurchaseLine(var WhseShipmentLine: Record "Warehouse Shipment Line"; PurchHeader: Record Microsoft.Purchases.Document."Purchase Header"; WhsePostParameters2: Record "Whse. Post Parameters")
-    begin
-        OnAfterHandlePurchaseLine(WhseShipmentLine, PurchHeader, WhsePostParameters2."Post Invoice");
-    end;
 
-    [Obsolete('Moved to codeunit Purch. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterHandlePurchaseLine(var WhseShipmentLine: Record "Warehouse Shipment Line"; PurchHeader: Record Microsoft.Purchases.Document."Purchase Header"; var Invoice: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnAfterHandleSalesLine(var WhseShipmentLine: Record "Warehouse Shipment Line"; SalesHeader: Record Microsoft.Sales.Document."Sales Header"; WarehouseShipmentHeader: Record "Warehouse Shipment Header"; WhsePostParameters2: Record "Whse. Post Parameters")
-    begin
-        OnAfterHandleSalesLine(WhseShipmentLine, SalesHeader, WhsePostParameters2."Post Invoice", WarehouseShipmentHeader);
-    end;
-
-    [Obsolete('Moved to codeunit Sales Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterHandleSalesLine(var WhseShipmentLine: Record "Warehouse Shipment Line"; SalesHeader: Record Microsoft.Sales.Document."Sales Header"; var Invoice: Boolean; WarehouseShipmentHeader: Record "Warehouse Shipment Header")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostWhseShipment(var WarehouseShipmentHeader: Record "Warehouse Shipment Header"; SuppressCommit: Boolean; var IsHandled: Boolean)
@@ -853,57 +742,9 @@ codeunit 5763 "Whse.-Post Shipment"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnAfterPurchPost(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; PurchaseHeader: Record Microsoft.Purchases.Document."Purchase Header"; WhsePostParameters2: Record "Whse. Post Parameters"; WhseShptHeader2: Record "Warehouse Shipment Header")
-    begin
-        OnAfterPurchPost(WarehouseShipmentLine, PurchaseHeader, WhsePostParameters2."Post Invoice", WhseShptHeader2);
-    end;
 
-    [Obsolete('Moved to codeunit Purch. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterPurchPost(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; PurchaseHeader: Record Microsoft.Purchases.Document."Purchase Header"; Invoice: Boolean; WhseShptHeader: Record "Warehouse Shipment Header")
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnAfterSalesPost(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; SalesHeader: Record Microsoft.Sales.Document."Sales Header"; WhsePostParameters2: Record "Whse. Post Parameters")
-    begin
-        OnAfterSalesPost(WarehouseShipmentLine, SalesHeader, WhsePostParameters2."Post Invoice");
-    end;
 
-    [Obsolete('Moved to codeunit Sales Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterSalesPost(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; SalesHeader: Record Microsoft.Sales.Document."Sales Header"; Invoice: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnAfterServicePost(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; ServiceHeader: Record Microsoft.Service.Document."Service Header"; WhsePostParameters2: Record "Whse. Post Parameters")
-    begin
-        OnAfterServicePost(WarehouseShipmentLine, ServiceHeader, WhsePostParameters2."Post Invoice");
-    end;
-
-    [Obsolete('Moved to codeunit Serv. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterServicePost(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; ServiceHeader: Record Microsoft.Service.Document."Service Header"; Invoice: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnAfterTransferPostShipment(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; TransferHeader: Record Microsoft.Inventory.Transfer."Transfer Header"; WhsePostParameters2: Record "Whse. Post Parameters")
-    begin
-        OnAfterTransferPostShipment(WarehouseShipmentLine, TransferHeader, WhsePostParameters2."Suppress Commit");
-    end;
-
-    [Obsolete('Moved to codeunit Trans. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTransferPostShipment(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; TransferHeader: Record Microsoft.Inventory.Transfer."Transfer Header"; SuppressCommit: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckShippingAdviceComplete(var WhseShptLine: Record "Warehouse Shipment Line"; var IsHandled: Boolean)
@@ -915,148 +756,26 @@ codeunit 5763 "Whse.-Post Shipment"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforePurchLineModify(var PurchaseLine: Record Microsoft.Purchases.Document."Purchase Line"; WarehouseShipmentLine: Record "Warehouse Shipment Line"; var ModifyLine: Boolean; WhsePostParameters2: Record "Whse. Post Parameters")
-    begin
-        OnBeforePurchLineModify(PurchaseLine, WarehouseShipmentLine, ModifyLine, WhsePostParameters2."Post Invoice");
-    end;
 
-    [Obsolete('Moved to codeunit Purch. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforePurchLineModify(var PurchaseLine: Record Microsoft.Purchases.Document."Purchase Line"; WarehouseShipmentLine: Record "Warehouse Shipment Line"; var ModifyLine: Boolean; Invoice: Boolean)
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnBeforeSalesLineModify(var SalesLine: Record Microsoft.Sales.Document."Sales Line"; var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var ModifyLine: Boolean; WhsePostParameters2: Record "Whse. Post Parameters"; WarehouseShipmentHeader: Record "Warehouse Shipment Header")
-    begin
-        OnBeforeSalesLineModify(SalesLine, WarehouseShipmentLine, ModifyLine, WhsePostParameters2."Post Invoice", WarehouseShipmentHeader);
-    end;
-
-    [Obsolete('Moved to codeunit Sales Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeSalesLineModify(var SalesLine: Record Microsoft.Sales.Document."Sales Line"; var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var ModifyLine: Boolean; Invoice: Boolean; WarehouseShipmentHeader: Record "Warehouse Shipment Header")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnBeforeTransLineModify(var TransferLine: Record Microsoft.Inventory.Transfer."Transfer Line"; WarehouseShipmentLine: Record "Warehouse Shipment Line"; var ModifyLine: Boolean)
-    begin
-        OnBeforeTransLineModify(TransferLine, WarehouseShipmentLine, ModifyLine);
-    end;
-
-    [Obsolete('Moved to codeunit Trans. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeTransLineModify(var TransferLine: Record Microsoft.Inventory.Transfer."Transfer Line"; WarehouseShipmentLine: Record "Warehouse Shipment Line"; var ModifyLine: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnInitSourceDocumentHeader(var WhseShptHeader: Record "Warehouse Shipment Header"; var WhseShptLine: Record "Warehouse Shipment Line"; var SourceHeader: Variant; WhsePostParameters: Record "Whse. Post Parameters")
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnInitSourceDocumentHeaderOnBeforePurchHeaderModify(var PurchaseHeader: Record Microsoft.Purchases.Document."Purchase Header"; var WarehouseShipmentHeader: Record "Warehouse Shipment Header"; var ModifyHeader: Boolean)
-    begin
-        OnInitSourceDocumentHeaderOnBeforePurchHeaderModify(PurchaseHeader, WarehouseShipmentHeader, ModifyHeader);
-    end;
 
-    [Obsolete('Moved to codeunit Purch. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnInitSourceDocumentHeaderOnBeforePurchHeaderModify(var PurchaseHeader: Record Microsoft.Purchases.Document."Purchase Header"; var WarehouseShipmentHeader: Record "Warehouse Shipment Header"; var ModifyHeader: Boolean)
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnInitSourceDocumentHeaderOnBeforeSalesHeaderModify(var SalesHeader: Record Microsoft.Sales.Document."Sales Header"; var WarehouseShipmentHeader: Record "Warehouse Shipment Header"; var ModifyHeader: Boolean; WhsePostParameters2: Record "Whse. Post Parameters"; var WarehouseShipmentLine: Record "Warehouse Shipment Line")
-    begin
-        OnInitSourceDocumentHeaderOnBeforeSalesHeaderModify(SalesHeader, WarehouseShipmentHeader, ModifyHeader, WhsePostParameters2."Post Invoice", WarehouseShipmentLine);
-    end;
 
-    [Obsolete('Moved to codeunit Sales Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnInitSourceDocumentHeaderOnBeforeSalesHeaderModify(var SalesHeader: Record Microsoft.Sales.Document."Sales Header"; var WarehouseShipmentHeader: Record "Warehouse Shipment Header"; var ModifyHeader: Boolean; Invoice: Boolean; var WarehouseShipmentLine: Record "Warehouse Shipment Line")
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnInitSourceDocumentHeaderOnBeforeServiceHeaderModify(var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var WarehouseShipmentHeader: Record "Warehouse Shipment Header"; var ModifyHeader: Boolean)
-    begin
-        OnInitSourceDocumentHeaderOnBeforeServiceHeaderModify(ServiceHeader, WarehouseShipmentHeader, ModifyHeader);
-    end;
 
-    [Obsolete('Moved to codeunit Serv. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnInitSourceDocumentHeaderOnBeforeServiceHeaderModify(var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var WarehouseShipmentHeader: Record "Warehouse Shipment Header"; var ModifyHeader: Boolean)
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit Trans. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnInitSourceDocumentHeaderOnBeforeTransHeaderModify(var TransferHeader: Record Microsoft.Inventory.Transfer."Transfer Header"; var WarehouseShipmentHeader: Record "Warehouse Shipment Header"; var ModifyHeader: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnInitSourceDocumentHeaderOnBeforePurchaseHeaderUpdatePostingDate(var PurchaseHeader: Record Microsoft.Purchases.Document."Purchase Header"; var WarehouseShipmentHeader: Record "Warehouse Shipment Header"; var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var ModifyHeader: Boolean; var ValidatePostingDate: Boolean; var IsHandled: Boolean);
-    begin
-        OnInitSourceDocumentHeaderOnBeforePurchaseHeaderUpdatePostingDate(PurchaseHeader, WarehouseShipmentHeader, WarehouseShipmentLine, ModifyHeader, ValidatePostingDate, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit Purch. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnInitSourceDocumentHeaderOnBeforePurchaseHeaderUpdatePostingDate(var PurchaseHeader: Record Microsoft.Purchases.Document."Purchase Header"; var WarehouseShipmentHeader: Record "Warehouse Shipment Header"; var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var ModifyHeader: Boolean; var ValidatePostingDate: Boolean; var IsHandled: Boolean);
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    [Obsolete('Moved to codeunit Trans. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnInitSourceDocumentHeaderOnBeforeTransferHeaderUpdatePostingDate(var TransferHeader: Record Microsoft.Inventory.Transfer."Transfer Header"; var WarehouseShipmentHeader: Record "Warehouse Shipment Header"; var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var ModifyHeader: Boolean; var ValidatePostingDate: Boolean; var IsHandled: Boolean);
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnInitSourceDocumentHeaderOnBeforeServiceHeaderUpdatePostingDate(var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var WarehouseShipmentHeader: Record "Warehouse Shipment Header"; var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var ModifyHeader: Boolean; var ValidatePostingDate: Boolean; var IsHandled: Boolean);
-    begin
-        OnInitSourceDocumentHeaderOnBeforeServiceHeaderUpdatePostingDate(ServiceHeader, WarehouseShipmentHeader, WarehouseShipmentLine, ModifyHeader, ValidatePostingDate, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit Serv. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnInitSourceDocumentHeaderOnBeforeServiceHeaderUpdatePostingDate(var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var WarehouseShipmentHeader: Record "Warehouse Shipment Header"; var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var ModifyHeader: Boolean; var ValidatePostingDate: Boolean; var IsHandled: Boolean);
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnPostSourceDocument(var WhseShptHeader: Record "Warehouse Shipment Header"; var WhseShptLine: Record "Warehouse Shipment Line"; var CounterDocOK: Integer; var SourceHeader: Variant; WhsePostParameters: Record "Whse. Post Parameters"; Print: Boolean; var DocumentEntryToPrint: Record "Document Entry")
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnPostSourceDocumentOnBeforeCaseTransferLine(TransferHeader: Record Microsoft.Inventory.Transfer."Transfer Header"; WarehouseShipmentLine: Record "Warehouse Shipment Line")
-    begin
-        OnPostSourceDocumentOnBeforeCaseTransferLine(TransferHeader, WarehouseShipmentLine);
-    end;
-
-    [Obsolete('Moved to codeunit Trans. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostSourceDocumentOnBeforeCaseTransferLine(TransferHeader: Record Microsoft.Inventory.Transfer."Transfer Header"; WarehouseShipmentLine: Record "Warehouse Shipment Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDeleteUpdateWhseShptLine(WhseShptLine: Record "Warehouse Shipment Line"; var DeleteWhseShptLine: Boolean; var WhseShptLineBuf: Record "Warehouse Shipment Line")
@@ -1079,56 +798,9 @@ codeunit 5763 "Whse.-Post Shipment"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckWhseShptLines(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var WarehouseShipmentHeader: Record "Warehouse Shipment Header"; Invoice: Boolean; var SuppressCommit: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeCheckWhseShptLines(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var WarehouseShipmentHeader: Record "Warehouse Shipment Header"; Invoice: Boolean; var SuppressCommit: Boolean; var IsHandled: Boolean; PreviewPosting: Boolean)
     begin
     end;
-
-#if not CLEAN25
-    internal procedure RunOnBeforeHandlePurchaseLine(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var PurchLine: Record Microsoft.Purchases.Document."Purchase Line"; WhseShptHeader2: Record "Warehouse Shipment Header"; var ModifyLine: Boolean; var IsHandled: Boolean; WhsePostParameters2: Record "Whse. Post Parameters")
-    begin
-        OnBeforeHandlePurchaseLine(WarehouseShipmentLine, PurchLine, WhseShptHeader2, ModifyLine, IsHandled, WhsePostParameters2."Post Invoice");
-    end;
-
-    [Obsolete('Moved to codeunit Purch. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeHandlePurchaseLine(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var PurchLine: Record Microsoft.Purchases.Document."Purchase Line"; WhseShptHeader: Record "Warehouse Shipment Header"; var ModifyLine: Boolean; var IsHandled: Boolean; Invoice: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnBeforeHandleSalesLine(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var SalesLine: Record Microsoft.Sales.Document."Sales Line"; SalesHeader: Record Microsoft.Sales.Document."Sales Header"; WhseShptHeader2: Record "Warehouse Shipment Header"; var ModifyLine: Boolean; var IsHandled: Boolean; WhsePostParameters2: Record "Whse. Post Parameters")
-    begin
-        OnBeforeHandleSalesLine(WarehouseShipmentLine, SalesLine, SalesHeader, WhseShptHeader2, ModifyLine, IsHandled, WhsePostParameters2."Post Invoice");
-    end;
-
-    [Obsolete('Moved to codeunit Sales Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeHandleSalesLine(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var SalesLine: Record Microsoft.Sales.Document."Sales Line"; SalesHeader: Record Microsoft.Sales.Document."Sales Header"; WhseShptHeader: Record "Warehouse Shipment Header"; var ModifyLine: Boolean; var IsHandled: Boolean; Invoice: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnBeforeHandleTransferLine(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var TransLine: Record Microsoft.Inventory.Transfer."Transfer Line"; WhseShptHeader2: Record "Warehouse Shipment Header"; var ModifyLine: Boolean; var IsHandled: Boolean)
-    begin
-        OnBeforeHandleTransferLine(WarehouseShipmentLine, TransLine, WhseShptHeader2, ModifyLine, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit Trans. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeHandleTransferLine(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var TransLine: Record Microsoft.Inventory.Transfer."Transfer Line"; WhseShptHeader: Record "Warehouse Shipment Header"; var ModifyLine: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    [Obsolete('Replaced by event OnBeforePostSourceHeader', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforePostSourceDocument(var WhseShptLine: Record "Warehouse Shipment Line"; var PurchaseHeader: Record Microsoft.Purchases.Document."Purchase Header"; var SalesHeader: Record Microsoft.Sales.Document."Sales Header"; var TransferHeader: Record Microsoft.Inventory.Transfer."Transfer Header"; var ServiceHeader: Record Microsoft.Service.Document."Service Header"; SuppressCommit: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostSourceHeader(var WhseShptLine: Record "Warehouse Shipment Line"; GlobalSourceHeader: Variant; WhsePostParameters: Record "Whse. Post Parameters")
@@ -1145,75 +817,15 @@ codeunit 5763 "Whse.-Post Shipment"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforePostSourcePurchDocument(var PurchPost: Codeunit Microsoft.Purchases.Posting."Purch.-Post"; var PurchHeader: Record Microsoft.Purchases.Document."Purchase Header")
-    begin
-        OnBeforePostSourcePurchDocument(PurchPost, PurchHeader);
-    end;
 
-    [Obsolete('Moved to codeunit Purch. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforePostSourcePurchDocument(var PurchPost: Codeunit Microsoft.Purchases.Posting."Purch.-Post"; var PurchHeader: Record Microsoft.Purchases.Document."Purchase Header")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnBeforePostSourceTransferDocument(var TransferPostShipment: Codeunit Microsoft.Inventory.Transfer."TransferOrder-Post Shipment"; var TransHeader: Record Microsoft.Inventory.Transfer."Transfer Header"; var CounterSourceDocOK2: Integer; var IsHandled: Boolean)
-    begin
-        OnBeforePostSourceTransferDocument(TransferPostShipment, TransHeader, CounterSourceDocOK2, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit Trans. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforePostSourceTransferDocument(var TransferPostShipment: Codeunit Microsoft.Inventory.Transfer."TransferOrder-Post Shipment"; var TransHeader: Record Microsoft.Inventory.Transfer."Transfer Header"; var CounterSourceDocOK: Integer; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRegisterWhseJnlLines(var TempWhseJnlLine: Record "Warehouse Journal Line"; var PostedWhseShptLine: Record "Posted Whse. Shipment Line")
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforeTryPostSourcePurchDocument(var PurchPost: Codeunit Microsoft.Purchases.Posting."Purch.-Post"; var PurchHeader: Record Microsoft.Purchases.Document."Purchase Header"; var IsHandled: Boolean)
-    begin
-        OnBeforeTryPostSourcePurchDocument(PurchPost, PurchHeader, IsHandled);
-    end;
 
-    [Obsolete('Moved to codeunit Purch. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeTryPostSourcePurchDocument(var PurchPost: Codeunit Microsoft.Purchases.Posting."Purch.-Post"; var PurchHeader: Record Microsoft.Purchases.Document."Purchase Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnBeforeTryPostSourceTransferDocument(var TransferPostShipment: Codeunit Microsoft.Inventory.Transfer."TransferOrder-Post Shipment"; var TransHeader: Record Microsoft.Inventory.Transfer."Transfer Header"; var IsHandled: Boolean)
-    begin
-        OnBeforeTryPostSourceTransferDocument(TransferPostShipment, TransHeader, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit Trans. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeTryPostSourceTransferDocument(var TransferPostShipment: Codeunit Microsoft.Inventory.Transfer."TransferOrder-Post Shipment"; var TransHeader: Record Microsoft.Inventory.Transfer."Transfer Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnBeforeUpdateSaleslineQtyToShip(var SalesLine: Record Microsoft.Sales.Document."Sales Line"; var WhseShptLine2: Record "Warehouse Shipment Line"; var ATOWhseShptLine: Record "Warehouse Shipment Line"; var NonATOWhseShptLine: Record "Warehouse Shipment Line"; var ATOLineFound: Boolean; var NonATOLineFound: Boolean; SumOfQtyToShip: Decimal; SumOfQtyToShipBase: Decimal; var IsHandled: Boolean)
-    begin
-        OnBeforeUpdateSaleslineQtyToShip(SalesLine, WhseShptLine2, ATOWhseShptLine, NonATOWhseShptLine, ATOLineFound, NonATOLineFound, SumOfQtyToShip, SumOfQtyToShipBase, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit Sales Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateSaleslineQtyToShip(var SalesLine: Record Microsoft.Sales.Document."Sales Line"; var WhseShptLine: Record "Warehouse Shipment Line"; var ATOWhseShptLine: Record "Warehouse Shipment Line"; var NonATOWhseShptLine: Record "Warehouse Shipment Line"; var ATOLineFound: Boolean; var NonATOLineFound: Boolean; SumOfQtyToShip: Decimal; SumOfQtyToShipBase: Decimal; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnCreatePostedShptLineOnBeforePostWhseJnlLine(var PostedWhseShipmentLine: Record "Posted Whse. Shipment Line"; var TempTrackingSpecification: Record "Tracking Specification" temporary; WarehouseShipmentLine: Record "Warehouse Shipment Line")
@@ -1235,213 +847,21 @@ codeunit 5763 "Whse.-Post Shipment"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnInitSourceDocumentHeaderOnBeforeReopenSalesHeader(var SalesHeader: Record Microsoft.Sales.Document."Sales Header"; WhsePostParameters2: Record "Whse. Post Parameters"; var NewCalledFromWhseDoc: Boolean)
-    begin
-        OnInitSourceDocumentHeaderOnBeforeReopenSalesHeader(SalesHeader, WhsePostParameters2."Post Invoice", NewCalledFromWhseDoc);
-    end;
 
-    [Obsolete('Moved to codeunit Sales Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnInitSourceDocumentHeaderOnBeforeReopenSalesHeader(var SalesHeader: Record Microsoft.Sales.Document."Sales Header"; Invoice: Boolean; var NewCalledFromWhseDoc: Boolean)
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnInitSourceDocumentHeaderOnBeforeReleaseSalesHeader(var SalesHeader: Record Microsoft.Sales.Document."Sales Header"; var WhseShptHeader2: Record "Warehouse Shipment Header"; var WhseShptLine2: Record "Warehouse Shipment Line")
-    begin
-        OnInitSourceDocumentHeaderOnBeforeReleaseSalesHeader(SalesHeader, WhseShptHeader2, WhseShptLine2);
-    end;
 
-    [Obsolete('Moved to codeunit Sales Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnInitSourceDocumentHeaderOnBeforeReleaseSalesHeader(var SalesHeader: Record Microsoft.Sales.Document."Sales Header"; var WhseShptHeader: Record "Warehouse Shipment Header"; var WhseShptLine: Record "Warehouse Shipment Line")
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnInitSourceDocumentHeaderOnBeforeValidatePostingDate(var SalesHeader: Record Microsoft.Sales.Document."Sales Header"; var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var ValidatePostingDate: Boolean; var IsHandled: Boolean; var ModifyHeader: Boolean; var WhseShptHeader2: Record "Warehouse Shipment Header");
-    begin
-        OnInitSourceDocumentHeaderOnBeforeValidatePostingDate(SalesHeader, WarehouseShipmentLine, ValidatePostingDate, IsHandled, ModifyHeader, WhseShptHeader2);
-    end;
 
-    [Obsolete('Moved to codeunit Sales Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnInitSourceDocumentHeaderOnBeforeValidatePostingDate(var SalesHeader: Record Microsoft.Sales.Document."Sales Header"; var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var ValidatePostingDate: Boolean; var IsHandled: Boolean; var ModifyHeader: Boolean; var WhseShptHeader: Record "Warehouse Shipment Header");
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnHandleSalesLineOnAfterValidateRetQtytoReceive(var SalesLine: Record Microsoft.Sales.Document."Sales Line"; var WhseShptLine2: Record "Warehouse Shipment Line"; WhsePostParameters2: Record "Whse. Post Parameters");
-    begin
-        OnHandleSalesLineOnAfterValidateRetQtytoReceive(SalesLine, WhseShptLine2, WhsePostParameters2."Post Invoice");
-    end;
 
-    [Obsolete('Moved to codeunit Sales Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnHandleSalesLineOnAfterValidateRetQtytoReceive(var SalesLine: Record Microsoft.Sales.Document."Sales Line"; var WhseShptLine: Record "Warehouse Shipment Line"; Invoice: Boolean);
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnHandleSalesLineOnAfterCalcShouldModifyShipmentDate(WarehouseShipmentHeader: Record "Warehouse Shipment Header"; var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var SalesLine: Record Microsoft.Sales.Document."Sales Line"; var ShouldModifyShipmentDate: Boolean)
-    begin
-        OnHandleSalesLineOnAfterCalcShouldModifyShipmentDate(WarehouseShipmentHeader, WarehouseShipmentLine, SalesLine, ShouldModifyShipmentDate);
-    end;
 
-    [Obsolete('Moved to codeunit Sales Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnHandleSalesLineOnAfterCalcShouldModifyShipmentDate(WarehouseShipmentHeader: Record "Warehouse Shipment Header"; var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var SalesLine: Record Microsoft.Sales.Document."Sales Line"; var ShouldModifyShipmentDate: Boolean)
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnHandleSalesLineOnAfterSalesLineModify(var SalesLine: Record Microsoft.Sales.Document."Sales Line"; ModifyLine: Boolean; WarehouseShipmentHeader: Record "Warehouse Shipment Header")
-    begin
-        OnHandleSalesLineOnAfterSalesLineModify(SalesLine, ModifyLine, WarehouseShipmentHeader);
-    end;
 
-    [Obsolete('Moved to codeunit Sales Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnHandleSalesLineOnAfterSalesLineModify(var SalesLine: Record Microsoft.Sales.Document."Sales Line"; ModifyLine: Boolean; WarehouseShipmentHeader: Record "Warehouse Shipment Header")
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnHandlePurchLineOnNonWhseLineOnAfterCalcModifyLine(var PurchLine: Record Microsoft.Purchases.Document."Purchase Line"; var ModifyLine: Boolean);
-    begin
-        OnHandlePurchLineOnNonWhseLineOnAfterCalcModifyLine(PurchLine, ModifyLine);
-    end;
 
-    [Obsolete('Moved to codeunit Purch. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnHandlePurchLineOnNonWhseLineOnAfterCalcModifyLine(var PurchLine: Record Microsoft.Purchases.Document."Purchase Line"; var ModifyLine: Boolean);
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnHandlePurchaseLineOnAfterValidateQtytoReceive(var PurchLine: Record Microsoft.Purchases.Document."Purchase Line"; var WhseShptLine2: Record "Warehouse Shipment Line");
-    begin
-        OnHandlePurchaseLineOnAfterValidateQtytoReceive(PurchLine, WhseShptLine2);
-    end;
 
-    [Obsolete('Moved to codeunit Purch. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnHandlePurchaseLineOnAfterValidateQtytoReceive(var PurchLine: Record Microsoft.Purchases.Document."Purchase Line"; var WhseShptLine: Record "Warehouse Shipment Line");
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnHandlePurchaseLineOnAfterValidateRetQtytoShip(var PurchLine: Record Microsoft.Purchases.Document."Purchase Line"; var WhseShptLine2: Record "Warehouse Shipment Line");
-    begin
-        OnHandlePurchaseLineOnAfterValidateRetQtytoShip(PurchLine, WhseShptLine2);
-    end;
-
-    [Obsolete('Moved to codeunit Purch. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnHandlePurchaseLineOnAfterValidateRetQtytoShip(var PurchLine: Record Microsoft.Purchases.Document."Purchase Line"; var WhseShptLine: Record "Warehouse Shipment Line");
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnPostSourceDocumentOnBeforePrintSalesInvoice(var SalesHeader: Record Microsoft.Sales.Document."Sales Header"; var IsHandled: Boolean; var WhseShptLine2: Record "Warehouse Shipment Line")
-    begin
-        OnPostSourceDocumentOnBeforePrintSalesInvoice(SalesHeader, IsHandled, WhseShptLine2);
-    end;
-
-    [Obsolete('Moved to codeunit Sales Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostSourceDocumentOnBeforePrintSalesInvoice(var SalesHeader: Record Microsoft.Sales.Document."Sales Header"; var IsHandled: Boolean; var WhseShptLine: Record "Warehouse Shipment Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnPostSourceDocumentOnBeforePrintSalesShipment(var SalesHeader: Record Microsoft.Sales.Document."Sales Header"; var IsHandled: Boolean; var SalesShptHeader: Record Microsoft.Sales.History."Sales Shipment Header"; WhseShptHeader2: Record "Warehouse Shipment Header")
-    begin
-        OnPostSourceDocumentOnBeforePrintSalesShipment(SalesHeader, IsHandled, SalesShptHeader, WhseShptHeader2);
-    end;
-
-    [Obsolete('Moved to codeunit Sales Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostSourceDocumentOnBeforePrintSalesShipment(var SalesHeader: Record Microsoft.Sales.Document."Sales Header"; var IsHandled: Boolean; var SalesShptHeader: Record Microsoft.Sales.History."Sales Shipment Header"; WhseShptHeader: Record "Warehouse Shipment Header")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnPostSourceDocumentOnBeforePrintPurchReturnShipment(var PurchaseHeader: Record Microsoft.Purchases.Document."Purchase Header"; var IsHandled: Boolean)
-    begin
-        OnPostSourceDocumentOnBeforePrintPurchReturnShipment(PurchaseHeader, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit Purch. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostSourceDocumentOnBeforePrintPurchReturnShipment(var PurchaseHeader: Record Microsoft.Purchases.Document."Purchase Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnPostSourceDocumentOnBeforePrintPurchCreditMemo(var PurchaseHeader: Record Microsoft.Purchases.Document."Purchase Header"; var IsHandled: Boolean)
-    begin
-        OnPostSourceDocumentOnBeforePrintPurchCreditMemo(PurchaseHeader, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit Purch. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostSourceDocumentOnBeforePrintPurchCreditMemo(var PurchaseHeader: Record Microsoft.Purchases.Document."Purchase Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnPostSourceDocumentOnBeforePrintTransferShipment(var TransferShipmentHeader: Record Microsoft.Inventory.Transfer."Transfer Shipment Header"; var IsHandled: Boolean; var TransHeader: Record Microsoft.Inventory.Transfer."Transfer Header")
-    begin
-        OnPostSourceDocumentOnBeforePrintTransferShipment(TransferShipmentHeader, IsHandled, TransHeader);
-    end;
-
-    [Obsolete('Moved to codeunit Trans. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostSourceDocumentOnBeforePrintTransferShipment(var Transfer: Record Microsoft.Inventory.Transfer."Transfer Shipment Header"; var IsHandled: Boolean; var TransHeader: Record Microsoft.Inventory.Transfer."Transfer Header")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnPostSourceDocumentOnBeforePrintServiceInvoice(var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var IsHandled: Boolean)
-    begin
-        OnPostSourceDocumentOnBeforePrintServiceInvoice(ServiceHeader, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit Serv. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostSourceDocumentOnBeforePrintServiceInvoice(var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnPostSourceDocumentOnBeforePrintServiceShipment(var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var IsHandled: Boolean)
-    begin
-        OnPostSourceDocumentOnBeforePrintServiceShipment(ServiceHeader, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit Serv. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostSourceDocumentOnBeforePrintServiceShipment(var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateWhseDocumentsOnAfterWhseShptLine2Delete(var WhseShptLine2: Record "Warehouse Shipment Line")
@@ -1473,96 +893,12 @@ codeunit 5763 "Whse.-Post Shipment"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnPostSourceDocumentOnAfterSalesPost(var CounterDocOK: Integer; var SalesPost: Codeunit Microsoft.Sales.Posting."Sales-Post"; var SalesHeader: Record Microsoft.Sales.Document."Sales Header"; Result: Boolean)
-    begin
-        OnPostSourceDocumentOnAfterSalesPost(CounterDocOK, SalesPost, SalesHeader, Result);
-    end;
 
-    [Obsolete('Moved to codeunit Sales Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostSourceDocumentOnAfterSalesPost(var CounterSourceDocOK: Integer; var SalesPost: Codeunit Microsoft.Sales.Posting."Sales-Post"; var SalesHeader: Record Microsoft.Sales.Document."Sales Header"; Result: Boolean)
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnPostSourceDocumentOnBeforeSalesPost(var CounterDocOK: Integer; var SalesPost: Codeunit Microsoft.Sales.Posting."Sales-Post"; var SalesHeader: Record Microsoft.Sales.Document."Sales Header"; var IsHandled: Boolean)
-    begin
-        OnPostSourceDocumentOnBeforeSalesPost(CounterDocOK, SalesPost, SalesHeader, IsHandled);
-    end;
 
-    [Obsolete('Moved to codeunit Sales Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostSourceDocumentOnBeforeSalesPost(var CounterSourceDocOK: Integer; var SalesPost: Codeunit Microsoft.Sales.Posting."Sales-Post"; var SalesHeader: Record Microsoft.Sales.Document."Sales Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnPostSourceDocumentOnBeforePrintSalesDocuments(LastShippingNo: Code[20])
-    begin
-        OnPostSourceDocumentOnBeforePrintSalesDocuments(LastShippingNo);
-    end;
 
-    [Obsolete('Moved to codeunit Sales Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostSourceDocumentOnBeforePrintSalesDocuments(LastShippingNo: Code[20])
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnPrintDocumentsOnAfterPrintSalesShipment(ShipmentNo: Code[20])
-    begin
-        OnPrintDocumentsOnAfterPrintSalesShipment(ShipmentNo);
-    end;
-
-    [Obsolete('Moved to codeunit Sales Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPrintDocumentsOnAfterPrintSalesShipment(ShipmentNo: Code[20])
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnPrintDocumentsOnAfterPrintServiceShipment(ServiceShipmentNo: Code[20])
-    begin
-        OnPrintDocumentsOnAfterPrintServiceShipment(ServiceShipmentNo);
-    end;
-
-    [Obsolete('Moved to codeunit Serv. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPrintDocumentsOnAfterPrintServiceShipment(ServiceShipmentNo: Code[20])
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnInitSourceDocumentHeaderOnBeforeReopenPurchHeader(var WhseShptLine2: Record "Warehouse Shipment Line"; var PurchaseHeader: Record Microsoft.Purchases.Document."Purchase Header")
-    begin
-        OnInitSourceDocumentHeaderOnBeforeReopenPurchHeader(WhseShptLine2, PurchaseHeader);
-    end;
-
-    [Obsolete('Moved to codeunit Purch. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnInitSourceDocumentHeaderOnBeforeReopenPurchHeader(var WhseShptLine: Record "Warehouse Shipment Line"; var PurchaseHeader: Record Microsoft.Purchases.Document."Purchase Header")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnPostSourceDocumentOnBeforePostSalesHeader(var SalesPost: Codeunit Microsoft.Sales.Posting."Sales-Post"; var SalesHeader: Record Microsoft.Sales.Document."Sales Header"; WhseShptHeader2: Record "Warehouse Shipment Header"; var CounterSourceDocOK2: Integer; var WhsePostParameters2: Record "Whse. Post Parameters"; var IsHandled: Boolean)
-    begin
-        OnPostSourceDocumentOnBeforePostSalesHeader(SalesPost, SalesHeader, WhseShptHeader2, CounterSourceDocOK2, WhsePostParameters2."Suppress Commit", IsHandled, WhsePostParameters2."Post Invoice");
-    end;
-
-    [Obsolete('Moved to codeunit Sales Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostSourceDocumentOnBeforePostSalesHeader(var SalesPost: Codeunit Microsoft.Sales.Posting."Sales-Post"; var SalesHeader: Record Microsoft.Sales.Document."Sales Header"; WhseShptHeader: Record "Warehouse Shipment Header"; var CounterSourceDocOK: Integer; SuppressCommit: Boolean; var IsHandled: Boolean; var Invoice: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateWhseDocumentsOnBeforeWhseShptHeaderParamModify(var WhseShptHeaderParam: Record "Warehouse Shipment Header"; var WhseShptHeader: Record "Warehouse Shipment Header")
@@ -1579,44 +915,8 @@ codeunit 5763 "Whse.-Post Shipment"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnHandleSalesLineOnNonWhseLineOnAfterCalcModifyLine(var SalesLine: Record Microsoft.Sales.Document."Sales Line"; var ModifyLine: Boolean; WhseShptLine2: Record "Warehouse Shipment Line")
-    begin
-        OnHandleSalesLineOnNonWhseLineOnAfterCalcModifyLine(SalesLine, ModifyLine, WhseShptLine2);
-    end;
 
-    [Obsolete('Moved to codeunit Sales Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnHandleSalesLineOnNonWhseLineOnAfterCalcModifyLine(var SalesLine: Record Microsoft.Sales.Document."Sales Line"; var ModifyLine: Boolean; WhseShptLine: Record "Warehouse Shipment Line")
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnHandleSalesLineOnBeforeSalesLineFind(var SalesLine: Record Microsoft.Sales.Document."Sales Line")
-    begin
-        OnHandleSalesLineOnBeforeSalesLineFind(SalesLine);
-    end;
-
-    [Obsolete('Moved to codeunit Sales Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnHandleSalesLineOnBeforeSalesLineFind(var SalesLine: Record Microsoft.Sales.Document."Sales Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnHandleSalesLineOnSourceDocumentSalesOrderOnBeforeModifyLine(var SalesLine: Record Microsoft.Sales.Document."Sales Line"; WhseShptLine2: Record "Warehouse Shipment Line"; WhsePostParameters2: Record "Whse. Post Parameters")
-    begin
-        OnHandleSalesLineOnSourceDocumentSalesOrderOnBeforeModifyLine(SalesLine, WhseShptLine2, WhsePostParameters2."Post Invoice");
-    end;
-
-    [Obsolete('Moved to codeunit Sales Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnHandleSalesLineOnSourceDocumentSalesOrderOnBeforeModifyLine(var SalesLine: Record Microsoft.Sales.Document."Sales Line"; WhseShptLine: Record "Warehouse Shipment Line"; Invoice: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitSourceDocumentLines(var WhseShptLine2: Record "Warehouse Shipment Line"; WhsePostParameters: Record "Whse. Post Parameters"; var SourceHeader: Variant; var WhseShptHeader: Record "Warehouse Shipment Header")
@@ -1628,88 +928,16 @@ codeunit 5763 "Whse.-Post Shipment"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforePostSourceSalesDocument(var SalesPost: Codeunit Microsoft.Sales.Posting."Sales-Post")
-    begin
-        OnBeforePostSourceSalesDocument(SalesPost);
-    end;
-
-    [Obsolete('Moved to codeunit Sales Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforePostSourceSalesDocument(var SalesPost: Codeunit Microsoft.Sales.Posting."Sales-Post")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateWhseDocumentsOnAfterWhseShptLineBufLoop(var WhseShptHeaderParam: Record "Warehouse Shipment Header"; WhseShptLine2: Record "Warehouse Shipment Line"; WhseShptLineBuf: Record "Warehouse Shipment Line")
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnAfterPostSourceSalesDocument(var CounterDocOK: Integer; var SalesPost: Codeunit Microsoft.Sales.Posting."Sales-Post"; var SalesHeader: Record Microsoft.Sales.Document."Sales Header")
-    begin
-        OnAfterPostSourceSalesDocument(CounterDocOK, SalesPost, SalesHeader);
-    end;
 
-    [Obsolete('Moved to codeunit Sales Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterPostSourceSalesDocument(var CounterSourceDocOK: Integer; var SalesPost: Codeunit Microsoft.Sales.Posting."Sales-Post"; var SalesHeader: Record Microsoft.Sales.Document."Sales Header")
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnAfterTryPostSourcePurchDocument(var CounterSourceDocOK2: Integer; var PurchPost: Codeunit Microsoft.Purchases.Posting."Purch.-Post"; var PurchHeader: Record Microsoft.Purchases.Document."Purchase Header"; Result: Boolean)
-    begin
-        OnAfterTryPostSourcePurchDocument(CounterSourceDocOK2, PurchPost, PurchHeader, Result);
-    end;
 
-    [Obsolete('Moved to codeunit Purch. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTryPostSourcePurchDocument(var CounterSourceDocOK: Integer; var PurchPost: Codeunit Microsoft.Purchases.Posting."Purch.-Post"; var PurchHeader: Record Microsoft.Purchases.Document."Purchase Header"; Result: Boolean)
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnAfterPostSourcePurchDocument(var CounterSourceDocOK2: Integer; var PurchPost: Codeunit Microsoft.Purchases.Posting."Purch.-Post"; var PurchHeader: Record Microsoft.Purchases.Document."Purchase Header")
-    begin
-        OnAfterPostSourcePurchDocument(CounterSourceDocOK2, PurchPost, PurchHeader);
-    end;
-
-    [Obsolete('Moved to codeunit Purch. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterPostSourcePurchDocument(var CounterSourceDocOK: Integer; var PurchPost: Codeunit Microsoft.Purchases.Posting."Purch.-Post"; var PurchHeader: Record Microsoft.Purchases.Document."Purchase Header")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnAfterTryPostSourceTransferDocument(var CounterSourceDocOK2: Integer; var TransferPostShipment: Codeunit Microsoft.Inventory.Transfer."TransferOrder-Post Shipment"; var TransHeader: Record Microsoft.Inventory.Transfer."Transfer Header"; Result: Boolean)
-    begin
-        OnAfterTryPostSourceTransferDocument(CounterSourceDocOK2, TransferPostShipment, TransHeader, Result);
-    end;
-
-    [Obsolete('Moved to codeunit Trans. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTryPostSourceTransferDocument(var CounterSourceDocOK: Integer; var TransferPostShipment: Codeunit Microsoft.Inventory.Transfer."TransferOrder-Post Shipment"; var TransHeader: Record Microsoft.Inventory.Transfer."Transfer Header"; Result: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnAfterPostSourceTransferDocument(var CounterSourceDocOK2: Integer; var TransferPostShipment: Codeunit Microsoft.Inventory.Transfer."TransferOrder-Post Shipment"; var TransHeader: Record Microsoft.Inventory.Transfer."Transfer Header")
-    begin
-        OnAfterPostSourceTransferDocument(CounterSourceDocOK2, TransferPostShipment, TransHeader);
-    end;
-
-    [Obsolete('Moved to codeunit Trans. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterPostSourceTransferDocument(var CounterSourceDocOK: Integer; var TransferPostShipment: Codeunit Microsoft.Inventory.Transfer."TransferOrder-Post Shipment"; var TransHeader: Record Microsoft.Inventory.Transfer."Transfer Header")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnPostWhseJnlLineOnAfterSplitWhseJnlLine(var TempWhseJnlLine: Record "Warehouse Journal Line"; var PostedWhseShptLine: Record "Posted Whse. Shipment Line"; var TempTrackingSpecification: Record "Tracking Specification"; var TempWhseJnlLine2: Record "Warehouse Journal Line")
@@ -1721,135 +949,20 @@ codeunit 5763 "Whse.-Post Shipment"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnPostSourceDocumentOnBeforePostPurchHeader(var PurchPost: Codeunit Microsoft.Purchases.Posting."Purch.-Post"; var PurchHeader: Record Microsoft.Purchases.Document."Purchase Header"; WhsePostParameters2: Record "Whse. Post Parameters"; WhseShptHeader2: Record "Warehouse Shipment Header"; var CounterSourceDocOK2: Integer; var IsHandled: Boolean)
-    begin
-        OnPostSourceDocumentOnBeforePostPurchHeader(PurchPost, PurchHeader, WhseShptHeader2, CounterSourceDocOK2, IsHandled, WhsePostParameters2."Suppress Commit");
-    end;
 
-    [Obsolete('Moved to codeunit Purch. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostSourceDocumentOnBeforePostPurchHeader(var PurchPost: Codeunit Microsoft.Purchases.Posting."Purch.-Post"; var PurchHeader: Record Microsoft.Purchases.Document."Purchase Header"; WhseShptHeader: Record "Warehouse Shipment Header"; var CounterSourceDocOK: Integer; var IsHandled: Boolean; SuppressCommit: Boolean)
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnBeforeServiceLineModify(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var ModifyLine: Boolean; var WhsePostParameters2: Record "Whse. Post Parameters")
-    begin
-        OnBeforeServiceLineModify(ServiceLine, WarehouseShipmentLine, ModifyLine, WhsePostParameters2."Post Invoice", WhsePostParameters."Post Invoice");
-    end;
 
-    [Obsolete('Moved to codeunit Serv. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeServiceLineModify(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var ModifyLine: Boolean; Invoice: Boolean; var InvoiceService: Boolean)
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnPostSourceDocumentBeforeRunServicePost()
-    begin
-        OnPostSourceDocumentBeforeRunServicePost();
-    end;
 
-    [Obsolete('Moved to codeunit Serv. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostSourceDocumentBeforeRunServicePost()
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnPostSourceDocumentAfterRunServicePost()
-    begin
-        OnPostSourceDocumentAfterRunServicePost();
-    end;
-
-    [Obsolete('Moved to codeunit Serv. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostSourceDocumentAfterRunServicePost()
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnHandleServiceLineOnNonWhseLineOnAfterCalcModifyLine(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var ModifyLine: Boolean; WarehouseShipmentLine: Record "Warehouse Shipment Line")
-    begin
-        OnHandleServiceLineOnNonWhseLineOnAfterCalcModifyLine(ServiceLine, ModifyLine, WarehouseShipmentLine);
-    end;
-
-    [Obsolete('Moved to codeunit Serv. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnHandleServiceLineOnNonWhseLineOnAfterCalcModifyLine(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var ModifyLine: Boolean; WarehouseShipmentLine: Record "Warehouse Shipment Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    [Obsolete('Not used anymore.', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforePrintDocuments(var SalesInvoiceHeader: Record Microsoft.Sales.History."Sales Invoice Header"; var SalesShipmentHeader: Record Microsoft.Sales.History."Sales Shipment Header"; var PurchCrMemoHdr: Record Microsoft.Purchases.History."Purch. Cr. Memo Hdr."; var ReturnShipmentHeader: Record Microsoft.Purchases.History."Return Shipment Header"; var TransferShipmentHeader: Record Microsoft.Inventory.Transfer."Transfer Shipment Header"; var ServiceInvoiceHeader: Record Microsoft.Service.History."Service Invoice Header"; var ServiceShipmentHeader: Record Microsoft.Service.History."Service Shipment Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnHandleServiceLineOnSourceDocumentServiceOrderOnBeforeModifyLine(var ServiceLine: Record Microsoft.Service.Document."Service Line"; WarehouseShipmentLine: Record "Warehouse Shipment Line"; var InvoiceService: Boolean)
-    begin
-        OnHandleServiceLineOnSourceDocumentServiceOrderOnBeforeModifyLine(ServiceLine, WarehouseShipmentLine, InvoiceService);
-    end;
-
-    [Obsolete('Moved to codeunit Serv. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnHandleServiceLineOnSourceDocumentServiceOrderOnBeforeModifyLine(var ServiceLine: Record Microsoft.Service.Document."Service Line"; WarehouseShipmentLine: Record "Warehouse Shipment Line"; var InvoiceService: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnRunOnAfterWhseShptLineSetFilters(var WarehouseShipmentLine: Record "Warehouse Shipment Line")
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforeHandleServiceLine(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var ServiceLine: Record Microsoft.Service.Document."Service Line"; var ModifyLine: Boolean; var IsHandled: Boolean)
-    begin
-        OnBeforeHandleServiceLine(WarehouseShipmentLine, ServiceLine, ModifyLine, IsHandled);
-    end;
 
-    [Obsolete('Moved to codeunit Serv. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeHandleServiceLine(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var ServiceLine: Record Microsoft.Service.Document."Service Line"; var ModifyLine: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnHandlePurchLineOnAfterCalcShouldModifyExpectedReceiptDate(WarehouseShipmentHeader: Record "Warehouse Shipment Header"; var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var PurchaseLine: Record Microsoft.Purchases.Document."Purchase Line"; var ShouldModifyExpectedReceiptDate: Boolean)
-    begin
-        OnHandlePurchLineOnAfterCalcShouldModifyExpectedReceiptDate(WarehouseShipmentHeader, WarehouseShipmentLine, PurchaseLine, ShouldModifyExpectedReceiptDate);
-    end;
-
-    [Obsolete('Moved to codeunit Purch. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnHandlePurchLineOnAfterCalcShouldModifyExpectedReceiptDate(WarehouseShipmentHeader: Record "Warehouse Shipment Header"; var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var PurchaseLine: Record Microsoft.Purchases.Document."Purchase Line"; var ShouldModifyExpectedReceiptDate: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnHandleTransferLineOnAfterCalcShouldModifyShipmentDate(WarehouseShipmentHeader: Record "Warehouse Shipment Header"; var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var TransferLine: Record Microsoft.Inventory.Transfer."Transfer Line"; var ShouldModifyShipmentDate: Boolean)
-    begin
-        OnHandleTransferLineOnAfterCalcShouldModifyShipmentDate(WarehouseShipmentHeader, WarehouseShipmentLine, TransferLine, ShouldModifyShipmentDate);
-    end;
-
-    [Obsolete('Moved to codeunit Trans. Whse. Post Shipment', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnHandleTransferLineOnAfterCalcShouldModifyShipmentDate(WarehouseShipmentHeader: Record "Warehouse Shipment Header"; var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var TransferLine: Record Microsoft.Inventory.Transfer."Transfer Line"; var ShouldModifyShipmentDate: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnPrintDocuments(var DocumentEntryToPrint: Record "Document Entry")
@@ -1866,4 +979,3 @@ codeunit 5763 "Whse.-Post Shipment"
     begin
     end;
 }
-

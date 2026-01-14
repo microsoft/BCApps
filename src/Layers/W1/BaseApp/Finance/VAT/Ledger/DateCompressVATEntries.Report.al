@@ -10,6 +10,16 @@ using Microsoft.Foundation.Period;
 using System.DataAdministration;
 using System.Utilities;
 
+/// <summary>
+/// Date compression report for consolidating VAT entries by combining entries within specified date ranges.
+/// Reduces VAT entry volume by merging entries with same posting characteristics into single summarized entries.
+/// </summary>
+/// <remarks>
+/// Groups VAT entries by Type, Closed status, VAT posting groups, and tax jurisdiction codes.
+/// Preserves essential VAT information while reducing database storage requirements.
+/// Maintains audit trail through Date Compression Register entries.
+/// Supports data archiving functionality for compressed entries.
+/// </remarks>
 report 95 "Date Compress VAT Entries"
 {
     Caption = 'Date Compress VAT Entries';
@@ -459,6 +469,14 @@ report 95 "Date Compress VAT Entries"
             EntrdDateComprReg."Ending Date" := DateCompression.CalcMaxEndDate();
     end;
 
+    /// <summary>
+    /// Initializes report parameters for date compression operation with specified date range and retention settings.
+    /// </summary>
+    /// <param name="StartingDate">Start date for compression period</param>
+    /// <param name="EndingDate">End date for compression period</param>
+    /// <param name="PeriodLength">Length of compression periods (Day, Week, Month, Quarter, Year)</param>
+    /// <param name="NewDateComprRetainFields">Field retention settings for compression</param>
+    /// <param name="DoUseDataArchive">Whether to use data archiving for compressed entries</param>
     procedure InitializeRequest(StartingDate: Date; EndingDate: Date; PeriodLength: Option; NewDateComprRetainFields: Record "Date Compr. Retain Fields"; DoUseDataArchive: Boolean)
     begin
         InitializeParameter();

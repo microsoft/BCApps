@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Currency;
 
+/// <summary>
+/// Provides a register view for tracking exchange rate adjustment processing history.
+/// Displays a chronological list of adjustment runs with drill-down capabilities to detailed entries.
+/// </summary>
+/// <remarks>
+/// Source Table: Exch. Rate Adjmt. Reg. (86). Supports audit trail requirements by
+/// providing access to adjustment parameters, processing dates, and links to
+/// detailed adjustment ledger entries for comprehensive tracking.
+/// </remarks>
 page 106 "Exchange Rate Adjmt. Register"
 {
     ApplicationArea = Suite;

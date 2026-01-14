@@ -11,6 +11,15 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.Period;
 using System.Utilities;
 
+/// <summary>
+/// Generates balance comparison report between current period and previous year data.
+/// Provides side-by-side analysis of account balances with debit/credit breakdown and period-to-date totals.
+/// </summary>
+/// <remarks>
+/// Data sources: G/L Account table with balance calculations across multiple date ranges.
+/// Output formats: RDLC layout with configurable rounding factors and indentation levels.
+/// Supports filtering by account type, global dimensions, and custom date ranges for flexible reporting.
+/// </remarks>
 report 37 "Balance Comp. - Prev. Year"
 {
     DefaultLayout = RDLC;
@@ -421,6 +430,10 @@ report 37 "Balance Comp. - Prev. Year"
     protected var
         GLFilter: Text;
 
+    /// <summary>
+    /// Calculates ending date for the period based on the starting date and accounting periods.
+    /// Uses the next accounting period's starting date minus one day as the ending date.
+    /// </summary>
     procedure SetEndingDate()
     begin
         AccountingPeriod.Reset();
@@ -429,6 +442,10 @@ report 37 "Balance Comp. - Prev. Year"
         PeriodEndingDate := AccountingPeriod."Starting Date" - 1;
     end;
 
+    /// <summary>
+    /// Calculates corresponding previous year dates by subtracting one year from current period dates.
+    /// Sets both starting and ending dates for previous year comparison and validates fiscal year alignment.
+    /// </summary>
     procedure SetPreviousDates()
     begin
         PreviousStartingDate := CalcDate(Text006, PeriodStartingDate);
@@ -465,11 +482,27 @@ report 37 "Balance Comp. - Prev. Year"
             Error(Text014, PreviousStartingDate, PreviousEndingDate);
     end;
 
+    /// <summary>
+    /// Formats decimal amounts according to the specified rounding factor for report display.
+    /// Utilizes Matrix Management codeunit for consistent amount formatting across reports.
+    /// </summary>
+    /// <param name="Value">Decimal amount to be formatted</param>
+    /// <returns>Formatted amount as text with appropriate rounding applied</returns>
     procedure RoundAmount(Value: Decimal): Text[30]
     begin
         exit(MatrixMgt.FormatAmount(Value, RoundingFactor, false));
     end;
 
+    /// <summary>
+    /// Initializes report parameters for programmatic execution with date ranges and formatting options.
+    /// Sets period dates, previous year comparison dates, rounding factors, and indentation levels for automated report generation.
+    /// </summary>
+    /// <param name="NewPeriodStartingDate">Starting date for current period analysis</param>
+    /// <param name="NewPeriodEndingDate">Ending date for current period analysis</param>
+    /// <param name="NewPreviousStartingDate">Starting date for previous year comparison period</param>
+    /// <param name="NewPreviousEndingDate">Ending date for previous year comparison period</param>
+    /// <param name="NewRoundingFactor">Rounding factor option for amount display</param>
+    /// <param name="NewIndent">Indentation level option for account hierarchy display</param>
     procedure InitializeRequest(NewPeriodStartingDate: Date; NewPeriodEndingDate: Date; NewPreviousStartingDate: Date; NewPreviousEndingDate: Date; NewRoundingFactor: Option; NewIndent: Option)
     begin
         if NewPeriodStartingDate <> 0D then begin

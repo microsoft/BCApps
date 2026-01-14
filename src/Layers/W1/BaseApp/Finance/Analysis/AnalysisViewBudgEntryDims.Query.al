@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Analysis;
 
+/// <summary>
+/// Query for aggregating analysis view budget entry amounts by dimension combinations.
+/// Provides dimension-based grouping and budget amount summation for budget analysis reporting.
+/// </summary>
 query 253 "Analysis View Budg. Entry Dims"
 {
     Caption = 'Analysis View Budg. Entry Dims';

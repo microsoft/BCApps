@@ -57,6 +57,7 @@ table 6081 "Serv. Price Group Setup"
         }
         field(9; Amount; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount';
         }
         field(10; "Include VAT"; Boolean)

@@ -105,10 +105,8 @@ codeunit 4591 "SOA Item Search"
     local procedure LogInventoryInquiryReplied()
     var
         SOABilling: Codeunit "SOA Billing";
-        SOABillingTask: Codeunit "SOA Billing Task";
     begin
         SOABilling.LogInventoryInquiryReplied(AgentTaskID);
-        SOABillingTask.ScheduleBillingTask();
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Sales Line", OnAfterCheckItemAvailable, '', false, false)]

@@ -8,6 +8,16 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Ledger;
 
+/// <summary>
+/// Tracks source currency balances and transactions for general ledger accounts that support multi-currency operations.
+/// Provides detailed currency-specific balance information for accounts configured with source currency posting.
+/// </summary>
+/// <remarks>
+/// Key relationships: G/L Account, Currency, G/L Entry with source currency amounts.
+/// Used for multi-currency accounting scenarios where accounts maintain balances in specific currencies.
+/// Supports dimensional analysis and date-filtered balance calculations for source currency amounts.
+/// Enables currency-specific reporting and exchange rate adjustment processes.
+/// </remarks>
 table 589 "G/L Account Source Currency"
 {
     Caption = 'G/L Account Source Currency';
@@ -17,21 +27,33 @@ table 589 "G/L Account Source Currency"
 
     fields
     {
+        /// <summary>
+        /// General ledger account number that supports source currency posting and multi-currency transactions.
+        /// </summary>
         field(1; "G/L Account No."; Code[20])
         {
             Caption = 'G/L Account No.';
             TableRelation = "G/L Account";
         }
+        /// <summary>
+        /// Currency code for the source currency used in transactions for this account.
+        /// </summary>
         field(2; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
             TableRelation = Currency;
         }
+        /// <summary>
+        /// Date range filter for calculating currency-specific balance amounts in flowfields.
+        /// </summary>
         field(28; "Date Filter"; Date)
         {
             Caption = 'Date Filter';
             FieldClass = FlowFilter;
         }
+        /// <summary>
+        /// Filter for first global dimension to restrict currency balance calculations to specific dimension values.
+        /// </summary>
         field(29; "Global Dimension 1 Filter"; Code[20])
         {
             CaptionClass = '1,3,1';
@@ -39,6 +61,9 @@ table 589 "G/L Account Source Currency"
             FieldClass = FlowFilter;
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
+        /// <summary>
+        /// Filter for second global dimension to restrict currency balance calculations to specific dimension values.
+        /// </summary>
         field(30; "Global Dimension 2 Filter"; Code[20])
         {
             CaptionClass = '1,3,2';
@@ -46,6 +71,9 @@ table 589 "G/L Account Source Currency"
             FieldClass = FlowFilter;
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
+        /// <summary>
+        /// Account balance in local currency as of the specified date filter for this source currency combination.
+        /// </summary>
         field(31; "Balance at Date"; Decimal)
         {
             AutoFormatExpression = "Currency Code";
@@ -59,6 +87,9 @@ table 589 "G/L Account Source Currency"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Net change amount in source currency for the account within the specified date filter period.
+        /// </summary>
         field(75; "Source Currency Net Change"; Decimal)
         {
             AutoFormatExpression = "Currency Code";
@@ -72,6 +103,9 @@ table 589 "G/L Account Source Currency"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Account balance in source currency as of the specified date filter for exchange rate analysis.
+        /// </summary>
         field(76; "Source Curr. Balance at Date"; Decimal)
         {
             AutoFormatExpression = "Currency Code";
@@ -85,6 +119,9 @@ table 589 "G/L Account Source Currency"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Indicates whether general ledger entries exist for this account and currency combination.
+        /// </summary>
         field(77; "Entries Exists"; Boolean)
         {
             CalcFormula = exist("G/L Entry" where("G/L Account No." = field("G/L Account No."),
@@ -136,6 +173,15 @@ table 589 "G/L Account Source Currency"
         CannotRenameErr: Label 'You cannot rename %1', Comment = '%1 - currency code';
         CannotDeleteErr: Label 'You cannot remove currency %1 because this currency code is set in field %2 in table %3', Comment = '%1 - currency code, %2 - field caption, %3 table caption';
 
+    /// <summary>
+    /// Builds a complete list of source currency records for a general ledger account based on existing entries.
+    /// Scans all general ledger entries for the filtered account and creates source currency records as needed.
+    /// </summary>
+    /// <remarks>
+    /// Creates missing source currency records for currencies found in general ledger entries.
+    /// Requires a G/L Account No. filter to be set before calling this procedure.
+    /// Used to initialize source currency tracking for accounts with multi-currency transactions.
+    /// </remarks>
     procedure BuildCurrencyList()
     var
         GLEntry: Record "G/L Entry";
@@ -153,6 +199,12 @@ table 589 "G/L Account Source Currency"
             until GLEntry.Next() = 0;
     end;
 
+    /// <summary>
+    /// Creates a new source currency record for the specified general ledger account and currency combination.
+    /// Initializes the record with proper validation for account and currency relationships.
+    /// </summary>
+    /// <param name="GLAccountNo">General ledger account number for the source currency record</param>
+    /// <param name="CurrencyCode">Currency code for the source currency configuration</param>
     procedure InsertRecord(GLAccountNo: Code[20]; CurrencyCode: Code[10])
     begin
         GLAccountSourceCurrency.Init();

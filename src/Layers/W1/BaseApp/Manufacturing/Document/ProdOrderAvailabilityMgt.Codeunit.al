@@ -436,9 +436,6 @@ codeunit 99000875 "Prod. Order Availability Mgt."
         ItemAvailabilityFormsMgt.FilterItem(Item, ProdOrderLine."Location Code", ProdOrderLine."Variant Code", ProdOrderLine."Due Date");
 
         OnBeforeShowItemAvailFromProdOrderLine(Item, ProdOrderLine);
-#if not CLEAN25
-        ItemAvailabilityFormsMgt.RunOnBeforeShowItemAvailFromProdOrderLine(Item, ProdOrderLine);
-#endif
         case AvailabilityType of
             AvailabilityType::Period:
                 if ItemAvailabilityFormsMgt.ShowItemAvailabilityByPeriod(Item, GetFieldCaption(ProdOrderLine.FieldCaption(ProdOrderLine."Due Date")), ProdOrderLine."Due Date", NewDate) then
@@ -493,9 +490,6 @@ codeunit 99000875 "Prod. Order Availability Mgt."
         ItemAvailabilityFormsMgt.FilterItem(Item, ProdOrderComp."Location Code", ProdOrderComp."Variant Code", ProdOrderComp."Due Date");
 
         OnBeforeShowItemAvailFromProdOrderComp(Item, ProdOrderComp);
-#if not CLEAN25
-        ItemAvailabilityFormsMgt.RunOnBeforeShowItemAvailFromProdOrderComp(Item, ProdOrderComp);
-#endif
         case AvailabilityType of
             AvailabilityType::Period:
                 if ItemAvailabilityFormsMgt.ShowItemAvailabilityByPeriod(Item, GetFieldCaption(ProdOrderComp.FieldCaption(ProdOrderComp."Due Date")), ProdOrderComp."Due Date", NewDate) then
@@ -604,9 +598,6 @@ codeunit 99000875 "Prod. Order Availability Mgt."
     local procedure TransferProdOrderComp(InventoryEventBuffer: Record "Inventory Event Buffer"; var InventoryPageData: Record "Inventory Page Data"; SourceSubtype: Integer; SourceID: Code[20])
     var
         ProdOrder: Record "Production Order";
-#if not CLEAN25
-        CalcInventoryPageData: Codeunit "Calc. Inventory Page Data";
-#endif
         RecRef: RecordRef;
     begin
         ProdOrder.Get(SourceSubtype, SourceID);
@@ -631,9 +622,6 @@ codeunit 99000875 "Prod. Order Availability Mgt."
                 end;
         end;
         OnAfterTransferProdOrderComp(InventoryPageData, ProdOrder);
-#if not CLEAN25
-        CalcInventoryPageData.RunOnAfterTransferProdOrderComp(InventoryPageData, ProdOrder);
-#endif
     end;
 
     [IntegrationEvent(false, false)]
@@ -768,9 +756,6 @@ codeunit 99000875 "Prod. Order Availability Mgt."
         InventoryEventBuffer.Positive := not (InventoryEventBuffer."Remaining Quantity (Base)" < 0);
 
         OnAfterTransferFromProdComp(InventoryEventBuffer, ProdOrderComp);
-#if not CLEAN25
-        InventoryEventBuffer.RunOnAfterTransferFromProdComp(InventoryEventBuffer, ProdOrderComp);
-#endif
     end;
 
     procedure TransferFromProdOrder(var InventoryEventBuffer: Record "Inventory Event Buffer"; ProdOrderLine: Record "Prod. Order Line")
@@ -791,9 +776,6 @@ codeunit 99000875 "Prod. Order Availability Mgt."
         InventoryEventBuffer.Positive := not (InventoryEventBuffer."Remaining Quantity (Base)" < 0);
 
         OnAfterTransferFromProdOrder(InventoryEventBuffer, ProdOrderLine);
-#if not CLEAN25
-        InventoryEventBuffer.RunOnAfterTransferFromProdOrder(InventoryEventBuffer, ProdOrderLine);
-#endif
     end;
 
 #if not CLEAN27
@@ -872,9 +854,6 @@ codeunit 99000875 "Prod. Order Availability Mgt."
     begin
         IsHandled := false;
         OnBeforeUpdateSchedRcptAvail(AvailabilityAtDate, Item, IsHandled);
-#if not CLEAN25
-        AvailableToPromise.RunOnBeforeUpdateSchedRcptAvail(AvailabilityAtDate, Item, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -893,9 +872,6 @@ codeunit 99000875 "Prod. Order Availability Mgt."
     begin
         IsHandled := false;
         OnBeforeUpdateSchedNeedAvail(AvailabilityAtDate, Item, IsHandled);
-#if not CLEAN25
-        AvailableToPromise.RunOnBeforeUpdateSchedNeedAvail(AvailabilityAtDate, Item, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -1033,6 +1009,13 @@ codeunit 99000875 "Prod. Order Availability Mgt."
           "Res. Qty. on Prod. Order Comp.",
           "Scheduled Receipt (Qty.)",
           "Reserved Qty. on Prod. Order");
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::Item, 'OnCalcReservedQtyOnProdOrder', '', false, false)]
+    local procedure OnCalcReservedQtyOnProdOrder(var Item: Record Item; var Result: Decimal)
+    begin
+        Item.CalcFields("Reserved Qty. on Prod. Order");
+        Result := Item."Reserved Qty. on Prod. Order";
     end;
 #if not CLEAN27
     [EventSubscriber(ObjectType::Report, Report::"Planning Availability", 'OnRequisitionLineOnBeforeTempPlanningBufferInsert', '', false, false)]

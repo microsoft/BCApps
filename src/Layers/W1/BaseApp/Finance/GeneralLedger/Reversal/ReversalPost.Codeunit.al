@@ -8,6 +8,14 @@ using Microsoft.Finance.Deferral;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 
+/// <summary>
+/// Handles the posting phase of reversal operations by creating correcting ledger entries.
+/// Integrates with the posting engine to create offsetting transactions and manages G/L register creation.
+/// </summary>
+/// <remarks>
+/// Extensibility: Integration events for custom posting logic and G/L register printing customization.
+/// Dependencies: Gen. Jnl.-Post Batch codeunit, G/L Register management, and Deferral posting integration.
+/// </remarks>
 codeunit 179 "Reversal-Post"
 {
     TableNo = "Reversal Entry";
@@ -95,41 +103,83 @@ codeunit 179 "Reversal-Post"
         Text008: Label 'Changes have been made to posted entries after the window was opened.\Close and reopen the window to continue.';
 #pragma warning restore AA0074
 
+    /// <summary>
+    /// Sets whether to print the G/L register after posting reversal entries.
+    /// </summary>
+    /// <param name="NewPrintRegister">True to print G/L register after posting, false otherwise</param>
     procedure SetPrint(NewPrintRegister: Boolean)
     begin
         PrintRegister := NewPrintRegister;
     end;
 
+    /// <summary>
+    /// Sets whether to hide confirmation dialogs during reversal posting.
+    /// </summary>
+    /// <param name="NewHideDialog">True to hide dialogs, false to show confirmation prompts</param>
     procedure SetHideDialog(NewHideDialog: Boolean)
     begin
         HideDialog := NewHideDialog;
     end;
 
+    /// <summary>
+    /// Integration event raised before printing the G/L register posting report, allowing customization of report settings.
+    /// </summary>
+    /// <param name="ReportID">Report ID that can be modified by subscribers</param>
+    /// <param name="ReqWindow">Whether to show the report request window</param>
+    /// <param name="SystemPrinter">Whether to use the system printer</param>
+    /// <param name="GLRegister">G/L register record being printed</param>
+    /// <param name="Handled">Set to true to skip standard report printing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGLRegPostingReportPrint(var ReportID: Integer; ReqWindow: Boolean; SystemPrinter: Boolean; var GLRegister: Record "G/L Register"; var Handled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before starting the reversal posting process, allowing preprocessing of reversal entries.
+    /// </summary>
+    /// <param name="ReversalEntry">Reversal entry record being processed</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeOnRun(var ReversalEntry: Record "Reversal Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before deleting reversal entries after successful posting.
+    /// </summary>
+    /// <param name="ReversalEntry">Reversal entry record being deleted</param>
+    /// <param name="Number">Transaction or register number being reversed</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforeDeleteAll(var ReversalEntry: Record "Reversal Entry"; Number: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after user confirmation, allowing custom handling of the reversal process.
+    /// </summary>
+    /// <param name="ReversalEntry">Reversal entry record being processed</param>
+    /// <param name="Handled">Set to true to skip standard processing</param>
+    /// <param name="PrintRegister">Whether to print G/L register after posting</param>
+    /// <param name="HideDialog">Whether dialogs are hidden during processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnAfterConfirm(var ReversalEntry: Record "Reversal Entry"; var Handled: Boolean; PrintRegister: Boolean; HideDialog: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after creating confirmation text, allowing customization of user messages.
+    /// </summary>
+    /// <param name="PrintRegister">Whether G/L register will be printed</param>
+    /// <param name="Txt">Confirmation message text that can be modified</param>
+    /// <param name="WarningText">Warning message text</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnAfterCreateTxt(PrintRegister: Boolean; var Txt: Text[1024]; WarningText: Text[250])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating reversal entries, allowing custom pre-validation logic.
+    /// </summary>
+    /// <param name="ReversalEntry">Reversal entry record being validated</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforeCheckEntries(var ReversalEntry: Record "Reversal Entry")
     begin

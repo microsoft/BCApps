@@ -28,8 +28,8 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
-using System.Utilities;
 using System.Telemetry;
+using System.Utilities;
 
 codeunit 444 "Purchase-Post Prepayments"
 {

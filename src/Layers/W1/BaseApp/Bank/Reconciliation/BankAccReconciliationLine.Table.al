@@ -24,6 +24,21 @@ using Microsoft.Sales.Receivables;
 using System.IO;
 using System.Utilities;
 
+/// <summary>
+/// Detailed bank statement lines for bank account reconciliation and payment application processes.
+/// This table contains individual transaction records imported from bank statements or payment files,
+/// providing the line-item detail for reconciliation workflows. Each line represents a single bank
+/// transaction with amount, description, and matching information for application to ledger entries.
+/// Supports both automated and manual matching scenarios with comprehensive tracking of applied amounts.
+/// </summary>
+/// <remarks>
+/// Key features include statement import handling, automatic matching integration, manual application support,
+/// text-to-account mapping, difference management, and posting preparation. The table works closely with
+/// Applied Payment Entry records to track detailed payment applications and supports complex scenarios
+/// including partial payments, split transactions, and multi-currency reconciliation.
+/// Integration points include bank statement import, matching algorithms, payment application rules,
+/// and general journal posting processes for finalizing reconciled transactions.
+/// </remarks>
 table 274 "Bank Acc. Reconciliation Line"
 {
     Caption = 'Bank Acc. Reconciliation Line';
@@ -32,32 +47,60 @@ table 274 "Bank Acc. Reconciliation Line"
 
     fields
     {
+        /// <summary>
+        /// Bank account number that this reconciliation line relates to.
+        /// Links the line to the specific bank account being reconciled and determines currency settings.
+        /// </summary>
         field(1; "Bank Account No."; Code[20])
         {
             Caption = 'Bank Account No.';
             TableRelation = "Bank Account";
         }
+        /// <summary>
+        /// Statement number identifying the bank reconciliation or payment application batch.
+        /// Groups related statement lines under a single reconciliation session.
+        /// </summary>
         field(2; "Statement No."; Code[20])
         {
             Caption = 'Statement No.';
             TableRelation = "Bank Acc. Reconciliation"."Statement No." where("Bank Account No." = field("Bank Account No."));
         }
+        /// <summary>
+        /// Sequential line number within the bank statement.
+        /// Provides unique identification and ordering of transactions within a statement.
+        /// </summary>
         field(3; "Statement Line No."; Integer)
         {
             Caption = 'Statement Line No.';
         }
+        /// <summary>
+        /// Document number associated with the bank transaction.
+        /// Contains reference numbers from bank statements such as check numbers or transaction IDs.
+        /// </summary>
         field(4; "Document No."; Code[20])
         {
             Caption = 'Document No.';
         }
+        /// <summary>
+        /// Date when the bank transaction occurred.
+        /// Used for matching and validation during reconciliation processes.
+        /// </summary>
         field(5; "Transaction Date"; Date)
         {
             Caption = 'Transaction Date';
         }
+        /// <summary>
+        /// Descriptive text for the bank transaction.
+        /// Contains transaction details imported from bank statements, used for matching and reporting.
+        /// </summary>
         field(6; Description; Text[100])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// Amount of the bank statement transaction.
+        /// Represents the actual bank transaction amount to be reconciled against ledger entries.
+        /// </summary>
         field(7; "Statement Amount"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
@@ -69,6 +112,10 @@ table 274 "Bank Acc. Reconciliation Line"
                 Difference := "Statement Amount" - "Applied Amount";
             end;
         }
+        /// <summary>
+        /// Calculated difference between statement amount and applied amount.
+        /// Shows remaining unreconciled amount that requires attention or posting to difference accounts.
+        /// </summary>
         field(8; Difference; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
@@ -81,6 +128,10 @@ table 274 "Bank Acc. Reconciliation Line"
                 "Statement Amount" := "Applied Amount" + Difference;
             end;
         }
+        /// <summary>
+        /// Total amount applied to ledger entries for this statement line.
+        /// Calculated sum of all payment applications for this bank transaction.
+        /// </summary>
         field(9; "Applied Amount"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
@@ -94,6 +145,10 @@ table 274 "Bank Acc. Reconciliation Line"
                 Difference := "Statement Amount" - "Applied Amount";
             end;
         }
+        /// <summary>
+        /// Number of ledger entries applied to this statement line.
+        /// Provides quick reference to application complexity and enables drill-down to application details.
+        /// </summary>
         field(11; "Applied Entries"; Integer)
         {
             Caption = 'Applied Entries';
@@ -104,41 +159,75 @@ table 274 "Bank Acc. Reconciliation Line"
                 Rec.DisplayApplication();
             end;
         }
+        /// <summary>
+        /// Value date of the bank transaction as reported by the bank.
+        /// May differ from transaction date and affects interest calculations and reporting.
+        /// </summary>
         field(12; "Value Date"; Date)
         {
             Caption = 'Value Date';
         }
+        /// <summary>
+        /// Indicates whether the statement line is ready for automatic payment application.
+        /// Used to control which lines participate in automated matching processes.
+        /// </summary>
         field(13; "Ready for Application"; Boolean)
         {
             Caption = 'Ready for Application';
         }
+        /// <summary>
+        /// Check number associated with the bank transaction.
+        /// Contains check reference for check-based payments imported from bank statements.
+        /// </summary>
         field(14; "Check No."; Code[20])
         {
             Caption = 'Check No.';
         }
+        /// <summary>
+        /// Name of the related party (customer, vendor) for the transaction.
+        /// Used for automatic matching and payment application to appropriate accounts.
+        /// </summary>
         field(15; "Related-Party Name"; Text[250])
         {
             Caption = 'Related-Party Name';
         }
+        /// <summary>
+        /// Additional transaction information from the bank statement.
+        /// Contains supplementary details that may assist in transaction identification and matching.
+        /// </summary>
         field(16; "Additional Transaction Info"; Text[100])
         {
             Caption = 'Additional Transaction Info';
         }
+        /// <summary>
+        /// Data exchange entry number linking to the imported bank statement file.
+        /// References the specific import session for audit trail and troubleshooting.
+        /// </summary>
         field(17; "Data Exch. Entry No."; Integer)
         {
             Caption = 'Data Exch. Entry No.';
             Editable = false;
             TableRelation = "Data Exch.";
         }
+        /// <summary>
+        /// Line number within the data exchange entry.
+        /// Identifies the specific line in the imported file that created this statement line.
+        /// </summary>
         field(18; "Data Exch. Line No."; Integer)
         {
             Caption = 'Data Exch. Line No.';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the type of the bank reconciliation statement for the line.
+        /// </summary>
         field(20; "Statement Type"; Enum "Bank Acc. Rec. Stmt. Type")
         {
             Caption = 'Statement Type';
         }
+        /// <summary>
+        /// Specifies the account type for the bank reconciliation line.
+        /// </summary>
         field(21; "Account Type"; Enum "Gen. Journal Account Type")
         {
             Caption = 'Account Type';
@@ -155,6 +244,9 @@ table 274 "Bank Acc. Reconciliation Line"
                     Validate("Account No.", '');
             end;
         }
+        /// <summary>
+        /// Specifies the account number for the bank reconciliation line.
+        /// </summary>
         field(22; "Account No."; Code[20])
         {
             Caption = 'Account No.';
@@ -179,6 +271,9 @@ table 274 "Bank Acc. Reconciliation Line"
                 CreateDimFromDefaultDim();
             end;
         }
+        /// <summary>
+        /// Specifies the transaction text from the bank statement.
+        /// </summary>
         field(23; "Transaction Text"; Text[140])
         {
             Caption = 'Transaction Text';
@@ -189,22 +284,37 @@ table 274 "Bank Acc. Reconciliation Line"
                     Description := CopyStr("Transaction Text", 1, MaxStrLen(Description));
             end;
         }
+        /// <summary>
+        /// Specifies the bank account number of the related party from the bank statement.
+        /// </summary>
         field(24; "Related-Party Bank Acc. No."; Text[100])
         {
             Caption = 'Related-Party Bank Acc. No.';
         }
+        /// <summary>
+        /// Specifies the address of the related party from the bank statement.
+        /// </summary>
         field(25; "Related-Party Address"; Text[100])
         {
             Caption = 'Related-Party Address';
         }
+        /// <summary>
+        /// Specifies the city of the related party from the bank statement.
+        /// </summary>
         field(26; "Related-Party City"; Text[50])
         {
             Caption = 'Related-Party City';
         }
+        /// <summary>
+        /// Specifies the payment reference number from the bank statement.
+        /// </summary>
         field(27; "Payment Reference No."; Code[50])
         {
             Caption = 'Payment Reference';
         }
+        /// <summary>
+        /// Specifies the first shortcut dimension code for the bank reconciliation line.
+        /// </summary>
         field(31; "Shortcut Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,2,1';
@@ -217,6 +327,9 @@ table 274 "Bank Acc. Reconciliation Line"
                 Rec.ValidateShortcutDimCode(1, "Shortcut Dimension 1 Code");
             end;
         }
+        /// <summary>
+        /// Specifies the second shortcut dimension code for the bank reconciliation line.
+        /// </summary>
         field(32; "Shortcut Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,2,2';
@@ -229,6 +342,9 @@ table 274 "Bank Acc. Reconciliation Line"
                 Rec.ValidateShortcutDimCode(2, "Shortcut Dimension 2 Code");
             end;
         }
+        /// <summary>
+        /// Specifies the confidence level of the automatic matching for the bank reconciliation line.
+        /// </summary>
         field(50; "Match Confidence"; Enum "Bank Rec. Match Confidence")
         {
             CalcFormula = max("Applied Payment Entry"."Match Confidence" where("Statement Type" = field("Statement Type"),
@@ -240,6 +356,9 @@ table 274 "Bank Acc. Reconciliation Line"
             FieldClass = FlowField;
             InitValue = "None";
         }
+        /// <summary>
+        /// Specifies the quality score of the automatic matching for the bank reconciliation line.
+        /// </summary>
         field(51; "Match Quality"; Integer)
         {
             CalcFormula = max("Applied Payment Entry".Quality where("Bank Account No." = field("Bank Account No."),
@@ -250,19 +369,31 @@ table 274 "Bank Acc. Reconciliation Line"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Specifies the sorting order for the bank reconciliation line.
+        /// </summary>
         field(60; "Sorting Order"; Integer)
         {
             Caption = 'Sorting Order';
         }
+        /// <summary>
+        /// Specifies the parent line number for grouped bank reconciliation lines.
+        /// </summary>
         field(61; "Parent Line No."; Integer)
         {
             Caption = 'Parent Line No.';
             Editable = false;
         }
+        /// <summary>
+        /// Specifies the unique transaction identifier from the bank statement.
+        /// </summary>
         field(70; "Transaction ID"; Text[50])
         {
             Caption = 'Transaction ID';
         }
+        /// <summary>
+        /// Specifies the ID of the dimension set for the bank reconciliation line.
+        /// </summary>
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
@@ -363,6 +494,11 @@ table 274 "Bank Acc. Reconciliation Line"
         exit(PaymentRecJournalFeatureNameTelemetryTxt);
     end;
 
+    /// <summary>
+    /// Opens the payment application interface to display and manage applications for this reconciliation line.
+    /// For bank reconciliation, shows bank account ledger entries; for payment application, shows detailed payment applications.
+    /// Provides interactive interface for reviewing, modifying, or removing payment applications.
+    /// </summary>
     procedure DisplayApplication()
     var
         PaymentApplication: Page "Payment Application";
@@ -428,6 +564,11 @@ table 274 "Bank Acc. Reconciliation Line"
         exit(DataExchField.FindFirst());
     end;
 
+    /// <summary>
+    /// Retrieves the currency code associated with the bank account for this reconciliation line.
+    /// Optimizes performance by caching the bank account record when possible.
+    /// </summary>
+    /// <returns>Currency code of the associated bank account; empty string if bank account not found or uses local currency.</returns>
     procedure GetCurrencyCode(): Code[10]
     var
         BankAccount: Record "Bank Account";
@@ -456,6 +597,11 @@ table 274 "Bank Acc. Reconciliation Line"
         exit('');
     end;
 
+    /// <summary>
+    /// Clears data exchange entries and related import data for this reconciliation line.
+    /// Removes data exchange field records and updates related reconciliation lines that share the same data exchange entry.
+    /// Used during cleanup operations when removing or modifying imported statement data.
+    /// </summary>
     procedure ClearDataExchEntries()
     var
         DataExchField: Record "Data Exch. Field";

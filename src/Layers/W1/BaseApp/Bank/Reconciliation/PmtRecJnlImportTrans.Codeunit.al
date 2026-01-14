@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Reconciliation;
 
+/// <summary>
+/// Handles import transactions for payment reconciliation journals.
+/// Processes transaction data and creates new reconciliation statements.
+/// </summary>
 codeunit 9023 "Pmt. Rec. Jnl. Import Trans."
 {
 

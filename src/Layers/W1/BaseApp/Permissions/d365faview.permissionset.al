@@ -1,14 +1,14 @@
 namespace System.Security.AccessControl;
 
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
-using Microsoft.FixedAssets.Setup;
+using Microsoft.FixedAssets.Insurance;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Ledger;
-using Microsoft.FixedAssets.Posting;
-using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.FixedAssets.Insurance;
 using Microsoft.FixedAssets.Maintenance;
+using Microsoft.FixedAssets.Posting;
+using Microsoft.FixedAssets.Setup;
 
 permissionset 2381 "D365 FA, VIEW"
 {

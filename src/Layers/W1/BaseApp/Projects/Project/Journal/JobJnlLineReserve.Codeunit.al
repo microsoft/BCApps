@@ -322,9 +322,6 @@ codeunit 99000844 "Job Jnl. Line-Reserve"
             JobJnlLine."Quantity (Base)", 0, 0);
 
         OnAfterInitFromJobJnlLine(TrackingSpecification, JobJnlLine);
-#if not CLEAN25
-        TrackingSpecification.RunOnAfterInitFromJobJnlLine(TrackingSpecification, JobJnlLine);
-#endif
     end;
 
     [IntegrationEvent(false, false)]

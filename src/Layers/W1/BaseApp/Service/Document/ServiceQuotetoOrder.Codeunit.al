@@ -5,6 +5,7 @@
 namespace Microsoft.Service.Document;
 
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Inventory.Availability;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Service.Comment;
@@ -13,7 +14,6 @@ using Microsoft.Service.Maintenance;
 using Microsoft.Service.Setup;
 using System.Automation;
 using System.Utilities;
-using Microsoft.Inventory.Availability;
 
 codeunit 5923 "Service-Quote to Order"
 {

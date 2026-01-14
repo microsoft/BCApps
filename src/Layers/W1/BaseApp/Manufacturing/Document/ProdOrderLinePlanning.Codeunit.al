@@ -4,11 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Document;
 
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Item.Substitution;
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
-using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Item.Substitution;
 
 codeunit 99000857 "Prod. Order Line-Planning"
 {

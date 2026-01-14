@@ -777,18 +777,6 @@ codeunit 5790 "Available to Promise"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforeUpdatePurchOrderAvail(var AvailabilityAtDate: Record "Availability at Date"; var Item: Record Item; var IsHandled: Boolean)
-    begin
-        OnBeforeUpdatePurchOrderAvail(AvailabilityAtDate, Item, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit JobPlanningAvailabilityMgt', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdatePurchOrderAvail(var AvailabilityAtDate: Record "Availability at Date"; var Item: Record Item; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnCalcAllItemFieldsOnAfterItemCalcFields(var Item: Record Item)
@@ -815,18 +803,6 @@ codeunit 5790 "Available to Promise"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforeUpdateSchedRcptAvail(var AvailabilityAtDate: Record "Availability at Date"; var Item: Record Item; var IsHandled: Boolean)
-    begin
-        OnBeforeUpdateSchedRcptAvail(AvailabilityAtDate, Item, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit ProdOrderAvailabilityMgt', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateSchedRcptAvail(var AvailabilityAtDate: Record "Availability at Date"; var Item: Record Item; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePurchReqRcptAvail(var AvailabilityAtDate: Record "Availability at Date"; var Item: Record Item; var IsHandled: Boolean)
@@ -838,49 +814,13 @@ codeunit 5790 "Available to Promise"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforeUpdateSchedNeedAvail(var AvailabilityAtDate: Record "Availability at Date"; var Item: Record Item; var IsHandled: Boolean)
-    begin
-        OnBeforeUpdateSchedNeedAvail(AvailabilityAtDate, Item, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit ProdOrderAvailabilityMgt', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateSchedNeedAvail(var AvailabilityAtDate: Record "Availability at Date"; var Item: Record Item; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePlanningIssuesAvail(var AvailabilityAtDate: Record "Availability at Date"; var Item: Record Item; var IsHandled: Boolean)
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforeUpdateServOrderAvail(var AvailabilityAtDate: Record "Availability at Date"; var Item: Record Item; var IsHandled: Boolean)
-    begin
-        OnBeforeUpdateServOrderAvail(AvailabilityAtDate, Item, IsHandled);
-    end;
 
-    [Obsolete('Moved to codeunit ServAvailabilityMgt', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateServOrderAvail(var AvailabilityAtDate: Record "Availability at Date"; var Item: Record Item; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnBeforeUpdateJobOrderAvail(var AvailabilityAtDate: Record "Availability at Date"; var Item: Record Item; var IsHandled: Boolean)
-    begin
-        OnBeforeUpdateJobOrderAvail(AvailabilityAtDate, Item, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit JobPlanningAvailabilityMgt', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateJobOrderAvail(var AvailabilityAtDate: Record "Availability at Date"; var Item: Record Item; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateTransOrderShptAvail(var AvailabilityAtDate: Record "Availability at Date"; var Item: Record Item; var IsHandled: Boolean)
@@ -922,4 +862,3 @@ codeunit 5790 "Available to Promise"
     begin
     end;
 }
-

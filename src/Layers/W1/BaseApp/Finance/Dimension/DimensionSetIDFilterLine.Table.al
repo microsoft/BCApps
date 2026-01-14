@@ -4,6 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Stores dimension value filter components for complex dimension set ID filtering operations.
+/// Supports breakdown of long dimension value filters into manageable text segments for processing.
+/// </summary>
+/// <remarks>
+/// Enables dimension filtering that exceeds single field length limitations through segmented storage.
+/// Supports reconstruction of complete dimension value filters from component parts for advanced filtering scenarios.
+/// </remarks>
 table 355 "Dimension Set ID Filter Line"
 {
     Caption = 'Dimension Set ID Filter Line';
@@ -11,18 +19,30 @@ table 355 "Dimension Set ID Filter Line"
 
     fields
     {
+        /// <summary>
+        /// Unique identifier code for the dimension filter group.
+        /// </summary>
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
         }
+        /// <summary>
+        /// Dimension code for which the filter value segments apply.
+        /// </summary>
         field(2; "Dimension Code"; Code[20])
         {
             Caption = 'Dimension Code';
         }
+        /// <summary>
+        /// Sequential line number for ordering dimension value filter segments.
+        /// </summary>
         field(3; "Line No."; Integer)
         {
             Caption = 'Line No.';
         }
+        /// <summary>
+        /// Segment of dimension value filter text for reconstruction into complete filter expression.
+        /// </summary>
         field(4; "Dimension Value Filter Part"; Text[250])
         {
             Caption = 'Dimension Value Filter Part';
@@ -41,6 +61,11 @@ table 355 "Dimension Set ID Filter Line"
     {
     }
 
+    /// <summary>
+    /// Stores a long dimension value filter by breaking it into text segments across multiple records.
+    /// Enables handling of complex dimension filters that exceed single field length limitations.
+    /// </summary>
+    /// <param name="DimensionValueFilter">Complete dimension value filter text to segment and store</param>
     procedure SetDimensionValueFilter(DimensionValueFilter: Text)
     var
         ChunkLength: Integer;
@@ -63,6 +88,13 @@ table 355 "Dimension Set ID Filter Line"
         end;
     end;
 
+    /// <summary>
+    /// Reconstructs complete dimension value filter text from stored segments for a specific dimension.
+    /// Combines all filter parts in sequence to rebuild the original filter expression.
+    /// </summary>
+    /// <param name="NewCode">Filter group code to retrieve</param>
+    /// <param name="NewDimensionCode">Dimension code to retrieve filter for</param>
+    /// <returns>Complete reconstructed dimension value filter text</returns>
     procedure GetDimensionValueFilter(NewCode: Code[20]; NewDimensionCode: Code[20]) DimensionValueFilter: Text
     var
         DimensionSetIDFilterLine: Record "Dimension Set ID Filter Line";

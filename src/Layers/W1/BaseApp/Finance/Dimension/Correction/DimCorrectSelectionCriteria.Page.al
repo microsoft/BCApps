@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension.Correction;
 
+/// <summary>
+/// List page displaying selection criteria for dimension correction operations. Shows filters and criteria used to identify G/L entries for correction.
+/// </summary>
 page 2585 "Dim Correct Selection Criteria"
 {
     PageType = List;
@@ -99,6 +102,10 @@ page 2585 "Dim Correct Selection Criteria"
         Rec.GetSelectionDisplayText(SelectionCriteriaText);
     end;
 
+    /// <summary>
+    /// Retrieves the list of selection criteria entries marked for deletion.
+    /// </summary>
+    /// <param name="SelectedEntriesToDelete">List to populate with GUIDs of entries to be deleted</param>
     procedure GetEntriesToDelete(var SelectedEntriesToDelete: List of [Guid])
     begin
         SelectedEntriesToDelete := EntriesToDelete;
@@ -125,6 +132,9 @@ page 2585 "Dim Correct Selection Criteria"
         Rec.FilterGroup(0);
     end;
 
+    /// <summary>
+    /// Sets the page to read-only mode to prevent modifications to selection criteria.
+    /// </summary>
     procedure SetReadOnly()
     begin
         ReadOnlyMode := true;

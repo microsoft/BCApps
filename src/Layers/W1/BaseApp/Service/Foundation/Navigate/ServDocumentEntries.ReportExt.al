@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Navigate;
 
-using Microsoft.Service.Ledger;
 using Microsoft.Service.History;
+using Microsoft.Service.Ledger;
 
 reportextension 6465 "Serv. Document Entries" extends "Document Entries"
 {

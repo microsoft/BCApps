@@ -161,6 +161,7 @@ codeunit 67 "Transfer-Explode BOM"
         ToTransferLine."Description 2" := FromTransferLine."Description 2";
         OnRunOnBeforeToTransferLineModify(ToTransferLine, FromTransferLine);
         ToTransferLine.Modify();
+        OnAfterInitParentItemLine(ToTransferLine, FromTransferLine);
     end;
 
     [IntegrationEvent(false, false)]
@@ -210,6 +211,11 @@ codeunit 67 "Transfer-Explode BOM"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeConfirmBOMContainsNonItemLines(var TransferLine: Record "Transfer Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInitParentItemLine(var ToTransferLine: Record "Transfer Line"; FromTransferLine: Record "Transfer Line")
     begin
     end;
 }

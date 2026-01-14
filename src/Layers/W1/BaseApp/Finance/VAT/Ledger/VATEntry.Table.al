@@ -27,6 +27,14 @@ using Microsoft.Utilities;
 using System.Security.AccessControl;
 using System.Utilities;
 
+/// <summary>
+/// Central ledger table for recording VAT transactions with comprehensive support for multiple VAT calculation methods.
+/// Stores detailed VAT information including unrealized VAT, non-deductible VAT, and multi-currency processing for audit and reporting.
+/// </summary>
+/// <remarks>
+/// Primary transaction table for VAT ledger functionality with integration to G/L entries and support for VAT settlements.
+/// Extensibility: VAT entry creation, G/L account adjustment, and unrealized VAT processing events available.
+/// </remarks>
 table 254 "VAT Entry"
 {
     Caption = 'VAT Entry';
@@ -46,12 +54,18 @@ table 254 "VAT Entry"
 
     fields
     {
+        /// <summary>
+        /// Unique sequential identifier for the VAT entry used for referencing and linking with other records.
+        /// </summary>
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
             Editable = false;
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
+        /// <summary>
+        /// General business posting group for linking transactions to appropriate general ledger accounts.
+        /// </summary>
         field(2; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
@@ -59,6 +73,9 @@ table 254 "VAT Entry"
             TableRelation = "Gen. Business Posting Group";
             ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
         }
+        /// <summary>
+        /// General product posting group for linking item or service transactions to appropriate general ledger accounts.
+        /// </summary>
         field(3; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
@@ -66,24 +83,36 @@ table 254 "VAT Entry"
             TableRelation = "Gen. Product Posting Group";
             ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
         }
+        /// <summary>
+        /// Date when the VAT entry was posted to the ledger for financial reporting and audit trail purposes.
+        /// </summary>
         field(4; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
             Editable = false;
             ToolTip = 'Specifies the VAT entry''s posting date.';
         }
+        /// <summary>
+        /// Document number from the source transaction that generated this VAT entry.
+        /// </summary>
         field(5; "Document No."; Code[20])
         {
             Caption = 'Document No.';
             Editable = false;
             ToolTip = 'Specifies the document number on the VAT entry.';
         }
+        /// <summary>
+        /// Type of document that generated this VAT entry, such as invoice, credit memo, or payment.
+        /// </summary>
         field(6; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';
             Editable = false;
             ToolTip = 'Specifies the document type that the VAT entry belongs to.';
         }
+        /// <summary>
+        /// Posting type indicating whether this is a purchase, sale, or settlement VAT entry.
+        /// </summary>
         field(7; Type; Enum "General Posting Type")
         {
             Caption = 'Type';
@@ -96,6 +125,9 @@ table 254 "VAT Entry"
                     Error(Text000, FieldCaption(Type), Type);
             end;
         }
+        /// <summary>
+        /// Base amount on which the VAT calculation is performed, excluding the VAT amount itself.
+        /// </summary>
         field(8; Base; Decimal)
         {
             AutoFormatType = 1;
@@ -104,6 +136,9 @@ table 254 "VAT Entry"
             Editable = false;
             ToolTip = 'Specifies the amount that the VAT amount (the amount shown in the Amount field) is calculated from.';
         }
+        /// <summary>
+        /// VAT amount calculated from the base amount using the applicable VAT rate and calculation method.
+        /// </summary>
         field(9; Amount; Decimal)
         {
             AutoFormatType = 1;
@@ -112,12 +147,18 @@ table 254 "VAT Entry"
             Editable = false;
             ToolTip = 'Specifies the amount of the VAT entry in LCY.';
         }
+        /// <summary>
+        /// Method used for calculating VAT, such as normal VAT, reverse charge, or sales tax.
+        /// </summary>
         field(10; "VAT Calculation Type"; Enum "Tax Calculation Type")
         {
             Caption = 'VAT Calculation Type';
             Editable = false;
             ToolTip = 'Specifies how VAT will be calculated for purchases or sales of items with this particular combination of VAT business posting group and VAT product posting group.';
         }
+        /// <summary>
+        /// Customer or vendor number associated with this VAT entry for bill-to or pay-to identification.
+        /// </summary>
         field(12; "Bill-to/Pay-to No."; Code[20])
         {
             Caption = 'Bill-to/Pay-to No.';
@@ -149,6 +190,9 @@ table 254 "VAT Entry"
                     end;
             end;
         }
+        /// <summary>
+        /// Indicates whether this transaction involves three-party trade within the European Union.
+        /// </summary>
         field(13; "EU 3-Party Trade"; Boolean)
         {
             Caption = 'EU 3-Party Trade';
@@ -159,6 +203,9 @@ table 254 "VAT Entry"
                 Validate(Type);
             end;
         }
+        /// <summary>
+        /// User ID of the person who created this VAT entry for audit trail and responsibility tracking.
+        /// </summary>
         field(14; "User ID"; Code[50])
         {
             Caption = 'User ID';
@@ -166,18 +213,27 @@ table 254 "VAT Entry"
             Editable = false;
             TableRelation = User."User Name";
         }
+        /// <summary>
+        /// Source code indicating the journal or process that generated this VAT entry.
+        /// </summary>
         field(15; "Source Code"; Code[10])
         {
             Caption = 'Source Code';
             Editable = false;
             TableRelation = "Source Code";
         }
+        /// <summary>
+        /// Reason code providing additional context for why this VAT entry was created.
+        /// </summary>
         field(16; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
             Editable = false;
             TableRelation = "Reason Code";
         }
+        /// <summary>
+        /// Entry number of the VAT settlement entry that closed this VAT entry during VAT return processing.
+        /// </summary>
         field(17; "Closed by Entry No."; Integer)
         {
             Caption = 'Closed by Entry No.';
@@ -185,12 +241,18 @@ table 254 "VAT Entry"
             TableRelation = "VAT Entry";
             ToolTip = 'Specifies the number of the VAT entry that has closed the entry, if the VAT entry was closed with the Calc. and Post VAT Settlement batch job.';
         }
+        /// <summary>
+        /// Indicates whether this VAT entry has been closed through VAT settlement processing.
+        /// </summary>
         field(18; Closed; Boolean)
         {
             Caption = 'Closed';
             Editable = false;
             ToolTip = 'Specifies whether the VAT entry has been closed by the Calc. and Post VAT Settlement batch job.';
         }
+        /// <summary>
+        /// Country or region code of the customer or vendor associated with this VAT entry.
+        /// </summary>
         field(19; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';
@@ -203,17 +265,26 @@ table 254 "VAT Entry"
                 Validate("VAT Registration No.");
             end;
         }
+        /// <summary>
+        /// Internal reference number used for cross-referencing with other systems or processes.
+        /// </summary>
         field(20; "Internal Ref. No."; Text[30])
         {
             Caption = 'Internal Ref. No.';
             Editable = false;
             ToolTip = 'Specifies the internal reference number for the line.';
         }
+        /// <summary>
+        /// Transaction number linking this VAT entry with related general ledger and other ledger entries.
+        /// </summary>
         field(21; "Transaction No."; Integer)
         {
             Caption = 'Transaction No.';
             Editable = false;
         }
+        /// <summary>
+        /// Unrealized VAT amount when using unrealized VAT functionality for payment-based VAT recognition.
+        /// </summary>
         field(22; "Unrealized Amount"; Decimal)
         {
             AutoFormatType = 1;
@@ -222,6 +293,9 @@ table 254 "VAT Entry"
             Editable = false;
             ToolTip = 'Specifies the unrealized VAT amount for this line if you use unrealized VAT.';
         }
+        /// <summary>
+        /// Unrealized base amount when using unrealized VAT functionality for payment-based recognition.
+        /// </summary>
         field(23; "Unrealized Base"; Decimal)
         {
             AutoFormatType = 1;
@@ -230,6 +304,9 @@ table 254 "VAT Entry"
             Editable = false;
             ToolTip = 'Specifies the unrealized base amount if you use unrealized VAT.';
         }
+        /// <summary>
+        /// Remaining unrealized VAT amount that has not yet been realized through payment processing.
+        /// </summary>
         field(24; "Remaining Unrealized Amount"; Decimal)
         {
             AutoFormatType = 1;
@@ -238,6 +315,9 @@ table 254 "VAT Entry"
             Editable = false;
             ToolTip = 'Specifies the amount that remains unrealized in the VAT entry.';
         }
+        /// <summary>
+        /// Remaining unrealized base amount that has not yet been realized through payment processing.
+        /// </summary>
         field(25; "Remaining Unrealized Base"; Decimal)
         {
             AutoFormatType = 1;
@@ -246,51 +326,78 @@ table 254 "VAT Entry"
             Editable = false;
             ToolTip = 'Specifies the amount of base that remains unrealized in the VAT entry.';
         }
+        /// <summary>
+        /// External document number from the source document that generated this VAT entry.
+        /// </summary>
         field(26; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
             Editable = false;
         }
+        /// <summary>
+        /// Number series code used for generating the document number of this VAT entry.
+        /// </summary>
         field(28; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
             Editable = false;
             TableRelation = "No. Series";
         }
+        /// <summary>
+        /// Tax area code for sales tax calculations in jurisdictions using sales tax instead of VAT.
+        /// </summary>
         field(29; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
             Editable = false;
             TableRelation = "Tax Area";
         }
+        /// <summary>
+        /// Indicates whether the customer or vendor is liable for tax calculations.
+        /// </summary>
         field(30; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
             Editable = false;
         }
+        /// <summary>
+        /// Tax group code for categorizing items or services for sales tax calculations.
+        /// </summary>
         field(31; "Tax Group Code"; Code[20])
         {
             Caption = 'Tax Group Code';
             Editable = false;
             TableRelation = "Tax Group";
         }
+        /// <summary>
+        /// Indicates whether this transaction involves use tax calculations for cross-border sales.
+        /// </summary>
         field(32; "Use Tax"; Boolean)
         {
             Caption = 'Use Tax';
             Editable = false;
         }
+        /// <summary>
+        /// Tax jurisdiction code specifying which tax authority has jurisdiction over this transaction.
+        /// </summary>
         field(33; "Tax Jurisdiction Code"; Code[10])
         {
             Caption = 'Tax Jurisdiction Code';
             Editable = false;
             TableRelation = "Tax Jurisdiction";
         }
+        /// <summary>
+        /// Tax group code that was actually used for calculating tax on this specific transaction.
+        /// </summary>
         field(34; "Tax Group Used"; Code[20])
         {
             Caption = 'Tax Group Used';
             Editable = false;
             TableRelation = "Tax Group";
         }
+        /// <summary>
+        /// Type of tax applied to this transaction, such as sales tax or excise tax.
+        /// </summary>
         field(35; "Tax Type"; Option)
         {
             Caption = 'Tax Type';
@@ -298,22 +405,34 @@ table 254 "VAT Entry"
             OptionCaption = 'Sales Tax,Excise Tax';
             OptionMembers = "Sales Tax","Excise Tax";
         }
+        /// <summary>
+        /// Indicates whether this transaction involves tax calculated on top of existing tax amounts.
+        /// </summary>
         field(36; "Tax on Tax"; Boolean)
         {
             Caption = 'Tax on Tax';
             Editable = false;
         }
+        /// <summary>
+        /// Connection number linking this VAT entry to related sales tax calculation entries.
+        /// </summary>
         field(37; "Sales Tax Connection No."; Integer)
         {
             Caption = 'Sales Tax Connection No.';
             Editable = false;
         }
+        /// <summary>
+        /// Reference to the related unrealized VAT entry when using unrealized VAT functionality.
+        /// </summary>
         field(38; "Unrealized VAT Entry No."; Integer)
         {
             Caption = 'Unrealized VAT Entry No.';
             Editable = false;
             TableRelation = "VAT Entry";
         }
+        /// <summary>
+        /// VAT business posting group specifying the VAT treatment for the customer or vendor type.
+        /// </summary>
         field(39; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
@@ -321,6 +440,9 @@ table 254 "VAT Entry"
             TableRelation = "VAT Business Posting Group";
             ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
         }
+        /// <summary>
+        /// VAT product posting group specifying the VAT treatment for the item or service type.
+        /// </summary>
         field(40; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
@@ -328,6 +450,9 @@ table 254 "VAT Entry"
             TableRelation = "VAT Product Posting Group";
             ToolTip = 'Specifies the VAT specification of the involved item or resource to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
         }
+        /// <summary>
+        /// VAT amount in the additional reporting currency for multi-currency reporting requirements.
+        /// </summary>
         field(43; "Additional-Currency Amount"; Decimal)
         {
             AccessByPermission = TableData Currency = R;
@@ -337,6 +462,9 @@ table 254 "VAT Entry"
             Editable = false;
             ToolTip = 'Specifies the amount of the VAT entry. The amount is in the additional reporting currency.';
         }
+        /// <summary>
+        /// Base amount in the additional reporting currency for multi-currency reporting requirements.
+        /// </summary>
         field(44; "Additional-Currency Base"; Decimal)
         {
             AccessByPermission = TableData Currency = R;
@@ -346,6 +474,9 @@ table 254 "VAT Entry"
             Editable = false;
             ToolTip = 'Specifies the amount that the VAT amount is calculated from if you post in an additional reporting currency.';
         }
+        /// <summary>
+        /// Unrealized VAT amount in the additional reporting currency for unrealized VAT functionality.
+        /// </summary>
         field(45; "Add.-Currency Unrealized Amt."; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
@@ -353,6 +484,9 @@ table 254 "VAT Entry"
             Caption = 'Add.-Currency Unrealized Amt.';
             Editable = false;
         }
+        /// <summary>
+        /// Unrealized base amount in the additional reporting currency for unrealized VAT functionality.
+        /// </summary>
         field(46; "Add.-Currency Unrealized Base"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
@@ -360,6 +494,9 @@ table 254 "VAT Entry"
             Caption = 'Add.-Currency Unrealized Base';
             Editable = false;
         }
+        /// <summary>
+        /// VAT base discount percentage applied to the base amount before VAT calculation.
+        /// </summary>
         field(48; "VAT Base Discount %"; Decimal)
         {
             AutoFormatType = 0;
@@ -369,6 +506,9 @@ table 254 "VAT Entry"
             MaxValue = 100;
             MinValue = 0;
         }
+        /// <summary>
+        /// Remaining unrealized amount in the additional reporting currency that has not yet been realized.
+        /// </summary>
         field(49; "Add.-Curr. Rem. Unreal. Amount"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
@@ -376,6 +516,9 @@ table 254 "VAT Entry"
             Caption = 'Add.-Curr. Rem. Unreal. Amount';
             Editable = false;
         }
+        /// <summary>
+        /// Remaining unrealized base amount in the additional reporting currency that has not yet been realized.
+        /// </summary>
         field(50; "Add.-Curr. Rem. Unreal. Base"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
@@ -383,6 +526,9 @@ table 254 "VAT Entry"
             Caption = 'Add.-Curr. Rem. Unreal. Base';
             Editable = false;
         }
+        /// <summary>
+        /// Difference between calculated and manually entered VAT amounts for VAT correction purposes.
+        /// </summary>
         field(51; "VAT Difference"; Decimal)
         {
             AutoFormatType = 1;
@@ -391,6 +537,9 @@ table 254 "VAT Entry"
             Editable = false;
             ToolTip = 'Specifies the difference between the calculated VAT amount and a VAT amount that you have entered manually.';
         }
+        /// <summary>
+        /// VAT difference amount in the additional reporting currency for multi-currency VAT corrections.
+        /// </summary>
         field(52; "Add.-Curr. VAT Difference"; Decimal)
         {
             AccessByPermission = TableData Currency = R;
@@ -400,6 +549,9 @@ table 254 "VAT Entry"
             Editable = false;
             ToolTip = 'Specifies, in the additional reporting currency, the VAT difference that arises when you make a correction to a VAT amount on a sales or purchase document.';
         }
+        /// <summary>
+        /// Ship-to or order address code for identifying delivery or order address variations.
+        /// </summary>
         field(53; "Ship-to/Order Address Code"; Code[10])
         {
             Caption = 'Ship-to/Order Address Code';
@@ -408,12 +560,18 @@ table 254 "VAT Entry"
             if (Type = const(Sale)) "Ship-to Address".Code where("Customer No." = field("Bill-to/Pay-to No."));
             ToolTip = 'Specifies the address code of the ship-to customer or order-from vendor that the entry is linked to.';
         }
+        /// <summary>
+        /// Date of the original document that generated this VAT entry for audit trail purposes.
+        /// </summary>
         field(54; "Document Date"; Date)
         {
             Caption = 'Document Date';
             Editable = false;
             ToolTip = 'Specifies the date when the related document was created.';
         }
+        /// <summary>
+        /// VAT registration number of the customer or vendor for VAT reporting and compliance.
+        /// </summary>
         field(55; "VAT Registration No."; Text[20])
         {
             Caption = 'VAT Registration No.';
@@ -426,11 +584,17 @@ table 254 "VAT Entry"
                 VATRegNoFormat.Test("VAT Registration No.", "Country/Region Code", '', 0);
             end;
         }
+        /// <summary>
+        /// Indicates whether this VAT entry has been reversed as part of a correction transaction.
+        /// </summary>
         field(56; Reversed; Boolean)
         {
             Caption = 'Reversed';
             ToolTip = 'Specifies if the entry has been part of a reverse transaction.';
         }
+        /// <summary>
+        /// Entry number of the VAT entry that reversed this entry for audit trail and correction tracking.
+        /// </summary>
         field(57; "Reversed by Entry No."; Integer)
         {
             BlankZero = true;
@@ -438,6 +602,9 @@ table 254 "VAT Entry"
             TableRelation = "VAT Entry";
             ToolTip = 'Specifies the number of the correcting entry. If the field Specifies a number, the entry cannot be reversed again.';
         }
+        /// <summary>
+        /// Entry number of the original VAT entry that was reversed by this correction entry.
+        /// </summary>
         field(58; "Reversed Entry No."; Integer)
         {
             BlankZero = true;
@@ -445,12 +612,18 @@ table 254 "VAT Entry"
             TableRelation = "VAT Entry";
             ToolTip = 'Specifies the number of the original entry that was undone by the reverse transaction.';
         }
+        /// <summary>
+        /// Indicates whether this VAT entry represents an EU service transaction for VAT reporting purposes.
+        /// </summary>
         field(59; "EU Service"; Boolean)
         {
             Caption = 'EU Service';
             Editable = false;
             ToolTip = 'Specifies if this VAT entry is to be reported as a service in the periodic VAT reports.';
         }
+        /// <summary>
+        /// Base amount before payment discount application for accurate VAT calculation tracking.
+        /// </summary>
         field(60; "Base Before Pmt. Disc."; Decimal)
         {
             AutoFormatType = 1;
@@ -458,6 +631,9 @@ table 254 "VAT Entry"
             Caption = 'Base Before Pmt. Disc.';
             Editable = false;
         }
+        /// <summary>
+        /// VAT amount in the source currency of the original transaction for multi-currency processing.
+        /// </summary>
         field(70; "Source Currency VAT Amount"; Decimal)
         {
             AccessByPermission = TableData Currency = R;
@@ -466,6 +642,9 @@ table 254 "VAT Entry"
             Caption = 'Source Currency VAT Amount';
             Editable = false;
         }
+        /// <summary>
+        /// Base amount in the source currency of the original transaction for multi-currency processing.
+        /// </summary>
         field(71; "Source Currency VAT Base"; Decimal)
         {
             AccessByPermission = TableData Currency = R;
@@ -474,26 +653,41 @@ table 254 "VAT Entry"
             Caption = 'Source Currency VAT Base';
             Editable = false;
         }
+        /// <summary>
+        /// Currency code of the source transaction when different from the local currency.
+        /// </summary>
         field(74; "Source Currency Code"; Code[10])
         {
             Caption = 'Source Currency Code';
             TableRelation = Currency;
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Exchange rate factor used for converting from source currency to local currency.
+        /// </summary>
         field(75; "Source Currency Factor"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Source Currency Factor';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Journal template name used for creating this VAT entry through journal posting.
+        /// </summary>
         field(78; "Journal Templ. Name"; Code[10])
         {
             Caption = 'Journal Template Name';
         }
+        /// <summary>
+        /// Journal batch name used for creating this VAT entry through journal posting.
+        /// </summary>
         field(79; "Journal Batch Name"; Code[10])
         {
             Caption = 'Journal Batch Name';
         }
+        /// <summary>
+        /// Realized VAT amount when unrealized VAT is converted to realized through payment processing.
+        /// </summary>
         field(81; "Realized Amount"; Decimal)
         {
             AutoFormatType = 1;
@@ -501,6 +695,9 @@ table 254 "VAT Entry"
             Caption = 'Realized Amount';
             Editable = false;
         }
+        /// <summary>
+        /// Realized base amount when unrealized VAT is converted to realized through payment processing.
+        /// </summary>
         field(82; "Realized Base"; Decimal)
         {
             AutoFormatType = 1;
@@ -508,6 +705,9 @@ table 254 "VAT Entry"
             Caption = 'Realized Base';
             Editable = false;
         }
+        /// <summary>
+        /// Realized VAT amount in additional currency when unrealized VAT is converted through payment processing.
+        /// </summary>
         field(83; "Add.-Curr. Realized Amount"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
@@ -515,6 +715,9 @@ table 254 "VAT Entry"
             Caption = 'Add.-Curr. Realized Amount';
             Editable = false;
         }
+        /// <summary>
+        /// Realized base amount in additional currency when unrealized VAT is converted through payment processing.
+        /// </summary>
         field(84; "Add.-Curr. Realized Base"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
@@ -522,11 +725,17 @@ table 254 "VAT Entry"
             Caption = 'Add.-Curr. Realized Base';
             Editable = false;
         }
+        /// <summary>
+        /// General ledger account number associated with this VAT entry for financial reporting integration.
+        /// </summary>
         field(85; "G/L Acc. No."; Code[20])
         {
             Caption = 'G/L Account No.';
             TableRelation = "G/L Account";
         }
+        /// <summary>
+        /// VAT reporting date used for VAT return preparation and regulatory compliance reporting.
+        /// </summary>
         field(86; "VAT Reporting Date"; Date)
         {
             Caption = 'VAT Date';
@@ -551,6 +760,9 @@ table 254 "VAT Entry"
                 VATDateReportingMgt.UpdateLinkedEntries(Rec);
             end;
         }
+        /// <summary>
+        /// Percentage of VAT that is non-deductible based on business use or regulatory restrictions.
+        /// </summary>
         field(6200; "Non-Deductible VAT %"; Decimal)
         {
             AutoFormatType = 0;
@@ -558,6 +770,9 @@ table 254 "VAT Entry"
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
+        /// <summary>
+        /// Base amount for non-deductible VAT calculation when VAT cannot be fully reclaimed.
+        /// </summary>
         field(6201; "Non-Deductible VAT Base"; Decimal)
         {
             AutoFormatType = 1;
@@ -566,6 +781,9 @@ table 254 "VAT Entry"
             Editable = false;
             ToolTip = 'Specifies the amount of VAT that is not deducted due to the type of goods or services purchased.';
         }
+        /// <summary>
+        /// Non-deductible VAT amount that cannot be reclaimed and must be treated as cost.
+        /// </summary>
         field(6202; "Non-Deductible VAT Amount"; Decimal)
         {
             AutoFormatType = 1;
@@ -574,6 +792,9 @@ table 254 "VAT Entry"
             Editable = false;
             ToolTip = 'Specifies the amount of the transaction for which VAT is not applied, due to the type of goods or services purchased.';
         }
+        /// <summary>
+        /// Non-deductible VAT base amount in the additional currency for multi-currency reporting.
+        /// </summary>
         field(6203; "Non-Deductible VAT Base ACY"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
@@ -582,6 +803,9 @@ table 254 "VAT Entry"
             Editable = false;
             ToolTip = 'Specifies the amount of VAT that is not deducted due to the type of goods or services purchased. The amount is in the additional reporting currency.';
         }
+        /// <summary>
+        /// Non-deductible VAT amount in the additional currency for multi-currency reporting.
+        /// </summary>
         field(6204; "Non-Deductible VAT Amount ACY"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
@@ -590,6 +814,9 @@ table 254 "VAT Entry"
             Editable = false;
             ToolTip = 'Specifies the amount of the transaction for which VAT is not applied, due to the type of goods or services purchased. The amount is in the additional reporting currency.';
         }
+        /// <summary>
+        /// Difference between calculated and manually entered non-deductible VAT amounts for correction purposes.
+        /// </summary>
         field(6205; "Non-Deductible VAT Diff."; Decimal)
         {
             AutoFormatType = 1;
@@ -598,6 +825,9 @@ table 254 "VAT Entry"
             Editable = false;
             ToolTip = 'Specifies the difference between the calculated Non-Deductible VAT amount and a Non-Deductible VAT amount that you have entered manually.';
         }
+        /// <summary>
+        /// Non-deductible VAT difference amount in the additional currency for multi-currency corrections.
+        /// </summary>
         field(6206; "Non-Deductible VAT Diff. ACY"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
@@ -691,6 +921,10 @@ table 254 "VAT Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"VAT Entry", 'r')]
+    /// <summary>
+    /// Retrieves the highest entry number from the VAT Entry table.
+    /// </summary>
+    /// <returns>Last VAT entry number used in the system</returns>
     procedure GetLastEntryNo(): Integer;
     var
         FindRecordManagement: Codeunit "Find Record Management";
@@ -704,6 +938,15 @@ table 254 "VAT Entry"
         exit(GLSetup."Additional Reporting Currency");
     end;
 
+    /// <summary>
+    /// Calculates the unrealized VAT portion based on payment settlement and unrealized VAT configuration.
+    /// </summary>
+    /// <param name="SettledAmount">Amount being settled in the current payment</param>
+    /// <param name="Paid">Total amount paid so far</param>
+    /// <param name="Full">Full invoice amount</param>
+    /// <param name="TotalUnrealVATAmountFirst">Total unrealized VAT amount for first payment method</param>
+    /// <param name="TotalUnrealVATAmountLast">Total unrealized VAT amount for last payment method</param>
+    /// <returns>Calculated unrealized VAT amount to be realized</returns>
     procedure GetUnrealizedVATPart(SettledAmount: Decimal; Paid: Decimal; Full: Decimal; TotalUnrealVATAmountFirst: Decimal; TotalUnrealVATAmountLast: Decimal): Decimal
     var
         UnrealizedVATType: Option " ",Percentage,First,Last,"First (Fully Paid)","Last (Fully Paid)";
@@ -762,6 +1005,10 @@ table 254 "VAT Entry"
             exit(0);
     end;
 
+    /// <summary>
+    /// Retrieves the unrealized VAT type configuration for this VAT entry.
+    /// </summary>
+    /// <returns>Unrealized VAT type setting from VAT posting setup or tax jurisdiction</returns>
     procedure GetUnrealizedVATType() UnrealizedVATType: Integer
     var
         VATPostingSetup: Record "VAT Posting Setup";
@@ -776,6 +1023,10 @@ table 254 "VAT Entry"
         end;
     end;
 
+    /// <summary>
+    /// Copies VAT-related data from a General Journal Line to populate this VAT entry.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line containing source data for VAT entry creation</param>
     procedure CopyFromGenJnlLine(GenJnlLine: Record "Gen. Journal Line")
     begin
         SetVATDateFromGenJnlLine(GenJnlLine);
@@ -796,6 +1047,10 @@ table 254 "VAT Entry"
         OnAfterCopyFromGenJnlLine(Rec, GenJnlLine);
     end;
 
+    /// <summary>
+    /// Copies posting-related data from a General Journal Line to this VAT entry.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line containing posting data</param>
     procedure CopyPostingDataFromGenJnlLine(GenJnlLine: Record "Gen. Journal Line")
     begin
         "Posting Date" := GenJnlLine."Posting Date";
@@ -825,6 +1080,10 @@ table 254 "VAT Entry"
         "Use Tax" := GenJnlLine."Use Tax";
     end;
 
+    /// <summary>
+    /// Sets the G/L Account No. field for this VAT entry by creating missing VAT Entry - G/L Entry links.
+    /// </summary>
+    /// <param name="WithUI">Whether to show user interface elements during processing</param>
     procedure SetGLAccountNo(WithUI: Boolean)
     var
         Response: Boolean;
@@ -833,6 +1092,12 @@ table 254 "VAT Entry"
         SetGLAccountNoWithResponse(WithUI, WithUI, Response);
     end;
 
+    /// <summary>
+    /// Sets the G/L Account No. field for this VAT entry with user response handling.
+    /// </summary>
+    /// <param name="WithUI">Whether to show user interface elements during processing</param>
+    /// <param name="ShowConfirm">Whether to show confirmation dialogs to user</param>
+    /// <param name="Response">User response from any confirmation dialogs</param>
     procedure SetGLAccountNoWithResponse(WithUI: Boolean; ShowConfirm: Boolean; var Response: Boolean)
     var
         ConfirmManagement: Codeunit "Confirm Management";
@@ -877,6 +1142,9 @@ table 254 "VAT Entry"
         CheckGLAccountNoFilled();
     end;
 
+    /// <summary>
+    /// Validates that all VAT entries in the current filter have their G/L Account No. field populated.
+    /// </summary>
     procedure CheckGLAccountNoFilled()
     var
         VATEntryLocal: Record "VAT Entry";
@@ -902,6 +1170,7 @@ table 254 "VAT Entry"
         GLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link";
         VATEntryEdit: Codeunit "VAT Entry - Edit";
     begin
+        GLEntryVATEntryLink.SetCurrentKey("VAT Entry No.");
         GLEntryVATEntryLink.SetRange("VAT Entry No.", "Entry No.");
         if not GLEntryVATEntryLink.FindFirst() then begin
             if not AddMissingGLEntryVATEntryLink(VATEntry, GLEntry, GLEntryVATEntryLink) then
@@ -934,6 +1203,11 @@ table 254 "VAT Entry"
         exit(true);
     end;
 
+    /// <summary>
+    /// Copies amount fields from another VAT entry, optionally with opposite sign for reversals.
+    /// </summary>
+    /// <param name="VATEntry">Source VAT entry to copy amounts from</param>
+    /// <param name="WithOppositeSign">Whether to reverse the sign of copied amounts</param>
     procedure CopyAmountsFromVATEntry(VATEntry: Record "VAT Entry"; WithOppositeSign: Boolean)
     var
         Sign: Decimal;
@@ -964,6 +1238,9 @@ table 254 "VAT Entry"
         OnAfterOnCopyAmountsFromVATEntry(VATEntry, WithOppositeSign, Rec);
     end;
 
+    /// <summary>
+    /// Resets all unrealized VAT amount fields to zero for this VAT entry.
+    /// </summary>
     procedure SetUnrealAmountsToZero()
     begin
         "Unrealized Amount" := 0;
@@ -980,22 +1257,46 @@ table 254 "VAT Entry"
         "Add.-Curr. Realized Base" := 0;
     end;
 
+    /// <summary>
+    /// Integration event raised after copying data from General Journal Line to VAT Entry.
+    /// </summary>
+    /// <param name="VATEntry">VAT entry record that was populated from journal line</param>
+    /// <param name="GenJournalLine">Source general journal line</param>
     [IntegrationEvent(false, false)]
     procedure OnAfterCopyFromGenJnlLine(var VATEntry: Record "VAT Entry"; GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
-
+    /// <summary>
+    /// Integration event raised after copying amounts from another VAT entry.
+    /// </summary>
+    /// <param name="VATEntry">Source VAT entry providing the amounts</param>
+    /// <param name="WithOppositeSign">Whether amounts were copied with opposite sign</param>
+    /// <param name="RecVATEntry">Target VAT entry that received the copied amounts</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterOnCopyAmountsFromVATEntry(var VATEntry: Record "VAT Entry"; WithOppositeSign: Boolean; var RecVATEntry: Record "VAT Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before setting G/L Account No. on VAT entry.
+    /// </summary>
+    /// <param name="VATEntry">VAT entry being processed</param>
+    /// <param name="IsHandled">Set to true to skip standard processing</param>
+    /// <param name="Response">User response from confirmation dialogs</param>
+    /// <param name="WithUI">Whether UI elements should be shown</param>
+    /// <param name="ShowConfirm">Whether confirmation dialogs should be displayed</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetGLAccountNo(var VATEntry: Record "VAT Entry"; var IsHandled: Boolean; var Response: Boolean; WithUI: Boolean; ShowConfirm: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting G/L Account No. on VAT entry.
+    /// </summary>
+    /// <param name="VATEntry">VAT entry that was processed</param>
+    /// <param name="IsHandled">Whether the operation was handled by subscriber</param>
+    /// <param name="WithUI">Whether UI elements were shown during processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetGLAccountNo(var VATEntry: Record "VAT Entry"; var IsHandled: Boolean; WithUI: Boolean)
     begin

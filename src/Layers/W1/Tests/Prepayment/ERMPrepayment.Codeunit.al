@@ -4003,6 +4003,54 @@
         Assert.ExpectedError('There are unposted prepayment amounts');
     end;
 
+    [Test]
+    procedure PrepaymentPercentageUpdatedOnManuallyConvertedInvoiceDiscountLine()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Customer: Record Customer;
+        LineGLAccount: Record "G/L Account";
+        CustInvoiceDisc: Record "Cust. Invoice Disc.";
+        SalesSetup: Record "Sales & Receivables Setup";
+    begin
+        // [SCENARIO 606428] Prepayment % is updated on all sales lines when GL Account line (invoice discount) is manually changed to Item type and "Calculate Invoice Discount" is enabled.
+
+        Initialize();
+        // [GIVEN] Create Sales Setup
+        SalesSetup.Get();
+        SalesSetup."Calc. Inv. Discount" := true;
+        SalesSetup.Modify();
+
+        // [GIVEN] Create Prepayment VAT Setup
+        CreatePrepmtVATSetup(LineGLAccount, LineGLAccount."Gen. Posting Type"::Sale);
+
+        // [GIVEN] Create a new Customer with Prepayment %.
+        CreateCustomerWithPrepmtPct(Customer, LineGLAccount);
+        LibraryERM.CreateInvDiscForCustomer(CustInvoiceDisc, Customer."No.", '', 20); // 20 service charge
+
+        // [GIVEN] Create Sales Order with one G/L Account line
+        CreateSalesOrderWithOneLine(Customer."No.", SalesHeader, SalesLine, LineGLAccount);
+
+        // [GIVEN] Update Unit Price 11.14 to get the negative Invoice Rounding 
+        SalesLine.Validate("Unit Price", 1000);
+        SalesLine.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", LineGLAccount."No.", 1);
+        SalesLine.Validate("Unit Price", 1000);
+        SalesLine.Validate("System-Created Entry", true);
+        SalesLine.Modify(true);
+
+        // [WHEN] Change Prepayment % on sales header
+        SalesHeader.Validate("Prepayment %", 70); // change prepayment % to 70%
+        SalesHeader.Modify(true);
+
+        // [THEN] Check prepayment % on all sales lines updated successfully
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        if SalesLine.FindSet() then
+            repeat
+                Assert.AreEqual(SalesHeader."Prepayment %", SalesLine."Prepayment %", '');
+            until SalesLine.Next() = 0;
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

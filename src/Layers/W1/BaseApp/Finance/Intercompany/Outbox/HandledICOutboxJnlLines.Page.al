@@ -6,6 +6,14 @@ namespace Microsoft.Intercompany.Outbox;
 
 using Microsoft.Intercompany.Dimension;
 
+/// <summary>
+/// Displays list of processed intercompany outbox journal lines for historical review and analysis.
+/// Provides comprehensive view of transmitted journal line transactions sent to IC partners.
+/// </summary>
+/// <remarks>
+/// Primary data source: Handled IC Outbox Jnl. Line. Supports journal line analysis, transaction tracking, and audit trail review.
+/// Navigation: Transaction history → Line details → Dimension analysis and related document viewing.
+/// </remarks>
 page 614 "Handled IC Outbox Jnl. Lines"
 {
     Caption = 'Handled IC Outbox Jnl. Lines';

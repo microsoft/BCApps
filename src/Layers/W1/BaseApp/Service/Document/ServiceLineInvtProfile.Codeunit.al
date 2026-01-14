@@ -37,9 +37,6 @@ codeunit 99000863 "Service Line Invt. Profile"
         InventoryProfile."Planning Flexibility" := InventoryProfile."Planning Flexibility"::None;
 
         OnAfterTransferInventoryProfileFromServiceLine(InventoryProfile, ServiceLine);
-#if not CLEAN25
-        InventoryProfile.RunOnAfterTransferFromServLine(InventoryProfile, ServiceLine);
-#endif
     end;
 
     [IntegrationEvent(false, false)]
@@ -66,18 +63,12 @@ codeunit 99000863 "Service Line Invt. Profile"
     local procedure TransServLineToProfile(var InventoryProfile: Record "Inventory Profile"; var Item: Record Item; var TempReservationEntry: Record "Reservation Entry" temporary; var NextLineNo: Integer)
     var
         ServiceLine: Record "Service Line";
-#if not CLEAN25
-        InventoryProfileOfsetting: Codeunit "Inventory Profile Offsetting";
-#endif
         ShouldProcess: Boolean;
     begin
         if ServiceLine.FindLinesWithItemToPlan(Item) then
             repeat
                 ShouldProcess := ServiceLine."Needed by Date" <> 0D;
                 OnTransServLineToProfileOnBeforeProcessLine(ServiceLine, ShouldProcess, Item);
-#if not CLEAN25
-                InventoryProfileOfsetting.RunOnTransServLineToProfileOnBeforeProcessLine(ServiceLine, ShouldProcess, Item);
-#endif
                 if ShouldProcess then begin
                     InventoryProfile.Init();
                     NextLineNo += 1;

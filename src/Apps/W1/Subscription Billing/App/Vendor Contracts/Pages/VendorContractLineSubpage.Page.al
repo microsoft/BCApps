@@ -122,6 +122,8 @@ page 8078 "Vendor Contract Line Subpage"
                 {
                     Caption = 'Quantity';
                     ToolTip = 'Specifies the number of units of Subscription.';
+                    AutoFormatType = 0;
+                    DecimalPlaces = 0 : 5;
 
                     trigger OnValidate()
                     begin
@@ -136,6 +138,8 @@ page 8078 "Vendor Contract Line Subpage"
                     BlankZero = true;
                     Editable = not IsCommentLineEditable;
                     Enabled = not IsCommentLineEditable;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = ServiceCommitment."Currency Code";
 
                     trigger OnValidate()
                     begin
@@ -150,6 +154,8 @@ page 8078 "Vendor Contract Line Subpage"
                     BlankZero = true;
                     Editable = not IsCommentLineEditable;
                     Enabled = not IsCommentLineEditable;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = ServiceCommitment."Currency Code";
 
                     trigger OnValidate()
                     begin
@@ -162,6 +168,8 @@ page 8078 "Vendor Contract Line Subpage"
                     ToolTip = 'Specifies the price of the Subscription Line with quantity of 1 in the billing period. The price is calculated from Base Price and Base Price %.';
                     Editable = false;
                     BlankZero = true;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = ServiceCommitment."Currency Code";
                 }
                 field("Price (LCY)"; ServiceCommitment."Price (LCY)")
                 {
@@ -171,6 +179,8 @@ page 8078 "Vendor Contract Line Subpage"
                     BlankZero = true;
                     Editable = not IsCommentLineEditable;
                     Enabled = not IsCommentLineEditable;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = ServiceCommitment."Currency Code";
 
                     trigger OnValidate()
                     begin
@@ -186,6 +196,8 @@ page 8078 "Vendor Contract Line Subpage"
                     MaxValue = 100;
                     Editable = (not IsCommentLineEditable) and (not IsDiscountLine);
                     Enabled = (not IsCommentLineEditable) and (not IsDiscountLine);
+                    DecimalPlaces = 0 : 5;
+                    AutoFormatType = 0;
 
                     trigger OnValidate()
                     begin
@@ -200,6 +212,8 @@ page 8078 "Vendor Contract Line Subpage"
                     MinValue = 0;
                     Editable = (not IsCommentLineEditable) and (not IsDiscountLine);
                     Enabled = (not IsCommentLineEditable) and (not IsDiscountLine);
+                    AutoFormatType = 1;
+                    AutoFormatExpression = ServiceCommitment."Currency Code";
 
                     trigger OnValidate()
                     begin
@@ -214,6 +228,9 @@ page 8078 "Vendor Contract Line Subpage"
                     BlankZero = true;
                     Editable = (not IsCommentLineEditable) and (not IsDiscountLine);
                     Enabled = (not IsCommentLineEditable) and (not IsDiscountLine);
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
+
                     trigger OnValidate()
                     begin
                         UpdateServiceCommitmentOnPage(ServiceCommitment.FieldNo("Discount Amount (LCY)"));
@@ -226,6 +243,8 @@ page 8078 "Vendor Contract Line Subpage"
                     BlankZero = true;
                     Editable = not IsCommentLineEditable;
                     Enabled = not IsCommentLineEditable;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = ServiceCommitment."Currency Code";
 
                     trigger OnValidate()
                     begin
@@ -240,6 +259,8 @@ page 8078 "Vendor Contract Line Subpage"
                     BlankZero = true;
                     Editable = not IsCommentLineEditable;
                     Enabled = not IsCommentLineEditable;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
 
                     trigger OnValidate()
                     begin
@@ -414,6 +435,8 @@ page 8078 "Vendor Contract Line Subpage"
                     BlankZero = true;
                     Editable = not IsCommentLineEditable;
                     Enabled = not IsCommentLineEditable;
+                    DecimalPlaces = 0 : 15;
+                    AutoFormatType = 0;
 
                     trigger OnValidate()
                     begin

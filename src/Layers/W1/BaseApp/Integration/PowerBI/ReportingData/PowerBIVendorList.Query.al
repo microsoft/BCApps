@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Integration.PowerBI;
 
-using Microsoft.Purchases.Vendor;
 using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Vendor;
 
 query 51 "Power BI Vendor List"
 {

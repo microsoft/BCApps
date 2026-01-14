@@ -1,9 +1,8 @@
+/// <summary>
+/// Provides utility functions for creating and managing planning-related entities in test scenarios, including requisition worksheets and planning components.
+/// </summary>
 codeunit 132203 "Library - Planning"
 {
-    // Unsupported version tags:
-    // 
-    // Contains all utility functions related to Planning.
-
 
     trigger OnRun()
     begin

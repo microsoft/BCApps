@@ -67,17 +67,6 @@ page 7324 "Whse. Item Journal"
             repeater(Control1)
             {
                 ShowCaption = false;
-#if not CLEAN25
-                field("Entry Type"; Rec."Entry Type")
-                {
-                    ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies the entry type of the line.';
-                    Visible = false;
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'This field is no needed on the page and will be removed in a future version.';
-                    ObsoleteTag = '25.0';
-                }
-#endif
                 field("Registering Date"; Rec."Registering Date")
                 {
                     ApplicationArea = Warehouse;
@@ -434,4 +423,3 @@ page 7324 "Whse. Item Journal"
             VariantCodeMandatory := Item.IsVariantMandatory(true, Rec."Item No.");
     end;
 }
-

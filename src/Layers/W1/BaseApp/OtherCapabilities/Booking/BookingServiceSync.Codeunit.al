@@ -1,3 +1,4 @@
+#if not CLEAN28
 namespace Microsoft.Booking;
 
 using Microsoft.Inventory.Item;
@@ -5,6 +6,9 @@ using System.IO;
 
 codeunit 6705 "Booking Service Sync."
 {
+    ObsoleteReason= 'Bookings is no longer part of Business Central 365.';
+    ObsoleteState= pending;
+    ObsoleteTag= '28.0';
     trigger OnRun()
     var
         LocalBookingSync: Record "Booking Sync";
@@ -274,4 +278,4 @@ codeunit 6705 "Booking Service Sync."
         end;
     end;
 }
-
+#endif

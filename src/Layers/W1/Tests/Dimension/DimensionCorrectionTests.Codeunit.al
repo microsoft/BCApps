@@ -17,6 +17,7 @@ codeunit 134371 "Dimension Correction Tests"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         isInitialized: Boolean;
         ChangesWereResetMsg: Label 'Changes to the dimensions were reset';
+        DimensionCorrectionErr: Label 'Could not find entry in Dimension Correction';
 
     local procedure Initialize()
     var
@@ -1410,6 +1411,55 @@ codeunit 134371 "Dimension Correction Tests"
 
         // [THEN] "Posted Journal is showing all entries and corrected dimensions"
         VerifyDimensionCorrectionPage(DimensionCorrection, TempGLEntry);
+    end;
+
+    [Test]
+    [HandlerFunctions('HandleEnterGLEntriesFilterSelection')]
+    procedure TestGLEntriesRefreshWhenNavigatingBetweenDimensionCorrections()
+    var
+        FirstDimensionCorrection: Record "Dimension Correction";
+        SecondDimensionCorrection: Record "Dimension Correction";
+        TempFirstGLEntry: Record "G/L Entry" temporary;
+        TempSecondGLEntry: Record "G/L Entry" temporary;
+        TemporaryDimCorrectionChange: Record "Dim Correction Change" temporary;
+        DimCorrectionRun: Codeunit "Dim Correction Run";
+        TestPageDimensionCorrection: TestPage "Dimension Correction";
+    begin
+        // [SCENARIO 609696] When navigating between Dimension Correction cards using navigation buttons
+        // the G/L entries should refresh to show the correct entries for each correction.
+        Initialize();
+
+        // [GIVEN] First dimension correction with a set of G/L entries.
+        CreateAnyDimensionCorrectionOnGLEntriesWithDimensions(FirstDimensionCorrection, TempFirstGLEntry, TemporaryDimCorrectionChange);
+        DimCorrectionRun.RunDimensionCorrection(FirstDimensionCorrection);
+        FirstDimensionCorrection.Find();
+
+        // [GIVEN] Second dimension correction with a different set of G/L entries.
+        CreateAnyDimensionCorrectionOnGLEntriesWithDimensions(SecondDimensionCorrection, TempSecondGLEntry, TemporaryDimCorrectionChange);
+        DimCorrectionRun.RunDimensionCorrection(SecondDimensionCorrection);
+
+        // [WHEN] User opens the first dimension correction page
+        TestPageDimensionCorrection.OpenView();
+        TestPageDimensionCorrection.GoToRecord(FirstDimensionCorrection);
+
+        // [THEN] The correct G/L entries for the first correction are displayed.
+        TempFirstGLEntry.FindSet();
+        repeat
+            TestPageDimensionCorrection.SelectedGLEntries.Filter.SetFilter("Entry No.", Format(TempFirstGLEntry."Entry No."));
+            Assert.AreEqual(TempFirstGLEntry."Entry No.", TestPageDimensionCorrection.SelectedGLEntries."Entry No.".AsInteger(), DimensionCorrectionErr);
+        until TempFirstGLEntry.Next() = 0;
+
+        // [WHEN] User navigates to the second dimension correction using Next.
+        TestPageDimensionCorrection.Next();
+
+        // [THEN] The correct G/L entries for the second correction are displayed.
+        TempSecondGLEntry.FindSet();
+        repeat
+            TestPageDimensionCorrection.SelectedGLEntries.Filter.SetFilter("Entry No.", Format(TempSecondGLEntry."Entry No."));
+            Assert.AreEqual(TempSecondGLEntry."Entry No.", TestPageDimensionCorrection.SelectedGLEntries."Entry No.".AsInteger(), DimensionCorrectionErr);
+        until TempSecondGLEntry.Next() = 0;
+
+        TestPageDimensionCorrection.Close();
     end;
 
     local procedure ValidationWasSuccessful(DimensionCorrection: Record "Dimension Correction"; var TempGLEntry: Record "G/L Entry" temporary)

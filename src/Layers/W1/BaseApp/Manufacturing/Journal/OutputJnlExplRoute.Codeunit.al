@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Journal;
 
 using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Costing;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Document;
@@ -168,38 +169,77 @@ codeunit 5406 "Output Jnl.-Expl. Route"
     local procedure InsertOutputJnlLine(ItemJnlLine: Record "Item Journal Line"; var NextLineNo: Integer; LineSpacing: Integer; ProdOrderLineNo: Integer; ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; BinCode: Code[20]; RoutingNo: Code[20]; RoutingRefNo: Integer; OperationNo: Code[10]; UnitOfMeasureCode: Code[10]; QtyToPost: Decimal; LastOperation: Boolean)
     var
         DimMgt: Codeunit DimensionManagement;
+        i: Integer;
+        LinesToInsert: Integer;
+        QtyPerLine: Decimal;
     begin
-        NextLineNo := NextLineNo + LineSpacing;
+        LinesToInsert := 1;
+        QtyPerLine := QtyToPost;
+        if ShouldSplitLinesForSNTracking(ItemJnlLine, ItemNo, LastOperation) then begin
+            LinesToInsert := QtyToPost;
+            QtyPerLine := 1;
+        end;
 
-        ItemJnlLine."Line No." := NextLineNo;
-        ItemJnlLine.Validate("Entry Type", ItemJnlLine."Entry Type"::Output);
-        ItemJnlLine.Validate("Order Line No.", ProdOrderLineNo);
-        ItemJnlLine.Validate("Item No.", ItemNo);
-        ItemJnlLine.Validate("Variant Code", VariantCode);
-        ItemJnlLine.Validate("Location Code", LocationCode);
-        if BinCode <> '' then
-            ItemJnlLine.Validate("Bin Code", BinCode);
-        ItemJnlLine.Validate("Routing No.", RoutingNo);
-        ItemJnlLine.Validate("Routing Reference No.", RoutingRefNo);
-        ItemJnlLine.Validate("Operation No.", OperationNo);
-        ItemJnlLine.Validate("Unit of Measure Code", UnitOfMeasureCode);
-        ItemJnlLine.Validate("Setup Time", 0);
-        ItemJnlLine.Validate("Run Time", 0);
-        if (LocationCode <> '') and LastOperation then
-            ItemJnlLine.CheckWhse(LocationCode, QtyToPost);
-        if ItemJnlLine.SubcontractingWorkCenterUsed() then
-            ItemJnlLine.Validate("Output Quantity", 0)
-        else
-            ItemJnlLine.Validate("Output Quantity", QtyToPost);
+        for i := 1 to LinesToInsert do begin
+            NextLineNo := NextLineNo + LineSpacing;
 
-        OnBeforeOutputItemJnlLineInsert(ItemJnlLine, LastOperation);
-        DimMgt.UpdateGlobalDimFromDimSetID(
-          ItemJnlLine."Dimension Set ID", ItemJnlLine."Shortcut Dimension 1 Code", ItemJnlLine."Shortcut Dimension 2 Code");
-        ItemJnlLine.Insert();
+            ItemJnlLine."Line No." := NextLineNo;
+            ItemJnlLine.Validate("Entry Type", ItemJnlLine."Entry Type"::Output);
+            ItemJnlLine.Validate("Order Line No.", ProdOrderLineNo);
+            ItemJnlLine.Validate("Item No.", ItemNo);
+            ItemJnlLine.Validate("Variant Code", VariantCode);
+            ItemJnlLine.Validate("Location Code", LocationCode);
+            if BinCode <> '' then
+                ItemJnlLine.Validate("Bin Code", BinCode);
+            ItemJnlLine.Validate("Routing No.", RoutingNo);
+            ItemJnlLine.Validate("Routing Reference No.", RoutingRefNo);
+            ItemJnlLine.Validate("Operation No.", OperationNo);
+            ItemJnlLine.Validate("Unit of Measure Code", UnitOfMeasureCode);
+            ItemJnlLine.Validate("Setup Time", 0);
+            ItemJnlLine.Validate("Run Time", 0);
+            if (LocationCode <> '') and LastOperation then
+                ItemJnlLine.CheckWhse(LocationCode, QtyPerLine);
+            if ItemJnlLine.SubcontractingWorkCenterUsed() then
+                ItemJnlLine.Validate("Output Quantity", 0)
+            else
+                ItemJnlLine.Validate("Output Quantity", QtyPerLine);
 
-        OnAfterInsertItemJnlLine(ItemJnlLine);
+            OnBeforeOutputItemJnlLineInsert(ItemJnlLine, LastOperation);
+            DimMgt.UpdateGlobalDimFromDimSetID(
+              ItemJnlLine."Dimension Set ID", ItemJnlLine."Shortcut Dimension 1 Code", ItemJnlLine."Shortcut Dimension 2 Code");
+            ItemJnlLine.Insert();
 
-        LastItemJnlLine := ItemJnlLine;
+            OnAfterInsertItemJnlLine(ItemJnlLine);
+
+            LastItemJnlLine := ItemJnlLine;
+        end;
+    end;
+
+    local procedure ShouldSplitLinesForSNTracking(ItemJnlLine: Record "Item Journal Line"; ItemNo: Code[20]; LastOperation: Boolean): Boolean
+    var
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        ItemJnlBatch: Record "Item Journal Batch";
+    begin
+        if not LastOperation then
+            exit(false);
+
+        if not ItemJnlBatch.Get(ItemJnlLine."Journal Template Name", ItemJnlLine."Journal Batch Name") then
+            exit(false);
+
+        if not ItemJnlBatch."Item Tracking on Lines" then
+            exit(false);
+
+        if not Item.Get(ItemNo) then
+            exit(false);
+
+        if Item."Item Tracking Code" = '' then
+            exit(false);
+
+        if not ItemTrackingCode.Get(Item."Item Tracking Code") then
+            exit(false);
+
+        exit(ItemTrackingCode."SN Specific Tracking");
     end;
 
     [IntegrationEvent(false, false)]

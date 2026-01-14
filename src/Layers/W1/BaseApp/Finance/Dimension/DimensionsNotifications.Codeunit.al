@@ -8,6 +8,14 @@ using System.Environment.Configuration;
 using System.IO;
 using System.Utilities;
 
+/// <summary>
+/// Manages dimension-related notifications to alert users about potential data consistency issues.
+/// Provides notification services for dimension configuration and import operations that may affect data integrity.
+/// </summary>
+/// <remarks>
+/// Includes notifications for configuration packages containing dimension tables which can lead to data inconsistencies.
+/// Integrates with user notification preferences to control when dimension-related warnings are displayed.
+/// </remarks>
 codeunit 8623 "Dimensions Notifications"
 {
     var

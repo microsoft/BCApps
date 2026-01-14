@@ -16,16 +16,16 @@ using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Sales.Document;
 using Microsoft.Warehouse.Activity;
-using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.History;
 using Microsoft.Warehouse.Ledger;
+using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
 using Microsoft.Warehouse.Tracking;
 using Microsoft.Warehouse.Worksheet;
-using System.TestLibraries.Utilities;
 using System.Environment.Configuration;
+using System.TestLibraries.Utilities;
 
 codeunit 137914 "SCM Whse.-Asm. To Order"
 {

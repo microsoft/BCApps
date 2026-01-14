@@ -4,17 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Test;
 
-using Microsoft.Manufacturing.Capacity;
-using System.TestLibraries.Utilities;
-using Microsoft.Foundation.Enums;
-using Microsoft.Manufacturing.Routing;
-using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Manufacturing.MachineCenter;
-using System.Utilities;
 using Microsoft.Finance.Analysis;
+using Microsoft.Foundation.Enums;
 using Microsoft.Inventory.Item;
+using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
+using Microsoft.Manufacturing.WorkCenter;
+using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 137076 "SCM Manuf Calendars"
 {

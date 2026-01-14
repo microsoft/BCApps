@@ -8,6 +8,10 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
 
+/// <summary>
+/// Report for transferring bank reconciliation lines to general journal.
+/// Converts reconciliation discrepancies into journal entries for posting.
+/// </summary>
 report 1497 "Trans. Bank Rec. to Gen. Jnl."
 {
     Caption = 'Trans. Bank Rec. to Gen. Jnl.';

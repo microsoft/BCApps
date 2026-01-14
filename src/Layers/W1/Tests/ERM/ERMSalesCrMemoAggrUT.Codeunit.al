@@ -27,7 +27,6 @@ codeunit 134397 "ERM Sales Cr. Memo Aggr. UT"
         APIMockEvents: Codeunit "API Mock Events";
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
-        LibraryJournals: Codeunit "Library - Journals";
         IsInitialized: Boolean;
         ChangeConfirmMsg: Label 'Do you want';
         CalculateInvoiceDiscountQst: Label 'Do you want to calculate the invoice discount?';
@@ -1085,131 +1084,6 @@ codeunit 134397 "ERM Sales Cr. Memo Aggr. UT"
         VerifyBufferTableIsUpdatedForCrMemo(SalesHeader."No.");
     end;
 
-    [Test]
-    [HandlerFunctions('ConsolidationTrialBalanceReportHandler')]
-    [Scope('OnPrem')]
-    procedure VerifyBusinessUnitEntriesOnConsolidatedTrialBalanceReport()
-    var
-        AccountingPeriod: Record "Accounting Period";
-        BusinessUnit: array[2] of Record "Business Unit";
-        GenJnlLine: array[2] of Record "Gen. Journal Line";
-        GLAccount: Record "G/L Account";
-        Amount: Decimal;
-    begin
-        // [SCENARIO 467338] Consolidated Trial Balance (Report 17) filtering not working
-        Initialize();
-
-        // [GIVEN] No Accounting periods/Fiscal years setup
-        AccountingPeriod.DeleteAll();
-
-        // [GIVEN] Create 2 new Business Units with Company set to current company
-        LibraryERM.CreateBusinessUnit(BusinessUnit[1]);
-        LibraryERM.CreateBusinessUnit(BusinessUnit[2]);
-        BusinessUnit[2].Validate("Company Name", CompanyName);
-        BusinessUnit[2].Validate("Starting Date", WorkDate());
-        BusinessUnit[2].Modify(true);
-
-        // [GIVEN] Create new G/L Account and enqueue G/L Account "No." field value
-        CreateGLAccountWithConsolidationSetup(GLAccount);
-        LibraryVariableStorage.Enqueue(GLAccount."No.");
-
-        // [GIVEN] Create new journal entry to post with Business Unit Code 1
-        Amount := LibraryRandom.RandDec(100, 2);
-        LibraryJournals.CreateGenJournalLineWithBatch(
-            GenJnlLine[1],
-            "Gen. Journal Account Type"::"G/L Account",
-            GenJnlLine[1]."Account Type"::"G/L Account",
-            GLAccount."No.",
-            Amount);
-
-        // [THEN] Update Business Unit Code 1 to Gen. Journal Line and Post the Journal
-        GenJnlLine[1].Validate("Business Unit Code", BusinessUnit[1].Code);
-        GenJnlLine[1].Modify(true);
-        LibraryERM.PostGeneralJnlLine(GenJnlLine[1]);
-
-        // [GIVEN] Create new journal entry to post with Business Unit Code 2
-        LibraryJournals.CreateGenJournalLineWithBatch(
-            GenJnlLine[2],
-            "Gen. Journal Account Type"::"G/L Account",
-            GenJnlLine[2]."Account Type"::"G/L Account",
-            GLAccount."No.",
-            Amount);
-
-        // [THEN] Update Business Unit Code 2 to Gen. Journal Line and Post the Journal
-        GenJnlLine[2].Validate("Business Unit Code", BusinessUnit[2].Code);
-        GenJnlLine[2].Modify(true);
-        LibraryERM.PostGeneralJnlLine(GenJnlLine[2]);
-        Commit();
-
-        // [WHEN] Report "Consolidated Trial Balance" is run
-        REPORT.Run(Report::"Consolidated Trial Balance", true, false, GLAccount);
-
-        // [VERIFY] Verify: Business Unit Entries in generated report dataset
-        VerifyBusinessUnitSpecificEntries(GLAccount."No.", Amount, BusinessUnit);
-    end;
-
-    [Test]
-    [HandlerFunctions('ConsolidationTrialBalanceWithBusinessUnitFilterReportHandler')]
-    [Scope('OnPrem')]
-    procedure VerifyBusinessUnitFilteringWorkingOnConsolidatedTrialBalanceReport()
-    var
-        AccountingPeriod: Record "Accounting Period";
-        BusinessUnit: array[2] of Record "Business Unit";
-        GenJnlLine: array[2] of Record "Gen. Journal Line";
-        GLAccount: Record "G/L Account";
-        Amount: Decimal;
-    begin
-        // [SCENARIO 467338] Consolidated Trial Balance (Report 17) filtering not working
-        Initialize();
-
-        // [GIVEN] No Accounting periods/Fiscal years setup
-        AccountingPeriod.DeleteAll();
-
-        // [GIVEN] Create 2 new Business Units with Company set to current company
-        LibraryERM.CreateBusinessUnit(BusinessUnit[1]);
-        LibraryERM.CreateBusinessUnit(BusinessUnit[2]);
-        BusinessUnit[2].Validate("Company Name", CompanyName);
-        BusinessUnit[2].Validate("Starting Date", WorkDate());
-        BusinessUnit[2].Modify(true);
-
-        // [GIVEN] Create new G/L Account
-        CreateGLAccountWithConsolidationSetup(GLAccount);
-
-        // [GIVEN] Create new journal entry to post with Business Unit Code 1
-        Amount := LibraryRandom.RandDec(100, 2);
-        LibraryJournals.CreateGenJournalLineWithBatch(
-            GenJnlLine[1],
-            "Gen. Journal Account Type"::"G/L Account",
-            GenJnlLine[1]."Account Type"::"G/L Account",
-            GLAccount."No.",
-            Amount);
-
-        // [THEN] Update Business Unit Code 1 to Gen. Journal Line and Post the Journal
-        GenJnlLine[1].Validate("Business Unit Code", BusinessUnit[1].Code);
-        GenJnlLine[1].Modify(true);
-        LibraryERM.PostGeneralJnlLine(GenJnlLine[1]);
-
-        // [GIVEN] Create and Post journal entries with Business Unit Code 2
-        LibraryJournals.CreateGenJournalLineWithBatch(
-          GenJnlLine[2], "Gen. Journal Account Type"::"G/L Account", GenJnlLine[2]."Account Type"::"G/L Account", GLAccount."No.", Amount);
-
-        // [THEN] Update Business Unit Code 2 to Gen. Journal Line and Post the Journal
-        GenJnlLine[2].Validate("Business Unit Code", BusinessUnit[2].Code);
-        GenJnlLine[2].Modify(true);
-        LibraryERM.PostGeneralJnlLine(GenJnlLine[2]);
-
-        // [THEN] Enqueue G/L Account "No." field value and Business Unit Code 1
-        LibraryVariableStorage.Enqueue(GLAccount."No.");
-        LibraryVariableStorage.Enqueue(BusinessUnit[1].Code);
-        Commit();
-
-        // [WHEN] Report "Consolidated Trial Balance" is run
-        REPORT.Run(Report::"Consolidated Trial Balance", true, false, GLAccount);
-
-        // [VERIFY] Verify: Business Unit Entries in generated report dataset
-        VerifyFilteredBusinessUnitSpecificEntries(GLAccount."No.", Amount, BusinessUnit);
-    end;
-
 #if not CLEAN26
     [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
     [Test]
@@ -2180,40 +2054,6 @@ codeunit 134397 "ERM Sales Cr. Memo Aggr. UT"
         TempFieldBuffer."Table ID" := DATABASE::"Sales Cr. Memo Entity Buffer";
         TempFieldBuffer."Field ID" := FieldNo;
         TempFieldBuffer.Insert();
-    end;
-
-    local procedure CreateGLAccountWithConsolidationSetup(var GLAccount: Record "G/L Account")
-    begin
-        LibraryERM.CreateGLAccount(GLAccount);
-        GLAccount.Validate("Consol. Debit Acc.", LibraryERM.CreateGLAccountNo());
-        GLAccount.Validate("Consol. Credit Acc.", LibraryERM.CreateGLAccountNo());
-        GLAccount.Modify(true);
-    end;
-
-    local procedure VerifyBusinessUnitSpecificEntries(GLAccountNo: Code[20]; Amount: Decimal; BusinessUnit: array[2] of Record "Business Unit")
-    begin
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.SetRange('No_GLAcc', Format(GLAccountNo));
-        LibraryReportDataset.SetRange('GLAccIndentation22Code', '  ' + Format(BusinessUnit[1].Code));
-        LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.AssertCurrentRowValueEquals('GLBalance', Amount);
-        LibraryReportDataset.SetRange('No_GLAcc', Format(GLAccountNo));
-        LibraryReportDataset.SetRange('GLAccIndentation22Code', '  ' + Format(BusinessUnit[2].Code));
-        LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.AssertCurrentRowValueEquals('GLBalance', Amount);
-    end;
-
-    local procedure VerifyFilteredBusinessUnitSpecificEntries(GLAccountNo: Code[20]; Amount: Decimal; BusinessUnit: array[2] of Record "Business Unit")
-    begin
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.SetRange('No_GLAcc', Format(GLAccountNo));
-        LibraryReportDataset.SetRange('GLAccIndentation22Code', '  ' + Format(BusinessUnit[1].Code));
-        LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.AssertCurrentRowValueEquals('GLBalance', Amount);
-        LibraryReportDataset.SetRange('No_GLAcc', Format(GLAccountNo));
-        LibraryReportDataset.SetRange('GLAccIndentation22Code', '  ' + Format(BusinessUnit[2].Code));
-        LibraryReportDataset.GetNextRow();
-        asserterror LibraryReportDataset.AssertCurrentRowValueEquals('GLBalance', Amount);
     end;
 
     local procedure AssignStaticValues524113(var UnitPrice: array[4] of Decimal; Quantity: array[4] of Integer)

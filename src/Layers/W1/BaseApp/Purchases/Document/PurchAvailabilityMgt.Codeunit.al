@@ -222,9 +222,6 @@ codeunit 99000973 "Purch. Availability Mgt."
 
         IsHandled := false;
         OnBeforeShowItemAvailFromPurchLine(Item, PurchLine, IsHandled, AvailabilityType);
-#if not CLEAN25
-        ItemAvailabilityFormsMgt.RunOnBeforeShowItemAvailFromPurchLine(Item, PurchLine, IsHandled, AvailabilityType);
-#endif
         if IsHandled then
             exit;
 
@@ -341,9 +338,6 @@ codeunit 99000973 "Purch. Availability Mgt."
     local procedure OnAfterLookupEntries(var Item: Record Item; ItemAvailabilityLine: Record "Item Availability Line");
     var
         PurchaseLine: Record "Purchase Line";
-#if not CLEAN25
-        ItemAvailabilityLineList: page "Item Availability Line List";
-#endif
     begin
         case ItemAvailabilityLine."Table No." of
             Database::"Purchase Line":
@@ -355,9 +349,6 @@ codeunit 99000973 "Purch. Availability Mgt."
                         PurchaseLine.FindLinesWithItemToPlan(Item, PurchaseLine."Document Type"::"Return Order");
                     PurchaseLine.SetRange("Drop Shipment", false);
                     OnLookupEntriesOnAfterPurchLineSetFilters(Item, PurchaseLine);
-#if not CLEAN25
-                    ItemAvailabilityLineList.RunOnLookupEntriesOnAfterPurchLineSetFilters(Item, PurchaseLine);
-#endif
                     PAGE.RunModal(0, PurchaseLine);
                 end;
         end;
@@ -392,9 +383,6 @@ codeunit 99000973 "Purch. Availability Mgt."
         InventoryEventBuffer.Positive := not (InventoryEventBuffer."Remaining Quantity (Base)" < 0);
 
         OnAfterTransferFromPurchase(InventoryEventBuffer, PurchaseLine);
-#if not CLEAN25
-        InventoryEventBuffer.RunOnAfterTransferFromPurchase(InventoryEventBuffer, PurchaseLine);
-#endif
     end;
 
     procedure TransferFromPurchReturn(var InventoryEventBuffer: Record "Inventory Event Buffer"; PurchaseLine: Record "Purchase Line")
@@ -419,9 +407,6 @@ codeunit 99000973 "Purch. Availability Mgt."
         InventoryEventBuffer.Positive := not (InventoryEventBuffer."Remaining Quantity (Base)" < 0);
 
         OnAfterTransferFromPurchReturn(InventoryEventBuffer, PurchaseLine);
-#if not CLEAN25
-        InventoryEventBuffer.RunOnAfterTransferFromPurchReturn(InventoryEventBuffer, PurchaseLine);
-#endif
     end;
 
     [IntegrationEvent(false, false)]
@@ -450,9 +435,6 @@ codeunit 99000973 "Purch. Availability Mgt."
     begin
         IsHandled := false;
         OnBeforeUpdatePurchOrderAvail(AvailabilityAtDate, Item, IsHandled);
-#if not CLEAN25
-        AvailableToPromise.RunOnBeforeUpdatePurchOrderAvail(AvailabilityAtDate, Item, IsHandled);
-#endif
         if PurchaseLine.FindLinesWithItemToPlan(Item, PurchaseLine."Document Type"::Order) then
             repeat
                 PurchaseLine.CalcFields("Reserved Qty. (Base)");

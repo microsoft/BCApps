@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Account;
 
+/// <summary>
+/// A list part page displaying G/L accounts filtered to show only posting accounts.
+/// This page is typically used as a subpage or part within other forms to allow selection of posting-type G/L accounts.
+/// </summary>
 page 791 "G/L Accounts ListPart"
 {
     Caption = 'G/L Accounts ListPart';

@@ -1,3 +1,4 @@
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -13,10 +14,13 @@ report 111 "Customer - Top 10 List"
     DefaultLayout = RDLC;
     RDLCLayout = './Sales/Reports/CustomerTop10List.rdlc';
     ApplicationArea = Basic, Suite;
-    Caption = 'Customer - Top 10 List';
+    Caption = 'Customer - Top 10 List (Obsolete)';
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'This report has been replaced by the report Customer - Top List (Excel). This report will be removed in a future release.';
+    ObsoleteTag = '28.0';
 
     dataset
     {
@@ -157,8 +161,8 @@ report 111 "Customer - Top 10 List"
 
     requestpage
     {
-        AboutTitle = 'About Customer - Top 10 List';
-        AboutText = 'Review a summary of customers with the most transactions within a selected period to identify sales trends, upcoming collectable debts, and major revenue sources in the company.';
+        AboutTitle = 'About Customer - Top 10 List (Obsolete)';
+        AboutText = 'Review a summary of customers with the most transactions within a selected period to identify sales trends, upcoming collectable debts, and major revenue sources in the company.** This report is obsolete and will be removed in a future release.** Please refer to the report documentation for alternative ways to retrieve this information.';
         SaveValues = true;
 
         layout
@@ -275,4 +279,5 @@ report 111 "Customer - Top 10 List"
     begin
     end;
 }
+#endif
 

@@ -215,15 +215,6 @@ codeunit 228 "Test Report-Print"
         REPORT.Run(InsuranceJnlTempl."Test Report ID", true, false, InsuranceJnlLine);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by same procedure in codeunit "Serv. Test Report-Print"', '25.0')]
-    procedure PrintServiceHeader(NewServiceHeader: Record Microsoft.Service.Document."Service Header")
-    var
-        ServTestReportPrint: Codeunit "Serv. Test Report Print";
-    begin
-        ServTestReportPrint.PrintServiceHeader(NewServiceHeader);
-    end;
-#endif
 
     procedure PrintWhseJnlBatch(WhseJnlBatch: Record "Warehouse Journal Batch")
     begin
@@ -349,18 +340,6 @@ codeunit 228 "Test Report-Print"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnCalcServDiscOnBeforeRun(ServiceHeader: Record Microsoft.Service.Document."Service Header"; var ServiceLine: Record Microsoft.Service.Document."Service Line")
-    begin
-        OnCalcServDiscOnBeforeRun(ServiceHeader, ServiceLine);
-    end;
-
-    [Obsolete('Replaced by same event in codeunit "Serv. Test Report-Print"', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnCalcServDiscOnBeforeRun(ServiceHeader: Record Microsoft.Service.Document."Service Header"; var ServiceLine: Record Microsoft.Service.Document."Service Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnPrintGenJnlLineOnAfterGenJnlLineCopy(var GenJnlLine: Record "Gen. Journal Line")
@@ -372,4 +351,3 @@ codeunit 228 "Test Report-Print"
     begin
     end;
 }
-

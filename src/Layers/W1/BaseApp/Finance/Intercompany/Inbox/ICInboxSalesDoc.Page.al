@@ -6,6 +6,10 @@ namespace Microsoft.Intercompany.Inbox;
 
 using Microsoft.Intercompany.Dimension;
 
+/// <summary>
+/// Displays sales document details for intercompany transactions received from partner companies.
+/// Provides comprehensive view of sales document header and lines for IC sales transactions including customer and shipping information.
+/// </summary>
 page 644 "IC Inbox Sales Doc."
 {
     Caption = 'IC Inbox Sales Doc.';

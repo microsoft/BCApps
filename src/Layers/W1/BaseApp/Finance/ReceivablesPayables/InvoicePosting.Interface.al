@@ -6,6 +6,15 @@ namespace Microsoft.Finance.ReceivablesPayables;
 
 using Microsoft.Finance.GeneralLedger.Posting;
 
+/// <summary>
+/// Interface for implementing invoice posting operations across sales and purchase documents.
+/// Defines contract for invoice posting buffer processing, ledger entry creation, and deferral handling.
+/// </summary>
+/// <remarks>
+/// Implemented by sales and purchase posting engines to provide consistent invoice posting behavior.
+/// Supports credit limit checking, posting buffer management, and deferral schedule creation.
+/// Enables extensible posting logic for different document types while maintaining standard interface.
+/// </remarks>
 interface "Invoice Posting"
 {
     /// <summary>

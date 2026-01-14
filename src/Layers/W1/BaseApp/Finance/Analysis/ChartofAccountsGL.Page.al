@@ -11,6 +11,14 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Foundation.Comment;
 using Microsoft.Foundation.ExtendedText;
 
+/// <summary>
+/// Chart of accounts page specifically designed for general ledger analysis and reporting.
+/// Provides G/L account selection and navigation for analysis by dimensions and budget functionality.
+/// </summary>
+/// <remarks>
+/// Read-only view of G/L accounts optimized for analysis view selection.
+/// Used primarily in analysis contexts where account selection is needed for dimensional analysis.
+/// </remarks>
 page 570 "Chart of Accounts (G/L)"
 {
     Caption = 'Chart of Accounts (G/L)';

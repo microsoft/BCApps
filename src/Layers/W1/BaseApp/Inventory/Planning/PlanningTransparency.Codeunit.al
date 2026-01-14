@@ -46,13 +46,6 @@ codeunit 99000856 "Planning Transparency"
         CurrWorksheetName := WorksheetName;
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure GetSurplusType()', '26.0')]
-    procedure FindReason(var DemandInvProfile: Record "Inventory Profile") Result: Integer
-    begin
-        exit(GetSurplusType(DemandInvProfile).AsInteger());
-    end;
-#endif
 
     procedure GetSurplusType(var DemandInvProfile: Record "Inventory Profile") Result: Enum "Planning Surplus Type"
     var
@@ -579,4 +572,3 @@ codeunit 99000856 "Planning Transparency"
     begin
     end;
 }
-

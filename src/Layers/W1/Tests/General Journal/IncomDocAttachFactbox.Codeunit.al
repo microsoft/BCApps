@@ -19,6 +19,7 @@ codeunit 134408 "Incom. Doc. Attach. FactBox"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
+        LibraryDimension: Codeunit "Library - Dimension";
         UnexpectedFileNameNoErr: Label 'Unexpected number of stored file names.';
         MainAttachmentErr: Label 'Main Attachment must be enabled.';
 
@@ -472,6 +473,68 @@ codeunit 134408 "Incom. Doc. Attach. FactBox"
 
         // No errors occur when previewing a posting in the Payment Journal, with the main attachment on one line and the supporting attachment on another line.
         PaymentJournalPage.Preview.Invoke();
+    end;
+
+    [Test]
+    procedure PurchaseJournalWithMainAttachmentInOneLineAndSupportingAttachmentOnOtherLine()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalLine: Record "Gen. Journal Line";
+        PurchaseJournalPage: TestPage "Purchase Journal";
+        GlobalDimensionValue: code[20];
+        GlobalDimensionValue2: code[20];
+    begin
+        // [SCENARIO 610093] Verify Purchase Journal any error when Main Attachment in One Line and Supporting Attachment on Other Line.
+        // [GIVEN] Create General Journal Batch.
+        CreateGeneralJournalBatch(GenJournalLine, GenJournalTemplate.Type::Purchases);
+        PurchaseJournalPage.Trap();
+        Page.Run(Page::"Purchase Journal", GenJournalLine);
+
+        // [GIVEN] Create Get global dimension.
+        GlobalDimensionValue := GetGlobalDimensionCodeValue(1);
+        GlobalDimensionValue2 := GetGlobalDimensionCodeValue(2);
+
+        // [GIVEN] Create First Line.
+        PurchaseJournalPage."Document type".SetValue(GenJournalLine."Document Type"::Invoice);
+        PurchaseJournalPage."Document No.".SetValue(LibraryRandom.RandText(15));
+        PurchaseJournalPage."Account Type".SetValue(GenJournalLine."Account Type"::Vendor);
+        PurchaseJournalPage."Account No.".SetValue(LibraryPurchase.CreateVendorNo());
+        PurchaseJournalPage."Bal. Account Type".SetValue(GenJournalLine."Account Type"::"G/L Account");
+        PurchaseJournalPage."Bal. Account No.".SetValue(LibraryERM.CreateGLAccountNoWithDirectPosting());
+        PurchaseJournalPage.Amount.SetValue(LibraryRandom.RandInt(10000));
+        PurchaseJournalPage."Shortcut Dimension 1 Code".SetValue(GlobalDimensionValue);
+        PurchaseJournalPage."Shortcut Dimension 2 Code".SetValue(GlobalDimensionValue2);
+
+        // [GIVEN] Run Import New action from Incoming Doc Attach FactBox.
+        PrepareAttachmentRecordForGenJournalLine(GenJournalLine);
+        PurchaseJournalPage.IncomingDocAttachFactBox.UploadMainAttachment.Invoke();
+
+        // [GIVEN] Create Second Line.
+        PurchaseJournalPage.New();
+        PurchaseJournalPage."Document type".SetValue(GenJournalLine."Document Type"::Invoice);
+        PurchaseJournalPage."Document No.".SetValue(LibraryRandom.RandText(15));
+        PurchaseJournalPage."Account Type".SetValue(GenJournalLine."Account Type"::Vendor);
+        PurchaseJournalPage."Account No.".SetValue(LibraryPurchase.CreateVendorNo());
+        PurchaseJournalPage."Bal. Account Type".SetValue(GenJournalLine."Account Type"::"G/L Account");
+        PurchaseJournalPage."Bal. Account No.".SetValue(LibraryERM.CreateGLAccountNoWithDirectPosting());
+        PurchaseJournalPage.Amount.SetValue(LibraryRandom.RandInt(10000));
+        PurchaseJournalPage."Shortcut Dimension 1 Code".SetValue(GlobalDimensionValue);
+        PurchaseJournalPage."Shortcut Dimension 2 Code".SetValue(GlobalDimensionValue2);
+        // [WHEN] Run Import New action from Incoming Doc Attach FactBox.
+        PrepareAttachmentRecordForGenJournalLine(GenJournalLine);
+        PurchaseJournalPage.IncomingDocAttachFactBox.UploadMainAttachment.Invoke();
+
+        // [THEN] Go to the next line.
+        // No Error occured.
+        PurchaseJournalPage.Next();
+    end;
+
+    local procedure GetGlobalDimensionCodeValue(DimNo: Integer): Code[20]
+    var
+        DimensionValue: Record "Dimension Value";
+    begin
+        LibraryDimension.FindDimensionValue(DimensionValue, LibraryERM.GetGlobalDimensionCode(DimNo));
+        exit(DimensionValue.Code);
     end;
 
     local procedure CreateGeneralJournalBatch(var GenJournalLine: Record "Gen. Journal Line"; GenJournalTemplateType: Enum "Gen. Journal Template Type")

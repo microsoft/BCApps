@@ -4,12 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.DataExchange;
 
-using Microsoft.Intercompany.Partner;
+using Microsoft.Intercompany.GLAccount;
 using Microsoft.Intercompany.Inbox;
+using Microsoft.Intercompany.Partner;
 using System.Globalization;
 using System.Telemetry;
-using Microsoft.Intercompany.GLAccount;
 
+/// <summary>
+/// Job queue handler for reading and processing incoming intercompany notifications.
+/// Manages notification reception, validation, and routing for cross-partner communication.
+/// </summary>
 codeunit 534 "IC Read Notification JR"
 {
     Permissions = tabledata "IC Incoming Notification" = md;

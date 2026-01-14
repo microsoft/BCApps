@@ -1,16 +1,16 @@
 namespace System.Security.AccessControl;
 
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.SalesTax;
+using Microsoft.Finance.VAT.RateChange;
+using Microsoft.Finance.VAT.Reporting;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Purchases.Comment;
 using Microsoft.Purchases.History;
-using Microsoft.Finance.SalesTax;
 using System.Security.User;
-using Microsoft.Foundation.Reporting;
-using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.VAT.RateChange;
-using Microsoft.Finance.VAT.Reporting;
 
 permissionset 5951 "Payables Documents - View"
 {

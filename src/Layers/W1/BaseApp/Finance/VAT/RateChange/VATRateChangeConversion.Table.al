@@ -7,6 +7,10 @@ namespace Microsoft.Finance.VAT.RateChange;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 
+/// <summary>
+/// Defines conversion mappings from old posting groups to new posting groups for VAT rate changes.
+/// Supports both VAT product posting group and general product posting group conversions.
+/// </summary>
 table 551 "VAT Rate Change Conversion"
 {
     Caption = 'VAT Rate Change Conversion';
@@ -14,12 +18,18 @@ table 551 "VAT Rate Change Conversion"
 
     fields
     {
+        /// <summary>
+        /// Specifies whether this conversion applies to VAT product posting groups or general product posting groups.
+        /// </summary>
         field(1; Type; Option)
         {
             Caption = 'Type';
             OptionCaption = 'VAT Prod. Posting Group,Gen. Prod. Posting Group';
             OptionMembers = "VAT Prod. Posting Group","Gen. Prod. Posting Group";
         }
+        /// <summary>
+        /// Current posting group code that will be replaced during conversion.
+        /// </summary>
         field(2; "From Code"; Code[20])
         {
             Caption = 'From Code';
@@ -33,6 +43,9 @@ table 551 "VAT Rate Change Conversion"
                 CheckforLoop();
             end;
         }
+        /// <summary>
+        /// New posting group code that will replace the "From Code" during conversion.
+        /// </summary>
         field(3; "To Code"; Code[20])
         {
             Caption = 'To Code';
@@ -49,6 +62,9 @@ table 551 "VAT Rate Change Conversion"
                 CheckforLoop();
             end;
         }
+        /// <summary>
+        /// Date when this conversion mapping was applied, populated after successful conversion.
+        /// </summary>
         field(10; "Converted Date"; Date)
         {
             Caption = 'Converted Date';

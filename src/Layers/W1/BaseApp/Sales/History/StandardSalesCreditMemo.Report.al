@@ -27,6 +27,7 @@ using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 using System.Email;
 using System.Globalization;
+using System.Reflection;
 using System.Text;
 using System.Utilities;
 
@@ -354,20 +355,6 @@ report 1307 "Standard Sales - Credit Memo"
             column(VATRegistrationNo_Lbl; GetCustomerVATRegistrationNumberLbl())
             {
             }
-#if not CLEAN25
-            column(GlobalLocationNumber; '')
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'Not in use anymore.';
-                ObsoleteTag = '25.0';
-            }
-            column(GlobalLocationNumber_Lbl; '')
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'Not in use anymore.';
-                ObsoleteTag = '25.0';
-            }
-#endif
             column(LegalEntityType; Cust.GetLegalEntityType())
             {
             }
@@ -664,10 +651,14 @@ report 1307 "Standard Sales - Credit Memo"
                 }
 
                 trigger OnAfterGetRecord()
+                var
+                    TypeHelper: Codeunit "Type Helper";
                 begin
                     if WorkDescriptionInstream.EOS then
                         CurrReport.Break();
-                    WorkDescriptionInstream.ReadText(WorkDescriptionLine);
+                    WorkDescriptionLine := TypeHelper.ReadAsTextWithSeparator(WorkDescriptionInstream, TypeHelper.LFSeparator());
+                    if WorkDescriptionLine = '' then
+                        CurrReport.Break();
                 end;
 
                 trigger OnPostDataItem()
@@ -1389,4 +1380,3 @@ report 1307 "Standard Sales - Credit Memo"
     begin
     end;
 }
-

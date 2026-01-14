@@ -34,6 +34,7 @@ table 1802 "Assisted Company Setup Status"
                 OnEnabled("Company Name", Enabled);
             end;
         }
+#if not CLEANSCHEMA26
 #pragma warning disable AS0072, AS0115
         field(3; "Package Imported"; Boolean)
         {
@@ -50,6 +51,7 @@ table 1802 "Assisted Company Setup Status"
             ObsoleteState = Removed;
         }
 #pragma warning restore AS0072, AS0115
+#endif
         field(5; "Company Setup Session ID"; Integer)
         {
             Caption = 'Company Setup Session ID';

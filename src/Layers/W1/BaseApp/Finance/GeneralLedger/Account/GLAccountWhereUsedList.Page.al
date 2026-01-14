@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Account;
 
+/// <summary>
+/// Displays a list of setup tables and fields where a G/L account is being used.
+/// This page provides users with visibility into all the places where a specific G/L account is referenced throughout the system.
+/// </summary>
 page 99 "G/L Account Where-Used List"
 {
     Caption = 'G/L Account Where-Used List';
@@ -64,6 +68,9 @@ page 99 "G/L Account Where-Used List"
     {
         area(processing)
         {
+            /// <summary>
+            /// Opens the setup form for the selected where-used record, allowing users to view the specific setup table and field where the G/L account is used.
+            /// </summary>
             action(ShowDetails)
             {
                 ApplicationArea = Basic, Suite;

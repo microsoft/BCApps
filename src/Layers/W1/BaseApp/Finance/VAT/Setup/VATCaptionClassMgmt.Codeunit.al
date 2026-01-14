@@ -6,6 +6,15 @@ namespace Microsoft.Finance.VAT.Setup;
 
 using System.Text;
 
+/// <summary>
+/// Manages VAT-related caption class translations for dynamic field captions based on VAT configuration.
+/// Provides localized caption resolution for VAT amount fields displaying "Incl. VAT" or "Excl. VAT" labels.
+/// </summary>
+/// <remarks>
+/// Core functionality: Translates caption class area '2' for VAT amount field display.
+/// Integration points: Caption Class system, VAT setup configuration, localization framework.
+/// Extensibility: OnBeforeVATCaptionClassTranslate event for custom VAT caption handling.
+/// </remarks>
 codeunit 341 "VAT CaptionClass Mgmt"
 {
     SingleInstance = true;
@@ -59,6 +68,15 @@ codeunit 341 "VAT CaptionClass Mgmt"
         exit('');
     end;
 
+    /// <summary>
+    /// Integration event raised before VAT caption class translation to allow custom caption processing.
+    /// Enables extensions to provide alternative VAT caption formats or additional caption logic.
+    /// </summary>
+    /// <param name="CaptionArea">Caption class area identifier</param>
+    /// <param name="CaptionExpr">Caption expression to translate</param>
+    /// <param name="Language">Language ID for localization</param>
+    /// <param name="Caption">Resulting caption text after translation</param>
+    /// <param name="IsHandled">Set to true to skip standard caption translation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeVATCaptionClassTranslate(CaptionArea: Text; CaptionExpr: Text; Language: Integer; var Caption: Text; var IsHandled: Boolean)
     begin

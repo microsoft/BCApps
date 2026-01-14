@@ -7,8 +7,8 @@ namespace Microsoft.Utilities;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Inventory.Journal;
-using Microsoft.Projects.Resources.Journal;
 using Microsoft.Projects.Project.Journal;
+using Microsoft.Projects.Resources.Journal;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using System.Environment.Configuration;
@@ -174,15 +174,6 @@ codeunit 9079 "Background Error Handling Mgt."
         ErrorHandlingParameters."Line No." := DocumentErrorsMgt.GetModifiedPurchaseLineNo();
     end;
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit Serv. Document Errors Mgt.', '25.0')]
-    procedure CollectServiceDocCheckParameters(ServiceHeader: Record Microsoft.Service.Document."Service Header"; var ErrorHandlingParameters: Record "Error Handling Parameters")
-    begin
-        ErrorHandlingParameters."Document No." := ServiceHeader."No.";
-        ErrorHandlingParameters."Service Document Type" := ServiceHeader."Document Type";
-        ErrorHandlingParameters."Full Document Check" := true;
-    end;
-#endif
 
     procedure GetErrorsFromItemJnlCheckResultValues(ResultValues: List of [Text]; var TempErrorMessage: Record "Error Message" temporary; ErrorHandlingParameters: Record "Error Handling Parameters")
     var
@@ -424,15 +415,6 @@ codeunit 9079 "Background Error Handling Mgt."
         TranslationHelper.RestoreGlobalLanguage();
     end;
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit Serv. Document Errors Mgt.', '25.0')]
-    procedure FeatureTelemetryLogUsageService(ErrorsFound: Boolean; TableName: Text; DocumentType: Enum Microsoft.Service.Document."Service Document Type")
-    begin
-        TranslationHelper.SetGlobalLanguageToDefault();
-        FeatureTelemetryLogUsageDocument(ErrorsFound, TableName, Format(DocumentType));
-        TranslationHelper.RestoreGlobalLanguage();
-    end;
-#endif
 
     procedure FeatureTelemetryLogUsagePurchase(ErrorsFound: Boolean; TableName: Text; DocumentType: Enum "Purchase Document Type")
     begin

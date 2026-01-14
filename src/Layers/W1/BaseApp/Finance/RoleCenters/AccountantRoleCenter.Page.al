@@ -37,6 +37,7 @@ using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Insurance;
 using Microsoft.FixedAssets.Journal;
+using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Period;
@@ -52,7 +53,9 @@ using Microsoft.Intercompany.Partner;
 using Microsoft.Inventory.Costing;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+#if not CLEAN28
 using Microsoft.Purchases.Reports;
+#endif
 using Microsoft.Purchases.Vendor;
 using Microsoft.RoleCenters;
 using Microsoft.Sales.Analysis;
@@ -61,8 +64,9 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Reminder;
+#if not CLEAN28
 using Microsoft.Sales.Reports;
-using Microsoft.Foundation.Navigate;
+#endif
 using System.Automation;
 using System.Email;
 using System.Environment;
@@ -161,14 +165,19 @@ page 9027 "Accountant Role Center"
             group("G/L Reports")
             {
                 Caption = 'G/L Reports';
+#if not CLEAN28
                 action("&G/L Trial Balance")
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = '&G/L Trial Balance';
+                    Caption = '&G/L Trial Balance (Obsolete)';
                     Image = "Report";
                     RunObject = Report "Trial Balance";
                     ToolTip = 'View, print, or send a report that shows the balances for the general ledger accounts, including the debits and credits. You can use this report to ensure accurate accounting practices.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the report Trial Balance (Excel). This report will be removed in a future release.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
                 action("&Bank Detail Trial Balance")
                 {
                     ApplicationArea = Basic, Suite;
@@ -193,14 +202,19 @@ page 9027 "Accountant Role Center"
                     RunObject = Report Budget;
                     ToolTip = 'View or edit estimated amounts for a range of accounting periods.';
                 }
+#if not CLEAN28
                 action("Trial Bala&nce/Budget")
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Trial Bala&nce/Budget';
+                    Caption = 'Trial Bala&nce/Budget (Obsolete)';
                     Image = "Report";
                     RunObject = Report "Trial Balance/Budget";
                     ToolTip = 'View a trial balance in comparison to a budget. You can choose to see a trial balance for selected dimensions. You can use the report at the close of an accounting period or fiscal year.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the report Trial Balance/Budget (Excel). This report will be removed in a future release.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
                 action("Trial Balance by &Period")
                 {
                     ApplicationArea = Basic, Suite;
@@ -257,22 +271,30 @@ page 9027 "Accountant Role Center"
             group("Customers and Vendors")
             {
                 Caption = 'Customers and Vendors';
+#if not CLEAN28
                 action("Aged Accounts &Receivable")
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Aged Accounts &Receivable';
+                    Caption = 'Aged Accounts &Receivable (Obsolete)';
                     Image = "Report";
                     RunObject = Report "Aged Accounts Receivable";
                     ToolTip = 'View an overview of when your receivables from customers are due or overdue (divided into four periods). You must specify the date you want aging calculated from and the length of the period that each column will contain data for.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the report Aged Accounts Receivable (Excel). This report will be removed in a future release.';
+                    ObsoleteTag = '28.0';
                 }
                 action("Aged Accounts Pa&yable")
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Aged Accounts Pa&yable';
+                    Caption = 'Aged Accounts Pa&yable (Obsolete)';
                     Image = "Report";
                     RunObject = Report "Aged Accounts Payable";
                     ToolTip = 'View an overview of when your payables to vendors are due or overdue (divided into four periods). You must specify the date you want aging calculated from and the length of the period that each column will contain data for.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the report Aged Accounts Payable (Excel). This report will be removed in a future release.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
                 action("Reconcile Cus&t. and Vend. Accs")
                 {
                     ApplicationArea = Basic, Suite;
@@ -1222,47 +1244,6 @@ page 9027 "Accountant Role Center"
                             ObsoleteState = Pending;
                             ObsoleteTag = '26.0';
                         }
-#if not CLEAN25
-                        action(ExcelTemplateTrialBalance)
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'Trial Balance';
-                            Image = "Report";
-                            RunObject = Codeunit "Run Template Trial Balance";
-                            ToolTip = 'Open a spreadsheet that shows a summary trial balance by account. This report is deprecated and will be removed in a future release.';
-#pragma warning disable AS0072
-                            ObsoleteReason = 'Functionality replaced by "EXR Trial Balance Excel". Extend this report object with Excel layout instead.';
-                            ObsoleteState = Pending;
-                            ObsoleteTag = '25.0';
-#pragma warning restore AS0072
-                        }
-                        action(ExcelTemplateAgedAccPay)
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'Aged Accounts Payable';
-                            Image = "Report";
-                            RunObject = Codeunit "Run Template Aged Acc. Pay.";
-                            ToolTip = 'Open a spreadsheet that shows a list of aged remaining balances for each vendor by period. This report is deprecated and will be removed in a future release.';
-#pragma warning disable AS0072
-                            ObsoleteReason = 'Functionality replaced by "EXR Aged Acc Payable Excel". Extend this report object with Excel layout instead.';
-                            ObsoleteState = Pending;
-                            ObsoleteTag = '25.0';
-#pragma warning restore AS0072
-                        }
-                        action(ExcelTemplateAgedAccRec)
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'Aged Accounts Receivable';
-                            Image = "Report";
-                            RunObject = Codeunit "Run Template Aged Acc. Rec.";
-                            ToolTip = 'Open a spreadsheet that shows when customer payments are due or overdue by period. This report is deprecated and will be removed in a future release.';
-#pragma warning disable AS0072
-                            ObsoleteReason = 'Functionality replaced by "EXR Aged Accounts Rec Excel". Extend this report object with Excel layout instead.';
-                            ObsoleteState = Pending;
-                            ObsoleteTag = '25.0';
-#pragma warning restore AS0072
-                        }
-#endif
                     }
 #endif
                 }

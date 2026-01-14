@@ -1,13 +1,13 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.Manufacturing.Capacity;
 using Microsoft.Inventory.Item;
-using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Comment;
+using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
-using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Manufacturing.Setup;
+using Microsoft.Manufacturing.WorkCenter;
 
 permissionset 6148 "Manufacturing Design - View"
 {

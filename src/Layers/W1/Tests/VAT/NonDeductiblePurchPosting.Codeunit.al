@@ -630,6 +630,58 @@ codeunit 134283 "Non-Deductible Purch. Posting"
                 ValueEntry[1].TableCaption()));
     end;
 
+    [Test]
+    procedure PurchInvoiceWithNonDeductibleVATAndPricesIncludingVAT()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        PurchHeader: Record "Purchase Header";
+        PurchLine: Record "Purchase Line";
+        TempPurchLine: Record "Purchase Line" temporary;
+        VATEntry: Record "VAT Entry";
+        TempVATAmountLine: Record "VAT Amount Line" temporary;
+        PurchPost: Codeunit "Purch.-Post";
+        DocNo: Code[20];
+    begin
+        // [SCENARIO 615511] Post Purchase Invoice with Non-Deductible VAT and Prices Including VAT without rounding errors
+
+        Initialize();
+        // [GIVEN] Normal VAT Posting Setup with "VAT %" = 21 and Non-Deductible VAT %" = 50
+        LibraryNonDeductibleVAT.CreateNonDeductibleNormalVATPostingSetup(VATPostingSetup);
+        VATPostingSetup.Validate("VAT %", 20);
+        VATPostingSetup.Validate("Non-Deductible VAT %", 100);
+        VATPostingSetup.Modify(true);
+        // [GIVEN] Purchase invoice with "Prices Including VAT" = TRUE
+        LibraryPurchase.CreatePurchHeader(
+            PurchHeader, PurchHeader."Document Type"::Invoice,
+            LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+        PurchHeader.Validate("Prices Including VAT", true);
+        PurchHeader.Modify(true);
+        // [GIVEN] Purchase line with Direct Unit Cost = 100
+        CreatePurchLineItemWithVATProdPostingGroup(PurchLine, PurchHeader, VATPostingSetup."VAT Prod. Posting Group");
+        PurchLine.Validate("Direct Unit Cost", 100);
+        PurchLine.Modify(true);
+        // [GIVEN] Calculate VAT Amount Lines
+        PurchLine.SetRange("Document Type", PurchHeader."Document Type");
+        PurchLine.SetRange("Document No.", PurchHeader."No.");
+        PurchLine.FindFirst();
+        PurchPost.GetPurchLines(PurchHeader, TempPurchLine, 0);
+        PurchLine.CalcVATAmountLines(0, PurchHeader, TempPurchLine, TempVATAmountLine);
+        // [THEN] Deductible VAT Base and Amount should be >= 0 (no negative rounding errors)
+        TempVATAmountLine.FindFirst();
+        Assert.IsTrue(TempVATAmountLine."Deductible VAT Base" >= 0,
+            'Deductible VAT Base should not be negative');
+        Assert.IsTrue(TempVATAmountLine."Deductible VAT Amount" >= 0,
+            'Deductible VAT Amount should not be negative');
+        // [WHEN] Post purchase document
+        DocNo := LibraryPurchase.PostPurchaseDocument(PurchHeader, true, true);
+        // [THEN] VAT entry posted successfully
+        FindVATEntry(VATEntry, DocNo);
+        Assert.RecordCount(VATEntry, 1);
+        // [THEN] Non-Deductible VAT Base should not exceed VAT Base
+        Assert.IsTrue(VATEntry."Non-Deductible VAT Base" <= VATEntry.Base + VATEntry."Non-Deductible VAT Base",
+            'Non-Deductible VAT Base should not exceed total VAT Base');
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Defines restrictions on combinations of two dimensions to prevent invalid or undesired dimension pairings.
+/// Controls whether specific dimension combinations are limited or completely blocked during posting validation.
+/// </summary>
+/// <remarks>
+/// Used by dimension management validation to enforce business rules on dimension combinations.
+/// Automatically manages related dimension value combinations when dimension combinations are deleted.
+/// Supports both limited and blocked restriction types for flexible dimension control.
+/// </remarks>
 table 350 "Dimension Combination"
 {
     Caption = 'Dimension Combination';
@@ -11,18 +20,28 @@ table 350 "Dimension Combination"
 
     fields
     {
+        /// <summary>
+        /// Code of the first dimension in the restricted combination pair.
+        /// </summary>
         field(1; "Dimension 1 Code"; Code[20])
         {
             Caption = 'Dimension 1 Code';
             NotBlank = true;
             TableRelation = Dimension.Code;
         }
+        /// <summary>
+        /// Code of the second dimension in the restricted combination pair.
+        /// </summary>
         field(2; "Dimension 2 Code"; Code[20])
         {
             Caption = 'Dimension 2 Code';
             NotBlank = true;
             TableRelation = Dimension.Code;
         }
+        /// <summary>
+        /// Type of restriction applied to this dimension combination.
+        /// Limited allows specific value combinations; Blocked prevents all combinations.
+        /// </summary>
         field(3; "Combination Restriction"; Option)
         {
             Caption = 'Combination Restriction';

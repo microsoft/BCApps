@@ -153,11 +153,7 @@ codeunit 103421 Corsica_UpdateSalesStatistics
         SalesLine: Record "Sales Line";
         PurchHeader: Record "Purchase Header";
         PurchLine: Record "Purchase Line";
-#if not CLEAN25
-        SalesLineDiscount: Record "Sales Line Discount";
-#else
         PriceListLine: Record "Price List Line";
-#endif
         Item: Record Item;
     begin
         // TC-1-2 Positive Revaluation without Adjustment
@@ -167,15 +163,6 @@ codeunit 103421 Corsica_UpdateSalesStatistics
         CostingTestScriptMgmt.SetExpCostPost(false);
         CostingTestScriptMgmt.SetAddRepCurr('DEM');
         // Set up line discount for item 7_ST_OV
-#if not CLEAN25
-        SalesLineDiscount.Validate(Type, SalesLineDiscount.Type::Item);
-        SalesLineDiscount.Validate(Code, '7_ST_OV');
-        SalesLineDiscount.Validate("Sales Type", SalesLineDiscount."Sales Type"::"All Customers");
-        SalesLineDiscount.Validate("Unit of Measure Code", 'PCS');
-        SalesLineDiscount.Validate("Minimum Quantity", 10);
-        SalesLineDiscount.Validate("Line Discount %", 10);
-        if not SalesLineDiscount.Insert(true) then;
-#else
         PriceListLine.Validate("Source Type", "Price Source Type"::"All Customers");
         PriceListLine.Validate("Asset Type", "Price Asset Type"::Item);
         PriceListLine.Validate("Asset No.", '7_ST_OV');
@@ -184,7 +171,6 @@ codeunit 103421 Corsica_UpdateSalesStatistics
         PriceListLine.Validate("Line Discount %", 10);
         PriceListLine.Status := PriceListLine.Status::Active;
         if not PriceListLine.Insert(true) then;
-#endif
         // Remove overhead rate and indirect cost % values for item 7_ST_OV
         Item.Get('7_ST_OV');
         Item."Overhead Rate" := 0;
@@ -295,11 +281,7 @@ codeunit 103421 Corsica_UpdateSalesStatistics
         SalesLine: Record "Sales Line";
         PurchHeader: Record "Purchase Header";
         PurchLine: Record "Purchase Line";
-#if not CLEAN25
-        SalesLineDiscount: Record "Sales Line Discount";
-#else
         PriceListLine: Record "Price List Line";
-#endif
     begin
         // TC-2-1 Negative Revaluation
         CostingTestScriptMgmt.SetGlobalPreconditions();
@@ -308,15 +290,6 @@ codeunit 103421 Corsica_UpdateSalesStatistics
         CostingTestScriptMgmt.SetExpCostPost(false);
         CostingTestScriptMgmt.SetAddRepCurr('DEM');
         // Set up line discount for item 1_FI_RE
-#if not CLEAN25
-        SalesLineDiscount.Validate(Type, SalesLineDiscount.Type::Item);
-        SalesLineDiscount.Validate(Code, '1_FI_RE');
-        SalesLineDiscount.Validate("Sales Type", SalesLineDiscount."Sales Type"::"All Customers");
-        SalesLineDiscount.Validate("Unit of Measure Code", 'PCS');
-        SalesLineDiscount.Validate("Minimum Quantity", 10);
-        SalesLineDiscount.Validate("Line Discount %", 10);
-        if not SalesLineDiscount.Insert(true) then;
-#else
         PriceListLine.Validate("Source Type", "Price Source Type"::"All Customers");
         PriceListLine.Validate("Asset Type", "Price Asset Type"::Item);
         PriceListLine.Validate("Asset No.", '1_FI_RE');
@@ -325,7 +298,6 @@ codeunit 103421 Corsica_UpdateSalesStatistics
         PriceListLine.Validate("Line Discount %", 10);
         PriceListLine.Status := PriceListLine.Status::Active;
         if not PriceListLine.Insert(true) then;
-#endif
         // Create sales header
         Clear(SalesHeader);
         CostingTestScriptMgmt.InsertSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '10000', WorkDate());
@@ -2231,4 +2203,3 @@ codeunit 103421 Corsica_UpdateSalesStatistics
             ForType, ForSubtype, ForID, ForBatchName, ForProdOrderLine, ForRefNo, ForQtyPerUOM, Quantity, QuantityBase, ForReservEntry);
     end;
 }
-

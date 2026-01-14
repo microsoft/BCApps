@@ -5,13 +5,17 @@
 namespace Microsoft.Finance.AllocationAccount.Sales;
 
 using Microsoft.Finance.AllocationAccount;
+using Microsoft.Finance.Deferral;
 using Microsoft.Finance.Dimension;
-using System.Automation;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Posting;
-using Microsoft.Finance.Deferral;
-using Microsoft.Finance.GeneralLedger.Account;
+using System.Automation;
 
+/// <summary>
+/// Manages allocation account functionality for sales documents including line creation, dimension transfer, and distribution processing.
+/// Handles automatic distribution of sales amounts across multiple accounts based on allocation account configuration.
+/// </summary>
 codeunit 2678 "Sales Alloc. Acc. Mgt."
 {
     internal procedure GetOrGenerateAllocationLines(var AllocationLine: Record "Allocation Line"; var ParentSystemId: Guid)
@@ -247,6 +251,11 @@ codeunit 2678 "Sales Alloc. Acc. Mgt."
         until AllocationSalesLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Creates individual sales lines from allocation account distribution lines based on allocation percentages or amounts.
+    /// Processes allocation account configuration and generates corresponding G/L account lines with calculated amounts.
+    /// </summary>
+    /// <param name="AllocationAccountSalesLine">Source sales line containing allocation account to be distributed</param>
     procedure CreateLinesFromAllocationAccountLine(var AllocationAccountSalesLine: Record "Sales Line")
     var
         ExistingAccountSalesLine: Record "Sales Line";
@@ -654,6 +663,11 @@ codeunit 2678 "Sales Alloc. Acc. Mgt."
         until AllocationAccountSalesLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Validates the selected allocation account number on sales line and verifies compatibility.
+    /// Ensures the allocation account is properly configured and the sales line uses G/L account type.
+    /// </summary>
+    /// <param name="SalesLine">Sales line with selected allocation account to validate</param>
     procedure VerifySelectedAllocationAccountNo(var SalesLine: Record "Sales Line")
     var
         AllocationAccount: Record "Allocation Account";
@@ -717,11 +731,23 @@ codeunit 2678 "Sales Alloc. Acc. Mgt."
         end;
     end;
 
+    /// <summary>
+    /// Integration event raised before creating sales line from allocation line during distribution process.
+    /// Enables custom modification of sales line fields before standard allocation line processing.
+    /// </summary>
+    /// <param name="SalesLine">Target sales line being created</param>
+    /// <param name="AllocationLine">Source allocation line with distribution configuration</param>
+    /// <param name="AllocationSalesLine">Original allocation sales line triggering the distribution</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateSalesLine(var SalesLine: Record "Sales Line"; var AllocationLine: Record "Allocation Line"; var AllocationSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before verifying sales line during allocation account validation.
+    /// Enables custom validation logic for sales lines before standard allocation verification.
+    /// </summary>
+    /// <param name="SalesLine">Sales line being validated for allocation compatibility</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeVerifySalesLine(var SalesLine: Record "Sales Line")
     begin

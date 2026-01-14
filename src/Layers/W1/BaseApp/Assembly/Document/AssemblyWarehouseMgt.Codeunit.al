@@ -4,14 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Document;
 
+using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Location;
 using Microsoft.Warehouse.Activity;
+using Microsoft.Warehouse.CrossDock;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Structure;
 using Microsoft.Warehouse.Worksheet;
-using Microsoft.Warehouse.CrossDock;
-using Microsoft.Inventory.Journal;
 
 codeunit 5997 "Assembly Warehouse Mgt."
 {

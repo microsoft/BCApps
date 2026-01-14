@@ -6,6 +6,7 @@ namespace Microsoft.Pricing.PriceList;
 
 using Microsoft.Finance.Currency;
 using Microsoft.Pricing.Asset;
+using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.Source;
 using Microsoft.Pricing.Worksheet;
 using Microsoft.Projects.Project.Setup;
@@ -14,10 +15,9 @@ using Microsoft.Sales.Setup;
 using Microsoft.Upgrade;
 using Microsoft.Utilities;
 using System.Environment.Configuration;
+using System.Telemetry;
 using System.Threading;
 using System.Upgrade;
-using System.Telemetry;
-using Microsoft.Pricing.Calculation;
 
 codeunit 7017 "Price List Management"
 {

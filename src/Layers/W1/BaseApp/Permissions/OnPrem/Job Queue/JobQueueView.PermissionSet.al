@@ -13,5 +13,7 @@ permissionset 1347 "Job Queue - View"
                   tabledata "Job Queue Category" = Rimd,
                   tabledata "Job Queue Entry" = Rimd,
                   tabledata "Job Queue Log Entry" = Rimd,
-                  tabledata "Job Queue Role Center Cue" = Rimd;
+                  tabledata "Job Queue Role Center Cue" = Rimd,
+                  tabledata "Job Queue Notification Setup" = Rimd,
+                  tabledata "Job Queue Notified Admin" = Rimd;
 }

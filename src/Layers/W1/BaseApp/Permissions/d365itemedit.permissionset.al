@@ -55,6 +55,7 @@ permissionset 5947 "D365 ITEM, EDIT"
                   tabledata "Item Analysis View Entry" = RIMD,
                   tabledata "Item Analysis View Filter" = RIMD,
                   tabledata "Item Attribute Value Mapping" = RIMD,
+                  tabledata "Item Var. Attr. Value Mapping" = RIMD,
                   tabledata "Item Budget Entry" = RIMD,
                   tabledata "Item Budget Name" = RIMD,
                   tabledata "Item Category" = R,

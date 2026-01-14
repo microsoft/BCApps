@@ -292,6 +292,7 @@ codeunit 134282 "Non-Deductible UT"
         GLAccount: Record "G/L Account";
         PurchHeader: Record "Purchase Header";
         PurchLine: Record "Purchase Line";
+        PurchasePayableSetup: Record "Purchases & Payables Setup";
         VATEntry: Record "VAT Entry";
         VATPostingSetup: Record "VAT Posting Setup";
         Vendor: Record Vendor;
@@ -301,6 +302,11 @@ codeunit 134282 "Non-Deductible UT"
     begin
         // [SCENARIO 595966] Check VAT Entry Non-Deductible VAT on Purchase Invoice Posting with G/L Account Line.
         Initialize();
+
+        // [GIVEN] Modify Purchase Payable Setup to disable "Check Doc. Total Amount"   
+        PurchasePayableSetup.Get();
+        PurchasePayableSetup.Validate("Check Doc. Total Amounts", false);
+        PurchasePayableSetup.Modify(true);
 
         // [GIVEN] Create Vendor and set Prices Including VAT
         LibraryPurchase.CreateVendor(Vendor);
@@ -339,6 +345,66 @@ codeunit 134282 "Non-Deductible UT"
         VATEntry.FindFirst();
         Assert.AreEqual(0, VATEntry.Base, 'Vat Base should be 0.');
         Assert.AreEqual(0, VATEntry.Amount, 'Vat Amount should be 0.');
+    end;
+
+    [Test]
+    procedure NonDeductibleVATWithItemCostNotAppliedToSales()
+    var
+        CustomerPostingGroup: Record "Customer Posting Group";
+        GLAccount: Record "G/L Account";
+        ItemJournalLine: Record "Item Journal Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        ValueEntry: Record "Value Entry";
+        VATPostingSetup: Record "VAT Posting Setup";
+        LibrarySales: Codeunit "Library - Sales";
+        DocNo: Code[20];
+        ItemNo: Code[20];
+        PurchaseCost: Decimal;
+        SalesPrice: Decimal;
+    begin
+        // [SCENARIO 610525] Non-Deductible VAT "Use For Item Cost" should not apply to Sales transactions.
+        Initialize();
+
+        // [GIVEN] Non-Deductible VAT is enabled with "Use For Item Cost"
+        LibraryNonDeductibleVAT.SetUseForItemCost();
+        LibraryNonDeductibleVAT.CreateNonDeductibleNormalVATPostingSetup(VATPostingSetup);
+        VATPostingSetup."Allow Non-Deductible VAT" := VATPostingSetup."Allow Non-Deductible VAT"::"Do Not Allow";
+        VATPostingSetup.Modify(true);
+
+        // [GIVEN] Create an Item.
+        ItemNo := LibraryInventory.CreateItemWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group");
+
+        // [GIVEN] Create Item Journal Line with Unit Amount.
+        PurchaseCost := LibraryRandom.RandDecInRange(40, 60, 2);
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, ItemNo, '', '', LibraryRandom.RandIntInRange(5, 10));
+        ItemJournalLine.Validate("Unit Amount", PurchaseCost);
+        ItemJournalLine.Modify(true);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] Create Sales Order with unit price.
+        SalesPrice := LibraryRandom.RandDecInRange(150, 250, 2);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order,
+            LibrarySales.CreateCustomerWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+        CustomerPostingGroup.Get(SalesHeader."Customer Posting Group");
+        GLAccount.Get(CustomerPostingGroup."Invoice Rounding Account");
+        GLAccount.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        GLAccount.Modify(true);
+
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo, 1);
+        SalesLine.Validate("Unit Price", SalesPrice);
+        SalesLine.Modify(true);
+
+        // [WHEN] Sales order is posted.
+        DocNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] Value Entry for sales has "Cost Amount (Actual)" same as the Purchase Cost.
+        ValueEntry.SetRange("Document No.", DocNo);
+        ValueEntry.SetRange("Item No.", ItemNo);
+        ValueEntry.SetRange("Item Ledger Entry Type", ValueEntry."Item Ledger Entry Type"::Sale);
+        ValueEntry.FindFirst();
+        Assert.AreEqual(-PurchaseCost, ValueEntry."Cost Amount (Actual)",
+            StrSubstNo(AmountErrorLbl, ValueEntry.FieldCaption("Cost Amount (Actual)"), -PurchaseCost));
     end;
 
     local procedure Initialize()

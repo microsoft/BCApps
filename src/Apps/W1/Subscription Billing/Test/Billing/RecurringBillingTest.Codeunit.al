@@ -9,6 +9,8 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using System.TestLibraries.Utilities;
+using System.Utilities;
 
 #pragma warning disable AA0210
 codeunit 139688 "Recurring Billing Test"
@@ -58,6 +60,7 @@ codeunit 139688 "Recurring Billing Test"
         LibrarySales: Codeunit "Library - Sales";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         BillingRhythm: DateFormula;
         IsInitialized: Boolean;
         PostedDocumentNo: Code[20];
@@ -1303,36 +1306,51 @@ codeunit 139688 "Recurring Billing Test"
     end;
 
     [Test]
-    [HandlerFunctions('CreateBillingDocsCustomerPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler,BillingTemplateModalPageHandler')]
-    procedure ClearCustomFilterWhenCreateDocuments()
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,BillingTemplateModalPageHandler,ErrorMessagesHandler')]
+    procedure CheckServiceCommitmentConsistencyWhenCreatingDocuments()
     var
-        EntryNo: Integer;
+        SubscriptionLineEntryNo: Integer;
+        FilteredEntryNo: Integer;
+        ExpectedErrorMsg: Text;
+        ConsistencyErr: Label 'The number of filtered billing lines for Subscription Line %1 %2 (%3) does not match the total number of billing lines for this Subscription Line (%4). Adjust the page filters so that there are no gaps in the billing period.', Comment = '%1 = Subscription Header No., %2 = Subscription Line Entry No., %3 = Filtered Count, %4 = Total Count';
     begin
-        // [SCENARIO] When document is created and posted from DYCE Recurring billing page, make sure that filters are cleared in the background;
-        // [SCENARIO] otherwise, all billing lines will not be included in the document which will lead to wrong invoices and corrupted billing lines
+        // [SCENARIO] When creating documents from DYCE Recurring billing page with filters that exclude some billing lines for the same Service Commitment,
+        // [SCENARIO] the system should validate that all billing lines for each Service Commitment are included and throw a consistency error if not.
+
         Initialize();
+        RecurringBillingPageSetupForCustomer(); //ExchangeRateSelectionModalPageHandler,MessageHandler,BillingTemplateModalPageHandler
 
-        RecurringBillingPageSetupForCustomer();
-
-        // [GIVEN] Get the last billing line to exclude it from posting
+        // [GIVEN] Find a Service Commitment that has multiple billing lines and get one line to exclude
         BillingLine.Reset();
         BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
         BillingLine.FindLast();
-        EntryNo := BillingLine."Entry No.";
+        SubscriptionLineEntryNo := BillingLine."Subscription Line Entry No.";
 
-        // [WHEN] Filter billing lines to exclude the last line and create/post documents
+        // Create an additional billing line for the same Service Commitment to ensure we have multiple lines
+        CreateAdditionalBillingLineForSameServiceCommitment(BillingLine);
+        BillingLine.SetRange("Subscription Line Entry No.", SubscriptionLineEntryNo);
+        BillingLine.FindLast();
+        FilteredEntryNo := BillingLine."Entry No.";
+
+        // [GIVEN] Prepare expected error message
+        BillingLine.Reset();
+        BillingLine.SetRange("Subscription Header No.", BillingLine."Subscription Header No.");
+        BillingLine.SetRange("Subscription Line Entry No.", SubscriptionLineEntryNo);
+        ExpectedErrorMsg := StrSubstNo(ConsistencyErr,
+            BillingLine."Subscription Header No.", SubscriptionLineEntryNo, BillingLine.Count() - 1, BillingLine.Count());
+
+        // [GIVEN] Store expected error message for handler verification
+        LibraryVariableStorage.Enqueue(ExpectedErrorMsg);
+
+        // [WHEN] Filter billing lines to exclude one line for a Service Commitment that has multiple lines and try to create documents
         RecurringBillingPage.OpenEdit();
         RecurringBillingPage.BillingTemplateField.Lookup();
         PostDocuments := true;
         RecurringBillingPage.CreateBillingProposalAction.Invoke();
-        RecurringBillingPage.Filter.SetFilter("Entry No.", '<>' + Format(EntryNo));
-        RecurringBillingPage.CreateDocuments.Invoke();
-        Commit();
+        RecurringBillingPage.Filter.SetFilter("Entry No.", '<>' + Format(FilteredEntryNo));
 
-        // [THEN] All billing lines should be cleared from the proposal after posting
-        BillingLine.Reset();
-        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
-        Assert.RecordIsEmpty(BillingLine);
+        // [THEN] Creating documents should fail with Service Commitment consistency error (shown in ErrorMessages page)
+        RecurringBillingPage.CreateDocuments.Invoke(); // ErrorMessagesHandler
     end;
 
     [Test]
@@ -1549,6 +1567,25 @@ codeunit 139688 "Recurring Billing Test"
         repeat
             Assert.IsTrue(TempBillingLine.Get(BillingLine."Entry No."), 'Record not found in temporary table.');
         until BillingLine.Next() = 0;
+    end;
+
+    local procedure CreateAdditionalBillingLineForSameServiceCommitment(var OriginalBillingLine: Record "Billing Line")
+    var
+        NewBillingLine: Record "Billing Line";
+    begin
+        NewBillingLine.InitNewBillingLine();
+        NewBillingLine."Billing Template Code" := OriginalBillingLine."Billing Template Code";
+        NewBillingLine."Subscription Header No." := OriginalBillingLine."Subscription Header No.";
+        NewBillingLine."Subscription Line Entry No." := OriginalBillingLine."Subscription Line Entry No.";
+        NewBillingLine."Subscription Contract No." := OriginalBillingLine."Subscription Contract No.";
+        NewBillingLine."Subscription Contract Line No." := OriginalBillingLine."Subscription Contract Line No.";
+        NewBillingLine.Partner := OriginalBillingLine.Partner;
+        NewBillingLine."Partner No." := OriginalBillingLine."Partner No.";
+        NewBillingLine."Billing from" := CalcDate('<+1D>', OriginalBillingLine."Billing to");
+        NewBillingLine."Billing to" := CalcDate('<+1M>', NewBillingLine."Billing from");
+        NewBillingLine.Amount := OriginalBillingLine.Amount;
+        NewBillingLine."Unit Price" := OriginalBillingLine."Unit Price";
+        NewBillingLine.Insert(false);
     end;
 
     local procedure CreateBillingProposalForCustomerContractUsingRealTemplate()
@@ -1800,6 +1837,18 @@ codeunit 139688 "Recurring Billing Test"
     procedure CreateBillingDocsVendorPageHandler(var CreateBillingDocsVendorPage: TestPage "Create Vendor Billing Docs")
     begin
         CreateBillingDocsVendorPage.OK().Invoke();
+    end;
+
+    [PageHandler]
+    procedure ErrorMessagesHandler(var ErrorMessages: TestPage "Error Messages")
+    var
+        ExpectedErrorMsg: Text;
+        ActualErrorMsg: Text;
+    begin
+        ExpectedErrorMsg := LibraryVariableStorage.DequeueText();
+        ActualErrorMsg := ErrorMessages.Description.Value();
+        Assert.AreEqual(ExpectedErrorMsg, ActualErrorMsg, 'Error message does not match expected value');
+        ErrorMessages.OK().Invoke();
     end;
 
     [ModalPageHandler]

@@ -7,6 +7,14 @@ namespace Microsoft.Intercompany;
 using Microsoft.Intercompany.Inbox;
 using Microsoft.Intercompany.Outbox;
 
+/// <summary>
+/// Activity center page for monitoring intercompany transaction status and pending activities.
+/// Displays counts of incoming and outgoing transactions requiring attention or processing.
+/// </summary>
+/// <remarks>
+/// Provides at-a-glance view of IC inbox and outbox transaction volumes for business activity monitoring.
+/// Used in role centers and dashboards to highlight intercompany workflow status.
+/// </remarks>
 page 9071 "Intercompany Activities"
 {
     Caption = 'Intercompany';

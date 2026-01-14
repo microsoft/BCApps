@@ -5,6 +5,7 @@
 namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using System.Telemetry;
@@ -244,8 +245,14 @@ table 6100 "E-Document Purchase Header"
     }
 
     trigger OnDelete()
+    var
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
+        Telemetry: Codeunit Telemetry;
+        CustomDimensions: Dictionary of [Text, Text];
     begin
-        Session.LogMessage('0000PCQ', DeleteDraftPerformedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', FeatureName());
+        CustomDimensions.Set('Category', FeatureName());
+        CustomDimensions.Set('SystemId', EDocImpSessionTelemetry.CreateSystemIdText(Rec.SystemId));
+        Telemetry.LogMessage('0000PCQ', DeleteDraftPerformedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
         FeatureTelemetry.LogUsage('0000PCV', FeatureName(), 'Discard draft');
     end;
 

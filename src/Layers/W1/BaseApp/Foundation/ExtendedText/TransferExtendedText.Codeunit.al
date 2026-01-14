@@ -6,11 +6,11 @@ namespace Microsoft.Foundation.ExtendedText;
 
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Inventory.Item;
+using Microsoft.Projects.Project.Job;
+using Microsoft.Projects.Project.Planning;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
-using Microsoft.Projects.Project.Job;
-using Microsoft.Projects.Project.Planning;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
@@ -567,157 +567,13 @@ codeunit 378 "Transfer Extended Text"
         OnAfterReadLines(TempExtTextLine, ExtTextHeader, LanguageCode);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure in Service codeunit', '25.0')]
-    procedure ServCheckIfAnyExtText(var ServiceLine: Record Microsoft.Service.Document."Service Line"; Unconditionally: Boolean) Result: Boolean
-    var
-        ServHeader: Record Microsoft.Service.Document."Service Header";
-        ExtTextHeader: Record "Extended Text Header";
-        ServCost: Record Microsoft.Service.Pricing."Service Cost";
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeServCheckIfAnyExtText(ServiceLine, Unconditionally, MakeUpdateRequired, AutoText, Result, IsHandled);
-        if IsHandled then
-            exit(Result);
 
-        MakeUpdateRequired := false;
-        if IsDeleteAttachedLines(ServiceLine."Line No.", ServiceLine."No.", ServiceLine."Attached to Line No.") then
-            MakeUpdateRequired := DeleteServiceLines(ServiceLine);
-
-        AutoText := false;
-        if Unconditionally then
-            AutoText := true
-        else
-            case ServiceLine.Type of
-                ServiceLine.Type::" ":
-                    AutoText := true;
-                ServiceLine.Type::Cost:
-                    if ServCost.Get(ServiceLine."No.") then
-                        if GLAcc.Get(ServCost."Account No.") then
-                            AutoText := GLAcc."Automatic Ext. Texts";
-                ServiceLine.Type::Item:
-                    if Item.Get(ServiceLine."No.") then
-                        AutoText := Item."Automatic Ext. Texts";
-                ServiceLine.Type::Resource:
-                    if Res.Get(ServiceLine."No.") then
-                        AutoText := Res."Automatic Ext. Texts";
-                ServiceLine.Type::"G/L Account":
-                    if GLAcc.Get(ServiceLine."No.") then
-                        AutoText := GLAcc."Automatic Ext. Texts";
-            end;
-
-        OnServCheckIfAnyExtTextOnBeforeSetFilters(ServiceLine, AutoText, Unconditionally);
-
-        if AutoText then begin
-            case ServiceLine.Type of
-                ServiceLine.Type::" ":
-                    begin
-                        ExtTextHeader.SetRange("Table Name", ExtTextHeader."Table Name"::"Standard Text");
-                        ExtTextHeader.SetRange("No.", ServiceLine."No.");
-                    end;
-                ServiceLine.Type::Item:
-                    begin
-                        ExtTextHeader.SetRange("Table Name", ExtTextHeader."Table Name"::Item);
-                        ExtTextHeader.SetRange("No.", ServiceLine."No.");
-                    end;
-                ServiceLine.Type::Resource:
-                    begin
-                        ExtTextHeader.SetRange("Table Name", ExtTextHeader."Table Name"::Resource);
-                        ExtTextHeader.SetRange("No.", ServiceLine."No.");
-                    end;
-                ServiceLine.Type::Cost:
-                    begin
-                        ExtTextHeader.SetRange("Table Name", ExtTextHeader."Table Name"::"G/L Account");
-                        ServCost.Get(ServiceLine."No.");
-                        ExtTextHeader.SetRange("No.", ServCost."Account No.");
-                    end;
-                ServiceLine.Type::"G/L Account":
-                    begin
-                        ExtTextHeader.SetRange("Table Name", ExtTextHeader."Table Name"::"G/L Account");
-                        ExtTextHeader.SetRange("No.", ServiceLine."No.");
-                    end;
-            end;
-
-            case ServiceLine."Document Type" of
-                ServiceLine."Document Type"::Quote:
-                    ExtTextHeader.SetRange("Service Quote", true);
-                ServiceLine."Document Type"::Order:
-                    ExtTextHeader.SetRange("Service Order", true);
-                ServiceLine."Document Type"::Invoice:
-                    ExtTextHeader.SetRange("Service Invoice", true);
-                ServiceLine."Document Type"::"Credit Memo":
-                    ExtTextHeader.SetRange("Service Credit Memo", true);
-            end;
-            ServHeader.Get(ServiceLine."Document Type", ServiceLine."Document No.");
-            OnServCheckIfAnyExtTextAutoText(ExtTextHeader, ServHeader, ServiceLine, Unconditionally, MakeUpdateRequired);
-            exit(ReadExtTextLines(ExtTextHeader, ServHeader."Order Date", ServHeader."Language Code"));
-        end;
-    end;
-#endif
-
-#if not CLEAN25
-    local procedure DeleteServiceLines(var ServiceLine: Record Microsoft.Service.Document."Service Line"): Boolean
-    var
-        ServiceLine2: Record Microsoft.Service.Document."Service Line";
-    begin
-        ServiceLine2.SetRange("Document Type", ServiceLine."Document Type");
-        ServiceLine2.SetRange("Document No.", ServiceLine."Document No.");
-        ServiceLine2.SetRange("Attached to Line No.", ServiceLine."Line No.");
-        OnDeleteServiceLinesOnAfterSetFilers(ServiceLine2, ServiceLine);
-        ServiceLine2 := ServiceLine;
-        if ServiceLine2.Find('>') then begin
-            repeat
-                ServiceLine2.Delete();
-            until ServiceLine2.Next() = 0;
-            exit(true);
-        end;
-    end;
-#endif
 
     procedure GetTempExtTextLine(var ToTempExtendedTextLine: Record "Extended Text Line" temporary)
     begin
         ToTempExtendedTextLine.Copy(TempExtTextLine, true);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure in Service codeunit', '25.0')]
-    procedure InsertServExtText(var ServiceLine: Record Microsoft.Service.Document."Service Line")
-    var
-        ToServiceLine: Record Microsoft.Service.Document."Service Line";
-        IsHandled: Boolean;
-    begin
-        OnBeforeInsertServExtText(ServiceLine, TempExtTextLine, IsHandled, MakeUpdateRequired);
-        if IsHandled then
-            exit;
-
-        LineSpacing := 10; // New fixed Line Spacing method
-
-        NextLineNo := ServiceLine."Line No." + LineSpacing;
-
-        TempExtTextLine.Reset();
-        if TempExtTextLine.Find('-') then begin
-            repeat
-                ToServiceLine.Init();
-                ToServiceLine."Document Type" := ServiceLine."Document Type";
-                ToServiceLine."Document No." := ServiceLine."Document No.";
-                ToServiceLine."Service Item Line No." := ServiceLine."Service Item Line No.";
-                ToServiceLine."Line No." := NextLineNo;
-                NextLineNo := NextLineNo + LineSpacing;
-                ToServiceLine.Description := TempExtTextLine.Text;
-                ToServiceLine."Attached to Line No." := ServiceLine."Line No.";
-                ToServiceLine."Service Item No." := ServiceLine."Service Item No.";
-
-                IsHandled := false;
-                OnInsertServExtTextOnBeforeToServiceLineInsert(ServiceLine, ToServiceLine, TempExtTextLine, NextLineNo, LineSpacing, IsHandled);
-                if not IsHandled then
-                    ToServiceLine.Insert(true);
-            until TempExtTextLine.Next() = 0;
-            MakeUpdateRequired := true;
-        end;
-        TempExtTextLine.DeleteAll();
-    end;
-#endif
 
     procedure JobCheckIfAnyExtText(var JobPlanningLine: Record "Job Planning Line"; Unconditionally: Boolean): Boolean
     var
@@ -730,6 +586,7 @@ codeunit 378 "Transfer Extended Text"
     var
         ExtTextHeader: Record "Extended Text Header";
         IsHandled: Boolean;
+        DocumentDate: Date;
     begin
         IsHandled := false;
         OnBeforeJobCheckIfAnyExtText(JobPlanningLine, Unconditionally, MakeUpdateRequired, AutoText, Result, IsHandled);
@@ -780,8 +637,9 @@ codeunit 378 "Transfer Extended Text"
         end;
         ExtTextHeader.SetRange("No.", JobPlanningLine."No.");
         ExtTextHeader.SetRange(Job, true);
-        OnJobCheckIfAnyExtTextOnBeforeReadExtTextLines(ExtTextHeader, Job, JobPlanningLine, Unconditionally, MakeUpdateRequired);
-        exit(ReadExtTextLines(ExtTextHeader, JobPlanningLine."Document Date", Job."Language Code"));
+        DocumentDate := JobPlanningLine."Document Date";
+        OnJobCheckIfAnyExtTextOnBeforeReadExtTextLines(ExtTextHeader, Job, JobPlanningLine, Unconditionally, MakeUpdateRequired, DocumentDate);
+        exit(ReadExtTextLines(ExtTextHeader, DocumentDate, Job."Language Code"));
     end;
 
     local procedure DeleteJobPlanningLines(var JobPlanningLine: Record "Job Planning Line"): Boolean
@@ -870,18 +728,6 @@ codeunit 378 "Transfer Extended Text"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnInsertServExtTextOnBeforeToServiceLineInsert(var ServLine: Record Microsoft.Service.Document."Service Line"; var ToServLine: Record Microsoft.Service.Document."Service Line"; TempExtTextLine: Record "Extended Text Line" temporary; var NextLineNo: Integer; LineSpacing: Integer; var IsHandled: Boolean)
-    begin
-        OnInsertServExtTextOnBeforeToServiceLineInsert(ServLine, ToServLine, TempExtTextLine, NextLineNo, LineSpacing, IsHandled);
-    end;
-
-    [Obsolete('Replaced by same event in codeunit ServiceTransferextText', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnInsertServExtTextOnBeforeToServiceLineInsert(var ServLine: Record Microsoft.Service.Document."Service Line"; var ToServLine: Record Microsoft.Service.Document."Service Line"; TempExtTextLine: Record "Extended Text Line" temporary; var NextLineNo: Integer; LineSpacing: Integer; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeToReminderLineInsert(var ToReminderLine: Record "Reminder Line"; ReminderLine: Record "Reminder Line"; TempExtTextLine: Record "Extended Text Line" temporary; var NextLineNo: Integer; LineSpacing: Integer; var IsHandled: Boolean)
@@ -898,18 +744,6 @@ codeunit 378 "Transfer Extended Text"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnDeleteServiceLinesOnAfterSetFilers(var ServiceLine2: Record Microsoft.Service.Document."Service Line"; var ServiceLine: Record Microsoft.Service.Document."Service Line")
-    begin
-        OnDeleteServiceLinesOnAfterSetFilers(ServiceLine2, ServiceLine);
-    end;
-
-    [Obsolete('Replaced by same event in codeunit ServiceTransferextText', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnDeleteServiceLinesOnAfterSetFilers(var ServiceLine2: Record Microsoft.Service.Document."Service Line"; var ServiceLine: Record Microsoft.Service.Document."Service Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnDeleteSalesLinesOnAfterSetFilters(var ToSalesLine: Record "Sales Line"; FromSalesLine: Record "Sales Line")
@@ -951,18 +785,6 @@ codeunit 378 "Transfer Extended Text"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnServCheckIfAnyExtTextAutoText(var ExtendedTextHeader: Record "Extended Text Header"; var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var ServiceLine: Record Microsoft.Service.Document."Service Line"; Unconditionally: Boolean; var MakeUpdateRequired: Boolean)
-    begin
-        OnServCheckIfAnyExtTextAutoText(ExtendedTextHeader, ServiceHeader, ServiceLine, Unconditionally, MakeUpdateRequired);
-    end;
-
-    [Obsolete('Replaced by same event in codeunit ServiceTransferextText', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnServCheckIfAnyExtTextAutoText(var ExtendedTextHeader: Record "Extended Text Header"; var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var ServiceLine: Record Microsoft.Service.Document."Service Line"; Unconditionally: Boolean; var MakeUpdateRequired: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertSalesExtText(var SalesLine: Record "Sales Line"; var TempExtTextLine: Record "Extended Text Line" temporary; var IsHandled: Boolean; var MakeUpdateRequired: Boolean; var LastInsertedSalesLine: Record "Sales Line")
@@ -984,18 +806,6 @@ codeunit 378 "Transfer Extended Text"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforeInsertServExtText(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var TempExtTextLine: Record "Extended Text Line" temporary; var IsHandled: Boolean; var MakeUpdateRequired: Boolean)
-    begin
-        OnBeforeInsertServExtText(ServiceLine, TempExtTextLine, IsHandled, MakeUpdateRequired);
-    end;
-
-    [Obsolete('Replaced by same event in codeunit ServiceTransferextText', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertServExtText(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var TempExtTextLine: Record "Extended Text Line" temporary; var IsHandled: Boolean; var MakeUpdateRequired: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure InsertPurchExtTextRetLastOnBeforeToPurchLineFind(var PurchLine: Record "Purchase Line")
@@ -1017,18 +827,6 @@ codeunit 378 "Transfer Extended Text"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnServCheckIfAnyExtTextOnBeforeSetFilters(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var AutoText: Boolean; Unconditionally: Boolean)
-    begin
-        OnServCheckIfAnyExtTextOnBeforeSetFilters(ServiceLine, AutoText, Unconditionally);
-    end;
-
-    [Obsolete('Replaced by same event in codeunit ServiceTransferextText', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnServCheckIfAnyExtTextOnBeforeSetFilters(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var AutoText: Boolean; Unconditionally: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnReminderCheckIfAnyExtTextOnBeforeSetFilters(var ReminderLine: Record "Reminder Line"; var AutoText: Boolean; Unconditionally: Boolean)
@@ -1080,18 +878,6 @@ codeunit 378 "Transfer Extended Text"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforeServCheckIfAnyExtText(var ServiceLine: Record Microsoft.Service.Document."Service Line"; Unconditionally: Boolean; var MakeUpdateRequired: Boolean; var AutoText: Boolean; var Result: Boolean; var IsHandled: Boolean)
-    begin
-        OnBeforeServCheckIfAnyExtText(ServiceLine, Unconditionally, MakeUpdateRequired, AutoText, Result, IsHandled);
-    end;
-
-    [Obsolete('Replaced by same event in codeunit ServiceTransferextText', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeServCheckIfAnyExtText(var ServiceLine: Record Microsoft.Service.Document."Service Line"; Unconditionally: Boolean; var MakeUpdateRequired: Boolean; var AutoText: Boolean; var Result: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnDeleteSalesLinesOnBeforeDelete(var SalesLine: Record "Sales Line"; var SalesLineToDelete: Record "Sales Line"; var IsHandled: Boolean)
@@ -1104,7 +890,7 @@ codeunit 378 "Transfer Extended Text"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnJobCheckIfAnyExtTextOnBeforeReadExtTextLines(var ExtendedTextHeader: Record "Extended Text Header"; var Job: Record Job; var JobPlanningLine: Record "Job Planning Line"; Unconditionally: Boolean; var MakeUpdateRequired: Boolean)
+    local procedure OnJobCheckIfAnyExtTextOnBeforeReadExtTextLines(var ExtendedTextHeader: Record "Extended Text Header"; var Job: Record Job; var JobPlanningLine: Record "Job Planning Line"; Unconditionally: Boolean; var MakeUpdateRequired: Boolean; var DocumentDate: Date)
     begin
     end;
 

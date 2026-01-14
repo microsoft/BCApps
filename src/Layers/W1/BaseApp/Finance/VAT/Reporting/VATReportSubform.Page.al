@@ -6,6 +6,10 @@ namespace Microsoft.Finance.VAT.Reporting;
 
 using Microsoft.Finance.VAT.Ledger;
 
+/// <summary>
+/// Displays VAT report lines in a list format for reviewing and modifying VAT entry data.
+/// Provides editable view of VAT entries included in VAT report calculations.
+/// </summary>
 page 741 "VAT Report Subform"
 {
     Caption = 'Lines';

@@ -6,6 +6,9 @@ namespace Microsoft.Finance.Dimension.Correction;
 
 using Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Overview page displaying dimension values available for dimension correction operations.
+/// </summary>
 page 2587 "Dim Corr Values Overview"
 {
     PageType = List;

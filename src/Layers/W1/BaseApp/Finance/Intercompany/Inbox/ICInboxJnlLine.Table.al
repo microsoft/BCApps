@@ -12,6 +12,10 @@ using Microsoft.Intercompany.Partner;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 
+/// <summary>
+/// Stores journal line details for intercompany transactions received from partner companies.
+/// Contains account information, amounts, and posting details for journal-based IC transactions.
+/// </summary>
 table 419 "IC Inbox Jnl. Line"
 {
     Caption = 'IC Inbox Jnl. Line';
@@ -19,22 +23,34 @@ table 419 "IC Inbox Jnl. Line"
 
     fields
     {
+        /// <summary>
+        /// Transaction number linking this journal line to the main IC Inbox Transaction.
+        /// </summary>
         field(1; "Transaction No."; Integer)
         {
             Caption = 'Transaction No.';
             Editable = false;
         }
+        /// <summary>
+        /// Code identifying the intercompany partner that sent this journal line.
+        /// </summary>
         field(2; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
             Editable = false;
             TableRelation = "IC Partner";
         }
+        /// <summary>
+        /// Line number for sequencing journal lines within the transaction.
+        /// </summary>
         field(3; "Line No."; Integer)
         {
             Caption = 'Line No.';
             Editable = false;
         }
+        /// <summary>
+        /// Type of account for this journal line (G/L Account, Customer, Vendor, IC Partner, Bank Account).
+        /// </summary>
         field(4; "Account Type"; Option)
         {
             Caption = 'Account Type';
@@ -47,6 +63,9 @@ table 419 "IC Inbox Jnl. Line"
                     "Account No." := '';
             end;
         }
+        /// <summary>
+        /// Account number corresponding to the specified account type for posting this journal line.
+        /// </summary>
         field(5; "Account No."; Code[20])
         {
             Caption = 'Account No.';
@@ -82,6 +101,9 @@ table 419 "IC Inbox Jnl. Line"
                     end;
             end;
         }
+        /// <summary>
+        /// Transaction amount for this journal line in the specified currency.
+        /// </summary>
         field(6; Amount; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -89,10 +111,16 @@ table 419 "IC Inbox Jnl. Line"
             Caption = 'Amount';
             Editable = false;
         }
+        /// <summary>
+        /// Description or narrative for this journal line transaction.
+        /// </summary>
         field(7; Description; Text[100])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// VAT amount associated with this journal line transaction.
+        /// </summary>
         field(8; "VAT Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -100,16 +128,25 @@ table 419 "IC Inbox Jnl. Line"
             Caption = 'VAT Amount';
             Editable = false;
         }
+        /// <summary>
+        /// Currency code for amounts in this journal line, blank for local currency.
+        /// </summary>
         field(9; "Currency Code"; Code[10])
         {
             AccessByPermission = TableData Currency = R;
             Caption = 'Currency Code';
             Editable = false;
         }
+        /// <summary>
+        /// Payment due date for journal line settlement.
+        /// </summary>
         field(11; "Due Date"; Date)
         {
             Caption = 'Due Date';
         }
+        /// <summary>
+        /// Payment discount percentage for early payment incentives.
+        /// </summary>
         field(12; "Payment Discount %"; Decimal)
         {
             AutoFormatType = 0;
@@ -118,16 +155,25 @@ table 419 "IC Inbox Jnl. Line"
             MaxValue = 100;
             MinValue = 0;
         }
+        /// <summary>
+        /// Payment discount date deadline for early payment discount eligibility.
+        /// </summary>
         field(13; "Payment Discount Date"; Date)
         {
             Caption = 'Payment Discount Date';
         }
+        /// <summary>
+        /// Quantity for this journal line entry.
+        /// </summary>
         field(14; Quantity; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
             Editable = false;
         }
+        /// <summary>
+        /// Source of this transaction indicating whether it was returned by partner or created by partner.
+        /// </summary>
         field(15; "Transaction Source"; Option)
         {
             Caption = 'Transaction Source';
@@ -135,6 +181,9 @@ table 419 "IC Inbox Jnl. Line"
             OptionCaption = 'Returned by Partner,Created by Partner';
             OptionMembers = "Returned by Partner","Created by Partner";
         }
+        /// <summary>
+        /// Document number for this journal line transaction.
+        /// </summary>
         field(16; "Document No."; Code[20])
         {
             Caption = 'Document No.';

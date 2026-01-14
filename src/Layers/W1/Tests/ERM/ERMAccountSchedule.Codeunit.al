@@ -75,6 +75,7 @@ codeunit 134902 "ERM Account Schedule"
         ColDefinitionAlreadyExistsErr: Label 'Column definition %1 will be overwritten.', Comment = '%1 - name of the column definition.';
         NoTablesAndErrorsMsg: Label '%1 tables are processed.\%2 errors found.\%3 records inserted.\%4 records modified.', Comment = '%1 = number of tables processed, %2 = number of errors, %3 = number of records inserted, %4 = number of records modified';
         RoundingFormatTxt: Label '<Precision,2:2><Standard Format,0>', Locked = true;
+        GLAccountFilterErr: Label 'G/L Account Filter should not be empty';
 
     [Test]
     [Scope('OnPrem')]
@@ -6257,6 +6258,63 @@ codeunit 134902 "ERM Account Schedule"
         // [THEN] We should be able to do a drilldown
         ChartOfAccounts.Trap();
         AccountScheduleOverview.ColumnValues1.Drilldown();
+    end;
+
+    [Test]
+    procedure DrilldownAccountScheduleVerifiesGLAccountFilter()
+    var
+        AccScheduleLine: Record "Acc. Schedule Line";
+        ChildGLAccCat: Record "G/L Account Category";
+        GLAccount: Record "G/L Account";
+        ParentGLAccCat: Record "G/L Account Category";
+        AccountScheduleOverview: TestPage "Acc. Schedule Overview";
+        ChartOfAccsAnalysisView: TestPage "Chart of Accounts (G/L)";
+        FinancialReports: TestPage "Financial Reports";
+        Amount: Decimal;
+        GLNofilter: Text;
+    begin
+        // [SCENARIO 613260] G/L accounts are not being filtered in the Financial Report when an Analysis View name is assigned.
+        Initialize();
+
+        // [GIVEN] An account category
+        ParentGLAccCat.Init();
+        ParentGLAccCat."Entry No." := 0;
+        ParentGLAccCat."System Generated" := false;
+        ParentGLAccCat.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ParentGLAccCat.Description)));
+        ParentGLAccCat.Insert();
+
+        // [GIVEN] A subcategory of that category
+        ChildGLAccCat.Init();
+        ChildGLAccCat."Entry No." := 0;
+        ChildGLAccCat."System Generated" := false;
+        ChildGLAccCat."Parent Entry No." := ParentGLAccCat."Entry No.";
+        ChildGLAccCat.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ChildGLAccCat.Description)));
+        ChildGLAccCat.Insert();
+
+        // [GIVEN] A G/L entry belonging to the child category
+        MockGLAccountWithGLEntries(GLAccount, Amount);
+        GLAccount.Validate("Income/Balance", ChildGLAccCat."Income/Balance");
+        GLAccount.Validate("Account Subcategory Entry No.", ChildGLAccCat."Entry No.");
+        GLAccount.Modify(true);
+
+        // [GIVEN] A Acc Sched Line with totaling type "account category" and totaling these two categories
+        CreateAccountScheduleAndLineWithoutFormula(AccScheduleLine, Format(ParentGLAccCat."Entry No.") + '|' + Format(ChildGLAccCat."Entry No."));
+
+        // [WHEN] Visiting the account schedule page
+        AccountScheduleOverview.OpenView();
+
+        // [WHEN] We should be able to open this line
+        FinancialReports.OpenEdit();
+        FinancialReports.Filter.SetFilter(Name, AccScheduleLine."Schedule Name");
+        AccountScheduleOverview.Trap();
+        FinancialReports.Overview.Invoke();
+        AccountScheduleOverview.DateFilter.SetValue(WorkDate());
+
+        // [THEN] Verify Chart Of Accounts Page "No."" filter does not remain empty after drilldown.
+        ChartOfAccsAnalysisView.Trap();
+        AccountScheduleOverview.ColumnValues1.Drilldown();
+        GLNofilter := ChartOfAccsAnalysisView.FILTER.GetFilter("No.");
+        Assert.AreNotEqual('', GLNofilter, GLAccountFilterErr);
     end;
 
     [RequestPageHandler]

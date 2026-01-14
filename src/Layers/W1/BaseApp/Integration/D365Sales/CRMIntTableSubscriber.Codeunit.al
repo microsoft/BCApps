@@ -1865,6 +1865,7 @@ codeunit 5341 "CRM Int. Table. Subscriber"
 
     local procedure CreateFreightLines(SourceRecordRef: RecordRef; DestinationRecordRef: RecordRef)
     var
+        SalesSetup: Record "Sales & Receivables Setup";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         CRMSalesorder: Record "CRM Salesorder";
@@ -1872,8 +1873,21 @@ codeunit 5341 "CRM Int. Table. Subscriber"
         SourceRecordRef.SetTable(CRMSalesorder);
         DestinationRecordRef.SetTable(SalesHeader);
 
+        SalesSetup.Get();
+        if SalesSetup."Freight G/L Acc. No." <> '' then begin
+            SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+            SalesLine.SetRange("Document No.", SalesHeader."No.");
+            SalesLine.SetRange(Type, SalesLine.Type::"G/L Account");
+            SalesLine.SetRange("No.", SalesSetup."Freight G/L Acc. No.");
+            SalesLine.SetRange("Unit Price", CRMSalesorder.FreightAmount);
+            if not SalesLine.IsEmpty() then
+                exit;
+        end;
+
+        SalesLine.Reset();
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
-        if SalesLine.FindFirst() then
+        if SalesLine.FindLast() then
             SalesLine.InsertFreightLine(CRMSalesorder.FreightAmount);
     end;
 

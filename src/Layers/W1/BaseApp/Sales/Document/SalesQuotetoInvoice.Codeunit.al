@@ -9,8 +9,8 @@ using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
-using System.Utilities;
 using System.Email;
+using System.Utilities;
 
 codeunit 1305 "Sales-Quote to Invoice"
 {

@@ -271,18 +271,6 @@ page 27 "Vendor List"
                 ApplicationArea = Basic, Suite;
                 Visible = false;
             }
-#if not CLEAN25
-            part("Attached Documents"; "Document Attachment Factbox")
-            {
-                ObsoleteTag = '25.0';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The "Document Attachment FactBox" has been replaced by "Doc. Attachment List Factbox", which supports multiple files upload.';
-                ApplicationArea = All;
-                Visible = false;
-                Caption = 'Attachments';
-                SubPageLink = "Table ID" = const(Database::Vendor), "No." = field("No.");
-            }
-#endif
             part("Attached Documents List"; "Doc. Attachment List Factbox")
             {
                 ApplicationArea = All;
@@ -1105,14 +1093,19 @@ page 27 "Vendor List"
             {
                 Caption = 'General';
                 Image = "Report";
+#if not CLEAN28
                 action("Vendor - List")
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Vendor - List';
+                    Caption = 'Vendor - List (Obsolete)';
                     Image = "Report";
                     RunObject = Report "Vendor - List";
                     ToolTip = 'View various kinds of basic information for vendors, such as vendor posting group, discount and payment information, priority level and the vendor''s default currency, and the vendor''s current balance (in LCY). The report can be used, for example, to maintain the information in the Vendor table.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report is obsolete and will be removed in a future release. See the documentation for alternative options.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
                 action("Vendor Register")
                 {
                     ApplicationArea = Basic, Suite;
@@ -1137,14 +1130,19 @@ page 27 "Vendor List"
                     RunObject = Report "Vendor - Labels";
                     ToolTip = 'View mailing labels with the vendors'' names and addresses.';
                 }
+#if not CLEAN28
                 action("Vendor - Top 10 List")
                 {
                     ApplicationArea = Suite;
-                    Caption = 'Vendor - Top 10 List';
+                    Caption = 'Vendor - Top 10 List (Obsolete)';
                     Image = "Report";
                     RunObject = Report "Vendor - Top 10 List";
                     ToolTip = 'View a list of the vendors from whom you purchase the most or to whom you owe the most.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the report Vendor - Top List (Excel). This report will be removed in a future release.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
             }
             group(Action5)
             {
@@ -1200,30 +1198,41 @@ page 27 "Vendor List"
             {
                 Caption = 'Financial Management';
                 Image = "Report";
+#if not CLEAN28
                 action("Payments on Hold")
                 {
                     ApplicationArea = Suite;
-                    Caption = 'Payments on Hold';
+                    Caption = 'Payments on Hold (Obsolete)';
                     Image = "Report";
                     RunObject = Report "Payments on Hold";
                     ToolTip = 'View a list of all vendor ledger entries on which the On Hold field is marked.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report is obsolete and will be removed in a future release. See the documentation for alternative options.';
+                    ObsoleteTag = '28.0';
                 }
                 action("Vendor - Summary Aging")
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Vendor - Summary Aging';
+                    Caption = 'Vendor - Summary Aging (Obsolete)';
                     Image = "Report";
                     RunObject = Report "Vendor - Summary Aging";
                     ToolTip = 'View, print, or save a summary of the payables owed to each vendor, divided into three time periods.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report is obsolete and will be removed in a future release. See the documentation for alternative options.';
+                    ObsoleteTag = '28.0';
                 }
                 action("Aged Accounts Payable")
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Aged Accounts Payable';
+                    Caption = 'Aged Accounts Payable (Obsolete)';
                     Image = "Report";
                     RunObject = Report "Aged Accounts Payable";
                     ToolTip = 'View a list of aged remaining balances for each vendor.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the report Aged Accounts Payable (Excel). This report will be removed in a future release.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
                 action("Vendor - Balance to Date")
                 {
                     ApplicationArea = Basic, Suite;
@@ -1476,4 +1485,3 @@ page 27 "Vendor List"
         CurrPage.SetSelectionFilter(Vendor);
     end;
 }
-

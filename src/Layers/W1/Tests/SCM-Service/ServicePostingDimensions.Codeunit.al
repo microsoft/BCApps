@@ -4,33 +4,33 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Test;
 
-using Microsoft.Service.Document;
-using Microsoft.Manufacturing.Journal;
+using Microsoft.CRM.Team;
 using Microsoft.Finance.Dimension;
-using System.TestLibraries.Utilities;
-using Microsoft.Inventory.Journal;
-using Microsoft.Service.Item;
-using Microsoft.Sales.Customer;
-using Microsoft.Finance.GeneralLedger.Ledger;
-using Microsoft.Service.History;
-using Microsoft.Service.Ledger;
-using Microsoft.Service.Contract;
-using Microsoft.Foundation.AuditCodes;
-using Microsoft.Inventory.Ledger;
-using Microsoft.Projects.Resources.Ledger;
-using Microsoft.Manufacturing.Document;
-using Microsoft.Sales.Receivables;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Inventory.Item;
-using Microsoft.Service.Pricing;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Journal;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Service.Setup;
-using Microsoft.CRM.Team;
+using Microsoft.Projects.Resources.Ledger;
 using Microsoft.Projects.Resources.Resource;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
+using Microsoft.Service.Contract;
+using Microsoft.Service.Document;
+using Microsoft.Service.History;
+using Microsoft.Service.Item;
+using Microsoft.Service.Ledger;
+using Microsoft.Service.Pricing;
+using Microsoft.Service.Setup;
+using System.TestLibraries.Utilities;
 
 codeunit 136118 "Service Posting - Dimensions"
 {

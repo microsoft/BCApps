@@ -19,9 +19,9 @@ using Microsoft.Service.Maintenance;
 using Microsoft.Service.Pricing;
 using Microsoft.Service.Resources;
 using Microsoft.Service.Setup;
+using Microsoft.TestLibraries.Foundation.NoSeries;
 using Microsoft.Utilities;
 using System.TestLibraries.Utilities;
-using Microsoft.TestLibraries.Foundation.NoSeries;
 
 codeunit 136110 "Service Management Setup"
 {

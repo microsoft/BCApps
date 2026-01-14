@@ -10,6 +10,14 @@ using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 
+/// <summary>
+/// Records exchange rate adjustment entries created during currency revaluation procedures.
+/// Maintains a detailed audit trail of all exchange rate adjustments posted to the system.
+/// </summary>
+/// <remarks>
+/// Linked to customer, vendor, and bank account ledger entries through detailed ledger entries.
+/// Provides complete traceability of adjustment amounts and their impact on account balances.
+/// </remarks>
 table 186 "Exch. Rate Adjmt. Ledg. Entry"
 {
     Caption = 'Exch. Rate Adjmt. Ledger Entry';
@@ -19,14 +27,23 @@ table 186 "Exch. Rate Adjmt. Ledg. Entry"
 
     fields
     {
+        /// <summary>
+        /// Register number linking this entry to the adjustment posting register.
+        /// </summary>
         field(1; "Register No."; Integer)
         {
             Caption = 'No.';
         }
+        /// <summary>
+        /// Unique sequential entry number for this adjustment ledger entry.
+        /// </summary>
         field(2; "Entry No."; Integer)
         {
             Caption = 'No.';
         }
+        /// <summary>
+        /// Account number that was adjusted for exchange rate changes.
+        /// </summary>
         field(3; "Account No."; Code[20])
         {
             Caption = 'Account No.';
@@ -36,41 +53,68 @@ table 186 "Exch. Rate Adjmt. Ledg. Entry"
             else
             if ("Account Type" = const("Bank Account")) "Bank Account";
         }
+        /// <summary>
+        /// Date when the exchange rate adjustment was posted.
+        /// </summary>
         field(4; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
         }
+        /// <summary>
+        /// Document type for the adjustment entry.
+        /// </summary>
         field(5; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';
         }
+        /// <summary>
+        /// Document number for the adjustment entry.
+        /// </summary>
         field(6; "Document No."; Code[20])
         {
             Caption = 'Document No.';
         }
+        /// <summary>
+        /// Due date from the original transaction being adjusted.
+        /// </summary>
         field(8; "Due Date"; Date)
         {
             Caption = 'Due Date';
         }
+        /// <summary>
+        /// Type of account that was adjusted (Customer, Vendor, Bank Account, etc.).
+        /// </summary>
         field(9; "Account Type"; Enum "Exch. Rate Adjmt. Account Type")
         {
             Caption = 'Account Type';
         }
+        /// <summary>
+        /// Name of the account that was adjusted.
+        /// </summary>
         field(10; "Account Name"; Text[100])
         {
             Caption = 'Account Name';
         }
+        /// <summary>
+        /// Currency code for the adjustment calculation.
+        /// </summary>
         field(11; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
             TableRelation = Currency;
         }
+        /// <summary>
+        /// Exchange rate factor used for the adjustment calculation.
+        /// </summary>
         field(12; "Currency Factor"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Currency Factor';
             Editable = false;
         }
+        /// <summary>
+        /// Original amount in foreign currency before adjustment.
+        /// </summary>
         field(15; "Base Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -78,6 +122,9 @@ table 186 "Exch. Rate Adjmt. Ledg. Entry"
             Caption = 'Base Amount';
             Editable = false;
         }
+        /// <summary>
+        /// Original amount in local currency before adjustment.
+        /// </summary>
         field(16; "Base Amount (LCY)"; Decimal)
         {
             AutoFormatExpression = '';
@@ -85,6 +132,9 @@ table 186 "Exch. Rate Adjmt. Ledg. Entry"
             Caption = 'Base Amount (LCY)';
             Editable = false;
         }
+        /// <summary>
+        /// Calculated adjustment amount posted to correct exchange rate differences.
+        /// </summary>
         field(17; "Adjustment Amount"; Decimal)
         {
             AutoFormatExpression = '';
@@ -92,10 +142,16 @@ table 186 "Exch. Rate Adjmt. Ledg. Entry"
             Caption = 'Adjustment Amount';
             Editable = false;
         }
+        /// <summary>
+        /// Type of detailed ledger entry this adjustment relates to.
+        /// </summary>
         field(19; "Detailed Ledger Entry Type"; Enum "Detailed CV Ledger Entry Type")
         {
             Caption = 'Entry Type';
         }
+        /// <summary>
+        /// Detailed ledger entry number that this adjustment modifies.
+        /// </summary>
         field(20; "Detailed Ledger Entry No."; Decimal)
         {
             AutoFormatType = 0;

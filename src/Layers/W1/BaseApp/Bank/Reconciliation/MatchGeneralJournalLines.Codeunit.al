@@ -10,6 +10,10 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 
+/// <summary>
+/// Matches general journal lines with bank statement entries for reconciliation.
+/// Provides automated matching capabilities for journal-based transactions.
+/// </summary>
 codeunit 1250 "Match General Journal Lines"
 {
     TableNo = "Gen. Journal Line";

@@ -23,7 +23,7 @@ page 6751 "Reminder Action Select Type"
                 ShowCaption = false;
                 field(Name; Rec.Name)
                 {
-                    ApplicationArea = Invoicing, Basic, Suite;
+                    ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the name.';
                 }
             }
@@ -47,4 +47,3 @@ page 6751 "Reminder Action Select Type"
         Rec.Insert();
     end;
 }
-

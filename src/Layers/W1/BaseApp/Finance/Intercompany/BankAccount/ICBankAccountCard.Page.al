@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.BankAccount;
 
+/// <summary>
+/// Card interface for viewing and editing intercompany bank account details.
+/// Provides comprehensive bank account information for intercompany partner transactions.
+/// </summary>
 page 698 "IC Bank Account Card"
 {
     Caption = 'Intercompany Bank Account Card';

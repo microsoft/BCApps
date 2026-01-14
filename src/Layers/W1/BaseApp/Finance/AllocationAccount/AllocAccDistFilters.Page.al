@@ -6,6 +6,10 @@ namespace Microsoft.Finance.AllocationAccount;
 
 using Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Interface for setting dimension and business unit filters for allocation account distribution calculations.
+/// Provides dynamic dimension visibility and filter configuration capabilities for balance calculations.
+/// </summary>
 page 2677 "Alloc. Acc. Dist. Filters"
 {
     PageType = Card;

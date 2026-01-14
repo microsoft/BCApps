@@ -20,11 +20,13 @@ table 7 "Standard Text"
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
+            OptimizeForTextSearch = true;
             NotBlank = true;
         }
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            OptimizeForTextSearch = true;
         }
     }
 

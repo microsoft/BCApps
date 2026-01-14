@@ -78,18 +78,21 @@ table 5933 "Service Order Posting Buffer"
         }
         field(13; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DataClassification = SystemMetadata;
             DecimalPlaces = 0 : 5;
         }
         field(14; "Total Cost"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Total Cost';
             DataClassification = SystemMetadata;
         }
         field(15; "Total Price"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Total Price';
             DataClassification = SystemMetadata;
@@ -111,7 +114,7 @@ table 5933 "Service Order Posting Buffer"
         }
         field(21; "Qty. to Invoice"; Decimal)
         {
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             Caption = 'Qty. to Invoice';
             DataClassification = SystemMetadata;
         }
@@ -127,6 +130,7 @@ table 5933 "Service Order Posting Buffer"
         }
         field(24; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Line Discount %';
             DataClassification = SystemMetadata;
         }

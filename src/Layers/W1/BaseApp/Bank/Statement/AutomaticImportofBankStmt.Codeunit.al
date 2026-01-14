@@ -9,6 +9,15 @@ using Microsoft.Bank.Reconciliation;
 using System.IO;
 using System.Threading;
 
+/// <summary>
+/// Handles automated bank statement import processing through job queue entries.
+/// Processes scheduled bank statement imports and creates new bank reconciliation records.
+/// </summary>
+/// <remarks>
+/// Runs as a job queue processor for automated bank statement import scenarios.
+/// Creates bank reconciliation records from imported bank statement data.
+/// Integrates with automatic import setup for scheduled processing workflows.
+/// </remarks>
 codeunit 1415 "Automatic Import of Bank Stmt."
 {
     TableNo = "Job Queue Entry";

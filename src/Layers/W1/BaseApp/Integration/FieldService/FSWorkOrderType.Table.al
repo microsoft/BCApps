@@ -14,13 +14,8 @@ table 6409 "FS Work Order Type"
     Description = 'Create different work order types to reflect the different types of work that your company offers. Work Order types are used to control various settings on a work order.';
     DataClassification = SystemMetadata;
     ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-#if not CLEAN25
-    ObsoleteState = Pending;
-    ObsoleteTag = '25.0';
-#else
     ObsoleteState = Removed;
     ObsoleteTag = '28.0';
-#endif
 
 
     fields

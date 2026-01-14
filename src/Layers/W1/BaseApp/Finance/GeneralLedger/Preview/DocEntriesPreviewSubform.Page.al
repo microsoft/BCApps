@@ -8,6 +8,15 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Foundation.Navigate;
 
+/// <summary>
+/// Document entries preview subform displaying related ledger entries during posting preview operations.
+/// Shows entry counts and types for all ledger tables affected by the posting preview process.
+/// </summary>
+/// <remarks>
+/// Provides drill-down functionality to view detailed entries for each ledger type.
+/// Filters out G/L and VAT entries which are handled by specialized preview pages.
+/// Integrates with posting preview event handler to display comprehensive entry analysis.
+/// </remarks>
 page 1573 "Doc. Entries Preview Subform"
 {
     PageType = ListPart;
@@ -60,6 +69,12 @@ page 1573 "Doc. Entries Preview Subform"
     var
         PostingPreviewEventHandler: Codeunit "Posting Preview Event Handler";
 
+    /// <summary>
+    /// Initializes the subform with document entries from posting preview operations.
+    /// Filters and loads entries excluding G/L and VAT entries for specialized display.
+    /// </summary>
+    /// <param name="TempDocumentEntry">Temporary document entry records from posting preview</param>
+    /// <param name="NewPostingPreviewEventHandler">Event handler instance for entry access and display</param>
     procedure Set(var TempDocumentEntry: Record "Document Entry" temporary; NewPostingPreviewEventHandler: Codeunit "Posting Preview Event Handler")
     begin
         PostingPreviewEventHandler := NewPostingPreviewEventHandler;

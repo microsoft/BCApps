@@ -10,9 +10,9 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Inventory.Item;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Service.Contract;
+using Microsoft.Service.Item;
 using Microsoft.Service.Pricing;
 using Microsoft.Service.Setup;
-using Microsoft.Service.Item;
 
 codeunit 5955 "Serv. Dimension Management"
 {

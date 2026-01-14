@@ -352,6 +352,15 @@ table 271 "Bank Account Ledger Entry"
             TableRelation = "Bank Account Ledger Entry";
         }
         /// <summary>
+        /// If the bank ledger entry is linked to a statement, this field shows it's statement date.
+        /// </summary>
+        field(67; "Statement Date"; Date)
+        {
+            FieldClass = FlowField;
+            CalcFormula = lookup("Bank Acc. Reconciliation"."Statement Date" where("Statement No." = field("Statement No."),
+                                                                                     "Bank Account No." = field("Bank Account No.")));
+        }
+        /// <summary>
         /// Count of check ledger entries associated with this bank account ledger entry.
         /// </summary>
         field(70; "Check Ledger Entries"; Integer)
@@ -479,6 +488,10 @@ table 271 "Bank Account Ledger Entry"
         }
         key(key8; "Statement No.", "Statement Line No.")
         {
+        }
+        key(Key13; "Bank Account No.", "Posting Date", "Statement No.", "Closed at Date", "Statement Status", Reversed, Open)
+        {
+            SumIndexFields = Amount;
         }
     }
 

@@ -9,13 +9,13 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Period;
-using System.Environment.Configuration;
-using System.IO;
-using System.Threading;
-using System.Environment;
-using System.Media;
-using System.Globalization;
 using System;
+using System.Environment;
+using System.Environment.Configuration;
+using System.Globalization;
+using System.IO;
+using System.Media;
+using System.Threading;
 
 #pragma warning disable AS0018, AS0025
 codeunit 1800 "Assisted Company Setup"

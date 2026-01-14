@@ -5,6 +5,8 @@ query 302 "Item Application Entries"
     QueryType = Normal;
     DataAccessIntent = ReadOnly;
     Caption = 'Item Application Entries';
+    Description = 'Item application entries retrieved for inbound transfer entries check.';
+    OrderBy = ascending(Transferred_from_Entry_No, Cost_Application);
 
     elements
     {

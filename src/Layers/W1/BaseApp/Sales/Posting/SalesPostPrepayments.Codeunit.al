@@ -27,8 +27,8 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
-using System.Utilities;
 using System.Telemetry;
+using System.Utilities;
 
 codeunit 442 "Sales-Post Prepayments"
 {
@@ -198,6 +198,7 @@ codeunit 442 "Sales-Post Prepayments"
 
         SourceCodeSetup.Get();
         SrcCode := SourceCodeSetup.Sales;
+        OnCodeOnAfterSetSourceCode(SalesHeader, SourceCodeSetup, SrcCode);
         if SalesHeader."Prepmt. Posting Description" <> '' then
             PostingDescription := SalesHeader."Prepmt. Posting Description"
         else
@@ -2172,6 +2173,11 @@ codeunit 442 "Sales-Post Prepayments"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetCorrBalAccNo(SalesHeader: Record "Sales Header"; PositiveAmount: Boolean; var BalAccNo: Code[20])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCodeOnAfterSetSourceCode(var SalesHeader: Record "Sales Header"; SourceCodeSetup: Record "Source Code Setup"; var SrcCode: Code[10])
     begin
     end;
 }

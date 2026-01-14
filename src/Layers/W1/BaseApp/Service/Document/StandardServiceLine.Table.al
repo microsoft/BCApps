@@ -126,6 +126,7 @@ table 5997 "Standard Service Line"
         }
         field(6; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
@@ -375,4 +376,3 @@ table 5997 "Standard Service Line"
     begin
     end;
 }
-

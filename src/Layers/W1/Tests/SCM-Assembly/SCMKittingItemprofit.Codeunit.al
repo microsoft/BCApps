@@ -4,19 +4,19 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
-using System.TestLibraries.Utilities;
-using Microsoft.Assembly.Setup;
-using Microsoft.Sales.Setup;
-using Microsoft.Inventory.Ledger;
-using Microsoft.Assembly.History;
-using Microsoft.Assembly.Reports;
-using Microsoft.Inventory.Item;
-using Microsoft.Inventory.BOM;
-using Microsoft.Projects.Resources.Resource;
 using Microsoft.Assembly.Document;
-using Microsoft.Sales.Document;
+using Microsoft.Assembly.History;
 using Microsoft.Assembly.Posting;
+using Microsoft.Assembly.Reports;
+using Microsoft.Assembly.Setup;
+using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Projects.Resources.Resource;
+using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using Microsoft.Sales.Setup;
+using System.TestLibraries.Utilities;
 
 codeunit 137312 "SCM Kitting - Item profit"
 {

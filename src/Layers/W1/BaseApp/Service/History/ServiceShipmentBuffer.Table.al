@@ -57,6 +57,7 @@ table 5909 "Service Shipment Buffer"
         }
         field(7; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DataClassification = SystemMetadata;
         }

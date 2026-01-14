@@ -17,6 +17,15 @@ using Microsoft.HumanResources.Payables;
 using Microsoft.Inventory.Ledger;
 using System.Security.User;
 
+/// <summary>
+/// Displays G/L registers with navigation to related ledger entries and reporting capabilities.
+/// Provides drill-down access to G/L entries, VAT entries, and other related ledger records by register.
+/// </summary>
+/// <remarks>
+/// Primary data source: G/L Register table. Read-only list showing posting batch information.
+/// Navigation: G/L entries, customer/vendor ledger entries, VAT entries, fixed asset entries.
+/// Actions: Navigate, reverse entries, print reports, dimension corrections.
+/// </remarks>
 page 116 "G/L Registers"
 {
     AdditionalSearchTerms = 'general ledger registers';
@@ -298,16 +307,21 @@ page 116 "G/L Registers"
                 RunObject = Report "Detail Trial Balance";
                 ToolTip = 'Print or save a detail trial balance for the general ledger accounts that you specify.';
             }
+#if not CLEAN28
             action("Trial Balance")
             {
                 ApplicationArea = Suite;
-                Caption = 'Trial Balance';
+                Caption = 'Trial Balance (Obsolete)';
                 Image = "Report";
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Trial Balance";
                 ToolTip = 'Print or save the chart of accounts that have balances and net changes.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report has been replaced by the report Trial Balance (Excel). This report will be removed in a future release.';
+                ObsoleteTag = '28.0';
             }
+#endif
             action("Trial Balance by Period")
             {
                 ApplicationArea = Basic, Suite;
@@ -438,6 +452,12 @@ page 116 "G/L Registers"
     var
         ReverseRegisterEnabled: Boolean;
 
+    /// <summary>
+    /// Integration event raised before determining if reverse register functionality is enabled.
+    /// </summary>
+    /// <param name="RegisterNo">G/L register number being checked.</param>
+    /// <param name="ReverseEnabled">Boolean indicating if reverse functionality should be enabled.</param>
+    /// <param name="IsHandled">Boolean indicating if the check has been handled by the subscriber.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetReverseRegisterEnabled(RegisterNo: Integer; var ReverseEnabled: Boolean; var IsHandled: Boolean)
     begin

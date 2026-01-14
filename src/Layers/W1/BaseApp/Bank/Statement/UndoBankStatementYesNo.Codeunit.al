@@ -9,6 +9,15 @@ using Microsoft.Bank.Check;
 using Microsoft.Bank.Ledger;
 using Microsoft.Bank.Reconciliation;
 
+/// <summary>
+/// Handles the reversal of posted bank statements and restoration of ledger entries to open status.
+/// Provides functionality to undo bank statement reconciliation and optionally create new reconciliation records.
+/// </summary>
+/// <remarks>
+/// Reverses applied bank account and check ledger entries back to open status.
+/// Optionally creates new bank reconciliation records with the original statement data.
+/// Integrates with bank reconciliation workflow for error correction and reprocessing scenarios.
+/// </remarks>
 codeunit 1340 "Undo Bank Statement (Yes/No)"
 {
     Permissions = TableData "Bank Account Ledger Entry" = rm,
@@ -48,11 +57,23 @@ codeunit 1340 "Undo Bank Statement (Yes/No)"
         Page.Run(Page::"Bank Acc. Reconciliation", BankAccReconciliation);
     end;
 
+    /// <summary>
+    /// Undoes a bank account statement and creates a new bank reconciliation.
+    /// </summary>
+    /// <param name="BankAccountStatement">The bank account statement to undo.</param>
+    /// <returns>The statement number of the new bank reconciliation created.</returns>
     procedure UndoBankAccountStatement(BankAccountStatement: Record "Bank Account Statement"): Code[20]
     begin
         exit(UndoBankAccountStatement(BankAccountStatement, true));
     end;
 
+    /// <summary>
+    /// Undoes a bank account statement with the option to create a new bank reconciliation.
+    /// Reverses the applied entries and optionally creates a new reconciliation for the transactions.
+    /// </summary>
+    /// <param name="BankAccountStatement">The bank account statement to undo.</param>
+    /// <param name="CreateBankRec">Specifies whether to create a new bank reconciliation.</param>
+    /// <returns>The statement number of the new bank reconciliation if created, otherwise an empty string.</returns>
     procedure UndoBankAccountStatement(BankAccountStatement: Record "Bank Account Statement"; CreateBankRec: Boolean): Code[20]
     var
         BankAccount: Record "Bank Account";
@@ -203,31 +224,56 @@ codeunit 1340 "Undo Bank Statement (Yes/No)"
         end;
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying the bank account during undo operation.
+    /// </summary>
+    /// <param name="BankAccount">The bank account record being modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUndoBankAccountStatementOnBeforeBankAccountModify(var BankAccount: Record "Bank Account")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting a new bank account reconciliation during undo operation.
+    /// </summary>
+    /// <param name="BankAccReconciliation">The bank account reconciliation record being inserted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUndoBankAccountStatementOnBeforeBankAccReconciliationInsert(var BankAccReconciliation: Record "Bank Acc. Reconciliation")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting a bank account reconciliation line during undo operation.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line record being inserted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUndoBankAccountStatementOnBeforeBankAccReconciliationLineInsert(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying a bank account ledger entry during undo operation.
+    /// </summary>
+    /// <param name="BankAccountLedgerEntry">The bank account ledger entry record being modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUndoBankAccountLedgerEntryOnBeforeBankAccountLedgerEntryModify(var BankAccountLedgerEntry: Record "Bank Account Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying a check ledger entry during undo operation.
+    /// </summary>
+    /// <param name="CheckLedgerEntry">The check ledger entry record being modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUndoBankAccountLedgerEntryOnBeforeCheckLedgerEntryModify(var CheckLedgerEntry: Record "Check Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting a bank account reconciliation line during undo operation.
+    /// </summary>
+    /// <param name="BankAccountStatementLine">The original bank account statement line being processed.</param>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line that was inserted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUndoBankAccountStatementOnAfterBankAccReconciliationLineInsert(var BankAccountStatementLine: Record "Bank Account Statement Line"; var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line")
     begin

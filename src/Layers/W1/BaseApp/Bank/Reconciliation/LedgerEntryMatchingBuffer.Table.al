@@ -10,6 +10,20 @@ using Microsoft.HumanResources.Payables;
 using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Receivables;
 
+/// <summary>
+/// Temporary buffer table for managing ledger entries during payment application and bank reconciliation matching.
+/// This table provides a standardized interface for working with different types of ledger entries (customer, vendor,
+/// employee, bank account) during matching algorithms. Enables efficient processing of large datasets by consolidating
+/// relevant fields from various ledger entry tables into a single, optimized structure for matching operations.
+/// Supports payment discount calculations, tolerance handling, and complex matching scenarios.
+/// </summary>
+/// <remarks>
+/// Key features include multi-ledger-type support, payment discount integration, remaining amount calculations,
+/// document reference matching, and optimized data access patterns. The table abstracts differences between
+/// customer, vendor, employee, and bank account ledger entries, providing unified matching logic while preserving
+/// specific characteristics of each entry type. Enables sophisticated matching algorithms with performance optimization
+/// for large transaction volumes and complex application scenarios.
+/// </remarks>
 table 1248 "Ledger Entry Matching Buffer"
 {
     Caption = 'Ledger Entry Matching Buffer';
@@ -19,61 +33,121 @@ table 1248 "Ledger Entry Matching Buffer"
 
     fields
     {
+        /// <summary>
+        /// Entry number from the source ledger entry table.
+        /// Provides unique identification and enables linking back to original ledger records.
+        /// </summary>
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
         }
+        /// <summary>
+        /// Type of account that this ledger entry belongs to.
+        /// Determines the source table and application logic for matching operations.
+        /// </summary>
         field(2; "Account Type"; Enum "Matching Ledger Account Type")
         {
             Caption = 'Account Type';
         }
+        /// <summary>
+        /// Account number for the ledger entry.
+        /// Identifies the specific customer, vendor, employee, or bank account for the transaction.
+        /// </summary>
         field(3; "Account No."; Code[20])
         {
             Caption = 'Account No.';
         }
+        /// <summary>
+        /// Balancing account type for the original ledger entry.
+        /// Used for advanced matching scenarios and application logic validation.
+        /// </summary>
         field(4; "Bal. Account Type"; enum "Gen. Journal Account Type")
         {
             Caption = 'Bal. Account Type';
         }
+        /// <summary>
+        /// Balancing account number for the original ledger entry.
+        /// Provides additional context for matching and validation processes.
+        /// </summary>
         field(5; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
         }
+        /// <summary>
+        /// Description text from the original ledger entry.
+        /// Used for text-based matching and user identification during manual application.
+        /// </summary>
         field(7; Description; Text[100])
         {
         }
+        /// <summary>
+        /// Document type from the original ledger entry.
+        /// Determines application behavior and business logic for different transaction types.
+        /// </summary>
         field(8; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';
         }
+        /// <summary>
+        /// Due date for payment or collection from the original ledger entry.
+        /// Used for payment discount calculations and aging analysis during matching.
+        /// </summary>
         field(9; "Due Date"; Date)
         {
             Caption = 'Due Date';
         }
+        /// <summary>
+        /// Original posting date of the ledger entry.
+        /// Used for date-based matching algorithms and chronological validation.
+        /// </summary>
         field(10; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
         }
+        /// <summary>
+        /// Document number from the original ledger entry.
+        /// Primary field for document reference matching with bank statement data.
+        /// </summary>
         field(11; "Document No."; Code[20])
         {
             Caption = 'Document No.';
         }
+        /// <summary>
+        /// External document number from the original ledger entry.
+        /// Used for matching with external references in bank statement transactions.
+        /// </summary>
         field(12; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
         }
+        /// <summary>
+        /// Payment reference from the original ledger entry.
+        /// Used for payment identification and reference-based matching algorithms.
+        /// </summary>
         field(13; "Payment Reference"; Code[50])
         {
             Caption = 'Payment Reference';
         }
+        /// <summary>
+        /// Remaining open amount for the ledger entry.
+        /// Core field for amount-based matching and application calculations.
+        /// </summary>
         field(20; "Remaining Amount"; Decimal)
         {
             Caption = 'Remaining Amount';
         }
+        /// <summary>
+        /// Remaining amount including available payment discounts.
+        /// Used for payment discount calculations and tolerance matching.
+        /// </summary>
         field(21; "Remaining Amt. Incl. Discount"; Decimal)
         {
             Caption = 'Remaining Amt. Incl. Discount';
         }
+        /// <summary>
+        /// Due date for payment discount from the original ledger entry.
+        /// Determines payment discount eligibility during application processes.
+        /// </summary>
         field(22; "Pmt. Discount Due Date"; Date)
         {
             Caption = 'Pmt. Discount Due Date';
@@ -92,6 +166,14 @@ table 1248 "Ledger Entry Matching Buffer"
     {
     }
 
+    /// <summary>
+    /// Inserts a customer ledger entry into the matching buffer with appropriate field mapping.
+    /// Transfers relevant fields from customer ledger entry records into the standardized buffer format,
+    /// handling currency conversions, payment discount calculations, and remaining amount computations.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Customer ledger entry to insert into the matching buffer.</param>
+    /// <param name="UseLCYAmounts">Whether to use local currency amounts for matching calculations.</param>
+    /// <param name="UsePaymentDiscounts">Whether to include payment discounts in remaining amount calculations.</param>
     procedure InsertFromCustomerLedgerEntry(CustLedgerEntry: Record "Cust. Ledger Entry"; UseLCYAmounts: Boolean; var UsePaymentDiscounts: Boolean)
     begin
         OnBeforeProcedureInsertFromCustomerLedgerEntry(CustLedgerEntry);

@@ -7,6 +7,10 @@ namespace Microsoft.Finance.SalesTax;
 using Microsoft.Foundation.Company;
 using System.Environment;
 
+/// <summary>
+/// Wizard page for copying tax configuration data from another company.
+/// Enables selective migration of tax setup including groups, jurisdictions, areas, and details.
+/// </summary>
 page 476 "Copy Tax Setup"
 {
     ApplicationArea = SalesTax;

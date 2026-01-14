@@ -76,6 +76,7 @@ codeunit 1002 "Job Create-Invoice"
         DocumentDate: Date;
         InvoiceNo: Code[20];
         IsHandled: Boolean;
+        SkipCommit: Boolean;
     begin
         IsHandled := false;
         OnCreateSalesInvoiceOnBeforeRunReport(JobPlanningLine, Done, NewInvoice, PostingDate, InvoiceNo, IsHandled, CrMemo);
@@ -133,7 +134,10 @@ codeunit 1002 "Job Create-Invoice"
                     until TempJobTask.Next() = 0;
             end;
 
-            Commit();
+            SkipCommit := false;
+            OnCreateSalesInvoiceOnBeforeCommit(JobPlanningLine, SkipCommit);
+            if not SkipCommit then
+                Commit();
 
             ShowMessageLinesTransferred(JobPlanningLine, CrMemo);
         end;
@@ -661,6 +665,8 @@ codeunit 1002 "Job Create-Invoice"
         OnCreateSalesLineOnBeforeCheckPricesIncludingVATAndSetJobInformation(SalesLine, JobPlanningLine, IsHandled);
         if not IsHandled then begin
             if not SalesHeader."Prices Including VAT" then
+                SalesLine.Validate("Job Contract Entry No.", JobPlanningLine."Job Contract Entry No.");
+            if SalesHeader."Prices Including VAT" and (SalesLine.Type = SalesLine.Type::" ") then
                 SalesLine.Validate("Job Contract Entry No.", JobPlanningLine."Job Contract Entry No.");
             SalesLine."Job No." := JobPlanningLine."Job No.";
             SalesLine."Job Task No." := JobPlanningLine."Job Task No.";
@@ -1557,6 +1563,11 @@ codeunit 1002 "Job Create-Invoice"
 
     [IntegrationEvent(false, false)]
     local procedure OnCreateSalesInvoiceOnBeforeFindJobPlanningLines(var JobPlanningLine: Record "Job Planning Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCreateSalesInvoiceOnBeforeCommit(var JobPlanningLine: Record "Job Planning Line"; var SkipCommit: Boolean)
     begin
     end;
 }

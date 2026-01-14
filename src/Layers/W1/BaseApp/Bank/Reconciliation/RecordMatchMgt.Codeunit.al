@@ -2,14 +2,37 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+
 namespace Microsoft.Bank.Reconciliation;
 
+/// <summary>
+/// Provides text matching and similarity algorithms for payment reconciliation and data matching operations.
+/// This codeunit implements fuzzy string matching logic used to compare bank statement data with
+/// customer and vendor information, enabling automatic payment application based on text similarity.
+/// Core algorithms include longest common substring detection, string nearness scoring, and text
+/// normalization functions for optimal matching accuracy across different data formats.
+/// </summary>
+/// <remarks>
+/// Key features include configurable similarity thresholds, normalization algorithms for consistent
+/// text comparison, substring matching with adjustable minimum lengths, and scoring mechanisms
+/// that balance precision with recall for payment matching scenarios. Used extensively by
+/// automatic payment application processes to match party names, addresses, and transaction descriptions.
+/// </remarks>
 codeunit 1251 "Record Match Mgt."
 {
     trigger OnRun()
     begin
     end;
 
+    /// <summary>
+    /// Finds and returns the longest common substring between two strings.
+    /// Performs case-insensitive comparison to identify the longest sequence of characters
+    /// that appears in both input strings. Used as a foundation for text similarity scoring
+    /// in payment matching algorithms.
+    /// </summary>
+    /// <param name="FirstString">First string to compare for common substrings.</param>
+    /// <param name="SecondString">Second string to compare for common substrings.</param>
+    /// <returns>The longest common substring found between the two input strings.</returns>
     procedure GetLongestCommonSubstring(FirstString: Text; SecondString: Text): Text
     var
         Result: Text;
@@ -120,6 +143,20 @@ codeunit 1251 "Record Match Mgt."
         exit((StrLen(FirstString) + StrLen(SecondString) - Abs(StrLen(FirstString) - StrLen(SecondString))) / 2);
     end;
 
+    /// <summary>
+    /// Removes leading and trailing whitespace characters from a string.
+    /// Provides consistent text normalization for string comparison operations,
+    /// ensuring that whitespace differences do not affect matching accuracy.
+    /// </summary>
+    /// <param name="InputString">String to trim of leading and trailing whitespace.</param>
+    /// <returns>String with leading and trailing whitespace removed.</returns>
+    /// <summary>
+    /// Removes leading and trailing whitespace characters from a string.
+    /// Provides consistent text normalization for string comparison operations,
+    /// ensuring that whitespace differences do not affect matching accuracy.
+    /// </summary>
+    /// <param name="InputString">Text string to trim of leading and trailing whitespace.</param>
+    /// <returns>Input string with leading and trailing whitespace removed.</returns>
     procedure Trim(InputString: Text): Text
     begin
         exit(DelChr(DelChr(InputString, '<'), '>'));

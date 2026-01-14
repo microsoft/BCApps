@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Consolidation;
 
+/// <summary>
+/// Displays historical currency exchange rates used in previous consolidation processes.
+/// Provides read-only view of business unit exchange rate history for consolidation audit and reference.
+/// </summary>
+/// <remarks>
+/// List page showing historical exchange rates from completed consolidation processes.
+/// Enables review of currency conversion factors used in past consolidation operations.
+/// Essential for consolidation audit trails and understanding historical currency impact on consolidated results.
+/// </remarks>
 page 164 "Previous Exchange Rates"
 {
     PageType = List;

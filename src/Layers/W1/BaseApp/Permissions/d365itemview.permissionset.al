@@ -1,16 +1,16 @@
 namespace System.Security.AccessControl;
 
+using Microsoft.Finance.VAT.RateChange;
 using Microsoft.Inventory.Analysis;
+using Microsoft.Inventory.Costing;
+using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
-using Microsoft.Purchases.History;
-using Microsoft.Sales.History;
-using Microsoft.Purchases.Document;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Inventory.Costing;
 using Microsoft.Projects.Project.Planning;
-using Microsoft.Inventory.Intrastat;
-using Microsoft.Finance.VAT.RateChange;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.History;
 
 permissionset 8707 "D365 ITEM, VIEW"
 {

@@ -1,3 +1,6 @@
+/// <summary>
+/// Handles installation verification for test libraries in SaaS environments.
+/// </summary>
 codeunit 132221 "Test Libraries SaaS Install"
 {
     Access = Internal;

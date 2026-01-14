@@ -2198,9 +2198,15 @@ table 1003 "Job Planning Line"
 
             ApplyPrice(PriceType::Sale, CalledByFieldNo);
             ApplyPrice(PriceType::Purchase, CalledByFieldNo);
-            if Type = Type::Resource then begin
-                "Unit Cost (LCY)" := ConvertAmountToLCY("Unit Cost", UnitAmountRoundingPrecision);
-                "Direct Unit Cost (LCY)" := ConvertAmountToLCY("Direct Unit Cost (LCY)", UnitAmountRoundingPrecision);
+            case Type of
+                Type::Resource:
+                    begin
+                        "Unit Cost (LCY)" := ConvertAmountToLCY("Unit Cost", UnitAmountRoundingPrecision);
+                        "Direct Unit Cost (LCY)" := ConvertAmountToLCY("Direct Unit Cost (LCY)", UnitAmountRoundingPrecision);
+                    end;
+                Type::"G/L Account":
+                    if "Unit Cost" <> xRec."Unit Cost" then
+                        "Unit Cost (LCY)" := ConvertAmountToLCY("Unit Cost", UnitAmountRoundingPrecision);
             end;
             OnAfterFindPriceAndDiscount(Rec, xRec, CalledByFieldNo);
         end;
@@ -3570,13 +3576,6 @@ table 1003 "Job Planning Line"
     begin
     end;
 
-#if not CLEAN25
-    [Obsolete('Event no longer used as procedure EnsureDirectedPutawayandPickFalse is deleted.', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeEnsureDirectedPutawayandPickFalse(var JobPlanningLine: Record "Job Planning Line"; Location: Record Location; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(true, false)]
     local procedure OnBeforeFindPriceAndDiscount(CalledByFieldNo: Integer; var IsHandled: Boolean; var JobPlanningLine: Record "Job Planning Line"; xJobPlanningLine: Record "Job Planning Line")

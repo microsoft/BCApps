@@ -2955,23 +2955,23 @@ End Function
         <Field Name="SalesLineDescription">
           <DataField>SalesLineDescription</DataField>
         </Field>
-        <Field Name="Subtotals_OutstandingQty">
-          <DataField>Subtotals_OutstandingQty</DataField>
+        <Field Name="SubTotals_OutstandingQty">
+          <DataField>SubTotals_OutstandingQty</DataField>
         </Field>
-        <Field Name="Subtotals_OutstandingQtyFormat">
-          <DataField>Subtotals_OutstandingQtyFormat</DataField>
+        <Field Name="SubTotals_OutstandingQtyFormat">
+          <DataField>SubTotals_OutstandingQtyFormat</DataField>
         </Field>
-        <Field Name="Subtotals_BackOrderQty">
-          <DataField>Subtotals_BackOrderQty</DataField>
+        <Field Name="SubTotals_BackOrderQty">
+          <DataField>SubTotals_BackOrderQty</DataField>
         </Field>
-        <Field Name="Subtotals_BackOrderQtyFormat">
-          <DataField>Subtotals_BackOrderQtyFormat</DataField>
+        <Field Name="SubTotals_BackOrderQtyFormat">
+          <DataField>SubTotals_BackOrderQtyFormat</DataField>
         </Field>
-        <Field Name="Subtotals_OutstandingAmt">
-          <DataField>Subtotals_OutstandingAmt</DataField>
+        <Field Name="SubTotals_OutstandingAmt">
+          <DataField>SubTotals_OutstandingAmt</DataField>
         </Field>
-        <Field Name="Subtotals_OutstandingAmtFormat">
-          <DataField>Subtotals_OutstandingAmtFormat</DataField>
+        <Field Name="SubTotals_OutstandingAmtFormat">
+          <DataField>SubTotals_OutstandingAmtFormat</DataField>
         </Field>
         <Field Name="Totals_OutstandingAmt">
           <DataField>Totals_OutstandingAmt</DataField>

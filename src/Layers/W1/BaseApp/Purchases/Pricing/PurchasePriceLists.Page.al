@@ -5,9 +5,9 @@
 namespace Microsoft.Purchases.Pricing;
 
 using Microsoft.Pricing.Asset;
+using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
 using Microsoft.Pricing.Source;
-using Microsoft.Pricing.Calculation;
 
 page 7017 "Purchase Price Lists"
 {

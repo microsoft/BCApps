@@ -5,11 +5,11 @@
 namespace Microsoft.Inventory.Costing;
 
 using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Reports;
-using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Journal;
-using Microsoft.Manufacturing.Document;
 using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Reports;
+using Microsoft.Manufacturing.Document;
 
 codeunit 99000776 "Mfg. InventoryAdjmtEntryOrder"
 {
@@ -73,7 +73,7 @@ codeunit 99000776 "Mfg. InventoryAdjmtEntryOrder"
         if MfgCostCalcMgt.CanIncNonInvCostIntoProductionItem() then begin
             if not OnlyCostShares then begin
                 InvtAdjmtEntryOrderRec."Direct Cost Non-Inventory" := InvtAdjmtEntryOrder."Direct Cost Non-Inventory" - InvtAdjmtEntryOrderRec."Direct Cost Non-Inventory";
-                InvtAdjmtEntryOrderRec."Direct Cost Non-Inv. (ACY)" := InvtAdjmtEntryOrder."Direct Cost Non-Inv. (ACY)" - InvtAdjmtEntryOrderRec."Direct Cost (ACY)";
+                InvtAdjmtEntryOrderRec."Direct Cost Non-Inv. (ACY)" := InvtAdjmtEntryOrder."Direct Cost Non-Inv. (ACY)" - InvtAdjmtEntryOrderRec."Direct Cost Non-Inv. (ACY)";
             end;
             InvtAdjmtEntryOrderRec."Single-Lvl Mat. Non-Invt. Cost" := InvtAdjmtEntryOrder."Single-Lvl Mat. Non-Invt. Cost" - InvtAdjmtEntryOrderRec."Single-Lvl Mat. Non-Invt. Cost";
             InvtAdjmtEntryOrderRec."Single-Lvl Mat.NonInvCost(ACY)" := InvtAdjmtEntryOrder."Single-Lvl Mat.NonInvCost(ACY)" - InvtAdjmtEntryOrderRec."Single-Lvl Mat.NonInvCost(ACY)";

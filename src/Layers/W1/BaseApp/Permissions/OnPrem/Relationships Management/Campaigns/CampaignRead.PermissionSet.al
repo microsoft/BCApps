@@ -1,8 +1,8 @@
 namespace System.Security.AccessControl;
 
 using Microsoft.CRM.Campaign;
-using Microsoft.CRM.Segment;
 using Microsoft.CRM.Comment;
+using Microsoft.CRM.Segment;
 using Microsoft.CRM.Task;
 
 permissionset 9598 "Campaign - Read"

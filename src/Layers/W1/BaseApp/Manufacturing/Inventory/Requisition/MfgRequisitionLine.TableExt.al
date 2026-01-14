@@ -4,15 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Requisition;
 
-using Microsoft.Manufacturing.Document;
-using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Manufacturing.Routing;
-using Microsoft.Manufacturing.Setup;
-using Microsoft.Manufacturing.ProductionBOM;
-using Microsoft.Inventory.Location;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
+using Microsoft.Manufacturing.WorkCenter;
 
 tableextension 99000860 "Mfg. Requisition Line" extends "Requisition Line"
 {

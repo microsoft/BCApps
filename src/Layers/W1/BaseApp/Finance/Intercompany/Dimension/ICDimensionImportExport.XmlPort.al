@@ -7,6 +7,10 @@ namespace Microsoft.Intercompany.Dimension;
 using Microsoft.Intercompany.GLAccount;
 using System.Telemetry;
 
+/// <summary>
+/// XMLPort for importing and exporting intercompany dimension definitions and values.
+/// Enables transfer of dimension structures between different Business Central environments.
+/// </summary>
 xmlport 11 "IC Dimension Import/Export"
 {
     Caption = 'IC Dimension Import/Export';

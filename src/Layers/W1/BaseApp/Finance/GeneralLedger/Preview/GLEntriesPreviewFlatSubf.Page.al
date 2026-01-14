@@ -8,6 +8,15 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using System.Security.User;
 
+/// <summary>
+/// Flat G/L entries preview subform displaying general ledger entries in simple list format during posting preview.
+/// Provides comprehensive G/L entry analysis without hierarchical grouping for detailed examination.
+/// </summary>
+/// <remarks>
+/// Displays all G/L entries from posting preview in flat list format for detailed analysis.
+/// Includes dimension support and comprehensive field display for thorough entry validation.
+/// Complements hierarchical G/L preview with alternative flat display perspective.
+/// </remarks>
 page 1574 "G/L Entries Preview Flat Subf."
 {
     PageType = ListPart;
@@ -273,6 +282,11 @@ page 1574 "G/L Entries Preview Flat Subf."
         DimensionManagement.UseShortcutDims(Dim1Visible, Dim2Visible, Dim3Visible, Dim4Visible, Dim5Visible, Dim6Visible, Dim7Visible, Dim8Visible);
     end;
 
+    /// <summary>
+    /// Initializes the flat G/L entries subform with preview entries from posting operations.
+    /// Loads G/L entries in simple list format without hierarchical grouping for detailed analysis.
+    /// </summary>
+    /// <param name="PostingPreviewEventHandler">Event handler containing captured G/L entries from posting preview</param>
     procedure Set(PostingPreviewEventHandler: Codeunit "Posting Preview Event Handler")
     var
         RecRef: RecordRef;

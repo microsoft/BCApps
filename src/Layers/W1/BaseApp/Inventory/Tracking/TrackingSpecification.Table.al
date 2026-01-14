@@ -561,145 +561,19 @@ table 336 "Tracking Specification"
         OnAfterInitQtyToInvoice(Rec);
     end;
 
-#if not CLEAN25
-    [Obsolete('Procedure moved to codeunit Assembly Header-Reserve', '25.0')]
-    procedure InitFromAsmHeader(var AsmHeader: Record Microsoft.Assembly.Document."Assembly Header")
-    var
-        AssemblyHeaderReserve: Codeunit Microsoft.Assembly.Document."Assembly Header-Reserve";
-    begin
-        AssemblyHeaderReserve.InitFromAsmHeader(Rec, AsmHeader);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Procedure moved to codeunit Assembly Line-Reserve', '25.0')]
-    procedure InitFromAsmLine(var AsmLine: Record Microsoft.Assembly.Document."Assembly Line")
-    var
-        AssemblyLineReserve: Codeunit Microsoft.Assembly.Document."Assembly Line-Reserve";
-    begin
-        AssemblyLineReserve.InitFromAsmLine(Rec, AsmLine);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Procedure moved to codeunit Item Jnl. Line-Reserve', '25.0')]
-    procedure InitFromItemJnlLine(ItemJnlLine: Record "Item Journal Line")
-    var
-        ItemJnlLineReserve: Codeunit "Item Jnl. Line-Reserve";
-    begin
-        ItemJnlLineReserve.InitFromItemJnlLine(Rec, ItemJnlLine);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Procedure moved to codeunit Invt. Doc. Line-Reserve', '25.0')]
-    procedure InitFromInvtDocLine(var InvtDocLine: Record Microsoft.Inventory.Document."Invt. Document Line")
-    var
-        InvtDocLineReserve: Codeunit Microsoft.Inventory.Document."Invt. Doc. Line-Reserve";
-    begin
-        InvtDocLineReserve.InitFromInvtDocLine(Rec, InvtDocLine);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Procedure moved to codeunit Job Jnl. Line-Reserve', '25.0')]
-    procedure InitFromJobJnlLine(var JobJnlLine: Record Microsoft.Projects.Project.Journal."Job Journal Line")
-    var
-        JobJnlLineReserve: Codeunit Microsoft.Projects.Project.Journal."Job Jnl. Line-Reserve";
-    begin
-        JobJnlLineReserve.InitFromJobJnlLine(Rec, JobJnlLine);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Procedure moved to codeunit Job Planning Line-Reserve', '25.0')]
-    procedure InitFromJobPlanningLine(var JobPlanningLine: Record Microsoft.Projects.Project.Planning."Job Planning Line")
-    var
-        JobPlanningLineReserve: Codeunit Microsoft.Projects.Project.Planning."Job Planning Line-Reserve";
-    begin
-        JobPlanningLineReserve.InitFromJobPlanningLine(Rec, JobPlanningLine);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Procedure moved to codeunit Purch. Line-Reserve', '25.0')]
-    procedure InitFromPurchLine(PurchLine: Record "Purchase Line")
-    var
-        PurchLineReserve: Codeunit "Purch. Line-Reserve";
-    begin
-        PurchLineReserve.InitFromPurchLine(Rec, PurchLine);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Procedure moved to codeunit Prod. Order Line-Reserve', '25.0')]
-    procedure InitFromProdOrderLine(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line")
-    var
-        ProdOrderLineReserve: Codeunit Microsoft.Manufacturing.Document."Prod. Order Line-Reserve";
-    begin
-        ProdOrderLineReserve.InitFromProdOrderLine(Rec, ProdOrderLine);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Procedure moved to codeunit Prod. Order Comp.-Reserve', '25.0')]
-    procedure InitFromProdOrderComp(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    var
-        ProdOrderCompReserve: Codeunit Microsoft.Manufacturing.Document."Prod. Order Comp.-Reserve";
-    begin
-        ProdOrderCompReserve.InitFromProdOrderComp(Rec, ProdOrderComp);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Procedure moved to codeunit Plng. Component-Reserve', '25.0')]
-    procedure InitFromProdPlanningComp(var PlanningComponent: Record Microsoft.Inventory.Planning."Planning Component")
-    var
-        PlngComponentReserve: Codeunit Microsoft.Inventory.Planning."Plng. Component-Reserve";
-    begin
-        PlngComponentReserve.InitFromProdPlanningComp(Rec, PlanningComponent);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Procedure moved to codeunit Req. Line-Reserve', '25.0')]
-    procedure InitFromReqLine(ReqLine: Record Microsoft.Inventory.Requisition."Requisition Line")
-    var
-        ReqLineReserve: Codeunit Microsoft.Inventory.Requisition."Req. Line-Reserve";
-    begin
-        ReqLineReserve.InitFromReqLine(Rec, ReqLine);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Procedure moved to codeunit Sales Line-Reserve', '25.0')]
-    procedure InitFromSalesLine(SalesLine: Record "Sales Line")
-    var
-        SalesLineReserve: Codeunit "Sales Line-Reserve";
-    begin
-        SalesLineReserve.InitFromSalesLine(Rec, SalesLine);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Procedure moved to codeunit Service Line-Reserve', '25.0')]
-    procedure InitFromServLine(var ServiceLine: Record Microsoft.Service.Document."Service Line"; Consume: Boolean)
-    var
-        ServiceLineReserve: Codeunit Microsoft.Service.Document."Service Line-Reserve";
-    begin
-        ServiceLineReserve.InitFromServLine(Rec, ServiceLine, Consume);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Procedure moved to codeunit Transfer Line-Reserve', '25.0')]
-    procedure InitFromTransLine(var TransLine: Record Microsoft.Inventory.Transfer."Transfer Line"; var AvalabilityDate: Date; Direction: Enum Microsoft.Foundation.Enums."Transfer Direction")
-    var
-        TransferLineReserve: Codeunit Microsoft.Inventory.Transfer."Transfer Line-Reserve";
-    begin
-        TransferLineReserve.InitFromTransLine(Rec, TransLine, AvalabilityDate, Direction);
-    end;
-#endif
 
     local procedure CheckApplyFromItemEntrySourceType()
     var
@@ -1439,174 +1313,18 @@ table 336 "Tracking Specification"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnAfterInitFromAsmHeader(var TrackingSpecification: Record "Tracking Specification"; AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header")
-    begin
-        OnAfterInitFromAsmHeader(TrackingSpecification, AssemblyHeader);
-    end;
 
-    [Obsolete('Replaced same event in codeunit AssemblyHeaderReserve', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterInitFromAsmHeader(var TrackingSpecification: Record "Tracking Specification"; AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header")
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnAfterInitFromAsmLine(var TrackingSpecification: Record "Tracking Specification"; AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line")
-    begin
-        OnAfterInitFromAsmLine(TrackingSpecification, AssemblyLine);
-    end;
 
-    [Obsolete('Replaced same event in codeunit AssemblyLineReserve', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterInitFromAsmLine(var TrackingSpecification: Record "Tracking Specification"; AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line")
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnAfterInitFromItemJnlLine(var TrackingSpecification: Record "Tracking Specification"; ItemJournalLine: Record "Item Journal Line")
-    begin
-        OnAfterInitFromItemJnlLine(TrackingSpecification, ItemJournalLine);
-    end;
 
-    [Obsolete('Replaced same event in codeunit ItemJnlLineReserve', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterInitFromItemJnlLine(var TrackingSpecification: Record "Tracking Specification"; ItemJournalLine: Record "Item Journal Line")
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnAfterInitFromJobJnlLine(var TrackingSpecification: Record "Tracking Specification"; JobJournalLine: Record Microsoft.Projects.Project.Journal."Job Journal Line")
-    begin
-        OnAfterInitFromJobJnlLine(TrackingSpecification, JobJournalLine);
-    end;
 
-    [Obsolete('Replaced same event in codeunit JobJnlLineReserve', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterInitFromJobJnlLine(var TrackingSpecification: Record "Tracking Specification"; JobJournalLine: Record Microsoft.Projects.Project.Journal."Job Journal Line")
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnAfterInitFromJobPlanningLine(var TrackingSpecification: Record "Tracking Specification"; JobPlanningLine: Record Microsoft.Projects.Project.Planning."Job Planning Line")
-    begin
-        OnAfterInitFromJobPlanningLine(TrackingSpecification, JobPlanningLine);
-    end;
 
-    [Obsolete('Replaced same event in codeunit JobPlanningLineReserve', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterInitFromJobPlanningLine(var TrackingSpecification: Record "Tracking Specification"; JobPlanningLine: Record Microsoft.Projects.Project.Planning."Job Planning Line")
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnAfterInitFromPurchLine(var TrackingSpecification: Record "Tracking Specification"; PurchaseLine: Record "Purchase Line")
-    begin
-        OnAfterInitFromPurchLine(TrackingSpecification, PurchaseLine);
-    end;
 
-    [Obsolete('Replaced same event in codeunit PurchLineReserve', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterInitFromPurchLine(var TrackingSpecification: Record "Tracking Specification"; PurchaseLine: Record "Purchase Line")
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnAfterInitFromProdOrderLine(var TrackingSpecification: Record "Tracking Specification"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line")
-    begin
-        OnAfterInitFromProdOrderLine(TrackingSpecification, ProdOrderLine);
-    end;
-
-    [Obsolete('Replaced same event in codeunit ProdOrderLineReserve', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterInitFromProdOrderLine(var TrackingSpecification: Record "Tracking Specification"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnAfterInitFromProdOrderComp(var TrackingSpecification: Record "Tracking Specification"; ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-        OnAfterInitFromProdOrderComp(TrackingSpecification, ProdOrderComponent);
-    end;
-
-    [Obsolete('Replaced same event in codeunit ProdOrderCompReserve', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterInitFromProdOrderComp(var TrackingSpecification: Record "Tracking Specification"; ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnAfterInitFromProdPlanningComp(var TrackingSpecification: Record "Tracking Specification"; PlanningComponent: Record Microsoft.Inventory.Planning."Planning Component")
-    begin
-        OnAfterInitFromProdPlanningComp(TrackingSpecification, PlanningComponent);
-    end;
-
-    [Obsolete('Replaced same event in codeunit PlngComponentReserve', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterInitFromProdPlanningComp(var TrackingSpecification: Record "Tracking Specification"; PlanningComponent: Record Microsoft.Inventory.Planning."Planning Component")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnAfterInitFromReqLine(var TrackingSpecification: Record "Tracking Specification"; RequisitionLine: Record Microsoft.Inventory.Requisition."Requisition Line")
-    begin
-        OnAfterInitFromReqLine(TrackingSpecification, RequisitionLine);
-    end;
-
-    [Obsolete('Replaced same event in codeunit ReqLineReserve', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterInitFromReqLine(var TrackingSpecification: Record "Tracking Specification"; RequisitionLine: Record Microsoft.Inventory.Requisition."Requisition Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnAfterInitFromSalesLine(var TrackingSpecification: Record "Tracking Specification"; SalesLine: Record "Sales Line")
-    begin
-        OnAfterInitFromSalesLine(TrackingSpecification, SalesLine);
-    end;
-
-    [Obsolete('Event moved to codeunit Sales Line-Reserve', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterInitFromSalesLine(var TrackingSpecification: Record "Tracking Specification"; SalesLine: Record "Sales Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnAfterInitFromServLine(var TrackingSpecification: Record "Tracking Specification"; ServiceLine: Record Microsoft.Service.Document."Service Line")
-    begin
-        OnAfterInitFromServLine(TrackingSpecification, ServiceLine);
-    end;
-
-    [Obsolete('Event moved to codeunit Service Line-Reserve', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterInitFromServLine(var TrackingSpecification: Record "Tracking Specification"; ServiceLine: Record Microsoft.Service.Document."Service Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnAfterInitFromTransLine(var TrackingSpecification: Record "Tracking Specification"; TransferLine: Record Microsoft.Inventory.Transfer."Transfer Line"; Direction: Enum Microsoft.Foundation.Enums."Transfer Direction")
-    begin
-        OnAfterInitFromTransLine(TrackingSpecification, TransferLine, Direction);
-    end;
-
-    [Obsolete('Event moved to codeunit Transfer Line-Reserve', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterInitFromTransLine(var TrackingSpecification: Record "Tracking Specification"; TransferLine: Record Microsoft.Inventory.Transfer."Transfer Line"; Direction: Enum Microsoft.Foundation.Enums."Transfer Direction")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitQtyToInvoice(var TrackingSpecification: Record "Tracking Specification")
@@ -1873,4 +1591,3 @@ table 336 "Tracking Specification"
     begin
     end;
 }
-

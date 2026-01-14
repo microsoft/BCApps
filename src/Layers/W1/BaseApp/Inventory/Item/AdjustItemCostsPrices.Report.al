@@ -183,6 +183,7 @@ report 794 "Adjust Item Costs/Prices"
                                 ItemCostPriceFieldOption::"Unit Price":
                                     UnitPriceSelectionOnValidate();
                             end;
+                            OnAfterValidateAdjustField(Selection);
                         end;
                     }
                     field(AdjustmentFactor; AdjFactor)
@@ -313,6 +314,11 @@ report 794 "Adjust Item Costs/Prices"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetRecordOnValidateFieldOnCaseElse(var Item: Record Item; Selection: Enum ItemCostPriceFieldOption; var NewFieldValue: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterValidateAdjustField(Selection: Enum ItemCostPriceFieldOption)
     begin
     end;
 }

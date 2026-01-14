@@ -6,24 +6,27 @@ namespace Microsoft.Inventory.Posting;
 
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
-using Microsoft.Foundation.UOM;
 using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
-using Microsoft.Inventory.Ledger;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
-using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Manufacturing.Setup;
+using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Warehouse.Journal;
 using System.Reflection;
 
 codeunit 99000822 "Mfg. Item Jnl.-Post Line"
 {
+    Permissions = tabledata "Prod. Order Capacity Need" = rm,
+                  tabledata "Capacity Ledger Entry" = rm;
+
     var
         Item: Record Item;
         Location: Record Location;
@@ -1008,13 +1011,12 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         if ProdOrderComp."Flushing Method" in
            [ProdOrderComp."Flushing Method"::Backward, ProdOrderComp."Flushing Method"::"Pick + Backward"]
         then begin
-            QtyToPost :=
-              MfgCostCalcMgt.CalcActNeededQtyBase(ProdOrderLine, ProdOrderComp, OutputQtyBase) / ProdOrderComp."Qty. per Unit of Measure";
+            QtyToPost := ProdOrderRoutingLine."Fixed Scrap Qty. (Accum.)" + MfgCostCalcMgt.CalcActNeededQtyBase(ProdOrderLine, ProdOrderComp,
+              OutputQtyBase - ProdOrderRoutingLine."Fixed Scrap Qty. (Accum.)") / ProdOrderComp."Qty. per Unit of Measure";
             if (ProdOrderLine."Remaining Qty. (Base)" = OutputQtyBase) and
                (ProdOrderComp."Remaining Quantity" <> 0) and
                (Abs(Round(QtyToPost, CompItem."Rounding Precision") - ProdOrderComp."Remaining Quantity") <= CompItem."Rounding Precision") and
-               (Abs(Round(QtyToPost, CompItem."Rounding Precision") - ProdOrderComp."Remaining Quantity") < 1) or
-               (OutputQtyBase = Round(ProdOrderComp."Remaining Qty. (Base)", 1))
+               (Abs(Round(QtyToPost, CompItem."Rounding Precision") - ProdOrderComp."Remaining Quantity") < 1)
             then
                 QtyToPost := ProdOrderComp."Remaining Quantity";
         end else

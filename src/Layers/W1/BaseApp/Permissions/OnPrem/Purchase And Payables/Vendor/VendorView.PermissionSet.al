@@ -1,14 +1,14 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.Foundation.Comment;
 using Microsoft.CRM.Contact;
 using Microsoft.Finance.Dimension;
-using Microsoft.Purchases.Payables;
+using Microsoft.Foundation.Comment;
 using Microsoft.HumanResources.Payables;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Location;
-using Microsoft.Purchases.Vendor;
+using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Remittance;
+using Microsoft.Purchases.Vendor;
 
 permissionset 5600 "Vendor - View"
 {

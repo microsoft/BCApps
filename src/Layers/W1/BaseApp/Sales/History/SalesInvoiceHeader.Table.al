@@ -39,12 +39,12 @@ using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 using System.Automation;
+using System.Email;
 using System.Globalization;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.User;
 using System.Utilities;
-using System.Email;
 
 table 112 "Sales Invoice Header"
 {

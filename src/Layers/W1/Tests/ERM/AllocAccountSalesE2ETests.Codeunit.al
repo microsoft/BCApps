@@ -1148,6 +1148,91 @@ codeunit 134830 "Alloc. Account Sales E2E Tests"
             AllocationAccountPage.Caption()));
     end;
 
+    [Test]
+    procedure TestDimensionsPropagateWhenDistributionHasNoDimensions()
+    var
+        Customer: Record Customer;
+        FirstDimensionValue: Record "Dimension Value";
+        SecondDimensionValue: Record "Dimension Value";
+        FirstDestinationGLAccount: Record "G/L Account";
+        SecondDestinationGLAccount: Record "G/L Account";
+        AllocationAccount: Record "Allocation Account";
+        SalesHeader: Record "Sales Header";
+        DefaultDimension: Record "Default Dimension";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        AllocationAccountPage: TestPage "Allocation Account";
+        SalesInvoice: TestPage "Sales Invoice";
+        DummySalesLine: Record "Sales Line";
+        DimensionValueCode: Code[20];
+        CustomerDimensionSetID: Integer;
+    begin
+        // [SCENARIO 612690] Allocation account propagates parent line dimensions when distribution lines have no dimensions
+        Initialize();
+
+        // [GIVEN] Two dimension values
+        LibraryDimension.CreateDimWithDimValue(FirstDimensionValue);
+        LibraryDimension.CreateDimWithDimValue(SecondDimensionValue);
+
+        // [GIVEN] A customer with dimensions
+        LibrarySales.CreateCustomer(Customer);
+        LibraryDimension.CreateDefaultDimensionCustomer(DefaultDimension, Customer."No.", FirstDimensionValue."Dimension Code", FirstDimensionValue.Code);
+        CustomerDimensionSetID := LibraryDimension.CreateDimSet(0, FirstDimensionValue."Dimension Code", FirstDimensionValue.Code);
+        CustomerDimensionSetID := LibraryDimension.CreateDimSet(CustomerDimensionSetID, SecondDimensionValue."Dimension Code", SecondDimensionValue.Code);
+
+        // [GIVEN] Two destination GL accounts
+        FirstDestinationGLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
+        SecondDestinationGLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
+
+        // [GIVEN] An Allocation Account with fixed distributions that have NO dimensions
+        AllocationAccount.Get(CreateAllocationAccountWithFixedDistribution(AllocationAccountPage));
+        AddGLDestinationAccountForFixedDistribution(AllocationAccountPage, FirstDestinationGLAccount);
+        AllocationAccountPage.FixedAccountDistribution.Share.SetValue(50);
+        AllocationAccountPage.FixedAccountDistribution.New();
+        AddGLDestinationAccountForFixedDistribution(AllocationAccountPage, SecondDestinationGLAccount);
+        AllocationAccountPage.FixedAccountDistribution.Share.SetValue(50);
+        AllocationAccountPage.Close();
+
+        // [GIVEN] A Sales Invoice with the customer and an allocation account line with a dimension set
+        GeneralLedgerSetup.Get();
+        DimensionValueCode := CreateDimensionValue(GeneralLedgerSetup."Global Dimension 1 Code");
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        SalesInvoice.OpenEdit();
+        SalesInvoice.GoToRecord(SalesHeader);
+        SalesInvoice.SalesLines.Type.SetValue(DummySalesLine.Type::"Allocation Account");
+        SalesInvoice.SalesLines."No.".SetValue(AllocationAccount."No.");
+        SalesInvoice.SalesLines.Quantity.SetValue(1);
+        SalesInvoice.SalesLines."Unit Price".SetValue(100);
+        SalesInvoice.Close();
+
+        // [GIVEN] The allocation account line has a dimension set
+        SalesInvoice.OpenEdit();
+        SalesInvoice.GoToRecord(SalesHeader);
+        SalesInvoice.SalesLines."Shortcut Dimension 1 Code".SetValue(DimensionValueCode);
+        SalesInvoice.SalesLines.Type.AssertEquals(DummySalesLine.Type::"Allocation Account");
+
+        // [WHEN] The allocation account is replaced with lines
+        SalesInvoice.SalesLines.ReplaceAllocationAccountWithLines.Invoke();
+        SalesInvoice.Close();
+
+        // [THEN] The generated lines have the dimension from the allocation account line
+        SalesInvoice.OpenEdit();
+        SalesInvoice.GoToRecord(SalesHeader);
+        SalesInvoice.SalesLines.Type.AssertEquals(DummySalesLine.Type::"G/L Account");
+        SalesInvoice.SalesLines."Shortcut Dimension 1 Code".AssertEquals(DimensionValueCode);
+        SalesInvoice.SalesLines.Next();
+        SalesInvoice.SalesLines.Type.AssertEquals(DummySalesLine.Type::"G/L Account");
+        SalesInvoice.SalesLines."Shortcut Dimension 1 Code".AssertEquals(DimensionValueCode);
+        SalesInvoice.Close();
+    end;
+
+    local procedure CreateDimensionValue(DimensionCode: Code[20]): Code[20]
+    var
+        DimensionValue: Record "Dimension Value";
+    begin
+        LibraryDimension.CreateDimensionValue(DimensionValue, DimensionCode);
+        exit(DimensionValue.Code);
+    end;
+
     local procedure CreateAllocationAccountwithVariableGLDistributionsAndInheritFromParent(
         var AllocationAccount: Record "Allocation Account";
         FirstDimensionValue: Record "Dimension Value";

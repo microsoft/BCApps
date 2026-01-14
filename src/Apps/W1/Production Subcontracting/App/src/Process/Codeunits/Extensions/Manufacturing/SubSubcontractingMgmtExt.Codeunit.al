@@ -1,0 +1,20 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Manufacturing.Subcontracting;
+
+codeunit 99001527 "Sub. SubcontractingMgmtExt"
+{
+    EventSubscriberInstance = Manual;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Subcontracting Mgmt.", OnBeforeHandleProdOrderRtngWorkCenterWithSubcontractor, '', false, false)]
+    local procedure OnBeforeHandleProdOrderRtngWorkCenterWithSubcontractor(var SubContractorWorkCenterNo: Code[20])
+    var
+        SingleInstanceDict: Codeunit "Single Instance Dictionary";
+        SubcontractingMgmt: Codeunit "Subcontracting Mgmt.";
+    begin
+        if SubContractorWorkCenterNo = '' then
+            SubContractorWorkCenterNo := CopyStr(SingleInstanceDict.GetCode(SubcontractingMgmt.GetDictionaryKey_Sub_CreateProdOrderProcess()), 1, 20);
+    end;
+}

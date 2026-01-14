@@ -4,13 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Document;
 
+using Microsoft.Foundation.Navigate;
 using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
-using Microsoft.Inventory.Ledger;
-using Microsoft.Foundation.Navigate;
 using Microsoft.Purchases.Document;
 
 codeunit 926 "Assembly Line-Reserve"
@@ -429,86 +429,10 @@ codeunit 926 "Assembly Line-Reserve"
         CreateBindingReservation(AssemblyLine, Description, ExpectedDate, ReservQty, ReservQtyBase);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure BindToTracking()', '25.0')]
-    procedure BindToRequisition(AssemblyLine: Record "Assembly Line"; RequisitionLine: Record "Requisition Line"; ReservQty: Decimal; ReservQtyBase: Decimal)
-    var
-        TrackingSpecification: Record "Tracking Specification";
-        ReservationEntry: Record "Reservation Entry";
-    begin
-        SetBinding(ReservationEntry.Binding::"Order-to-Order");
-        TrackingSpecification.InitTrackingSpecification(
-          Database::"Requisition Line",
-          0, RequisitionLine."Worksheet Template Name", RequisitionLine."Journal Batch Name", 0, RequisitionLine."Line No.",
-          RequisitionLine."Variant Code", RequisitionLine."Location Code", RequisitionLine."Qty. per Unit of Measure");
-        CreateReservationSetFrom(TrackingSpecification);
-        CreateBindingReservation(AssemblyLine, RequisitionLine.Description, RequisitionLine."Due Date", ReservQty, ReservQtyBase);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure BindToTracking()', '25.0')]
-    procedure BindToPurchase(AssemblyLine: Record "Assembly Line"; PurchaseLine: Record Microsoft.Purchases.Document."Purchase Line"; ReservQty: Decimal; ReservQtyBase: Decimal)
-    var
-        TrackingSpecification: Record "Tracking Specification";
-        ReservationEntry: Record "Reservation Entry";
-    begin
-        SetBinding(ReservationEntry.Binding::"Order-to-Order");
-        TrackingSpecification.InitTrackingSpecification(
-          Database::Microsoft.Purchases.Document."Purchase Line", PurchaseLine."Document Type".AsInteger(), PurchaseLine."Document No.", '', 0, PurchaseLine."Line No.",
-          PurchaseLine."Variant Code", PurchaseLine."Location Code", PurchaseLine."Qty. per Unit of Measure");
-        CreateReservationSetFrom(TrackingSpecification);
-        CreateBindingReservation(AssemblyLine, PurchaseLine.Description, PurchaseLine."Expected Receipt Date", ReservQty, ReservQtyBase);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure BindToTracking()', '25.0')]
-    procedure BindToProdOrder(AssemblyLine: Record "Assembly Line"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ReservQty: Decimal; ReservQtyBase: Decimal)
-    var
-        TrackingSpecification: Record "Tracking Specification";
-        ReservationEntry: Record "Reservation Entry";
-    begin
-        SetBinding(ReservationEntry.Binding::"Order-to-Order");
-        TrackingSpecification.InitTrackingSpecification(
-          Database::Microsoft.Manufacturing.Document."Prod. Order Line", ProdOrderLine.Status.AsInteger(), ProdOrderLine."Prod. Order No.", '', ProdOrderLine."Line No.", 0,
-          ProdOrderLine."Variant Code", ProdOrderLine."Location Code", ProdOrderLine."Qty. per Unit of Measure");
-        CreateReservationSetFrom(TrackingSpecification);
-        CreateBindingReservation(AssemblyLine, ProdOrderLine.Description, ProdOrderLine."Ending Date", ReservQty, ReservQtyBase);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure BindToTracking()', '25.0')]
-    procedure BindToAssembly(AssemblyLine: Record "Assembly Line"; AssemblyHeader: Record "Assembly Header"; ReservQty: Decimal; ReservQtyBase: Decimal)
-    var
-        TrackingSpecification: Record "Tracking Specification";
-        ReservationEntry: Record "Reservation Entry";
-    begin
-        SetBinding(ReservationEntry.Binding::"Order-to-Order");
-        TrackingSpecification.InitTrackingSpecification(
-          Database::"Assembly Header", AssemblyHeader."Document Type".AsInteger(), AssemblyHeader."No.", '', 0, 0,
-          AssemblyHeader."Variant Code", AssemblyHeader."Location Code", AssemblyHeader."Qty. per Unit of Measure");
-        CreateReservationSetFrom(TrackingSpecification);
-        CreateBindingReservation(AssemblyLine, AssemblyHeader.Description, AssemblyHeader."Due Date", ReservQty, ReservQtyBase);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure BindToTracking()', '25.0')]
-    procedure BindToTransfer(AssemblyLine: Record "Assembly Line"; TransferLine: Record Microsoft.Inventory.Transfer."Transfer Line"; ReservQty: Decimal; ReservQtyBase: Decimal)
-    var
-        TrackingSpecification: Record "Tracking Specification";
-        ReservationEntry: Record "Reservation Entry";
-    begin
-        SetBinding(ReservationEntry.Binding::"Order-to-Order");
-        TrackingSpecification.InitTrackingSpecification(
-          Database::Microsoft.Inventory.Transfer."Transfer Line", 1, TransferLine."Document No.", '', 0, TransferLine."Line No.",
-          TransferLine."Variant Code", TransferLine."Transfer-to Code", TransferLine."Qty. per Unit of Measure");
-        CreateReservationSetFrom(TrackingSpecification);
-        CreateBindingReservation(AssemblyLine, TransferLine.Description, TransferLine."Receipt Date", ReservQty, ReservQtyBase);
-    end;
-#endif
 
     [EventSubscriber(ObjectType::Page, PAGE::Reservation, 'OnGetQtyPerUOMFromSourceRecRef', '', false, false)]
     local procedure OnGetQtyPerUOMFromSourceRecRef(SourceRecRef: RecordRef; var QtyPerUOM: Decimal; var QtyReserved: Decimal; var QtyReservedBase: Decimal; var QtyToReserve: Decimal; var QtyToReserveBase: Decimal)
@@ -763,13 +687,6 @@ codeunit 926 "Assembly Line-Reserve"
         ReservQty: Decimal;
         IsReserved: Boolean;
     begin
-#if not CLEAN25
-        IsReserved := false;
-        sender.RunOnBeforeAutoReserveAssemblyLine(
-          ReservSummEntryNo, RemainingQtyToReserve, RemainingQtyToReserve, Description, AvailabilityDate, IsReserved, Search, NextStep, CalcReservEntry);
-        if IsReserved then
-            exit;
-#endif
         IsReserved := false;
         OnBeforeAutoReserveAssemblyLine(
           ReservSummEntryNo, RemainingQtyToReserve, RemainingQtyToReserve, Description, AvailabilityDate, IsReserved, Search, NextStep, CalcReservEntry);
@@ -885,9 +802,6 @@ codeunit 926 "Assembly Line-Reserve"
             AsmLine."Consumed Quantity (Base)", AsmLine."Consumed Quantity (Base)");
 
         OnAfterInitFromAsmLine(TransactionSpecification, AsmLine);
-#if not CLEAN25
-        TransactionSpecification.RunOnAfterInitFromAsmLine(TransactionSpecification, AsmLine);
-#endif
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnTestItemType', '', false, false)]

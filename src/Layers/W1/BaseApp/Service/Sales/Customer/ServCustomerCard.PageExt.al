@@ -5,8 +5,8 @@
 namespace Microsoft.Service.Customer;
 
 using Microsoft.Sales.Customer;
-using Microsoft.Service.Document;
 using Microsoft.Service.Contract;
+using Microsoft.Service.Document;
 using Microsoft.Service.Item;
 
 pageextension 6450 "Serv. Customer Card" extends "Customer Card"

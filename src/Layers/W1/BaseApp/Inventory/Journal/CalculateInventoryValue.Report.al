@@ -56,11 +56,13 @@ report 5899 "Calculate Inventory Value"
                 ItemLedgerEntry.SetRange(Positive, true);
                 CopyFilter("Location Filter", ItemLedgerEntry."Location Code");
                 CopyFilter("Variant Filter", ItemLedgerEntry."Variant Code");
+                ItemLedgerEntry.SetFilter("Date Filter", '<=%1', PostingDate);
+                ItemLedgerEntry.SetAutoCalcFields("Remaining Qty. by Date");
                 OnItemAfterGetRecordOnAfterItemLedgEntrySetFilters(ItemLedgerEntry, Item);
                 if ItemLedgerEntry.FindSet() then
                     repeat
                         if IncludeEntryInCalc(ItemLedgerEntry, PostingDate, IncludeExpectedCost) then begin
-                            RemQty := ItemLedgerEntry.CalculateRemQuantity(ItemLedgerEntry."Entry No.", PostingDate);
+                            RemQty := ItemLedgerEntry."Remaining Qty. by Date";
                             RemCost := CalcRemainingCost(ItemLedgerEntry, RemQty, IncludeExpectedCost);
                             case CalculatePer of
                                 CalculatePer::"Item Ledger Entry":
@@ -366,9 +368,9 @@ report 5899 "Calculate Inventory Value"
         ByVariant2: Boolean;
         PostingDate: Date;
 
-    local procedure IncludeEntryInCalc(ItemLedgerEntry: Record "Item Ledger Entry"; PostingDate: Date; IncludeExpectedCost: Boolean)Result: Boolean
+    local procedure IncludeEntryInCalc(ItemLedgerEntry: Record "Item Ledger Entry"; PostingDate: Date; IncludeExpectedCost: Boolean) Result: Boolean
     var
-        IsHandled: Boolean;        
+        IsHandled: Boolean;
     begin
         IsHandled := false;
         OnBeforeIncludeEntryInCalc(ItemLedgerEntry, PostingDate, IncludeExpectedCost, Result, IsHandled);

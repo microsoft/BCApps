@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
-using System.Threading;
 using System.Security.User;
+using System.Threading;
 
 codeunit 6412 "ForNAV Peppol Job Queue"
 {

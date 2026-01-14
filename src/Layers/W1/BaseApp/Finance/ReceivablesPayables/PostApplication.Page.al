@@ -7,6 +7,16 @@ namespace Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 
+/// <summary>
+/// Dialog page for configuring parameters when posting payment applications and unapplications.
+/// Provides user interface for selecting posting date, document numbers, and journal settings for application transactions.
+/// </summary>
+/// <remarks>
+/// Standard dialog used by application posting processes to collect user-specified posting parameters.
+/// Supports journal template and batch selection for organizing application entries.
+/// Validates posting date requirements and provides default document numbering options.
+/// Integrates with apply/unapply parameter management for consistent application processing.
+/// </remarks>
 page 579 "Post Application"
 {
     Caption = 'Post Application';
@@ -79,11 +89,21 @@ page 579 "Post Application"
         ApplyUnapplyParameters: Record "Apply Unapply Parameters";
         IsBatchVisible: Boolean;
 
+    /// <summary>
+    /// Sets the application parameters for posting application operations.
+    /// Configures the page with the specified apply/unapply parameters.
+    /// </summary>
+    /// <param name="NewApplyUnapplyParameters">Apply/unapply parameters to set for the page</param>
     procedure SetParameters(NewApplyUnapplyParameters: Record "Apply Unapply Parameters")
     begin
         ApplyUnapplyParameters := NewApplyUnapplyParameters;
     end;
 
+    /// <summary>
+    /// Retrieves the current application parameters from the page.
+    /// Returns the apply/unapply parameters configured for posting operations.
+    /// </summary>
+    /// <param name="NewApplyUnapplyParameters">Variable to receive the current apply/unapply parameters</param>
     procedure GetParameters(var NewApplyUnapplyParameters: Record "Apply Unapply Parameters")
     begin
         NewApplyUnapplyParameters := ApplyUnapplyParameters;

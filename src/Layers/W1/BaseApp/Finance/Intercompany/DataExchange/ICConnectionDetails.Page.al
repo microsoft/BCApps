@@ -7,6 +7,10 @@ namespace Microsoft.Intercompany.DataExchange;
 using Microsoft.Intercompany.Setup;
 using System.Environment;
 
+/// <summary>
+/// Dialog page for configuring intercompany connection details for cross-environment communication.
+/// Provides interface for setting up API endpoints and authentication parameters for partner connectivity.
+/// </summary>
 page 566 "IC Connection Details"
 {
     ApplicationArea = Intercompany;

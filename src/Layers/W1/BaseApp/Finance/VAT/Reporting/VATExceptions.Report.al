@@ -7,6 +7,10 @@ namespace Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
 
+/// <summary>
+/// Identifies and reports VAT calculation discrepancies and exceptions in posted VAT entries.
+/// Analyzes VAT entries for calculation differences, rounding variances, and manual adjustments beyond tolerance thresholds.
+/// </summary>
 report 31 "VAT Exceptions"
 {
     DefaultLayout = RDLC;
@@ -234,6 +238,13 @@ report 31 "VAT Exceptions"
         exit('');
     end;
 
+    /// <summary>
+    /// Initializes VAT exceptions report with filtering and currency display preferences.
+    /// Configures report parameters for exception detection criteria and output formatting.
+    /// </summary>
+    /// <param name="NewUseAmtsInAddCurr">True to display amounts in additional reporting currency, false for local currency</param>
+    /// <param name="NewPrintReversedEntries">True to include reversed VAT entries in exception analysis</param>
+    /// <param name="NewMinVATDifference">Minimum VAT difference threshold for exception detection</param>
     procedure InitializeRequest(NewUseAmtsInAddCurr: Boolean; NewPrintReversedEntries: Boolean; NewMinVATDifference: Decimal)
     begin
         UseAmtsInAddCurr := NewUseAmtsInAddCurr;

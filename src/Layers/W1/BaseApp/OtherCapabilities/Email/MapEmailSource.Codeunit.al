@@ -1,7 +1,7 @@
 namespace System.Email;
 
-using Microsoft.Utilities;
 using Microsoft.Foundation.Attachment;
+using Microsoft.Utilities;
 using System.Utilities;
 
 codeunit 8898 "Map Email Source"

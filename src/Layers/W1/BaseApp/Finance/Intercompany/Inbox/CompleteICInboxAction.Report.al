@@ -16,6 +16,10 @@ using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
 using System.Telemetry;
 
+/// <summary>
+/// Processes intercompany inbox transactions by executing the specified line actions (Accept, Return, Cancel).
+/// Converts accepted transactions to local documents and journal entries, and archives completed transactions.
+/// </summary>
 report 511 "Complete IC Inbox Action"
 {
     Caption = 'Complete IC Inbox Action';
@@ -437,6 +441,9 @@ report 511 "Complete IC Inbox Action"
         GLSetupFound := true;
     end;
 
+    /// <summary>
+    /// Validates and initializes journal template and batch information for journal entry creation.
+    /// </summary>
     procedure PageValidateJnl()
     var
         GenJnlLine: Record "Gen. Journal Line";
@@ -457,6 +464,11 @@ report 511 "Complete IC Inbox Action"
                     TempGenJnlLine."Document No." := NoSeries.PeekNextNo(GenJnlBatch."No. Series", TempGenJnlLine."Posting Date");
     end;
 
+    /// <summary>
+    /// Sets the journal template and batch for journal entry creation during inbox transaction processing.
+    /// </summary>
+    /// <param name="JournalTemplateName">Name of the journal template to use</param>
+    /// <param name="JournalBatchName">Name of the journal batch to use</param>
     procedure SetJournal(JournalTemplateName: Code[10]; JournalBatchName: Code[10])
     begin
         TempGenJnlLine."Journal Template Name" := JournalTemplateName;
@@ -479,37 +491,76 @@ report 511 "Complete IC Inbox Action"
         PageValidateJnl();
     end;
 
+    /// <summary>
+    /// Integration event raised after moving IC inbox sales header to handled table.
+    /// </summary>
+    /// <param name="ICInboxSalesHeader">Source IC inbox sales header being moved</param>
+    /// <param name="HandledICInboxSalesHeader">Target handled sales header record</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterMoveICInboxSalesHeaderToHandled(var ICInboxSalesHeader: Record "IC Inbox Sales Header"; var HandledICInboxSalesHeader: Record "Handled IC Inbox Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after processing IC inbox sales header to handled status.
+    /// </summary>
+    /// <param name="ICInboxSalesHeader">IC inbox sales header being processed</param>
+    /// <param name="HandledICInboxSalesHeader">Resulting handled sales header record</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterICInboxSalesHeaderToHandled(var ICInboxSalesHeader: Record "IC Inbox Sales Header"; var HandledICInboxSalesHeader: Record "Handled IC Inbox Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after moving IC inbox purchase header to handled table.
+    /// </summary>
+    /// <param name="ICInboxPurchaseHeader">Source IC inbox purchase header being moved</param>
+    /// <param name="HandledICInboxPurchHeader">Target handled purchase header record</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterMoveICInboxPurchHeaderToHandled(var ICInboxPurchaseHeader: Record "IC Inbox Purchase Header"; var HandledICInboxPurchHeader: Record "Handled IC Inbox Purch. Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after processing IC inbox purchase header to handled status.
+    /// </summary>
+    /// <param name="ICInboxPurchaseHeader">IC inbox purchase header being processed</param>
+    /// <param name="HandledICInboxPurchHeader">Resulting handled purchase header record</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterICInboxPurchHeaderToHandled(var ICInboxPurchaseHeader: Record "IC Inbox Purchase Header"; var HandledICInboxPurchHeader: Record "Handled IC Inbox Purch. Header")
     begin
     end;
 
 
+    /// <summary>
+    /// Integration event raised before inserting handled inbox transaction record.
+    /// </summary>
+    /// <param name="HandledICInboxTrans">Handled IC inbox transaction being inserted</param>
+    /// <param name="InboxTransaction">Source IC inbox transaction</param>
+    /// <param name="IsHandled">Set to true to skip standard insert processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeHandledInboxTransactionInsert(var HandledICInboxTrans: Record "Handled IC Inbox Trans."; InboxTransaction: Record "IC Inbox Transaction"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before testing general journal template type for IC processing.
+    /// </summary>
+    /// <param name="TempGenJnlLine">Temporary general journal line being validated</param>
+    /// <param name="GenJnlTemplate">General journal template to test</param>
+    /// <param name="IsHandled">Set to true to skip standard template type validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestGenJnlTemplateType(var TempGenJnlLine: Record "Gen. Journal Line" temporary; GenJnlTemplate: Record "Gen. Journal Template"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting handled inbox transaction record.
+    /// </summary>
+    /// <param name="HandledICInboxTrans">Handled IC inbox transaction that was inserted</param>
+    /// <param name="InboxTransaction">Source IC inbox transaction</param>
+    /// <param name="IsRecordInserted">Indicates if the record was successfully inserted</param>
+    /// <param name="SkipRecord">Set to true to skip further processing of this record</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterHandledInboxTransactionInsert(var HandledICInboxTrans: Record "Handled IC Inbox Trans."; var InboxTransaction: Record "IC Inbox Transaction"; IsRecordInserted: Boolean; var SkipRecord: Boolean)
     begin

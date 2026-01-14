@@ -10,8 +10,8 @@ using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Journal;
-using System.Text;
 using System.Reflection;
+using System.Text;
 
 codeunit 5751 "Get Source Doc. Inbound"
 {

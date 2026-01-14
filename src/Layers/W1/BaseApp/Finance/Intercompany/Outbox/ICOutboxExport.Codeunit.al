@@ -9,6 +9,7 @@ using Microsoft.Foundation.BatchProcessing;
 using Microsoft.Foundation.Company;
 using Microsoft.Intercompany;
 using Microsoft.Intercompany.GLAccount;
+using Microsoft.Intercompany.Inbox;
 using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
 using Microsoft.Purchases.Document;
@@ -18,8 +19,16 @@ using System.Environment;
 using System.IO;
 using System.Telemetry;
 using System.Utilities;
-using Microsoft.Intercompany.Inbox;
 
+/// <summary>
+/// Manages intercompany outbox transaction export and transmission operations.
+/// Handles file export, partner communication, and transaction status updates for outbound intercompany processes.
+/// </summary>
+/// <remarks>
+/// Core codeunit for outbox transaction processing. Integrates with partner setup, file systems, email communication, and internal company transfers.
+/// Key workflows: Export transactions, send to partners, update status, handle responses.
+/// Extensible via integration events for custom export formats and partner communication methods.
+/// </remarks>
 codeunit 431 "IC Outbox Export"
 {
     TableNo = "IC Outbox Transaction";
@@ -96,6 +105,11 @@ codeunit 431 "IC Outbox Export"
         end;
     end;
 
+    /// <summary>
+    /// Processes automatic sending of a specific outbox transaction by transaction number.
+    /// Handles auto-send configuration validation and initiates transaction processing.
+    /// </summary>
+    /// <param name="ICOutboxTransactionNo">Transaction number to process for auto-send</param>
     procedure ProcessAutoSendOutboxTransactionNo(ICOutboxTransactionNo: Integer)
     var
         ICSetup: Record "IC Setup";
@@ -111,6 +125,11 @@ codeunit 431 "IC Outbox Export"
             ModifyAndRunOutboxTransactionNo(ICOutboxTransactionNo);
     end;
 
+    /// <summary>
+    /// Sends outbox transactions to external intercompany partners via file export or email.
+    /// Handles partner-specific communication methods and file generation for transaction transmission.
+    /// </summary>
+    /// <param name="ICOutboxTrans">IC Outbox Transaction records to send to external partners</param>
     procedure SendToExternalPartner(var ICOutboxTrans: Record "IC Outbox Transaction")
     var
         ICPartner: Record "IC Partner";
@@ -244,6 +263,10 @@ codeunit 431 "IC Outbox Export"
         exit(true);
     end;
 
+    /// <summary>
+    /// Downloads batch processed files as a compressed archive with the specified filename.
+    /// </summary>
+    /// <param name="DownloadFileName">Name for the downloaded compressed file</param>
     procedure DownloadBatchFiles(DownloadFileName: Text)
     var
         TempBatchProcessingArtifact: Record "Batch Processing Artifact" temporary;
@@ -292,6 +315,11 @@ codeunit 431 "IC Outbox Export"
         FileManagement.DownloadFromStreamHandler(InStreamVar, '', '', '', DownloadFileName);
     end;
 
+    /// <summary>
+    /// Sends outbox transactions to internal intercompany partners within the same database.
+    /// Manages direct company-to-company transaction transfer for internal partner relationships.
+    /// </summary>
+    /// <param name="ICOutboxTrans">IC Outbox Transaction records to send to internal partners</param>
     procedure SendToInternalPartner(var ICOutboxTrans: Record "IC Outbox Transaction")
     var
         ICPartner: Record "IC Partner";
@@ -323,6 +351,10 @@ codeunit 431 "IC Outbox Export"
             until ICOutboxTrans.Next() = 0;
     end;
 
+    /// <summary>
+    /// Returns outbox transactions to the IC partner's inbox for reprocessing.
+    /// </summary>
+    /// <param name="ICOutboxTrans">IC outbox transaction records to return to inbox</param>
     procedure ReturnToInbox(var ICOutboxTrans: Record "IC Outbox Transaction")
     var
         ICPartner: Record "IC Partner";
@@ -343,6 +375,10 @@ codeunit 431 "IC Outbox Export"
             until ICOutboxTrans.Next() = 0;
     end;
 
+    /// <summary>
+    /// Cancels outbox transactions by moving them to the handled outbox.
+    /// </summary>
+    /// <param name="ICOutboxTrans">IC outbox transaction records to cancel</param>
     procedure CancelTransaction(var ICOutboxTrans: Record "IC Outbox Transaction")
     begin
         ICOutboxTrans.SetRange("Line Action", ICOutboxTrans."Line Action"::Cancel);
@@ -352,6 +388,10 @@ codeunit 431 "IC Outbox Export"
             until ICOutboxTrans.Next() = 0;
     end;
 
+    /// <summary>
+    /// Updates the intercompany status on source documents based on outbox transaction processing.
+    /// </summary>
+    /// <param name="ICOutboxTransaction">IC outbox transaction records to update status for</param>
     procedure UpdateICStatus(var ICOutboxTransaction: Record "IC Outbox Transaction")
     var
         PurchHeader: Record "Purchase Header";
@@ -419,61 +459,123 @@ codeunit 431 "IC Outbox Export"
         exit(ClientTypeManagement.GetCurrentClientType() in [CLIENTTYPE::Web, CLIENTTYPE::Phone, CLIENTTYPE::Tablet, CLIENTTYPE::Desktop]);
     end;
 
+    /// <summary>
+    /// Integration event raised before exporting an outbox transaction to enable custom export logic.
+    /// </summary>
+    /// <param name="ICOutboxTransaction">IC outbox transaction being exported</param>
+    /// <param name="OutStr">Output stream for the export data</param>
+    /// <param name="IsHandled">Set to true to skip standard export processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeExportOutboxTransaction(var ICOutboxTransaction: Record "IC Outbox Transaction"; OutStr: OutStream; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before returning transactions to inbox to enable custom return logic.
+    /// </summary>
+    /// <param name="ICOutboxTransaction">IC outbox transaction being returned to inbox</param>
+    /// <param name="IsHandled">Set to true to skip standard return processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReturnToInbox(var ICOutboxTransaction: Record "IC Outbox Transaction"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before running outbox transactions to enable custom processing logic.
+    /// </summary>
+    /// <param name="ICOutboxTransaction">IC outbox transaction being processed</param>
+    /// <param name="IsHandled">Set to true to skip standard processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRunOutboxTransactions(var ICOutboxTransaction: Record "IC Outbox Transaction"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before sending transactions to external partners to enable custom logic.
+    /// </summary>
+    /// <param name="ICOutboxTransaction">IC outbox transaction being sent to external partner</param>
+    /// <param name="IsHandled">Set to true to skip standard external partner processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSendToExternalPartner(var ICOutboxTransaction: Record "IC Outbox Transaction"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after each loop iteration when updating IC status.
+    /// </summary>
+    /// <param name="ICOutboxTransaction">IC outbox transaction being processed in status update</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateICStatusOnAfterLoopIteration(var ICOutboxTransaction: Record "IC Outbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before sending outbox transactions in the run process.
+    /// </summary>
+    /// <param name="ICOutboxTransaction">IC outbox transaction about to be sent</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOutboxTransactionsOnBeforeSend(var ICOutboxTransaction: Record "IC Outbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before downloading batch files to enable custom download logic.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip standard batch file download</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDownloadBatchFiles(var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before confirming automatic response handling for outbox transactions.
+    /// Enables custom logic for transaction confirmation and response processing.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip standard confirmation processing</param>
+    /// <param name="ICOutboxTransaction">Outbox transaction being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforeConfirmGetResponseOrDefault(var IsHandled: Boolean; var ICOutboxTransaction: Record "IC Outbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after successfully sending document to external partner.
+    /// Enables custom post-send processing and partner communication tracking.
+    /// </summary>
+    /// <param name="ICPartner">Partner that received the document</param>
+    /// <param name="FileName">Name of the file that was sent</param>
     [IntegrationEvent(false, false)]
     local procedure OnSendToExternalPartnerOnAfterDocWasSent(ICPartner: Record "IC Partner"; FileName: Text)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before moving transactions to internal partner company.
+    /// Enables custom validation and processing logic for internal company transfers.
+    /// </summary>
+    /// <param name="ICOutboxTransaction">Outbox transaction being transferred</param>
+    /// <param name="IsHandled">Set to true to skip standard transfer processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnSendToInternalPartnerOnBeforeMoveICTransToPartnerCompany(var ICOutboxTransaction: Record "IC Outbox Transaction"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before processing automatic send for specific outbox transaction.
+    /// Enables custom logic for transaction number validation and send criteria.
+    /// </summary>
+    /// <param name="ICOutboxTransactionNo">Transaction number being processed</param>
+    /// <param name="IsHandled">Set to true to skip standard processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeProcessAutoSendOutboxTransactionNo(var ICOutboxTransactionNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before filtering and processing IC partner records for external sending.
+    /// Enables custom partner filtering and selection logic.
+    /// </summary>
+    /// <param name="ICPartner">IC Partner record set being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnSendToExternalPartnerOnBeforeICPartnerFindset(var ICPartner: Record "IC Partner")
     begin

@@ -7,6 +7,15 @@ namespace Microsoft.Finance.Dimension;
 using Microsoft.Finance.Consolidation;
 using Microsoft.Finance.GeneralLedger.Account;
 
+/// <summary>
+/// Interactive worksheet for selecting multiple dimensions for analysis and reporting purposes.
+/// Provides checkbox-based selection interface for dimension filtering and analysis scenarios.
+/// </summary>
+/// <remarks>
+/// Used in reporting and analysis contexts where users need to select multiple dimensions simultaneously.
+/// Works with Dimension Selection Buffer to manage temporary selection state during user interaction.
+/// Common scenarios: multi-dimensional analysis setup, report dimension filtering, consolidation dimension selection.
+/// </remarks>
 page 562 "Dimension Selection-Multiple"
 {
     Caption = 'Dimension Selection';
@@ -48,6 +57,11 @@ page 562 "Dimension Selection-Multiple"
     {
     }
 
+    /// <summary>
+    /// Retrieves all selected dimensions from the temporary buffer into the target record.
+    /// Used to transfer user selections from the page to calling processes.
+    /// </summary>
+    /// <param name="DimensionSelectionBuffer">Target buffer to receive selected dimension records</param>
     procedure GetDimSelBuf(var DimensionSelectionBuffer: Record "Dimension Selection Buffer")
     begin
         DimensionSelectionBuffer.DeleteAll();
@@ -58,6 +72,13 @@ page 562 "Dimension Selection-Multiple"
             until Rec.Next() = 0;
     end;
 
+    /// <summary>
+    /// Adds a new dimension selection entry to the temporary buffer for display on the page.
+    /// Automatically resolves dimension descriptions and sets up filter lookup tables.
+    /// </summary>
+    /// <param name="NewSelected">Initial selection state for the dimension</param>
+    /// <param name="NewCode">Dimension code to add</param>
+    /// <param name="NewDescription">Description text for the dimension, auto-resolved if empty</param>
     procedure InsertDimSelBuf(NewSelected: Boolean; NewCode: Text[30]; NewDescription: Text[30])
     var
         Dimension: Record Dimension;

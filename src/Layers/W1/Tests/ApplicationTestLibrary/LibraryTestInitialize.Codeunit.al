@@ -1,3 +1,6 @@
+/// <summary>
+/// Provides test initialization integration events for coordinating test setup across different test libraries.
+/// </summary>
 codeunit 132250 "Library - Test Initialize"
 {
 

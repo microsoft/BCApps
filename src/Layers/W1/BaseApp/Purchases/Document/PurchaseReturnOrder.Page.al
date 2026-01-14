@@ -5,6 +5,7 @@
 namespace Microsoft.Purchases.Document;
 
 using Microsoft.CRM.Contact;
+using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
@@ -12,7 +13,6 @@ using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Reporting;
-using Microsoft.EServices.EDocument;
 using Microsoft.Intercompany;
 using Microsoft.Intercompany.GLAccount;
 using Microsoft.Purchases.Comment;
@@ -785,20 +785,6 @@ page 6640 "Purchase Return Order"
                 SubPageLink = "No." = field("No."),
                               "Document Type" = field("Document Type");
             }
-#if not CLEAN25
-            part("Attached Documents"; "Document Attachment Factbox")
-            {
-                ObsoleteTag = '25.0';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The "Document Attachment FactBox" has been replaced by "Doc. Attachment List Factbox", which supports multiple files upload.';
-                ApplicationArea = All;
-                Visible = false;
-                Caption = 'Attachments';
-                SubPageLink = "Table ID" = const(Database::"Purchase Header"),
-                              "No." = field("No."),
-                              "Document Type" = field("Document Type");
-            }
-#endif
             part("Attached Documents List"; "Doc. Attachment List Factbox")
             {
                 ApplicationArea = All;

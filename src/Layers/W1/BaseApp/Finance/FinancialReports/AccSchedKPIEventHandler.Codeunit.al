@@ -7,6 +7,15 @@ namespace Microsoft.Finance.FinancialReports;
 using Microsoft.Finance.GeneralLedger.Budget;
 using System.Environment;
 
+/// <summary>
+/// Single-instance event handler for account schedule KPI processing and data management.
+/// Manages KPI-related events and provides centralized handling for account schedule calculations.
+/// </summary>
+/// <remarks>
+/// Primary functionality: KPI event handling, centralized processing coordination.
+/// Integration: Links with Account Schedule system and KPI calculation processes.
+/// Extensibility: Event-driven architecture for KPI processing customization.
+/// </remarks>
 codeunit 198 "Acc. Sched. KPI Event Handler"
 {
     SingleInstance = true;

@@ -4,6 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Budget;
 
+/// <summary>
+/// Specialized query for dimensional analysis of G/L budget entries with aggregated amounts by dimension sets.
+/// Optimizes multi-dimensional budget analysis through efficient grouping and filtering capabilities.
+/// </summary>
+/// <remarks>
+/// Key features: Dimension-based aggregation, pre-filtered dimensional analysis, and optimized sum calculations.
+/// Use cases: Budget analysis by dimensions, dashboard reporting, and performance management scenarios.
+/// Performance: Leverages database aggregation functions for efficient sum calculations across large datasets.
+/// Integration: Works with Analysis Views and dimensional reporting frameworks for comprehensive budget analysis.
+/// </remarks>
 query 251 "G/L Budget Entry Dimensions"
 {
     Caption = 'G/L Budget Entry Dimensions';

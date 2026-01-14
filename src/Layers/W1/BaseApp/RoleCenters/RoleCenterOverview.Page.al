@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.RoleCenters;
 
-using System.Environment.Configuration;
 using System.Environment;
+using System.Environment.Configuration;
 using System.Reflection;
 
 page 1486 "Role Center Overview"

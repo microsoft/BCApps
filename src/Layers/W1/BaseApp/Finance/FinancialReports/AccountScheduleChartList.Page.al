@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.FinancialReports;
 
+/// <summary>
+/// Displays list of account schedule chart configurations with navigation to detailed setup.
+/// Provides overview of user-defined financial report chart setups for visualization management.
+/// </summary>
+/// <remarks>
+/// Primary functionality: Chart setup browsing, creation of new chart configurations.
+/// Navigation: Links to Account Schedules Chart Setup card page for detailed configuration.
+/// Extensibility: Standard page extension patterns for additional fields and actions.
+/// </remarks>
 page 767 "Account Schedule Chart List"
 {
     Caption = 'Account Schedule Chart List';

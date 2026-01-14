@@ -5,7 +5,12 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Calendar;
 using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
+using Microsoft.Projects.Project.Job;
+using Microsoft.Projects.Project.Planning;
+using Microsoft.Projects.Resources.Resource;
+using Microsoft.Projects.TimeSheet;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Pricing;
 using Microsoft.Service.Comment;
@@ -19,16 +24,12 @@ using Microsoft.Service.Posting;
 using Microsoft.Service.Pricing;
 using Microsoft.Service.Setup;
 using Microsoft.Warehouse.Setup;
-using Microsoft.Projects.Project.Planning;
-using Microsoft.Projects.Project.Job;
-using Microsoft.Inventory.Item;
-using Microsoft.Projects.TimeSheet;
-using Microsoft.Projects.Resources.Resource;
 
+/// <summary>
+/// Provides utility functions for creating and managing service-related entities in test scenarios, including service orders, contracts, and items.
+/// </summary>
 codeunit 131902 "Library - Service"
 {
-    // Contains all utility functions related to Service.
-
 
     trigger OnRun()
     begin

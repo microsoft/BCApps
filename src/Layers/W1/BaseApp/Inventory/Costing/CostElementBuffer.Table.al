@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Costing;
 
-using Microsoft.Inventory.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Inventory.Ledger;
 
 table 5820 "Cost Element Buffer"
 {

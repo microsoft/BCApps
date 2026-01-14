@@ -7,6 +7,14 @@ namespace Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
 using System.Text;
 
+/// <summary>
+/// Displays dimension values in list format with support for hierarchical indentation and selection filtering.
+/// Supports both global dimensions and shortcut dimensions with dynamic caption management.
+/// </summary>
+/// <remarks>
+/// Supports dimension value type formatting with visual emphasis for non-standard values.
+/// Integrates with selection filter management for dimension value lookups and filtering operations.
+/// </remarks>
 page 560 "Dimension Value List"
 {
     Caption = 'Dimension Value List';
@@ -104,6 +112,11 @@ page 560 "Dimension Value List"
         Emphasize: Boolean;
         NameIndent: Integer;
 
+    /// <summary>
+    /// Returns selection filter text for currently selected dimension values using selection filter management.
+    /// Provides formatted filter expression for use in reports and queries.
+    /// </summary>
+    /// <returns>Selection filter text for selected dimension values</returns>
     procedure GetSelectionFilter(): Text
     var
         DimVal: Record "Dimension Value";
@@ -113,6 +126,11 @@ page 560 "Dimension Value List"
         exit(SelectionFilterManagement.GetSelectionFilterForDimensionValue(DimVal));
     end;
 
+    /// <summary>
+    /// Sets selection filter on the current page based on provided dimension value records.
+    /// Enables bulk selection and filtering operations for dimension value processing.
+    /// </summary>
+    /// <param name="DimVal">Dimension value records to use for selection filtering</param>
     procedure SetSelection(var DimVal: Record "Dimension Value")
     begin
         CurrPage.SetSelectionFilter(DimVal);

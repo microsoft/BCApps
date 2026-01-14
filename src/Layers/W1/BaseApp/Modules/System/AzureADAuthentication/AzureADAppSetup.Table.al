@@ -19,13 +19,8 @@ table 6300 "Azure AD App Setup"
         {
             Caption = 'Secret Key';
             ObsoleteReason = 'The Secret Key has been moved to Isolated Storage. Use GetSecretKeyFromIsolatedStorage/SetSecretKeyToIsolatedStorage to retrieve or set the Secret Key.';
-#if CLEAN25
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '17.0';
-#endif
         }
 #endif
         field(3; "Primary Key"; Integer)
@@ -63,16 +58,6 @@ table 6300 "Azure AD App Setup"
 
     var
         OnlyOneRecordErr: Label 'There should be only one record for Microsoft Entra App Setup.';
-#if not CLEAN25
-
-    [NonDebuggable]
-    [Scope('OnPrem')]
-    [Obsolete('Replaced by GetSecretKeyFromIsolatedStorageAsSecretText', '25.0')]
-    procedure GetSecretKeyFromIsolatedStorage(): Text
-    begin
-        exit(GetSecretKeyFromIsolatedStorageAsSecretText().Unwrap());
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure GetSecretKeyFromIsolatedStorageAsSecretText() SecretKey: SecretText
@@ -88,19 +73,6 @@ table 6300 "Azure AD App Setup"
     begin
         exit(StrLen(ToEncrypt.Unwrap()) <= 215);
     end;
-#if not CLEAN25
-
-    [Scope('OnPrem')]
-    [Obsolete('Replaced by SetSecretKeyToIsolatedStorage(SecretKey: SecretText)', '25.0')]
-    [NonDebuggable]
-    procedure SetSecretKeyToIsolatedStorage(SecretKey: Text)
-    var
-        SecretKeyAsSecretText: SecretText;
-    begin
-        SecretKeyAsSecretText := SecretKey;
-        SetSecretKeyToIsolatedStorage(SecretKeyAsSecretText);
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure SetSecretKeyToIsolatedStorage(SecretKey: SecretText)
@@ -120,4 +92,3 @@ table 6300 "Azure AD App Setup"
         Rec."Isolated Storage Secret Key" := NewSecretGuid;
     end;
 }
-

@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.Setup;
 
+/// <summary>
+/// Displays intercompany setup diagnostic summary with issue counts and drill-down capabilities.
+/// Provides overview of configuration validation results and navigation to detailed diagnostic findings.
+/// </summary>
 page 9051 "Intercompany Setup Diagnostics"
 {
     PageType = ListPart;

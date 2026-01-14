@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -208,13 +208,6 @@ table 780 "Certificate of Supply"
         end
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure InitCertificateOfSupply in table Service Shipment Header', '25.0')]
-    procedure InitFromService(var ServiceShipmentHeader: Record Microsoft.Service.History."Service Shipment Header")
-    begin
-        ServiceShipmentHeader.InitCertificateOfSupply(Rec);
-    end;
-#endif
 
     procedure InitRecord(DocumentType: Option; DocumentNo: Code[20])
     var
@@ -251,18 +244,6 @@ table 780 "Certificate of Supply"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnAfterInitFromService(var CertificateOfSupply: Record "Certificate of Supply"; ServiceShipmentHeader: Record Microsoft.Service.History."Service Shipment Header")
-    begin
-        OnAfterInitFromService(CertificateOfSupply, ServiceShipmentHeader);
-    end;
-
-    [Obsolete('Replaced by event OnAfterInitCertificateOfSupply in table Service Shipment Header', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterInitFromService(var CertificateOfSupply: Record "Certificate of Supply"; ServiceShipmentHeader: Record Microsoft.Service.History."Service Shipment Header")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitRecord(var CertificateOfSupply: Record "Certificate of Supply"; DocumentType: Option; DocumentNo: Code[20]; var IsHandled: Boolean)
@@ -274,4 +255,3 @@ table 780 "Certificate of Supply"
     begin
     end;
 }
-

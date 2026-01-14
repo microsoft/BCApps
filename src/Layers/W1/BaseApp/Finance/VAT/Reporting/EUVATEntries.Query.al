@@ -7,6 +7,10 @@ namespace Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Foundation.Address;
 
+/// <summary>
+/// Data query for extracting VAT entry information for European Union sales reporting.
+/// Filters VAT entries by sale type and provides access to base amounts, VAT amounts, and country information.
+/// </summary>
 query 141 "EU VAT Entries"
 {
     Caption = 'EU VAT Entries';

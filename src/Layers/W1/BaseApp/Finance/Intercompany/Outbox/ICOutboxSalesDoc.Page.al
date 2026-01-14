@@ -6,6 +6,15 @@ namespace Microsoft.Intercompany.Outbox;
 
 using Microsoft.Intercompany.Dimension;
 
+/// <summary>
+/// Intercompany outbox sales document interface for viewing and managing outbound sales transactions.
+/// Provides detailed document view for sales transactions pending transmission to intercompany partners.
+/// </summary>
+/// <remarks>
+/// Primary data source: IC Outbox Sales Header. Used for transaction review and management before partner transmission.
+/// Navigation: Document header view → Related sales lines and transaction details.
+/// Extensible via page extensions for additional sales document fields and custom validation logic.
+/// </remarks>
 page 636 "IC Outbox Sales Doc."
 {
     Caption = 'IC Outbox Sales Doc.';

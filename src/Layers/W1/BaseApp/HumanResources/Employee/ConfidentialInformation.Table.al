@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,6 +23,7 @@ table 5216 "Confidential Information"
         field(2; "Confidential Code"; Code[10])
         {
             Caption = 'Confidential Code';
+            ToolTip = 'Specifies a code to define the type of confidential information.';
             NotBlank = true;
             TableRelation = Confidential;
 
@@ -40,6 +41,7 @@ table 5216 "Confidential Information"
         field(4; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the confidential information.';
         }
         field(5; Comment; Boolean)
         {
@@ -48,6 +50,7 @@ table 5216 "Confidential Information"
                                                                       "Code" = field("Confidential Code"),
                                                                       "Table Line No." = field("Line No.")));
             Caption = 'Comment';
+            ToolTip = 'Specifies if a comment is associated with the entry.';
             Editable = false;
             FieldClass = FlowField;
         }

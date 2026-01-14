@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,6 +26,7 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Pricing;
 using Microsoft.Utilities;
 using System;
+using System.Apps;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Media;
@@ -33,10 +34,6 @@ using System.Reflection;
 using System.Telemetry;
 using System.Threading;
 using System.Utilities;
-#if not CLEAN25
-using Microsoft.Integration.FieldService;
-#endif
-using System.Apps;
 
 codeunit 5330 "CRM Integration Management"
 {
@@ -99,9 +96,6 @@ codeunit 5330 "CRM Integration Management"
         BothRecordsModifiedToNAVQst: Label 'Both %1 and the %4 %2 record have been changed since the last synchronization, or synchronization has never been performed. If you continue with synchronization, data in %3 will be overwritten with data from %4. Are you sure you want to synchronize?', Comment = '%1 is a formatted RecordID, such as ''Customer 1234''. %2 is the caption of a Dataverse table. %3 - product name, %4 = Dataverse service name';
         CRMIntegrationEnabledState: Option " ","Not Enabled",Enabled,"Enabled But Not For Current User";
         CDSIntegrationEnabledState: Option " ","Not Enabled",Enabled,"Enabled But Not For Current User";
-#if not CLEAN25
-        FSIntegrationEnabledState: Option " ","Not Enabled",Enabled,"Enabled But Not For Current User";
-#endif
         NotEnabledForCurrentUserMsg: Label '%3 Integration is enabled.\However, because the %2 Users Must Map to %4 Users field is set, %3 integration is not enabled for %1.', Comment = '%1 = Current User Id %2 - product name, %3 = CRM product name, %4 = Dataverse service name';
         CRMIntegrationEnabledLastError: Text;
         ImportSolutionConnectStringTok: Label '%1api%2/XRMServices/2011/Organization.svc', Locked = true;
@@ -109,9 +103,6 @@ codeunit 5330 "CRM Integration Management"
         EmailAndServerAddressEmptyErr: Label 'The Integration User Email and Server Address fields must not be empty.';
         CRMSolutionFileNotFoundErr: Label 'A file for a CRM solution could not be found.';
         MicrosoftDynamicsNavIntegrationTxt: Label 'MicrosoftDynamicsNavIntegration', Locked = true;
-#if not CLEAN25
-        MicrosoftDynamicsFSIntegrationTxt: Label 'bcbi_FieldServiceIntegration', Locked = true;
-#endif
         AdminEmailPasswordWrongErr: Label 'Enter valid %1 administrator credentials.', Comment = '%1 = CRM product name';
         OrganizationServiceFailureErr: Label 'The setup failed due to a generic error. Please sign in to the Dataverse organization with an account that has the System Administrator role. Ensure that no other import or deletion of a PowerApps solution is currently in progress. Additionally, verify that the solution file is not broken and that the specified administrator has sufficient privileges.';
         InvalidUriErr: Label 'The value entered is not a valid URL.';
@@ -175,11 +166,6 @@ codeunit 5330 "CRM Integration Management"
         SalesProIntegrationSolutionImportedTxt: label 'Integration solution for Sales Professional is imported.', Locked = true;
         CompanyParameterTok: label '?company=', Locked = true;
         MultipleCompanyLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2259003', Locked = true;
-#if not CLEAN25
-        FieldServiceAdministratorProfileIdLbl: label '8d988915-e392-e111-9d8c-000c2959f9b8', Locked = true;
-        CannotAssignFieldSecurityProfileToUserTelemetryLbl: Label 'Cannot assign field security profile to integration user.', Locked = true;
-        CannotAssignFieldSecurityProfileToUserQst: Label 'To enable the setup, you must sign in to %1 as administrator and assign the column security profile "Field Service - Administrator" to the Business Central integration user. Do you want to open the Business Central integration user card in %1?', Comment = '%1 - Dataverse environment URL';
-#endif
         FSIntegrationAppSourceLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2277825', Locked = true;
         FieldServiceIntegrationAppIdLbl: Label '1ba1031e-eae9-4f20-b9d2-d19b6d1e3f29', Locked = true;
 
@@ -290,16 +276,6 @@ codeunit 5330 "CRM Integration Management"
         exit(false);
     end;
 
-#if not CLEAN25
-    internal procedure IsFSSolutionInstalled(): Boolean
-    begin
-        if TryTouchFSSolutionEntities() then
-            exit(true);
-
-        ClearLastError();
-        exit(false);
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure CheckSolutionVersionOutdated(): Boolean
@@ -328,18 +304,6 @@ codeunit 5330 "CRM Integration Management"
             exit;
     end;
 
-#if not CLEAN25
-    [TryFunction]
-    local procedure TryTouchFSSolutionEntities()
-    var
-        FSProjectTask: Record "FS Project Task";
-        Cnt: Integer;
-    begin
-        Cnt := FSProjectTask.Count();
-        if Cnt > 0 then
-            exit;
-    end;
-#endif
 
     procedure SetCRMNAVConnectionUrl(WebClientUrl: Text[250])
     var
@@ -2811,13 +2775,6 @@ codeunit 5330 "CRM Integration Management"
         CRMIntegrationEnabledState := CRMIntegrationEnabledState::" "
     end;
 
-#if not CLEAN25
-    [Obsolete('Field Service is moved to Field Service Integration app.', '25.0')]
-    procedure ClearFSState()
-    begin
-        FSIntegrationEnabledState := FSIntegrationEnabledState::" "
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure GetLastErrorMessage(): Text
@@ -2833,19 +2790,6 @@ codeunit 5330 "CRM Integration Management"
         exit(GetLastErrorText);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by ImportCRMSolution procedure with SolutionImportFailed argument and SecretText parameters for AdminUserPassword and AccessToken.', '25.0')]
-    [TryFunction]
-    [Scope('OnPrem')]
-    [NonDebuggable]
-    procedure ImportCRMSolution(ServerAddress: Text; IntegrationUserEmail: Text; AdminUserEmail: Text; AdminUserPassword: Text; AccessToken: Text; AdminADDomain: Text; ProxyVersion: Integer; ForceRedeploy: Boolean)
-    var
-        SolutionImportFailed: Boolean;
-        SecretAdminUserPassword, SecretAccessToken : SecretText;
-    begin
-        ImportCRMSolution(ServerAddress, IntegrationUserEmail, AdminUserEmail, SecretAdminUserPassword, SecretAccessToken, AdminADDomain, ProxyVersion, ForceRedeploy, SolutionImportFailed);
-    end;
-#endif
 
     [TryFunction]
     [Scope('OnPrem')]
@@ -2975,129 +2919,6 @@ codeunit 5330 "CRM Integration Management"
         end;
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by ImportFSSolution procedure with SolutionImportFailed argument.', '25.0')]
-    [TryFunction]
-    [NonDebuggable]
-    internal procedure ImportFSSolution(ServerAddress: Text; IntegrationUserEmail: Text; AdminUserEmail: Text; AdminUserPassword: Text; AccessToken: Text; AdminADDomain: Text; ProxyVersion: Integer; ForceRedeploy: Boolean)
-    var
-        ImportSolutionFailed: Boolean;
-    begin
-        ImportFSSolution(ServerAddress, IntegrationUserEmail, AdminUserEmail, AdminUserPassword, AccessToken, AdminADDomain, ProxyVersion, ForceRedeploy, ImportSolutionFailed);
-    end;
-
-    [TryFunction]
-    [NonDebuggable]
-    internal procedure ImportFSSolution(ServerAddress: Text; IntegrationUserEmail: Text; AdminUserEmail: Text; AdminUserPassword: SecretText; AccessToken: SecretText; AdminADDomain: Text; ProxyVersion: Integer; ForceRedeploy: Boolean; ImportSolutionFailed: Boolean)
-    var
-        CDSConnectionSetup: Record "CDS Connection Setup";
-        CRMRole: Record "CRM Role";
-        CDSIntegrationImpl: Codeunit "CDS Integration Impl.";
-        PageCDSConnectionSetup: Page "CDS Connection Setup";
-        CRMHelper: DotNet CrmHelper;
-        UserGUID: Guid;
-        IntegrationRoleGUID: Guid;
-        FieldSecurityProfileGUID: Guid;
-        DefaultOwningTeamGUID: Guid;
-        TempConnectionStringWithPlaceholders: Text;
-        TempConnectionString: SecretText;
-        SolutionInstalled: Boolean;
-        SolutionOutdated: Boolean;
-        ImportSolution: Boolean;
-    begin
-        CheckConnectRequiredFields(ServerAddress, IntegrationUserEmail);
-        CDSConnectionSetup.Get();
-        if not AccessToken.IsEmpty() then begin
-            TempConnectionStringWithPlaceholders :=
-                StrSubstNo(OAuthConnectionStringFormatTok, ServerAddress, '%1', ProxyVersion, CDSIntegrationImpl.GetAuthenticationTypeToken(CDSConnectionSetup));
-            TempConnectionString := SecretStrSubstNo(TempConnectionStringWithPlaceholders, AccessToken);
-        end
-        else
-            if AdminADDomain <> '' then begin
-                TempConnectionStringWithPlaceholders := StrSubstNo(
-                    ConnectionStringFormatTok, ServerAddress, AdminUserEmail, '%1', ProxyVersion, CDSIntegrationImpl.GetAuthenticationTypeToken(CDSConnectionSetup, AdminADDomain));
-                TempConnectionString := SecretStrSubstNo(TempConnectionStringWithPlaceholders, AdminUserPassword);
-            end
-            else begin
-                TempConnectionStringWithPlaceholders := StrSubstNo(
-                    ConnectionStringFormatTok, ServerAddress, AdminUserEmail, '%1', ProxyVersion, CDSIntegrationImpl.GetAuthenticationTypeToken(CDSConnectionSetup));
-                TempConnectionString := SecretStrSubstNo(TempConnectionStringWithPlaceholders, AdminUserPassword);
-            end;
-
-        if CDSConnectionSetup."Authentication Type" = CDSConnectionSetup."Authentication Type"::OAuth then
-            TempConnectionString := CDSIntegrationImpl.ReplaceUserNamePasswordInConnectionstring(CDSConnectionSetup, AdminUserEmail, AdminUserPassword);
-
-        if not InitializeFSConnection(CRMHelper, TempConnectionString) then
-            ProcessConnectionFailures();
-
-        UserGUID := CRMHelper.GetUserId(IntegrationUserEmail);
-        if IsNullGuid(UserGUID) then
-            Error(UserDoesNotExistCRMErr, IntegrationUserEmail, CRMProductName.CDSServiceName());
-
-        SolutionInstalled := CRMHelper.CheckSolutionPresence(MicrosoftDynamicsFSIntegrationTxt);
-        if SolutionInstalled then
-            SolutionOutdated := IsSolutionOutdated(TempConnectionString, MicrosoftDynamicsFSIntegrationTxt);
-
-        if ForceRedeploy then
-            ImportSolution := (not SolutionInstalled) or SolutionOutdated
-        else
-            ImportSolution := not SolutionInstalled;
-
-        if ImportSolution then
-            if not ImportDefaultFSSolution(CRMHelper) then begin
-                ImportSolutionFailed := true;
-                ProcessConnectionFailures();
-            end;
-
-        IntegrationRoleGUID := CRMHelper.GetRoleId(GetFieldServiceIntegrationRoleID());
-        if not CRMHelper.CheckRoleAssignedToUser(UserGUID, IntegrationRoleGUID) then
-            CRMHelper.AssociateUserWithRole(UserGUID, IntegrationRoleGUID);
-
-        if CDSIntegrationImpl.IsIntegrationEnabled() then begin
-            CDSIntegrationImpl.RegisterConnection();
-            CDSIntegrationImpl.ActivateConnection();
-            CDSConnectionSetup.Get();
-            DefaultOwningTeamGUID := CDSIntegrationImpl.GetOwningTeamId(CDSConnectionSetup);
-            if IsNullGuid(DefaultOwningTeamGUID) then begin
-                Session.LogMessage('0000M99', TeamNotFoundTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
-                Error(TeamNotFoundErr, CDSIntegrationImpl.GetDefaultBusinessUnitName(), PageCDSConnectionSetup.Caption);
-            end;
-            CRMRole.SetRange(ParentRoleId, IntegrationRoleGUID);
-            CRMRole.SetRange(BusinessUnitId, CDSIntegrationImpl.GetCoupledBusinessUnitId());
-            if not CRMRole.FindFirst() then begin
-                Session.LogMessage('0000M9A', RoleNotFoundForBusinessUnitTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
-                Error(IntegrationRoleNotFoundErr, IntegrationRoleGUID, CDSIntegrationImpl.GetDefaultBusinessUnitName());
-            end;
-            if not CDSIntegrationImpl.AssignTeamRole(CrmHelper, DefaultOwningTeamGUID, CRMRole.RoleId) then begin
-                Session.LogMessage('0000M9B', CannotAssignRoleToTeamTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
-                Error(CannotAssignRoleToTeamErr, DefaultOwningTeamGUID, CDSIntegrationImpl.GetDefaultBusinessUnitName(), CRMRole.Name);
-            end;
-            if not CDSIntegrationImpl.AssignTeamRole(CrmHelper, DefaultOwningTeamGUID, CRMRole.RoleId) then begin
-                Session.LogMessage('0000M9C', CannotAssignRoleToTeamTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
-                Error(CannotAssignRoleToTeamErr, DefaultOwningTeamGUID, CDSIntegrationImpl.GetDefaultBusinessUnitName(), CRMRole.Name);
-            end;
-        end;
-
-        FieldSecurityProfileGUID := TextToGuid(FieldServiceAdministratorProfileIdLbl);
-        if not CRMHelper.CheckFieldSecurityProfileAssignedToUser(UserGUID, FieldSecurityProfileGUID) then
-            CRMHelper.AssociateUserWithFieldSecurityProfile(UserGUID, FieldSecurityProfileGUID);
-
-        if not CRMHelper.CheckFieldSecurityProfileAssignedToUser(UserGUID, FieldSecurityProfileGUID) then begin
-            Session.LogMessage('0000MEG', CannotAssignFieldSecurityProfileToUserTelemetryLbl, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
-            if Confirm(StrSubstNo(CannotAssignFieldSecurityProfileToUserQst, CDSConnectionSetup."Server Address")) then
-                CDSIntegrationImpl.ShowIntegrationUser(CDSConnectionSetup);
-            Error('');
-        end
-    end;
-
-    local procedure TextToGuid(TextVar: Text): Guid
-    var
-        GuidVar: Guid;
-    begin
-        if not Evaluate(GuidVar, TextVar) then;
-        exit(GuidVar);
-    end;
-#endif
 
     [NonDebuggable]
     local procedure IsSolutionOutdated(TempConnectionString: SecretText): Boolean
@@ -3136,13 +2957,6 @@ codeunit 5330 "CRM Integration Management"
         CRMHelper.ImportDefaultCrmSolution();
     end;
 
-#if not CLEAN25
-    [TryFunction]
-    local procedure ImportDefaultFSSolution(var CRMHelper: DotNet CrmHelper)
-    begin
-        CRMHelper.ImportDefaultFieldServiceSolution()
-    end;
-#endif
 
     [TryFunction]
     local procedure ImportDefaultSalesProSolution(var CRMHelper: DotNet CrmHelper)
@@ -3246,22 +3060,6 @@ codeunit 5330 "CRM Integration Management"
             ProcessConnectionFailures();
     end;
 
-#if not CLEAN25
-    [TryFunction]
-    [NonDebuggable]
-    local procedure InitializeFSConnection(var CRMHelper: DotNet CrmHelper; ConnectionString: SecretText)
-    var
-        FSConnectionSetup: Record "FS Connection Setup";
-    begin
-        if ConnectionString.IsEmpty() then begin
-            FSConnectionSetup.Get();
-            CRMHelper := CRMHelper.CrmHelper(FSConnectionSetup.GetConnectionStringWithCredentials().Unwrap());
-        end else
-            CRMHelper := CRMHelper.CrmHelper(ConnectionString.Unwrap());
-        if not TestCRMConnection(CRMHelper) then
-            ProcessConnectionFailures();
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure ProcessConnectionFailures()
@@ -3404,12 +3202,6 @@ codeunit 5330 "CRM Integration Management"
         exit('');
     end;
 
-#if not CLEAN25
-    local procedure GetFieldServiceIntegrationRoleID(): Text
-    begin
-        exit('c11b4fa8-956b-439d-8b3c-021e8736a78b');
-    end;
-#endif
 
     local procedure GetIntegrationAdminRoleID(): Text
     begin

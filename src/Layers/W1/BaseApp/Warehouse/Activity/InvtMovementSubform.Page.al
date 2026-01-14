@@ -7,9 +7,9 @@ namespace Microsoft.Warehouse.Activity;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
+using Microsoft.Warehouse.Availability;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Structure;
-using Microsoft.Warehouse.Availability;
 
 page 7383 "Invt. Movement Subform"
 {

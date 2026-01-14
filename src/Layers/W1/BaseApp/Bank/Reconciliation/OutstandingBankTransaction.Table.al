@@ -7,6 +7,19 @@ namespace Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Ledger;
 
+/// <summary>
+/// Tracks bank transactions that remain unmatched or outstanding during bank reconciliation processes.
+/// This table maintains records of bank account ledger entries and check transactions that have not been
+/// cleared or matched against bank statement lines. Used for identifying discrepancies, monitoring
+/// outstanding items, and generating reconciliation reports for management review.
+/// </summary>
+/// <remarks>
+/// Key functionality includes outstanding transaction tracking across multiple transaction types,
+/// age analysis for overdue items, currency handling for multi-currency bank accounts,
+/// and integration with bank reconciliation workflows. Supports both automatic detection
+/// of outstanding items and manual addition of reconciling items. Used extensively for
+/// month-end reconciliation processes and audit trail maintenance.
+/// </remarks>
 table 1284 "Outstanding Bank Transaction"
 {
     Caption = 'Outstanding Bank Transaction';
@@ -14,53 +27,97 @@ table 1284 "Outstanding Bank Transaction"
 
     fields
     {
+        /// <summary>
+        /// Unique entry number for the outstanding bank transaction.
+        /// Provides identification and linking to source ledger entries.
+        /// </summary>
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
         }
+        /// <summary>
+        /// Posting date of the original bank transaction.
+        /// Used for chronological analysis and reconciliation matching.
+        /// </summary>
         field(2; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
         }
+        /// <summary>
+        /// Document type of the original transaction.
+        /// Indicates the nature of the business transaction creating the outstanding item.
+        /// </summary>
         field(3; "Document Type"; Option)
         {
             Caption = 'Document Type';
             OptionCaption = ' ,Payment,Invoice,Credit Memo,Finance Charge Memo,Reminder,Refund';
             OptionMembers = " ",Payment,Invoice,"Credit Memo","Finance Charge Memo",Reminder,Refund;
         }
+        /// <summary>
+        /// Document number of the original transaction.
+        /// Used for reference matching and transaction identification.
+        /// </summary>
         field(4; "Document No."; Code[20])
         {
             Caption = 'Document No.';
         }
+        /// <summary>
+        /// Bank account number where the outstanding transaction occurred.
+        /// Identifies which bank account has the unreconciled transaction.
+        /// </summary>
         field(5; "Bank Account No."; Code[20])
         {
             Caption = 'Bank Account No.';
         }
+        /// <summary>
+        /// Description of the outstanding bank transaction.
+        /// Provides context and identification for reconciliation purposes.
+        /// </summary>
         field(6; Description; Text[100])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// Transaction amount for the outstanding bank transaction.
+        /// Shows the unreconciled amount that needs to be matched with bank statements.
+        /// </summary>
         field(7; Amount; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
             Caption = 'Amount';
         }
+        /// <summary>
+        /// Type of source ledger entry for the outstanding transaction.
+        /// Determines which ledger table contains the original transaction record.
+        /// </summary>
         field(8; Type; Option)
         {
             Caption = 'Type';
             OptionCaption = 'Bank Account Ledger Entry,Check Ledger Entry';
             OptionMembers = "Bank Account Ledger Entry","Check Ledger Entry";
         }
+        /// <summary>
+        /// Indicates whether the outstanding transaction has been applied in reconciliation.
+        /// Controls visibility and processing during bank reconciliation workflows.
+        /// </summary>
         field(9; Applied; Boolean)
         {
             Caption = 'Applied';
         }
+        /// <summary>
+        /// Type of statement used for reconciliation processing.
+        /// Determines the reconciliation workflow and processing logic.
+        /// </summary>
         field(10; "Statement Type"; Option)
         {
             Caption = 'Statement Type';
             OptionCaption = 'Bank Reconciliation,Payment Application';
             OptionMembers = "Bank Reconciliation","Payment Application";
         }
+        /// <summary>
+        /// Statement number when the transaction was applied during reconciliation.
+        /// Links the transaction to the specific reconciliation session.
+        /// </summary>
         field(11; "Statement No."; Code[20])
         {
             Caption = 'Statement No.';

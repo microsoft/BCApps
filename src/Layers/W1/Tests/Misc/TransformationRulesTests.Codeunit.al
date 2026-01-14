@@ -795,32 +795,6 @@ codeunit 134274 "Transformation Rules Tests"
         Assert.AreEqual(InputText, TransformationRule.TransformText(InputText), '');
     end;
 
-#if not CLEAN25
-    [Test]
-    [Scope('OnPrem')]
-    procedure TestUnixtimestamp()
-    var
-        TransformationRule: Record "Transformation Rule";
-        UnixtimestampTransformation: Codeunit "Unixtimestamp Transformation";
-        TypeHelper: Codeunit "Type Helper";
-        Timestamp: BigInteger;
-        Testdate: DateTime;
-        InputText: Text;
-        ResultText: Text;
-    begin
-        Iniatialize();
-
-        TransformationRule.Get(UnixtimestampTransformation.GetUnixTimestampCode());
-
-        Timestamp := 1481544732;
-        Testdate := TypeHelper.EvaluateUnixTimestamp(Timestamp);
-
-        InputText := Format(Timestamp);
-        ResultText := TransformationRule.TransformText(InputText);
-
-        Assert.AreEqual(Format(Testdate, 0, XmlFormat()), ResultText, '');
-    end;
-#endif
 
     [Test]
     [Scope('OnPrem')]

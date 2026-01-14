@@ -1,12 +1,12 @@
 namespace System.Security.AccessControl;
 
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Intercompany.Comment;
+using Microsoft.Intercompany.Dimension;
 using Microsoft.Intercompany.Inbox;
 using Microsoft.Intercompany.Outbox;
 using Microsoft.Intercompany.Setup;
-using Microsoft.Finance.VAT.Setup;
-using Microsoft.Intercompany.Dimension;
 
 permissionset 1562 "D365 IC, EDIT"
 {

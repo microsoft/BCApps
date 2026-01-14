@@ -170,8 +170,10 @@ codeunit 1006 "Copy Job"
                     NextPlanningLineNo += 10000;
                     TargetJobPlanningLine.Validate("Line No.", NextPlanningLineNo);
                     TargetJobPlanningLine.TransferFields(SourceJobPlanningLine, false);
-                    if not CopyPrices then
+                    if not CopyPrices then begin
+                        TargetJobPlanningLine."Line Amount" := 0;
                         TargetJobPlanningLine.UpdateAllAmounts();
+                    end;
 
                     TargetJobPlanningLine."Remaining Qty." := 0;
                     TargetJobPlanningLine."Remaining Qty. (Base)" := 0;

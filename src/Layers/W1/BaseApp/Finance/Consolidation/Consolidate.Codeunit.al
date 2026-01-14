@@ -14,6 +14,15 @@ using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Foundation.AuditCodes;
 using System.Security.User;
 
+/// <summary>
+/// Core consolidation engine for processing subsidiary company data and creating consolidated G/L entries.
+/// Handles currency translation, dimension mapping, and residual amount calculations during consolidation.
+/// </summary>
+/// <remarks>
+/// Primary consolidation processing engine supporting file-based, database, and API data import methods.
+/// Integrates with General Ledger posting, dimension management, and currency exchange rate systems.
+/// Extensibility: Multiple integration events for custom validation, processing, and posting logic.
+/// </remarks>
 codeunit 432 Consolidate
 {
     Permissions = TableData "G/L Entry" = rimd,
@@ -410,6 +419,10 @@ codeunit 432 Consolidate
 #pragma warning restore AA0074
         ConsolidationAccMissingErr: Label 'The G/L account %1 can''t be found in the consolidation company, but it is specified in the business unit %2. Verify that the G/L account exists in the consolidation company or that it''s correctly mapped by setting the Consolidation fields in the subsidiary G/L account.', Comment = '%1 - A G/L account code, %2 - A Business Unit code';
 
+    /// <summary>
+    /// Sets the document number for consolidation entries that will be posted to the General Ledger.
+    /// </summary>
+    /// <param name="NewDocNo">Document number to use for posting consolidation entries</param>
     procedure SetDocNo(NewDocNo: Code[20])
     begin
         GLDocNo := NewDocNo;
@@ -417,11 +430,19 @@ codeunit 432 Consolidate
             Error(Text000);
     end;
 
+    /// <summary>
+    /// Configures the General Journal batch for posting consolidation entries.
+    /// </summary>
+    /// <param name="NewGenJnlBatch">General Journal batch configuration for consolidation posting</param>
     procedure SetGenJnlBatch(NewGenJnlBatch: Record "Gen. Journal Batch")
     begin
         GenJnlBatch := NewGenJnlBatch;
     end;
 
+    /// <summary>
+    /// Configures dimension selection filter for consolidation processing and posting.
+    /// </summary>
+    /// <param name="SelectedDim">Selected dimensions configuration for consolidation</param>
     procedure SetSelectedDim(var SelectedDim: Record "Selected Dimension")
     var
         IsHandled: Boolean;
@@ -445,6 +466,18 @@ codeunit 432 Consolidate
             until SelectedDim.Next() = 0;
     end;
 
+    /// <summary>
+    /// Initializes global variables for consolidation processing from subsidiary business unit data.
+    /// </summary>
+    /// <param name="NewProductVersion">Product version identifier from subsidiary system</param>
+    /// <param name="NewFormatVersion">Data format version for consolidation compatibility</param>
+    /// <param name="NewCompanyName">Name of subsidiary company being consolidated</param>
+    /// <param name="NewCurrencyLCY">Local currency code of subsidiary company</param>
+    /// <param name="NewCurrencyACY">Additional reporting currency code of subsidiary</param>
+    /// <param name="NewCurrencyPCY">Parallel currency code of subsidiary</param>
+    /// <param name="NewCheckSum">Validation checksum for data integrity verification</param>
+    /// <param name="NewStartingDate">Starting date for consolidation period</param>
+    /// <param name="NewEndingDate">Ending date for consolidation period</param>
     procedure SetGlobals(NewProductVersion: Code[10]; NewFormatVersion: Code[10]; NewCompanyName: Text[30]; NewCurrencyLCY: Code[10]; NewCurrencyACY: Code[10]; NewCurrencyPCY: Code[10]; NewCheckSum: Decimal; NewStartingDate: Date; NewEndingDate: Date)
     begin
         ProductVersion := NewProductVersion;
@@ -473,6 +506,10 @@ codeunit 432 Consolidate
             Message(Text005);
     end;
 
+    /// <summary>
+    /// Adds a subsidiary G/L Account to the temporary consolidation account buffer for processing.
+    /// </summary>
+    /// <param name="NewGLAccount">G/L Account from subsidiary company with consolidation mapping configuration</param>
     procedure InsertGLAccount(NewGLAccount: Record "G/L Account")
     begin
         TempSubsidGLAcc.Init();
@@ -483,6 +520,11 @@ codeunit 432 Consolidate
         TempSubsidGLAcc.Insert();
     end;
 
+    /// <summary>
+    /// Adds a subsidiary G/L Entry to the temporary consolidation entry buffer for processing.
+    /// </summary>
+    /// <param name="NewGLEntry">G/L Entry from subsidiary company to include in consolidation</param>
+    /// <returns>Entry number assigned to the temporary consolidation entry</returns>
     procedure InsertGLEntry(NewGLEntry: Record "G/L Entry"): Integer
     var
         NextEntryNo: Integer;
@@ -502,6 +544,11 @@ codeunit 432 Consolidate
         exit(NextEntryNo);
     end;
 
+    /// <summary>
+    /// Adds dimension information for a subsidiary G/L Entry in the consolidation buffer.
+    /// </summary>
+    /// <param name="NewDimBuf">Dimension buffer containing dimension values for the G/L Entry</param>
+    /// <param name="GLEntryNo">Entry number of the G/L Entry to associate dimensions with</param>
     procedure InsertEntryDim(NewDimBuf: Record "Dimension Buffer"; GLEntryNo: Integer)
     begin
         if TempSubsidDimBuf.Get(NewDimBuf."Table ID", GLEntryNo, NewDimBuf."Dimension Code") then begin
@@ -517,6 +564,10 @@ codeunit 432 Consolidate
         end;
     end;
 
+    /// <summary>
+    /// Adds currency exchange rate information from subsidiary company to consolidation buffer.
+    /// </summary>
+    /// <param name="NewCurrExchRate">Currency exchange rate from subsidiary system</param>
     procedure InsertExchRate(NewCurrExchRate: Record "Currency Exchange Rate")
     begin
         TempSubsidCurrExchRate.Init();
@@ -528,6 +579,9 @@ codeunit 432 Consolidate
         TempSubsidCurrExchRate.Insert();
     end;
 
+    /// <summary>
+    /// Updates dimension set IDs for all G/L entries in the consolidation buffer based on dimension data.
+    /// </summary>
     procedure UpdateGLEntryDimSetID()
     begin
         if SkipAllDimensions then
@@ -548,6 +602,10 @@ codeunit 432 Consolidate
             until TempSubsidGLEntry.Next() = 0;
     end;
 
+    /// <summary>
+    /// Calculates validation checksum for consolidation data integrity verification.
+    /// </summary>
+    /// <returns>Calculated checksum value for data validation</returns>
     procedure CalcCheckSum() CheckSum: Decimal
     begin
         CheckSum :=
@@ -639,6 +697,18 @@ codeunit 432 Consolidate
         OutputFile.Close();
     end;
 
+    /// <summary>
+    /// Retrieves global consolidation variables for external processes and validation.
+    /// </summary>
+    /// <param name="ImpProductVersion">Returns product version from subsidiary data</param>
+    /// <param name="ImpFormatVersion">Returns data format version for compatibility checking</param>
+    /// <param name="ImpCompanyName">Returns subsidiary company name</param>
+    /// <param name="ImpCurrencyLCY">Returns local currency code of subsidiary</param>
+    /// <param name="ImpCurrencyACY">Returns additional reporting currency code</param>
+    /// <param name="ImpCurrencyPCY">Returns parallel currency code</param>
+    /// <param name="ImpCheckSum">Returns validation checksum for data integrity</param>
+    /// <param name="ImpStartingDate">Returns consolidation period starting date</param>
+    /// <param name="ImpEndingDate">Returns consolidation period ending date</param>
     procedure GetGlobals(var ImpProductVersion: Code[10]; var ImpFormatVersion: Code[10]; var ImpCompanyName: Text[30]; var ImpCurrencyLCY: Code[10]; var ImpCurrencyACY: Code[10]; var ImpCurrencyPCY: Code[10]; var ImpCheckSum: Decimal; var ImpStartingDate: Date; var ImpEndingDate: Date)
     begin
         ImpProductVersion := ProductVersion;
@@ -652,12 +722,21 @@ codeunit 432 Consolidate
         ImpEndingDate := EndingDate;
     end;
 
+    /// <summary>
+    /// Enables test mode for consolidation processing to accumulate errors without stopping execution.
+    /// </summary>
+    /// <param name="NewTestMode">True to enable test mode, false for normal processing</param>
     procedure SetTestMode(NewTestMode: Boolean)
     begin
         TestMode := NewTestMode;
         CurErrorIdx := 0;
     end;
 
+    /// <summary>
+    /// Retrieves accumulated error messages when running in test mode.
+    /// </summary>
+    /// <param name="NumErrors">Returns number of errors encountered</param>
+    /// <param name="Errors">Array of error messages collected during test mode processing</param>
     procedure GetAccumulatedErrors(var NumErrors: Integer; var Errors: array[100] of Text)
     var
         Idx: Integer;
@@ -677,6 +756,9 @@ codeunit 432 Consolidate
         Clear(ErrorText);
     end;
 
+    /// <summary>
+    /// Automatically selects all dimensions that were imported from subsidiary data for consolidation processing.
+    /// </summary>
     procedure SelectAllImportedDimensions()
     begin
         // assume all dimensions that were imported were also selected.
@@ -756,6 +838,7 @@ codeunit 432 Consolidate
                     ConsolidGLEntry."Additional-Currency Amount" := 0;
                     ConsolidGLEntry."Add.-Currency Debit Amount" := 0;
                     ConsolidGLEntry."Add.-Currency Credit Amount" := 0;
+                    OnClearPreviousConsolidationOnBeforeModifyConsolidGLEntry(ConsolidGLEntry);
                     ConsolidGLEntry.Modify();
                     if ConsolidGLEntry."G/L Account No." <> TempGLAccount."No." then begin
                         Window.Update(3, ConsolidGLEntry."G/L Account No.");
@@ -1153,6 +1236,12 @@ codeunit 432 Consolidate
             end;
     end;
 
+    /// <summary>
+    /// Creates and posts a General Journal line for consolidation with currency translation and dimension processing.
+    /// </summary>
+    /// <param name="GenJnlLine">General Journal line template for consolidation posting</param>
+    /// <param name="GLEntry">G/L Entry from subsidiary containing amounts and account information</param>
+    /// <param name="DimBuf">Dimension buffer containing dimension values for the entry</param>
     procedure CreateAndPostGenJnlLine(GenJnlLine: Record "Gen. Journal Line"; var GLEntry: Record "G/L Entry"; var DimBuf: Record "Dimension Buffer")
     var
         TempDimSetEntry2: Record "Dimension Set Entry" temporary;
@@ -1389,12 +1478,22 @@ codeunit 432 Consolidate
             Error(ErrorMsg);
     end;
 
+    /// <summary>
+    /// Returns the count of subsidiary G/L accounts available for consolidation processing.
+    /// </summary>
+    /// <returns>Number of G/L accounts in the temporary subsidiary G/L account table</returns>
     procedure GetNumSubsidGLAcc(): Integer
     begin
         TempSubsidGLAcc.Reset();
         exit(TempSubsidGLAcc.Count);
     end;
 
+    /// <summary>
+    /// Retrieves the first subsidiary G/L account for consolidation processing.
+    /// Initializes account traversal and performs validation if running in test mode.
+    /// </summary>
+    /// <param name="GlAccount">G/L Account record to populate with first subsidiary account data</param>
+    /// <returns>True if first subsidiary account exists, false otherwise</returns>
     procedure Get1stSubsidGLAcc(var GlAccount: Record "G/L Account"): Boolean
     begin
         TempSubsidGLAcc.Reset();
@@ -1407,6 +1506,12 @@ codeunit 432 Consolidate
         exit(false);
     end;
 
+    /// <summary>
+    /// Retrieves the next subsidiary G/L account in consolidation processing sequence.
+    /// Advances account traversal and performs validation if running in test mode.
+    /// </summary>
+    /// <param name="GLAccount">G/L Account record to populate with next subsidiary account data</param>
+    /// <returns>True if next subsidiary account exists, false if end of accounts reached</returns>
     procedure GetNxtSubsidGLAcc(var GLAccount: Record "G/L Account"): Boolean
     begin
         if TempSubsidGLAcc.Next() <> 0 then begin
@@ -1418,6 +1523,11 @@ codeunit 432 Consolidate
         exit(false);
     end;
 
+    /// <summary>
+    /// Returns the count of subsidiary G/L entries for the current G/L account during consolidation.
+    /// Filters entries by current G/L account number and posting date.
+    /// </summary>
+    /// <returns>Number of G/L entries for current account in consolidation processing</returns>
     procedure GetNumSubsidGLEntry(): Integer
     begin
         TempSubsidGLEntry.Reset();
@@ -1426,6 +1536,12 @@ codeunit 432 Consolidate
         exit(TempSubsidGLEntry.Count());
     end;
 
+    /// <summary>
+    /// Retrieves the first subsidiary G/L entry for the current account in consolidation processing.
+    /// Performs posting date validation and closes-date handling if in test mode.
+    /// </summary>
+    /// <param name="GLEntry">G/L Entry record to populate with first subsidiary entry data</param>
+    /// <returns>True if first entry exists for current account, false otherwise</returns>
     procedure Get1stSubsidGLEntry(var GLEntry: Record "G/L Entry"): Boolean
     var
         IsError: Boolean;
@@ -1462,6 +1578,12 @@ codeunit 432 Consolidate
         exit(false);
     end;
 
+    /// <summary>
+    /// Retrieves the next subsidiary G/L entry for the current account in consolidation processing.
+    /// Advances entry traversal and performs posting date validation if in test mode.
+    /// </summary>
+    /// <param name="GLEntry">G/L Entry record to populate with next subsidiary entry data</param>
+    /// <returns>True if next entry exists for current account, false if end of entries reached</returns>
     procedure GetNxtSubsidGLEntry(var GLEntry: Record "G/L Entry"): Boolean
     var
         IsError: Boolean;
@@ -1506,203 +1628,472 @@ codeunit 432 Consolidate
         until TempSubsidGLAcc.Next() = 0;
     end;
 
+    /// <summary>
+    /// Integration event raised before posting a General Journal line during consolidation.
+    /// </summary>
+    /// <param name="GenJnlLine">General Journal line being posted with consolidation data</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGenJnlPostLine(var GenJnlLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting a subsidiary G/L Entry into consolidation buffer.
+    /// </summary>
+    /// <param name="SubsidGLEntry">Subsidiary G/L Entry being processed for consolidation</param>
+    /// <param name="GLEntry">Original G/L Entry from subsidiary data source</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertGLEntry(var SubsidGLEntry: Record "G/L Entry"; GLEntry: Record "G/L Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before displaying analysis view entry deletion message during consolidation.
+    /// </summary>
+    /// <param name="AnalysisViewEntriesDeleted">Indicates whether analysis view entries were deleted</param>
+    /// <param name="IsHandled">Set to true to skip showing the message</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeShowAnalysisViewEntryMessage(var AnalysisViewEntriesDeleted: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised during previous consolidation clearing before checking amount arrays.
+    /// </summary>
+    /// <param name="DeletedAmountsArray">Array containing deleted consolidation amounts</param>
+    /// <param name="DeletedDatesArray">Array containing dates of deleted consolidation entries</param>
     [IntegrationEvent(false, false)]
     local procedure OnClearPreviousConsolidationOnBeforeCheckAmountArray(var DeletedAmountsArray: array[500] of Decimal; var DeletedDatesArray: array[500] of Date)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised during previous consolidation clearing before updating amount arrays.
+    /// </summary>
+    /// <param name="ConsolidatedGLEntry">Consolidated G/L Entry being processed for removal</param>
+    /// <param name="DeletedAmountsArray">Array tracking deleted consolidation amounts</param>
+    /// <param name="DeletedDatesArray">Array tracking dates of deleted entries</param>
+    /// <param name="DeletedIdx">Index for tracking deleted entries in arrays</param>
+    /// <param name="IsHandled">Set to true to skip standard array update processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnClearPreviousConsolidationOnBeforeUpdateAmountArray(var ConsolidatedGLEntry: Record "G/L Entry"; var DeletedAmountsArray: array[500] of Decimal; var DeletedDatesArray: array[500] of Date; var DeletedIdx: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after assigning dimension set ID during G/L Entry dimension processing.
+    /// </summary>
+    /// <param name="TempSubsidDimBuf">Temporary dimension buffer with assigned dimension set ID</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateGLEntryDimSetIDOnAfterAssignDimensionSetID(var TempSubsidDimBuf: Record "Dimension Buffer" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating temporary G/L entry during consolidation processing.
+    /// Enables custom validation and modification of subsidiary G/L entry data before consolidation.
+    /// </summary>
+    /// <param name="TempSubsidGLEntry">Temporary subsidiary G/L Entry being processed</param>
+    /// <param name="GenJnlLine">General Journal Line for consolidation posting</param>
+    /// <param name="CurErrorIdx">Current error index for error tracking</param>
+    /// <param name="ErrorText">Array of error messages for consolidation validation</param>
+    /// <param name="TestMode">Indicates if consolidation is running in test mode</param>
+    /// <param name="WindowDialog">Progress dialog for consolidation status updates</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateTempGLEntry(var TempSubsidGLEntry: Record "G/L Entry"; var GenJnlLine: Record "Gen. Journal Line"; var CurErrorIdx: Integer; var ErrorText: array[500] of Text; TestMode: Boolean; var WindowDialog: Dialog)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after updating temporary G/L entry during consolidation processing.
+    /// Enables custom post-processing of consolidated subsidiary G/L entry data.
+    /// </summary>
+    /// <param name="BusUnit">Business Unit being consolidated</param>
+    /// <param name="TempSubsidGLEntry">Temporary subsidiary G/L Entry after processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateTempGLEntry(var BusUnit: Record "Business Unit"; var TempSubsidGLEntry: Record "G/L Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after creating and posting general journal line during consolidation.
+    /// Enables custom post-processing of consolidated journal entries and currency handling.
+    /// </summary>
+    /// <param name="GenJournalLine">General Journal Line that was created and posted</param>
+    /// <param name="ConsolidAmount">Consolidated amount after currency translation</param>
+    /// <param name="CurrencyACY">Additional Currency Code used for consolidation</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateAndPostGenJnlLine(var GenJournalLine: Record "Gen. Journal Line"; ConsolidAmount: Decimal; CurrencyACY: Code[10])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before consolidation processing begins for a business unit.
+    /// Enables custom initialization and validation before consolidation execution.
+    /// </summary>
+    /// <param name="BusinessUnit">Business Unit record about to be processed for consolidation</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeOnRun(var BusinessUnit: Record "Business Unit")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before posting balancing entries during consolidation.
+    /// Enables custom modification of balancing journal entries before posting.
+    /// </summary>
+    /// <param name="GenJnlLine">General Journal Line for balancing entries</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostBalancingEntries(var GenJnlLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating consolidation progress window during processing.
+    /// Enables custom progress tracking and status display modifications.
+    /// </summary>
+    /// <param name="GenJnlLine">General Journal Line being processed in current consolidation step</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeWindowUpdate(var GenJnlLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after modifying Business Unit record during consolidation processing.
+    /// Enables custom post-processing of business unit configuration changes.
+    /// </summary>
+    /// <param name="Rec">Current Business Unit record after modification</param>
+    /// <param name="BusUnit">Original Business Unit record before modification</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterBusUnitModify(var Rec: Record "Business Unit"; var BusUnit: Record "Business Unit")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before setting selected dimensions during consolidation processing.
+    /// Enables custom dimension selection logic and dimension filtering modifications.
+    /// </summary>
+    /// <param name="TempSelectedDim">Temporary Selected Dimension record for processing</param>
+    /// <param name="SelectedDim">Selected Dimension record from configuration</param>
+    /// <param name="SkipAllDimensions">Flag indicating whether to skip all dimension processing</param>
+    /// <param name="IsHandled">Set to true to bypass standard dimension selection logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetSelectedDim(var TempSelectedDim: Record "Selected Dimension"; var SelectedDim: Record "Selected Dimension"; var SkipAllDimensions: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after retrieving G/L account during consolidation processing.
+    /// Enables custom post-processing of subsidiary G/L account data.
+    /// </summary>
+    /// <param name="TempSubsidGLAcc">Temporary subsidiary G/L Account record after retrieval</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetGLAccount(var TempSubsidGLAcc: Record "G/L Account")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before clearing previous consolidation entries.
+    /// Enables custom logic for handling existing consolidated G/L entries before new consolidation.
+    /// </summary>
+    /// <param name="ConsolidGLEntry">Consolidated G/L Entry record to be cleared</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeClearPreviousConsolidation(var ConsolidGLEntry: Record "G/L Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating prior period balances during consolidation.
+    /// Enables custom handling of prior period balance adjustments and journal line modifications.
+    /// </summary>
+    /// <param name="GenJnlLine">General Journal Line for prior period balance updates</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePriorPeriodBalances(var GenJnlLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before finding consolidated G/L entries during consolidation processing.
+    /// Enables custom filtering and selection criteria for consolidated entry processing.
+    /// </summary>
+    /// <param name="ConsolidGLEntry">Consolidated G/L Entry record for processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeConsolidGLEntryFindSet(var ConsolidGLEntry: Record "G/L Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before finding consolidated G/L accounts during consolidation processing.
+    /// Enables custom filtering and selection criteria for consolidated account processing.
+    /// </summary>
+    /// <param name="ConsolidGLAcc">Consolidated G/L Account record for processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeConsolidGLAccFindSet(var ConsolidGLAcc: Record "G/L Account")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before posting general journal line in temporary mode during consolidation.
+    /// Enables custom modification of journal line before temporary posting processing.
+    /// </summary>
+    /// <param name="GenJnlLine">General Journal Line being prepared for temporary posting</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGenJnlPostLineTmp(var GenJnlLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before deleting temporary dimension set entries during consolidation.
+    /// Enables custom handling of dimension cleanup and journal line dimension processing.
+    /// </summary>
+    /// <param name="GenJnlLine">General Journal Line being processed for dimension cleanup</param>
+    /// <param name="GLEntry">G/L Entry associated with dimension set entry deletion</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTempDimSetEntryDelete(var GenJnlLine: Record "Gen. Journal Line"; var GLEntry: Record "G/L Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting temporary general journal line during consolidation.
+    /// Enables custom modification of journal line before insertion into temporary processing table.
+    /// </summary>
+    /// <param name="TempGenJnlLine">Temporary General Journal Line record before insertion</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTempGenJnlLineInsert(var TempGenJnlLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after checking posting date validation during consolidation.
+    /// Enables custom posting date validation logic and error handling.
+    /// </summary>
+    /// <param name="GlEntry">G/L Entry with posting date being validated</param>
+    /// <param name="IsError">Set to true to indicate posting date validation error</param>
+    /// <param name="ErrorMsg">Custom error message for posting date validation failure</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckPostingDate(var GlEntry: Record "G/L Entry"; var IsError: Boolean; var ErrorMsg: Text)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating temporary G/L entry during consolidation procedure.
+    /// Enables custom modification of G/L entry data and dimension buffer handling.
+    /// </summary>
+    /// <param name="TempGLEntry">Temporary G/L Entry record being updated</param>
+    /// <param name="GLEntry">Source G/L Entry record for data copying</param>
+    /// <param name="IsHandled">Set to true to bypass standard G/L entry update processing</param>
+    /// <param name="TempDimensionBufferIn">Dimension Buffer record for dimension processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateTempGLEntryProcedure(var TempGLEntry: Record "G/L Entry"; GLEntry: Record "G/L Entry"; var IsHandled: Boolean; TempDimensionBufferIn: Record "Dimension Buffer")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after calculating whether to clear previous consolidation.
+    /// Enables custom logic for determining consolidation clearing behavior.
+    /// </summary>
+    /// <param name="ShouldClearPreviousConsolidation">Set to true to clear previous consolidation entries</param>
     [IntegrationEvent(true, false)]
     local procedure OnRunOnAfterCalcShouldClearPreviousConsolidation(var ShouldClearPreviousConsolidation: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before starting temporary G/L entry processing loop during consolidation.
+    /// Enables custom initialization logic before G/L entry iteration begins.
+    /// </summary>
+    /// <param name="TempGLEntry">Temporary G/L Entry record for loop processing</param>
+    /// <param name="TempSubsidGLAcc">Temporary subsidiary G/L Account record context</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforeTempGLEntryLoop(var TempGLEntry: Record "G/L Entry"; TempSubsidGLAcc: Record "G/L Account")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before opening progress window during consolidation processing.
+    /// Enables custom window handling and progress tracking modifications.
+    /// </summary>
+    /// <param name="WindowDialog">Progress window dialog for consolidation status display</param>
+    /// <param name="IsHandled">Set to true to bypass standard window opening</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforeWindowOpen(var WindowDialog: Dialog; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting temporary dimension buffer during consolidation.
+    /// Enables custom dimension processing and modification before insertion.
+    /// </summary>
+    /// <param name="TempDimensionBuffer">Temporary Dimension Buffer record for consolidation</param>
+    /// <param name="TempSubsidDimensionBuffer">Temporary subsidiary Dimension Buffer record</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforeInsertTempDimBuf(var TempDimensionBuffer: Record "Dimension Buffer"; var TempSubsidDimensionBuffer: Record "Dimension Buffer")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before retrieving consolidated G/L account during journal line creation.
+    /// Enables custom account mapping and G/L account selection logic.
+    /// </summary>
+    /// <param name="GenJournalLine">General Journal Line being created for consolidation</param>
+    /// <param name="GLEntry">Source G/L Entry for journal line creation</param>
+    /// <param name="BusinessUnit">Business Unit being consolidated</param>
+    /// <param name="TempSubsidGLAccount">Temporary subsidiary G/L Account record</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateAndPostGenJnlLineOnBeforeConsolidGLAccGet(var GenJournalLine: Record "Gen. Journal Line"; var GLEntry: Record "G/L Entry"; var BusinessUnit: Record "Business Unit"; var TempSubsidGLAccount: Record "G/L Account")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before starting subsidiary G/L entry processing loop.
+    /// Enables custom initialization for business unit and G/L account processing.
+    /// </summary>
+    /// <param name="BusinessUnit">Business Unit being processed for consolidation</param>
+    /// <param name="TempSubsidGLAccount">Temporary subsidiary G/L Account for processing context</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforeLoopTempSubsidGLEntry(var BusinessUnit: Record "Business Unit"; var TempSubsidGLAccount: Record "G/L Account")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised at the start of subsidiary G/L entry processing loop iteration.
+    /// Enables custom processing for each G/L entry during consolidation.
+    /// </summary>
+    /// <param name="GenJournalLine">General Journal Line being processed for current entry</param>
+    /// <param name="BusinessUnit">Business Unit context for entry processing</param>
+    /// <param name="TempSubsidGLEntry">Temporary subsidiary G/L Entry being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnTempSubsidGLEntryLoopStart(var GenJournalLine: Record "Gen. Journal Line"; var BusinessUnit: Record "Business Unit"; var TempSubsidGLEntry: Record "G/L Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before setting residual account during consolidation.
+    /// Enables custom residual account logic and balancing entry handling.
+    /// </summary>
+    /// <param name="BusinessUnit">Business Unit being consolidated</param>
+    /// <param name="GenJournalLine">General Journal Line for residual account processing</param>
+    /// <param name="IsHandled">Set to true to bypass standard residual account setting</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforeSetResidualAccount(var BusinessUnit: Record "Business Unit"; var GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before exporting consolidation data to XML format.
+    /// Enables custom export processing and data transformation before XML generation.
+    /// </summary>
+    /// <param name="FileName">Name of XML file for consolidation data export</param>
+    /// <param name="TempSubsidGLAccount">Temporary subsidiary G/L Account records for export</param>
+    /// <param name="TempSubsidGLEntry">Temporary subsidiary G/L Entry records for export</param>
+    /// <param name="TempSubsidDimensionBuffer">Temporary subsidiary Dimension Buffer records</param>
+    /// <param name="TempSubsidCurrencyExchangeRate">Temporary subsidiary Currency Exchange Rate records</param>
+    /// <param name="IsHandled">Set to true to bypass standard XML export processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeExportToXML(FileName: Text; var TempSubsidGLAccount: Record "G/L Account"; var TempSubsidGLEntry: Record "G/L Entry"; var TempSubsidDimensionBuffer: Record "Dimension Buffer"; var TempSubsidCurrencyExchangeRate: Record "Currency Exchange Rate"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before reporting error during amount array validation.
+    /// Enables custom error handling and validation logic for deleted consolidation amounts.
+    /// </summary>
+    /// <param name="DeletedAmountsArray">Array of deleted consolidation amounts being validated</param>
+    /// <param name="DeletedDatesArray">Array of dates for deleted consolidation entries</param>
+    /// <param name="DeletedIndex">Current index in deleted amounts array</param>
+    /// <param name="IsHandled">Set to true to bypass standard error reporting</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckAmountArrayOnBeforeReportError(var DeletedAmountsArray: array[500] of Decimal; var DeletedDatesArray: array[500] of Date; DeletedIndex: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before importing consolidation data from XML format.
+    /// Enables custom import processing and data transformation from XML files.
+    /// </summary>
+    /// <param name="FileName">Name of XML file containing consolidation data to import</param>
+    /// <param name="TempSubsidGLAccount">Temporary subsidiary G/L Account records for import</param>
+    /// <param name="TempSubsidGLEntry">Temporary subsidiary G/L Entry records for import</param>
+    /// <param name="TempSubsidDimensionBuffer">Temporary subsidiary Dimension Buffer records</param>
+    /// <param name="TempSubsidCurrencyExchangeRate">Temporary subsidiary Currency Exchange Rate records</param>
+    /// <param name="IsHandled">Set to true to bypass standard XML import processing</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeImportFromXML(FileName: Text; var TempSubsidGLAccount: Record "G/L Account"; var TempSubsidGLEntry: Record "G/L Entry"; var TempSubsidDimensionBuffer: Record "Dimension Buffer"; var TempSubsidCurrencyExchangeRate: Record "Currency Exchange Rate"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters on consolidated G/L entries during previous consolidation clearing.
+    /// Enables custom filtering logic for consolidated entry identification and processing.
+    /// </summary>
+    /// <param name="ConsolidGLEntry">Consolidated G/L Entry record with applied filters</param>
     [IntegrationEvent(false, false)]
     local procedure OnClearPreviousConsolidationOnAfterConsolidGLEntrySetFilters(var ConsolidGLEntry: Record "G/L Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting global variables during consolidation processing.
+    /// Enables custom modification of consolidation parameters and global settings.
+    /// </summary>
+    /// <param name="ProductVersion">Product version for consolidation compatibility</param>
+    /// <param name="FormatVersion">File format version for data compatibility</param>
+    /// <param name="CompanyName">Company name for consolidation context</param>
+    /// <param name="CurrencyLCY">Local Currency Code for consolidation</param>
+    /// <param name="CurrencyACY">Additional Currency Code for reporting</param>
+    /// <param name="CurrencyPCY">Previous Currency Code for comparison</param>
+    /// <param name="CheckSum">Checksum for data validation</param>
+    /// <param name="StartingDate">Starting date for consolidation period</param>
+    /// <param name="EndingDate">Ending date for consolidation period</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetGlobals(var ProductVersion: Code[10]; var FormatVersion: Code[10]; var CompanyName: Text[30]; var CurrencyLCY: Code[10]; var CurrencyACY: Code[10]; var CurrencyPCY: Code[10]; var CheckSum: Decimal; var StartingDate: Date; var EndingDate: Date)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before selecting all imported dimensions during XML import processing.
+    /// Enables custom dimension selection logic and processing during consolidation data import.
+    /// </summary>
+    /// <param name="ProductVersion">Product version from imported consolidation data</param>
+    /// <param name="FormatVersion">Format version from imported consolidation data</param>
+    /// <param name="CompanyName">Company name from imported consolidation data</param>
+    /// <param name="CurrencyLCY">Local Currency Code from imported data</param>
+    /// <param name="CurrencyACY">Additional Currency Code from imported data</param>
+    /// <param name="CurrencyPCY">Previous Currency Code from imported data</param>
+    /// <param name="CheckSum">Checksum from imported data for validation</param>
+    /// <param name="StartingDate">Starting date from imported consolidation period</param>
+    /// <param name="EndingDate">Ending date from imported consolidation period</param>
     [IntegrationEvent(false, false)]
     local procedure OnImportFromXMLOnBeforeSelectAllImportedDimensions(var ProductVersion: Code[10]; var FormatVersion: Code[10]; var CompanyName: Text[30]; var CurrencyLCY: Code[10]; var CurrencyACY: Code[10]; var CurrencyPCY: Code[10]; var CheckSum: Decimal; var StartingDate: Date; var EndingDate: Date)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before posting balance adjustment entries during prior period balance updates.
+    /// Enables custom G/L account processing and balance adjustment logic during consolidation.
+    /// </summary>
+    /// <param name="GLAccount">G/L Account record being processed for balance adjustments</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdatePriorPeriodBalancesOnBeforePostBalanceAdjustment(var GLAccount: Record "G/L Account")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before testing for G/L account conflicts during consolidation validation.
+    /// Enables custom validation logic for subsidiary G/L account compatibility and conflict resolution.
+    /// </summary>
+    /// <param name="TempSubsidGLAcc">Temporary subsidiary G/L Account records being tested for conflicts</param>
     [IntegrationEvent(true, false)]
     local procedure OnTestGLAccountsOnBeforeTestForConflicts(var TempSubsidGLAcc: Record "G/L Account" temporary)
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised before modifying consolidated G/L entry during previous consolidation clearing.
+    /// Enables custom modification of consolidated G/L entry data before clearing amounts.
+    /// </summary>
+    /// <param name="ConsolidGLEntry">Consolidated G/L Entry record being modified</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnClearPreviousConsolidationOnBeforeModifyConsolidGLEntry(var ConsolidGLEntry: Record "G/L Entry")
     begin
     end;
 }

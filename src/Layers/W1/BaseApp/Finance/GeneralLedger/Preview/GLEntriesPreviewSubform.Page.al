@@ -9,6 +9,15 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using System.Security.User;
 
+/// <summary>
+/// G/L entries preview subform displaying hierarchical view of general ledger entries during posting preview.
+/// Provides detailed analysis of G/L posting results with account grouping and dimension support.
+/// </summary>
+/// <remarks>
+/// Features hierarchical display with account grouping for easy analysis of posting distributions.
+/// Includes dimension viewing capabilities and supports both flat and grouped entry displays.
+/// Integrates with posting preview framework to show temporary G/L entries without database commits.
+/// </remarks>
 page 1571 "G/L Entries Preview Subform"
 {
     PageType = ListPart;
@@ -302,6 +311,11 @@ page 1571 "G/L Entries Preview Subform"
         DimensionManagement.UseShortcutDims(Dim1Visible, Dim2Visible, Dim3Visible, Dim4Visible, Dim5Visible, Dim6Visible, Dim7Visible, Dim8Visible);
     end;
 
+    /// <summary>
+    /// Initializes the hierarchical G/L entries subform with preview entries from posting operations.
+    /// Loads and organizes G/L entries with account grouping for structured analysis of posting results.
+    /// </summary>
+    /// <param name="PostingPreviewEventHandler">Event handler containing captured G/L entries from posting preview</param>
     procedure Set(PostingPreviewEventHandler: Codeunit "Posting Preview Event Handler")
     var
         TempGLEntryPostingPreview: Record "G/L Entry Posting Preview" temporary;
@@ -368,12 +382,23 @@ page 1571 "G/L Entries Preview Subform"
                     until TempGLEntry.Next() = 0;
             until TempGLAccount.Next() = 0;
     end;
-
+    /// <summary>
+    /// Integration event raised before inserting G/L account group entries in hierarchical preview display.
+    /// Enables customization of account group presentation and additional fields in preview hierarchy.
+    /// </summary>
+    /// <param name="TempGLEntryPostingPreview">Temporary preview record being prepared for group entry insertion</param>
+    /// <param name="TempGLEntry">Source G/L entry record for group creation</param>
     [IntegrationEvent(false, false)]
     local procedure OnLoadBufferAsHierarchicalViewOnBeforeInsertGroupEntry(var TempGLEntryPostingPreview: Record "G/L Entry Posting Preview" temporary; var TempGLEntry: Record "G/L Entry" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting individual G/L entries in hierarchical preview display.
+    /// Enables customization of individual entry presentation and field modifications in preview.
+    /// </summary>
+    /// <param name="TempGLEntryPostingPreview">Temporary preview record being prepared for entry insertion</param>
+    /// <param name="TempGLEntry">Source G/L entry record for individual entry creation</param>
     [IntegrationEvent(false, false)]
     local procedure OnLoadBufferAsHierarchicalViewOnBeforeInsertEntry(var TempGLEntryPostingPreview: Record "G/L Entry Posting Preview" temporary; var TempGLEntry: Record "G/L Entry" temporary)
     begin

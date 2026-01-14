@@ -4,23 +4,23 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
-using Microsoft.Assembly.Setup;
 using Microsoft.Assembly.Document;
-using Microsoft.Inventory.Item;
+using Microsoft.Assembly.Setup;
+using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.BOM;
-using System.Environment.Configuration;
-using System.TestLibraries.Utilities;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Substitution;
 using Microsoft.Inventory.Location;
-using Microsoft.Projects.Resources.Resource;
+using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.StandardCost;
+using Microsoft.Projects.Project.Job;
+using Microsoft.Projects.Project.Planning;
+using Microsoft.Projects.Resources.Resource;
+using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Setup;
-using Microsoft.Purchases.Document;
-using Microsoft.Projects.Project.Planning;
-using Microsoft.Projects.Project.Job;
-using Microsoft.Inventory.Transfer;
-using Microsoft.Finance.Dimension;
+using System.Environment.Configuration;
+using System.TestLibraries.Utilities;
 
 codeunit 137091 "SCM Kitting - D2"
 {

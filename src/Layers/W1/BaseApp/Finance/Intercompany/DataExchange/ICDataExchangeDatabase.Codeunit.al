@@ -14,8 +14,8 @@ using Microsoft.Intercompany.GLAccount;
 using Microsoft.Intercompany.Inbox;
 using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
-using System.Threading;
 using System.Telemetry;
+using System.Threading;
 
 codeunit 532 "IC Data Exchange Database" implements "IC Data Exchange"
 {

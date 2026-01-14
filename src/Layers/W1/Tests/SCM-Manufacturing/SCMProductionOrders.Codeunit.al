@@ -4,40 +4,42 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Test;
 
-using Microsoft.Inventory.Journal;
-using Microsoft.Inventory.Location;
-using System.TestLibraries.Utilities;
-using Microsoft.Manufacturing.Journal;
+using Microsoft.Finance.Analysis;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Manufacturing.Document;
-using Microsoft.Sales.Document;
-using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Tracking;
-using Microsoft.Manufacturing.ProductionBOM;
-using Microsoft.Purchases.Document;
-using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Manufacturing.Forecast;
 using Microsoft.Foundation.Enums;
-using System.Utilities;
-using Microsoft.Finance.Analysis;
-using Microsoft.Inventory.Requisition;
-using Microsoft.Inventory.Ledger;
-using Microsoft.Manufacturing.Routing;
-using Microsoft.Warehouse.Structure;
-using Microsoft.Manufacturing.MachineCenter;
-using Microsoft.Manufacturing.Capacity;
-using Microsoft.Manufacturing.Setup;
-using System.Environment.Configuration;
-using Microsoft.Utilities;
-using Microsoft.Warehouse.Tracking;
-using Microsoft.Warehouse.Activity;
 using Microsoft.Foundation.UOM;
-using Microsoft.Manufacturing.Family;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
+using Microsoft.Inventory.Requisition;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Family;
+using Microsoft.Manufacturing.Forecast;
+using Microsoft.Manufacturing.Journal;
+using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
+using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Setup;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Document;
 using Microsoft.Sales.Setup;
+using Microsoft.Utilities;
+using Microsoft.Warehouse.Activity;
+using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Setup;
+using Microsoft.Warehouse.Structure;
+using Microsoft.Warehouse.Tracking;
+using System.Environment.Configuration;
+using System.TestLibraries.Utilities;
+using System.Utilities;
 
 
 codeunit 137069 "SCM Production Orders"
@@ -128,6 +130,7 @@ codeunit 137069 "SCM Production Orders"
         NonEditableErr: Label 'The value must be editable.';
         InvalidDateFilterTxt: Label '100-100-2026..101-101-2026', Locked = true;
         DateFilterErrMsg: Label 'The current format of date filter %1 is not valid. Do you want to remove it?', Comment = '%1 = Date Filter';
+        CompletelyPickedErr: Label 'Production order is not completely picked after pick processing.';
 
     [Test]
     [HandlerFunctions('MessageHandlerSimple')]
@@ -4933,6 +4936,98 @@ codeunit 137069 "SCM Production Orders"
             Assert.AreEqual(RoutingHeaderFamily."No.", ProdOrderRoutingLine."Routing No.", '');
     end;
 
+    [Test]
+    procedure VerifyProductionBOMPCompletelyPicked()
+    var
+        Item1000: Record Item;
+        Item1100: Record Item;
+        Item1200: Record Item;
+        ParentItem: Record Item;
+        ProdOrderHeader: Record "Production Order";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMLine: Record "Production BOM Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        WarehouseEmployee: Record "Warehouse Employee";
+    begin
+        // [SCENARIO 610069] Verify production order "Completely Picked" after pick processing
+        Initialize();
+
+        // [GIVEN] Create new Vendor
+        CreateLocationSetup();
+        ItemJournalSetup();
+        ConsumptionJournalSetup();
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [GIVEN] Set test user as warehouse employee for the new location
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, LocationWhite.Code, true);
+
+        // [GIVEN] Create Item 1000 as non-inventory
+        LibraryInventory.CreateItem(Item1000);
+        Item1000.Validate(Type, Item1000.Type::"Non-Inventory");
+        Item1000.Modify(true);
+
+        // [GIVEN] create Component Item1 with Flushing Method: Backward
+        LibraryInventory.CreateItem(Item1100);
+        Item1100.Validate("Flushing Method", Item1100."Flushing Method"::"Backward");
+        Item1100.Modify(true);
+
+        // [GIVEN] create Component Item2 with Flushing Method: Pick + Backward
+        LibraryInventory.CreateItem(Item1200);
+        Item1200.Validate("Flushing Method", Item1100."Flushing Method"::"Pick + Backward");
+        Item1200.Modify(true);
+
+        // [GIVEN] Created Parent Item with Replenishment System:Prod. Order,Manufacturing Policy:Make-to-Order and Reordering Policy:Lot-for-Lot.
+        LibraryInventory.CreateItem(ParentItem);
+        ParentItem.Validate("Replenishment System", ParentItem."Replenishment System"::"Prod. Order");
+        ParentItem.Validate("Manufacturing Policy", ParentItem."Manufacturing Policy"::"Make-to-Stock");
+        ParentItem.Validate("Reordering Policy", ParentItem."Reordering Policy"::"Fixed Reorder Qty.");
+        ParentItem.Modify(true);
+
+        // [GIVEN] Created Production BOM for Parent Item with 3 components
+        LibraryManufacturing.CreateProductionBOMHeader(ProductionBOMHeader, ParentItem."Base Unit of Measure");
+        LibraryManufacturing.CreateProductionBOMLine(ProductionBOMHeader, ProductionBOMLine, '', ProductionBOMLine.Type::Item, Item1100."No.", 1);
+        LibraryManufacturing.CreateProductionBOMLine(ProductionBOMHeader, ProductionBOMLine, '', ProductionBOMLine.Type::Item, Item1200."No.", 1);
+        LibraryManufacturing.CreateProductionBOMLine(ProductionBOMHeader, ProductionBOMLine, '', ProductionBOMLine.Type::Item, Item1000."No.", 1);
+        ProductionBOMHeader.Validate("Status", ProductionBOMHeader.Status::Certified);
+        ProductionBOMHeader.Modify(true);
+        ParentItem.Validate("Production BOM No.", ProductionBOMHeader."No.");
+        ParentItem.Modify(true);
+
+        // [GIVEN] Create and post Purchase Order for component items
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item1100."No.", 10);
+        PurchaseLine.Validate("Location Code", LocationWhite.Code);
+        PurchaseLine.Validate("Direct Unit Cost", 100);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item1200."No.", 10);
+        PurchaseLine.Validate("Location Code", LocationWhite.Code);
+        PurchaseLine.Validate("Direct Unit Cost", 100);
+        PurchaseLine.Modify(true);
+
+        //[GIVEN] Create and post Warehouse Receipt for Purchase Order
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        LibraryWarehouse.CreateWhseReceiptFromPO(PurchaseHeader);
+        PostWarehouseReceipt(PurchaseHeader."No.");
+
+        // [GIVEN] Register Warehouse Activity for production order pick
+        RegisterWarehouseActivity(LocationWhite.Code);
+
+        // [GIVEN] Refresh production order and create/process pick
+        CreateAndRefreshProductionOrderOnLocation(ProdOrderHeader, LocationWhite.Code, ParentItem."No.", 1);
+
+        // [GIVEN] Create warehouse pick from production order
+        CreateWhsePickFromProduction(ProdOrderHeader);
+
+        // [WHEN] Register warehouse activity for production order pick
+        RegisterWarehouseActivity(ProdOrderHeader."No.", "Warehouse Activity Type"::Pick);
+
+        // [THEN] Verify Completely Picked status
+        ProdOrderHeader.CalcFields("Completely Picked");
+        Assert.IsTrue(ProdOrderHeader."Completely Picked", CompletelyPickedErr);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -6878,6 +6973,65 @@ codeunit 137069 "SCM Production Orders"
         // [GIVEN] Create Prod. Order Routing Line with Routing Link Code.
         CreateProdOrderRoutingLineWithRoutingLinkCode(ProdOrderLine, WorkCenter, ProdOrderRoutingLine.Type::"Work Center", '100', 1);
         ProdOrderRoutingLine."Routing Reference No." := 10000;
+    end;
+
+    local procedure RegisterWarehouseActivity(LocationCode: Code[10])
+    var
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+    begin
+        WarehouseActivityHeader.SetRange("Location Code", LocationCode);
+        if WarehouseActivityHeader.FindFirst() then
+            LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+    end;
+
+    local procedure CreateWhsePickFromProduction(ProductionOrder: Record "Production Order")
+    begin
+        ProductionOrder.SetHideValidationDialog(true);
+        ProductionOrder.CreatePick('', 0, false, true, false);
+    end;
+
+    local procedure CreateAndRefreshProductionOrderOnLocation(var ProductionOrder: Record "Production Order"; LocationCode: Code[10]; ItemNo: Code[20]; Qty: Decimal)
+    begin
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, ItemNo, Qty);
+        ProductionOrder.Validate("Location Code", LocationCode);
+        ProductionOrder.Modify(true);
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, true);
+    end;
+
+    local procedure RegisterWarehouseActivity(SourceNo: Code[20]; Type: Enum "Warehouse Activity Type")
+    var
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        FindWarehouseActivityNo(WarehouseActivityLine, SourceNo, Type);
+        WarehouseActivityHeader.Get(Type, WarehouseActivityLine."No.");
+        LibraryWarehouse.AutoFillQtyInventoryActivity(WarehouseActivityHeader);
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+    end;
+
+    local procedure FindWarehouseActivityNo(var WarehouseActivityLine: Record "Warehouse Activity Line"; SourceNo: Code[20]; ActivityType: Enum "Warehouse Activity Type")
+    begin
+        WarehouseActivityLine.SetRange("Source No.", SourceNo);
+        WarehouseActivityLine.SetRange("Activity Type", ActivityType);
+        WarehouseActivityLine.FindFirst();
+    end;
+
+    local procedure PostWarehouseReceipt(SourceNo: Code[20])
+    var
+        WarehouseReceiptHeader: Record "Warehouse Receipt Header";
+        WarehouseReceiptLine: Record "Warehouse Receipt Line";
+    begin
+        FindWarehouseReceiptNo(WarehouseReceiptLine, WarehouseReceiptLine."Source Document"::"Purchase Order", SourceNo);
+        WarehouseReceiptHeader.Get(WarehouseReceiptLine."No.");
+        LibraryWarehouse.PostWhseReceipt(WarehouseReceiptHeader);
+    end;
+
+    local procedure FindWarehouseReceiptNo(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; SourceDocument: Enum "Warehouse Activity Source Document"; SourceNo: Code[20])
+    begin
+        WarehouseReceiptLine.SetRange("Source Document", SourceDocument);
+        WarehouseReceiptLine.SetRange("Source No.", SourceNo);
+        WarehouseReceiptLine.FindFirst();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Data Collection", 'OnBeforeAssistEditTrackingNo', '', false, false)]

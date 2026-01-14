@@ -1,3 +1,6 @@
+/// <summary>
+/// Provides utility functions for creating and managing payment formats and data exchange definitions in test scenarios.
+/// </summary>
 codeunit 130101 "Library - Payment Format"
 {
 

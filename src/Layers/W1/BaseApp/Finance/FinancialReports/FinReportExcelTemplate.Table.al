@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.FinancialReports;
 
+/// <summary>
+/// Stores Excel template layouts for financial report export formatting.
+/// Enables custom Excel output layouts for financial reports with reusable templates.
+/// </summary>
 table 764 "Fin. Report Excel Template"
 {
     Caption = 'Financial Report Excel Layout';
@@ -12,6 +16,9 @@ table 764 "Fin. Report Excel Template"
 
     fields
     {
+        /// <summary>
+        /// Financial report name linked to Excel template for export formatting.
+        /// </summary>
         field(1; "Financial Report Name"; Code[10])
         {
             Caption = 'Financial Report Name';
@@ -20,6 +27,9 @@ table 764 "Fin. Report Excel Template"
             TableRelation = "Financial Report";
             ToolTip = 'Specifies the name of the financial report.';
         }
+        /// <summary>
+        /// Unique code identifying the Excel template within financial report.
+        /// </summary>
         field(2; Code; Code[50])
         {
             Caption = 'Code';
@@ -27,6 +37,9 @@ table 764 "Fin. Report Excel Template"
             NotBlank = true;
             ToolTip = 'Specifies the code of the layout.';
         }
+        /// <summary>
+        /// Description of Excel template layout for user identification and selection.
+        /// </summary>
         field(3; Description; Text[100])
         {
             Caption = 'Description';
@@ -34,12 +47,18 @@ table 764 "Fin. Report Excel Template"
             ToolTip = 'Specifies a description of the Excel Layout to help users understand what the layout does.';
 
         }
+        /// <summary>
+        /// Excel template file stored as BLOB for financial report export formatting.
+        /// </summary>
         field(4; Template; Blob)
         {
             Caption = 'Layout';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the Excel layout file.';
         }
+        /// <summary>
+        /// File name for Excel export output when using this template layout.
+        /// </summary>
         field(5; "File Name"; Text[250])
         {
             Caption = 'File Name';

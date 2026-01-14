@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft;
 
-using System.Privacy;
 using System.IO;
+using System.Privacy;
 using System.Reflection;
 
 codeunit 1754 "Data Classif. Import/Export"

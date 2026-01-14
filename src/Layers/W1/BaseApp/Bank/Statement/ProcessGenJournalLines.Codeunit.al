@@ -9,6 +9,15 @@ using Microsoft.Bank.Setup;
 using Microsoft.Finance.GeneralLedger.Journal;
 using System.IO;
 
+/// <summary>
+/// Processes bank statement imports into general journal lines through data exchange framework.
+/// Handles the conversion of imported bank statement data into general journal entries for posting.
+/// </summary>
+/// <remarks>
+/// Integrates with Data Exchange Framework for bank statement file processing.
+/// Creates general journal lines from imported bank transactions with proper document numbering.
+/// Supports various bank account configurations and import formats through Bank Export/Import Setup.
+/// </remarks>
 codeunit 1247 "Process Gen. Journal  Lines"
 {
     Permissions = TableData "Data Exch." = rimd;
@@ -28,6 +37,11 @@ codeunit 1247 "Process Gen. Journal  Lines"
     var
         ProgressWindowMsg: Label 'Please wait while the operation is being completed.';
 
+    /// <summary>
+    /// Imports a bank statement from a file into general journal lines.
+    /// Processes the data exchange format and creates new journal lines based on the imported bank transactions.
+    /// </summary>
+    /// <param name="GenJnlLine">The general journal line that contains the import configuration and target batch.</param>
     procedure ImportBankStatement(GenJnlLine: Record "Gen. Journal Line")
     var
         GenJnlBatch: Record "Gen. Journal Batch";
@@ -89,6 +103,12 @@ codeunit 1247 "Process Gen. Journal  Lines"
         OnAfterImportBankStatement(GenJnlLine, GenJnlLineTemplate);
     end;
 
+    /// <summary>
+    /// Creates a template for general journal lines that will be used during bank statement import.
+    /// Sets up the basic fields and document numbering for imported transactions.
+    /// </summary>
+    /// <param name="GenJournalLineTemplate">The template record that will be created and configured.</param>
+    /// <param name="GenJournalLine">The source general journal line containing the batch and template information.</param>
     procedure CreateGeneralJournalLineTemplate(var GenJournalLineTemplate: Record "Gen. Journal Line"; GenJournalLine: Record "Gen. Journal Line")
     begin
         GenJournalLineTemplate."Journal Template Name" := GenJournalLine."Journal Template Name";
@@ -107,6 +127,11 @@ codeunit 1247 "Process Gen. Journal  Lines"
         OnAfterCreateGeneralJournalLineTemplate(GenJournalLineTemplate, GenJournalLine);
     end;
 
+    /// <summary>
+    /// Updates document numbers for general journal lines after importing a bank statement.
+    /// Ensures sequential document numbering for the imported transactions.
+    /// </summary>
+    /// <param name="GenJournalLineTemplate">The template record containing the starting document number and batch information.</param>
     procedure UpdateGenJournalLines(var GenJournalLineTemplate: Record "Gen. Journal Line")
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -131,21 +156,43 @@ codeunit 1247 "Process Gen. Journal  Lines"
         end;
     end;
 
+    /// <summary>
+    /// Integration event raised after creating a general journal line template during bank statement import.
+    /// </summary>
+    /// <param name="GenJournalLineTemplate">The template record that was created.</param>
+    /// <param name="GenJournalLine">The source general journal line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateGeneralJournalLineTemplate(var GenJournalLineTemplate: Record "Gen. Journal Line"; GenJournalLine: Record "Gen. Journal Line");
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after completing the bank statement import process.
+    /// </summary>
+    /// <param name="GenJournalLine">The original general journal line used for import.</param>
+    /// <param name="GenJournalLineTemplate">The template record used during import.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterImportBankStatement(var GenJournalLine: Record "Gen. Journal Line"; GenJournalLineTemplate: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before starting the bank statement import process.
+    /// Allows custom handling of the import operation.
+    /// </summary>
+    /// <param name="GenJournalLine">The general journal line containing import configuration.</param>
+    /// <param name="IsHandled">Set to true to skip the default import processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeImportBankStatement(var GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating general journal line document numbers.
+    /// Allows custom handling of the document number update process.
+    /// </summary>
+    /// <param name="GenJournalLineTemplate">The template record containing the batch and numbering information.</param>
+    /// <param name="IsHandled">Set to true to skip the default update processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateGenJnlLinesProcedure(var GenJournalLineTemplate: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin

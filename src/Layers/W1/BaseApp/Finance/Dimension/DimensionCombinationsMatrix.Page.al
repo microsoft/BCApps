@@ -4,6 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Matrix page displaying dimension combination restrictions in grid format for visual analysis.
+/// Provides interactive matrix view of dimension combination rules and blocked combinations across dimensions.
+/// </summary>
+/// <remarks>
+/// Supports visual identification of dimension restrictions through matrix cell formatting and display text.
+/// Enables quick overview of dimension combination validation rules for dimension management workflows.
+/// </remarks>
 page 9251 "Dimension Combinations Matrix"
 {
     Caption = 'Dimension Combinations Matrix';
@@ -501,6 +509,12 @@ page 9251 "Dimension Combinations Matrix"
         Field31Visible: Boolean;
         Field32Visible: Boolean;
 
+    /// <summary>
+    /// Loads matrix data with dimension columns and records for the dimension combinations matrix display.
+    /// </summary>
+    /// <param name="MatrixColumns1">Array of column captions for the matrix display</param>
+    /// <param name="MatrixRecords1">Array of dimension records corresponding to matrix columns</param>
+    /// <param name="_ShowColumnName">Flag indicating whether to show column names in the display</param>
     procedure Load(MatrixColumns1: array[32] of Text[1024]; var MatrixRecords1: array[32] of Record Dimension; _ShowColumnName: Boolean)
     begin
         CopyArray(MATRIX_ColumnCaption, MatrixColumns1, 1);
@@ -508,6 +522,10 @@ page 9251 "Dimension Combinations Matrix"
         ShowColumnName := _ShowColumnName;
     end;
 
+    /// <summary>
+    /// Sets the selected dimension code for matrix calculations and filtering.
+    /// </summary>
+    /// <param name="DimCode">Dimension code to set as selected for matrix operations</param>
     procedure SetSelectedDimCode(DimCode: Code[20])
     begin
         SelectedDimCode := DimCode;
@@ -638,6 +656,10 @@ page 9251 "Dimension Combinations Matrix"
         end;
     end;
 
+    /// <summary>
+    /// Sets the visibility of matrix columns based on the number of loaded dimension columns.
+    /// Controls which matrix fields are visible to the user based on available data.
+    /// </summary>
     procedure SetVisible()
     begin
         Field1Visible := MATRIX_ColumnCaption[1] <> '';

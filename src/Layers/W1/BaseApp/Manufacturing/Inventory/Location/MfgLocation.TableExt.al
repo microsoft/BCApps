@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Location;
 
-using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Setup;
 
 tableextension 99000761 "Mfg. Location" extends Location
 {

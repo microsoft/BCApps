@@ -10,10 +10,6 @@ using Microsoft.Inventory.Tracking;
 codeunit 99000862 "Sales Line Invt. Profile"
 {
     // Inventory Profile
-#if not CLEAN25
-    var
-        InventoryProfileOffsetting: Codeunit "Inventory Profile Offsetting";
-#endif
 
     procedure TransferInventoryProfileFromSalesLine(var InventoryProfile: Record "Inventory Profile"; var SalesLine: Record "Sales Line"; var TrackingReservationEntry: Record "Reservation Entry")
     var
@@ -56,9 +52,6 @@ codeunit 99000862 "Sales Line Invt. Profile"
         InventoryProfile."Special Order" := SalesLine."Special Order";
 
         OnAfterTransferInventoryProfileFromSalesLine(InventoryProfile, SalesLine);
-#if not CLEAN25
-        InventoryProfile.RunOnAfterTransferFromSalesLine(InventoryProfile, SalesLine);
-#endif
     end;
 
     [IntegrationEvent(false, false)]
@@ -127,47 +120,26 @@ codeunit 99000862 "Sales Line Invt. Profile"
         ShouldProcess: Boolean;
     begin
         OnBeforeTransSalesLineToProfile(InventoryProfile, Item, SalesLine);
-#if not CLEAN25
-        InventoryProfileOffsetting.RunOnBeforeTransSalesLineToProfile(InventoryProfile, Item, SalesLine);
-#endif
         if SalesLine.FindLinesWithItemToPlan(Item, SalesLine."Document Type"::Order) then
             repeat
                 ShouldProcess := SalesLine."Shipment Date" <> 0D;
                 OnTransSalesLineToProfileOnBeforeProcessLine(SalesLine, ShouldProcess, Item);
-#if not CLEAN25
-                InventoryProfileOffsetting.RunOnTransSalesLineToProfileOnBeforeProcessLine(SalesLine, ShouldProcess, Item);
-#endif
                 if ShouldProcess then begin
                     IsHandled := false;
                     OnAfterFindLinesWithItemToPlan(SalesLine, IsHandled, InventoryProfile, Item, NextLineNo);
-#if not CLEAN25
-                    InventoryProfileOffsetting.RunOnAfterFindLinesWithItemToPlan(SalesLine, IsHandled, InventoryProfile, Item, NextLineNo);
-#endif
                     if not IsHandled then begin
                         InventoryProfile.Init();
                         NextLineNo += 1;
                         InventoryProfile."Line No." := NextLineNo;
                         OnTransSalesLineToProfileOnBeforeTransferFromSalesLineOrder(Item, SalesLine);
-#if not CLEAN25
-                        InventoryProfileOffsetting.RunOnTransSalesLineToProfileOnBeforeTransferFromSalesLineOrder(Item, SalesLine);
-#endif
                         TransferInventoryProfileFromSalesLine(InventoryProfile, SalesLine, TempReservationEntry);
                         OnTransSalesLineToProfileOnAfterTransferFromSalesLineOrder(Item, SalesLine, InventoryProfile);
-#if not CLEAN25
-                        InventoryProfileOffsetting.RunOnTransSalesLineToProfileOnAfterTransferFromSalesLineOrder(Item, SalesLine, InventoryProfile);
-#endif
                         if InventoryProfile.IsSupply then
                             InventoryProfile.ChangeSign();
                         InventoryProfile."MPS Order" := true;
                         OnTransSalesLineToProfileOnBeforeInvProfileInsert(InventoryProfile, Item, NextLineNo);
-#if not CLEAN25
-                        InventoryProfileOffsetting.RunOnTransSalesLineToProfileOnBeforeInvProfileInsert(InventoryProfile, Item, NextLineNo);
-#endif
                         InventoryProfile.Insert();
                         OnTransSalesLineToProfileOnAfterInsertInventoryProfileFromOrder(Item, SalesLine, InventoryProfile);
-#if not CLEAN25
-                        InventoryProfileOffsetting.RunOnTransSalesLineToProfileOnAfterInsertInventoryProfileFromOrder(Item, SalesLine, InventoryProfile);
-#endif
                     end;
                 end;
             until SalesLine.Next() = 0;
@@ -177,29 +149,17 @@ codeunit 99000862 "Sales Line Invt. Profile"
                 if SalesLine."Shipment Date" <> 0D then begin
                     IsHandled := false;
                     OnAfterFindLinesWithItemToPlan(SalesLine, IsHandled, InventoryProfile, Item, NextLineNo);
-#if not CLEAN25
-                    InventoryProfileOffsetting.RunOnAfterFindLinesWithItemToPlan(SalesLine, IsHandled, InventoryProfile, Item, NextLineNo);
-#endif
                     if not IsHandled then begin
                         InventoryProfile.Init();
                         NextLineNo += 1;
                         InventoryProfile."Line No." := NextLineNo;
                         OnTransSalesLineToProfileOnBeforeTransferFromSalesLineReturnOrder(Item, SalesLine);
-#if not CLEAN25
-                        InventoryProfileOffsetting.RunOnTransSalesLineToProfileOnBeforeTransferFromSalesLineReturnOrder(Item, SalesLine);
-#endif
                         TransferInventoryProfileFromSalesLine(InventoryProfile, SalesLine, TempReservationEntry);
                         OnTransSalesLineToProfileOnAfterTransferFromSalesLineReturnOrder(Item, SalesLine, InventoryProfile);
-#if not CLEAN25
-                        InventoryProfileOffsetting.RunOnTransSalesLineToProfileOnAfterTransferFromSalesLineReturnOrder(Item, SalesLine, InventoryProfile);
-#endif
                         if InventoryProfile.IsSupply then
                             InventoryProfile.ChangeSign();
                         InventoryProfile.Insert();
                         OnTransSalesLineToProfileOnAfterInsertInventoryProfileFromReturnOrder(Item, SalesLine, InventoryProfile);
-#if not CLEAN25
-                        InventoryProfileOffsetting.RunOnTransSalesLineToProfileOnAfterInsertInventoryProfileFromReturnOrder(Item, SalesLine, InventoryProfile);
-#endif
                     end;
                 end;
             until SalesLine.Next() = 0;

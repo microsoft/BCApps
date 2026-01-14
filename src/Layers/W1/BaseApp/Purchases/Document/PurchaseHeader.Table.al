@@ -41,6 +41,7 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Pricing.Calculation;
+using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Purchases.Archive;
 using Microsoft.Purchases.Comment;
@@ -62,7 +63,6 @@ using System.Reflection;
 using System.Security.User;
 using System.Threading;
 using System.Utilities;
-using Microsoft.Projects.Project.Job;
 
 table 38 "Purchase Header"
 {
@@ -134,6 +134,9 @@ table 38 "Purchase Header"
                 "VAT Registration No." := Vend."VAT Registration No.";
                 Validate("Lead Time Calculation", Vend."Lead Time Calculation");
                 "Shipment Method Code" := Vend."Shipment Method Code";
+                "Self-Billing Invoice" := Vend."Self-Billing Agreement" and Rec."Document Type" in [Rec."Document Type"::Order, Rec."Document Type"::Invoice];
+                if "Self-Billing Invoice" then
+                    CheckAndUpdatePostingNoSeriesForSelfBillingInvoice();
 
                 IsHandled := false;
                 OnValidateBuyFromVendorNoOnBeforeAssignResponsibilityCenter(Rec, xRec, CurrFieldNo, IsHandled);
@@ -661,6 +664,7 @@ table 38 "Purchase Header"
         }
         field(25; "Payment Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Payment Discount %';
             ToolTip = 'Specifies the payment discount percent granted if payment is made on or before the date in the Pmt. Discount Date field.';
             DecimalPlaces = 0 : 5;
@@ -812,6 +816,7 @@ table 38 "Purchase Header"
         }
         field(33; "Currency Factor"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Currency Factor';
             DecimalPlaces = 0 : 15;
             Editable = false;
@@ -1798,6 +1803,7 @@ table 38 "Purchase Header"
         }
         field(119; "VAT Base Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT Base Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -1852,6 +1858,7 @@ table 38 "Purchase Header"
         }
         field(122; "Invoice Discount Value"; Decimal)
         {
+            AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Invoice Discount Value';
             Editable = false;
@@ -1926,6 +1933,7 @@ table 38 "Purchase Header"
         }
         field(134; "Prepayment %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Prepayment %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -2079,6 +2087,7 @@ table 38 "Purchase Header"
         }
         field(144; "Prepmt. Payment Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Prepmt. Payment Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -2180,6 +2189,10 @@ table 38 "Purchase Header"
                     InitVATDate();
             end;
         }
+        field(180; "Self-Billing Invoice"; Boolean)
+        {
+            Caption = 'Self-Billing Invoice';
+        }
         field(210; "Ship-to Phone No."; Text[30])
         {
             Caption = 'Ship-to Phone No.';
@@ -2187,6 +2200,7 @@ table 38 "Purchase Header"
         }
         field(300; "A. Rcd. Not Inv. Ex. VAT (LCY)"; Decimal)
         {
+            AutoFormatExpression = '';
             CalcFormula = sum("Purchase Line"."A. Rcd. Not Inv. Ex. VAT (LCY)" where("Document Type" = field("Document Type"),
                                                                                       "Document No." = field("No.")));
             Caption = 'Amount Received Not Invoiced (LCY)';
@@ -2196,6 +2210,7 @@ table 38 "Purchase Header"
         }
         field(301; "Amt. Rcd. Not Invoiced (LCY)"; Decimal)
         {
+            AutoFormatExpression = '';
             CalcFormula = sum("Purchase Line"."Amt. Rcd. Not Invoiced (LCY)" where("Document Type" = field("Document Type"),
                                                                                     "Document No." = field("No.")));
             Caption = 'Amount Received Not Invoiced (LCY) Incl. VAT';
@@ -2226,6 +2241,7 @@ table 38 "Purchase Header"
         }
         field(1305; "Invoice Discount Amount"; Decimal)
         {
+            AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             CalcFormula = sum("Purchase Line"."Inv. Discount Amount" where("Document No." = field("No."),
                                                                             "Document Type" = field("Document Type")));
@@ -3217,7 +3233,10 @@ table 38 "Purchase Header"
             if not GLSetup."Journal Templ. Name Mandatory" then
                 case "Document Type" of
                     "Document Type"::Invoice:
-                        PurchSetup.TestField("Posted Invoice Nos.");
+                        if Rec."Self-Billing Invoice" then
+                            PurchSetup.TestField("Posted Self-Billing Inv. Nos.")
+                        else
+                            PurchSetup.TestField("Posted Invoice Nos.");
                     "Document Type"::"Credit Memo":
                         PurchSetup.TestField("Posted Credit Memo Nos.");
                 end
@@ -3318,7 +3337,10 @@ table 38 "Purchase Header"
             if IsCreditDocType() then
                 PostingNos := PurchSetup."Posted Credit Memo Nos."
             else
-                PostingNos := PurchSetup."Posted Invoice Nos."
+                if Rec."Self-Billing Invoice" then
+                    PostingNos := PurchSetup."Posted Self-Billing Inv. Nos."
+                else
+                    PostingNos := PurchSetup."Posted Invoice Nos."
         else begin
             GenJournalTemplate.Get("Journal Templ. Name");
             PostingNos := GenJournalTemplate."Posting No. Series";
@@ -6436,7 +6458,10 @@ table 38 "Purchase Header"
             if IsCreditDocType() then
                 PostingNoSeries := PurchSetup."Posted Credit Memo Nos."
             else
-                PostingNoSeries := PurchSetup."Posted Invoice Nos.";
+                if Rec."Self-Billing Invoice" then
+                    PostingNoSeries := PurchSetup."Posted Self-Billing Inv. Nos."
+                else
+                    PostingNoSeries := PurchSetup."Posted Invoice Nos.";
 
         case "Document Type" of
             "Document Type"::Quote, "Document Type"::Order:
@@ -7944,6 +7969,15 @@ table 38 "Purchase Header"
         if GetFilter("Buy-from Contact No.") <> '' then
             if GetRangeMin("Buy-from Contact No.") = GetRangeMax("Buy-from Contact No.") then
                 exit(GetRangeMax("Buy-from Contact No."));
+    end;
+
+    local procedure CheckAndUpdatePostingNoSeriesForSelfBillingInvoice()
+    begin
+        GetPurchSetup();
+        PurchSetup.TestField("Posted Self-Billing Inv. Nos.");
+
+        if not InsertMode then
+            InitPostingNoSeries();
     end;
 
     [IntegrationEvent(false, false)]

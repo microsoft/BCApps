@@ -4,21 +4,21 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Utilities;
 
-using System.Environment.Configuration;
-using System.Environment;
-using System.Reflection;
-using Microsoft.Finance.RoleCenters;
-using Microsoft.Sales.Customer;
-using Microsoft.Inventory.Item;
-using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Bank.BankAccount;
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.RoleCenters;
+using Microsoft.Inventory.Item;
+using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.RoleCenters;
 using System.Azure.Identity;
-using System.Integration;
-using System.Security.User;
 using System.Email;
+using System.Environment;
+using System.Environment.Configuration;
+using System.Integration;
+using System.Reflection;
+using System.Security.User;
 
 codeunit 1997 "Checklist Events"
 {

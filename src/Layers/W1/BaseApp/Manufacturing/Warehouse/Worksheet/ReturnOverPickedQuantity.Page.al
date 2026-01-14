@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Warehouse.Worksheet;
 
-using Microsoft.Warehouse.Structure;
 using Microsoft.Inventory.Location;
+using Microsoft.Warehouse.Structure;
 
 page 8370 "Return Overpicked Quantity"
 {

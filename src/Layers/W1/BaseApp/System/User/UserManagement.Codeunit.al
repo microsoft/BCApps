@@ -601,15 +601,6 @@ codeunit 418 "User Management"
             Database::"Ins. Coverage Ledger Entry",
             Database::"Insurance Register",
             Database::"Value Entry",
-#if not CLEAN25
-            Database::Microsoft.Service.Ledger."Service Ledger Entry",
-            Database::Microsoft.Service.Ledger."Service Register",
-            Database::Microsoft.Service.Contract."Contract Gain/Loss Entry",
-            Database::Microsoft.Service.Contract."Filed Service Contract Header",
-            Database::Microsoft.Service.History."Service Shipment Header",
-            Database::Microsoft.Service.History."Service Invoice Header",
-            Database::Microsoft.Service.History."Service Cr.Memo Header",
-#endif
             Database::"Return Shipment Header",
             Database::"Return Receipt Header",
             Database::"Item Budget Entry",
@@ -687,4 +678,3 @@ codeunit 418 "User Management"
     end;
 #endif
 }
-

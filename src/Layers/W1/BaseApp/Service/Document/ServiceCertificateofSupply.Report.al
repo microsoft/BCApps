@@ -212,17 +212,11 @@ report 5916 "Service Certificate of Supply"
             var
                 ServiceShipmentHeader: Record "Service Shipment Header";
                 CertificateOfSupply2: Record "Certificate of Supply";
-#if not CLEAN25
-                CertificateOfSupplyReport: Report Microsoft.Inventory.Reports."Certificate of Supply";
-#endif
             begin
                 "Document Type" := "Document Type"::"Service Shipment";
                 if CreateCertificatesofSupply then begin
                     CopyFilter("Document No.", ServiceShipmentHeader."No.");
                     OnCertificateOfSupplyOnPreDataItemOnAfterSetFilters(CertificateOfSupply, ServiceShipmentHeader);
-#if not CLEAN25
-                    CertificateOfSupplyReport.RunOnCertificateOfSupplyOnPreDataItemOnAfterFilterForServiceShipmentHeader(CertificateOfSupply, ServiceShipmentHeader);
-#endif
                     if ServiceShipmentHeader.FindSet() then
                         repeat
                             ServiceShipmentHeader.InitCertificateOfSupply(CertificateOfSupply2);
@@ -405,4 +399,3 @@ report 5916 "Service Certificate of Supply"
     begin
     end;
 }
-

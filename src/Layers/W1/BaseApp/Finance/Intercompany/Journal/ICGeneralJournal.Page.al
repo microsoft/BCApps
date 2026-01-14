@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.Journal;
 
+using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Journal;
@@ -11,7 +12,6 @@ using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Foundation.Reporting;
-using Microsoft.EServices.EDocument;
 using Microsoft.Intercompany.GLAccount;
 using Microsoft.Utilities;
 using System.Automation;
@@ -21,6 +21,15 @@ using System.Integration;
 using System.Telemetry;
 using System.Threading;
 
+/// <summary>
+/// Intercompany general journal interface for creating and managing intercompany transactions between related companies.
+/// Provides specialized journal entry capabilities with intercompany partner validation, currency handling, and approval workflow integration.
+/// </summary>
+/// <remarks>
+/// Primary data source: Gen. Journal Line with intercompany template context. Integrates with intercompany partner setup, G/L account mapping, and posting processes.
+/// Navigation: Journal batch selection → Line entry → Posting and reconciliation operations.
+/// Extensible via page extensions for additional intercompany fields and custom validation logic.
+/// </remarks>
 page 610 "IC General Journal"
 {
     ApplicationArea = Intercompany;
@@ -1368,6 +1377,16 @@ page 610 "IC General Journal"
     end;
 
 #pragma warning disable AL0523
+    /// <summary>
+    /// Integration event raised after validating shortcut dimension codes on general journal lines.
+    /// Enables custom processing and validation logic for dimension value changes in intercompany journal context.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line with validated dimension code</param>
+    /// <param name="ShortcutDimCode">Array of shortcut dimension codes after validation</param>
+    /// <param name="DimIndex">Index of the dimension code that was validated</param>
+    /// <remarks>
+    /// Raised from shortcut dimension field validation triggers after standard dimension validation completes.
+    /// </remarks>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateShortcutDimCode(var GenJournalLine: Record "Gen. Journal Line"; var ShortcutDimCode: array[8] of Code[20]; DimIndex: Integer)
     begin

@@ -18,6 +18,15 @@ using System.Reflection;
 using System.Text;
 using System.Utilities;
 
+/// <summary>
+/// Interactive analysis page providing multi-dimensional financial data analysis with matrix display capabilities.
+/// Supports G/L account and cash flow analysis with flexible dimension filtering and period-based reporting.
+/// </summary>
+/// <remarks>
+/// Primary interface for analysis by dimensions functionality with configurable rows, columns, and filters.
+/// Integrates with Analysis View setup for dimension definitions and supports both actual and budget analysis.
+/// Matrix navigation enables period-based analysis with various rounding and display options.
+/// </remarks>
 page 554 "Analysis by Dimensions"
 {
     Caption = 'Analysis by Dimensions';
@@ -581,6 +590,12 @@ page 554 "Analysis by Dimensions"
         PrimaryKeyFirstColInSet: Text[1024];
         Step: Option First,Previous,Same,Next;
 
+    /// <summary>
+    /// Converts dimension code text to corresponding Analysis Dimension Option enum value.
+    /// Maps dimension codes to appropriate enum values for matrix row and column configuration.
+    /// </summary>
+    /// <param name="DimCode">Dimension code text to convert (Account, Period, Dimension 1-4)</param>
+    /// <returns>Corresponding Analysis Dimension Option enum value for the dimension code</returns>
     procedure DimCodeToDimOption(DimCode: Text[30]) Result: Enum "Analysis Dimension Option"
     var
         AccountCaption: Text[30];
@@ -631,6 +646,14 @@ page 554 "Analysis by Dimensions"
         end;
     end;
 
+    /// <summary>
+    /// Finds records based on dimension option and populates dimension code buffer for matrix display.
+    /// Handles navigation through G/L accounts, periods, business units, cash flow, and dimension values.
+    /// </summary>
+    /// <param name="DimOption">Type of dimension to search (G/L Account, Period, Dimension 1-4, etc.)</param>
+    /// <param name="DimCodeBuf">Dimension code buffer to populate with found record data</param>
+    /// <param name="Which">Search direction or position (-, +, =, etc.)</param>
+    /// <returns>True if record was found and buffer was populated, false otherwise</returns>
     procedure FindRecord(DimOption: Enum "Analysis Dimension Option"; var DimCodeBuf: Record "Dimension Code Buffer"; Which: Text[250]) Found: Boolean
     var
         GLAcc: Record "G/L Account";
@@ -747,6 +770,14 @@ page 554 "Analysis by Dimensions"
         OnAfterFindRecord(DimOption, DimCodeBuf, AnalysisView, Which, Found, Rec);
     end;
 
+    /// <summary>
+    /// Navigates to next/previous records in dimension data for matrix column generation.
+    /// Advances through dimension values by specified number of steps for pagination.
+    /// </summary>
+    /// <param name="DimOption">Type of dimension to navigate (G/L Account, Period, Dimension 1-4, etc.)</param>
+    /// <param name="DimCodeBuf">Dimension code buffer to update with navigation result</param>
+    /// <param name="Steps">Number of steps to advance (positive=forward, negative=backward)</param>
+    /// <returns>Actual number of steps taken (may be less than requested if end reached)</returns>
     procedure NextRecord(DimOption: Enum "Analysis Dimension Option"; var DimCodeBuf: Record "Dimension Code Buffer"; Steps: Integer) ResultSteps: Integer
     var
         GLAcc: Record "G/L Account";
@@ -1126,6 +1157,12 @@ page 554 "Analysis by Dimensions"
             PeriodInitialized := false;
     end;
 
+    /// <summary>
+    /// Generates caption class string for dimension filter fields based on analysis view configuration.
+    /// Provides dynamic captions for dimension 1-4 filters using actual dimension codes from analysis view.
+    /// </summary>
+    /// <param name="AnalysisViewDimType">Dimension type identifier (1-4) for caption generation</param>
+    /// <returns>Caption class string for dimension filter field display</returns>
     procedure GetCaptionClass(AnalysisViewDimType: Integer) Result: Text[250]
     var
         DummyAnalysisbyDimParameters: Record "Analysis by Dim. Parameters";
@@ -1232,6 +1269,11 @@ page 554 "Analysis by Dimensions"
             CaptionRange := CopyStr(CaptionSet[1] + '..' + CaptionSet[CurrentCaptionOrdinal], 1, MaxStrLen(CaptionRange));
     end;
 
+    /// <summary>
+    /// Sets the analysis view code for the page and initializes the record for analysis configuration.
+    /// Prepares the temporary record with the specified analysis view for dimension analysis setup.
+    /// </summary>
+    /// <param name="NextAnalysisViewCode">Analysis view code to set for analysis by dimensions</param>
     procedure SetAnalysisViewCode(NextAnalysisViewCode: Code[10])
     begin
         NewAnalysisViewCode := NextAnalysisViewCode;
@@ -1262,81 +1304,191 @@ page 554 "Analysis by Dimensions"
         end;
     end;
 
+    /// <summary>
+    /// Integration event raised after finding dimension records for matrix display.
+    /// Enables customization of dimension record processing and buffer population logic.
+    /// </summary>
+    /// <param name="DimOption">Dimension option that was processed</param>
+    /// <param name="DimCodeBuf">Dimension code buffer populated with found data</param>
+    /// <param name="AnalysisView">Analysis view configuration</param>
+    /// <param name="Which">Search direction or position used</param>
+    /// <param name="Found">Whether record was found</param>
+    /// <param name="AnalysisByDimParameters">Analysis parameters for context</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterFindRecord(var DimOption: Enum "Analysis Dimension Option"; var DimCodeBuf: Record "Dimension Code Buffer"; var AnalysisView: Record "Analysis View"; Which: Text[250]; var Found: Boolean; var AnalysisByDimParameters: Record "Analysis by Dim. Parameters")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after generating caption class for dimension filters.
+    /// Enables customization of caption class formatting for dimension filter fields.
+    /// </summary>
+    /// <param name="AnalysisViewDimType">Dimension type being processed (1-4)</param>
+    /// <param name="AnalysisView">Analysis view configuration</param>
+    /// <param name="ReturnValue">Caption class string that can be modified</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetCaptionClass(AnalysisViewDimType: Integer; var AnalysisView: Record "Analysis View"; var ReturnValue: Text[250])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after navigating through dimension records in matrix.
+    /// Enables customization of dimension navigation and result processing logic.
+    /// </summary>
+    /// <param name="DimOption">Dimension option that was navigated</param>
+    /// <param name="DimCodeBuf">Dimension code buffer with navigation results</param>
+    /// <param name="AnalysisView">Analysis view configuration</param>
+    /// <param name="Steps">Number of steps requested for navigation</param>
+    /// <param name="ResultSteps">Actual number of steps taken</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterNextRecord(DimOption: Enum "Analysis Dimension Option"; var DimCodeBuf: Record "Dimension Code Buffer"; var AnalysisView: Record "Analysis View"; Steps: Integer; var ResultSteps: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before page opens for analysis by dimensions initialization.
+    /// Enables customization of analysis parameters before page display.
+    /// </summary>
+    /// <param name="AnalysisByDimParameters">Analysis parameters to be customized</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOpenPage(var AnalysisByDimParameters: Record "Analysis by Dim. Parameters")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before converting dimension code to dimension option enum.
+    /// Enables custom dimension code mapping for extended analysis view types.
+    /// </summary>
+    /// <param name="DimCode">Dimension code being converted</param>
+    /// <param name="AnalysisView">Analysis view configuration for context</param>
+    /// <param name="Result">Resulting dimension option enum value</param>
+    /// <param name="IsHandled">Set to true to skip standard conversion logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDimCodeToDimOption(DimCode: Text[30]; var AnalysisView: Record "Analysis View"; var Result: Enum "Analysis Dimension Option"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event for custom dimension navigation logic in analysis by dimensions.
+    /// </summary>
+    /// <param name="DimOption">Dimension option for navigation context</param>
+    /// <param name="DimensionValue">Dimension value being navigated</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeNextRecord(DimOption: Enum "Analysis Dimension Option"; var DimensionValue: Record "Dimension Value")
     begin
     end;
 
+    /// <summary>
+    /// Integration event for custom dimension record finding logic in analysis by dimensions.
+    /// </summary>
+    /// <param name="DimOption">Dimension option for record finding context</param>
+    /// <param name="DimensionValue">Dimension value being found</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFindRecord(DimOption: Enum "Analysis Dimension Option"; var DimensionValue: Record "Dimension Value")
     begin
     end;
 
+    /// <summary>
+    /// Integration event for custom validation logic when column dimension code is changed.
+    /// </summary>
+    /// <param name="GLAccountSource">Whether G/L Account is the data source</param>
+    /// <param name="ColumnDimCode">Column dimension code being validated</param>
+    /// <param name="InternalDateFilter">Internal date filter for analysis</param>
+    /// <param name="IsHandled">Set to true to skip standard validation</param>
+    /// <param name="AnalysisByDimParameters">Analysis parameters record</param>
+    /// <param name="AnalysisView">Analysis view configuration</param>
+    /// <param name="AnalysisViewEntry">Analysis view entry for data context</param>
+    /// <param name="PeriodInitialized">Whether period has been initialized</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeValidateColumnDimCode(var GLAccountSource: Boolean; var ColumnDimCode: Text[30]; var InternalDateFilter: Text; var IsHandled: Boolean; var AnalysisByDimParameters: Record "Analysis by Dim. Parameters"; var AnalysisView: Record "Analysis View"; var AnalysisViewEntry: Record "Analysis View Entry"; var PeriodInitialized: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event for custom validation logic when line dimension code is changed.
+    /// </summary>
+    /// <param name="GLAccountSource">Whether G/L Account is the data source</param>
+    /// <param name="LineDimCode">Line dimension code being validated</param>
+    /// <param name="InternalDateFilter">Internal date filter for analysis</param>
+    /// <param name="IsHandled">Set to true to skip standard validation</param>
+    /// <param name="AnalysisByDimParameters">Analysis parameters record</param>
+    /// <param name="AnalysisView">Analysis view configuration</param>
+    /// <param name="AnalysisViewEntry">Analysis view entry for data context</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeValidateLineDimCode(var GLAccountSource: Boolean; var LineDimCode: Text[30]; var InternalDateFilter: Text; var IsHandled: Boolean; var AnalysisByDimParameters: Record "Analysis by Dim. Parameters"; var AnalysisView: Record "Analysis View"; var AnalysisViewEntry: Record "Analysis View Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event for customizing dimension selection lookup before opening the page.
+    /// </summary>
+    /// <param name="AnalysisView">Analysis view configuration</param>
+    /// <param name="DimSelection">Dimension selection page to be customized</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetDimSelectionOnBeforeDimSelectionLookup(var AnalysisView: Record "Analysis View"; var DimSelection: Page "Dimension Selection")
     begin
     end;
 
+    /// <summary>
+    /// Integration event for custom logic after setting analysis view filters on record.
+    /// </summary>
+    /// <param name="AnalysisByDimParameters">Analysis parameters with updated filters</param>
+    /// <param name="AnalysisView">Analysis view configuration</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateAnalysisViewCodeOnAfterRecSetFilters(var AnalysisByDimParameters: Record "Analysis by Dim. Parameters"; var AnalysisView: Record "Analysis View")
     begin
     end;
 
+    /// <summary>
+    /// Integration event for customizing captions in analysis by dimensions display.
+    /// </summary>
+    /// <param name="AnalysisView">Analysis view configuration</param>
+    /// <param name="LineDimCode">Line dimension code for caption context</param>
+    /// <param name="AccountCaption">Account caption to be customized</param>
+    /// <param name="UnitCaption">Unit caption to be customized</param>
+    /// <param name="OpenPage">Whether the page is being opened</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetCaptions(var AnalysisView: Record "Analysis View"; var LineDimCode: Text[30]; var AccountCaption: Text[30]; var UnitCaption: Text[30]; OpenPage: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event for determining analysis view dimension option from dimension code.
+    /// </summary>
+    /// <param name="AnalysisView">Analysis view configuration</param>
+    /// <param name="Result">Resulting analysis dimension option</param>
+    /// <param name="DimCode">Dimension code for option determination</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetAnalysisViewDimensionOption(var AnalysisView: Record "Analysis View"; var Result: enum "Analysis Dimension Option"; DimCode: Text[30])
     begin
     end;
 
+    /// <summary>
+    /// Integration event for custom account filter lookup when account source is not standard.
+    /// </summary>
+    /// <param name="AnalysisByDimParameters">Analysis parameters for filter context</param>
+    /// <param name="AnalysisView">Analysis view configuration</param>
     [IntegrationEvent(false, false)]
     local procedure OnLookupAccountFilterOnAccountSourceElseCase(var AnalysisByDimParameters: Record "Analysis by Dim. Parameters"; AnalysisView: Record "Analysis View")
     begin
     end;
 
+    /// <summary>
+    /// Integration event for customizing business unit filter caption when account source is not standard.
+    /// </summary>
+    /// <param name="AnalysisByDimParameters">Analysis parameters for caption context</param>
+    /// <param name="AnalysisView">Analysis view configuration</param>
+    /// <param name="BusUnitFilterCaption">Business unit filter caption to be customized</param>
     [IntegrationEvent(false, false)]
     local procedure OnOpenPageOnGetBusUnitFilterCaptionElseCase(var AnalysisByDimParameters: Record "Analysis by Dim. Parameters"; AnalysisView: Record "Analysis View"; var BusUnitFilterCaption: Text[80])
     begin
     end;
 
+    /// <summary>
+    /// Integration event for customizing date filter after period finding logic.
+    /// </summary>
+    /// <param name="PeriodType">Period type for date filter context</param>
+    /// <param name="DateFilter">Date filter text to be customized</param>
     [IntegrationEvent(false, false)]
     local procedure OnFindPeriodOnAfterSetInternalDateFilter(PeriodType: Enum "Analysis Period Type"; var DateFilter: Text)
     begin

@@ -48,6 +48,7 @@ table 5976 "Filed Contract/Serv. Discount"
         }
         field(7; "Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;

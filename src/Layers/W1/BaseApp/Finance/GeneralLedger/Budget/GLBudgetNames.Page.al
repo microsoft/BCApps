@@ -5,10 +5,21 @@
 namespace Microsoft.Finance.GeneralLedger.Budget;
 
 using Microsoft.Finance.Analysis;
+#if not CLEAN28
 using Microsoft.Finance.GeneralLedger.Reports;
+#endif
 using Microsoft.Finance.GeneralLedger.Setup;
 using System.Text;
 
+/// <summary>
+/// List page for managing G/L Budget Names with dimension configuration and budget administration capabilities.
+/// Primary interface for creating, configuring, and managing budget templates with multi-dimensional support.
+/// </summary>
+/// <remarks>
+/// Key features: Budget name management, dimension configuration, budget copying, and Excel integration access.
+/// Navigation: Links to budget entries, Excel import/export, and budget analysis workflows.
+/// Extensibility: Support for custom budget actions through page extensions and event subscribers.
+/// </remarks>
 page 121 "G/L Budget Names"
 {
     AdditionalSearchTerms = 'general ledger budgets,general ledger forecast';
@@ -115,18 +126,23 @@ page 121 "G/L Budget Names"
             {
                 Caption = 'Report';
                 Image = "Report";
+#if not CLEAN28
                 action(ReportTrialBalance)
                 {
                     ApplicationArea = Suite;
-                    Caption = 'Trial Balance/Budget';
+                    Caption = 'Trial Balance/Budget (Obsolete)';
                     Image = "Report";
                     ToolTip = 'View budget details for the specified period.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the report Trial Balance/Budget (Excel). This report will be removed in a future release.';
+                    ObsoleteTag = '28.0';
 
                     trigger OnAction()
                     begin
                         REPORT.Run(REPORT::"Trial Balance/Budget");
                     end;
                 }
+#endif
             }
         }
         area(Promoted)
@@ -138,9 +154,14 @@ page 121 "G/L Budget Names"
                 actionref(EditBudget_Promoted; EditBudget)
                 {
                 }
+#if not CLEAN28
                 actionref(ReportTrialBalance_Promoted; ReportTrialBalance)
                 {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the report Trial Balance/Budget (Excel). This report will be removed in a future release.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
             }
             group(Category_Report)
             {
@@ -158,6 +179,11 @@ page 121 "G/L Budget Names"
     var
         GLSetup: Record "General Ledger Setup";
 
+    /// <summary>
+    /// Returns a selection filter string based on the currently selected budget names in the page.
+    /// Used for filtering operations on selected budget records.
+    /// </summary>
+    /// <returns>Filter string containing selected budget names.</returns>
     procedure GetSelectionFilter(): Text
     var
         GLBudgetName: Record "G/L Budget Name";

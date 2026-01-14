@@ -15,6 +15,16 @@ using Microsoft.Projects.Project.Job;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 
+/// <summary>
+/// Buffer table for accumulating prepayment invoice line data before posting operations.
+/// Stores temporary line information for prepayment invoice creation and G/L posting.
+/// </summary>
+/// <remarks>
+/// Used during prepayment invoice posting to organize and structure line data before creating the final invoice.
+/// Supports complex prepayment scenarios including VAT calculations, dimensions, and job-related prepayments.
+/// Provides grouping and accumulation capabilities for efficient prepayment invoice line processing.
+/// Integrates with sales and purchase prepayment posting workflows for consistent prepayment handling.
+/// </remarks>
 table 461 "Prepayment Inv. Line Buffer"
 {
     Caption = 'Prepayment Inv. Line Buffer';
@@ -23,17 +33,26 @@ table 461 "Prepayment Inv. Line Buffer"
 
     fields
     {
+        /// <summary>
+        /// G/L account number for posting the prepayment invoice line.
+        /// </summary>
         field(1; "G/L Account No."; Code[20])
         {
             Caption = 'G/L Account No.';
             DataClassification = SystemMetadata;
             TableRelation = "G/L Account";
         }
+        /// <summary>
+        /// Line number for ordering and identifying the prepayment invoice line.
+        /// </summary>
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Prepayment amount for the invoice line in document currency.
+        /// </summary>
         field(3; Amount; Decimal)
         {
             AutoFormatType = 1;
@@ -41,35 +60,53 @@ table 461 "Prepayment Inv. Line Buffer"
             Caption = 'Amount';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Description text for the prepayment invoice line.
+        /// </summary>
         field(4; Description; Text[100])
         {
             Caption = 'Description';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// General business posting group for VAT and posting determination.
+        /// </summary>
         field(5; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
             DataClassification = SystemMetadata;
             TableRelation = "Gen. Business Posting Group";
         }
+        /// <summary>
+        /// General product posting group for VAT and posting determination.
+        /// </summary>
         field(6; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
             DataClassification = SystemMetadata;
             TableRelation = "Gen. Product Posting Group";
         }
+        /// <summary>
+        /// VAT business posting group for VAT calculation.
+        /// </summary>
         field(7; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
             DataClassification = SystemMetadata;
             TableRelation = "VAT Business Posting Group";
         }
+        /// <summary>
+        /// VAT product posting group for VAT calculation.
+        /// </summary>
         field(8; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
             DataClassification = SystemMetadata;
             TableRelation = "VAT Product Posting Group";
         }
+        /// <summary>
+        /// VAT amount calculated for the prepayment line.
+        /// </summary>
         field(9; "VAT Amount"; Decimal)
         {
             AutoFormatType = 1;
@@ -77,11 +114,17 @@ table 461 "Prepayment Inv. Line Buffer"
             Caption = 'VAT Amount';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// VAT calculation type used for prepayment line tax calculation.
+        /// </summary>
         field(10; "VAT Calculation Type"; Enum "Tax Calculation Type")
         {
             Caption = 'VAT Calculation Type';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// VAT base amount for prepayment tax calculation.
+        /// </summary>
         field(11; "VAT Base Amount"; Decimal)
         {
             AutoFormatType = 1;
@@ -89,6 +132,9 @@ table 461 "Prepayment Inv. Line Buffer"
             Caption = 'VAT Base Amount';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Prepayment amount in additional reporting currency.
+        /// </summary>
         field(12; "Amount (ACY)"; Decimal)
         {
             AutoFormatExpression = GetAdditionalReportingCurrencyCode();
@@ -96,6 +142,9 @@ table 461 "Prepayment Inv. Line Buffer"
             Caption = 'Amount (ACY)';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// VAT amount in additional reporting currency.
+        /// </summary>
         field(13; "VAT Amount (ACY)"; Decimal)
         {
             AutoFormatExpression = GetAdditionalReportingCurrencyCode();
@@ -103,6 +152,9 @@ table 461 "Prepayment Inv. Line Buffer"
             Caption = 'VAT Amount (ACY)';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// VAT base amount in additional reporting currency.
+        /// </summary>
         field(14; "VAT Base Amount (ACY)"; Decimal)
         {
             AutoFormatExpression = GetAdditionalReportingCurrencyCode();
@@ -110,6 +162,9 @@ table 461 "Prepayment Inv. Line Buffer"
             Caption = 'VAT Base Amount (ACY)';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// VAT difference amount for manual VAT adjustments.
+        /// </summary>
         field(15; "VAT Difference"; Decimal)
         {
             AutoFormatType = 1;
@@ -117,6 +172,9 @@ table 461 "Prepayment Inv. Line Buffer"
             Caption = 'VAT Difference';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// VAT percentage rate for tax calculation.
+        /// </summary>
         field(16; "VAT %"; Decimal)
         {
             AutoFormatType = 0;
@@ -124,12 +182,18 @@ table 461 "Prepayment Inv. Line Buffer"
             DataClassification = SystemMetadata;
             DecimalPlaces = 1 : 1;
         }
+        /// <summary>
+        /// VAT identifier for grouping VAT entries.
+        /// </summary>
         field(17; "VAT Identifier"; Code[20])
         {
             Caption = 'VAT Identifier';
             DataClassification = SystemMetadata;
             Editable = false;
         }
+        /// <summary>
+        /// Global dimension 1 code for analytical reporting.
+        /// </summary>
         field(19; "Global Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,1,1';
@@ -137,6 +201,9 @@ table 461 "Prepayment Inv. Line Buffer"
             DataClassification = SystemMetadata;
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
+        /// <summary>
+        /// Global dimension 2 code for analytical reporting.
+        /// </summary>
         field(20; "Global Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,1,2';
@@ -144,12 +211,18 @@ table 461 "Prepayment Inv. Line Buffer"
             DataClassification = SystemMetadata;
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
+        /// <summary>
+        /// Project number for project-related prepayment tracking.
+        /// </summary>
         field(21; "Job No."; Code[20])
         {
             Caption = 'Project No.';
             DataClassification = SystemMetadata;
             TableRelation = Job;
         }
+        /// <summary>
+        /// Total amount including VAT for the prepayment line.
+        /// </summary>
         field(22; "Amount Incl. VAT"; Decimal)
         {
             AutoFormatType = 1;
@@ -157,33 +230,51 @@ table 461 "Prepayment Inv. Line Buffer"
             Caption = 'Amount Incl. VAT';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Tax area code for sales tax calculation.
+        /// </summary>
         field(24; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
             DataClassification = SystemMetadata;
             TableRelation = "Tax Area";
         }
+        /// <summary>
+        /// Indicates if the line is subject to sales tax.
+        /// </summary>
         field(25; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Tax group code for sales tax calculation.
+        /// </summary>
         field(26; "Tax Group Code"; Code[20])
         {
             Caption = 'Tax Group Code';
             DataClassification = SystemMetadata;
             TableRelation = "Tax Group";
         }
+        /// <summary>
+        /// Indicates if this line is for invoice rounding adjustment.
+        /// </summary>
         field(27; "Invoice Rounding"; Boolean)
         {
             Caption = 'Invoice Rounding';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Indicates if this line is an adjustment entry.
+        /// </summary>
         field(28; Adjustment; Boolean)
         {
             Caption = 'Adjustment';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// VAT base amount before payment discount application.
+        /// </summary>
         field(29; "VAT Base Before Pmt. Disc."; Decimal)
         {
             AutoFormatType = 1;
@@ -191,6 +282,9 @@ table 461 "Prepayment Inv. Line Buffer"
             Caption = 'VAT Base Before Pmt. Disc.';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Original payment discount amount possible for the prepayment.
+        /// </summary>
         field(30; "Orig. Pmt. Disc. Possible"; Decimal)
         {
             AutoFormatType = 1;
@@ -198,11 +292,17 @@ table 461 "Prepayment Inv. Line Buffer"
             Caption = 'Original Pmt. Disc. Possible';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Location code for inventory tracking.
+        /// </summary>
         field(31; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Dimension set ID for linking to dimension values.
+        /// </summary>
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
@@ -210,6 +310,9 @@ table 461 "Prepayment Inv. Line Buffer"
             Editable = false;
             TableRelation = "Dimension Set Entry";
         }
+        /// <summary>
+        /// Project task number for project-related prepayment tracking.
+        /// </summary>
         field(1001; "Job Task No."; Code[20])
         {
             Caption = 'Project Task No.';
@@ -246,6 +349,11 @@ table 461 "Prepayment Inv. Line Buffer"
         exit(GeneralLedgerSetup."Additional Reporting Currency")
     end;
 
+    /// <summary>
+    /// Increments amounts in the current record with amounts from another prepayment invoice line buffer.
+    /// Adds all financial amounts including VAT, base amounts, and discount amounts.
+    /// </summary>
+    /// <param name="PrepmtInvLineBuf">Prepayment invoice line buffer with amounts to add</param>
     procedure IncrAmounts(PrepmtInvLineBuf: Record "Prepayment Inv. Line Buffer")
     begin
         Amount := Amount + PrepmtInvLineBuf.Amount;
@@ -260,6 +368,10 @@ table 461 "Prepayment Inv. Line Buffer"
         OnAfterIncrAmounts(Rec, PrepmtInvLineBuf);
     end;
 
+    /// <summary>
+    /// Reverses all amounts in the current record by changing signs.
+    /// Used for creating credit memo entries or reversing prepayment entries.
+    /// </summary>
     procedure ReverseAmounts()
     begin
         Amount := -Amount;
@@ -274,6 +386,16 @@ table 461 "Prepayment Inv. Line Buffer"
         OnAfterReverseAmounts()
     end;
 
+    /// <summary>
+    /// Sets the financial amounts for the prepayment invoice line buffer.
+    /// Updates amount, VAT amounts, and base amounts in both LCY and ACY.
+    /// </summary>
+    /// <param name="AmountLCY">Amount in local currency</param>
+    /// <param name="AmountInclVAT">Amount including VAT</param>
+    /// <param name="VATBaseAmount">VAT base amount</param>
+    /// <param name="AmountACY">Amount in additional currency</param>
+    /// <param name="VATBaseAmountACY">VAT base amount in additional currency</param>
+    /// <param name="VATDifference">VAT difference amount</param>
     procedure SetAmounts(AmountLCY: Decimal; AmountInclVAT: Decimal; VATBaseAmount: Decimal; AmountACY: Decimal; VATBaseAmountACY: Decimal; VATDifference: Decimal)
     begin
         Amount := AmountLCY;
@@ -284,6 +406,11 @@ table 461 "Prepayment Inv. Line Buffer"
         "VAT Difference" := VATDifference;
     end;
 
+    /// <summary>
+    /// Inserts or updates a prepayment invoice line buffer record.
+    /// If record exists, increments amounts; otherwise inserts new record.
+    /// </summary>
+    /// <param name="PrepmtInvLineBuf2">Prepayment invoice line buffer to insert or merge</param>
     procedure InsertInvLineBuffer(PrepmtInvLineBuf2: Record "Prepayment Inv. Line Buffer")
     begin
         Rec := PrepmtInvLineBuf2;
@@ -297,6 +424,12 @@ table 461 "Prepayment Inv. Line Buffer"
             Insert();
     end;
 
+    /// <summary>
+    /// Copies a prepayment invoice line buffer record with a new line number.
+    /// Creates a new record with the specified line number.
+    /// </summary>
+    /// <param name="PrepmtInvLineBuf">Source prepayment invoice line buffer to copy</param>
+    /// <param name="LineNo">New line number for the copied record</param>
     procedure CopyWithLineNo(PrepmtInvLineBuf: Record "Prepayment Inv. Line Buffer"; LineNo: Integer)
     begin
         Rec := PrepmtInvLineBuf;
@@ -304,6 +437,11 @@ table 461 "Prepayment Inv. Line Buffer"
         Insert();
     end;
 
+    /// <summary>
+    /// Copies posting group information from a purchase line to the prepayment buffer.
+    /// Transfers VAT and posting group settings for prepayment processing.
+    /// </summary>
+    /// <param name="PurchLine">Purchase line to copy posting groups from</param>
     procedure CopyFromPurchLine(PurchLine: Record "Purchase Line")
     begin
         "Gen. Prod. Posting Group" := PurchLine."Gen. Prod. Posting Group";
@@ -324,6 +462,11 @@ table 461 "Prepayment Inv. Line Buffer"
         OnAfterCopyFromPurchLine(Rec, PurchLine);
     end;
 
+    /// <summary>
+    /// Copies posting group information from a sales line to the prepayment buffer.
+    /// Transfers VAT and posting group settings for prepayment processing.
+    /// </summary>
+    /// <param name="SalesLine">Sales line to copy posting groups from</param>
     procedure CopyFromSalesLine(SalesLine: Record "Sales Line")
     begin
         "Gen. Prod. Posting Group" := SalesLine."Gen. Prod. Posting Group";
@@ -344,6 +487,11 @@ table 461 "Prepayment Inv. Line Buffer"
         OnAfterCopyFromSalesLine(Rec, SalesLine);
     end;
 
+    /// <summary>
+    /// Sets filters on the primary key fields of the prepayment invoice line buffer.
+    /// Used for finding existing records with matching key values.
+    /// </summary>
+    /// <param name="PrepmtInvLineBuf">Prepayment invoice line buffer with key values to filter by</param>
     procedure SetFilterOnPKey(PrepmtInvLineBuf: Record "Prepayment Inv. Line Buffer")
     begin
         Reset();
@@ -359,6 +507,14 @@ table 461 "Prepayment Inv. Line Buffer"
             SetRange("Line No.", PrepmtInvLineBuf."Line No.");
     end;
 
+    /// <summary>
+    /// Fills the buffer with adjustment invoice line data for amount corrections.
+    /// Creates adjustment entries for prepayment amount differences.
+    /// </summary>
+    /// <param name="PrepmtInvLineBuf">Source prepayment invoice line buffer</param>
+    /// <param name="GLAccountNo">G/L account number for the adjustment</param>
+    /// <param name="CorrAmount">Correction amount in local currency</param>
+    /// <param name="CorrAmountACY">Correction amount in additional currency</param>
     procedure FillAdjInvLineBuffer(PrepmtInvLineBuf: Record "Prepayment Inv. Line Buffer"; GLAccountNo: Code[20]; CorrAmount: Decimal; CorrAmountACY: Decimal)
     begin
         Init();
@@ -376,6 +532,11 @@ table 461 "Prepayment Inv. Line Buffer"
         OnAfterFillAdjInvLineBuffer(PrepmtInvLineBuf, Rec);
     end;
 
+    /// <summary>
+    /// Fills the buffer with G/L account information for prepayment processing.
+    /// Copies posting group information from the specified G/L account.
+    /// </summary>
+    /// <param name="CompressPrepayment">Whether to use compressed description from G/L account name</param>
     procedure FillFromGLAcc(CompressPrepayment: Boolean)
     var
         GLAcc: Record "G/L Account";
@@ -395,6 +556,11 @@ table 461 "Prepayment Inv. Line Buffer"
         OnAfterFillFromGLAcc(Rec, GLAcc, CompressPrepayment);
     end;
 
+    /// <summary>
+    /// Adjusts VAT base amount and VAT amount based on provided adjustment values.
+    /// Recalculates amount including VAT after adjustments.
+    /// </summary>
+    /// <param name="VATAdjustment">Array containing base amount and VAT amount adjustments</param>
     procedure AdjustVATBase(VATAdjustment: array[2] of Decimal)
     begin
         if Amount <> "Amount Incl. VAT" then begin
@@ -405,12 +571,21 @@ table 461 "Prepayment Inv. Line Buffer"
         end;
     end;
 
+    /// <summary>
+    /// Converts buffer amounts to an array format for processing.
+    /// Returns base amount and VAT amount in array elements.
+    /// </summary>
+    /// <param name="VATAmount">Array to receive amount and VAT amount values</param>
     procedure AmountsToArray(var VATAmount: array[2] of Decimal)
     begin
         VATAmount[1] := Amount;
         VATAmount[2] := "Amount Incl. VAT" - Amount;
     end;
 
+    /// <summary>
+    /// Compresses multiple buffer lines with same key into consolidated entries.
+    /// Combines amounts for lines with identical posting group and dimension combinations.
+    /// </summary>
     procedure CompressBuffer()
     var
         TempPrepmtInvLineBuffer2: Record "Prepayment Inv. Line Buffer" temporary;
@@ -441,6 +616,10 @@ table 461 "Prepayment Inv. Line Buffer"
         until TempPrepmtInvLineBuffer2.Next() = 0;
     end;
 
+    /// <summary>
+    /// Updates VAT amounts based on VAT posting setup and calculated percentages.
+    /// Recalculates VAT amount in both local and additional reporting currency.
+    /// </summary>
     procedure UpdateVATAmounts()
     var
         GLSetup: Record "General Ledger Setup";
@@ -460,46 +639,99 @@ table 461 "Prepayment Inv. Line Buffer"
         VATPct := "VAT %";
     end;
 
+    /// <summary>
+    /// Integration event raised after copying data from a purchase line.
+    /// Allows customization of purchase line data transfer to prepayment buffer.
+    /// </summary>
+    /// <param name="PrepaymentInvLineBuffer">Prepayment invoice line buffer being updated</param>
+    /// <param name="PurchaseLine">Source purchase line</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyFromPurchLine(var PrepaymentInvLineBuffer: Record "Prepayment Inv. Line Buffer"; PurchaseLine: Record "Purchase Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after copying data from a sales line.
+    /// Allows customization of sales line data transfer to prepayment buffer.
+    /// </summary>
+    /// <param name="PrepaymentInvLineBuffer">Prepayment invoice line buffer being updated</param>
+    /// <param name="SalesLine">Source sales line</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyFromSalesLine(var PrepaymentInvLineBuffer: Record "Prepayment Inv. Line Buffer"; SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after incrementing amounts in the buffer.
+    /// Allows custom amount processing during buffer consolidation.
+    /// </summary>
+    /// <param name="PrepaymentInvLineBuffer">Target prepayment invoice line buffer</param>
+    /// <param name="PrepmtInvLineBuf">Source prepayment invoice line buffer with amounts to add</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterIncrAmounts(var PrepaymentInvLineBuffer: Record "Prepayment Inv. Line Buffer"; PrepmtInvLineBuf: Record "Prepayment Inv. Line Buffer")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after filling buffer from G/L account.
+    /// Allows customization of G/L account data transfer to prepayment buffer.
+    /// </summary>
+    /// <param name="PrepaymentInvLineBuffer">Prepayment invoice line buffer being updated</param>
+    /// <param name="GLAccount">Source G/L account</param>
+    /// <param name="CompressPayment">Whether compression is enabled</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFillFromGLAcc(var PrepaymentInvLineBuffer: Record "Prepayment Inv. Line Buffer"; GLAccount: Record "G/L Account"; CompressPayment: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after filling adjustment invoice line buffer.
+    /// Allows customization of adjustment line processing.
+    /// </summary>
+    /// <param name="PrepaymentInvLineBuffer">Source prepayment invoice line buffer</param>
+    /// <param name="PrepaymentInvLineBufferRec">Target adjustment line buffer</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFillAdjInvLineBuffer(PrepaymentInvLineBuffer: Record "Prepayment Inv. Line Buffer"; var PrepaymentInvLineBufferRec: Record "Prepayment Inv. Line Buffer")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after reversing amounts in the buffer.
+    /// Allows custom processing after amount reversal operations.
+    /// </summary>
     [IntegrationEvent(true, false)]
     local procedure OnAfterReverseAmounts()
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before compressing the buffer.
+    /// Allows custom buffer compression logic or skipping standard compression.
+    /// </summary>
+    /// <param name="PrepaymentInvLineBuffer">Prepayment invoice line buffer to compress</param>
+    /// <param name="IsHandled">Set to true to skip standard compression</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCompressBuffer(var PrepaymentInvLineBuffer: Record "Prepayment Inv. Line Buffer"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before filling buffer from G/L account.
+    /// Allows custom G/L account processing or skipping standard fill logic.
+    /// </summary>
+    /// <param name="PrepaymentInvLineBuffer">Prepayment invoice line buffer to fill</param>
+    /// <param name="IsHandled">Set to true to skip standard fill processing</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeFillFromGLAcc(var PrepaymentInvLineBuffer: Record "Prepayment Inv. Line Buffer"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after updating VAT amounts.
+    /// Allows custom VAT amount processing after standard calculations.
+    /// </summary>
+    /// <param name="PrepaymentInvLineBuffer">Prepayment invoice line buffer with updated VAT amounts</param>
+    /// <param name="Currency">Currency record used for calculations</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterUpdateVATAmounts(var PrepaymentInvLineBuffer: Record "Prepayment Inv. Line Buffer"; Currency: Record Currency)
     begin

@@ -8,6 +8,15 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using System.Utilities;
 
+/// <summary>
+/// Generates detailed trial balance with individual transaction breakdowns for each G/L account.
+/// Provides comprehensive audit trail with transaction-level detail including closing entries and corrections analysis.
+/// </summary>
+/// <remarks>
+/// Data sources: G/L Account and G/L Entry tables with posting account filtering and transaction detail display.
+/// Supports multiple filter options: balance-only accounts, closing entries, reversed entries, and correction entries.
+/// Used for detailed financial analysis, audit procedures, and transaction-level reconciliation requirements.
+/// </remarks>
 report 4 "Detail Trial Balance"
 {
     DefaultLayout = RDLC;
@@ -323,6 +332,15 @@ report 4 "Detail Trial Balance"
         StartDateTime: DateTime;
         FinishDateTime: DateTime;
 
+    /// <summary>
+    /// Initializes report parameters for programmatic execution with detailed filtering and display options.
+    /// Configures entry type filters, page break options, and transaction inclusion criteria for customized trial balance generation.
+    /// </summary>
+    /// <param name="NewPrintOnlyOnePerPage">Whether to print only one account per page</param>
+    /// <param name="NewExcludeBalanceOnly">Whether to exclude accounts with balance-only information</param>
+    /// <param name="NewPrintClosingEntries">Whether to include closing entries in the report</param>
+    /// <param name="NewPrintReversedEntries">Whether to include reversed entries in the report</param>
+    /// <param name="NewPrintOnlyCorrections">Whether to print only correction entries</param>
     procedure InitializeRequest(NewPrintOnlyOnePerPage: Boolean; NewExcludeBalanceOnly: Boolean; NewPrintClosingEntries: Boolean; NewPrintReversedEntries: Boolean; NewPrintOnlyCorrections: Boolean)
     begin
         PrintOnlyOnePerPage := NewPrintOnlyOnePerPage;
@@ -347,11 +365,22 @@ report 4 "Detail Trial Balance"
     end;
 
     [IntegrationEvent(false, false)]
+    /// <summary>
+    /// Integration event raised after G/L Entry data item preprocessing for customization of entry filtering or data modification.
+    /// Allows extensions to modify G/L Entry record properties or apply additional filters before report generation.
+    /// </summary>
+    /// <param name="GLEntry">G/L Entry record reference for modification by subscribers</param>
     local procedure OnAfterOnPreDataItemGLEntry(var GLEntry: Record "G/L Entry")
     begin
     end;
 
     [IntegrationEvent(false, false)]
+    /// <summary>
+    /// Integration event raised after report preprocessing for customization of G/L Account filtering or exclusion criteria.
+    /// Allows extensions to modify account selection logic and balance exclusion rules before detail processing.
+    /// </summary>
+    /// <param name="GLAccount">G/L Account record reference for modification by subscribers</param>
+    /// <param name="ExcludeBalanceOnly">Balance exclusion flag that can be modified by subscribers</param>
     local procedure OnAfterOnPreReport(var GLAccount: Record "G/L Account"; var ExcludeBalanceOnly: Boolean)
     begin
     end;

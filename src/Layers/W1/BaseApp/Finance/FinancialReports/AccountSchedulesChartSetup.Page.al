@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.FinancialReports;
 
+/// <summary>
+/// Configuration interface for account schedule chart visualization settings.
+/// Provides setup for chart parameters, period definitions, and visualization options.
+/// </summary>
+/// <remarks>
+/// Primary setup page for account schedule chart functionality. Enables configuration
+/// of chart data sources, period settings, axis definitions, and chart line management.
+/// Integrates with chart visualization system for financial data presentation.
+/// </remarks>
 page 763 "Account Schedules Chart Setup"
 {
     Caption = 'Financial Report Chart Setup';

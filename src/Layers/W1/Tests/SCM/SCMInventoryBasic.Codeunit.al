@@ -2716,8 +2716,8 @@ codeunit 137280 "SCM Inventory Basic"
         PostSalesOrder(SalesLine."Document Type", SalesLine."Document No.", true);
 
         // [WHEN] Open Item Statistics page for the item.
-        ItemStatistics2.OpenView();
-        ItemStatistics2.Filter.SetFilter("No.", Item."No.");
+        ItemStatistics2.Trap();
+        OpenItemStatisticsPageFromItemCard(Item."No.");
 
         // Expired Inventory Value = Expired Inventory * Item Cost
         ExpectedExpiredValue := QtyExpiredInventory * ItemCost;
@@ -2800,8 +2800,8 @@ codeunit 137280 "SCM Inventory Basic"
         PostSalesOrder(SalesLine."Document Type", SalesLine."Document No.", true);
 
         // [WHEN] Open Item Statistics page for the item.
-        ItemStatistics2.OpenView();
-        ItemStatistics2.Filter.SetFilter("No.", Item."No.");
+        ItemStatistics2.Trap();
+        OpenItemStatisticsPageFromItemCard(Item."No.");
 
         // Net Sales Amount last month = Total qty. sold last month * Item Price
         ExpectedNetSalesAmtLastMonth := LastMonthSalesQty * ItemPrice;
@@ -2921,8 +2921,8 @@ codeunit 137280 "SCM Inventory Basic"
         PostSalesOrder(SalesLine."Document Type", SalesLine."Document No.", true);
 
         // [WHEN] Open Item Statistics page for the item.
-        ItemStatistics2.OpenView();
-        ItemStatistics2.Filter.SetFilter("No.", Item."No.");
+        ItemStatistics2.Trap();
+        OpenItemStatisticsPageFromItemCard(Item."No.");
 
         NetSalesAmtLastMonth := LastMonthSalesQty * ItemPrice;
         NetSalesAmtThisMonth := ThisMonthSalesQty * ItemPrice;
@@ -2943,13 +2943,13 @@ codeunit 137280 "SCM Inventory Basic"
         ExpectedSalesGrowthThisYear := ((NetSalesAmtThisYear - NetSalesAmtLastYear) / NetSalesAmtLastYear);
         ExpectedSalesGrowthLastYear := ((NetSalesAmtLastYear - NetSalesAmtLastLastYear) / NetSalesAmtLastLastYear);
 
-        // [THEN] Verify the current inventory value.
+        // [THEN] Verify the sales growth rate for this period.
         ItemStatistics2."SalesGrowthRate[1]".AssertEquals(ExpectedSalesGrowthThisMonth);
 
-        // [THEN] Verify the expired inventory value.
+        // [THEN] Verify the sales growth rate for this fiscal year.
         ItemStatistics2."SalesGrowthRate[2]".AssertEquals(ExpectedSalesGrowthThisYear);
 
-        // [THEN] Verify the net sales amount for this month.
+        // [THEN] Verify the sales growth rate for last fiscal year.
         ItemStatistics2."SalesGrowthRate[3]".AssertEquals(ExpectedSalesGrowthLastYear);
 
         ItemStatistics2.Close();
@@ -3035,8 +3035,8 @@ codeunit 137280 "SCM Inventory Basic"
         PostSalesOrder(SalesLine."Document Type", SalesLine."Document No.", true);
 
         // [WHEN] Open Item Statistics page for the item.
-        ItemStatistics2.OpenView();
-        ItemStatistics2.Filter.SetFilter("No.", Item."No.");
+        ItemStatistics2.Trap();
+        OpenItemStatisticsPageFromItemCard(Item."No.");
 
         NetSalesAmtLastMonth := LastMonthSalesQty * ItemPrice;
         NetSalesAmtThisMonth := ThisMonthSalesQty * ItemPrice;
@@ -3067,16 +3067,16 @@ codeunit 137280 "SCM Inventory Basic"
         ExpectedGrossMarginLifetime := (NetSalesAmtThisYear + NetSalesAmtLastYear + NetSalesAmtLastLastYear - NetCostAmtThisYear - NetCostAmtLastYear - NetCostAmtLastLastYear)
                                       / (NetSalesAmtThisYear + NetSalesAmtLastYear + NetSalesAmtLastLastYear);
 
-        // [THEN] Verify the current inventory value.
+        // [THEN] Verify the gross margin for this period.
         ItemStatistics2."GrossMargin[1]".AssertEquals(ExpectedGrossMarginThisMonth);
 
-        // [THEN] Verify the expired inventory value.
+        // [THEN] Verify the gross margin for this fiscal year.
         ItemStatistics2."GrossMargin[2]".AssertEquals(ExpectedGrossMarginThisYear);
 
-        // [THEN] Verify the net sales amount for this month.
+        // [THEN] Verify the gross margin for last fiscal year.
         ItemStatistics2."GrossMargin[3]".AssertEquals(ExpectedGrossMarginLastYear);
 
-        // [THEN] Verify the net sales amount for lifetime.
+        // [THEN] Verify the gross margin for lifetime.
         ItemStatistics2."GrossMargin[4]".AssertEquals(ExpectedGrossMarginLifetime);
 
         ItemStatistics2.Close();
@@ -3174,8 +3174,8 @@ codeunit 137280 "SCM Inventory Basic"
         PostSalesOrder(SalesLine."Document Type", SalesLine."Document No.", true);
 
         // [WHEN] Open Item Statistics page for the item.
-        ItemStatistics2.OpenView();
-        ItemStatistics2.Filter.SetFilter("No.", Item."No.");
+        ItemStatistics2.Trap();
+        OpenItemStatisticsPageFromItemCard(Item."No.");
 
         ExpectedReturnRateThisMonth := ThisMonthReturnQty / ThisMonthSalesQty;
 
@@ -3202,6 +3202,170 @@ codeunit 137280 "SCM Inventory Basic"
         // [THEN] Verify the return rate for lifetime.
         ItemStatistics2."ReturnRate[4]".AssertEquals(ExpectedReturnRateLifetime);
 
+        ItemStatistics2.Close();
+    end;
+
+    [Test]
+    procedure CheckItemStatisticsCache_UpdatesOnNewMonth()
+    var
+        Item: Record Item;
+        PurchaseLine: Record "Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        SalesLine: Record "Sales Line";
+        ItemStatistics2: TestPage "Item Statistics 2";
+        ItemCost: Decimal;
+        ItemPrice: Decimal;
+        QtyInventory: Decimal;
+        ExpectedCurrentValue: Decimal;
+    begin
+        // [SCENARIO] Item Statistics Cache updates when moving to a new month
+        // [FEATURE] [Item Statistics]
+        Initialize();
+
+        // [GIVEN] One item with cost and price and some inventory
+        ItemCost := LibraryRandom.RandIntInRange(200, 300);
+        ItemPrice := ItemCost + LibraryRandom.RandIntInRange(200, 300);
+        CreateItemWithCostAndPrice(Item, ItemCost, ItemPrice);
+
+        QtyInventory := LibraryRandom.RandIntInRange(100, 200);
+        CreateAndPostPurchaseOrder(PurchaseHeader, PurchaseLine, Item."No.", QtyInventory, ItemCost);
+
+        // [WHEN] Open its statistics
+        ItemStatistics2.Trap();
+        OpenItemStatisticsPageFromItemCard(Item."No.");
+
+        // [THEN] Verify the current inventory value
+        ExpectedCurrentValue := QtyInventory * ItemCost;
+        ItemStatistics2."Current Inventory Value".AssertEquals(ExpectedCurrentValue);
+        ItemStatistics2.Close();
+
+        // [GIVEN] Inventory has all been sold
+        CreateSalesDocument(
+          SalesLine, SalesLine."Document Type"::Order, LibrarySales.CreateCustomerNo(),
+          SalesLine.Type::Item, Item."No.", QtyInventory);
+        PostSalesOrder(SalesLine."Document Type", SalesLine."Document No.", true);
+
+        // [GIVEN] Date is moved to next month
+        WorkDate(CalcDate('<+1M>', WorkDate()));
+
+        // [WHEN] Open its statistics
+        ItemStatistics2.Trap();
+        OpenItemStatisticsPageFromItemCard(Item."No.");
+
+        // [THEN] Verify the current inventory value is zero
+        ItemStatistics2."Current Inventory Value".AssertEquals(0);
+        ItemStatistics2.Close();
+    end;
+
+    [Test]
+    procedure CheckItemStatisticsCache_UpdatesOnNewValueEntry()
+    var
+        Item: Record Item;
+        PurchaseLine: Record "Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        ItemJournalLine: Record "Item Journal Line";
+        ItemStatistics2: TestPage "Item Statistics 2";
+        ItemCost: Decimal;
+        ItemPrice: Decimal;
+        QtyInventory: Decimal;
+        QtyAdditional: Decimal;
+        ExpectedCurrentValue: Decimal;
+    begin
+        // [SCENARIO] Item Statistics Cache updates Current Inventory Value when a new Value Entry is created
+        // [FEATURE] [Item Statistics]
+        Initialize();
+
+        // [GIVEN] Create Item with Cost and Price and initial inventory
+        ItemCost := LibraryRandom.RandIntInRange(200, 300);
+        ItemPrice := ItemCost + LibraryRandom.RandIntInRange(200, 300);
+        CreateItemWithCostAndPrice(Item, ItemCost, ItemPrice);
+
+        QtyInventory := LibraryRandom.RandIntInRange(50, 100);
+        CreateAndPostPurchaseOrder(PurchaseHeader, PurchaseLine, Item."No.", QtyInventory, ItemCost);
+
+        // [GIVEN] Open Item Statistics and verify initial inventory value
+        ItemStatistics2.Trap();
+        OpenItemStatisticsPageFromItemCard(Item."No.");
+        ExpectedCurrentValue := QtyInventory * ItemCost;
+        ItemStatistics2."Current Inventory Value".AssertEquals(ExpectedCurrentValue);
+        ItemStatistics2.Close();
+
+        // [WHEN] Add more inventory
+        QtyAdditional := LibraryRandom.RandIntInRange(10, 20);
+        CreateAndPostItemJournalLine(ItemJournalLine, Item."No.", '', QtyAdditional);
+
+        // [WHEN] Open Item Statistics again
+        ItemStatistics2.Trap();
+        OpenItemStatisticsPageFromItemCard(Item."No.");
+
+        // [THEN] Verify the current inventory value reflects the new entry
+        ExpectedCurrentValue := (QtyInventory + QtyAdditional) * ItemCost;
+        ItemStatistics2."Current Inventory Value".AssertEquals(ExpectedCurrentValue);
+        ItemStatistics2.Close();
+    end;
+
+    [Test]
+    procedure CheckItemStatisticsCache_UpdatesOnNewItemLedgerEntry()
+    var
+        Item: Record Item;
+        PurchaseLine: Record "Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        SalesLine: Record "Sales Line";
+        ItemStatistics2: TestPage "Item Statistics 2";
+        ItemCost: Decimal;
+        ItemPrice: Decimal;
+        QtyInventory: Decimal;
+        SalesQty: Decimal;
+        ReturnQty: Decimal;
+        ExpectedReturnRateThisMonth: Decimal;
+    begin
+        // [SCENARIO] Item Statistics Cache updates Return Rate when new Item Ledger Entries are created
+        // [FEATURE] [Item Statistics]
+        Initialize();
+
+        // [GIVEN] Create Item with Cost and Price
+        ItemCost := LibraryRandom.RandIntInRange(200, 300);
+        ItemPrice := ItemCost + LibraryRandom.RandIntInRange(200, 300);
+        CreateItemWithCostAndPrice(Item, ItemCost, ItemPrice);
+
+        // [GIVEN] Add inventory
+        QtyInventory := LibraryRandom.RandIntInRange(100, 200);
+        CreateAndPostPurchaseOrder(PurchaseHeader, PurchaseLine, Item."No.", QtyInventory, ItemCost);
+
+        // [WHEN] Open Item Statistics
+        ItemStatistics2.Trap();
+        OpenItemStatisticsPageFromItemCard(Item."No.");
+
+        // [THEN] Check that item statistics shows correct value for return rate (all zeroes)
+        ItemStatistics2."ReturnRate[1]".AssertEquals(0);
+        ItemStatistics2."ReturnRate[2]".AssertEquals(0);
+        ItemStatistics2."ReturnRate[3]".AssertEquals(0);
+        ItemStatistics2."ReturnRate[4]".AssertEquals(0);
+        ItemStatistics2.Close();
+
+        // [GIVEN] Sell some inventory
+        SalesQty := LibraryRandom.RandIntInRange(20, 30);
+        CreateSalesDocument(
+          SalesLine, SalesLine."Document Type"::Order, LibrarySales.CreateCustomerNo(),
+          SalesLine.Type::Item, Item."No.", SalesQty);
+        PostSalesOrder(SalesLine."Document Type", SalesLine."Document No.", true);
+
+        // [GIVEN] Some inventory is returned
+        ReturnQty := LibraryRandom.RandInt(SalesQty);
+        CreateSalesDocument(
+          SalesLine, SalesLine."Document Type"::"Return Order", LibrarySales.CreateCustomerNo(),
+          SalesLine.Type::Item, Item."No.", ReturnQty);
+        PostSalesOrder(SalesLine."Document Type", SalesLine."Document No.", true);
+
+        // [WHEN] Open Item Statistics again
+        ItemStatistics2.Trap();
+        OpenItemStatisticsPageFromItemCard(Item."No.");
+
+        // [THEN] Check that item statistics shows correct value for return rate (non-zeroes for the latest ones)
+        ExpectedReturnRateThisMonth := ReturnQty / SalesQty;
+        ItemStatistics2."ReturnRate[1]".AssertEquals(ExpectedReturnRateThisMonth);
+        ItemStatistics2."ReturnRate[2]".AssertEquals(ExpectedReturnRateThisMonth);
+        ItemStatistics2."ReturnRate[4]".AssertEquals(ExpectedReturnRateThisMonth);
         ItemStatistics2.Close();
     end;
 
@@ -3943,6 +4107,16 @@ codeunit 137280 "SCM Inventory Basic"
         repeat
             ValueEntry.TestField("External Document No.", ExternalDocumentNo);
         until ValueEntry.Next() = 0;
+    end;
+
+    local procedure OpenItemStatisticsPageFromItemCard(ItemNo: Code[20])
+    var
+        ItemCard: TestPage "Item Card";
+    begin
+        ItemCard.OpenView();
+        ItemCard.Filter.SetFilter("No.", ItemNo);
+        ItemCard.First();
+        ItemCard.ItemStatistics.Invoke();
     end;
 
     [PageHandler]

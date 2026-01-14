@@ -10,7 +10,7 @@ page 6116 "E-Doc. Select PO Lines"
 {
     ApplicationArea = All;
     Caption = 'Available Purchase Order Lines';
-    PageType = Worksheet;
+    PageType = List;
     SourceTable = "Purchase Line";
     SourceTableTemporary = true;
     Editable = false;
@@ -46,6 +46,18 @@ page 6116 "E-Doc. Select PO Lines"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the document number of the purchase order.';
+                    StyleExpr = StyleExpr;
+                }
+                field(Type; Rec.Type)
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the type of the purchase line.';
+                    StyleExpr = StyleExpr;
+                }
+                field("No."; Rec."No.")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the number of the item, resource, or G/L account.';
                     StyleExpr = StyleExpr;
                 }
                 field(Description; Rec.Description)

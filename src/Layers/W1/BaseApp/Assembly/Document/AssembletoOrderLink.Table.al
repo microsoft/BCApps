@@ -16,6 +16,8 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
+using Microsoft.Projects.Project.Job;
+using Microsoft.Projects.Project.Planning;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Setup;
@@ -23,8 +25,6 @@ using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Journal;
 using System.Utilities;
-using Microsoft.Projects.Project.Planning;
-using Microsoft.Projects.Project.Job;
 
 table 904 "Assemble-to-Order Link"
 {

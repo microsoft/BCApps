@@ -2565,6 +2565,58 @@ codeunit 137047 "SCM Warehouse I"
         VerifyGetBinContentInItemJournal(ItemJournalBatch, ItemNo, Location.Code, BinCode, Quantity);
     end;
 
+    [Test]
+    [HandlerFunctions('WhseItemTrackingLinesAssignLotPageHandler,ConfirmHandlerFalse')]
+    [Scope('OnPrem')]
+    procedure CannotReserveSpecificLotAllocatedToRegisteredPick()
+    var
+        Location: Record Location;
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesLine2: Record "Sales Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        LotNo: Code[20];
+        Qty: Decimal;
+    begin
+        // [SCENARIO 614876] Cannot reserve specific lot number that is already allocated to a registered warehouse pick
+        Initialize();
+        LibraryVariableStorage.Clear();
+        LibraryInventory.ClearItemJournal(ItemJournalTemplate, ItemJournalBatch);
+
+        // [GIVEN] Location with directed put-away and pick
+        CreateFullWMSLocation(Location, LibraryRandom.RandIntInRange(2, 2));
+
+        // [GIVEN] Item with lot warehouse tracking
+        CreateItemWithLotWarehouseTracking(Item);
+
+        // [GIVEN] Post random pcs to location with lot no. "L1" via warehouse receipt and put-away
+        LotNo := LibraryUtility.GenerateGUID();
+        Qty := LibraryRandom.RandIntInRange(100, 200);
+        UpdateInventoryOnDirectedPutAwayPickLocationTrackedItem(Item."No.", Location.Code, Qty, LotNo);
+
+        // [GIVEN] Sales order for random pcs, create warehouse shipment and pick, register pick
+        CreateSalesDocumentWithLine(SalesLine, Item."No.", Location.Code, Qty);
+        SalesHeader.Get(SalesLine."Document Type", SalesLine."Document No.");
+        CreateWhsePickFromSalesOrder(SalesHeader);
+        FindWarehouseActivityLine(
+          WarehouseActivityLine, Database::"Sales Line", SalesLine."Document Type".AsInteger(), SalesLine."Document No.", SalesLine."Line No.");
+        WarehouseActivityLine.ModifyAll("Lot No.", LotNo);
+        WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+
+        // [GIVEN] Create partial sales order
+        CreateSalesDocumentWithLine(SalesLine2, Item."No.", Location.Code, Qty / 2);
+
+        // [WHEN] Try to auto-reserve sales order 
+        LibrarySales.AutoReserveSalesLine(SalesLine2);
+
+        // [THEN] No quantity is reserved (ConfirmHandler returns false for manual reservation prompt)
+        SalesLine2.CalcFields("Reserved Quantity");
+        SalesLine2.TestField("Reserved Quantity", 0);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -3597,6 +3649,12 @@ codeunit 137047 "SCM Warehouse I"
     procedure ConfirmHandlerTrue(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandlerFalse(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := false;
     end;
 
     [MessageHandler]

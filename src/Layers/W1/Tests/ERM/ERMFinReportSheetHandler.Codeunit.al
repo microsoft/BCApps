@@ -11,14 +11,14 @@ codeunit 135008 "ERM Fin. Report Sheet Handler"
         SheetTempBlobsOut := SheetTempBlobs;
     end;
 
-    [EventSubscriber(ObjectType::Report, Report::"Account Schedule", OnBeforeSaveSheetDefinitionReport, '', false, false)]
-    local procedure OnBeforeSaveSheetDefinitionReport(SheetDefLine: Record "Sheet Definition Line"; var AccountSchedule: Report "Account Schedule"; var OutStr: OutStream; var IsHandled: Boolean)
+    [EventSubscriber(ObjectType::Report, Report::"Account Schedule", OnBeforeSaveDimPerspectiveReport, '', false, false)]
+    local procedure OnBeforeSaveDimPerspectiveReport(DimPerspectiveLine: Record "Dimension Perspective Line"; var AccountSchedule: Report "Account Schedule"; var OutStr: OutStream; var IsHandled: Boolean)
     var
         TempBlob: Codeunit "Temp Blob";
         OutStrOverride: OutStream;
         InStr: InStream;
     begin
-        SheetTempBlobs.Add(SheetDefLine."Line No.", TempBlob);
+        SheetTempBlobs.Add(DimPerspectiveLine."Line No.", TempBlob);
         TempBlob.CreateOutStream(OutStrOverride);
         AccountSchedule.SaveAs('', ReportFormat::Xml, OutStrOverride);
         TempBlob.CreateInStream(InStr);

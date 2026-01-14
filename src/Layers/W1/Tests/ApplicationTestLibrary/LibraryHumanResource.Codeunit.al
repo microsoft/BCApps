@@ -1,6 +1,8 @@
+/// <summary>
+/// Provides utility functions for creating and managing human resource entities in test scenarios, including employees, employee absence, and HR setup.
+/// </summary>
 codeunit 131901 "Library - Human Resource"
 {
-    // Contains all utility functions related to Human Resource.
 
     trigger OnRun()
     begin

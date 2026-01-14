@@ -1,3 +1,4 @@
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -12,8 +13,11 @@ report 319 "Payments on Hold"
     DefaultLayout = RDLC;
     RDLCLayout = './Purchases/Reports/PaymentsonHold.rdlc';
     ApplicationArea = Basic, Suite;
-    Caption = 'Payments on Hold';
+    Caption = 'Payments on Hold (Obsolete)';
     UsageCategory = ReportsAndAnalysis;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'This report is obsolete and will be removed in a future release. See the documentation for alternative options.';
+    ObsoleteTag = '28.0';
 
     dataset
     {
@@ -110,8 +114,8 @@ report 319 "Payments on Hold"
 
     requestpage
     {
-        AboutTitle = 'About Payments on Hold';
-        AboutText = 'Print a checklist of all vendor ledger entries where the invoice is in dispute and the On Hold field isn''''t blank.';
+        AboutTitle = 'About Payments on Hold (Obsolete)';
+        AboutText = 'Print a checklist of all vendor ledger entries where the invoice is in dispute and the On Hold field isn''''t blank.** This report is obsolete and will be removed in a future release.** Please refer to the report documentation for alternative ways to retrieve this information.';
 
         layout
         {
@@ -143,3 +147,4 @@ report 319 "Payments on Hold"
         Vendor_Ledger_Entry__Remaining_Amt___LCY__CaptionLbl: Label 'Total (LCY)';
 }
 
+#endif

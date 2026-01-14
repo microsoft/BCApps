@@ -6,6 +6,10 @@ namespace Microsoft.Finance.VAT.Reporting;
 
 using Microsoft.Finance.VAT.Ledger;
 
+/// <summary>
+/// Subform component displaying ECSL report lines with customer VAT numbers and supply values.
+/// Provides read-only detailed view of generated EU Sales List data with country and indicator breakdowns.
+/// </summary>
 page 322 "ECSL Report Subform"
 {
     Caption = 'Lines';
@@ -95,6 +99,10 @@ page 322 "ECSL Report Subform"
         }
     }
 
+    /// <summary>
+    /// Refreshes the subform display to reflect current ECSL report line data.
+    /// Updates the user interface after data modifications or filtering changes.
+    /// </summary>
     procedure UpdateForm()
     begin
         CurrPage.Update();

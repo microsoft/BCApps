@@ -32,6 +32,7 @@
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryInventory: Codeunit "Library - Inventory";
         RowNotFoundErr: Label 'There is no dataset row corresponding to Element Name %1 with value %2.';
         EmptyDatasetErr: Label 'Dataset does not contain any rows.';
         BlankLinesQtyErr: Label 'Wrong blank lines quantity in dataset.';
@@ -1635,6 +1636,32 @@
         LibraryReportDataset.AssertElementWithValueExists('BaseAmountSalesVAT', -Amount[2]);
     end;
 
+    [Test]
+    [HandlerFunctions('VATReconciliationRequestPageHandler2')]
+    procedure VATReconciliationShowsDifferentAmountsForSamePostingDateAndDocumentNo()
+    var
+        Amount: array[2] of Decimal;
+    begin
+        // [SCENARIO 611994] VAT reconciliation report shows the different base amount for all entries if those have the same Document No. and Posting Date.
+        Initialize();
+
+        // [GIVEN] Create and Store 3 Amounts.
+        Amount[1] := LibraryRandom.RandDec(100, 2);
+        Amount[2] := LibraryRandom.RandDec(200, 2);
+
+        // [GIVEN] Create and Post Sales Invoice with two lines having different Amounts and different Gen. Product Posting Groups 
+        LibraryVariableStorage.Enqueue(CreateAndPostSalesInvoice(Amount));
+
+        // [WHEN] Run VAT Reconciliation Report.
+        Commit();
+        Report.Run(Report::"VAT Reconciliation Report");
+
+        // [THEN] Different Amount exists for same Document No.
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementWithValueExists('BaseAmountSalesVAT', Amount[1]);
+        LibraryReportDataset.AssertElementWithValueExists('BaseAmountSalesVAT', Amount[2]);
+    end;
+
     local procedure Initialize()
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -3083,6 +3110,63 @@
         LibraryJobQueue.RunJobQueueDispatcher(JobQueueEntry);
     end;
 
+    local procedure CreateAndPostSalesInvoice(Amount: array[2] of Decimal): Code[20]
+    var
+        Customer: Record Customer;
+        SalesLine: Record "Sales Line";
+        SalesHeader: Record "Sales Header";
+        VATPostingSetup: Record "VAT Posting Setup";
+        Item: array[2] of Record Item;
+        GeneralPostingSetup: Record "General Posting Setup";
+
+    begin
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0);
+
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+
+        LibraryInventory.CreateItem(Item[1]);
+        Item[1].Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item[1].Modify(true);
+
+        FindGenPostingSetupForDefinedGenBusPostingGroup(GeneralPostingSetup, Customer."Gen. Bus. Posting Group", Item[1]."Gen. Prod. Posting Group");
+
+        LibraryInventory.CreateItem(Item[2]);
+        Item[2].Validate("Gen. Prod. Posting Group", GeneralPostingSetup."Gen. Prod. Posting Group");
+        Item[2].Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item[2].Modify(true);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item[1]."No.", 1);
+        SalesLine.Validate("Unit Price", Amount[1]);
+        SalesLine.Modify(true);
+
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item[2]."No.", 1);
+        SalesLine.Validate("Unit Price", Amount[2]);
+        SalesLine.Modify(true);
+
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure FindGenPostingSetupForDefinedGenBusPostingGroup(var GeneralPostingSetup: Record "General Posting Setup"; GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20])
+    var
+        GenProductPostingGroup: Record "Gen. Product Posting Group";
+    begin
+        GeneralPostingSetup.SetRange("Gen. Bus. Posting Group", GenBusPostingGroup);
+        GeneralPostingSetup.SetFilter("Gen. Prod. Posting Group", '<>%1', GenProdPostingGroup);
+        GeneralPostingSetup.SetFilter("COGS Account", '<>%1', '');
+        if not GeneralPostingSetup.FindFirst() then begin
+            LibraryERM.CreateGenProdPostingGroup(GenProductPostingGroup);
+            LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, GenBusPostingGroup, GenProductPostingGroup.Code);
+            GeneralPostingSetup.Validate("Sales Account", LibraryERM.CreateGLAccountNo());
+            GeneralPostingSetup.Validate("Purch. Account", LibraryERM.CreateGLAccountNo());
+            GeneralPostingSetup.Validate("COGS Account", LibraryERM.CreateGLAccountNo());
+            GeneralPostingSetup.Validate("Inventory Adjmt. Account", LibraryERM.CreateGLAccountNo());
+            GeneralPostingSetup.Modify(true);
+        end;
+    end;
+
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure RHBankaccRecon(var BankAccReconTest: TestRequestPage "Bank Acc. Recon. - Test")
@@ -3287,6 +3371,15 @@
         VATReconciliationReport.ShowDetails.SetValue(true);
         VATReconciliationReport.ShowTransWithoutVAT.SetValue(true);
         VATReconciliationReport.GLEntry.SetFilter("Posting Date", Format(Today()));
+        VATReconciliationReport.GLEntry.SetFilter("Document No.", LibraryVariableStorage.DequeueText());
+        VATReconciliationReport.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName())
+    end;
+
+    [RequestPageHandler]
+    procedure VATReconciliationRequestPageHandler2(var VATReconciliationReport: TestRequestPage "VAT Reconciliation Report")
+    begin
+        VATReconciliationReport.ShowDetails.SetValue(true);
+        VATReconciliationReport.ShowTransWithoutVAT.SetValue(true);
         VATReconciliationReport.GLEntry.SetFilter("Document No.", LibraryVariableStorage.DequeueText());
         VATReconciliationReport.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName())
     end;

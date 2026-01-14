@@ -14,6 +14,16 @@ using System.IO;
 using System.Reflection;
 using System.Utilities;
 
+/// <summary>
+/// Exports G/L budget data to Excel format with configurable dimensional layouts and multi-period support.
+/// Enables offline budget editing through structured Excel templates with automatic formatting and validation.
+/// </summary>
+/// <remarks>
+/// Key capabilities: Multi-dimensional Excel export, period-based layouts, dimension filtering, and formatted output.
+/// Integration: Works with Import Budget from Excel for round-trip editing workflows.
+/// Performance: Optimized for large budget datasets with efficient aggregation and Excel buffer management.
+/// Extensibility: Supports custom dimension layouts through event subscribers and matrix configuration options.
+/// </remarks>
 report 82 "Export Budget to Excel"
 {
     Caption = 'Export Budget to Excel';
@@ -514,6 +524,14 @@ report 82 "Export Budget to Excel"
         end;
     end;
 
+    /// <summary>
+    /// Sets the parameters for budget export including date range, periods, and rounding options.
+    /// Configures the report settings for Excel export generation.
+    /// </summary>
+    /// <param name="NewStartDate">Starting date for the budget export period.</param>
+    /// <param name="NewNoOfPeriods">Number of periods to include in the export.</param>
+    /// <param name="NewPeriodLength">Length of each period (DateFormula).</param>
+    /// <param name="NewRoundingFactor">Rounding factor to apply to budget amounts.</param>
     procedure SetParameters(NewStartDate: Date; NewNoOfPeriods: Integer; NewPeriodLength: DateFormula; NewRoundingFactor: Option "None","1","1000","1000000")
     begin
         StartDateReq := NewStartDate;
@@ -522,11 +540,21 @@ report 82 "Export Budget to Excel"
         RoundingFactor := Enum::"Analysis Rounding Factor".FromInteger(NewRoundingFactor);
     end;
 
+    /// <summary>
+    /// Sets the output file name for the Excel export when running in silent mode.
+    /// Used for automated export processes without user interaction.
+    /// </summary>
+    /// <param name="NewFileName">Full path and filename for the Excel export file.</param>
     procedure SetFileNameSilent(NewFileName: Text)
     begin
         ServerFileName := NewFileName;
     end;
 
+    /// <summary>
+    /// Enables or disables test mode for the budget export report.
+    /// Test mode suppresses certain operations for automated testing scenarios.
+    /// </summary>
+    /// <param name="NewTestMode">True to enable test mode, false for normal operation.</param>
     procedure SetTestMode(NewTestMode: Boolean)
     begin
         TestMode := NewTestMode;
@@ -627,41 +655,73 @@ report 82 "Export Budget to Excel"
         end;
     end;
 
+    /// <summary>
+    /// Integration event raised after entering dimension filters in the Excel export.
+    /// Allows subscribers to perform additional processing after dimension filters are applied.
+    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnAfterEnterDimFilter(var GLBudgetEntry: Record "G/L Budget Entry"; var ExcelBuffer: Record "Excel Buffer"; var RowNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after copying filters to the G/L Account record.
+    /// Allows subscribers to modify account filters before processing the export.
+    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyFilterGLAccount(var GLAccount: Record "G/L Account")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before entering range information for dimensions in the Excel export.
+    /// Allows subscribers to customize dimension range processing and layout.
+    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeEnterRangeForDimension(var DimensionRange: array[2, 8] of Integer; var BusUnit: Record "Business Unit"; var DimValue: Record "Dimension Value"; var RowNo: Integer; var IsHandled: Boolean; i: Integer; var GLBudgetEntry: Record "G/L Budget Entry"; var ExcelBuffer: Record "Excel Buffer")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting temporary period records for the export.
+    /// Allows subscribers to customize period generation and date calculations.
+    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertTempPeriods(var TempPeriod: Record Date temporary; StartDate: Date; NoOfPeriods: Integer; PeriodLength: DateFormula; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before retrieving dimension value codes during export processing.
+    /// Allows subscribers to customize dimension value retrieval logic.
+    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetDimValueCode(DimCode: Code[20]; var Result: Code[20]; var IsHandled: Boolean; var GLBudgetEntry: Record "G/L Budget Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after calculating whether dimension value code should be retrieved.
+    /// Allows subscribers to modify the logic for when dimension values are processed.
+    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnEnterDimValueOnAfterCalcShouldGetDimValueCode(DimValueCode: Code[20]; ColDimIndex: Integer; BusUnitDimIndex: Integer; var ShouldGetDimValueCode: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting dimension filters in the G/L Budget Entry PreDataItem processing.
+    /// Allows subscribers to modify column dimension codes and processing parameters.
+    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnGLBudgetEntryPreDataItemOnAfterSelectedDimSetFilters(var ColumnDimCode: array[8] of Code[20]; var i: Integer);
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before setting header dimensions in the G/L Budget Entry PostDataItem processing.
+    /// Allows subscribers to customize dimension header layout and formatting in the Excel export.
+    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnGLBudgetEntryOnPostDataItemOnBeforeSetHeaderDim(HeaderRowNo: Integer; ColNo: Integer; i: Integer; var ExcelBuffer: Record "Excel Buffer" temporary; var IsHandled: Boolean)
     begin

@@ -6,6 +6,15 @@ namespace Microsoft.Finance.ReceivablesPayables;
 
 using Microsoft.Finance.GeneralLedger.Journal;
 
+/// <summary>
+/// Stores parameters for net customer/vendor balance processing operations.
+/// Temporary table used to configure posting date, document numbering, and journal settings.
+/// </summary>
+/// <remarks>
+/// Used by Net Customer/Vendor Balances report to capture user input parameters.
+/// Validates document number format and provides initialization defaults.
+/// Integrates with General Journal for template and batch selection.
+/// </remarks>
 table 109 "Net Balances Parameters"
 {
     Caption = 'Net Balances Parameters';
@@ -14,14 +23,23 @@ table 109 "Net Balances Parameters"
 
     fields
     {
+        /// <summary>
+        /// Unique identifier for the parameter record.
+        /// </summary>
         field(1; ID; Code[20])
         {
             Caption = 'ID';
         }
+        /// <summary>
+        /// Date to be used for posting the netted balance entries.
+        /// </summary>
         field(2; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
         }
+        /// <summary>
+        /// Starting document number for generated journal entries, incremented for each vendor.
+        /// </summary>
         field(3; "Document No."; Code[20])
         {
             Caption = 'Document No.';
@@ -32,23 +50,38 @@ table 109 "Net Balances Parameters"
                         error(DocNoMustContainNumberErr);
             end;
         }
+        /// <summary>
+        /// Description text for the netted balance journal entries.
+        /// </summary>
         field(4; Description; Text[100])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// Hold code to prevent modification of related customer and vendor ledger entries.
+        /// </summary>
         field(5; "On Hold"; Code[3])
         {
             Caption = 'On Hold';
         }
+        /// <summary>
+        /// Order preference for applying entries when multiple documents exist.
+        /// </summary>
         field(6; "Order of Suggestion"; Enum "Net Cust/Vend Balances Order")
         {
             Caption = 'Order of Suggestion';
         }
+        /// <summary>
+        /// General journal template name for posting the netted entries.
+        /// </summary>
         field(7; "Journal Template Name"; Code[10])
         {
             Caption = 'Journal Template Name';
             TableRelation = "Gen. Journal Template";
         }
+        /// <summary>
+        /// General journal batch name within the specified template.
+        /// </summary>
         field(8; "Journal Batch Name"; Code[10])
         {
             Caption = 'Journal Batch Name';
@@ -67,6 +100,10 @@ table 109 "Net Balances Parameters"
         PostingDateErr: Label 'Please enter the Posting Date.';
         DocumentNoErr: Label 'Please enter the Document No.';
 
+    /// <summary>
+    /// Initializes default values for posting date and description.
+    /// Sets posting date to work date and creates standard description text.
+    /// </summary>
     procedure Initialize()
     begin
         if "Posting Date" = 0D then
@@ -74,6 +111,10 @@ table 109 "Net Balances Parameters"
         Description := CopyStr(DescriptionMsg, 1, MaxStrLen(Description));
     end;
 
+    /// <summary>
+    /// Validates required fields before processing net balances operation.
+    /// Ensures posting date and document number are specified.
+    /// </summary>
     procedure Verify()
     begin
         if "Posting Date" = 0D then

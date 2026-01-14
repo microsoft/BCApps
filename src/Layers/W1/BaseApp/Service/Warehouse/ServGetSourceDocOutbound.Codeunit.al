@@ -32,15 +32,9 @@ codeunit 6491 "Serv. Get Source Doc. Outbound"
         WarehouseRequest.SetSourceFilter(Database::"Service Line", ServiceHeader."Document Type".AsInteger(), ServiceHeader."No.");
         WarehouseRequest.SetRange("Document Status", WarehouseRequest."Document Status"::Released);
         OnFindWarehouseRequestForServiceOrderOnAfterSetWhseRqstFilters(WarehouseRequest, ServiceHeader);
-#if not CLEAN25
-        GetSourceDocOutbound.RunOnFindWarehouseRequestForServiceOrderOnAfterSetWhseRqstFilters(WarehouseRequest, ServiceHeader);
-#endif
         GetSourceDocOutbound.GetRequireShipRqst(WarehouseRequest);
 
         OnAfterFindWarehouseRequestForServiceOrder(WarehouseRequest, ServiceHeader);
-#if not CLEAN25
-        GetSourceDocOutbound.RunOnAfterFindWarehouseRequestForServiceOrder(WarehouseRequest, ServiceHeader);
-#endif
     end;
 
     [IntegrationEvent(false, false)]

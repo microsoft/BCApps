@@ -18,7 +18,7 @@ codeunit 30310 "Shpfy GQL NextCatalogProducts" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Text.</returns>
     internal procedure GetGraphQL(): Text
     begin
-        exit('{"query":"{catalog(id: \"gid://shopify/Catalog/{{CatalogId}}\"){ id publication { id products(first: 250, after:\"{{After}}\") { edges { cursor node { id }} pageInfo { hasNextPage }}}}}"}');
+        exit('{"query":"{catalog(id: \"gid://shopify/Catalog/{{CatalogId}}\"){ id priceList { currency } publication { id products(first: 250, after:\"{{After}}\") { edges { cursor node { id }} pageInfo { hasNextPage }}}}}"}');
     end;
 
     /// <summary>
@@ -27,6 +27,6 @@ codeunit 30310 "Shpfy GQL NextCatalogProducts" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(15);
+        exit(16);
     end;
 }

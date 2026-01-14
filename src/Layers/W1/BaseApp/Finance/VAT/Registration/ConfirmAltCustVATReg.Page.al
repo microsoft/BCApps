@@ -5,6 +5,10 @@ namespace Microsoft.Finance.VAT.Registration;
 
 using System.Diagnostics;
 
+/// <summary>
+/// Confirmation dialog for alternative customer VAT registration number changes.
+/// Displays change log details and allows user confirmation for VAT registration updates with option to suppress future notifications.
+/// </summary>
 page 205 "Confirm Alt. Cust. VAT Reg."
 {
     DataCaptionExpression = '';
@@ -64,6 +68,12 @@ page 205 "Confirm Alt. Cust. VAT Reg."
         DontShowAgain: Boolean;
         InstructionText, OldValueCaption, NewValueCaption : Text;
 
+    /// <summary>
+    /// Configures the dialog display with custom instruction text and column captions.
+    /// </summary>
+    /// <param name="NewInstructionText">Instruction text to display to user</param>
+    /// <param name="NewOldValueCaption">Caption for old value column</param>
+    /// <param name="NewNewValueCaption">Caption for new value column</param>
     procedure SetUIControls(NewInstructionText: Text; NewOldValueCaption: Text; NewNewValueCaption: Text)
     begin
         InstructionText := NewInstructionText;
@@ -71,6 +81,10 @@ page 205 "Confirm Alt. Cust. VAT Reg."
         NewValueCaption := NewNewValueCaption;
     end;
 
+    /// <summary>
+    /// Populates the dialog with change log entries from temporary table.
+    /// </summary>
+    /// <param name="TempChangeLogEntry">Temporary change log entries to display</param>
     procedure SetSource(var TempChangeLogEntry: Record "Change Log Entry" temporary)
     begin
         if not TempChangeLogEntry.FindSet() then
@@ -81,6 +95,10 @@ page 205 "Confirm Alt. Cust. VAT Reg."
         until TempChangeLogEntry.Next() = 0;
     end;
 
+    /// <summary>
+    /// Returns whether user selected the option to not show this dialog again.
+    /// </summary>
+    /// <returns>True if user checked the "Don't show again" option</returns>
     procedure DontShowAgainOptionSelected(): Boolean
     begin
         exit(DontShowAgain);

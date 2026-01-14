@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Tracking;
 
-using Microsoft.Service.Document;
 using Microsoft.Inventory.Item;
+using Microsoft.Service.Document;
 
 reportextension 5932 "Serv. Get Demand To Reserve" extends "Get Demand To Reserve"
 {

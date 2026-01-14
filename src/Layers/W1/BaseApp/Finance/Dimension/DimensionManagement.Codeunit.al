@@ -2,6 +2,13 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+
+/// <summary>
+/// Codeunit DimensionManagement (ID 408).
+/// This codeunit provides comprehensive dimension management functionality including validation, default dimension handling,
+/// dimension set management, and integration with various document types and journal entries.
+/// It serves as the central engine for all dimension-related operations in the system.
+/// </summary>
 namespace Microsoft.Finance.Dimension;
 
 using Microsoft.Assembly.Document;
@@ -33,10 +40,16 @@ using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Reminder;
 using Microsoft.Utilities;
 using System.Environment.Configuration;
+using System.Globalization;
 using System.Reflection;
 using System.Utilities;
-using System.Globalization;
 
+/// <summary>
+/// Codeunit DimensionManagement (ID 408).
+/// Central management system for all dimension-related operations including validation, 
+/// default dimension processing, dimension set creation and management, and integration
+/// with documents and journal entries across all application areas.
+/// </summary>
 codeunit 408 DimensionManagement
 {
     Permissions = TableData "Gen. Journal Template" = rimd,
@@ -107,11 +120,20 @@ codeunit 408 DimensionManagement
         SkipUpdateDimensions: Boolean;
         SourceCode: Code[10];
 
+    /// <summary>
+    /// Enables error collection mode to accumulate dimension-related errors instead of immediately throwing them.
+    /// Used in batch processing scenarios where multiple validation errors need to be collected and reported together.
+    /// </summary>
     procedure SetCollectErrorsMode()
     begin
         IsCollectErrorsMode := true;
     end;
 
+    /// <summary>
+    /// Sets the source code for dimension operations based on the table ID.
+    /// Determines appropriate source code from Source Code Setup for different document types and journal entries.
+    /// </summary>
+    /// <param name="TableID">Table ID to determine the appropriate source code for dimension operations</param>
     procedure SetSourceCode(TableID: Integer)
     var
         SourceCodeSetup: Record "Source Code Setup";
@@ -142,6 +164,12 @@ codeunit 408 DimensionManagement
         OnAfterSetSourceCode(SourceCodeSetup, TableID, SourceCode);
     end;
 
+    /// <summary>
+    /// Sets the source code for dimension operations based on the table ID and record variant.
+    /// Extends the standard SetSourceCode procedure with additional record context for specialized handling.
+    /// </summary>
+    /// <param name="TableID">Table ID to determine the appropriate source code for dimension operations</param>
+    /// <param name="RecordVar">Record variant providing additional context for source code determination</param>
     procedure SetSourceCode(TableID: Integer; RecordVar: Variant)
     begin
         SetSourceCode(TableID);
@@ -149,11 +177,22 @@ codeunit 408 DimensionManagement
         OnAfterSetSourceCodeWithVar(TableID, RecordVar, SourceCode);
     end;
 
+    /// <summary>
+    /// Returns the current source code set for dimension operations.
+    /// Used to retrieve the source code that was previously set via SetSourceCode procedures.
+    /// </summary>
+    /// <returns>Source code currently active for dimension operations</returns>
     procedure GetSourceCode(): Code[10]
     begin
         exit(SourceCode);
     end;
 
+    /// <summary>
+    /// Gets or creates a dimension set ID from the provided dimension set entries.
+    /// Creates a new dimension set if the combination doesn't exist, or returns existing set ID.
+    /// </summary>
+    /// <param name="DimSetEntry2">Dimension set entries to find or create dimension set ID for</param>
+    /// <returns>Dimension set ID corresponding to the provided dimension entries</returns>
     procedure GetDimensionSetID(var DimSetEntry2: Record "Dimension Set Entry"): Integer
     var
         DimSetEntry: Record "Dimension Set Entry";
@@ -162,6 +201,12 @@ codeunit 408 DimensionManagement
         exit(DimSetEntry.GetDimensionSetID(DimSetEntry2));
     end;
 
+    /// <summary>
+    /// Retrieves all dimension set entries for a specific dimension set ID.
+    /// Populates the temporary dimension set entry record with all dimensions from the specified set.
+    /// </summary>
+    /// <param name="TempDimSetEntry">Temporary dimension set entry record to populate with dimension data</param>
+    /// <param name="DimSetID">Dimension set ID to retrieve entries for</param>
     procedure GetDimensionSet(var TempDimSetEntry: Record "Dimension Set Entry" temporary; DimSetID: Integer)
     var
         DimSetEntry: Record "Dimension Set Entry";
@@ -181,6 +226,12 @@ codeunit 408 DimensionManagement
             until DimSetEntry.Next() = 0;
     end;
 
+    /// <summary>
+    /// Displays the dimension set entries in a read-only modal page.
+    /// Shows all dimension values associated with the specified dimension set ID.
+    /// </summary>
+    /// <param name="DimSetID">Dimension set ID to display entries for</param>
+    /// <param name="NewCaption">Caption to display on the dimension set entries page</param>
     procedure ShowDimensionSet(DimSetID: Integer; NewCaption: Text[250])
     var
         DimSetEntry: Record "Dimension Set Entry";
@@ -195,6 +246,13 @@ codeunit 408 DimensionManagement
         DimSetEntries.RunModal();
     end;
 
+    /// <summary>
+    /// Opens the dimension set editor for modifying dimensions and returns the new dimension set ID.
+    /// Allows user to edit dimension values and creates a new dimension set if changes are made.
+    /// </summary>
+    /// <param name="DimSetID">Original dimension set ID to edit</param>
+    /// <param name="NewCaption">Caption to display on the dimension editor page</param>
+    /// <returns>New dimension set ID after editing, or original ID if no changes made</returns>
     procedure EditDimensionSet(DimSetID: Integer; NewCaption: Text[250]): Integer
     var
         DimSetEntry: Record "Dimension Set Entry";
@@ -221,6 +279,15 @@ codeunit 408 DimensionManagement
         exit(NewDimSetID);
     end;
 
+    /// <summary>
+    /// Opens the dimension set editor and updates global dimension values after editing.
+    /// Convenience procedure that combines dimension editing with global dimension value updates.
+    /// </summary>
+    /// <param name="DimSetID">Original dimension set ID to edit</param>
+    /// <param name="NewCaption">Caption to display on the dimension editor page</param>
+    /// <param name="GlobalDimVal1">Variable to receive updated global dimension 1 value</param>
+    /// <param name="GlobalDimVal2">Variable to receive updated global dimension 2 value</param>
+    /// <returns>New dimension set ID after editing, or original ID if no changes made</returns>
     procedure EditDimensionSet(DimSetID: Integer; NewCaption: Text[250]; var GlobalDimVal1: Code[20]; var GlobalDimVal2: Code[20]): Integer
     var
         RecVariant: Variant;
@@ -228,6 +295,16 @@ codeunit 408 DimensionManagement
         exit(EditDimensionSet(RecVariant, DimSetID, NewCaption, GlobalDimVal1, GlobalDimVal2));
     end;
 
+    /// <summary>
+    /// Opens the dimension set editor with record context and updates global dimension values.
+    /// Extended version providing record variant context for specialized dimension handling.
+    /// </summary>
+    /// <param name="RecVariant">Record variant providing context for dimension editing</param>
+    /// <param name="DimSetID">Original dimension set ID to edit</param>
+    /// <param name="NewCaption">Caption to display on the dimension editor page</param>
+    /// <param name="GlobalDimVal1">Variable to receive updated global dimension 1 value</param>
+    /// <param name="GlobalDimVal2">Variable to receive updated global dimension 2 value</param>
+    /// <returns>New dimension set ID after editing, or original ID if no changes made</returns>
     procedure EditDimensionSet(RecVariant: Variant; DimSetID: Integer; NewCaption: Text[250]; var GlobalDimVal1: Code[20]; var GlobalDimVal2: Code[20]): Integer
     var
         DimSetEntry: Record "Dimension Set Entry";
@@ -255,6 +332,17 @@ codeunit 408 DimensionManagement
         exit(NewDimSetID);
     end;
 
+    /// <summary>
+    /// Opens the reclassification dimension editor for modifying both source and destination dimensions.
+    /// Used in reclassification scenarios where both original and new dimension sets need to be edited.
+    /// </summary>
+    /// <param name="DimSetID">Source dimension set ID to edit</param>
+    /// <param name="NewDimSetID">Destination dimension set ID to edit</param>
+    /// <param name="NewCaption">Caption to display on the reclassification dimension editor page</param>
+    /// <param name="GlobalDimVal1">Variable to receive updated source global dimension 1 value</param>
+    /// <param name="GlobalDimVal2">Variable to receive updated source global dimension 2 value</param>
+    /// <param name="NewGlobalDimVal1">Variable to receive updated destination global dimension 1 value</param>
+    /// <param name="NewGlobalDimVal2">Variable to receive updated destination global dimension 2 value</param>
     procedure EditReclasDimensionSet(var DimSetID: Integer; var NewDimSetID: Integer; NewCaption: Text[250]; var GlobalDimVal1: Code[20]; var GlobalDimVal2: Code[20]; var NewGlobalDimVal1: Code[20]; var NewGlobalDimVal2: Code[20])
     var
         EditReclasDimensions: Page "Edit Reclas. Dimensions";
@@ -267,6 +355,13 @@ codeunit 408 DimensionManagement
         UpdateGlobalDimFromDimSetID(NewDimSetID, NewGlobalDimVal1, NewGlobalDimVal2);
     end;
 
+    /// <summary>
+    /// Updates global dimension values from a dimension set ID.
+    /// Retrieves the first two global dimension values from the specified dimension set.
+    /// </summary>
+    /// <param name="DimSetID">Dimension set ID to extract global dimension values from</param>
+    /// <param name="GlobalDimVal1">Variable to receive global dimension 1 value</param>
+    /// <param name="GlobalDimVal2">Variable to receive global dimension 2 value</param>
     procedure UpdateGlobalDimFromDimSetID(DimSetID: Integer; var GlobalDimVal1: Code[20]; var GlobalDimVal2: Code[20])
     var
         ShortcutDimCode: array[8] of Code[20];
@@ -276,6 +371,14 @@ codeunit 408 DimensionManagement
         GlobalDimVal2 := ShortcutDimCode[2];
     end;
 
+    /// <summary>
+    /// Combines multiple dimension sets into a single dimension set ID.
+    /// Merges dimensions from up to 10 different dimension sets, with later sets overriding earlier ones for same dimensions.
+    /// </summary>
+    /// <param name="DimensionSetIDArr">Array of dimension set IDs to combine</param>
+    /// <param name="GlobalDimVal1">Variable to receive combined global dimension 1 value</param>
+    /// <param name="GlobalDimVal2">Variable to receive combined global dimension 2 value</param>
+    /// <returns>New dimension set ID containing combined dimensions</returns>
     procedure GetCombinedDimensionSetID(DimensionSetIDArr: array[10] of Integer; var GlobalDimVal1: Code[20]; var GlobalDimVal2: Code[20]): Integer
     var
         DimSetEntry: Record "Dimension Set Entry";
@@ -305,6 +408,14 @@ codeunit 408 DimensionManagement
         exit(GetDimensionSetID(TempDimSetEntry));
     end;
 
+    /// <summary>
+    /// Calculates delta dimension set ID based on parent dimension set changes.
+    /// Updates a child dimension set when parent dimensions change, preserving child-specific dimensions.
+    /// </summary>
+    /// <param name="DimSetID">Original dimension set ID to update</param>
+    /// <param name="NewParentDimSetID">New parent dimension set ID</param>
+    /// <param name="OldParentDimSetID">Original parent dimension set ID</param>
+    /// <returns>Updated dimension set ID reflecting parent changes</returns>
     procedure GetDeltaDimSetID(DimSetID: Integer; NewParentDimSetID: Integer; OldParentDimSetID: Integer): Integer
     var
         TempDimSetEntry: Record "Dimension Set Entry" temporary;
@@ -357,6 +468,11 @@ codeunit 408 DimensionManagement
         exit(GetDimensionSetID(TempDimSetEntry));
     end;
 
+    /// <summary>
+    /// Retrieves and caches General Ledger Setup shortcut dimension codes.
+    /// Loads all 8 shortcut dimension codes from General Ledger Setup for efficient repeated access.
+    /// </summary>
+    /// <param name="GLSetupShortcutDimCode">Array to populate with shortcut dimension codes from General Ledger Setup</param>
     procedure GetGLSetup(var GLSetupShortcutDimCode: array[8] of Code[20])
     var
         GLSetup: Record "General Ledger Setup";
@@ -402,6 +518,12 @@ codeunit 408 DimensionManagement
             until DimSetEntry.Next() = 0;
     end;
 
+    /// <summary>
+    /// Validates dimension combinations for a dimension set ID.
+    /// Checks if the dimensions in the set violate any defined dimension combination restrictions.
+    /// </summary>
+    /// <param name="DimSetID">Dimension set ID to validate combinations for</param>
+    /// <returns>True if dimension combinations are valid, false if violations exist</returns>
     procedure CheckDimIDComb(DimSetID: Integer): Boolean
     var
         TempDimBuf: Record "Dimension Buffer" temporary;
@@ -410,6 +532,14 @@ codeunit 408 DimensionManagement
         exit(CheckDimComb(TempDimBuf));
     end;
 
+    /// <summary>
+    /// Validates dimension value posting permissions for specified table entities.
+    /// Checks default dimensions and dimension value restrictions for the given accounts and dimension set.
+    /// </summary>
+    /// <param name="TableID">Array of table IDs for accounts to validate against</param>
+    /// <param name="No">Array of account numbers corresponding to the table IDs</param>
+    /// <param name="DimSetID">Dimension set ID to validate for posting</param>
+    /// <returns>True if dimension values are valid for posting, false if violations exist</returns>
     procedure CheckDimValuePosting(TableID: array[10] of Integer; No: array[10] of Code[20]; DimSetID: Integer): Boolean
     var
         DimSetEntry: Record "Dimension Set Entry";
@@ -475,6 +605,12 @@ codeunit 408 DimensionManagement
         exit(GetLastDimErrorID() = LastErrorID);
     end;
 
+    /// <summary>
+    /// Validates dimension combinations within a dimension buffer.
+    /// Checks if the dimensions in the buffer violate any defined dimension combination restrictions.
+    /// </summary>
+    /// <param name="DimBuffer">Dimension buffer containing dimensions to validate</param>
+    /// <returns>True if dimension combinations are valid, false if violations exist</returns>
     procedure CheckDimBuffer(var DimBuffer: Record "Dimension Buffer"): Boolean
     var
         TempDimBuf: Record "Dimension Buffer" temporary;
@@ -490,6 +626,12 @@ codeunit 408 DimensionManagement
         exit(CheckDimComb(TempDimBuf));
     end;
 
+    /// <summary>
+    /// Validates dimension combinations against dimension combination restrictions.
+    /// Core validation logic for checking dimension combination rules and generating error messages.
+    /// </summary>
+    /// <param name="TempDimBuf">Temporary dimension buffer containing dimensions to validate</param>
+    /// <returns>True if dimension combinations are valid, false if violations exist</returns>
     procedure CheckDimComb(var TempDimBuf: Record "Dimension Buffer" temporary): Boolean
     var
         DimComb: Record "Dimension Combination";
@@ -703,6 +845,13 @@ codeunit 408 DimensionManagement
         ErrorMessageMgt.AddSubContextToLastErrorMessage('DimensionCodeMustBeBlank', DimSetEntry);
     end;
 
+    /// <summary>
+    /// Generates error message for dimension values not allowed for specific accounts.
+    /// Creates appropriate error text based on whether a specific account or account type restriction applies.
+    /// </summary>
+    /// <param name="DefaultDim">Default dimension record containing the restriction rules</param>
+    /// <param name="DimValueCode">Dimension value code that is not allowed</param>
+    /// <returns>Formatted error message explaining the dimension value restriction</returns>
     procedure GetNotAllowedDimValuePerAccount(DefaultDim: Record "Default Dimension"; DimValueCode: Code[20]): Text
     var
         ObjectTranslation: Record "Object Translation";
@@ -724,11 +873,24 @@ codeunit 408 DimensionManagement
             DefaultDim."No."));
     end;
 
+    /// <summary>
+    /// Retrieves the last dimension combination error message.
+    /// Returns the most recent error message from dimension validation operations.
+    /// </summary>
+    /// <returns>Last error message from dimension validation, empty if no errors occurred</returns>
     procedure GetDimCombErr() ErrorMessage: Text[250]
     begin
         FindLastErrorMessage(ErrorMessage);
     end;
 
+    /// <summary>
+    /// Updates global dimension values from default dimensions for a specific entity.
+    /// Retrieves default dimension values for the specified table and entity number.
+    /// </summary>
+    /// <param name="TableID">Table ID of the entity to retrieve default dimensions for</param>
+    /// <param name="No">Entity number to retrieve default dimensions for</param>
+    /// <param name="GlobalDim1Code">Variable to receive default global dimension 1 value</param>
+    /// <param name="GlobalDim2Code">Variable to receive default global dimension 2 value</param>
     procedure UpdateDefaultDim(TableID: Integer; No: Code[20]; var GlobalDim1Code: Code[20]; var GlobalDim2Code: Code[20])
     var
         DefaultDim: Record "Default Dimension";
@@ -750,6 +912,17 @@ codeunit 408 DimensionManagement
         OnAfterUpdateDefaultDim(TableID, No, GlobalDim1Code, GlobalDim2Code);
     end;
 
+    /// <summary>
+    /// Creates dimension set ID from default dimension sources with priority handling and inheritance.
+    /// Combines dimensions from multiple sources considering default dimension priorities and inheritance rules.
+    /// </summary>
+    /// <param name="DefaultDimSource">List of dictionaries containing table IDs and their corresponding primary key values</param>
+    /// <param name="SourceCode">Source code to determine default dimension priorities</param>
+    /// <param name="GlobalDim1Code">Variable to receive global dimension 1 value</param>
+    /// <param name="GlobalDim2Code">Variable to receive global dimension 2 value</param>
+    /// <param name="InheritFromDimSetID">Dimension set ID to inherit dimensions from</param>
+    /// <param name="InheritFromTableNo">Table number for inheritance context</param>
+    /// <returns>New dimension set ID containing combined and prioritized dimensions</returns>
     procedure GetDefaultDimID(DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; SourceCode: Code[20]; var GlobalDim1Code: Code[20]; var GlobalDim2Code: Code[20]; InheritFromDimSetID: Integer; InheritFromTableNo: Integer) Result: Integer
     var
         DimVal: Record "Dimension Value";
@@ -854,6 +1027,19 @@ codeunit 408 DimensionManagement
         exit(NewDimSetID);
     end;
 
+    /// <summary>
+    /// Creates dimension set ID from default dimension sources with record context and inheritance.
+    /// Extended version that includes record variant context for specialized dimension handling and validation.
+    /// </summary>
+    /// <param name="RecVariant">Record variant providing context for dimension creation</param>
+    /// <param name="CurrFieldNo">Current field number being processed for dimension context</param>
+    /// <param name="DefaultDimSource">List of dictionaries containing table IDs and their corresponding primary key values</param>
+    /// <param name="SourceCode">Source code to determine default dimension priorities</param>
+    /// <param name="GlobalDim1Code">Variable to receive global dimension 1 value</param>
+    /// <param name="GlobalDim2Code">Variable to receive global dimension 2 value</param>
+    /// <param name="InheritFromDimSetID">Dimension set ID to inherit dimensions from</param>
+    /// <param name="InheritFromTableNo">Table number for inheritance context</param>
+    /// <returns>New dimension set ID containing combined and prioritized dimensions</returns>
     procedure GetRecDefaultDimID(RecVariant: Variant; CurrFieldNo: Integer; DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; SourceCode: Code[20]; var GlobalDim1Code: Code[20]; var GlobalDim2Code: Code[20]; InheritFromDimSetID: Integer; InheritFromTableNo: Integer) Result: Integer
     var
         DefaultDimID: Integer;
@@ -868,6 +1054,14 @@ codeunit 408 DimensionManagement
         exit(DefaultDimID);
     end;
 
+    /// <summary>
+    /// Adds a new table ID and number pair to the beginning of the arrays, shifting existing entries.
+    /// Inserts the new entry at position 1 and moves all other entries one position down.
+    /// </summary>
+    /// <param name="TableID">Array of table IDs to modify</param>
+    /// <param name="No">Array of entity numbers corresponding to the table IDs</param>
+    /// <param name="NewTableId">New table ID to insert at the beginning</param>
+    /// <param name="NewNo">New entity number to insert at the beginning</param>
     procedure AddFirstToTableIdArray(var TableID: array[10] of Integer; var No: array[10] of Code[20]; NewTableId: Integer; NewNo: Code[20])
     var
         Index: Integer;
@@ -882,6 +1076,14 @@ codeunit 408 DimensionManagement
         No[1] := NewNo;
     end;
 
+    /// <summary>
+    /// Adds a new table ID and number pair to the end of the arrays.
+    /// Finds the first empty position or uses the last position to insert the new entry.
+    /// </summary>
+    /// <param name="TableID">Array of table IDs to modify</param>
+    /// <param name="No">Array of entity numbers corresponding to the table IDs</param>
+    /// <param name="NewTableId">New table ID to insert at the end</param>
+    /// <param name="NewNo">New entity number to insert at the end</param>
     procedure AddLastToTableIdArray(var TableID: array[10] of Integer; var No: array[10] of Code[20]; NewTableId: Integer; NewNo: Code[20])
     var
         Index: Integer;
@@ -896,6 +1098,12 @@ codeunit 408 DimensionManagement
             end;
     end;
 
+    /// <summary>
+    /// Converts an entity type option to its corresponding table ID for dimension processing.
+    /// Maps common master data types to their table IDs for default dimension handling.
+    /// </summary>
+    /// <param name="Type">Entity type option containing G/L Account, Customer, Vendor, Bank Account, Fixed Asset, IC Partner, or Employee</param>
+    /// <returns>Table ID corresponding to the specified entity type</returns>
     procedure TypeToTableID1(Type: Option "G/L Account",Customer,Vendor,"Bank Account","Fixed Asset","IC Partner",Employee) TableId: Integer
     begin
         case Type of
@@ -918,6 +1126,12 @@ codeunit 408 DimensionManagement
         OnAfterTypeToTableID1(Type, TableId);
     end;
 
+    /// <summary>
+    /// Converts a resource/item type option to its corresponding table ID for dimension processing.
+    /// Maps resource, item, and G/L account types to their table IDs for default dimension handling.
+    /// </summary>
+    /// <param name="Type">Entity type option containing Resource, Item, or G/L Account</param>
+    /// <returns>Table ID corresponding to the specified entity type</returns>
     procedure TypeToTableID2(Type: Option Resource,Item,"G/L Account"): Integer
     var
         TableID: Integer;
@@ -936,6 +1150,12 @@ codeunit 408 DimensionManagement
         end;
     end;
 
+    /// <summary>
+    /// Converts a sales line type enum to its corresponding table ID for dimension processing.
+    /// Maps sales line types to their master data table IDs for default dimension handling.
+    /// </summary>
+    /// <param name="LineType">Sales line type enum specifying the type of line item</param>
+    /// <returns>Table ID corresponding to the specified sales line type, zero for blank lines</returns>
     procedure SalesLineTypeToTableID(LineType: Enum "Sales Line Type") TableId: Integer
     begin
         case LineType of
@@ -956,6 +1176,12 @@ codeunit 408 DimensionManagement
         OnAfterSalesLineTypeToTableID(LineType, TableId);
     end;
 
+    /// <summary>
+    /// Converts a purchase line type enum to its corresponding table ID for dimension processing.
+    /// Maps purchase line types to their master data table IDs for default dimension handling.
+    /// </summary>
+    /// <param name="LineType">Purchase line type enum specifying the type of line item</param>
+    /// <returns>Table ID corresponding to the specified purchase line type, zero for blank lines</returns>
     procedure PurchLineTypeToTableID(LineType: Enum "Purchase Line Type") TableId: Integer
     begin
         case LineType of
@@ -976,6 +1202,12 @@ codeunit 408 DimensionManagement
         OnAfterPurchLineTypeToTableID(LineType, TableId);
     end;
 
+    /// <summary>
+    /// Converts a requisition line type enum to its corresponding table ID for dimension processing.
+    /// Maps requisition line types to their master data table IDs for default dimension handling.
+    /// </summary>
+    /// <param name="LineType">Requisition line type enum specifying the type of line item</param>
+    /// <returns>Table ID corresponding to the specified requisition line type, zero for blank lines</returns>
     procedure ReqLineTypeToTableID(LineType: Enum "Requisition Line Type") TableId: Integer
     begin
         case LineType of
@@ -990,6 +1222,12 @@ codeunit 408 DimensionManagement
         OnAfterReqLineTypeToTableID(LineType, TableId);
     end;
 
+    /// <summary>
+    /// Converts a basic item/resource type option to its corresponding table ID for dimension processing.
+    /// Maps item and resource types to their table IDs for default dimension handling.
+    /// </summary>
+    /// <param name="Type">Type option containing blank, Item, or Resource</param>
+    /// <returns>Table ID corresponding to the specified type, zero for blank type</returns>
     procedure TypeToTableID4(Type: Option " ",Item,Resource) TableId: Integer
     begin
         case Type of
@@ -1004,16 +1242,12 @@ codeunit 408 DimensionManagement
         OnAfterTypeToTableID4(Type, TableId);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure ServiceLineTypeToTableID() in codeunit Serv. Dimension Management', '25.0')]
-    procedure TypeToTableID5(Type: Option " ",Item,Resource,Cost,"G/L Account") TableId: Integer
-    var
-        ServDimensionManagement: Codeunit Microsoft.Service.Document."Serv. Dimension Management";
-    begin
-        exit(ServDimensionManagement.ServiceLineTypeTotableId(Microsoft.Service.Document."Service Line Type".FromInteger(Type)));
-    end;
-#endif
 
+    /// <summary>
+    /// Deletes all default dimensions for a specific table and record number.
+    /// </summary>
+    /// <param name="TableID">ID of the table to delete default dimensions for</param>
+    /// <param name="No">Record number to delete default dimensions for</param>
     procedure DeleteDefaultDim(TableID: Integer; No: Code[20])
     var
         DefaultDim: Record "Default Dimension";
@@ -1026,6 +1260,12 @@ codeunit 408 DimensionManagement
         OnAfterDeleteDefaultDim(TableID, No);
     end;
 
+    /// <summary>
+    /// Renames default dimensions from old record number to new record number for a specific table.
+    /// </summary>
+    /// <param name="TableID">ID of the table containing the records being renamed</param>
+    /// <param name="OldNo">Original record number with default dimensions</param>
+    /// <param name="NewNo">New record number to transfer default dimensions to</param>
     procedure RenameDefaultDim(TableID: Integer; OldNo: Code[20]; NewNo: Code[20])
     var
         DefaultDim: Record "Default Dimension";
@@ -1040,6 +1280,11 @@ codeunit 408 DimensionManagement
             until DefaultDim.Next() = 0;
     end;
 
+    /// <summary>
+    /// Opens a lookup window for dimension values for a specific shortcut dimension field.
+    /// </summary>
+    /// <param name="FieldNumber">Shortcut dimension field number (1-8) to lookup values for</param>
+    /// <param name="ShortcutDimCode">Dimension value code that will be set if user selects a value</param>
     procedure LookupDimValueCode(FieldNumber: Integer; var ShortcutDimCode: Code[20])
     var
         DimVal: Record "Dimension Value";
@@ -1065,6 +1310,11 @@ codeunit 408 DimensionManagement
         end;
     end;
 
+    /// <summary>
+    /// Validates a dimension value code for a specific shortcut dimension field and resolves partial matches.
+    /// </summary>
+    /// <param name="FieldNumber">Shortcut dimension field number (1-8) to validate for</param>
+    /// <param name="ShortcutDimCode">Dimension value code to validate; may be updated with exact match</param>
     procedure ValidateDimValueCode(FieldNumber: Integer; var ShortcutDimCode: Code[20])
     var
         DimVal: Record "Dimension Value";
@@ -1094,6 +1344,12 @@ codeunit 408 DimensionManagement
         OnAfterValidateDimValueCode(FieldNumber, ShortcutDimCode, GLSetupShortcutDimCode, DimVal);
     end;
 
+    /// <summary>
+    /// Validates a shortcut dimension value and updates the dimension set ID with the new value.
+    /// </summary>
+    /// <param name="FieldNumber">Shortcut dimension field number (1-8) to validate</param>
+    /// <param name="ShortcutDimCode">Dimension value code to validate and set</param>
+    /// <param name="DimSetID">Dimension set ID to update with the validated dimension value</param>
     procedure ValidateShortcutDimValues(FieldNumber: Integer; var ShortcutDimCode: Code[20]; var DimSetID: Integer)
     var
         DimVal: Record "Dimension Value";
@@ -1129,6 +1385,13 @@ codeunit 408 DimensionManagement
         OnAfterValidateShortcutDimValues(FieldNumber, ShortcutDimCode, DimSetID);
     end;
 
+    /// <summary>
+    /// Saves a default dimension value for a specific table record and shortcut dimension field.
+    /// </summary>
+    /// <param name="TableID">ID of the table to save default dimension for</param>
+    /// <param name="No">Record number to save default dimension for</param>
+    /// <param name="FieldNumber">Shortcut dimension field number (1-8) to save</param>
+    /// <param name="ShortcutDimCode">Dimension value code to save as default; empty value deletes existing default</param>
     procedure SaveDefaultDim(TableID: Integer; No: Code[20]; FieldNumber: Integer; ShortcutDimCode: Code[20])
     var
         DefaultDim: Record "Default Dimension";
@@ -1158,6 +1421,11 @@ codeunit 408 DimensionManagement
                 DefaultDim.Delete();
     end;
 
+    /// <summary>
+    /// Retrieves global dimension values for all 8 shortcut dimension fields from a dimension set.
+    /// </summary>
+    /// <param name="DimSetID">Dimension set ID to retrieve values from</param>
+    /// <param name="ShortcutDimCode">Array to populate with dimension values for fields 1-8</param>
     procedure GetGlobalDimensions(DimSetID: Integer; var ShortcutDimCode: array[8] of Code[20])
     var
         GetShortcutDimensionValues: Codeunit "Get Shortcut Dimension Values";
@@ -1165,6 +1433,11 @@ codeunit 408 DimensionManagement
         GetShortcutDimensionValues.GetGlobalDimensions(DimSetID, ShortcutDimCode);
     end;
 
+    /// <summary>
+    /// Retrieves shortcut dimension values for all 8 fields from a dimension set.
+    /// </summary>
+    /// <param name="DimSetID">Dimension set ID to retrieve values from</param>
+    /// <param name="ShortcutDimCode">Array to populate with dimension values for fields 1-8</param>
     procedure GetShortcutDimensions(DimSetID: Integer; var ShortcutDimCode: array[8] of Code[20])
     var
         GetShortcutDimensionValues: Codeunit "Get Shortcut Dimension Values";
@@ -1172,6 +1445,13 @@ codeunit 408 DimensionManagement
         GetShortcutDimensionValues.GetShortcutDimensions(DimSetID, ShortcutDimCode);
     end;
 
+    /// <summary>
+    /// Validates dimension buffer values against posting restrictions and default dimension rules.
+    /// </summary>
+    /// <param name="DimBuffer">Dimension buffer containing values to validate</param>
+    /// <param name="TableID">Array of table IDs to check default dimension rules for</param>
+    /// <param name="No">Array of record numbers corresponding to table IDs</param>
+    /// <returns>True if all dimension values are valid for posting, false otherwise</returns>
     procedure CheckDimBufferValuePosting(var DimBuffer: Record "Dimension Buffer"; TableID: array[10] of Integer; No: array[10] of Code[20]): Boolean
     var
         TempDimBuf: Record "Dimension Buffer" temporary;
@@ -1267,11 +1547,19 @@ codeunit 408 DimensionManagement
         exit(true);
     end;
 
+    /// <summary>
+    /// Retrieves the last dimension value posting error message.
+    /// </summary>
+    /// <returns>Error message text describing the dimension value posting issue</returns>
     procedure GetDimValuePostingErr() ErrorMessage: Text[250]
     begin
         FindLastErrorMessage(ErrorMessage);
     end;
 
+    /// <summary>
+    /// Populates a temporary table with object numbers that support default dimensions.
+    /// </summary>
+    /// <param name="TempAllObjWithCaption">Temporary record to populate with objects that can have default dimensions</param>
     procedure DefaultDimObjectNoList(var TempAllObjWithCaption: Record AllObjWithCaption temporary)
     begin
         DefaultDimObjectNoWithoutGlobalDimsList(TempAllObjWithCaption);
@@ -1279,6 +1567,10 @@ codeunit 408 DimensionManagement
         OnAfterDefaultDimObjectNoList(TempAllObjWithCaption);
     end;
 
+    /// <summary>
+    /// Populates a temporary table with object numbers that support default dimensions and have global dimensions.
+    /// </summary>
+    /// <param name="TempAllObjWithCaption">Temporary record to populate with objects that can have default dimensions with global dimension support</param>
     procedure DefaultDimObjectNoWithGlobalDimsList(var TempAllObjWithCaption: Record AllObjWithCaption temporary)
     var
         TempDimField: Record "Field" temporary;
@@ -1312,6 +1604,11 @@ codeunit 408 DimensionManagement
         OnAfterDefaultDimObjectNoWithoutGlobalDimsList(TempAllObjWithCaption);
     end;
 
+    /// <summary>
+    /// Inserts a temporary object record for tables that support default dimensions.
+    /// </summary>
+    /// <param name="TempAllObjWithCaption">Temporary record to insert the object information into</param>
+    /// <param name="TableID">Table ID to check and insert if it supports default dimensions</param>
     procedure DefaultDimInsertTempObject(var TempAllObjWithCaption: Record AllObjWithCaption temporary; TableID: Integer)
     begin
         if IsObsolete(TableID) then
@@ -1341,6 +1638,10 @@ codeunit 408 DimensionManagement
         RecRef.Close();
     end;
 
+    /// <summary>
+    /// Populates a temporary table with object numbers that support global dimensions.
+    /// </summary>
+    /// <param name="TempAllObjWithCaption">Temporary record to populate with objects that support global dimension fields</param>
     procedure GlobalDimObjectNoList(var TempAllObjWithCaption: Record AllObjWithCaption temporary)
     var
         "Field": Record "Field";
@@ -1382,6 +1683,10 @@ codeunit 408 DimensionManagement
             until TempDimField.Next() = 0;
     end;
 
+    /// <summary>
+    /// Populates a temporary table with job task object numbers that support dimensions.
+    /// </summary>
+    /// <param name="TempAllObjWithCaption">Temporary record to populate with job task objects that support dimension handling</param>
     procedure JobTaskDimObjectNoList(var TempAllObjWithCaption: Record AllObjWithCaption temporary)
     begin
         // Table 1001 "Job Task" is an exception
@@ -1389,6 +1694,13 @@ codeunit 408 DimensionManagement
         InsertObject(TempAllObjWithCaption, Database::"Job Task");
     end;
 
+    /// <summary>
+    /// Searches for dimension fields in a specific table using a field name filter.
+    /// </summary>
+    /// <param name="TableNo">Table number to search for dimension fields</param>
+    /// <param name="FieldNameFilter">Filter text to match against field names</param>
+    /// <param name="Field">Field record that will contain the found dimension field</param>
+    /// <returns>True if a dimension field matching the filter is found, false otherwise</returns>
     procedure FindDimFieldInTable(TableNo: Integer; FieldNameFilter: Text; var "Field": Record "Field"): Boolean
     begin
         if IsObsolete(TableNo) then
@@ -1419,11 +1731,20 @@ codeunit 408 DimensionManagement
             until Field.Next() = 0;
     end;
 
+    /// <summary>
+    /// Retrieves the last document dimension consistency error message.
+    /// </summary>
+    /// <returns>Error message text describing the document dimension consistency issue</returns>
     procedure GetDocDimConsistencyErr() ErrorMessage: Text[250]
     begin
         FindLastErrorMessage(ErrorMessage);
     end;
 
+    /// <summary>
+    /// Validates that a dimension code exists and is not blocked.
+    /// </summary>
+    /// <param name="DimCode">Dimension code to validate</param>
+    /// <returns>True if the dimension is valid and not blocked, false otherwise</returns>
     procedure CheckDim(DimCode: Code[20]): Boolean
     var
         Dim: Record Dimension;
@@ -1449,6 +1770,12 @@ codeunit 408 DimensionManagement
         exit(true);
     end;
 
+    /// <summary>
+    /// Validates that a dimension value exists and is not blocked for the specified dimension.
+    /// </summary>
+    /// <param name="DimCode">Dimension code to validate the value against</param>
+    /// <param name="DimValCode">Dimension value code to validate</param>
+    /// <returns>True if the dimension value is valid and not blocked, false otherwise</returns>
     procedure CheckDimValue(DimCode: Code[20]; DimValCode: Code[20]) Result: Boolean
     var
         DimVal: Record "Dimension Value";
@@ -1506,6 +1833,11 @@ codeunit 408 DimensionManagement
         exit(DimValueAllowed);
     end;
 
+    /// <summary>
+    /// Validates that dimensions and dimension values in a dimension set are not blocked.
+    /// </summary>
+    /// <param name="DimSetID">Dimension set ID to validate for blocked dimensions and values</param>
+    /// <returns>True if no blocked dimensions or values are found, false otherwise</returns>
     procedure CheckBlockedDimAndValues(DimSetID: Integer): Boolean
     var
         DimSetEntry: Record "Dimension Set Entry";
@@ -1527,11 +1859,23 @@ codeunit 408 DimensionManagement
         exit(GetLastDimErrorID() = LastErrorID);
     end;
 
+    /// <summary>
+    /// Retrieves the last dimension error message.
+    /// </summary>
+    /// <returns>Error message text describing the dimension validation issue</returns>
     procedure GetDimErr() ErrorMessage: Text[250]
     begin
         FindLastErrorMessage(ErrorMessage);
     end;
 
+    /// <summary>
+    /// Logs a dimension error for a specific source record and field.
+    /// </summary>
+    /// <param name="SourceRecVariant">Source record variant where the error occurred</param>
+    /// <param name="SourceFieldNo">Field number where the error occurred</param>
+    /// <param name="Message">Error message to log</param>
+    /// <param name="HelpArticleCode">Help article code for additional guidance</param>
+    /// <returns>True if the error was successfully logged, false otherwise</returns>
     procedure LogError(SourceRecVariant: Variant; SourceFieldNo: Integer; Message: Text; HelpArticleCode: Code[30]) IsLogged: Boolean
     var
         ForwardLinkMgt: Codeunit "Forward Link Mgt.";
@@ -1549,6 +1893,11 @@ codeunit 408 DimensionManagement
         end;
     end;
 
+    /// <summary>
+    /// Opens dimension value lookup dialog for a specified shortcut dimension field without updating the source record.
+    /// Validates that the shortcut dimension is properly configured before showing the lookup.
+    /// </summary>
+    /// <param name="FieldNumber">Shortcut dimension field number (1-8) to lookup values for</param>
     procedure LookupDimValueCodeNoUpdate(FieldNumber: Integer)
     var
         DimVal: Record "Dimension Value";
@@ -1563,6 +1912,16 @@ codeunit 408 DimensionManagement
         if PAGE.RunModal(0, DimVal) = ACTION::LookupOK then;
     end;
 
+    /// <summary>
+    /// Copies dimension set entries from journal lines to intercompany journal line dimensions.
+    /// Converts company-specific dimension codes to intercompany dimension codes during the copy process.
+    /// </summary>
+    /// <param name="TableID">Source table identifier for the journal line</param>
+    /// <param name="TransactionNo">Intercompany transaction number</param>
+    /// <param name="PartnerCode">Intercompany partner code</param>
+    /// <param name="TransactionSource">Source of the intercompany transaction</param>
+    /// <param name="LineNo">Line number within the transaction</param>
+    /// <param name="DimSetID">Dimension set ID containing dimensions to copy</param>
     procedure CopyJnlLineDimToICJnlDim(TableID: Integer; TransactionNo: Integer; PartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer; DimSetID: Integer)
     var
         InOutBoxJnlLineDim: Record "IC Inbox/Outbox Jnl. Line Dim.";
@@ -1589,6 +1948,11 @@ codeunit 408 DimensionManagement
             until DimSetEntry.Next() = 0;
     end;
 
+    /// <summary>
+    /// Handles default dimension setup when a new default dimension is inserted.
+    /// Updates related job task dimensions and cost types when applicable.
+    /// </summary>
+    /// <param name="DefaultDimension">Default dimension record being inserted</param>
     procedure DefaultDimOnInsert(DefaultDimension: Record "Default Dimension")
     var
         CallingTrigger: Option OnInsert,OnModify,OnDelete;
@@ -1605,6 +1969,11 @@ codeunit 408 DimensionManagement
         UpdateCostType(DefaultDimension, CallingTrigger::OnInsert);
     end;
 
+    /// <summary>
+    /// Handles default dimension changes when an existing default dimension is modified.
+    /// Updates related job task dimensions and cost types to reflect the changes.
+    /// </summary>
+    /// <param name="DefaultDimension">Default dimension record being modified</param>
     procedure DefaultDimOnModify(DefaultDimension: Record "Default Dimension")
     var
         CallingTrigger: Option OnInsert,OnModify,OnDelete;
@@ -1621,6 +1990,11 @@ codeunit 408 DimensionManagement
         UpdateCostType(DefaultDimension, CallingTrigger::OnModify);
     end;
 
+    /// <summary>
+    /// Handles default dimension cleanup when a default dimension is deleted.
+    /// Removes related job task dimensions and updates cost types accordingly.
+    /// </summary>
+    /// <param name="DefaultDimension">Default dimension record being deleted</param>
     procedure DefaultDimOnDelete(DefaultDimension: Record "Default Dimension")
     var
         CallingTrigger: Option OnInsert,OnModify,OnDelete;
@@ -1637,6 +2011,12 @@ codeunit 408 DimensionManagement
         UpdateCostType(DefaultDimension, CallingTrigger::OnDelete);
     end;
 
+    /// <summary>
+    /// Copies intercompany journal line dimensions from one record set to another.
+    /// Creates duplicate dimension entries for intercompany transaction processing.
+    /// </summary>
+    /// <param name="FromInOutBoxLineDim">Source intercompany journal line dimensions to copy from</param>
+    /// <param name="ToInOutBoxlineDim">Target intercompany journal line dimensions to copy to</param>
     procedure CopyICJnlDimToICJnlDim(var FromInOutBoxLineDim: Record "IC Inbox/Outbox Jnl. Line Dim."; var ToInOutBoxlineDim: Record "IC Inbox/Outbox Jnl. Line Dim.")
     begin
         if FromInOutBoxLineDim.FindSet() then
@@ -1646,6 +2026,16 @@ codeunit 408 DimensionManagement
             until FromInOutBoxLineDim.Next() = 0;
     end;
 
+    /// <summary>
+    /// Copies dimension set entries from documents to intercompany document dimensions.
+    /// Converts company-specific dimension codes to intercompany dimension codes for cross-company transactions.
+    /// </summary>
+    /// <param name="TableID">Source table identifier for the document</param>
+    /// <param name="TransactionNo">Intercompany transaction number</param>
+    /// <param name="PartnerCode">Intercompany partner code</param>
+    /// <param name="TransactionSource">Source of the intercompany transaction</param>
+    /// <param name="LineNo">Line number within the document</param>
+    /// <param name="DimSetEntryID">Dimension set ID containing dimensions to copy</param>
     procedure CopyDocDimtoICDocDim(TableID: Integer; TransactionNo: Integer; PartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer; DimSetEntryID: Integer)
     var
         InOutBoxDocDim: Record "IC Document Dimension";
@@ -1672,6 +2062,14 @@ codeunit 408 DimensionManagement
             until DimSetEntry.Next() = 0;
     end;
 
+    /// <summary>
+    /// Copies intercompany document dimensions from one record set to another with new table and transaction source.
+    /// Creates duplicate dimension entries for intercompany document processing across different table contexts.
+    /// </summary>
+    /// <param name="FromSourceICDocDim">Source intercompany document dimensions to copy from</param>
+    /// <param name="ToSourceICDocDim">Target intercompany document dimensions to copy to</param>
+    /// <param name="ToTableID">Target table identifier for the copied dimensions</param>
+    /// <param name="ToTransactionSource">Target transaction source for the copied dimensions</param>
     procedure CopyICDocDimtoICDocDim(FromSourceICDocDim: Record "IC Document Dimension"; var ToSourceICDocDim: Record "IC Document Dimension"; ToTableID: Integer; ToTransactionSource: Integer)
     begin
         SetICDocDimFilters(FromSourceICDocDim, FromSourceICDocDim."Table ID", FromSourceICDocDim."Transaction No.", FromSourceICDocDim."IC Partner Code", FromSourceICDocDim."Transaction Source", FromSourceICDocDim."Line No.");
@@ -1684,6 +2082,14 @@ codeunit 408 DimensionManagement
             until FromSourceICDocDim.Next() = 0;
     end;
 
+    /// <summary>
+    /// Moves intercompany document dimensions from one record set to another with new table and transaction source.
+    /// Transfers dimension entries and deletes the source records during intercompany document processing.
+    /// </summary>
+    /// <param name="FromSourceICDocDim">Source intercompany document dimensions to move from</param>
+    /// <param name="ToSourceICDocDim">Target intercompany document dimensions to move to</param>
+    /// <param name="ToTableID">Target table identifier for the moved dimensions</param>
+    /// <param name="ToTransactionSource">Target transaction source for the moved dimensions</param>
     procedure MoveICDocDimtoICDocDim(FromSourceICDocDim: Record "IC Document Dimension"; var ToSourceICDocDim: Record "IC Document Dimension"; ToTableID: Integer; ToTransactionSource: Integer)
     begin
         SetICDocDimFilters(FromSourceICDocDim, FromSourceICDocDim."Table ID", FromSourceICDocDim."Transaction No.", FromSourceICDocDim."IC Partner Code", FromSourceICDocDim."Transaction Source", FromSourceICDocDim."Line No.");
@@ -1697,6 +2103,16 @@ codeunit 408 DimensionManagement
             until FromSourceICDocDim.Next() = 0;
     end;
 
+    /// <summary>
+    /// Sets filters on intercompany document dimension record to isolate specific dimension entries.
+    /// Applies standard filters for table ID, transaction number, partner code, transaction source, and line number.
+    /// </summary>
+    /// <param name="ICDocDim">Intercompany document dimension record to apply filters to</param>
+    /// <param name="TableID">Table identifier to filter by</param>
+    /// <param name="TransactionNo">Transaction number to filter by</param>
+    /// <param name="PartnerCode">Intercompany partner code to filter by</param>
+    /// <param name="TransactionSource">Transaction source to filter by</param>
+    /// <param name="LineNo">Line number to filter by</param>
     procedure SetICDocDimFilters(var ICDocDim: Record "IC Document Dimension"; TableID: Integer; TransactionNo: Integer; PartnerCode: Code[20]; TransactionSource: Integer; LineNo: Integer)
     begin
         ICDocDim.Reset();
@@ -1707,6 +2123,15 @@ codeunit 408 DimensionManagement
         ICDocDim.SetRange("Line No.", LineNo);
     end;
 
+    /// <summary>
+    /// Deletes intercompany document dimensions that match the specified criteria.
+    /// Removes all dimension entries for a specific intercompany document transaction line.
+    /// </summary>
+    /// <param name="TableID">Table identifier to delete dimensions for</param>
+    /// <param name="ICTransactionNo">Intercompany transaction number</param>
+    /// <param name="ICPartnerCode">Intercompany partner code</param>
+    /// <param name="TransactionSource">Transaction source type</param>
+    /// <param name="LineNo">Line number within the transaction</param>
     procedure DeleteICDocDim(TableID: Integer; ICTransactionNo: Integer; ICPartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer)
     var
         ICDocDim: Record "IC Document Dimension";
@@ -1716,6 +2141,15 @@ codeunit 408 DimensionManagement
             ICDocDim.DeleteAll();
     end;
 
+    /// <summary>
+    /// Deletes intercompany journal line dimensions that match the specified criteria.
+    /// Removes all dimension entries for a specific intercompany journal line transaction.
+    /// </summary>
+    /// <param name="TableID">Table identifier to delete dimensions for</param>
+    /// <param name="ICTransactionNo">Intercompany transaction number</param>
+    /// <param name="ICPartnerCode">Intercompany partner code</param>
+    /// <param name="TransactionSource">Transaction source type</param>
+    /// <param name="LineNo">Line number within the transaction</param>
     procedure DeleteICJnlDim(TableID: Integer; ICTransactionNo: Integer; ICPartnerCode: Code[20]; TransactionSource: Option; LineNo: Integer)
     var
         ICJnlDim: Record "IC Inbox/Outbox Jnl. Line Dim.";
@@ -1749,6 +2183,12 @@ codeunit 408 DimensionManagement
         OnAfterConvertICDimValuetoDimValue(FromICDimCode, FromICDimValue, DimValueCode);
     end;
 
+    /// <summary>
+    /// Converts a company-specific dimension code to its intercompany equivalent.
+    /// Uses the dimension's mapping configuration to return the corresponding IC dimension code.
+    /// </summary>
+    /// <param name="FromDim">Company dimension code to convert</param>
+    /// <returns>Mapped intercompany dimension code, or empty if no mapping exists</returns>
     procedure ConvertDimtoICDim(FromDim: Code[20]) ICDimCode: Code[20]
     var
         Dim: Record Dimension;
@@ -1759,6 +2199,13 @@ codeunit 408 DimensionManagement
         OnAfterConvertDimtoICDim(FromDim, ICDimCode);
     end;
 
+    /// <summary>
+    /// Converts a company-specific dimension value to its intercompany equivalent.
+    /// Uses the dimension value's mapping configuration to return the corresponding IC dimension value code.
+    /// </summary>
+    /// <param name="FromDim">Company dimension code containing the value</param>
+    /// <param name="FromDimValue">Company dimension value code to convert</param>
+    /// <returns>Mapped intercompany dimension value code, or empty if no mapping exists</returns>
     procedure ConvertDimValuetoICDimVal(FromDim: Code[20]; FromDimValue: Code[20]) ICDimValueCode: Code[20]
     var
         DimValue: Record "Dimension Value";
@@ -1770,6 +2217,13 @@ codeunit 408 DimensionManagement
         OnAfterConvertDimValuetoICDimVal(FromDim, FromDimValue, ICDimValueCode);
     end;
 
+    /// <summary>
+    /// Validates intercompany dimension value and checks if it exists and is not blocked.
+    /// Performs validation and logging for intercompany dimension value usage.
+    /// </summary>
+    /// <param name="ICDimCode">Intercompany dimension code to validate</param>
+    /// <param name="ICDimValCode">Intercompany dimension value code to validate</param>
+    /// <returns>True if the intercompany dimension value is valid and not blocked, false otherwise</returns>
     procedure CheckICDimValue(ICDimCode: Code[20]; ICDimValCode: Code[20]): Boolean
     var
         ICDimVal: Record "IC Dimension Value";
@@ -1820,6 +2274,12 @@ codeunit 408 DimensionManagement
         exit(DimValueAllowed);
     end;
 
+    /// <summary>
+    /// Validates intercompany dimension and checks if it exists and is not blocked.
+    /// Performs validation and logging for intercompany dimension usage.
+    /// </summary>
+    /// <param name="ICDimCode">Intercompany dimension code to validate</param>
+    /// <returns>True if the intercompany dimension is valid and not blocked, false otherwise</returns>
     procedure CheckICDim(ICDimCode: Code[20]): Boolean
     var
         ICDim: Record "IC Dimension";
@@ -1846,6 +2306,14 @@ codeunit 408 DimensionManagement
         exit(true);
     end;
 
+    /// <summary>
+    /// Saves or updates a job task dimension value for a specific shortcut dimension field.
+    /// Creates new job task dimension records or modifies existing ones based on field number and dimension code.
+    /// </summary>
+    /// <param name="JobNo">Job number to save dimension for</param>
+    /// <param name="JobTaskNo">Job task number to save dimension for</param>
+    /// <param name="FieldNumber">Shortcut dimension field number (1-8)</param>
+    /// <param name="ShortcutDimCode">Dimension value code to assign to the shortcut field</param>
     procedure SaveJobTaskDim(JobNo: Code[20]; JobTaskNo: Code[20]; FieldNumber: Integer; ShortcutDimCode: Code[20])
     var
         JobTaskDim: Record "Job Task Dimension";
@@ -1869,6 +2337,12 @@ codeunit 408 DimensionManagement
                 JobTaskDim.Delete();
     end;
 
+    /// <summary>
+    /// Saves job task dimension value to temporary buffer for a specific shortcut dimension field.
+    /// Updates temporary dimension buffer with shortcut dimension values for later processing.
+    /// </summary>
+    /// <param name="FieldNumber">Shortcut dimension field number (1-8)</param>
+    /// <param name="ShortcutDimCode">Dimension value code to save to the temporary buffer</param>
     procedure SaveJobTaskTempDim(FieldNumber: Integer; ShortcutDimCode: Code[20])
     begin
         GetGLSetup(GLSetupShortcutDimCode);
@@ -1888,6 +2362,14 @@ codeunit 408 DimensionManagement
                 TempJobTaskDimBuffer.Delete();
     end;
 
+    /// <summary>
+    /// Inserts job task dimensions based on default dimensions from the job.
+    /// Creates job task dimension records and updates global dimension variables with values found.
+    /// </summary>
+    /// <param name="JobNo">Job number to create task dimensions for</param>
+    /// <param name="JobTaskNo">Job task number to create dimensions for</param>
+    /// <param name="GlobalDim1Code">Returns global dimension 1 code if found in job task dimensions</param>
+    /// <param name="GlobalDim2Code">Returns global dimension 2 code if found in job task dimensions</param>
     procedure InsertJobTaskDim(JobNo: Code[20]; JobTaskNo: Code[20]; var GlobalDim1Code: Code[20]; var GlobalDim2Code: Code[20])
     var
         DefaultDim: Record "Default Dimension";
@@ -1937,6 +2419,15 @@ codeunit 408 DimensionManagement
         TempJobTaskDimBuffer.DeleteAll();
     end;
 
+    /// <summary>
+    /// Inserts job task dimensions based on default dimension configuration.
+    /// Creates job task dimension entries and updates global dimension codes for the job task.
+    /// </summary>
+    /// <param name="DefaultDim">Default dimension record to use as template</param>
+    /// <param name="JobNo">Job number for the job task dimensions</param>
+    /// <param name="JobTaskNo">Job task number for the dimension assignment</param>
+    /// <param name="GlobalDim1Code">Returns the global dimension 1 code assigned</param>
+    /// <param name="GlobalDim2Code">Returns the global dimension 2 code assigned</param>
     procedure InsertJobTaskDim(var DefaultDim: Record "Default Dimension"; JobNo: Code[20]; JobTaskNo: Code[20]; var GlobalDim1Code: Code[20]; var GlobalDim2Code: Code[20])
     var
         JobTaskDim: Record "Job Task Dimension";
@@ -2009,12 +2500,22 @@ codeunit 408 DimensionManagement
         OnAfterUpdateJobTaskDim(DefaultDimension);
     end;
 
+    /// <summary>
+    /// Deletes all job task dimension records from temporary buffer.
+    /// </summary>
     procedure DeleteJobTaskTempDim()
     begin
         TempJobTaskDimBuffer.Reset();
         TempJobTaskDimBuffer.DeleteAll();
     end;
 
+    /// <summary>
+    /// Copies job task dimensions from one job task to another job task.
+    /// </summary>
+    /// <param name="JobNo">Source job number</param>
+    /// <param name="JobTaskNo">Source job task number</param>
+    /// <param name="NewJobNo">Target job number</param>
+    /// <param name="NewJobTaskNo">Target job task number</param>
     procedure CopyJobTaskDimToJobTaskDim(JobNo: Code[20]; JobTaskNo: Code[20]; NewJobNo: Code[20]; NewJobTaskNo: Code[20])
     var
         JobTaskDimension: Record "Job Task Dimension";
@@ -2054,6 +2555,15 @@ codeunit 408 DimensionManagement
             until JobTaskDimension2.Next() = 0;
     end;
 
+    /// <summary>
+    /// Checks consistency between document dimension set entries and posted document dimension set entries.
+    /// Validates that dimension sets match between original document and posted document for audit compliance.
+    /// </summary>
+    /// <param name="DimSetEntry">Dimension set entries from the original document</param>
+    /// <param name="PostedDimSetEntry">Dimension set entries from the posted document</param>
+    /// <param name="DocTableID">Table ID of the original document</param>
+    /// <param name="PostedDocTableID">Table ID of the posted document</param>
+    /// <returns>True if dimension sets are consistent, false if discrepancies are found</returns>
     procedure CheckDimIDConsistency(var DimSetEntry: Record "Dimension Set Entry"; var PostedDimSetEntry: Record "Dimension Set Entry"; DocTableID: Integer; PostedDocTableID: Integer): Boolean
     var
         ObjectTranslation: Record "Object Translation";
@@ -2113,6 +2623,12 @@ codeunit 408 DimensionManagement
         TempDimSetEntry.Insert();
     end;
 
+    /// <summary>
+    /// Creates a dimension set ID from intercompany document dimensions by converting IC dimensions to company dimensions.
+    /// Processes all IC document dimension entries and builds a corresponding company dimension set.
+    /// </summary>
+    /// <param name="ICDocDim">Intercompany document dimensions to convert</param>
+    /// <returns>Dimension set ID representing the converted intercompany dimensions</returns>
     procedure CreateDimSetIDFromICDocDim(var ICDocDim: Record "IC Document Dimension"): Integer
     var
         DimValue: Record "Dimension Value";
@@ -2129,6 +2645,12 @@ codeunit 408 DimensionManagement
         exit(GetDimensionSetID(TempDimSetEntry));
     end;
 
+    /// <summary>
+    /// Creates a dimension set ID from intercompany journal line dimensions by converting IC dimensions to company dimensions.
+    /// Processes all IC journal line dimension entries and builds a corresponding company dimension set.
+    /// </summary>
+    /// <param name="ICInboxOutboxJnlLineDim">Intercompany journal line dimensions to convert</param>
+    /// <returns>Dimension set ID representing the converted intercompany journal dimensions</returns>
     procedure CreateDimSetIDFromICJnlLineDim(var ICInboxOutboxJnlLineDim: Record "IC Inbox/Outbox Jnl. Line Dim."): Integer
     var
         DimValue: Record "Dimension Value";
@@ -2146,6 +2668,12 @@ codeunit 408 DimensionManagement
         exit(GetDimensionSetID(TempDimSetEntry));
     end;
 
+    /// <summary>
+    /// Copies dimension buffer entries to dimension set entry records with proper dimension value ID assignment.
+    /// Validates dimension values during the copy process and populates dimension value IDs from master data.
+    /// </summary>
+    /// <param name="FromDimBuf">Source dimension buffer records to copy from</param>
+    /// <param name="DimSetEntry">Target dimension set entry records to copy to</param>
     procedure CopyDimBufToDimSetEntry(var FromDimBuf: Record "Dimension Buffer"; var DimSetEntry: Record "Dimension Set Entry")
     var
         DimValue: Record "Dimension Value";
@@ -2161,6 +2689,12 @@ codeunit 408 DimensionManagement
             until FromDimBuf.Next() = 0;
     end;
 
+    /// <summary>
+    /// Creates a dimension set ID from dimension buffer entries by building a temporary dimension set.
+    /// Validates dimension values and generates a unique dimension set ID for the buffer contents.
+    /// </summary>
+    /// <param name="DimBuf">Dimension buffer records to create dimension set ID from</param>
+    /// <returns>Generated dimension set ID representing the buffer dimension combination</returns>
     procedure CreateDimSetIDFromDimBuf(var DimBuf: Record "Dimension Buffer"): Integer
     var
         DimValue: Record "Dimension Value";
@@ -2175,6 +2709,17 @@ codeunit 408 DimensionManagement
         exit(GetDimensionSetID(TempDimSetEntry));
     end;
 
+    /// <summary>
+    /// Creates dimensions for purchase lines using higher priority dimension sources.
+    /// Applies dimension priority rules to resolve conflicts between different dimension sources.
+    /// </summary>
+    /// <param name="PurchaseLine">Purchase line record containing the dimension data</param>
+    /// <param name="CurrFieldNo">Current field number triggering the dimension creation</param>
+    /// <param name="DimensionSetID">Returns the created dimension set ID</param>
+    /// <param name="DimValue1">Returns the global dimension 1 value code</param>
+    /// <param name="DimValue2">Returns the global dimension 2 value code</param>
+    /// <param name="SourceCode">Source code for the transaction</param>
+    /// <param name="PriorityTableID">Table ID used for priority determination</param>
     procedure CreateDimForPurchLineWithHigherPriorities(PurchaseLine: Record "Purchase Line"; CurrFieldNo: Integer; var DimensionSetID: Integer; var DimValue1: Code[20]; var DimValue2: Code[20]; SourceCode: Code[10]; PriorityTableID: Integer)
     var
         DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
@@ -2192,6 +2737,17 @@ codeunit 408 DimensionManagement
                 PurchaseLine, CurrFieldNo, HighPriorityDefaultDimSource, SourceCode, DimValue1, DimValue2, 0, 0);
     end;
 
+    /// <summary>
+    /// Creates dimensions for sales lines using higher priority dimension sources.
+    /// Applies dimension priority rules to resolve conflicts between different dimension sources.
+    /// </summary>
+    /// <param name="SalesLine">Sales line record containing the dimension data</param>
+    /// <param name="CurrFieldNo">Current field number triggering the dimension creation</param>
+    /// <param name="DimensionSetID">Returns the created dimension set ID</param>
+    /// <param name="DimValue1">Returns the global dimension 1 value code</param>
+    /// <param name="DimValue2">Returns the global dimension 2 value code</param>
+    /// <param name="SourceCode">Source code for the transaction</param>
+    /// <param name="PriorityTableID">Table ID used for priority determination</param>
     procedure CreateDimForSalesLineWithHigherPriorities(SalesLine: Record "Sales Line"; CurrFieldNo: Integer; var DimensionSetID: Integer; var DimValue1: Code[20]; var DimValue2: Code[20]; SourceCode: Code[10]; PriorityTableID: Integer)
     var
         DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
@@ -2209,6 +2765,17 @@ codeunit 408 DimensionManagement
                 SalesLine, CurrFieldNo, HighPriorityDefaultDimSource, SourceCode, DimValue1, DimValue2, 0, 0);
     end;
 
+    /// <summary>
+    /// Creates dimensions for job journal lines using higher priority dimension sources.
+    /// Applies dimension priority rules to resolve conflicts between different dimension sources.
+    /// </summary>
+    /// <param name="JobJournalLine">Job journal line record containing the dimension data</param>
+    /// <param name="CurrFieldNo">Current field number triggering the dimension creation</param>
+    /// <param name="DimensionSetID">Returns the created dimension set ID</param>
+    /// <param name="DimValue1">Returns the global dimension 1 value code</param>
+    /// <param name="DimValue2">Returns the global dimension 2 value code</param>
+    /// <param name="SourceCode">Source code for the transaction</param>
+    /// <param name="PriorityTableID">Table ID used for priority determination</param>
     procedure CreateDimForJobJournalLineWithHigherPriorities(JobJournalLine: Record "Job Journal Line"; CurrFieldNo: Integer; var DimensionSetID: Integer; var DimValue1: Code[20]; var DimValue2: Code[20]; SourceCode: Code[10]; PriorityTableID: Integer)
     var
         DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
@@ -2231,6 +2798,15 @@ codeunit 408 DimensionManagement
         OnAfterCreateDimForJobJournalLineWithHigherPrioritiesProcedure(JobJournalLine, CurrFieldNo, DimensionSetID, DimValue1, DimValue2, SourceCode, PriorityTableID, DefaultDimSource, HighPriorityDefaultDimSource);
     end;
 
+    /// <summary>
+    /// Retrieves table IDs for higher priority dimension sources based on default dimension priority configuration.
+    /// Filters dimension sources to include only those with higher priority than the specified priority table.
+    /// </summary>
+    /// <param name="DefaultDimSource">List of default dimension sources to filter</param>
+    /// <param name="HighPriorityDefaultDimSource">Returns filtered list containing only higher priority sources</param>
+    /// <param name="SourceCode">Source code for priority lookup</param>
+    /// <param name="PriorityTableID">Table ID used as priority threshold for filtering</param>
+    /// <returns>True if higher priority sources exist, false otherwise</returns>
     procedure GetTableIDsForHigherPriorities(DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; var HighPriorityDefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; SourceCode: Code[10]; PriorityTableID: Integer) Result: Boolean
     var
         DefaultDimensionPriority: Record "Default Dimension Priority";
@@ -2265,6 +2841,12 @@ codeunit 408 DimensionManagement
         exit(Result);
     end;
 
+    /// <summary>
+    /// Builds a collection of dimension set IDs that match the specified dimension code and value filter.
+    /// Populates temporary dimension set entry buffer with matching dimension set IDs for subsequent filtering operations.
+    /// </summary>
+    /// <param name="DimCode">Dimension code to filter by</param>
+    /// <param name="DimValueFilter">Dimension value filter expression to apply</param>
     procedure GetDimSetIDsForFilter(DimCode: Code[20]; DimValueFilter: Text)
     var
         DimSetEntry: Record "Dimension Set Entry";
@@ -2337,12 +2919,20 @@ codeunit 408 DimensionManagement
         exit(DimSetFilters);
     end;
 
+    /// <summary>
+    /// Gets dimension set filters as list of text for current dimension set filter counter.
+    /// </summary>
+    /// <returns>List of text containing dimension set filters for the current counter value</returns>
     procedure GetDimSetFilters(): List of [Text]
     begin
         TempDimSetEntryBuffer.SetFilter("Dimension Value ID", '%1', DimSetFilterCtr);
         exit(ChunkDimSetFilters(TempDimSetEntryBuffer));
     end;
 
+    /// <summary>
+    /// Gets single dimension set filter string based on current dimension set filter counter.
+    /// </summary>
+    /// <returns>Dimension set filter as concatenated text string</returns>
     procedure GetDimSetFilter() DimSetFilter: Text
     var
         Counter: integer;
@@ -2387,6 +2977,9 @@ codeunit 408 DimensionManagement
         end;
     end;
 
+    /// <summary>
+    /// Clears dimension set filter by resetting buffer and counter.
+    /// </summary>
     procedure ClearDimSetFilter()
     begin
         TempDimSetEntryBuffer.Reset();
@@ -2394,11 +2987,21 @@ codeunit 408 DimensionManagement
         DimSetFilterCtr := 0;
     end;
 
+    /// <summary>
+    /// Gets temporary dimension set entry from buffer.
+    /// </summary>
+    /// <param name="TempDimSetEntry">Temporary dimension set entry to copy buffer data to</param>
     procedure GetTempDimSetEntry(var TempDimSetEntry: Record "Dimension Set Entry" temporary)
     begin
         TempDimSetEntry.Copy(TempDimSetEntryBuffer, true);
     end;
 
+    /// <summary>
+    /// Updates cost accounting types when default dimensions are modified for G/L accounts.
+    /// Integrates dimension changes with cost accounting setup to maintain consistency between financial and cost dimensions.
+    /// </summary>
+    /// <param name="DefaultDimension">Default dimension record being modified</param>
+    /// <param name="CallingTrigger">Trigger context indicating the type of operation (Insert, Modify, Delete)</param>
     procedure UpdateCostType(DefaultDimension: Record "Default Dimension"; CallingTrigger: Option OnInsert,OnModify,OnDelete)
     var
         GLAccount: Record "G/L Account";
@@ -2410,6 +3013,14 @@ codeunit 408 DimensionManagement
                 CostAccMgt.UpdateCostTypeFromDefaultDimension(DefaultDimension, GLAccount, CallingTrigger);
     end;
 
+    /// <summary>
+    /// Creates dimension set ID from job task dimensions and updates global dimension values.
+    /// </summary>
+    /// <param name="JobNo">Job number to get dimensions from</param>
+    /// <param name="JobTaskNo">Job task number to get dimensions from</param>
+    /// <param name="GlobalDimVal1">Returns global dimension 1 value</param>
+    /// <param name="GlobalDimVal2">Returns global dimension 2 value</param>
+    /// <returns>New dimension set ID created from job task dimensions</returns>
     procedure CreateDimSetFromJobTaskDim(JobNo: Code[20]; JobTaskNo: Code[20]; var GlobalDimVal1: Code[20]; var GlobalDimVal2: Code[20]) NewDimSetID: Integer
     var
         JobTaskDimension: Record "Job Task Dimension";
@@ -2437,6 +3048,11 @@ codeunit 408 DimensionManagement
         end;
     end;
 
+    /// <summary>
+    /// Updates general journal line with dimension set ID and corresponding shortcut dimension codes.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line to update with dimensions</param>
+    /// <param name="DimSetID">Dimension set ID to assign to the journal line</param>
     procedure UpdateGenJnlLineDim(var GenJnlLine: Record "Gen. Journal Line"; DimSetID: Integer)
     begin
         GenJnlLine."Dimension Set ID" := DimSetID;
@@ -2447,6 +3063,11 @@ codeunit 408 DimensionManagement
         OnAfterUpdateGenJnlLineDim(GenJnlLine, DimSetID);
     end;
 
+    /// <summary>
+    /// Updates general journal line dimensions from corresponding customer ledger entry.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line to update with dimensions</param>
+    /// <param name="DtldCustLedgEntry">Detailed customer ledger entry containing dimension reference</param>
     procedure UpdateGenJnlLineDimFromCustLedgEntry(var GenJnlLine: Record "Gen. Journal Line"; DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
     var
         CustLedgEntry: Record "Cust. Ledger Entry";
@@ -2457,6 +3078,11 @@ codeunit 408 DimensionManagement
         end;
     end;
 
+    /// <summary>
+    /// Updates general journal line dimensions from corresponding vendor ledger entry.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line to update with dimensions</param>
+    /// <param name="DtldVendLedgEntry">Detailed vendor ledger entry containing dimension reference</param>
     procedure UpdateGenJnlLineDimFromVendLedgEntry(var GenJnlLine: Record "Gen. Journal Line"; DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry")
     var
         VendLedgEntry: Record "Vendor Ledger Entry";
@@ -2467,12 +3093,21 @@ codeunit 408 DimensionManagement
         end;
     end;
 
+    /// <summary>
+    /// Gets dimension set entry default dimensions. Method is obsolete and clears dimension set entries.
+    /// </summary>
+    /// <param name="DimSetEntry">Dimension set entry record to clear</param>
     procedure GetDimSetEntryDefaultDim(var DimSetEntry: Record "Dimension Set Entry")
     begin
         // Obsolete method
         DimSetEntry.DeleteAll();
     end;
 
+    /// <summary>
+    /// Inserts table object into temporary AllObjWithCaption record if not obsolete.
+    /// </summary>
+    /// <param name="TempAllObjWithCaption">Temporary record to insert object information</param>
+    /// <param name="TableID">Table ID to check and insert</param>
     procedure InsertObject(var TempAllObjWithCaption: Record AllObjWithCaption temporary; TableID: Integer)
     var
         AllObjWithCaption: Record AllObjWithCaption;
@@ -2493,6 +3128,12 @@ codeunit 408 DimensionManagement
             exit(TableMetadata.ObsoleteState = TableMetadata.ObsoleteState::Removed);
     end;
 
+    /// <summary>
+    /// Gets consolidated dimension filter by combining dimension filter with dimension codes.
+    /// </summary>
+    /// <param name="Dimension">Dimension record to filter and process</param>
+    /// <param name="DimFilter">Dimension filter text to apply</param>
+    /// <returns>Consolidated dimension filter including original filter and dimension codes</returns>
     procedure GetConsolidatedDimFilterByDimFilter(var Dimension: Record Dimension; DimFilter: Text) ConsolidatedDimFilter: Text
     begin
         Dimension.SetFilter("Consolidation Code", DimFilter);
@@ -2503,6 +3144,11 @@ codeunit 408 DimensionManagement
             until Dimension.Next() = 0;
     end;
 
+    /// <summary>
+    /// Resolves dimension value filter by expanding with totaling values.
+    /// </summary>
+    /// <param name="DimValueFilter">Dimension value filter to resolve and expand</param>
+    /// <param name="DimensionCode">Dimension code for which to resolve values</param>
     procedure ResolveDimValueFilter(var DimValueFilter: Text; DimensionCode: Code[20])
     begin
         DimValueFilter := GetDimValuesWithTotalings(DimValueFilter, DimensionCode);
@@ -2607,6 +3253,18 @@ codeunit 408 DimensionManagement
             until DimensionValue.Next() = 0;
     end;
 
+    /// <summary>
+    /// Determines the visibility of shortcut dimension fields based on General Ledger Setup configuration.
+    /// Returns boolean values for each of the eight shortcut dimension fields indicating whether they should be visible in the UI.
+    /// </summary>
+    /// <param name="DimVisible1">Returns true if shortcut dimension 1 is configured and should be visible</param>
+    /// <param name="DimVisible2">Returns true if shortcut dimension 2 is configured and should be visible</param>
+    /// <param name="DimVisible3">Returns true if shortcut dimension 3 is configured and should be visible</param>
+    /// <param name="DimVisible4">Returns true if shortcut dimension 4 is configured and should be visible</param>
+    /// <param name="DimVisible5">Returns true if shortcut dimension 5 is configured and should be visible</param>
+    /// <param name="DimVisible6">Returns true if shortcut dimension 6 is configured and should be visible</param>
+    /// <param name="DimVisible7">Returns true if shortcut dimension 7 is configured and should be visible</param>
+    /// <param name="DimVisible8">Returns true if shortcut dimension 8 is configured and should be visible</param>
     procedure UseShortcutDims(var DimVisible1: Boolean; var DimVisible2: Boolean; var DimVisible3: Boolean; var DimVisible4: Boolean; var DimVisible5: Boolean; var DimVisible6: Boolean; var DimVisible7: Boolean; var DimVisible8: Boolean)
     var
         GLSetup: Record "General Ledger Setup";
@@ -2624,6 +3282,10 @@ codeunit 408 DimensionManagement
         OnAfterUseShortcutDims(DimVisible1, DimVisible2, DimVisible3, DimVisible4, DimVisible5, DimVisible6, DimVisible7, DimVisible8);
     end;
 
+    /// <summary>
+    /// Opens page for managing allowed dimension values per account with buffer synchronization.
+    /// </summary>
+    /// <param name="DefaultDimension">Default dimension record to manage allowed values for</param>
     procedure OpenAllowedDimValuesPerAccount(var DefaultDimension: Record "Default Dimension")
     var
         DimValuePerAccount: Record "Dim. Value per Account";
@@ -2653,6 +3315,11 @@ codeunit 408 DimensionManagement
             until TempDimValuePerAccount.Next() = 0;
     end;
 
+    /// <summary>
+    /// Fills temporary dimension value per account buffer from existing records or dimension values.
+    /// </summary>
+    /// <param name="DefaultDimension">Default dimension record to get account and dimension information</param>
+    /// <param name="TempDimValuePerAccount">Temporary buffer to fill with dimension value per account data</param>
     procedure FillDimValuePerAccountBuffer(var DefaultDimension: Record "Default Dimension"; var TempDimValuePerAccount: Record "Dim. Value per Account" temporary)
     var
         DimValuePerAccount: Record "Dim. Value per Account";
@@ -2680,6 +3347,11 @@ codeunit 408 DimensionManagement
         end;
     end;
 
+    /// <summary>
+    /// Synchronizes dimension value per account records with dimension values.
+    /// Creates dimension value per account entries for all dimension values in the specified dimension.
+    /// </summary>
+    /// <param name="DefaultDimension">Default dimension record containing the dimension code to synchronize</param>
     procedure SyncDimValuePerAccountWithDimValues(var DefaultDimension: Record "Default Dimension")
     var
         DimValuePerAccount: Record "Dim. Value per Account";
@@ -2699,6 +3371,12 @@ codeunit 408 DimensionManagement
             until DimValue.Next() = 0;
     end;
 
+    /// <summary>
+    /// Synchronizes temporary dimension value per account records with dimension values.
+    /// Creates temporary dimension value per account entries for all dimension values in the specified dimension.
+    /// </summary>
+    /// <param name="DefaultDimension">Default dimension record containing the dimension code to synchronize</param>
+    /// <param name="TempDimValuePerAccount">Temporary buffer to populate with dimension value per account records</param>
     procedure SyncTempDimValuePerAccountWithDimValues(var DefaultDimension: Record "Default Dimension"; var TempDimValuePerAccount: Record "Dim. Value per Account" temporary)
     var
         DimValue: Record "Dimension Value";
@@ -2717,6 +3395,12 @@ codeunit 408 DimensionManagement
             until DimValue.Next() = 0;
     end;
 
+    /// <summary>
+    /// Opens the allowed dimension values per account page for multiple dimension selection.
+    /// Provides user interface for selecting allowed dimension values for specific account configurations.
+    /// </summary>
+    /// <param name="DefaultDimension">Default dimension record containing the configuration context</param>
+    /// <param name="TempDimValuePerAccount">Temporary buffer containing dimension value per account data</param>
     procedure OpenAllowedDimValuesPerAccountDimMultiple(var DefaultDimension: Record "Default Dimension"; var TempDimValuePerAccount: Record "Dim. Value per Account" temporary)
     var
         DimAllowedValuesPerAcc: Page "Dim. Allowed Values per Acc.";
@@ -2736,6 +3420,11 @@ codeunit 408 DimensionManagement
         end;
     end;
 
+    /// <summary>
+    /// Adds a dimension value to the allowed values filter for default dimensions.
+    /// Updates default dimension configurations to include the specified dimension value as allowed.
+    /// </summary>
+    /// <param name="DimensionValue">Dimension value record to add to allowed values</param>
     procedure AddDefaultDimensionAllowedDimensionValue(DimensionValue: Record "Dimension Value")
     var
         DefaultDimension: Record "Default Dimension";
@@ -2769,6 +3458,11 @@ codeunit 408 DimensionManagement
         until DefaultDimension.Next() = 0;
     end;
 
+    /// <summary>
+    /// Updates default dimension allowed values filter when dimension values change.
+    /// Refreshes allowed values filter for all default dimensions using the specified dimension.
+    /// </summary>
+    /// <param name="DimensionValue">Dimension value record that has been modified</param>
     procedure UpdateDefaultDimensionAllowedDimensionValues(DimensionValue: Record "Dimension Value")
     var
         DefaultDimension: Record "Default Dimension";
@@ -2782,6 +3476,11 @@ codeunit 408 DimensionManagement
             until DefaultDimension.Next() = 0;
     end;
 
+    /// <summary>
+    /// Validates that at least one allowed value is selected for dimension value per account configuration.
+    /// Throws an error if no allowed values are marked as selected.
+    /// </summary>
+    /// <param name="DimValuePerAccount">Dimension value per account record to validate</param>
     procedure CheckIfNoAllowedValuesSelected(var DimValuePerAccount: Record "Dim. Value per Account")
     begin
         DimValuePerAccount.SetRange(Allowed, true);
@@ -2799,6 +3498,12 @@ codeunit 408 DimensionManagement
         TempDimBuf.Insert();
     end;
 
+    /// <summary>
+    /// Adds dimension source to default dimension source list.
+    /// </summary>
+    /// <param name="DefaultDimSource">List of default dimension sources to add to</param>
+    /// <param name="TableId">Table ID for the dimension source</param>
+    /// <param name="No">Number/code for the dimension source</param>
     procedure AddDimSource(var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; TableId: Integer; No: Code[20])
     var
         DimSource: Dictionary of [Integer, Code[20]];
@@ -2807,6 +3512,13 @@ codeunit 408 DimensionManagement
         DefaultDimSource.Add(DimSource);
     end;
 
+    /// <summary>
+    /// Adds dimension source to default dimension source list with position control.
+    /// </summary>
+    /// <param name="DefaultDimSource">List of default dimension sources to add to</param>
+    /// <param name="TableId">Table ID for the dimension source</param>
+    /// <param name="No">Number/code for the dimension source</param>
+    /// <param name="FirstPos">True to insert at first position, false to add at end</param>
     procedure AddDimSource(var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; TableId: Integer; No: Code[20]; FirstPos: Boolean)
     var
         DimSource: Dictionary of [Integer, Code[20]];
@@ -2818,6 +3530,12 @@ codeunit 408 DimensionManagement
             DefaultDimSource.Add(DimSource);
     end;
 
+    /// <summary>
+    /// Checks if default dimensions are defined for a specific table and record combination.
+    /// Returns true if any default dimension records exist for the table and record specified.
+    /// </summary>
+    /// <param name="TableValuePair">Dictionary containing table ID and record number pair to check</param>
+    /// <returns>True if default dimensions exist for the table and record, false otherwise</returns>
     procedure IsDefaultDimDefinedForTable(TableValuePair: Dictionary of [Integer, Code[20]]): Boolean
     var
         DefaultDim: Record "Default Dimension";
@@ -2855,6 +3573,10 @@ codeunit 408 DimensionManagement
         DefaultDimPrioritiesNotification.Send();
     end;
 
+    /// <summary>
+    /// Disables current user notification for default dimension priorities.
+    /// </summary>
+    /// <param name="Notification">Notification to disable for current user</param>
     procedure DontNotifyCurrentUserAgain(Notification: Notification)
     var
         MyNotifications: Record "My Notifications";
@@ -2864,6 +3586,10 @@ codeunit 408 DimensionManagement
                  InstructionMgt.GetDefaultDimPrioritiesDescriptionTxt(), false);
     end;
 
+    /// <summary>
+    /// Opens default dimension priorities page with source code from notification data.
+    /// </summary>
+    /// <param name="DefaultDimPrioritiesNotification">Notification containing source code data</param>
     procedure OpenDefaultDimPriorities(DefaultDimPrioritiesNotification: Notification)
     var
         DefaultDimPriority: Record "Default Dimension Priority";
@@ -2872,6 +3598,12 @@ codeunit 408 DimensionManagement
         Page.Run(Page::"Default Dimension Priorities", DefaultDimPriority);
     end;
 
+    /// <summary>
+    /// Checks if any default dimensions have Code Mandatory value posting for given table IDs and numbers.
+    /// </summary>
+    /// <param name="TableID">Array of table IDs to check for default dimensions</param>
+    /// <param name="No">Array of numbers corresponding to table IDs</param>
+    /// <returns>True if any default dimension has Code Mandatory value posting, false otherwise</returns>
     procedure CheckDefaultDimensionHasCodeMandatory(TableID: array[10] of Integer; No: array[10] of Code[20]) CodeMandatory: Boolean
     var
         TempDefaultDim: Record "Default Dimension" temporary;
@@ -2885,16 +3617,28 @@ codeunit 408 DimensionManagement
         exit(CodeMandatory);
     end;
 
+    /// <summary>
+    /// Sets flag to skip change dimensions confirmation question.
+    /// </summary>
+    /// <param name="Skip">True to skip confirmation question, false to show question</param>
     procedure SetSkipChangeDimensionsQst(Skip: Boolean)
     begin
         SkipChangeDimensionsQst := Skip;
     end;
 
+    /// <summary>
+    /// Sets flag to skip dimension updates.
+    /// </summary>
+    /// <param name="Skip">True to skip dimension updates, false to perform updates</param>
     procedure SetSkipUpdateDimensions(Skip: Boolean)
     begin
         SkipUpdateDimensions := Skip;
     end;
 
+    /// <summary>
+    /// Gets flag indicating whether dimension updates should be skipped.
+    /// </summary>
+    /// <returns>True if dimension updates should be skipped, false otherwise</returns>
     procedure GetSkipUpdateDimensions(): Boolean
     begin
         exit(SkipUpdateDimensions);

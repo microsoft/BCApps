@@ -1,10 +1,10 @@
 namespace System.Security.AccessControl;
 
-using System.Environment;
-using System.Integration;
+using Microsoft.CRM.Outlook;
 using System.Azure.Identity;
 using System.Diagnostics;
-using Microsoft.CRM.Outlook;
+using System.Environment;
+using System.Integration;
 using System.Threading;
 
 permissionset 3285 "Outlook Sync - Admin"

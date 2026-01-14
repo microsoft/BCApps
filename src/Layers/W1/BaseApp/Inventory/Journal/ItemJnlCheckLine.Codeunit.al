@@ -179,7 +179,9 @@ codeunit 21 "Item Jnl.-Check Line"
         CheckDimensions(ItemJournalLine);
 
         if (ItemJournalLine."Entry Type" in
-            [ItemJournalLine."Entry Type"::Purchase, ItemJournalLine."Entry Type"::Sale, ItemJournalLine."Entry Type"::"Positive Adjmt.", ItemJournalLine."Entry Type"::"Negative Adjmt."]) and
+            [ItemJournalLine."Entry Type"::Purchase, ItemJournalLine."Entry Type"::Sale, ItemJournalLine."Entry Type"::"Positive Adjmt.", ItemJournalLine."Entry Type"::"Negative Adjmt.", ItemJournalLine."Entry Type"::Consumption, ItemJournalLine."Entry Type"::Output]) and
+           (not ItemJournalLine.IsSourceProductionJournal()) and
+           (not ItemJournalLine.IsSourceCapacityJournal()) and
            (not GenJnlPostPreview.IsActive())
         then
             ItemJournalLine.CheckItemJournalLineRestriction();

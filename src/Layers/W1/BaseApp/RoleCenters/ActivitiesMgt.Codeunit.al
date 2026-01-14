@@ -6,13 +6,13 @@ namespace Microsoft.RoleCenters;
 
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Period;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
-using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Sales.Receivables;
 using System.Environment;
 using System.Text;

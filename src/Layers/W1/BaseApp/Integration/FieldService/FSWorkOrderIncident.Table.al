@@ -14,13 +14,8 @@ table 6403 "FS Work Order Incident"
     Description = 'Specify work order incidents reported to you by the client. These are also referred to as problem codes.';
     DataClassification = SystemMetadata;
     ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-#if not CLEAN25
-    ObsoleteState = Pending;
-    ObsoleteTag = '25.0';
-#else
     ObsoleteState = Removed;
     ObsoleteTag = '28.0';
-#endif
 
     fields
     {

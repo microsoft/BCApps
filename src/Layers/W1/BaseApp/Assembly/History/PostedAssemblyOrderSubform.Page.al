@@ -9,7 +9,7 @@ using Microsoft.Finance.Dimension;
 
 page 921 "Posted Assembly Order Subform"
 {
-    Caption = 'Posted Assembly Order Subform';
+    Caption = 'Lines';
     Editable = false;
     PageType = ListPart;
     SourceTable = "Posted Assembly Line";
@@ -23,103 +23,84 @@ page 921 "Posted Assembly Order Subform"
                 field("Order Line No."; Rec."Order Line No.")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the number of the assembly order line that the posted assembly order line originates from.';
                     Visible = false;
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies if the posted assembly order line is of type Item or Resource.';
                 }
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the description of the assembly component on the posted assembly line.';
                 }
                 field("Description 2"; Rec."Description 2")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the second description of the assembly component on the posted assembly line.';
                     Visible = false;
                 }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the variant of the item on the line.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies from which location the assembly component was consumed on this posted assembly order line.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies how many units of the assembly component were posted as consumed by the posted assembly order line.';
                 }
                 field("Quantity per"; Rec."Quantity per")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies how many units of the assembly component are required to assemble one assembly item.';
                 }
                 field("Bin Code"; Rec."Bin Code")
                 {
                     ApplicationArea = Warehouse;
-                    ToolTip = 'Specifies from which bin the assembly component was consumed on the posted assembly order line.';
                     Visible = false;
                 }
                 field("Inventory Posting Group"; Rec."Inventory Posting Group")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies links between business transactions made for the item and an inventory account in the general ledger, to group amounts for that item type.';
                     Visible = false;
                 }
                 field("Unit Cost"; Rec."Unit Cost")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the cost of one unit of the item or resource on the line.';
                 }
                 field("Cost Amount"; Rec."Cost Amount")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the cost of the posted assembly order line.';
                 }
                 field("Qty. per Unit of Measure"; Rec."Qty. per Unit of Measure")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies the quantity per unit of measure of the component item on the posted assembly order line.';
                 }
                 field("Resource Usage Type"; Rec."Resource Usage Type")
                 {
                     ApplicationArea = Assembly;
-                    ToolTip = 'Specifies how the cost of the resource on the posted assembly order line is allocated to the assembly item.';
                 }
                 field("Gen. Bus. Posting Group"; Rec."Gen. Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the code for the General Business Posting Group that applies to the entry.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible1;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible2;
                 }
                 field("ShortcutDimCode[3]"; ShortcutDimCode[3])

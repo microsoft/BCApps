@@ -15,11 +15,24 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 
+/// <summary>
+/// Provides navigation functionality to related documents from intercompany transactions.
+/// Enables users to jump to source or resulting documents in sales and purchase modules.
+/// </summary>
+/// <remarks>
+/// Handles navigation between IC transactions and their corresponding sales orders, invoices, 
+/// credit memos, and purchase documents across incoming and outgoing transaction flows.
+/// </remarks>
 codeunit 437 "IC Navigation"
 {
     var
         UnableToNavigateToSpecifiedDocumentMsg: Label 'Unable to navigate to the related document.';
 
+    /// <summary>
+    /// Navigates to the related document from a handled IC inbox transaction.
+    /// Opens the corresponding sales or purchase document based on transaction details.
+    /// </summary>
+    /// <param name="HandledICInboxTrans">Handled IC inbox transaction record containing navigation details</param>
     procedure NavigateToDocument(HandledICInboxTrans: Record "Handled IC Inbox Trans.")
     begin
         if HandledICInboxTrans.IsEmpty() then
@@ -27,6 +40,11 @@ codeunit 437 "IC Navigation"
         NavigateToDocument(HandledICInboxTrans."Document No.", Enum::"IC Direction Type"::Incoming, HandledICInboxTrans."IC Partner Code", HandledICInboxTrans."Document Type", HandledICInboxTrans."IC Source Type");
     end;
 
+    /// <summary>
+    /// Navigates to the related document from an IC outbox transaction.
+    /// Opens the corresponding sales or purchase document that was sent to partner.
+    /// </summary>
+    /// <param name="ICOutboxTransaction">IC outbox transaction record containing navigation details</param>
     procedure NavigateToDocument(ICOutboxTransaction: Record "IC Outbox Transaction")
     begin
         if ICOutboxTransaction.IsEmpty() then
@@ -34,6 +52,11 @@ codeunit 437 "IC Navigation"
         NavigateToDocument(ICOutboxTransaction."Document No.", Enum::"IC Direction Type"::Outgoing, ICOutboxTransaction."IC Partner Code", ICOutboxTransaction."Document Type", ICOutboxTransaction."IC Source Type");
     end;
 
+    /// <summary>
+    /// Navigates to the related document from a handled IC outbox transaction.
+    /// Opens the corresponding sales or purchase document that was previously sent.
+    /// </summary>
+    /// <param name="HandledICOutboxTrans">Handled IC outbox transaction record containing navigation details</param>
     procedure NavigateToDocument(HandledICOutboxTrans: Record "Handled IC Outbox Trans.")
     begin
         if HandledICOutboxTrans.IsEmpty() then
@@ -270,11 +293,29 @@ codeunit 437 "IC Navigation"
             Error(UnableToNavigateToSpecifiedDocumentMsg);
     end;
 
+    /// <summary>
+    /// Integration event raised when navigating to purchase documents for custom document types.
+    /// Enables custom navigation logic for extended IC transaction document types.
+    /// </summary>
+    /// <param name="DocumentNo">Document number to navigate to</param>
+    /// <param name="ICDirectionType">Direction of the IC transaction (incoming/outgoing)</param>
+    /// <param name="ICPartnerCode">Code of the IC partner</param>
+    /// <param name="DocumentType">IC transaction document type</param>
+    /// <param name="OpenDoc">Set to true if navigation was handled successfully</param>
     [IntegrationEvent(false, false)]
     local procedure OnNavigateToPurchaseDocumentOnDocumentTypeCaseElse(DocumentNo: Code[20]; ICDirectionType: Enum "IC Direction Type"; ICPartnerCode: Code[20]; DocumentType: Enum "IC Transaction Document Type"; var OpenDoc: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when navigating to sales documents after document type validation.
+    /// Enables custom navigation logic for extended IC transaction document types.
+    /// </summary>
+    /// <param name="DocumentNo">Document number to navigate to</param>
+    /// <param name="ICDirectionType">Direction of the IC transaction (incoming/outgoing)</param>
+    /// <param name="ICPartnerCode">Code of the IC partner</param>
+    /// <param name="ICTransactionDocumentType">IC transaction document type</param>
+    /// <param name="ShouldNavigateToDoc">Set to true if navigation should proceed</param>
     [IntegrationEvent(false, false)]
     local procedure OnNavigateToSalesDocumentOnAfterCheckDocumentType(DocumentNo: Code[20]; ICDirectionType: Enum "IC Direction Type"; ICPartnerCode: Code[20]; ICTransactionDocumentType: Enum "IC Transaction Document Type"; var ShouldNavigateToDoc: Boolean)
     begin

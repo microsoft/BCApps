@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Consolidation;
 
+/// <summary>
+/// Displays list of consolidation processes in progress with status monitoring and management capabilities.
+/// Provides real-time view of running consolidation operations with process details and error information.
+/// </summary>
+/// <remarks>
+/// Process monitoring page for tracking consolidation execution status across multiple business units.
+/// Shows consolidation process details, execution status, error messages, and completion information.
+/// Enables consolidation process management with delete capabilities for completed or failed processes.
+/// </remarks>
 page 245 "Consolidations in Progress"
 {
     ApplicationArea = All;

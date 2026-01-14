@@ -751,24 +751,6 @@ codeunit 6459 "Serv. Document Attachment Mgt."
         DocumentAttachmentFlow_ForServiceContractHeaderInsert(Rec, true);
     end;
 
-#if not CLEAN25
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::ServContractManagement, 'OnChangeCustNoOnServContractOnAfterGetCust', '', false, false)]
-    local procedure DocumentAttachmentFlow_ForServiceContractHeaderCustomerChange_OnChangeCustNoOnServContractOnAfterGetCust(Customer: Record Customer; var ServiceContractHeader: Record "Service Contract Header"; var CustCheckCrLimit: Codeunit "Cust-Check Cr. Limit"; var IsHandled: Boolean)
-    begin
-        if (ServiceContractHeader."Contract No." = '') or IsNullGuid(ServiceContractHeader.SystemId) then
-            exit;
-
-        if ServiceContractHeader.IsTemporary() then
-            exit;
-
-        DocumentAttachmentMgmt.DeleteAttachedDocuments(ServiceContractHeader, true);
-
-        if ServiceContractHeader."Customer No." = '' then
-            exit;
-
-        DocumentAttachmentFlow_ForServiceContractHeaderInsert(ServiceContractHeader, true);
-    end;
-#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::ServContractManagement, 'OnChangeCustNoOnServContractOnAfterGetCustomer', '', false, false)]
     local procedure DocumentAttachmentFlow_ForServiceContractHeaderCustomerChange_OnChangeCustNoOnServContractOnAfterGetCustomer(Customer: Record Customer; var ServiceContractHeader: Record "Service Contract Header"; var ServCheckCreditLimit: Codeunit "Serv. Check Credit Limit"; var IsHandled: Boolean)

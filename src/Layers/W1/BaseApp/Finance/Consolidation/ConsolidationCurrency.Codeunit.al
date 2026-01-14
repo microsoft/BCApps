@@ -6,6 +6,10 @@ namespace Microsoft.Finance.Consolidation;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 
+/// <summary>
+/// Manages currency configuration and exchange rate setup for consolidation processing.
+/// Provides business unit currency configuration and exchange rate management functionality.
+/// </summary>
 codeunit 130 "Consolidation Currency"
 {
     /// <summary>

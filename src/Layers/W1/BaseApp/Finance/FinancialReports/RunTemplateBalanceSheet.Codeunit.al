@@ -9,12 +9,21 @@ using System.Environment;
 using System.Integration;
 using System.Telemetry;
 
+/// <summary>
+/// Deprecated codeunit for launching balance sheet Excel template generation.
+/// Provides backward compatibility for Excel-based balance sheet reporting functionality.
+/// </summary>
+/// <remarks>
+/// Obsolete functionality that will be removed in future release.
+/// Generates Excel workbook template for balance sheet data analysis and presentation.
+/// Includes telemetry logging for usage tracking and mobile client handling.
+/// </remarks>
 codeunit 576 "Run Template Balance Sheet"
 {
     ObsoleteReason = 'This report is deprecated and will be removed in a future release.';
     ObsoleteState = Pending;
     ObsoleteTag = '26.0';
-    
+
     trigger OnRun()
     var
         ODataUtility: Codeunit ODataUtility;

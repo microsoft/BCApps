@@ -25,7 +25,7 @@ page 9140 "Postcode Select Address"
             {
                 field(Value; Rec.Value)
                 {
-                    ApplicationArea = Invoicing, Basic, Suite;
+                    ApplicationArea = Basic, Suite;
                     Editable = false;
                     ToolTip = 'Specifies the postal code.';
                 }
@@ -56,4 +56,3 @@ page 9140 "Postcode Select Address"
         TempSelectedAddressNameValueBuffer := Rec;
     end;
 }
-

@@ -7,6 +7,10 @@ namespace Microsoft.Finance.VAT.Reporting;
 using Microsoft.Foundation.Address;
 using System.Text;
 
+/// <summary>
+/// Interactive preview interface for VAT statement calculations with parameter adjustment capabilities.
+/// Provides real-time calculation preview with configurable periods, selection criteria, and currency options.
+/// </summary>
 #pragma warning disable AS0106 // Protected variable VATDateType was removed before AS0106 was introduced.
 page 474 "VAT Statement Preview"
 #pragma warning restore AS0106
@@ -168,12 +172,23 @@ page 474 "VAT Statement Preview"
         DateFilter: Text[30];
         CountryRegionFilter: Text;
 
+    /// <summary>
+    /// Refreshes the VAT statement line subform with current parameter settings.
+    /// Updates preview calculations based on current selection criteria and period settings.
+    /// </summary>
     procedure UpdateSubForm()
     begin
         OnBeforeUpdateSubForm(Rec);
         CurrPage.VATStatementLineSubForm.PAGE.UpdateForm(Rec, Selection, PeriodSelection, UseAmtsInAddCurr, CountryRegionFilter);
     end;
 
+    /// <summary>
+    /// Retrieves current VAT statement preview parameters for external use.
+    /// Returns the current selection criteria, period settings, and currency preferences.
+    /// </summary>
+    /// <param name="NewSelection">Returns current selection type setting</param>
+    /// <param name="NewPeriodSelection">Returns current period selection setting</param>
+    /// <param name="NewUseAmtsInAddCurr">Returns current additional currency preference</param>
     procedure GetParameters(var NewSelection: Enum "VAT Statement Report Selection"; var NewPeriodSelection: Enum "VAT Statement Report Period Selection"; var NewUseAmtsInAddCurr: Boolean)
     begin
         NewSelection := Selection;
@@ -181,6 +196,13 @@ page 474 "VAT Statement Preview"
         NewUseAmtsInAddCurr := UseAmtsInAddCurr;
     end;
 
+    /// <summary>
+    /// Configures VAT statement preview parameters with new calculation criteria.
+    /// Sets selection type, period selection, and date filter for preview calculations.
+    /// </summary>
+    /// <param name="NewSelection">Selection type for VAT calculation criteria</param>
+    /// <param name="NewPeriodSelection">Period selection for calculation scope</param>
+    /// <param name="NewDateFilter">Date filter string for period specification</param>
     procedure SetParameters(NewSelection: Enum "VAT Statement Report Selection"; NewPeriodSelection: Enum "VAT Statement Report Period Selection"; NewDateFilter: Text[30])
     begin
         PassedSelection := NewSelection;
@@ -245,6 +267,11 @@ page 474 "VAT Statement Preview"
         BeforeandWithinPeriodSelOnPush();
     end;
 
+    /// <summary>
+    /// Integration event raised before updating the VAT statement preview subform.
+    /// Enables custom preprocessing of VAT statement name configuration before subform refresh.
+    /// </summary>
+    /// <param name="VATStatementName">VAT statement name record being used for preview update</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeUpdateSubForm(var VATStatementName: Record "VAT Statement Name")
     begin

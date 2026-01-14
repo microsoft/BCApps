@@ -23,12 +23,12 @@ using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Item.Substitution;
+using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Pricing.Calculation;
-using Microsoft.Inventory.Journal;
 using Microsoft.Pricing.PriceList;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Project.Planning;
@@ -288,6 +288,7 @@ table 5902 "Service Line"
         }
         field(15; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
 
@@ -383,12 +384,14 @@ table 5902 "Service Line"
         }
         field(16; "Outstanding Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Outstanding Quantity';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(17; "Qty. to Invoice"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Invoice';
             DecimalPlaces = 0 : 5;
 
@@ -433,6 +436,7 @@ table 5902 "Service Line"
         }
         field(18; "Qty. to Ship"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Ship';
             DecimalPlaces = 0 : 5;
 
@@ -507,6 +511,7 @@ table 5902 "Service Line"
         }
         field(23; "Unit Cost (LCY)"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 2;
             Caption = 'Unit Cost (LCY)';
 
@@ -549,12 +554,14 @@ table 5902 "Service Line"
         }
         field(25; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(27; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Line Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -717,21 +724,25 @@ table 5902 "Service Line"
         }
         field(34; "Gross Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Gross Weight';
             DecimalPlaces = 0 : 5;
         }
         field(35; "Net Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Net Weight';
             DecimalPlaces = 0 : 5;
         }
         field(36; "Units per Parcel"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Units per Parcel';
             DecimalPlaces = 0 : 5;
         }
         field(37; "Unit Volume"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Unit Volume';
             DecimalPlaces = 0 : 5;
         }
@@ -911,6 +922,7 @@ table 5902 "Service Line"
         }
         field(58; "Qty. Shipped Not Invoiced"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Shipped Not Invoiced';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -942,12 +954,14 @@ table 5902 "Service Line"
         }
         field(60; "Quantity Shipped"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity Shipped';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(61; "Quantity Invoiced"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity Invoiced';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -1178,18 +1192,21 @@ table 5902 "Service Line"
         }
         field(92; "Outstanding Amount (LCY)"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Outstanding Amount (LCY)';
             Editable = false;
         }
         field(93; "Shipped Not Invoiced (LCY)"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Shipped Not Invoiced (LCY)';
             Editable = false;
         }
         field(95; "Reserved Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = - sum("Reservation Entry".Quantity where("Source ID" = field("Document No."),
                                                                    "Source Ref. No." = field("Line No."),
                                                                    "Source Type" = const(5902),
@@ -1392,6 +1409,7 @@ table 5902 "Service Line"
         field(1030; "Job Remaining Qty."; Decimal)
         {
             AccessByPermission = TableData Job = R;
+            AutoFormatType = 0;
             Caption = 'Project Remaining Qty.';
             DecimalPlaces = 0 : 5;
 
@@ -1417,6 +1435,7 @@ table 5902 "Service Line"
         }
         field(1031; "Job Remaining Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Project Remaining Qty. (Base)';
         }
         field(1032; "Job Remaining Total Cost"; Decimal)
@@ -1430,6 +1449,7 @@ table 5902 "Service Line"
         field(1033; "Job Remaining Total Cost (LCY)"; Decimal)
         {
             AccessByPermission = TableData Job = R;
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Project Remaining Total Cost (LCY)';
             Editable = false;
@@ -1569,6 +1589,7 @@ table 5902 "Service Line"
         }
         field(5404; "Qty. per Unit of Measure"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. per Unit of Measure';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -1661,24 +1682,27 @@ table 5902 "Service Line"
         }
         field(5408; "Qty. Rounding Precision"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision';
-            InitValue = 0;
             DecimalPlaces = 0 : 5;
-            MinValue = 0;
-            MaxValue = 1;
             Editable = false;
+            InitValue = 0;
+            MaxValue = 1;
+            MinValue = 0;
         }
         field(5409; "Qty. Rounding Precision (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Rounding Precision (Base)';
-            InitValue = 0;
             DecimalPlaces = 0 : 5;
-            MinValue = 0;
-            MaxValue = 1;
             Editable = false;
+            InitValue = 0;
+            MaxValue = 1;
+            MinValue = 0;
         }
         field(5415; "Quantity (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -1700,12 +1724,14 @@ table 5902 "Service Line"
         }
         field(5416; "Outstanding Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Outstanding Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(5417; "Qty. to Invoice (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Invoice (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -1727,6 +1753,7 @@ table 5902 "Service Line"
         }
         field(5418; "Qty. to Ship (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Ship (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -1748,24 +1775,28 @@ table 5902 "Service Line"
         }
         field(5458; "Qty. Shipped Not Invd. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Shipped Not Invd. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(5460; "Qty. Shipped (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Shipped (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(5461; "Qty. Invoiced (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Invoiced (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(5495; "Reserved Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = - sum("Reservation Entry"."Quantity (Base)" where("Source ID" = field("Document No."),
                                                                             "Source Ref. No." = field("Line No."),
                                                                             "Source Type" = const(5902),
@@ -2162,6 +2193,7 @@ table 5902 "Service Line"
         }
         field(5917; "Qty. to Consume"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Qty. to Consume';
             DecimalPlaces = 0 : 5;
@@ -2216,12 +2248,14 @@ table 5902 "Service Line"
         }
         field(5918; "Quantity Consumed"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity Consumed';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(5919; "Qty. to Consume (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Qty. to Consume (Base)';
             DecimalPlaces = 0 : 5;
@@ -2246,6 +2280,7 @@ table 5902 "Service Line"
         }
         field(5920; "Qty. Consumed (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Consumed (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -2481,6 +2516,7 @@ table 5902 "Service Line"
         }
         field(5938; "Contract Disc. %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Contract Disc. %';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -2494,6 +2530,7 @@ table 5902 "Service Line"
         }
         field(5939; "Warranty Disc. %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Warranty Disc. %';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -2685,6 +2722,7 @@ table 5902 "Service Line"
         }
         field(7300; "Qty. Picked"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Picked';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -2697,6 +2735,7 @@ table 5902 "Service Line"
         }
         field(7301; "Qty. Picked (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Picked (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -2708,6 +2747,7 @@ table 5902 "Service Line"
         }
         field(7303; "Pick Qty. (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Pick Qty. (Base)';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -6378,9 +6418,6 @@ table 5902 "Service Line"
     begin
         IsHandled := false;
         OnBeforeCopyToItemJnlLine(ItemJournalLine, Rec, IsHandled);
-#if not CLEAN25
-        ItemJournalLine.RunOnBeforeCopyItemJnlLineFromServLine(ItemJournalLine, Rec, IsHandled);
-#endif
         if not IsHandled then begin
             ItemJournalLine."Item No." := Rec."No.";
             ItemJournalLine."Posting Date" := Rec."Posting Date";
@@ -6419,9 +6456,6 @@ table 5902 "Service Line"
         end;
 
         OnAfterCopyToItemJnlLine(ItemJournalLine, Rec);
-#if not CLEAN25
-        ItemJournalLine.RunOnAfterCopyItemJnlLineFromServLine(ItemJournalLine, Rec);
-#endif
     end;
 
     procedure CopyToResJournalLine(var ResJournalLine: Record "Res. Journal Line")

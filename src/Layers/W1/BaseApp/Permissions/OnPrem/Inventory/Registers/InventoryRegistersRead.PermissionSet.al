@@ -1,7 +1,7 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Counting.Journal;
+using Microsoft.Inventory.Ledger;
 
 permissionset 9257 "Inventory Registers - Read"
 {

@@ -5,6 +5,8 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using System.Telemetry;
+
 /// <summary>
 /// Report Shpfy Sync Customers (ID 30100).
 /// </summary>
@@ -27,4 +29,11 @@ report 30100 "Shpfy Sync Customers"
             end;
         }
     }
+
+    trigger OnPreReport()
+    var
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+    begin
+        FeatureTelemetry.LogUsage('0000QWA', 'Shopify', 'Shopify sync customers executed.');
+    end;
 }

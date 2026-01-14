@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.FinancialReports;
 
+/// <summary>
+/// Sub-page component for displaying chart setup lines in account schedule chart configuration.
+/// Provides embedded interface for managing chart line data within larger chart setup pages.
+/// </summary>
+/// <remarks>
+/// List part page designed for embedding in chart setup forms. Shows chart setup lines
+/// with read-only data entry focused on chart line management within parent chart configuration.
+/// Integrates with chart visualization system for line-by-line chart configuration.
+/// </remarks>
 page 766 "Acc. Sched. Chart SubPage"
 {
     Caption = 'Acc. Sched. Chart SubPage';
@@ -139,6 +148,11 @@ page 766 "Acc. Sched. Chart SubPage"
         AccountSchedulesChartSetup: Record "Account Schedules Chart Setup";
         IsMeasure: Boolean;
 
+    /// <summary>
+    /// Sets the view mode for chart lines to display as measures or dimensions.
+    /// Controls filtering and presentation of chart setup lines in the subpage.
+    /// </summary>
+    /// <param name="Value">True to view as measures, false to view as dimensions</param>
     procedure SetViewAsMeasure(Value: Boolean)
     begin
         IsMeasure := Value;
@@ -154,6 +168,11 @@ page 766 "Acc. Sched. Chart SubPage"
         AccSchedChartSetupLine.SetFilter("Chart Type", '<>%1', AccSchedChartSetupLine."Chart Type"::" ");
     end;
 
+    /// <summary>
+    /// Sets the account schedules chart setup record for the subpage.
+    /// Initializes the chart configuration context for line filtering and display.
+    /// </summary>
+    /// <param name="NewAccountSchedulesChartSetup">Chart setup record to use for configuration</param>
     procedure SetSetupRec(var NewAccountSchedulesChartSetup: Record "Account Schedules Chart Setup")
     begin
         AccountSchedulesChartSetup := NewAccountSchedulesChartSetup;

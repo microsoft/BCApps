@@ -7,6 +7,10 @@ namespace Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Foundation.Reporting;
 
+/// <summary>
+/// Worksheet interface for defining and managing VAT statement templates with line-by-line calculation setup.
+/// Enables configuration of VAT reporting calculations, formulas, and box mappings for tax authority submissions.
+/// </summary>
 page 317 "VAT Statement"
 {
     ApplicationArea = Basic, Suite;
@@ -247,6 +251,12 @@ page 317 "VAT Statement"
         CurrPage.Update(false);
     end;
 
+    /// <summary>
+    /// Integration event raised before opening the VAT statement page.
+    /// Enables custom preprocessing and filtering of VAT statement line records.
+    /// </summary>
+    /// <param name="VATStatementLine">VAT statement line record for preprocessing</param>
+    /// <param name="IsHandled">Set to true to skip standard page opening logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnOpenPage(var VATStatementLine: Record "VAT Statement Line"; var IsHandled: Boolean)
     begin

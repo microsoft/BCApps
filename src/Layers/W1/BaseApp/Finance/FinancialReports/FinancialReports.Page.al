@@ -6,6 +6,14 @@ namespace Microsoft.Finance.FinancialReports;
 
 using Microsoft.Finance.Analysis;
 
+/// <summary>
+/// Financial reports list page providing management interface for configuring and running financial reports.
+/// Combines account schedule row definitions with column layouts to create comprehensive financial statements.
+/// </summary>
+/// <remarks>
+/// Supports drill-down to account schedule overview, analysis view integration for enhanced reporting,
+/// and template-based financial statement generation including balance sheets and income statements.
+/// </remarks>
 page 108 "Financial Reports"
 {
     AboutText = 'With the Financial Reports feature, you can get insights into the financial data shown on your chart of accounts (COA). Using row and column definitions, you can set up financial reports to analyse figures in general ledger (G/L) accounts, and compare general ledger entries with budget entries.';
@@ -95,35 +103,35 @@ page 108 "Financial Reports"
                         ColumnLayoutName.Modify();
                     end;
                 }
-                field(SheetDefinition; Rec.SheetDefinition)
+                field(DimPerspective; Rec.DimPerspective)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the sheet definition to be used for the financial report.';
+                    ToolTip = 'Specifies the dimension perspective to be used for the financial report.';
 
                     trigger OnValidate()
                     begin
-                        GetSheetAnalysisView();
+                        GetPerspectiveAnalysisView();
                     end;
                 }
-                field(SheetAnalysisView; SheetAnalysisView)
+                field(PerspectiveAnalysisView; PerspectiveAnalysisView)
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Sheet Analysis View Name';
+                    Caption = 'Perspective Analysis View Name';
                     TableRelation = "Analysis View";
-                    ToolTip = 'Specifies the name of the analysis view you want the sheet definitions to be based on. Using an analysis view is optional.';
+                    ToolTip = 'Specifies the name of the analysis view you want the dimension perspectives to be based on. Using an analysis view is optional.';
 
                     trigger OnValidate()
                     var
                         AnalysisView: Record "Analysis View";
-                        SheetDefName: Record "Sheet Definition Name";
+                        DimPerspectiveName: Record "Dimension Perspective Name";
                     begin
-                        SheetDefName.Get(Rec.SheetDefinition);
-                        if SheetAnalysisView <> '' then begin
-                            AnalysisView.Get(SheetAnalysisView);
-                            SheetDefName."Analysis View Name" := AnalysisView.Code;
+                        DimPerspectiveName.Get(Rec.DimPerspective);
+                        if PerspectiveAnalysisView <> '' then begin
+                            AnalysisView.Get(PerspectiveAnalysisView);
+                            DimPerspectiveName."Analysis View Name" := AnalysisView.Code;
                         end else
-                            Clear(SheetDefName."Analysis View Name");
-                        SheetDefName.Modify();
+                            Clear(DimPerspectiveName."Analysis View Name");
+                        DimPerspectiveName.Modify();
                     end;
                 }
                 field("Internal Description"; Rec."Internal Description")
@@ -201,20 +209,20 @@ page 108 "Financial Reports"
                     ColumnLayout.Run();
                 end;
             }
-            action(EditSheetDefinition)
+            action(EditDimPerspective)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Edit Sheet Definition';
+                Caption = 'Edit Dimension Perspective';
                 Image = Edit;
-                ToolTip = 'Edit the selected sheet definition.';
+                ToolTip = 'Edit the selected dimension perspective.';
 
                 trigger OnAction()
                 var
-                    SheetDefLine: Record "Sheet Definition Line";
+                    DimPerspectiveLine: Record "Dimension Perspective Line";
                 begin
-                    Rec.TestField(SheetDefinition);
-                    SheetDefLine.SetRange(Name, Rec.SheetDefinition);
-                    Page.Run(0, SheetDefLine);
+                    Rec.TestField(DimPerspective);
+                    DimPerspectiveLine.SetRange(Name, Rec.DimPerspective);
+                    Page.Run(0, DimPerspectiveLine);
                 end;
             }
             action(ShowAllRowDefinitions)
@@ -346,7 +354,7 @@ page 108 "Financial Reports"
                 actionref(Overview_Promoted; Overview) { }
                 actionref(EditRowGroup_Promoted; EditRowGroup) { }
                 actionref(EditColumnGroup_Promoted; EditColumnGroup) { }
-                actionref(EditSheetDefinition_Promoted; EditSheetDefinition) { }
+                actionref(EditDimPerspective_Promoted; EditDimPerspective) { }
                 actionref(ShowAllRowDefinitions_Promoted; ShowAllRowDefinitions) { }
                 actionref(ShowAllColumnDefinitions_Promoted; ShowAllColumnDefinitions) { }
                 actionref(Schedules_Promoted; Schedules) { }
@@ -370,7 +378,7 @@ page 108 "Financial Reports"
 
     trigger OnNewRecord(BelowxRec: Boolean)
     begin
-        Clear(SheetAnalysisView);
+        Clear(PerspectiveAnalysisView);
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -383,6 +391,10 @@ page 108 "Financial Reports"
         UpdateCalculatedFields();
     end;
 
+    /// <summary>
+    /// Updates calculated fields for analysis view names from row and column definitions.
+    /// Retrieves analysis view assignments from account schedule and column layout records.
+    /// </summary>
     local procedure UpdateCalculatedFields()
     var
         AccScheduleName: Record "Acc. Schedule Name";
@@ -398,21 +410,21 @@ page 108 "Financial Reports"
             if ColumnLayoutName.Get(Rec."Financial Report Column Group") then
                 AnalysisViewColumn := ColumnLayoutName."Analysis View Name";
 
-        GetSheetAnalysisView();
+        GetPerspectiveAnalysisView();
     end;
 
-    local procedure GetSheetAnalysisView()
+    local procedure GetPerspectiveAnalysisView()
     var
-        SheetDefName: Record "Sheet Definition Name";
+        DimPerspectiveName: Record "Dimension Perspective Name";
     begin
-        Clear(SheetAnalysisView);
-        if Rec.SheetDefinition <> '' then
-            if SheetDefName.Get(Rec.SheetDefinition) then
-                SheetAnalysisView := SheetDefName."Analysis View Name";
+        Clear(PerspectiveAnalysisView);
+        if Rec.DimPerspective <> '' then
+            if DimPerspectiveName.Get(Rec.DimPerspective) then
+                PerspectiveAnalysisView := DimPerspectiveName."Analysis View Name";
     end;
 
     var
         AnalysisViewRow: Text;
         AnalysisViewColumn: Text;
-        SheetAnalysisView: Text;
+        PerspectiveAnalysisView: Text;
 }

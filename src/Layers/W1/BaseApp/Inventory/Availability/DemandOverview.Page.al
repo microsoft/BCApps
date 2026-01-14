@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -77,12 +77,6 @@ page 5830 "Demand Overview"
                     var
                         IsHandled: Boolean;
                     begin
-#if not CLEAN25
-                        IsHandled := false;
-                        OnBeforeLookupDemandNo(Rec, TransformDemandTypeEnumToOption(DemandType), Result, IsHandled, Text);
-                        if IsHandled then
-                            exit(Result);
-#endif
                         IsHandled := false;
                         OnBeforeOnLookupDemandNo(Rec, DemandType, Result, IsHandled, Text);
                         if IsHandled then
@@ -569,51 +563,6 @@ page 5830 "Demand Overview"
         CurrPage.Update(false);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by SetParameters() with enum', '25.0')]
-    procedure Initialize(NewStartDate: Date; NewDemandType: Integer; NewDemandNo: Code[20]; NewItemNo: Code[20]; NewLocationFilter: Code[250])
-    begin
-        SetParameters(NewStartDate, TransformDemandTypeOptionToEnum(NewDemandType), NewDemandNo, NewItemNo, NewLocationFilter);
-    end;
-
-    [Obsolete('Temporary procedure used by Initialize()', '25.0')]
-    local procedure TransformDemandTypeOptionToEnum(DemandTypeOption: Option): Enum "Demand Order Source Type"
-    begin
-        case DemandTypeOption of
-            0: // " "
-                exit("Demand Order Source Type"::"All Demands");
-            1: // Sales
-                exit("Demand Order Source Type"::"Sales Demand");
-            2: // Production
-                exit("Demand Order Source Type"::"Production Demand");
-            3: // Jobs
-                exit("Demand Order Source Type"::"Job Demand");
-            4: // Services 
-                exit("Demand Order Source Type"::"Service Demand");
-            5: // Assembly
-                exit("Demand Order Source Type"::"Assembly Demand");
-        end;
-    end;
-
-    [Obsolete('Temporary procedure used by DemandNoCtrl - OnLookup for event publisher OnBeforeLookupDemandNo()', '25.0')]
-    local procedure TransformDemandTypeEnumToOption(DemandTypeEnum: Enum "Demand Order Source Type"): Integer
-    begin
-        case DemandTypeEnum of
-            DemandTypeEnum::"All Demands":
-                exit(0); // " "
-            DemandTypeEnum::"Sales Demand":
-                exit(1); // Sales
-            DemandTypeEnum::"Production Demand":
-                exit(2); // Production
-            DemandTypeEnum::"Job Demand":
-                exit(3); // Jobs
-            DemandTypeEnum::"Service Demand":
-                exit(4); // Services
-            DemandTypeEnum::"Assembly Demand":
-                exit(5); // Assembly
-        end;
-    end;
-#endif
 
     procedure SetParameters(NewStartDate: Date; NewDemandType: Enum "Demand Order Source Type"; NewDemandNo: Code[20]; NewItemNo: Code[20]; NewLocationFilter: Code[250])
     begin
@@ -644,13 +593,6 @@ page 5830 "Demand Overview"
         CalculationOfDemand := CalculateDemandParam;
     end;
 
-#if not CLEAN25 
-    [Obsolete('Replaced by OnBeforeOnLookupDemandNo() with enum', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeLookupDemandNo(var AvailabilityCalcOverview: Record "Availability Calc. Overview"; DemandType: Option; var Result: Boolean; var IsHandled: Boolean; var Text: Text)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnLookupDemandNo(var AvailabilityCalcOverview: Record "Availability Calc. Overview"; DemandType: Enum "Demand Order Source Type"; var Result: Boolean; var IsHandled: Boolean; var Text: Text)
@@ -667,4 +609,3 @@ page 5830 "Demand Overview"
     begin
     end;
 }
-

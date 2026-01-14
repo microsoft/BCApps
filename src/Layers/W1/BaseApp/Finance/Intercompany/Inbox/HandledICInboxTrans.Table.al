@@ -4,11 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.Inbox;
 
-using Microsoft.Intercompany.Comment;
 using Microsoft.Intercompany;
+using Microsoft.Intercompany.Comment;
 using Microsoft.Intercompany.Journal;
 using Microsoft.Intercompany.Partner;
 
+/// <summary>
+/// Archives processed intercompany inbox transactions for historical tracking and audit purposes.
+/// Stores completed transaction information including processing status and actions taken.
+/// </summary>
 table 420 "Handled IC Inbox Trans."
 {
     Caption = 'Handled IC Inbox Trans.';
@@ -16,11 +20,17 @@ table 420 "Handled IC Inbox Trans."
 
     fields
     {
+        /// <summary>
+        /// Unique identifier for the handled intercompany transaction.
+        /// </summary>
         field(1; "Transaction No."; Integer)
         {
             Caption = 'Transaction No.';
             Editable = false;
         }
+        /// <summary>
+        /// Code identifying the intercompany partner that sent this handled transaction.
+        /// </summary>
         field(2; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
@@ -28,6 +38,9 @@ table 420 "Handled IC Inbox Trans."
             TableRelation = "IC Partner";
         }
 #if not CLEANSCHEMA29
+        /// <summary>
+        /// Source type for the handled transaction indicating the originating document type.
+        /// </summary>
         field(3; "Source Type"; Enum "IC Transaction Source Type")
         {
             Caption = 'Source Type';
@@ -42,26 +55,41 @@ table 420 "Handled IC Inbox Trans."
 #endif
         }
 #endif
+        /// <summary>
+        /// IC source type for cross-reference with partner's transaction classification.
+        /// </summary>
         field(4; "IC Source Type"; Enum "IC Transaction Source Type")
         {
             Caption = 'IC Source Type';
             Editable = false;
         }
+        /// <summary>
+        /// Document type for the handled transaction processing.
+        /// </summary>
         field(5; "Document Type"; Enum "IC Transaction Document Type")
         {
             Caption = 'Document Type';
             Editable = false;
         }
+        /// <summary>
+        /// Document number for the handled intercompany transaction.
+        /// </summary>
         field(6; "Document No."; Code[20])
         {
             Caption = 'Document No.';
             Editable = false;
         }
+        /// <summary>
+        /// Posting date when the handled transaction was processed.
+        /// </summary>
         field(7; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
             Editable = false;
         }
+        /// <summary>
+        /// Transaction source indicating whether the handled transaction was returned by partner or created by partner.
+        /// </summary>
         field(8; "Transaction Source"; Option)
         {
             Caption = 'Transaction Source';
@@ -69,11 +97,17 @@ table 420 "Handled IC Inbox Trans."
             OptionCaption = 'Returned by Partner,Created by Partner';
             OptionMembers = "Returned by Partner","Created by Partner";
         }
+        /// <summary>
+        /// Document date for the handled intercompany transaction.
+        /// </summary>
         field(9; "Document Date"; Date)
         {
             Caption = 'Document Date';
             Editable = false;
         }
+        /// <summary>
+        /// Status of the handled transaction processing.
+        /// </summary>
         field(10; Status; Option)
         {
             Caption = 'Status';
@@ -82,6 +116,9 @@ table 420 "Handled IC Inbox Trans."
             OptionMembers = Accepted,Posted,,"Returned to IC Partner",Cancelled;
         }
 #if not CLEANSCHEMA25
+        /// <summary>
+        /// IC partner G/L account number for the handled transaction.
+        /// </summary>
         field(12; "IC Partner G/L Acc. No."; Code[20])
         {
             Caption = 'IC Partner G/L Acc. No.';
@@ -90,14 +127,23 @@ table 420 "Handled IC Inbox Trans."
             ObsoleteTag = '25.0';
         }
 #endif
+        /// <summary>
+        /// Source line number for the handled transaction reference.
+        /// </summary>
         field(13; "Source Line No."; Integer)
         {
             Caption = 'Source Line No.';
         }
+        /// <summary>
+        /// IC account type for the handled transaction classification.
+        /// </summary>
         field(14; "IC Account Type"; Enum "IC Journal Account Type")
         {
             Caption = 'IC Account Type';
         }
+        /// <summary>
+        /// IC account number for the handled transaction processing.
+        /// </summary>
         field(15; "IC Account No."; Code[20])
         {
             Caption = 'IC Account No.';
@@ -142,6 +188,9 @@ table 420 "Handled IC Inbox Trans."
         DeleteComments("Transaction No.", "IC Partner Code");
     end;
 
+    /// <summary>
+    /// Opens the detailed view for this handled transaction based on its source type (Journal, Sales Document, or Purchase Document).
+    /// </summary>
     procedure ShowDetails()
     var
         HandledICInboxJnlLine: Record "Handled IC Inbox Jnl. Line";
@@ -194,11 +243,19 @@ table 420 "Handled IC Inbox Trans."
         ICCommentLine.DeleteAll();
     end;
 
+    /// <summary>
+    /// Integration event raised after showing handled IC transaction details.
+    /// </summary>
+    /// <param name="HandledICInboxTrans">Handled IC inbox transaction record</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterShowDetails(var HandledICInboxTrans: Record "Handled IC Inbox Trans.")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised during deletion for source type-specific processing.
+    /// </summary>
+    /// <param name="HandledICInboxTrans">Handled IC inbox transaction record being deleted</param>
     [IntegrationEvent(false, false)]
     local procedure OnDeleteOnSourceTypeCase(var HandledICInboxTrans: Record "Handled IC Inbox Trans.")
     begin

@@ -4,21 +4,21 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Test;
 
-using System.TestLibraries.Utilities;
-using Microsoft.Service.Setup;
-using Microsoft.Service.Document;
-using Microsoft.Service.Contract;
-using Microsoft.Service.History;
-using Microsoft.Service.Comment;
-using Microsoft.Service.Item;
 using Microsoft.Inventory.Item;
-using Microsoft.Service.Email;
-using Microsoft.Service.Maintenance;
-using Microsoft.Sales.Customer;
-using Microsoft.Service.Pricing;
-using Microsoft.Projects.Resources.Resource;
-using Microsoft.Sales.Setup;
 using Microsoft.Inventory.Location;
+using Microsoft.Projects.Resources.Resource;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Setup;
+using Microsoft.Service.Comment;
+using Microsoft.Service.Contract;
+using Microsoft.Service.Document;
+using Microsoft.Service.Email;
+using Microsoft.Service.History;
+using Microsoft.Service.Item;
+using Microsoft.Service.Maintenance;
+using Microsoft.Service.Pricing;
+using Microsoft.Service.Setup;
+using System.TestLibraries.Utilities;
 
 codeunit 136112 "Working On Service Orders"
 {

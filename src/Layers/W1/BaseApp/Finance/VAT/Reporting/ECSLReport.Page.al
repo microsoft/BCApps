@@ -8,6 +8,10 @@ using Microsoft.Foundation.Company;
 using System.DateTime;
 using System.Utilities;
 
+/// <summary>
+/// Card interface for creating, managing, and submitting European Community Sales List reports.
+/// Provides comprehensive workflow from line generation through validation and submission to EU tax authorities.
+/// </summary>
 page 321 "ECSL Report"
 {
     Caption = 'EC Sales List Report';

@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Setup;
 
+/// <summary>
+/// List page for managing General Product Posting Groups used in posting setup combinations.
+/// Provides interface for creating and maintaining product posting group codes that represent different item categories or service types.
+/// </summary>
+/// <remarks>
+/// Product posting groups combine with business posting groups in General Posting Setup to determine G/L account assignments.
+/// Critical for automated posting of inventory transactions, sales, purchases, and cost of goods sold entries.
+/// Supports VAT integration through default VAT product posting group assignment and auto-insertion capabilities.
+/// </remarks>
 page 313 "Gen. Product Posting Groups"
 {
     ApplicationArea = Basic, Suite;

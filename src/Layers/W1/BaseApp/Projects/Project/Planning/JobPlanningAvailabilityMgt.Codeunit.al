@@ -4,12 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Projects.Project.Planning;
 
+using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
-using Microsoft.Projects.Project.Job;
 using Microsoft.Inventory.Tracking;
-using Microsoft.Foundation.Company;
+using Microsoft.Projects.Project.Job;
 using System.IO;
 
 codeunit 99000871 "Job Planning Availability Mgt."
@@ -609,9 +609,6 @@ codeunit 99000871 "Job Planning Availability Mgt."
         InventoryEventBuffer.Positive := not (InventoryEventBuffer."Remaining Quantity (Base)" < 0);
 
         OnAfterTransferFromJobNeed(InventoryEventBuffer, JobPlanningLine);
-#if not CLEAN25
-        InventoryEventBuffer.RunOnAfterTransferFromJobNeed(InventoryEventBuffer, JobPlanningLine);
-#endif
     end;
 
     [IntegrationEvent(false, false)]

@@ -15,6 +15,14 @@ using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 using System.Utilities;
 
+/// <summary>
+/// Provides comprehensive dimension validation services for sales and purchase documents.
+/// Validates dimension combinations, dimension value posting restrictions, and mandatory dimension requirements.
+/// </summary>
+/// <remarks>
+/// Integrates with DimensionManagement codeunit for validation logic. Supports error collection mode
+/// for batch validation scenarios. Provides extensibility through integration events for custom validation.
+/// </remarks>
 codeunit 481 "Check Dimensions"
 {
 
@@ -31,6 +39,16 @@ codeunit 481 "Check Dimensions"
         InvalidDimensionsErr: Label 'The dimensions used in %1 %2 are invalid', Comment = '%1 = Document Type, %2 = Document No, %3 = Error text';
         LineInvalidDimensionsErr: Label 'The dimensions used in %1 %2, line no. %3 are invalid', Comment = '%1 = Document Type, %2 = Document No, %3 = LineNo., %4 = Error text';
 
+    /// <summary>
+    /// Validates dimension combinations and posting restrictions for purchase documents including header and lines.
+    /// Performs comprehensive dimension validation using error collection mode for batch processing.
+    /// </summary>
+    /// <param name="PurchHeader">Purchase document header to validate dimensions for</param>
+    /// <param name="TempPurchLine">Temporary table containing purchase lines to validate</param>
+    /// <remarks>
+    /// Extensibility: OnBeforeCheckPurchDim event allows custom validation logic.
+    /// Validates both header-level and line-level dimension combinations and posting restrictions.
+    /// </remarks>
     procedure CheckPurchDim(PurchHeader: Record "Purchase Header"; var TempPurchLine: Record "Purchase Line" temporary)
     var
         TempPurchLineLocal: Record "Purchase Line" temporary;
@@ -145,6 +163,15 @@ codeunit 481 "Check Dimensions"
         ErrorMessageMgt.PopContext(ErrorContextElement);
     end;
 
+    /// <summary>
+    /// Validates dimension combinations and posting restrictions for purchase prepayment scenarios.
+    /// Performs header and prepayment line validation for purchase documents with prepayment percentages.
+    /// </summary>
+    /// <param name="PurchaseHeader">Purchase document header with prepayment setup to validate</param>
+    /// <remarks>
+    /// Specifically validates lines with prepayment percentages greater than zero.
+    /// Uses error collection mode for comprehensive validation reporting.
+    /// </remarks>
     procedure CheckPurchPrepmtDim(PurchaseHeader: Record "Purchase Header")
     begin
         DimMgt.SetCollectErrorsMode();
@@ -170,6 +197,16 @@ codeunit 481 "Check Dimensions"
             until PurchaseLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Validates dimension combinations and posting restrictions for sales documents including header and lines.
+    /// Performs comprehensive dimension validation using error collection mode for batch processing.
+    /// </summary>
+    /// <param name="SalesHeader">Sales document header to validate dimensions for</param>
+    /// <param name="TempSalesLine">Temporary table containing sales lines to validate</param>
+    /// <remarks>
+    /// Extensibility: OnBeforeCheckSalesDim event allows custom validation logic.
+    /// Validates both header-level and line-level dimension combinations and posting restrictions.
+    /// </remarks>
     procedure CheckSalesDim(SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary)
     var
         TempSalesLineLocal: Record "Sales Line" temporary;
@@ -281,6 +318,15 @@ codeunit 481 "Check Dimensions"
         ErrorMessageMgt.PopContext(ErrorContextElement);
     end;
 
+    /// <summary>
+    /// Validates dimension combinations and posting restrictions for sales prepayment scenarios.
+    /// Performs header and prepayment line validation for sales documents with prepayment percentages.
+    /// </summary>
+    /// <param name="SalesHeader">Sales document header with prepayment setup to validate</param>
+    /// <remarks>
+    /// Specifically validates lines with prepayment percentages greater than zero.
+    /// Uses error collection mode for comprehensive validation reporting.
+    /// </remarks>
     procedure CheckSalesPrepmtDim(SalesHeader: Record "Sales Header")
     begin
         DimMgt.SetCollectErrorsMode();
@@ -364,6 +410,16 @@ codeunit 481 "Check Dimensions"
         exit(true);
     end;
 
+    /// <summary>
+    /// Displays dimension-related pages based on the record type and context for dimension troubleshooting.
+    /// Opens appropriate dimension pages for sales/purchase documents and their lines to aid in dimension validation errors.
+    /// </summary>
+    /// <param name="RecID">Record ID of the sales or purchase document/line to show dimensions for</param>
+    /// <returns>True if appropriate dimension page was displayed, false if record type not supported</returns>
+    /// <remarks>
+    /// Extensibility: OnBeforeShowContextDimensions event allows custom dimension page display logic.
+    /// Supports Purchase Header, Purchase Line, Sales Header, and Sales Line record types.
+    /// </remarks>
     procedure ShowContextDimensions(RecID: RecordID) Result: Boolean
     var
         PurchaseHeader: Record "Purchase Header";
@@ -431,21 +487,47 @@ codeunit 481 "Check Dimensions"
                 end;
     end;
 
+    /// <summary>
+    /// Integration event raised before validating purchase document dimensions.
+    /// Enables custom validation logic or skipping standard dimension validation.
+    /// </summary>
+    /// <param name="PurchaseHeader">Purchase document header being validated</param>
+    /// <param name="TempPurchaseLine">Temporary purchase lines to validate</param>
+    /// <param name="IsHandled">Set to true to skip standard dimension validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckPurchDim(PurchaseHeader: Record "Purchase Header"; var TempPurchaseLine: Record "Purchase Line" temporary; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating sales document dimensions.
+    /// Enables custom validation logic or skipping standard dimension validation.
+    /// </summary>
+    /// <param name="SalesHeader">Sales document header being validated</param>
+    /// <param name="TempSalesLine">Temporary sales lines to validate</param>
+    /// <param name="IsHandled">Set to true to skip standard dimension validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckSalesDim(SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before displaying context-specific dimension pages.
+    /// Enables custom dimension page display logic based on record context.
+    /// </summary>
+    /// <param name="RecID">Record ID of the document or line for dimension display</param>
+    /// <param name="Result">Set to indicate whether dimension page was displayed</param>
+    /// <param name="IsHandled">Set to true to skip standard dimension page display</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowContextDimensions(RecID: RecordID; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating dimension value posting for purchase lines.
+    /// Enables custom processing or additional validation after standard dimension checks.
+    /// </summary>
+    /// <param name="TempPurchLine">Purchase line that was validated for dimension posting</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckPurchDimLinesOnAfterCheckPurchDimValuePostingLine(var TempPurchLine: Record "Purchase Line")
     begin
@@ -462,11 +544,25 @@ codeunit 481 "Check Dimensions"
         end;
     end;
 
+    /// <summary>
+    /// Integration event raised after determining whether sales dimensions should be checked.
+    /// Enables custom logic to override dimension validation requirements based on document context.
+    /// </summary>
+    /// <param name="SalesHeader">Sales document header being evaluated</param>
+    /// <param name="TempSalesLine">Sales line being evaluated for dimension validation</param>
+    /// <param name="ShouldCheckDimensions">Set to control whether dimension validation should proceed</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckSalesDimLinesOnAfterCalcShouldCheckDimensions(SalesHeader: Record "Sales Header"; TempSalesLine: Record "Sales Line" temporary; var ShouldCheckDimensions: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after creating table ID and number arrays for dimension value posting validation.
+    /// Enables custom table ID and number array population for extended dimension validation scenarios.
+    /// </summary>
+    /// <param name="RecordVariant">Record variant containing the source record for dimension validation</param>
+    /// <param name="TableIDArr">Array of table IDs used for dimension value posting validation</param>
+    /// <param name="NumberArr">Array of record numbers corresponding to the table IDs</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckDimValuePostingOnAfterCreateDimTableIDs(RecordVariant: Variant; var TableIDArr: array[10] of Integer; var NumberArr: array[10] of Code[20])
     begin

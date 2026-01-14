@@ -6,6 +6,15 @@ namespace Microsoft.Finance.FinancialReports;
 
 using System.Environment;
 
+/// <summary>
+/// Dimension display page for account schedule KPI web service data with drill-down capabilities.
+/// Provides read-only view of KPI dimensions and enables dimension-based data filtering and analysis.
+/// </summary>
+/// <remarks>
+/// Temporary table-based page for displaying KPI buffer data with dimension breakdown.
+/// Supports dimension drill-down operations and integration with account schedule reporting
+/// for detailed dimensional analysis of financial KPIs through web service interfaces.
+/// </remarks>
 page 198 "Acc. Sched. KPI WS Dimensions"
 {
     Caption = 'Account Schedule KPI WS Dimensions';

@@ -1,7 +1,7 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.Sales.Receivables;
 using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Sales.Receivables;
 
 permissionset 2816 "Recievables Reg. - Read"
 {

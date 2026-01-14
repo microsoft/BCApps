@@ -12,6 +12,16 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using System.IO;
 using System.Utilities;
 
+/// <summary>
+/// Imports G/L budget data from Excel files with comprehensive validation and flexible merge options.
+/// Supports bulk budget updates through Excel-based workflows with dimension validation and error handling.
+/// </summary>
+/// <remarks>
+/// Key capabilities: Excel file parsing, dimension validation, merge/replace options, and comprehensive error reporting.
+/// Integration: Complements Export Budget to Excel for complete offline editing workflows.
+/// Validation: Comprehensive checking of G/L accounts, dimensions, dates, and amount formats before import.
+/// Performance: Batch processing with progress tracking and optimized database operations for large imports.
+/// </remarks>
 report 81 "Import Budget from Excel"
 {
     Caption = 'Import Budget from Excel';
@@ -75,6 +85,7 @@ report 81 "Import Budget from Excel"
                 GLBudgetEntry."Dimension Set ID" := DimMgt.GetDimensionSetID(TempDimSetEntry);
                 OnBudgetBufOnAfterGetRecordOnBeforeGLBudgetEntryInsert(GLBudgetEntry);
                 GLBudgetEntry.Insert(true);
+                OnBudgetBufOnAfterGetRecordOnAfterGLBudgetEntryInsert(GLBudgetEntry, EntryNo);
                 EntryNo := EntryNo + 1;
             end;
 
@@ -519,23 +530,10 @@ report 81 "Import Budget from Excel"
                                         begin
                                             if TempLocalBudgetBuf."G/L Account No." <> '' then begin
                                                 BudgetBuf := TempLocalBudgetBuf;
-                                                if GLBudgetEntry.GetFilter("Global Dimension 1 Code") <> '' then
-                                                    Evaluate(BudgetBuf."Dimension Value Code 1", GLBudgetEntry.GetFilter("Global Dimension 1 Code"));
-                                                if GLBudgetEntry.GetFilter("Global Dimension 2 Code") <> '' then
-                                                    Evaluate(BudgetBuf."Dimension Value Code 2", GLBudgetEntry.GetFilter("Global Dimension 2 Code"));
-                                                if GLBudgetEntry.GetFilter("Budget Dimension 1 Code") <> '' then
-                                                    Evaluate(BudgetBuf."Dimension Value Code 3", GLBudgetEntry.GetFilter("Budget Dimension 1 Code"));
-                                                if GLBudgetEntry.GetFilter("Budget Dimension 2 Code") <> '' then
-                                                    Evaluate(BudgetBuf."Dimension Value Code 4", GLBudgetEntry.GetFilter("Budget Dimension 2 Code"));
-                                                if GLBudgetEntry.GetFilter("Budget Dimension 3 Code") <> '' then
-                                                    Evaluate(BudgetBuf."Dimension Value Code 5", GLBudgetEntry.GetFilter("Budget Dimension 3 Code"));
-                                                if GLBudgetEntry.GetFilter("Budget Dimension 4 Code") <> '' then
-                                                    Evaluate(BudgetBuf."Dimension Value Code 6", GLBudgetEntry.GetFilter("Budget Dimension 4 Code"));
-                                                if GLBudgetEntry.GetFilter("Business Unit Code") <> '' then
-                                                    Evaluate(BudgetBuf."Dimension Value Code 7", GLBudgetEntry.GetFilter("Business Unit Code"));
+                                                ApplyFilteredDimensionsToBudgetBuf(BudgetBuf, CountDim);
                                                 Evaluate(BudgetBuf.Date, TempExcelBuf."Cell Value as Text");
                                                 Evaluate(BudgetBuf.Amount, TempGlobalExcelBuf."Cell Value as Text");
-                                                
+
                                                 IsHandled := false;
                                                 OnAnalyzeDataOnBeforeInsertBudgetBuf(BudgetBuf, IsHandled);
                                                 if not IsHandled then
@@ -544,9 +542,9 @@ report 81 "Import Budget from Excel"
                                                     else begin
                                                         IsHandled := false;
                                                         OnAnalyzeDataOnBeforeCombinationMustBeUniqueError(BudgetBuf, IsHandled);
-                                                    if not IsHandled then
-                                                        Error(Text023 + Text024 + Format(BudgetBuf.RecordId()));
-                                                end;
+                                                        if not IsHandled then
+                                                            Error(Text023 + Text024 + Format(BudgetBuf.RecordId()));
+                                                    end;
                                             end;
                                             OnAnalyzeDataOnAfterCaseText014(BudgetBuf);
                                         end;
@@ -646,6 +644,12 @@ report 81 "Import Budget from Excel"
         OnAfterInsertGLBudgetDim(GLBudgetEntry, DimCode2, DimValCode2);
     end;
 
+    /// <summary>
+    /// Validates whether the specified G/L Account is a posting account that can receive budget entries.
+    /// Checks if account exists and has valid account type for budget data entry.
+    /// </summary>
+    /// <param name="AccNo">G/L Account number to validate</param>
+    /// <returns>True if account exists and is a posting or begin-total account type</returns>
     procedure IsPostingAccount(AccNo: Code[20]): Boolean
     var
         GLAccount: Record "G/L Account";
@@ -655,12 +659,25 @@ report 81 "Import Budget from Excel"
         exit(GLAccount."Account Type" in [GLAccount."Account Type"::Posting, GLAccount."Account Type"::"Begin-Total"]);
     end;
 
+    /// <summary>
+    /// Sets the target budget name and import option for the budget import operation.
+    /// Configures key parameters for controlling import behavior and destination.
+    /// </summary>
+    /// <param name="NewToGLBudgetName">Target G/L Budget Name for imported data</param>
+    /// <param name="NewImportOption">Import option (Replace entries or Add entries)</param>
     procedure SetParameters(NewToGLBudgetName: Code[10]; NewImportOption: Option)
     begin
         ToGLBudgetName := NewToGLBudgetName;
         ImportOption := NewImportOption;
     end;
 
+    /// <summary>
+    /// Sets dimension-specific filters on G/L Budget Entry records based on dimension code and value.
+    /// Applies appropriate range filters for business unit, global dimensions, or budget dimensions.
+    /// </summary>
+    /// <param name="DimCode2">Dimension code to determine filter type</param>
+    /// <param name="DimValCode2">Dimension value code to filter by</param>
+    /// <param name="GLBudgetEntry2">G/L Budget Entry record to apply filters to</param>
     procedure SetBudgetDimFilter(DimCode2: Code[20]; DimValCode2: Code[20]; var GLBudgetEntry2: Record "G/L Budget Entry")
     begin
         case DimCode2 of
@@ -682,97 +699,326 @@ report 81 "Import Budget from Excel"
         OnAfterSetBudgetDimFilter(GLBudgetEntry2, DimValCode2, DimCode2);
     end;
 
+    /// <summary>
+    /// Sets the Excel file path for the budget import operation.
+    /// Configures the source file location for reading budget data during import processing.
+    /// </summary>
+    /// <param name="NewFileName">Full path to the Excel file containing budget data</param>
     procedure SetFileName(NewFileName: Text)
     begin
         ServerFileName := NewFileName;
     end;
 
+    local procedure ApplyFilteredDimensionsToBudgetBuf(var BudgetBuffer: Record "Budget Buffer"; var CurrentDimCount: Integer)
+    var
+    begin
+        // Process each possible filtered dimension
+        ProcessFilteredDimension(GlobalDim1Code, GLBudgetEntry.GetFilter("Global Dimension 1 Code"), BudgetBuffer, CurrentDimCount);
+        ProcessFilteredDimension(GlobalDim2Code, GLBudgetEntry.GetFilter("Global Dimension 2 Code"), BudgetBuffer, CurrentDimCount);
+        ProcessFilteredDimension(BudgetDim1Code, GLBudgetEntry.GetFilter("Budget Dimension 1 Code"), BudgetBuffer, CurrentDimCount);
+        ProcessFilteredDimension(BudgetDim2Code, GLBudgetEntry.GetFilter("Budget Dimension 2 Code"), BudgetBuffer, CurrentDimCount);
+        ProcessFilteredDimension(BudgetDim3Code, GLBudgetEntry.GetFilter("Budget Dimension 3 Code"), BudgetBuffer, CurrentDimCount);
+        ProcessFilteredDimension(BudgetDim4Code, GLBudgetEntry.GetFilter("Budget Dimension 4 Code"), BudgetBuffer, CurrentDimCount);
+        ProcessFilteredDimension(BusUnitDimCode, GLBudgetEntry.GetFilter("Business Unit Code"), BudgetBuffer, CurrentDimCount);
+    end;
+
+    local procedure ProcessFilteredDimension(DimCodeToCheck: Code[20]; FilterValue: Text; var BudgetBuffer: Record "Budget Buffer"; var CurrentDimCount: Integer)
+    var
+        i: Integer;
+        DimAlreadyInArray: Boolean;
+        NextSlot: Integer;
+        ExistingSlot: Integer;
+    begin
+        if FilterValue = '' then
+            exit;
+
+        if DimCodeToCheck = '' then
+            exit;
+        // Check if this dimension is already in the DimCode array
+        DimAlreadyInArray := false;
+        ExistingSlot := 0;
+        for i := 1 to CurrentDimCount do
+            if DimCode[i] = DimCodeToCheck then begin
+                DimAlreadyInArray := true;
+                ExistingSlot := i;
+                break;
+            end;
+        if DimAlreadyInArray then begin
+            // Only set the value if the BudgetBuffer slot is empty (not from Excel columns)
+            if GetBudgetBufferDimensionValue(BudgetBuffer, ExistingSlot) = '' then
+                SetBudgetBufferDimensionValue(BudgetBuffer, ExistingSlot, FilterValue);
+        end else
+            // If not in array, add it to the next available slot
+            if CurrentDimCount < 8 then begin
+                CurrentDimCount := CurrentDimCount + 1;
+                NextSlot := CurrentDimCount;
+                DimCode[NextSlot] := DimCodeToCheck;
+                SetBudgetBufferDimensionValue(BudgetBuffer, NextSlot, FilterValue);
+            end;
+
+    end;
+
+    local procedure GetBudgetBufferDimensionValue(var BudgetBuffer: Record "Budget Buffer"; SlotIndex: Integer): Code[20]
+    begin
+        case SlotIndex of
+            1:
+                exit(BudgetBuffer."Dimension Value Code 1");
+            2:
+                exit(BudgetBuffer."Dimension Value Code 2");
+            3:
+                exit(BudgetBuffer."Dimension Value Code 3");
+            4:
+                exit(BudgetBuffer."Dimension Value Code 4");
+            5:
+                exit(BudgetBuffer."Dimension Value Code 5");
+            6:
+                exit(BudgetBuffer."Dimension Value Code 6");
+            7:
+                exit(BudgetBuffer."Dimension Value Code 7");
+            8:
+                exit(BudgetBuffer."Dimension Value Code 8");
+        end;
+    end;
+
+    local procedure SetBudgetBufferDimensionValue(var BudgetBuffer: Record "Budget Buffer"; SlotIndex: Integer; FilterValue: Text)
+    begin
+        case SlotIndex of
+            1:
+                Evaluate(BudgetBuffer."Dimension Value Code 1", FilterValue);
+            2:
+                Evaluate(BudgetBuffer."Dimension Value Code 2", FilterValue);
+            3:
+                Evaluate(BudgetBuffer."Dimension Value Code 3", FilterValue);
+            4:
+                Evaluate(BudgetBuffer."Dimension Value Code 4", FilterValue);
+            5:
+                Evaluate(BudgetBuffer."Dimension Value Code 5", FilterValue);
+            6:
+                Evaluate(BudgetBuffer."Dimension Value Code 6", FilterValue);
+            7:
+                Evaluate(BudgetBuffer."Dimension Value Code 7", FilterValue);
+            8:
+                Evaluate(BudgetBuffer."Dimension Value Code 8", FilterValue);
+        end;
+    end;
+
+    /// <summary>
+    /// Integration event raised before setting G/L Budget Entry filters during Excel data analysis.
+    /// Enables custom filter logic during the budget import analysis phase.
+    /// </summary>
+    /// <param name="GLBudgetEntry">G/L Budget Entry record to set filters on</param>
+    /// <param name="ExcelBuf">Excel buffer record containing the data being analyzed</param>
+    /// <param name="DimCode3">Dimension code being processed</param>
+    /// <param name="IsHandled">Set to true to skip standard filter processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnAnalyzeDataOnBeforeGLBudgetEntrySetFilters(var GLBudgetEntry: Record "G/L Budget Entry"; var ExcelBuf: Record "Excel Buffer"; DimCode3: Code[20]; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting G/L Budget Entry filters during Excel data analysis.
+    /// Enables additional filter processing after standard dimension filters are applied.
+    /// </summary>
+    /// <param name="GLBudgetEntry">G/L Budget Entry record with applied filters</param>
+    /// <param name="ExcelBuf">Excel buffer record containing the data being analyzed</param>
+    /// <param name="DimCode3">Dimension code that was processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnAnalyzeDataOnAfterGLBudgetEntrySetFilters(var GLBudgetEntry: Record "G/L Budget Entry"; var ExcelBuf: Record "Excel Buffer"; DimCode3: Code[20]);
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting G/L Budget dimension values during import processing.
+    /// Enables additional dimension processing after standard dimension assignment.
+    /// </summary>
+    /// <param name="GLBudgetEntry">G/L Budget Entry record with dimension values assigned</param>
+    /// <param name="DimCode2">Dimension code that was processed</param>
+    /// <param name="DimValCode2">Dimension value code that was assigned</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertGLBudgetDim(var GLBudgetEntry: Record "G/L Budget Entry"; DimCode2: Code[20]; DimValCode2: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting budget dimension filters on G/L Budget Entry records.
+    /// Enables additional filter processing after standard dimension filter assignment.
+    /// </summary>
+    /// <param name="GLBudgetEntry">G/L Budget Entry record with dimension filters applied</param>
+    /// <param name="DimValCode2">Dimension value code used for filtering</param>
+    /// <param name="DimCode2">Dimension code used for filtering</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetBudgetDimFilter(var GLBudgetEntry: Record "G/L Budget Entry"; DimValCode2: Code[20]; DimCode2: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting G/L Budget dimensions during import processing.
+    /// Enables custom dimension insertion logic and validation before standard processing.
+    /// </summary>
+    /// <param name="GLBudgetEntry">G/L Budget Entry record being processed</param>
+    /// <param name="BudgetBuffer">Budget Buffer record containing dimension data</param>
+    /// <param name="IsHandled">Set to true to skip standard dimension insertion processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertGLBudgetDimensions(var GLBudgetEntry: Record "G/L Budget Entry"; var BudgetBuffer: Record "Budget Buffer"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting individual G/L Budget dimension values.
+    /// Enables custom dimension validation and processing logic for specific dimension codes.
+    /// </summary>
+    /// <param name="DimCode2">Dimension code being processed</param>
+    /// <param name="IsHandled">Set to true to skip standard dimension processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertGLBudgetDim(DimCode2: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before the OnPreReport trigger executes during import initialization.
+    /// Enables custom setup and validation logic before budget import processing begins.
+    /// </summary>
+    /// <param name="TempDimension">Temporary dimension record containing available dimensions</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnPreReport(var TempDimension: Record Dimension temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before throwing unique combination error during Excel data analysis.
+    /// Enables custom error handling and duplicate record processing logic.
+    /// </summary>
+    /// <param name="BudgetBuf">Budget Buffer record with duplicate combination</param>
+    /// <param name="IsHandled">Set to true to skip standard error processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnAnalyzeDataOnBeforeCombinationMustBeUniqueError(var BudgetBuf: Record "Budget Buffer"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before retrieving the last entry number for import processing.
+    /// Enables custom entry number generation and sequencing logic.
+    /// </summary>
+    /// <param name="GLBudgetEntry3">G/L Budget Entry record used for entry number lookup</param>
+    /// <param name="LastEntryNoBeforeImport">Last entry number before import begins</param>
+    /// <param name="EntryNo">Next entry number to use for new records</param>
+    /// <param name="IsHandled">Set to true to skip standard entry number processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetLastEntryNoBeforeImport(var GLBudgetEntry3: Record "G/L Budget Entry"; var LastEntryNoBeforeImport: Integer; var EntryNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking if G/L Budget Name is blocked during import validation.
+    /// Enables custom budget name validation and blocking logic.
+    /// </summary>
+    /// <param name="GLBudgetName">G/L Budget Name record being validated</param>
+    /// <param name="IsHandled">Set to true to skip standard blocked validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckGLBudgetNameBlacked(GLBudgetName: Record "G/L Budget Name"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting G/L Budget Entry records during import processing.
+    /// Enables custom budget entry modification and validation before database insertion.
+    /// </summary>
+    /// <param name="GLBudgetEntry">G/L Budget Entry record ready for insertion</param>
     [IntegrationEvent(false, false)]
     local procedure OnBudgetBufOnAfterGetRecordOnBeforeGLBudgetEntryInsert(var GLBudgetEntry: Record "G/L Budget Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before setting dimension filters during budget entry processing.
+    /// Enables custom dimension filter setup and validation logic during import operations.
+    /// </summary>
+    /// <param name="GLBudgetEntry">G/L Budget Entry record for dimension filter setup</param>
     [IntegrationEvent(false, false)]
     local procedure OnBudgetBufOnAfterGetRecordOnBeforeSetDimFilters(var GLBudgetEntry: Record "G/L Budget Entry")
     begin
     end;
 
 
+    /// <summary>
+    /// Integration event raised before checking header row number during Excel data analysis.
+    /// Enables custom header row detection and validation logic during import analysis.
+    /// </summary>
+    /// <param name="HeaderRowNo">Current header row number being processed</param>
+    /// <param name="TempGlobalExcelBuf">Global Excel buffer containing all Excel data</param>
+    /// <param name="TempExcelBuf">Temporary Excel buffer for processing</param>
+    /// <param name="IsHandled">Set to true to skip standard header row processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnAnalyzeDataOnBeforeCheckHeaderRowNo(var HeaderRowNo: Integer; var TempGlobalExcelBuf: Record "Excel Buffer" temporary; var TempExcelBuf: Record "Excel Buffer" temporary; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after checking header row number during Excel data analysis.
+    /// Enables additional processing after standard header row detection and validation.
+    /// </summary>
+    /// <param name="HeaderRowNo">Processed header row number</param>
+    /// <param name="TempGlobalExcelBuf">Global Excel buffer containing all Excel data</param>
+    /// <param name="TempExcelBuf">Temporary Excel buffer for processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnAnalyzeDataOnAfterCheckHeaderRowNo(var HeaderRowNo: Integer; var TempGlobalExcelBuf: Record "Excel Buffer" temporary; var TempExcelBuf: Record "Excel Buffer" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking secondary header row processing during Excel analysis.
+    /// Enables custom dimension and header processing logic before standard dimension detection.
+    /// </summary>
+    /// <param name="HeaderRowNo">Current header row number</param>
+    /// <param name="TempGlobalExcelBuf">Global Excel buffer containing all Excel data</param>
+    /// <param name="DimCode">Array of dimension codes being processed</param>
+    /// <param name="DimRowNo">Dimension row number being processed</param>
+    /// <param name="CountDim">Current dimension count</param>
+    /// <param name="TempDim">Temporary dimension record for processing</param>
+    /// <param name="IsHandled">Set to true to skip standard processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnAnalyzeDataOnBeforeCheckHeaderRowNo2(var HeaderRowNo: Integer; var TempGlobalExcelBuf: Record "Excel Buffer" temporary; var DimCode: array[8] of Code[20]; var DimRowNo: Integer; var CountDim: Integer; var TempDim: Record Dimension temporary; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after checking secondary header row processing during Excel analysis.
+    /// Enables additional dimension processing after standard dimension detection and validation.
+    /// </summary>
+    /// <param name="HeaderRowNo">Processed header row number</param>
+    /// <param name="TempGlobalExcelBuf">Global Excel buffer containing all Excel data</param>
+    /// <param name="DimCode">Array of dimension codes processed</param>
+    /// <param name="DimRowNo">Dimension row number processed</param>
+    /// <param name="CountDim">Final dimension count</param>
+    /// <param name="TempDim">Temporary dimension record used for processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnAnalyzeDataOnAfterCheckHeaderRowNo2(var HeaderRowNo: Integer; var TempGlobalExcelBuf: Record "Excel Buffer" temporary; var DimCode: array[8] of Code[20]; var DimRowNo: Integer; var CountDim: Integer; var TempDim: Record Dimension temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before conditionally inserting Excel buffer records during data analysis.
+    /// Enables custom buffer insertion logic and validation before standard Excel data processing.
+    /// </summary>
+    /// <param name="TempGlobalExcelBuf">Global Excel buffer containing Excel data</param>
+    /// <param name="TempDim">Temporary dimension record for processing</param>
+    /// <param name="CountDim">Current dimension count</param>
+    /// <param name="DimCode">Array of dimension codes being processed</param>
+    /// <param name="IsHandled">Set to true to skip standard buffer insertion</param>
     [IntegrationEvent(false, false)]
     local procedure OnAnalyzeDataOnBeforeConditionalTempExcelBufInsert(var TempGlobalExcelBuf: Record "Excel Buffer" temporary; var TempDim: Record Dimension temporary; var CountDim: Integer; var DimCode: array[8] of Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after conditionally inserting Excel buffer records during data analysis.
+    /// Enables additional processing after Excel buffer insertion and dimension analysis completion.
+    /// </summary>
+    /// <param name="TempExcelBuf">Temporary Excel buffer record that was processed</param>
+    /// <param name="TempDim">Temporary dimension record used for processing</param>
+    /// <param name="CountDim">Final dimension count after processing</param>
+    /// <param name="DimCode">Array of dimension codes processed</param>
+    /// <param name="TestDateTime">DateTime value used for testing during processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnAnalyzeDataOnAfterConditionalTempExcelBufInsert(var TempExcelBuf: Record "Excel Buffer" temporary; var TempDim: Record Dimension temporary; var CountDim: Integer; var DimCode: array[8] of Code[20]; var TestDateTime: DateTime)
     begin
@@ -785,6 +1031,17 @@ report 81 "Import Budget from Excel"
 
     [IntegrationEvent(false, false)]
     local procedure OnAnalyzeDataOnAfterCaseText014(var BudgetBuf: Record "Budget Buffer")
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised after inserting G/L Budget Entry records during import processing.
+    /// Enables custom budget entry modification after insertion and allows modification of the EntryNo for creating additional entries.
+    /// </summary>
+    /// <param name="GLBudgetEntry">G/L Budget Entry record that was inserted</param>
+    /// <param name="EntryNo">Current entry number counter that will be incremented for the next entry</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBudgetBufOnAfterGetRecordOnAfterGLBudgetEntryInsert(var GLBudgetEntry: Record "G/L Budget Entry"; var EntryNo: Integer)
     begin
     end;
 }

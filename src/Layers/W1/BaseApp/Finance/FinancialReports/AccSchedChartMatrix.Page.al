@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.FinancialReports;
 
+/// <summary>
+/// Displays account schedule chart data in matrix format with configurable chart type columns.
+/// Provides read-only view for analyzing financial data across multiple chart visualization types.
+/// </summary>
+/// <remarks>
+/// Matrix-style interface for chart visualization configuration. Shows chart setup lines with
+/// multiple chart type columns enabling comparison across different visualization methods.
+/// Read-only interface focused on data analysis and chart type comparison.
+/// </remarks>
 page 764 "Acc. Sched. Chart Matrix"
 {
     Caption = 'Acc. Sched. Chart Matrix';
@@ -251,6 +260,11 @@ page 764 "Acc. Sched. Chart Matrix"
         Text001: Label 'Invalid Column Layout.';
 #pragma warning restore AA0074
 
+    /// <summary>
+    /// Sets filters on chart setup lines based on chart configuration and X-axis settings.
+    /// Applies appropriate filtering for period-based or account schedule-based chart displays.
+    /// </summary>
+    /// <param name="AccountSchedulesChartSetup">Chart setup record containing filter parameters</param>
     procedure SetFilters(AccountSchedulesChartSetup: Record "Account Schedules Chart Setup")
     begin
         Rec.Reset();

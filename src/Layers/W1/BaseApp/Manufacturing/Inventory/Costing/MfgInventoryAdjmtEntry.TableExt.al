@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Costing;
 
-using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Routing;
 
 tableextension 99000800 "Mfg. Inventory Adjmt. Entry" extends "Inventory Adjmt. Entry (Order)"
 {

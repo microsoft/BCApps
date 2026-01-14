@@ -10,8 +10,8 @@ using Microsoft.Inventory.Item;
 using Microsoft.Pricing.Calculation;
 using Microsoft.Sales.Customer;
 using System.Environment;
-using System.Text;
 using System.Globalization;
+using System.Text;
 
 page 7004 "Sales Line Discounts"
 {

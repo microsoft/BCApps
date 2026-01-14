@@ -66,8 +66,8 @@ using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Setup;
 using System.Automation;
-using System.Utilities;
 using System.Environment.Configuration;
+using System.Utilities;
 
 codeunit 90 "Purch.-Post"
 {
@@ -2952,7 +2952,10 @@ codeunit 90 "Purch.-Post"
                         ResetPostingNoSeriesFromSetup(PurchHeader."Posting No. Series", PurchSetup."Posted Credit Memo Nos.")
                     else
                         if (PurchHeader."Document Type" <> PurchHeader."Document Type"::"Credit Memo") then
-                            ResetPostingNoSeriesFromSetup(PurchHeader."Posting No. Series", PurchSetup."Posted Invoice Nos.");
+                            if PurchHeader."Self-Billing Invoice" then
+                                ResetPostingNoSeriesFromSetup(PurchHeader."Posting No. Series", PurchSetup."Posted Self-Billing Inv. Nos.")
+                            else
+                                ResetPostingNoSeriesFromSetup(PurchHeader."Posting No. Series", PurchSetup."Posted Invoice Nos.");
                     if PurchHeader."Document Type" = PurchHeader."Document Type"::"Credit Memo" then
                         if (PurchSetup."Posted Credit Memo Nos." <> '') and (PurchHeader."Posting No. Series" = '') then
                             CheckDefaultNoSeries(PurchSetup."Posted Credit Memo Nos.");
@@ -3055,7 +3058,7 @@ codeunit 90 "Purch.-Post"
         WarehouseRequest: Record "Warehouse Request";
         SkipDelete: Boolean;
     begin
-        OnBeforeDeleteAfterPosting(PurchHeader, PurchInvHeader, PurchCrMemoHeader, SkipDelete, SuppressCommit, TempPurchLine, TempPurchLineGlobal, GenJnlPostLine);
+        OnBeforeDeleteAfterPosting(PurchHeader, PurchInvHeader, PurchCrMemoHeader, PurchRcptHeader, SkipDelete, SuppressCommit, TempPurchLine, TempPurchLineGlobal, GenJnlPostLine);
         if SkipDelete then
             exit;
 
@@ -7426,6 +7429,7 @@ codeunit 90 "Purch.-Post"
         ReplaceDocumentDate: Boolean;
         ReplaceVATDate: Boolean;
         IsHandled: Boolean;
+        SkipTestPostingDate: Boolean;
     begin
         OnBeforeValidatePostingAndDocumentDate(PurchaseHeader, SuppressCommit);
 
@@ -7463,6 +7467,13 @@ codeunit 90 "Purch.-Post"
         if VATDateExists and (ReplaceVATDate) then begin
             PurchaseHeader."VAT Reporting Date" := VATDate;
             ModifyHeader := true;
+        end;
+
+        if not ReplacePostingDate then begin
+            SkipTestPostingDate := false;
+            OnValidatePostingAndDocumentDateOnBeforeTestPostingDate(PurchaseHeader, PostingDateExists, SkipTestPostingDate);
+            if not SkipTestPostingDate then
+                PurchaseHeader.TestPostingDate(PostingDateExists);
         end;
 
         OnValidatePostingAndDocumentDateOnBeforePurchaseHeaderModify(PurchaseHeader, ModifyHeader);
@@ -9295,7 +9306,7 @@ codeunit 90 "Purch.-Post"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeDeleteAfterPosting(var PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var SkipDelete: Boolean; CommitIsSupressed: Boolean; var TempPurchLine: Record "Purchase Line" temporary; var TempPurchLineGlobal: Record "Purchase Line" temporary; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
+    local procedure OnBeforeDeleteAfterPosting(var PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var PurchRcptHeader: Record "Purch. Rcpt. Header"; var SkipDelete: Boolean; CommitIsSupressed: Boolean; var TempPurchLine: Record "Purchase Line" temporary; var TempPurchLineGlobal: Record "Purchase Line" temporary; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 
@@ -11160,6 +11171,11 @@ codeunit 90 "Purch.-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyInvoicedQtyOnPurchRcptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidatePostingAndDocumentDateOnBeforeTestPostingDate(var PurchaseHeader: Record "Purchase Header"; ReplacePostingDate: Boolean; var SkipTestPostingDate: Boolean)
     begin
     end;
 

@@ -5,6 +5,8 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using System.Telemetry;
+
 /// <summary>
 /// Report Shpfy Sync Companies (ID 30114).
 /// </summary>
@@ -27,4 +29,11 @@ report 30114 "Shpfy Sync Companies"
             end;
         }
     }
+
+    trigger OnPreReport()
+    var
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+    begin
+        FeatureTelemetry.LogUsage('0000QW9', 'Shopify', 'Shopify sync companies executed.');
+    end;
 }

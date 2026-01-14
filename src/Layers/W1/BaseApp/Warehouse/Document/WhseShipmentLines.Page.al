@@ -221,8 +221,10 @@ page 7341 "Whse. Shipment Lines"
                     trigger OnAction()
                     var
                         WhseShptHeader: Record "Warehouse Shipment Header";
+                        WMSManagement: Codeunit "WMS Management";
                     begin
                         WhseShptHeader.Get(Rec."No.");
+                        WMSManagement.CheckUserIsWhseEmployeeForLocation(WhseShptHeader."Location Code", false);
                         PAGE.Run(PAGE::"Warehouse Shipment", WhseShptHeader);
                     end;
                 }

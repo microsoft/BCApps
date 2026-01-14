@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.BOM.Tree;
 
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
-using Microsoft.Foundation.UOM;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;

@@ -11,6 +11,15 @@ using System.IO;
 using System.Telemetry;
 using System.Utilities;
 
+/// <summary>
+/// Stores account schedule name configurations defining row definitions for financial reports.
+/// Master table linking account schedule lines to analysis views and default column layouts for structured financial reporting.
+/// </summary>
+/// <remarks>
+/// Key relationships: Account Schedule Lines, Column Layout Names, Analysis Views for multi-dimensional financial analysis.
+/// Supports export/import functionality for configuration package deployment and account schedule template management.
+/// Extensible via standard table extension patterns for custom financial report categorization and analysis view integration.
+/// </remarks>
 table 84 "Acc. Schedule Name"
 {
     Caption = 'Financial Report Row Definition';
@@ -20,18 +29,27 @@ table 84 "Acc. Schedule Name"
 
     fields
     {
+        /// <summary>
+        /// Unique identifier for the account schedule row definition used across financial reporting.
+        /// </summary>
         field(1; Name; Code[10])
         {
             Caption = 'Name';
             NotBlank = true;
             ToolTip = 'Specifies the unique name (code) of the financial report row definition. You can use up to 10 characters.';
         }
+        /// <summary>
+        /// Descriptive text explaining the purpose and content of the account schedule row definition.
+        /// </summary>
         field(2; Description; Text[80])
         {
             Caption = 'Description';
             ToolTip = 'Specifies a description of the financial report row definition. The description is not shown on the final report but is used to provide more context when using the definition.';
         }
 #if not CLEANSCHEMA25
+        /// <summary>
+        /// Default column layout name for report formatting (obsolete - replaced by Financial Report table configuration).
+        /// </summary>
         field(3; "Default Column Layout"; Code[10])
         {
             Caption = 'Default Column Layout';
@@ -41,6 +59,9 @@ table 84 "Acc. Schedule Name"
             ObsoleteState = Removed;
         }
 #endif
+        /// <summary>
+        /// Analysis view name providing multi-dimensional analysis capabilities for the account schedule.
+        /// </summary>
         field(4; "Analysis View Name"; Code[10])
         {
             Caption = 'Analysis View Name';
@@ -78,6 +99,9 @@ table 84 "Acc. Schedule Name"
                 end;
             end;
         }
+        /// <summary>
+        /// Extended internal description for detailed documentation of the account schedule row definition purpose and usage.
+        /// </summary>
         field(5; "Internal Description"; Text[250])
         {
             Caption = 'Internal Description';
@@ -124,6 +148,12 @@ table 84 "Acc. Schedule Name"
             end;
     end;
 
+    /// <summary>
+    /// Checks whether dimension totaling lines are empty for the specified dimension number.
+    /// Validates if any account schedule lines contain dimension totaling values for the given dimension.
+    /// </summary>
+    /// <param name="DimNumber">Dimension number (1-4) to check for empty totaling lines</param>
+    /// <returns>True if all dimension totaling lines are empty, false if any contain values</returns>
     procedure DimTotalingLinesAreEmpty(DimNumber: Integer): Boolean
     var
         RecRef: RecordRef;
@@ -138,6 +168,11 @@ table 84 "Acc. Schedule Name"
         exit(RecRef.IsEmpty());
     end;
 
+    /// <summary>
+    /// Clears dimension totaling values for all account schedule lines for the specified dimension number.
+    /// Removes dimension totaling filters when analysis view dimensions are changed to maintain data consistency.
+    /// </summary>
+    /// <param name="DimNumber">Dimension number (1-4) to clear totaling values for</param>
     procedure ClearDimTotalingLines(DimNumber: Integer)
     var
         FieldRef: FieldRef;
@@ -164,6 +199,10 @@ table 84 "Acc. Schedule Name"
         Evaluate(DimensionCode, Format(FieldRef.Value));
     end;
 
+    /// <summary>
+    /// Exports the account schedule definition to an XML configuration package for deployment and backup purposes.
+    /// Creates configuration package with account schedule name, lines, and related setup for import/export functionality.
+    /// </summary>
     procedure Export()
     var
         ConfigPackage: Record "Config. Package";
@@ -184,6 +223,13 @@ table 84 "Acc. Schedule Name"
         LogImportExportTelemetry(Name, 'exported');
     end;
 
+    /// <summary>
+    /// Adds account schedule row definition tables to configuration package for export processing.
+    /// Includes account schedule name, lines, and related analysis view configuration in the package.
+    /// </summary>
+    /// <param name="AccScheduleName">Account schedule name to include in the configuration package</param>
+    /// <param name="ConfigPackage">Configuration package record to add tables to</param>
+    /// <param name="PackageCode">Package code for configuration package management</param>
     procedure AddRowDefinitionToConfigPackage(AccScheduleName: Code[10]; var ConfigPackage: Record "Config. Package"; PackageCode: Code[20])
     var
         AccScheduleLine: Record "Acc. Schedule Line";
@@ -220,6 +266,10 @@ table 84 "Acc. Schedule Name"
         ConfigPackageFilter.Insert(true);
     end;
 
+    /// <summary>
+    /// Imports account schedule definition from XML configuration package file selected by user.
+    /// Processes XML import and applies configuration package to create account schedule with lines and settings.
+    /// </summary>
     procedure Import()
     var
         ConfigXMLExchange: Codeunit "Config. XML Exchange";
@@ -232,6 +282,11 @@ table 84 "Acc. Schedule Name"
         end;
     end;
 
+    /// <summary>
+    /// Applies imported configuration package to create account schedule definition with validation and naming.
+    /// Processes package data, validates account schedule name, and applies configuration to Business Central.
+    /// </summary>
+    /// <param name="PackageCode">Configuration package code to apply for account schedule creation</param>
     procedure ApplyPackage(PackageCode: Code[20])
     var
         ConfigPackage: Record "Config. Package";
@@ -282,6 +337,13 @@ table 84 "Acc. Schedule Name"
         exit(false)
     end;
 
+    /// <summary>
+    /// Renames account schedule references within configuration package data to avoid naming conflicts during import.
+    /// Updates account schedule name and related line references in package data before applying configuration.
+    /// </summary>
+    /// <param name="PackageCode">Configuration package code containing the account schedule data</param>
+    /// <param name="OldName">Original account schedule name to replace in package data</param>
+    /// <param name="NewName">New account schedule name to use in package data</param>
     procedure RenameAccountScheduleInPackage(PackageCode: Code[20]; OldName: Code[10]; NewName: Code[10])
     var
         AccScheduleName: Record "Acc. Schedule Name";

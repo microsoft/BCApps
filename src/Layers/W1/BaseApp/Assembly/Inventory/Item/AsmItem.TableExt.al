@@ -78,23 +78,5 @@ tableextension 905 "Asm. Item" extends Item
         }
     }
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure CheckAssemblyHeader() in codeunit CheckAssemblyDocument', '25.0')]
-    procedure CheckAsmHeader(CurrentFieldNo: Integer; CheckFieldNo: Integer; CheckFieldCaption: Text)
-    var
-        CheckAssemblyDocument: Codeunit "Check Assembly Document";
-    begin
-        CheckAssemblyDocument.CheckAssemblyHeaders(Rec, CurrentFieldNo, CheckFieldNo, CheckFieldCaption);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure CheckAssemblyLine() in codeunit CheckAssemblyDocument', '25.0')]
-    procedure CheckAsmLine(CurrentFieldNo: Integer; CheckFieldNo: Integer; CheckFieldCaption: Text)
-    var
-        CheckAssemblyDocument: Codeunit "Check Assembly Document";
-    begin
-        CheckAssemblyDocument.CheckAssemblyLines(Rec, CurrentFieldNo, CheckFieldNo, CheckFieldCaption);
-    end;
-#endif
 }

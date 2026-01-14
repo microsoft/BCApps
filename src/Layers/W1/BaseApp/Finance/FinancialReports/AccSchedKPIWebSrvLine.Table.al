@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.FinancialReports;
 
+/// <summary>
+/// Stores account schedule configurations for KPI web service exposure and external system integration.
+/// Links account schedules to web service endpoints for external financial data access.
+/// </summary>
+/// <remarks>
+/// Primary usage: Web service configuration, external system KPI data integration.
+/// Integration: Links with Account Schedule system and web service publishing functionality.
+/// Extensibility: Standard table extension patterns for additional web service properties.
+/// </remarks>
 table 136 "Acc. Sched. KPI Web Srv. Line"
 {
     Caption = 'Acc. Sched. KPI Web Srv. Line';
@@ -11,12 +20,18 @@ table 136 "Acc. Sched. KPI Web Srv. Line"
 
     fields
     {
+        /// <summary>
+        /// Account schedule name identifying the row definition for web service exposure.
+        /// </summary>
         field(1; "Acc. Schedule Name"; Code[10])
         {
             Caption = 'Row Definition Name';
             NotBlank = true;
             TableRelation = "Acc. Schedule Name";
         }
+        /// <summary>
+        /// Description of the associated account schedule retrieved from the account schedule name record.
+        /// </summary>
         field(2; "Acc. Schedule Description"; Text[80])
         {
             CalcFormula = lookup("Acc. Schedule Name".Description where(Name = field("Acc. Schedule Name")));

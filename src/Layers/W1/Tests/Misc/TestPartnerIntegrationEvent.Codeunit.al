@@ -1,4 +1,4 @@
-﻿codeunit 134299 "Test Partner Integration Event"
+codeunit 134299 "Test Partner Integration Event"
 {
     EventSubscriberInstance = Manual;
     Subtype = Test;
@@ -72,9 +72,6 @@
         OnBeforePostItemJnlLineTxt: Label 'OnBeforePostItemJnlLine';
         OnAfterPostItemJnlLineTxt: Label 'OnAfterPostItemJnlLine';
         OnAfterNavigateFindRecordsTxt: Label 'OnAfterNavigateFindRecords';
-#if not CLEAN25
-        OnAfterNavigateShowRecordsTxt: Label 'OnAfterNavigateShowRecords';
-#endif
         OnAfterCheckMandatoryFieldsTxt: Label 'OnAfterCheckMandatoryFields';
         OnAfterUpdatePostingNosTxt: Label 'OnAfterUpdatePostingNos';
         OnAfterSalesInvLineInsertTxt: Label 'OnAfterSalesInvLineInsert';
@@ -1758,38 +1755,6 @@
         VerifyDataTypeBuffer(OnAfterNavigateFindRecordsTxt);
     end;
 
-#if not CLEAN25
-    [Test]
-    [Scope('OnPrem')]
-    procedure TestOnAfterNavigateShowRecords()
-    var
-        GLEntry: Record "G/L Entry";
-        TestPartnerIntegrationEvent: Codeunit "Test Partner Integration Event";
-        Navigate: TestPage Navigate;
-        GeneralLedgerEntries: TestPage "General Ledger Entries";
-    begin
-        // [SCENARIO] When using the Navigate page for show records, events are raised to include Custom records.
-        if not GLEntry.FindFirst() then
-            exit; // Nothing to find
-
-        // Setup
-        Initialize();
-        BindSubscription(TestPartnerIntegrationEvent);
-
-        // Exercise
-        Navigate.OpenEdit();
-        Navigate.DocNoFilter.SetValue(GLEntry."Document No.");
-        Navigate.PostingDateFilter.SetValue(Format(GLEntry."Posting Date"));
-        Navigate.Find.Invoke();
-        Navigate.First();
-        GeneralLedgerEntries.Trap();
-        Navigate.Show.Invoke();
-        GeneralLedgerEntries.Close();
-
-        // Verify
-        VerifyDataTypeBuffer(OnAfterNavigateShowRecordsTxt);
-    end;
-#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -1896,64 +1861,6 @@
 
         // [THEN] OnSetBookingItemInvoiced event is not executed
         VerifyDataTypeBufferEmpty(OnSetBookingItemInvoicedTxt);
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure BookingHandleSalesHeader()
-    var
-        SalesHeader: Record "Sales Header";
-        TestPartnerIntegrationEvent: Codeunit "Test Partner Integration Event";
-    begin
-        // [FEATURE] [Booking] [Sales] [Invoice]
-        // [SCENARIO 298582] Integration event OnSetBookingItemInvoiced in codeunit "Booking Manager" is executed in case of non-temporary Sales Invoice
-
-        Initialize();
-        SetBookingMgrSetup();
-        BindSubscription(TestPartnerIntegrationEvent);
-
-        // [GIVEN] Sales Invoice "SI01"
-        MockSalesInvoice(SalesHeader);
-
-        // [GIVEN] Invoiced Booking Item for Sales Invoice "SI01"
-        MockInvoicedBookingItem(SalesHeader."No.");
-
-        // [WHEN] Modify Sales Invoice
-        SalesHeader.Modify(true);
-
-        // [THEN] OnSetBookingItemInvoiced event is executed
-        VerifyDataTypeBuffer(OnSetBookingItemInvoicedTxt);
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure BookingHandleSalesLine()
-    var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        TestPartnerIntegrationEvent: Codeunit "Test Partner Integration Event";
-    begin
-        // [FEATURE] [Booking] [Sales] [Invoice]
-        // [SCENARIO 298582] Integration event OnSetBookingItemInvoiced in codeunit "Booking Manager" is executed in case of non-temporary Sales Invoice Line
-
-        Initialize();
-        SetBookingMgrSetup();
-        BindSubscription(TestPartnerIntegrationEvent);
-
-        // [GIVEN] Sales Invoice "SI01"
-        MockSalesInvoice(SalesHeader);
-
-        // [GIVEN] Sales Line 10000 for "SI01"
-        MockSalesLine(SalesLine, SalesHeader);
-
-        // [GIVEN] Invoiced Booking Item for Sales Invoice "SI01"
-        MockInvoicedBookingItem(SalesHeader."No.");
-
-        // [WHEN] Modify Sales Line
-        SalesLine.Modify(true);
-
-        // [THEN] OnSetBookingItemInvoiced event is executed
-        VerifyDataTypeBuffer(OnSetBookingItemInvoicedTxt);
     end;
 
     [Test]
@@ -2521,13 +2428,6 @@
         InsertDataTypeBuffer(OnAfterNavigateFindRecordsTxt);
     end;
 
-#if not CLEAN25
-    [EventSubscriber(ObjectType::Page, Page::"Navigate", 'OnAfterNavigateShowRecords', '', false, false)]
-    local procedure OnAfterNavigateShowRecords(TableID: Integer; DocNoFilter: Text; PostingDateFilter: Text; ItemTrackingSearch: Boolean)
-    begin
-        InsertDataTypeBuffer(OnAfterNavigateShowRecordsTxt);
-    end;
-#endif
 
     [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnAfterInitRecord', '', false, false)]
     local procedure OnAfterSalesHeaderInitRecord(var SalesHeader: Record "Sales Header")
@@ -2743,12 +2643,6 @@
     local procedure OnCheckPostingCostToGL(var PostCostToGL: Boolean)
     begin
         PostCostToGL := false;
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Booking Manager", 'OnSetBookingItemInvoiced', '', false, false)]
-    local procedure OnSetBookingItemInvoiced(var InvoicedBookingItem: Record "Invoiced Booking Item")
-    begin
-        InsertDataTypeBuffer(OnSetBookingItemInvoicedTxt);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document-Mailing", 'OnBeforeGetAttachmentFileName', '', false, false)]
@@ -2970,4 +2864,3 @@
         UndoPurchaseReceiptLine.Run(PurchRcptLine);
     end;
 }
-

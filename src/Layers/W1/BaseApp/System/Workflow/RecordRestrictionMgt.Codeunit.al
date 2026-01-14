@@ -198,6 +198,34 @@ codeunit 1550 "Record Restriction Mgt."
         CheckRecordHasUsageRestrictions(GenJournalLine);
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterInsertEvent', '', false, false)]
+    procedure RestrictItemJournalLineAfterInsert(var Rec: Record "Item Journal Line"; RunTrigger: Boolean)
+    begin
+        RestrictItemJournalBatch(Rec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterModifyEvent', '', false, false)]
+    procedure RestrictItemJournalLineAfterModify(var Rec: Record "Item Journal Line"; var xRec: Record "Item Journal Line"; RunTrigger: Boolean)
+    begin
+        if Format(Rec) = Format(xRec) then
+            exit;
+
+        RestrictItemJournalBatch(Rec);
+    end;
+
+    local procedure RestrictItemJournalBatch(var ItemJournalLine: Record "Item Journal Line")
+    var
+        ItemJournalBatch: Record "Item Journal Batch";
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+    begin
+        if ItemJournalLine.IsTemporary then
+            exit;
+
+        if ItemJournalBatch.Get(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name") then
+            if ApprovalsMgmt.IsItemJournalBatchApprovalsWorkflowEnabled(ItemJournalBatch) then
+                RestrictRecordUsage(ItemJournalBatch, RestrictBatchUsageDetailsTxt);
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnAfterInsertEvent', '', false, false)]
     procedure RestrictRequisitionLineAfterInsert(var Rec: Record "Requisition Line"; RunTrigger: Boolean)
     begin
@@ -354,6 +382,9 @@ codeunit 1550 "Record Restriction Mgt."
             exit;
 
         CheckRecordHasUsageRestrictions(Sender);
+        if Sender."Item No." = '' then
+            exit;
+
         Item.Get(Sender."Item No.");
         CheckRecordHasUsageRestrictions(Item);
     end;
@@ -493,6 +524,17 @@ codeunit 1550 "Record Restriction Mgt."
         CheckGenJournalLineHasUsageRestrictions(Sender, GenJournalBatch);
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnCheckItemJournalLinePostRestrictions', '', false, false)]
+    procedure ItemJournalBatchCheckItemJournalLinePostRestrictions(var Sender: Record "Item Journal Line")
+    var
+        ItemJournalBatch: Record "Item Journal Batch";
+    begin
+        if not ItemJournalBatch.Get(Sender."Journal Template Name", Sender."Journal Batch Name") then
+            exit;
+
+        CheckRecordHasUsageRestrictions(ItemJournalBatch);
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnCheckSalesPostRestrictions', '', false, false)]
     procedure SalesHeaderCheckSalesPostRestrictions(var Sender: Record "Sales Header")
     var
@@ -575,6 +617,12 @@ codeunit 1550 "Record Restriction Mgt."
         AllowRecordUsage(Rec);
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Batch", 'OnBeforeDeleteEvent', '', false, false)]
+    procedure RemoveItemJournalBatchRestrictionsBeforeDelete(var Rec: Record "Item Journal Batch"; RunTrigger: Boolean)
+    begin
+        AllowRecordUsage(Rec);
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnBeforeDeleteEvent', '', false, false)]
     procedure RemoveRequisitionWkshLineRestrictionsBeforeDelete(var Rec: Record "Requisition Line"; RunTrigger: Boolean)
     begin
@@ -601,6 +649,12 @@ codeunit 1550 "Record Restriction Mgt."
 
     [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnAfterRenameEvent', '', false, false)]
     procedure UpdateGenJournalLineRestrictionsAfterRename(var Rec: Record "Gen. Journal Line"; var xRec: Record "Gen. Journal Line"; RunTrigger: Boolean)
+    begin
+        UpdateRestriction(Rec, xRec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterRenameEvent', '', false, false)]
+    procedure UpdateItemJournalLineRestrictionsAfterRename(var Rec: Record "Item Journal Line"; var xRec: Record "Item Journal Line"; RunTrigger: Boolean)
     begin
         UpdateRestriction(Rec, xRec);
     end;
@@ -639,6 +693,12 @@ codeunit 1550 "Record Restriction Mgt."
 
     [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Batch", 'OnAfterRenameEvent', '', false, false)]
     procedure UpdateGenJournalBatchRestrictionsAfterRename(var Rec: Record "Gen. Journal Batch"; var xRec: Record "Gen. Journal Batch"; RunTrigger: Boolean)
+    begin
+        UpdateRestriction(Rec, xRec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Batch", 'OnAfterRenameEvent', '', false, false)]
+    procedure UpdateItemJournalBatchRestrictionsAfterRename(var Rec: Record "Item Journal Batch"; var xRec: Record "Item Journal Batch"; RunTrigger: Boolean)
     begin
         UpdateRestriction(Rec, xRec);
     end;

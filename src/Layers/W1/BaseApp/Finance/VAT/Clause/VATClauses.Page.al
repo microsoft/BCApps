@@ -7,6 +7,14 @@ namespace Microsoft.Finance.VAT.Clause;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.ExtendedText;
 
+/// <summary>
+/// List page for managing VAT clauses with access to translations, document-type descriptions, and extended texts.
+/// Primary interface for VAT clause administration and setup across the system.
+/// </summary>
+/// <remarks>
+/// Provides navigation to VAT clause translations, document-type-specific descriptions, and VAT posting setup.
+/// Supports multilingual VAT clause management and regulatory compliance requirements.
+/// </remarks>
 page 747 "VAT Clauses"
 {
     ApplicationArea = Basic, Suite;

@@ -4,26 +4,26 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
-using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Utilities;
-using Microsoft.Assembly.Document;
-using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Journal;
 using Microsoft.Assembly.Comment;
+using Microsoft.Assembly.Document;
 using Microsoft.Assembly.History;
-using Microsoft.Projects.Resources.Resource;
 using Microsoft.Assembly.Setup;
-using Microsoft.Foundation.NoSeries;
-using Microsoft.Inventory.Costing;
-using Microsoft.Inventory.Location;
 using Microsoft.Finance.Dimension;
-using Microsoft.Inventory.Ledger;
-using Microsoft.Projects.Resources.Ledger;
-using Microsoft.Manufacturing.Capacity;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.BOM;
-using Microsoft.Foundation.AuditCodes;
+using Microsoft.Inventory.Costing;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
+using Microsoft.Manufacturing.Capacity;
+using Microsoft.Projects.Resources.Ledger;
+using Microsoft.Projects.Resources.Resource;
+using Microsoft.Utilities;
 
 codeunit 137915 "SCM Assembly Posting"
 {
@@ -58,6 +58,7 @@ codeunit 137915 "SCM Assembly Posting"
         WorkDate2: Date;
         Initialized: Boolean;
         CnfmUpdateDimensions: Label 'Do you want to update the Dimensions on the lines?';
+        IndirectCostErr: Label 'While posting, Indirect Cost % should be considered from Assembly Header instead of Item card.';
 
     [Normal]
     local procedure Initialize()
@@ -672,6 +673,81 @@ codeunit 137915 "SCM Assembly Posting"
 
         // [THEN] Verify Global Dimension 1 on Item Ledger Entry
         ItemLedgEntry.TestField("Global Dimension 1 Code", DimensionValue[3].Code);
+    end;
+
+    [Test]
+    procedure VerifyUpdatingIndirectCostPercentOnAssemblyOrder()
+    var
+        AsmItem: Record Item;
+        AssemblyLine: Record "Assembly Line";
+        CompItem: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        Location: Record Location;
+        AssemblyHeader: Record "Assembly Header";
+        PostedAssemblyHeader: Record "Posted Assembly Header";
+        LibraryRandom: Codeunit "Library - Random";
+        UnitAmount: Decimal;
+    begin
+        // [SCENARIO 604324] When updating Indirect Cost % on Assembly Order should override Item card value when posting.
+        Initialize();
+
+        // [GIVEN] Enable Automatic Cost Posting, Expected Cost Posting and set Automatic Cost Adjustment as Always on Inventory Setup.
+        LibraryInventory.SetAutomaticCostPosting(true);
+        LibraryInventory.SetExpectedCostPosting(true);
+        LibraryInventory.SetAutomaticCostAdjmtAlways();
+
+        // [GIVEN] Create an Item with Indirect Cost %.
+        LibraryInventory.CreateItem(AsmItem);
+        AsmItem.Validate("Indirect Cost %", LibraryRandom.RandIntInRange(5, 10));
+        AsmItem.Modify(true);
+
+        // [GIVEN] Create Component Item.
+        LibraryInventory.CreateItem(CompItem);
+        UnitAmount := LibraryRandom.RandIntInRange(100, 200);
+
+        // [GIVEN] Create location.
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+
+        // [GIVEN] Create and Post Item Journal Line for Component Item to have inventory.
+        LibraryInventory.CreateItemJournalTemplate(ItemJournalTemplate);
+        LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
+        LibraryInventory.CreateItemJournalLine(ItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name,
+            ItemJournalLine."Entry Type"::"Positive Adjmt.", CompItem."No.", LibraryRandom.RandIntInRange(8, 10));
+        ItemJournalLine.Validate("Location Code", Location.Code);
+        ItemJournalLine.Validate("Unit Amount", UnitAmount);
+        ItemJournalLine.Modify(true);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] Create Assembly Order for the Item and override Indirect Cost % on the order.
+        LibraryAssembly.CreateAssemblyHeader(AssemblyHeader, WorkDate2, AsmItem."No.", Location.Code, 1, '');
+        AssemblyHeader.Validate("Indirect Cost %", LibraryRandom.RandIntInRange(1, 5));
+        AssemblyHeader.Modify(true);
+
+        // [GIVEN] Create Assembly Order Line for the Component Item with Unit Cost as 100.
+        CreateAssemblyOrderLine(
+          AssemblyHeader, AssemblyLine, "BOM Component Type"::Item, CompItem."No.", 1, CompItem."Base Unit of Measure");
+        AssemblyLine.Validate("Unit Cost", UnitAmount);
+        AssemblyLine.Modify(true);
+
+        // [WHEN] Post the Assembly Order.
+        LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
+
+        // [THEN] Verify the Item Ledger Entry for Assembly Output has Cost Amount (Actual) with updated Indirect Cost %.
+        PostedAssemblyHeader.SetRange("Order No.", AssemblyHeader."No.");
+        PostedAssemblyHeader.FindFirst();
+
+        ItemLedgerEntry.SetRange("Document Type", ItemLedgerEntry."Document Type"::"Posted Assembly");
+        ItemLedgerEntry.SetRange("Document No.", PostedAssemblyHeader."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::"Assembly Output");
+        ItemLedgerEntry.FindFirst();
+        ItemLedgerEntry.CalcFields("Cost Amount (Actual)");
+
+        Assert.AreEqual(AssemblyLine."Unit Cost" + AssemblyHeader."Indirect Cost %" / 100 * AssemblyLine."Unit Cost",
+            ItemLedgerEntry."Cost Amount (Actual)",
+            IndirectCostErr);
     end;
 
     local procedure CreateAndPostItemJournalLine(ItemJournalLine: Record "Item Journal Line"; EntryType: Enum "Item Ledger Document Type"; ItemNo: Code[20]; Quantity: Decimal; PostingDate: Date; LocationCode: Code[10])

@@ -5,6 +5,10 @@
 namespace Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 
+/// <summary>
+/// Displays and manages source currencies used in G/L entries for a specific G/L account.
+/// This page shows the various currencies in which transactions have been posted to the account along with their balances.
+/// </summary>
 page 589 "G/L Account Source Currencies"
 {
     Caption = 'Source Currencies';
@@ -56,6 +60,10 @@ page 589 "G/L Account Source Currencies"
             {
                 Caption = 'F&unctions';
                 Image = "Action";
+                /// <summary>
+                /// Refreshes the list of currencies by scanning all G/L entries posted to this account and adding any new currencies found.
+                /// This action ensures the source currencies list is up-to-date with actual posting activity.
+                /// </summary>
                 action(UpdateCurrencies)
                 {
                     ApplicationArea = Basic, Suite;

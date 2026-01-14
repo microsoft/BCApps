@@ -3,6 +3,7 @@
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
@@ -99,6 +100,8 @@ codeunit 1522 "Workflow Request Page Handling"
         InsertGeneralJournalBatchReqPageFields();
         InsertGeneralJournalLineReqPageFields();
 
+        InsertItemJournalBatchReqPageFields();
+
         InsertRequisitionWkshBatchReqPageFields();
 
         InsertApprovalEntryReqPageFields();
@@ -193,6 +196,15 @@ codeunit 1522 "Workflow Request Page Handling"
         InsertDynReqPageField(DATABASE::"Gen. Journal Line", GenJournalLine.FieldNo("Account Type"));
         InsertDynReqPageField(DATABASE::"Gen. Journal Line", GenJournalLine.FieldNo("Account No."));
         InsertDynReqPageField(DATABASE::"Gen. Journal Line", GenJournalLine.FieldNo(Amount));
+    end;
+
+    local procedure InsertItemJournalBatchReqPageFields()
+    var
+        ItemJournalBatch: Record "Item Journal Batch";
+    begin
+        InsertDynReqPageField(Database::"Item Journal Batch", ItemJournalBatch.FieldNo(Name));
+        InsertDynReqPageField(Database::"Item Journal Batch", ItemJournalBatch.FieldNo("Template Type"));
+        InsertDynReqPageField(Database::"Item Journal Batch", ItemJournalBatch.FieldNo(Recurring));
     end;
 
     local procedure InsertRequisitionWkshBatchReqPageFields()

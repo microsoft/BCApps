@@ -9,6 +9,15 @@ using Microsoft.Bank.Ledger;
 using Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.Statement;
 
+/// <summary>
+/// Generates bank account statement report with posted reconciliation details and outstanding transactions.
+/// Displays statement balances, G/L balances, and outstanding items for bank account analysis.
+/// </summary>
+/// <remarks>
+/// Data Sources: Bank Account Statement, Bank Account Statement Line, Outstanding Bank Transaction, Outstanding Check. 
+/// Features: Balance reconciliation display, outstanding transaction tracking, statement line detail reporting.
+/// Usage: Bank statement documentation, balance verification, outstanding item analysis, statement archiving.
+/// </remarks>
 report 1407 "Bank Account Statement"
 {
     DefaultLayout = RDLC;

@@ -4,16 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
-using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Costing;
-using Microsoft.Inventory.Tracking;
-using Microsoft.Inventory.BOM;
-using Microsoft.Assembly.Setup;
-using Microsoft.Inventory.Setup;
 using Microsoft.Assembly.Document;
-using System.Environment.Configuration;
 using Microsoft.Assembly.History;
+using Microsoft.Assembly.Setup;
+using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.Costing;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Setup;
+using Microsoft.Inventory.Tracking;
+using System.Environment.Configuration;
 
 codeunit 137094 "SCM Kitting - D3 - Part 2"
 {

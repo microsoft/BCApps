@@ -6,8 +6,8 @@ namespace Microsoft.Inventory.Reconciliation;
 
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
-using System.Utilities;
 using System.Globalization;
+using System.Utilities;
 
 page 9297 "Inventory - G/L Recon Matrix"
 {

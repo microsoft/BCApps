@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Preview;
 
-using Microsoft.Manufacturing.Capacity;
 using Microsoft.Foundation.Navigate;
+using Microsoft.Manufacturing.Capacity;
 
 codeunit 99000798 "Mfg. Posting Preview Subscr."
 {

@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Account;
 
+/// <summary>
+/// Temporary buffer table for G/L account category processing.
+/// Used for internal calculations and data manipulation related to account categories.
+/// </summary>
 table 8460 "G/L Acc. Cat. Buffer"
 {
     DataClassification = SystemMetadata;
@@ -11,6 +15,9 @@ table 8460 "G/L Acc. Cat. Buffer"
 
     fields
     {
+        /// <summary>
+        /// Unique identifier for buffer table entries.
+        /// </summary>
         field(1; "Entry No."; Integer)
         {
         }

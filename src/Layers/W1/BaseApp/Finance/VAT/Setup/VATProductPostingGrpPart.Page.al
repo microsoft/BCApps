@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Setup;
 
+/// <summary>
+/// VAT product posting group part page component used within the VAT Setup Wizard for group selection and configuration.
+/// Displays VAT product posting groups with selection options and VAT rate configuration fields.
+/// </summary>
+/// <remarks>
+/// Page type: ListPart component integrated into VAT Setup Wizard workflow.
+/// Data source: VAT Setup Posting Groups table containing temporary wizard configurations.
+/// User interaction: Select/configure VAT product posting groups and rates for wizard-based setup creation.
+/// </remarks>
 page 1879 "VAT Product Posting Grp Part"
 {
     Caption = 'VAT Product Posting Grp Part';
@@ -153,6 +162,10 @@ page 1879 "VAT Product Posting Grp Part"
         VATDeleteIsNotallowedErr: Label 'You can''t delete or modify this VAT record because it is connected to existing item.';
         VATEmptyErrorMsg: Label 'You can''t delete the record because the VAT setup would be empty.';
 
+    /// <summary>
+    /// Displays VAT rates configuration view for VAT product posting groups selection and rate assignment.
+    /// Shows VAT product posting groups with editable VAT percentage fields for rate configuration.
+    /// </summary>
     procedure ShowVATRates()
     begin
         ResetView();
@@ -162,6 +175,10 @@ page 1879 "VAT Product Posting Grp Part"
         CurrPage.Update();
     end;
 
+    /// <summary>
+    /// Displays VAT accounts configuration view for G/L account assignment to VAT product posting groups.
+    /// Shows selected VAT product posting groups with account assignment fields for purchase and sales VAT accounts.
+    /// </summary>
     procedure ShowVATAccounts()
     begin
         ResetView();
@@ -169,6 +186,10 @@ page 1879 "VAT Product Posting Grp Part"
         ShowOnlySelectedSrvItem();
     end;
 
+    /// <summary>
+    /// Displays VAT clauses configuration view for VAT clause assignment to VAT product posting groups.
+    /// Shows selected VAT product posting groups with VAT clause assignment fields for document text handling.
+    /// </summary>
     procedure ShowVATClauses()
     begin
         ResetView();
@@ -197,6 +218,10 @@ page 1879 "VAT Product Posting Grp Part"
         VATNotification.Send();
     end;
 
+    /// <summary>
+    /// Hides any displayed notifications related to VAT product posting group validation or configuration warnings.
+    /// Clears notification messages from the user interface during wizard navigation.
+    /// </summary>
     procedure HideNotification()
     var
         DummyGuid: Guid;

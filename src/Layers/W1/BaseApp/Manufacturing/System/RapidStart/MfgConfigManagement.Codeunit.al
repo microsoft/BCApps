@@ -1,12 +1,12 @@
 namespace System.IO;
 
+using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Family;
+using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
-using Microsoft.Manufacturing.Family;
-using Microsoft.Manufacturing.ProductionBOM;
-using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Manufacturing.MachineCenter;
 
 codeunit 99000825 "Mfg. Config Management"
 {

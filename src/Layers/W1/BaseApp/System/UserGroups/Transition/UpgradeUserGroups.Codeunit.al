@@ -2,9 +2,9 @@
 
 using Microsoft.Upgrade;
 using System.Azure.Identity;
+using System.Environment;
 using System.Reflection;
 using System.Upgrade;
-using System.Environment;
 
 codeunit 104061 "Upgrade User Groups"
 {

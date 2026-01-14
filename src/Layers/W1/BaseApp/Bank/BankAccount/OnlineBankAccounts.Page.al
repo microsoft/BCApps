@@ -45,6 +45,10 @@ page 270 "Online Bank Accounts"
     {
     }
 
+    /// <summary>
+    /// Populates the page with online bank account link records from the source table.
+    /// </summary>
+    /// <param name="OnlineBankAccLink">Source record set containing online bank account links</param>
     procedure SetRecs(var OnlineBankAccLink: Record "Online Bank Acc. Link")
     begin
         OnlineBankAccLink.Reset();

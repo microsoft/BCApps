@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.AllocationAccount;
 
+/// <summary>
+/// Interface for modifying allocation distributions and creating manual overrides for allocation accounts.
+/// Enables users to adjust calculated allocation amounts and percentages before posting.
+/// </summary>
 page 2678 "Redistribute Acc. Allocations"
 {
     PageType = Worksheet;
@@ -218,11 +222,19 @@ page 2678 "Redistribute Acc. Allocations"
         exit(true);
     end;
 
+    /// <summary>
+    /// Sets the parent system ID for linking allocation modifications to the source document.
+    /// </summary>
+    /// <param name="NewParentSystemId">System ID of the parent document record</param>
     procedure SetParentSystemId(NewParentSystemId: Guid)
     begin
         ParentSystemId := NewParentSystemId;
     end;
 
+    /// <summary>
+    /// Sets the parent table ID for linking allocation modifications to the source document table.
+    /// </summary>
+    /// <param name="NewParentTableId">Table ID of the parent document</param>
     procedure SetParentTableId(NewParentTableId: Integer)
     begin
         ParentTableId := NewParentTableId;

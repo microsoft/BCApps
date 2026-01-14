@@ -7,12 +7,16 @@ namespace Microsoft.Finance.AllocationAccount.Purchase;
 using Microsoft.Finance.AllocationAccount;
 using Microsoft.Finance.Deferral;
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Inventory.Posting;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Posting;
 using System.Automation;
-using Microsoft.Finance.GeneralLedger.Account;
 
+/// <summary>
+/// Manages allocation account operations for purchase documents including line creation and validation.
+/// Handles conversion of allocation accounts to detailed purchase lines with proper account assignments and dimension inheritance.
+/// </summary>
 codeunit 2679 "Purchase Alloc. Acc. Mgt."
 {
     internal procedure GetOrGenerateAllocationLines(var AllocationLine: Record "Allocation Line"; var ParentSystemId: Guid)
@@ -254,6 +258,11 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
         until AllocationPurchaseLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Creates individual purchase lines from allocation account distribution lines based on allocation percentages or amounts.
+    /// Processes allocation account configuration and generates corresponding G/L account lines with calculated amounts.
+    /// </summary>
+    /// <param name="AllocationAccountPurchaseLine">Source purchase line containing allocation account to be distributed</param>
     procedure CreateLinesFromAllocationAccountLine(var AllocationAccountPurchaseLine: Record "Purchase Line")
     var
         ExistingAccountPurchaseLine: Record "Purchase Line";
@@ -641,6 +650,13 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
             Error(AllocationAccountMustOnlyDistributeToGLAccountsErr);
     end;
 
+    /// <summary>
+    /// Transfers dimension set ID from allocation line to purchase line with merge capabilities.
+    /// Combines dimensions when both records have existing dimension sets or overwrites when specified.
+    /// </summary>
+    /// <param name="PurchaseLine">Purchase line to receive dimension set ID</param>
+    /// <param name="AllocationLine">Source allocation line with dimension set ID</param>
+    /// <param name="ModifiedByUser">Whether to overwrite existing dimensions when modified by user</param>
     procedure TransferDimensionSetID(var PurchaseLine: Record "Purchase Line"; var AllocationLine: Record "Allocation Line"; ModifiedByUser: Boolean)
     var
         DimensionManagement: Codeunit DimensionManagement;
@@ -678,6 +694,11 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
         until AllocationAccountPurchaseLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Validates the selected allocation account number on purchase line and verifies compatibility.
+    /// Ensures the allocation account is properly configured and the purchase line uses G/L account type.
+    /// </summary>
+    /// <param name="PurchaseLine">Purchase line with selected allocation account to validate</param>
     procedure VerifySelectedAllocationAccountNo(var PurchaseLine: Record "Purchase Line")
     var
         AllocationAccount: Record "Allocation Account";
@@ -760,11 +781,23 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
         PurchaseHeader.SetHideValidationDialog(true);
     end;
 
+    /// <summary>
+    /// Integration event raised before creating purchase line from allocation line during distribution process.
+    /// Enables custom modification of purchase line fields before standard allocation line processing.
+    /// </summary>
+    /// <param name="PurchaseLine">Target purchase line being created</param>
+    /// <param name="AllocationLine">Source allocation line with distribution configuration</param>
+    /// <param name="AllocationPurchaseLine">Original allocation purchase line triggering the distribution</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreatePurchaseLine(var PurchaseLine: Record "Purchase Line"; var AllocationLine: Record "Allocation Line"; var AllocationPurchaseLine: Record "Purchase Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before verifying purchase line during allocation account validation.
+    /// Enables custom validation logic for purchase lines before standard allocation verification.
+    /// </summary>
+    /// <param name="PurchaseLine">Purchase line being validated for allocation compatibility</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeVerifyPurchaseLine(var PurchaseLine: Record "Purchase Line")
     begin

@@ -4,13 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.Inbox;
 
+using Microsoft.Intercompany;
 using Microsoft.Intercompany.Journal;
 using Microsoft.Intercompany.Partner;
 using Microsoft.Purchases.Document;
-using Microsoft.Intercompany;
 using Microsoft.Purchases.History;
 using System.Utilities;
 
+/// <summary>
+/// Stores incoming intercompany transactions received from partner companies for processing and acceptance.
+/// Serves as the main inbox for journal entries, sales documents, and purchase documents from IC partners.
+/// </summary>
 table 418 "IC Inbox Transaction"
 {
     Caption = 'IC Inbox Transaction';
@@ -18,11 +22,17 @@ table 418 "IC Inbox Transaction"
 
     fields
     {
+        /// <summary>
+        /// Unique identifier for the intercompany transaction in the inbox.
+        /// </summary>
         field(1; "Transaction No."; Integer)
         {
             Caption = 'Transaction No.';
             Editable = false;
         }
+        /// <summary>
+        /// Code identifying the intercompany partner that sent this transaction.
+        /// </summary>
         field(2; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
@@ -30,6 +40,9 @@ table 418 "IC Inbox Transaction"
             TableRelation = "IC Partner";
         }
 #if not CLEANSCHEMA29
+        /// <summary>
+        /// Source type for the intercompany transaction (obsolete, replaced by IC Source Type).
+        /// </summary>
         field(3; "Source Type"; Enum "IC Transaction Source Type")
         {
             Caption = 'Source Type';
@@ -44,26 +57,41 @@ table 418 "IC Inbox Transaction"
 #endif
         }
 #endif
+        /// <summary>
+        /// Type of source document or transaction originating this IC transaction.
+        /// </summary>
         field(4; "IC Source Type"; Enum "IC Transaction Source Type")
         {
             Caption = 'IC Source Type';
             Editable = false;
         }
+        /// <summary>
+        /// Document type for the intercompany transaction (e.g., Order, Invoice, Credit Memo).
+        /// </summary>
         field(5; "Document Type"; Enum "IC Transaction Document Type")
         {
             Caption = 'Document Type';
             Editable = false;
         }
+        /// <summary>
+        /// Document number from the partner company for this intercompany transaction.
+        /// </summary>
         field(6; "Document No."; Code[20])
         {
             Caption = 'Document No.';
             Editable = false;
         }
+        /// <summary>
+        /// Posting date for the intercompany transaction in the partner company.
+        /// </summary>
         field(7; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
             Editable = false;
         }
+        /// <summary>
+        /// Source of the transaction indicating whether it was created by or returned by the partner.
+        /// </summary>
         field(8; "Transaction Source"; Option)
         {
             Caption = 'Transaction Source';
@@ -71,11 +99,17 @@ table 418 "IC Inbox Transaction"
             OptionCaption = 'Returned by Partner,Created by Partner';
             OptionMembers = "Returned by Partner","Created by Partner";
         }
+        /// <summary>
+        /// Document date from the original transaction in the partner company.
+        /// </summary>
         field(9; "Document Date"; Date)
         {
             Caption = 'Document Date';
             Editable = false;
         }
+        /// <summary>
+        /// Action to be taken on this transaction: Accept, Return, Cancel, or No Action.
+        /// </summary>
         field(10; "Line Action"; Option)
         {
             Caption = 'Line Action';
@@ -93,11 +127,17 @@ table 418 "IC Inbox Transaction"
                     InboxCheckAccept();
             end;
         }
+        /// <summary>
+        /// Original document number if this transaction references another document.
+        /// </summary>
         field(11; "Original Document No."; Code[20])
         {
             Caption = 'Original Document No.';
         }
 #if not CLEANSCHEMA25
+        /// <summary>
+        /// IC partner G/L account number (obsolete, replaced by IC Account No.).
+        /// </summary>
         field(12; "IC Partner G/L Acc. No."; Code[20])
         {
             Caption = 'IC Partner G/L Acc. No.';
@@ -106,14 +146,23 @@ table 418 "IC Inbox Transaction"
             ObsoleteTag = '25.0';
         }
 #endif
+        /// <summary>
+        /// Source line number for referencing original document line.
+        /// </summary>
         field(13; "Source Line No."; Integer)
         {
             Caption = 'Source Line No.';
         }
+        /// <summary>
+        /// IC account type for intercompany transaction posting.
+        /// </summary>
         field(14; "IC Account Type"; Enum "IC Journal Account Type")
         {
             Caption = 'IC Account Type';
         }
+        /// <summary>
+        /// IC account number for intercompany transaction posting.
+        /// </summary>
         field(15; "IC Account No."; Code[20])
         {
             Caption = 'IC Account No.';
@@ -178,6 +227,9 @@ table 418 "IC Inbox Transaction"
         DuplicatePurchaseOrderMsg: Label 'A purchase order already exists for transaction %1. If you accept and post this document, you should delete the original purchase order %2 to avoid duplicate postings.', Comment = '%1 - New Transaction No, %2 - Old Transaction No';
         DuplicatePurchaseInvoiceMsg: Label 'Purchase invoice %1 has already been posted for transaction %2. If you accept and post this document, you will have duplicate postings.\Are you sure you want to accept the transaction?', Comment = '%1 - Purchase Invoice No, %2 - Transaction No';
 
+    /// <summary>
+    /// Opens the detailed view for this transaction based on its source type (Journal, Sales Document, or Purchase Document).
+    /// </summary>
     procedure ShowDetails()
     var
         ICInBoxJnlLine: Record "IC Inbox Jnl. Line";
@@ -290,26 +342,49 @@ table 418 "IC Inbox Transaction"
         OnAfterInboxCheckAccept(Rec);
     end;
 
+    /// <summary>
+    /// Integration event raised after inbox transaction acceptance validation is completed.
+    /// </summary>
+    /// <param name="ICInboxTransaction">IC Inbox Transaction record that was validated</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInboxCheckAccept(var ICInboxTransaction: Record "IC Inbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after showing transaction details to allow custom actions.
+    /// </summary>
+    /// <param name="ICInboxTransaction">IC Inbox Transaction record for which details were shown</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterShowDetails(var ICInboxTransaction: Record "IC Inbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inbox transaction acceptance validation to allow custom validation logic.
+    /// </summary>
+    /// <param name="ICInboxTransaction">IC Inbox Transaction record being validated</param>
+    /// <param name="IsHandled">Set to true to skip standard validation</param>
+    /// <param name="xICInboxTransaction">Previous version of the IC Inbox Transaction record</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInboxCheckAccept(var ICInboxTransaction: Record "IC Inbox Transaction"; var IsHandled: Boolean; xICInboxTransaction: Record "IC Inbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised during delete operation for source type specific cleanup.
+    /// </summary>
+    /// <param name="ICInboxTransaction">IC Inbox Transaction record being deleted</param>
     [IntegrationEvent(false, false)]
     local procedure OnDeleteOnSourceTypeCase(var ICInboxTransaction: Record "IC Inbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before showing transaction details to allow custom detail handling.
+    /// </summary>
+    /// <param name="ICInboxTransaction">IC Inbox Transaction record for which details will be shown</param>
+    /// <param name="IsHandled">Set to true to skip standard detail display</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowDetails(var ICInboxTransaction: Record "IC Inbox Transaction"; var IsHandled: Boolean)
     begin

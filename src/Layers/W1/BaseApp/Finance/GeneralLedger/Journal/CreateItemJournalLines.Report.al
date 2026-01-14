@@ -7,6 +7,15 @@ namespace Microsoft.Inventory.Journal;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 
+/// <summary>
+/// Batch job for bulk creation of item journal lines from item master data with configurable entry types and posting parameters.
+/// Supports both standard journal template usage and direct journal line creation for inventory adjustments and transactions.
+/// </summary>
+/// <remarks>
+/// Key functionality: Creates item journal lines for multiple items simultaneously with specified entry types, posting dates, and document parameters.
+/// Integration: Works with Item Journal Templates, Item Journal Batches, and Standard Item Journals for template-based line creation.
+/// Use cases: Bulk inventory adjustments, mass item transactions, and automated journal line generation from item selections.
+/// </remarks>
 report 8613 "Create Item Journal Lines"
 {
     ApplicationArea = Basic, Suite;
@@ -272,6 +281,12 @@ report 8613 "Create Item Journal Lines"
         exit(not StdItemJnlLine.IsEmpty());
     end;
 
+    /// <summary>
+    /// Initializes journal line creation process with standard journal template and batch configuration.
+    /// Sets up journal template name, batch name, and prepares line numbering sequence for new journal lines.
+    /// </summary>
+    /// <param name="StdItemJnl">Standard item journal record containing template configuration and settings</param>
+    /// <param name="JnlBatchName">Journal batch name where new item journal lines will be created</param>
     procedure Initialize(StdItemJnl: Record "Standard Item Journal"; JnlBatchName: Code[10])
     begin
         ItemJnlLine."Journal Template Name" := StdItemJnl."Journal Template Name";
@@ -317,6 +332,13 @@ report 8613 "Create Item Journal Lines"
         LastItemJnlLine := ItemJnlLine;
     end;
 
+    /// <summary>
+    /// Initializes report parameters for entry type, posting date, and document date configuration.
+    /// Sets default values for journal line creation process from external procedure calls.
+    /// </summary>
+    /// <param name="EntryTypesFrom">Entry type option for journal lines: Purchase, Sale, Positive Adjmt., or Negative Adjmt.</param>
+    /// <param name="PostingDateFrom">Posting date to be applied to created journal lines</param>
+    /// <param name="DocumentDateFrom">Document date to be applied to created journal lines</param>
     procedure InitializeRequest(EntryTypesFrom: Option; PostingDateFrom: Date; DocumentDateFrom: Date)
     begin
         EntryTypes := EntryTypesFrom;
@@ -324,6 +346,13 @@ report 8613 "Create Item Journal Lines"
         DocumentDate := DocumentDateFrom;
     end;
 
+    /// <summary>
+    /// Initializes report template configuration parameters for journal template, batch name, and standard template code.
+    /// Sets up the target journal destination and optional standard journal template for automated line creation.
+    /// </summary>
+    /// <param name="JournalTemplateFrom">Item journal template name where lines will be created</param>
+    /// <param name="BatchNameFrom">Journal batch name for organizing created journal lines</param>
+    /// <param name="TemplateCodeFrom">Optional standard journal template code for predefined line configurations</param>
     procedure InitializeRequestTemplate(JournalTemplateFrom: Text[10]; BatchNameFrom: Code[10]; TemplateCodeFrom: Code[20])
     begin
         JournalTemplate := JournalTemplateFrom;
@@ -331,6 +360,11 @@ report 8613 "Create Item Journal Lines"
         TemplateCode := TemplateCodeFrom;
     end;
 
+    /// <summary>
+    /// Sets the default document number to be applied to created journal lines when no document number is specified.
+    /// Provides programmatic control over document numbering for batch journal line creation processes.
+    /// </summary>
+    /// <param name="NewDocumentNo">Document number to use as default for created journal lines</param>
     procedure SetDefaultDocumentNo(NewDocumentNo: Code[20])
     begin
         DocumentNo := NewDocumentNo;

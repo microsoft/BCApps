@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.History;
 
+using Microsoft.Projects.Project.Job;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using Microsoft.Projects.Project.Job;
 
 table 914 "Posted Assemble-to-Order Link"
 {

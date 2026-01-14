@@ -921,19 +921,6 @@ table 114 "Sales Cr.Memo Header"
         exit(FieldCaption("VAT Registration No."));
     end;
 
-#if not CLEAN25
-    [Obsolete('The procedure is not used and will be obsoleted.', '25.0')]
-    procedure GetCustomerGlobalLocationNumber(): Text
-    begin
-        exit('');
-    end;
-
-    [Obsolete('The procedure is not used and will be obsoleted.', '25.0')]
-    procedure GetCustomerGlobalLocationNumberLbl(): Text
-    begin
-        exit('');
-    end;
-#endif
 
     procedure GetLegalStatement(): Text
     var

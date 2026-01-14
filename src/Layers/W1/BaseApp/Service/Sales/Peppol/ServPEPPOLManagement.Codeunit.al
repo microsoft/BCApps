@@ -4,12 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Peppol;
 
+using Microsoft.Finance.VAT.Calculation;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Attachment;
 using Microsoft.Sales.Document;
 using Microsoft.Service.Document;
-using Microsoft.Finance.VAT.Setup;
 using Microsoft.Service.History;
-using Microsoft.Foundation.Attachment;
-using Microsoft.Finance.VAT.Calculation;
 
 codeunit 6458 "Serv. PEPPOL Management"
 {

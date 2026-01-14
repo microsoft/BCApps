@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.SalesTax;
 
+/// <summary>
+/// Stores detailed tax rate configurations for specific jurisdictions and tax groups.
+/// Defines percentage rates, maximum thresholds, and effective dates for precise tax calculations.
+/// </summary>
 table 322 "Tax Detail"
 {
     Caption = 'Tax Detail';
@@ -11,17 +15,26 @@ table 322 "Tax Detail"
 
     fields
     {
+        /// <summary>
+        /// Tax jurisdiction code this detail applies to.
+        /// </summary>
         field(1; "Tax Jurisdiction Code"; Code[10])
         {
             Caption = 'Tax Jurisdiction Code';
             NotBlank = true;
             TableRelation = "Tax Jurisdiction";
         }
+        /// <summary>
+        /// Tax group code for item categorization and rate determination.
+        /// </summary>
         field(2; "Tax Group Code"; Code[20])
         {
             Caption = 'Tax Group Code';
             TableRelation = "Tax Group";
         }
+        /// <summary>
+        /// Type of tax calculation applied (Sales Tax or Excise Tax).
+        /// </summary>
         field(3; "Tax Type"; Option)
         {
             Caption = 'Tax Type';
@@ -29,6 +42,9 @@ table 322 "Tax Detail"
             OptionCaption = 'Sales Tax,Excise Tax';
             OptionMembers = "Sales Tax","Excise Tax";
         }
+        /// <summary>
+        /// Maximum amount or quantity threshold for tax rate application.
+        /// </summary>
         field(4; "Maximum Amount/Qty."; Decimal)
         {
             Caption = 'Maximum Amount/Qty.';
@@ -37,6 +53,9 @@ table 322 "Tax Detail"
             AutoFormatType = 1;
             AutoFormatExpression = '';
         }
+        /// <summary>
+        /// Tax percentage applied below the maximum threshold.
+        /// </summary>
         field(5; "Tax Below Maximum"; Decimal)
         {
             Caption = 'Tax Below Maximum';
@@ -44,6 +63,9 @@ table 322 "Tax Detail"
             MinValue = 0;
             AutoFormatType = 0;
         }
+        /// <summary>
+        /// Tax percentage applied above the maximum threshold.
+        /// </summary>
         field(6; "Tax Above Maximum"; Decimal)
         {
             Caption = 'Tax Above Maximum';
@@ -51,10 +73,16 @@ table 322 "Tax Detail"
             MinValue = 0;
             AutoFormatType = 0;
         }
+        /// <summary>
+        /// Date when this tax rate configuration becomes effective.
+        /// </summary>
         field(7; "Effective Date"; Date)
         {
             Caption = 'Effective Date';
         }
+        /// <summary>
+        /// Indicates whether tax is calculated on previously calculated taxes (compound taxation).
+        /// </summary>
         field(8; "Calculate Tax on Tax"; Boolean)
         {
             Caption = 'Calculate Tax on Tax';
@@ -104,6 +132,13 @@ table 322 "Tax Detail"
             SetFilter("Effective Date", '<=%1', EffectiveDate);
     end;
 
+    /// <summary>
+    /// Validates and creates missing tax details for a specific tax area and group combination.
+    /// Ensures all required tax detail records exist for proper tax calculation.
+    /// </summary>
+    /// <param name="TaxAreaCode">Tax area code to validate</param>
+    /// <param name="TaxGroupCode">Tax group code to validate</param>
+    /// <param name="EffectiveDate">Effective date for tax detail lookup</param>
     procedure ValidateTaxSetup(TaxAreaCode: Code[20]; TaxGroupCode: Code[20]; EffectiveDate: Date)
     var
         TaxArea: Record "Tax Area";
@@ -128,6 +163,15 @@ table 322 "Tax Detail"
             until TaxAreaLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Calculates the total sales tax rate for a tax area and group combination.
+    /// Sums tax rates across all jurisdictions within the specified tax area.
+    /// </summary>
+    /// <param name="TaxAreaCode">Tax area code for rate calculation</param>
+    /// <param name="TaxGroupCode">Tax group code for rate determination</param>
+    /// <param name="EffectiveDate">Date for tax rate lookup</param>
+    /// <param name="TaxLiable">Whether the transaction is tax liable</param>
+    /// <returns>Combined tax rate as decimal percentage</returns>
     procedure GetSalesTaxRate(TaxAreaCode: Code[20]; TaxGroupCode: Code[20]; EffectiveDate: Date; TaxLiable: Boolean): Decimal
     var
         TaxAreaLine: Record "Tax Area Line";
@@ -143,6 +187,14 @@ table 322 "Tax Detail"
         exit(TotalTaxRate);
     end;
 
+    /// <summary>
+    /// Updates the sales tax rate for a specific tax area and group combination.
+    /// Automatically distributes rate changes across appropriate jurisdictions.
+    /// </summary>
+    /// <param name="TaxAreaCode">Tax area code to update</param>
+    /// <param name="TaxGroupCode">Tax group code to update</param>
+    /// <param name="NewTaxRate">New tax rate as decimal percentage</param>
+    /// <param name="EffectiveDate">Effective date for the new rate</param>
     procedure SetSalesTaxRate(TaxAreaCode: Code[20]; TaxGroupCode: Code[20]; NewTaxRate: Decimal; EffectiveDate: Date)
     var
         TaxSetup: Record "Tax Setup";
@@ -182,6 +234,16 @@ table 322 "Tax Detail"
         SetNewTaxRate(TaxJurisdiction2.Code, TaxGroupCode, "Tax Type"::"Sales Tax", EffectiveDate, NewTaxRate - TotalTaxRate);
     end;
 
+    /// <summary>
+    /// Sets detailed sales tax rates for city, county, and state jurisdictions separately.
+    /// Allows precise control over multi-level jurisdiction tax rates.
+    /// </summary>
+    /// <param name="TaxAreaCode">Tax area code to update</param>
+    /// <param name="TaxGroupCode">Tax group code to update</param>
+    /// <param name="NewCityRate">City-level tax rate</param>
+    /// <param name="NewCountyRate">County-level tax rate</param>
+    /// <param name="NewStateRate">State-level tax rate</param>
+    /// <param name="EffectiveDate">Effective date for the new rates</param>
     procedure SetSalesTaxRateDetailed(TaxAreaCode: Code[20]; TaxGroupCode: Code[20]; NewCityRate: Decimal; NewCountyRate: Decimal; NewStateRate: Decimal; EffectiveDate: Date)
     var
         TaxAreaLine: Record "Tax Area Line";

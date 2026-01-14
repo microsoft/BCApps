@@ -25,6 +25,7 @@ report 188 "Create Reminders"
             var
                 IsHandled: Boolean;
                 Result: Boolean;
+                NotMakeReminderCode: Boolean;
             begin
                 RecordNo := RecordNo + 1;
                 Clear(MakeReminder);
@@ -37,6 +38,7 @@ report 188 "Create Reminders"
                     if not IsHandled then
                         MakeReminder.Code();
                     Mark := false;
+                    EmitMakeReminderTelemetry := true;
                 end else begin
                     NewDateTime := CurrentDateTime;
                     if (NewDateTime - OldDateTime > 100) or (NewDateTime < OldDateTime) then begin
@@ -49,8 +51,12 @@ report 188 "Create Reminders"
                         Customer, CustLedgEntry, ReminderHeaderReq, OverdueEntriesOnly, IncludeEntriesOnHold, CustLedgEntryLineFeeOn, Result, IsHandled, MakeReminder);
                     if IsHandled then
                         Mark(Result)
-                    else
-                        Mark := not MakeReminder.Code();
+                    else begin
+                        NotMakeReminderCode := not MakeReminder.Code();
+                        Mark := NotMakeReminderCode;
+                        if (NotMakeReminderCode = false) then
+                            EmitMakeReminderTelemetry := true
+                    end
                 end;
             end;
 
@@ -184,6 +190,9 @@ report 188 "Create Reminders"
     var
         ReminderLine: Record "Reminder Line";
     begin
+        if EmitMakeReminderTelemetry then
+            MakeReminder.EmitCreateReminderTelemetry();
+
         OnBeforeOnPostReport();
         if FinishDateTime = 0DT then
             FinishDateTime := CurrentDateTime();
@@ -221,6 +230,7 @@ report 188 "Create Reminders"
         NewDateTime: DateTime;
         OldDateTime: DateTime;
         OpenReminderListAfter: Boolean;
+        EmitMakeReminderTelemetry: Boolean;
 
 #pragma warning disable AA0074
 #pragma warning disable AA0470

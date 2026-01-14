@@ -22,22 +22,6 @@ codeunit 132498 PerformanceTest1001
     end;
 
     [Scope('OnPrem')]
-    procedure RunReport120()
-    var
-        customerRecord: Record Customer;
-        AgedAccountsReceivable: Report "Aged Accounts Receivable";
-        parsedDate: Date;
-        periodLength: DateFormula;
-    begin
-        parsedDate := DMY2Date(1, 7, 2005);
-        Evaluate(periodLength, '<1M>');
-        customerRecord.SetFilter("No.", '01445544..01905893');
-        AgedAccountsReceivable.InitializeRequest(parsedDate, 0, periodLength, false, false, 0, false);
-        AgedAccountsReceivable.SetTableView(customerRecord);
-        AgedAccountsReceivable.Run();
-    end;
-
-    [Scope('OnPrem')]
     procedure RunReport116()
     var
         Statement: Report Statement;

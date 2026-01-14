@@ -9,6 +9,15 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Period;
 using System.Utilities;
 
+/// <summary>
+/// Generates closing trial balance for fiscal year-end procedures and audit requirements.
+/// Displays account balances as of fiscal year end with options for additional currency amounts and closing period analysis.
+/// </summary>
+/// <remarks>
+/// Data source: G/L Account table with fiscal year-end date filtering and balance calculations.
+/// Supports additional currency display option and comprehensive dimension filtering.
+/// Used primarily for year-end closing procedures, audit trail documentation, and regulatory reporting requirements.
+/// </remarks>
 report 10 "Closing Trial Balance"
 {
     DefaultLayout = RDLC;
@@ -221,6 +230,12 @@ report 10 "Closing Trial Balance"
         exit('');
     end;
 
+    /// <summary>
+    /// Initializes report parameters for programmatic execution with fiscal year and currency options.
+    /// Sets fiscal year starting date and additional currency display option for automated closing trial balance generation.
+    /// </summary>
+    /// <param name="NewFiscalYearStartDate">Starting date of fiscal year for closing balance calculation</param>
+    /// <param name="NewUseAmtsInAddCurr">Whether to display amounts in additional reporting currency</param>
     procedure InitializeRequest(NewFiscalYearStartDate: Date; NewUseAmtsInAddCurr: Boolean)
     begin
         FiscalYearStartDate := NewFiscalYearStartDate;

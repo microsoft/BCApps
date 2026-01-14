@@ -13,6 +13,15 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 using System.Utilities;
 
+/// <summary>
+/// Generates comprehensive intercompany transaction report showing G/L entries, customer ledger entries, and vendor ledger entries for specified partners and date ranges.
+/// Provides detailed transaction analysis for intercompany reconciliation and financial consolidation processes.
+/// </summary>
+/// <remarks>
+/// Data sources: G/L Entry, Customer Ledger Entry, Vendor Ledger Entry filtered by IC Partner Code.
+/// Shows beginning balances, detailed transactions, and running balances for each partner and account.
+/// Supports date range filtering and partner selection for targeted intercompany analysis.
+/// </remarks>
 report 512 "IC Transactions"
 {
     DefaultLayout = RDLC;

@@ -1,5 +1,6 @@
 namespace System.Security.AccessControl;
 
+using Microsoft;
 using Microsoft.Assembly.Setup;
 using Microsoft.Bank.Payment;
 using Microsoft.Bank.Setup;
@@ -16,13 +17,13 @@ using Microsoft.EServices.EDocument;
 using Microsoft.eServices.OnlineMap;
 using Microsoft.Finance.Analysis;
 using Microsoft.Finance.Dimension;
-using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.FinancialReports;
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
-using Microsoft.Finance.VAT.Setup;
 using Microsoft.Finance.VAT.RateChange;
 using Microsoft.Finance.VAT.Reporting;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Posting;
@@ -58,13 +59,11 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.Pricing;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
-using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Ledger;
+using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Tracking;
-using Microsoft;
-
-using System.Automation;
 using System.AI;
+using System.Automation;
 using System.Device;
 using System.Diagnostics;
 using System.Environment;

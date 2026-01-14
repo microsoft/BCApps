@@ -15,6 +15,15 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Budget;
 using Microsoft.Finance.GeneralLedger.Setup;
 
+/// <summary>
+/// Defines individual line items within account schedules for detailed financial report row configuration.
+/// Contains row-specific settings including totaling formulas, formatting, dimensions, and filter criteria for financial analysis.
+/// </summary>
+/// <remarks>
+/// Core table for account schedule line definitions with support for G/L accounts, cost accounting, cash flow forecasting, and multi-dimensional analysis.
+/// Integrates with Analysis Views, G/L Budget entries, and dimension filtering for comprehensive financial reporting capabilities.
+/// Extensibility: OnBeforeLookupTotaling, OnAfterLookupTotaling, OnBeforeLookUpDimFilter events for custom totaling and filtering logic.
+/// </remarks>
 table 85 "Acc. Schedule Line"
 {
     Caption = 'Acc. Schedule Line';
@@ -22,24 +31,39 @@ table 85 "Acc. Schedule Line"
 
     fields
     {
+        /// <summary>
+        /// Account schedule name linking this line to the parent account schedule definition.
+        /// </summary>
         field(1; "Schedule Name"; Code[10])
         {
             Caption = 'Schedule Name';
             TableRelation = "Acc. Schedule Name";
             ToolTip = 'Specifies the unique name (code) of the financial report row definition. You can use up to 10 characters.';
         }
+        /// <summary>
+        /// Sequential line number for ordering and referencing account schedule lines within the schedule.
+        /// </summary>
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
         }
+        /// <summary>
+        /// Display row number for user identification and reference in financial reports.
+        /// </summary>
         field(3; "Row No."; Code[10])
         {
             Caption = 'Row No.';
         }
+        /// <summary>
+        /// Descriptive text explaining the purpose and content of the account schedule line.
+        /// </summary>
         field(4; Description; Text[100])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// Account numbers, formulas, or expressions used to calculate line values from G/L accounts or other sources.
+        /// </summary>
         field(5; Totaling; Text[250])
         {
             Caption = 'Totaling';
@@ -115,6 +139,9 @@ table 85 "Acc. Schedule Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Type of calculation method for the totaling field (G/L accounts, formulas, cost types, cash flow accounts).
+        /// </summary>
         field(6; "Totaling Type"; Enum "Acc. Schedule Line Totaling Type")
         {
             Caption = 'Totaling Type';
@@ -124,59 +151,92 @@ table 85 "Acc. Schedule Line"
                 Validate(Totaling);
             end;
         }
+        /// <summary>
+        /// Forces page break before this line in printed reports.
+        /// </summary>
         field(7; "New Page"; Boolean)
         {
             Caption = 'New Page';
         }
+        /// <summary>
+        /// Visual indentation level for hierarchical display of account schedule lines.
+        /// </summary>
         field(8; Indentation; Integer)
         {
             Caption = 'Indentation';
         }
+        /// <summary>
+        /// Date filter for limiting G/L entries and budget entries used in calculations.
+        /// </summary>
         field(11; "Date Filter"; Date)
         {
             Caption = 'Date Filter';
             FieldClass = FlowFilter;
         }
+        /// <summary>
+        /// Dimension 1 filter for multi-dimensional analysis and reporting.
+        /// </summary>
         field(12; "Dimension 1 Filter"; Code[20])
         {
             CaptionClass = GetCaptionClass(1);
             Caption = 'Dimension 1 Filter';
             FieldClass = FlowFilter;
         }
+        /// <summary>
+        /// Dimension 2 filter for multi-dimensional analysis and reporting.
+        /// </summary>
         field(13; "Dimension 2 Filter"; Code[20])
         {
             CaptionClass = GetCaptionClass(2);
             Caption = 'Dimension 2 Filter';
             FieldClass = FlowFilter;
         }
+        /// <summary>
+        /// G/L budget name filter for budget comparison and analysis.
+        /// </summary>
         field(14; "G/L Budget Filter"; Code[10])
         {
             Caption = 'G/L Budget Filter';
             FieldClass = FlowFilter;
             TableRelation = "G/L Budget Name";
         }
+        /// <summary>
+        /// Business unit filter for consolidation and multi-company analysis.
+        /// </summary>
         field(15; "Business Unit Filter"; Code[20])
         {
             Caption = 'Business Unit Filter';
             FieldClass = FlowFilter;
             TableRelation = "Business Unit";
         }
+        /// <summary>
+        /// Controls visibility of the line in reports (Yes, No, If Any Column Not Zero, When Positive Balance, When Negative Balance).
+        /// </summary>
         field(16; Show; Enum "Acc. Schedule Line Show")
         {
             Caption = 'Show';
         }
+        /// <summary>
+        /// Dimension 3 filter for extended multi-dimensional analysis and reporting.
+        /// </summary>
         field(17; "Dimension 3 Filter"; Code[20])
         {
             CaptionClass = GetCaptionClass(3);
             Caption = 'Dimension 3 Filter';
             FieldClass = FlowFilter;
         }
+        /// <summary>
+        /// Dimension 4 filter for extended multi-dimensional analysis and reporting.
+        /// </summary>
         field(18; "Dimension 4 Filter"; Code[20])
         {
             CaptionClass = GetCaptionClass(4);
             Caption = 'Dimension 4 Filter';
             FieldClass = FlowFilter;
         }
+        /// <summary>
+        /// Dimension 1 value filter for totaling specific dimension values in calculations.
+        /// </summary>
         field(19; "Dimension 1 Totaling"; Text[250])
         {
             AccessByPermission = TableData Dimension = R;
@@ -185,6 +245,9 @@ table 85 "Acc. Schedule Line"
             //The property 'ValidateTableRelation' can only be set if the property 'TableRelation' is set
             //ValidateTableRelation = false;
         }
+        /// <summary>
+        /// Dimension 2 value filter for totaling specific dimension values in calculations.
+        /// </summary>
         field(20; "Dimension 2 Totaling"; Text[250])
         {
             AccessByPermission = TableData Dimension = R;
@@ -193,6 +256,9 @@ table 85 "Acc. Schedule Line"
             //The property 'ValidateTableRelation' can only be set if the property 'TableRelation' is set
             //ValidateTableRelation = false;
         }
+        /// <summary>
+        /// Dimension 3 value filter for totaling specific dimension values in calculations.
+        /// </summary>
         field(21; "Dimension 3 Totaling"; Text[250])
         {
             AccessByPermission = TableData "Dimension Combination" = R;
@@ -201,6 +267,9 @@ table 85 "Acc. Schedule Line"
             //The property 'ValidateTableRelation' can only be set if the property 'TableRelation' is set
             //ValidateTableRelation = false;
         }
+        /// <summary>
+        /// Dimension 4 value filter for totaling specific dimension values in calculations.
+        /// </summary>
         field(22; "Dimension 4 Totaling"; Text[250])
         {
             AccessByPermission = TableData "Dimension Combination" = R;
@@ -209,14 +278,23 @@ table 85 "Acc. Schedule Line"
             //The property 'ValidateTableRelation' can only be set if the property 'TableRelation' is set
             //ValidateTableRelation = false;
         }
+        /// <summary>
+        /// Applies bold formatting to this line in report output.
+        /// </summary>
         field(23; Bold; Boolean)
         {
             Caption = 'Bold';
         }
+        /// <summary>
+        /// Applies italic formatting to this line in report output.
+        /// </summary>
         field(24; Italic; Boolean)
         {
             Caption = 'Italic';
         }
+        /// <summary>
+        /// Applies underline formatting to this line in report output.
+        /// </summary>
         field(25; Underline; Boolean)
         {
             Caption = 'Underline';
@@ -229,20 +307,32 @@ table 85 "Acc. Schedule Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Displays values with opposite sign (positive as negative, negative as positive).
+        /// </summary>
         field(26; "Show Opposite Sign"; Boolean)
         {
             Caption = 'Show Opposite Sign';
         }
+        /// <summary>
+        /// Type of balance calculation (Net Change, Balance at Date, Beginning Balance).
+        /// </summary>
         field(27; "Row Type"; Option)
         {
             Caption = 'Row Type';
             OptionCaption = 'Net Change,Balance at Date,Beginning Balance';
             OptionMembers = "Net Change","Balance at Date","Beginning Balance";
         }
+        /// <summary>
+        /// Amount type for calculations (Net Amount, Debit Amount, Credit Amount).
+        /// </summary>
         field(28; "Amount Type"; Enum "Account Schedule Amount Type")
         {
             Caption = 'Amount Type';
         }
+        /// <summary>
+        /// Applies double underline formatting to this line in report output.
+        /// </summary>
         field(30; "Double Underline"; Boolean)
         {
             Caption = 'Double Underline';
@@ -255,6 +345,9 @@ table 85 "Acc. Schedule Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Hides currency symbol in amount display for formula-based calculations.
+        /// </summary>
         field(40; "Hide Currency Symbol"; Boolean)
         {
             Caption = 'Hide Currency Symbol';
@@ -285,36 +378,54 @@ table 85 "Acc. Schedule Line"
             Caption = 'Dimension 8 Filter';
             FieldClass = FlowFilter;
         }
+        /// <summary>
+        /// Cash flow forecast filter for cash flow-based calculations and analysis.
+        /// </summary>
         field(840; "Cash Flow Forecast Filter"; Code[20])
         {
             Caption = 'Cash Flow Forecast Filter';
             FieldClass = FlowFilter;
             TableRelation = "Cash Flow Forecast";
         }
+        /// <summary>
+        /// Cost center filter for cost accounting calculations and analysis.
+        /// </summary>
         field(1100; "Cost Center Filter"; Code[20])
         {
             Caption = 'Cost Center Filter';
             FieldClass = FlowFilter;
             TableRelation = "Cost Center";
         }
+        /// <summary>
+        /// Cost object filter for cost accounting calculations and analysis.
+        /// </summary>
         field(1101; "Cost Object Filter"; Code[20])
         {
             Caption = 'Cost Object Filter';
             FieldClass = FlowFilter;
             TableRelation = "Cost Object";
         }
+        /// <summary>
+        /// Cost center totaling filter for aggregating specific cost centers in calculations.
+        /// </summary>
         field(1102; "Cost Center Totaling"; Text[80])
         {
             Caption = 'Cost Center Totaling';
             //The property 'ValidateTableRelation' can only be set if the property 'TableRelation' is set
             //ValidateTableRelation = false;
         }
+        /// <summary>
+        /// Cost object totaling filter for aggregating specific cost objects in calculations.
+        /// </summary>
         field(1103; "Cost Object Totaling"; Text[80])
         {
             Caption = 'Cost Object Totaling';
             //The property 'ValidateTableRelation' can only be set if the property 'TableRelation' is set
             //ValidateTableRelation = false;
         }
+        /// <summary>
+        /// Cost budget filter for cost accounting budget analysis and comparison.
+        /// </summary>
         field(1104; "Cost Budget Filter"; Code[10])
         {
             Caption = 'Cost Budget Filter';
@@ -380,6 +491,13 @@ table 85 "Acc. Schedule Line"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 
+    /// <summary>
+    /// Opens dimension value lookup dialog for the specified dimension number and returns selected filter values.
+    /// Enables interactive dimension value selection for dimension-based filtering in account schedule calculations.
+    /// </summary>
+    /// <param name="DimNo">Dimension number (1-4) to look up values for</param>
+    /// <param name="Text">Filter text containing selected dimension values</param>
+    /// <returns>True if user selected dimension values, false if cancelled</returns>
     procedure LookUpDimFilter(DimNo: Integer; var Text: Text) Result: Boolean
     var
         DimVal: Record "Dimension Value";
@@ -414,6 +532,11 @@ table 85 "Acc. Schedule Line"
         exit(false)
     end;
 
+    /// <summary>
+    /// Validates formula syntax for proper parentheses matching and operator placement in account schedule formulas.
+    /// Ensures formulas are syntactically correct before use in financial calculations.
+    /// </summary>
+    /// <param name="Formula">Formula expression to validate for syntax correctness</param>
     procedure CheckFormula(Formula: Code[250])
     var
         i: Integer;
@@ -452,6 +575,12 @@ table 85 "Acc. Schedule Line"
         OnAfterCheckFormula(Formula);
     end;
 
+    /// <summary>
+    /// Generates caption class text for dimension fields based on analysis view configuration.
+    /// Provides dynamic field captions that reflect the actual dimension codes configured in the analysis view.
+    /// </summary>
+    /// <param name="AnalysisViewDimType">Dimension type number (1-8) for caption class generation</param>
+    /// <returns>Caption class text for dimension field display</returns>
     procedure GetCaptionClass(AnalysisViewDimType: Integer) Result: Text[250]
     var
         IsHandled: Boolean;
@@ -551,6 +680,10 @@ table 85 "Acc. Schedule Line"
         OnAfterGetAccSchedSetup(AnalysisView, AccSchedName);
     end;
 
+    /// <summary>
+    /// Opens appropriate lookup dialog based on totaling type for selecting accounts, cost types, or cash flow accounts.
+    /// Provides user-friendly selection interface for building totaling expressions in account schedule lines.
+    /// </summary>
     procedure LookupTotaling()
     var
         GLAccList: Page "G/L Account List";
@@ -597,6 +730,12 @@ table 85 "Acc. Schedule Line"
         OnAfterLookupTotaling(Rec);
     end;
 
+    /// <summary>
+    /// Opens G/L budget name lookup dialog and returns selected budget names as filter text.
+    /// Enables interactive selection of G/L budgets for budget-based financial analysis.
+    /// </summary>
+    /// <param name="Text">Filter text containing selected G/L budget names</param>
+    /// <returns>True if user selected budget names, false if cancelled</returns>
     procedure LookupGLBudgetFilter(var Text: Text): Boolean
     var
         GLBudgetNames: Page "G/L Budget Names";
@@ -609,6 +748,12 @@ table 85 "Acc. Schedule Line"
         exit(false)
     end;
 
+    /// <summary>
+    /// Opens cost budget name lookup dialog and returns selected budget names as filter text.
+    /// Enables interactive selection of cost budgets for cost accounting-based financial analysis.
+    /// </summary>
+    /// <param name="Text">Filter text containing selected cost budget names</param>
+    /// <returns>True if user selected budget names, false if cancelled</returns>
     procedure LookupCostBudgetFilter(var Text: Text): Boolean
     var
         CostBudgetNames: Page "Cost Budget Names";
@@ -621,43 +766,92 @@ table 85 "Acc. Schedule Line"
         exit(false)
     end;
 
+    /// <summary>
+    /// Increases indentation level for hierarchical display of account schedule line.
+    /// Maximum indentation level is 10.
+    /// </summary>
     procedure Indent()
     begin
         if Indentation < 10 then
             Indentation += 1;
     end;
 
+    /// <summary>
+    /// Decreases indentation level for hierarchical display of account schedule line.
+    /// Minimum indentation level is 0.
+    /// </summary>
     procedure Outdent()
     begin
         if Indentation > 0 then
             Indentation -= 1;
     end;
 
+    /// <summary>
+    /// Integration event raised after formula validation to enable custom formula processing and validation logic.
+    /// Allows extensions to modify or validate formulas beyond standard syntax checking.
+    /// </summary>
+    /// <param name="Formula">Formula expression that has been validated and may be modified</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckFormula(var Formula: Code[250])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after totaling lookup to enable custom post-processing of selected totaling values.
+    /// Allows extensions to modify totaling expressions or perform additional validation after user selection.
+    /// </summary>
+    /// <param name="AccScheduleLine">Account schedule line record that was updated with totaling information</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterLookupTotaling(var AccScheduleLine: Record "Acc. Schedule Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after account schedule setup retrieval to enable custom analysis view configuration.
+    /// Allows extensions to modify analysis view settings or dimension codes for custom reporting requirements.
+    /// </summary>
+    /// <param name="AnalysisView">Analysis view record that may be modified for custom configuration</param>
+    /// <param name="AccScheduleName">Account schedule name record providing context for analysis view setup</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetAccSchedSetup(var AnalysisView: Record "Analysis View"; AccScheduleName: Record "Acc. Schedule Name")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before caption class generation to enable custom dimension caption handling.
+    /// Allows extensions to provide custom caption class formatting for dimension fields.
+    /// </summary>
+    /// <param name="AccScheduleLine">Account schedule line record for context</param>
+    /// <param name="AccSchedName">Account schedule name record providing analysis view context</param>
+    /// <param name="AnalysisViewDimType">Dimension type number (1-4) for caption class generation</param>
+    /// <param name="Result">Caption class result text that may be modified</param>
+    /// <param name="IsHandled">Set to true to skip standard caption class generation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetCaptionClass(var AccScheduleLine: Record "Acc. Schedule Line"; AccSchedName: Record "Acc. Schedule Name"; AnalysisViewDimType: Integer; var Result: Text[250]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before totaling lookup to enable custom totaling selection logic.
+    /// Allows extensions to provide alternative totaling lookup mechanisms or skip standard lookup.
+    /// </summary>
+    /// <param name="AccScheduleLine">Account schedule line record for context</param>
+    /// <param name="IsHandled">Set to true to skip standard totaling lookup processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupTotaling(var AccScheduleLine: Record "Acc. Schedule Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before dimension filter lookup to enable custom dimension filtering logic.
+    /// Allows extensions to provide alternative dimension value selection mechanisms or skip standard lookup.
+    /// </summary>
+    /// <param name="AccScheduleLine">Account schedule line record for context</param>
+    /// <param name="DimNo">Dimension number (1-4) being looked up</param>
+    /// <param name="Text">Dimension filter text that may be modified</param>
+    /// <param name="AccSchedName">Account schedule name record providing analysis view context</param>
+    /// <param name="Result">Lookup result that may be set by extension</param>
+    /// <param name="IsHandled">Set to true to skip standard dimension filter lookup processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookUpDimFilter(var AccScheduleLine: Record "Acc. Schedule Line"; DimNo: Integer; var Text: Text; AccSchedName: Record "Acc. Schedule Name"; var Result: Boolean; var IsHandled: Boolean)
     begin

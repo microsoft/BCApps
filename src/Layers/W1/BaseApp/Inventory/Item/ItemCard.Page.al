@@ -111,7 +111,7 @@ page 30 "Item Card"
                 }
                 field("Base Unit of Measure"; Rec."Base Unit of Measure")
                 {
-                    ApplicationArea = Invoicing, Basic, Suite;
+                    ApplicationArea = Basic, Suite;
                     Importance = Promoted;
                     ShowMandatory = true;
                     ToolTip = 'Specifies the base unit used to measure the item, such as piece, box, or pallet. The base unit of measure also serves as the conversion basis for alternate units of measure.';
@@ -577,7 +577,7 @@ page 30 "Item Card"
 
                 field("Unit Price"; Rec."Unit Price")
                 {
-                    ApplicationArea = Invoicing, Basic, Suite;
+                    ApplicationArea = Basic, Suite;
                     Editable = PriceEditable;
                     Importance = Promoted;
                     ToolTip = 'Specifies the price of one unit of the item or resource. You can enter a price manually or have it entered according to the Price/Profit Calculation field on the related card.';
@@ -1057,19 +1057,6 @@ page 30 "Item Card"
                 Caption = 'Picture';
                 SubPageLink = "No." = field("No.");
             }
-#if not CLEAN25
-            part("Attached Documents"; "Document Attachment Factbox")
-            {
-                ObsoleteTag = '25.0';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The "Document Attachment FactBox" has been replaced by "Doc. Attachment List Factbox", which supports multiple files upload.';
-                ApplicationArea = All;
-                Visible = false;
-                Caption = 'Attachments';
-                SubPageLink = "Table ID" = const(Database::Item),
-                              "No." = field("No.");
-            }
-#endif
             part("Attached Documents List"; "Doc. Attachment List Factbox")
             {
                 ApplicationArea = All;
@@ -1544,6 +1531,20 @@ page 30 "Item Card"
                         AdjustInventory.RunModal();
                     end;
                 }
+                action("Update Variant Attributes")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Update Variant Attributes';
+                    Image = Refresh;
+                    ToolTip = 'Keep your item variants up to date with the item. It adds any missing details, updates changes, and removes info that''s no longer needed. Variant-specific details stay as they are';
+
+                    trigger OnAction()
+                    var
+                        ItemAttributeManagement: Codeunit "Item Attribute Management";
+                    begin
+                        ItemAttributeManagement.UpdateItemVariantAttributeFromItem(Rec."No.");
+                    end;
+                }
             }
             action("Requisition Worksheet")
             {
@@ -1960,13 +1961,7 @@ page 30 "Item Card"
                     Caption = 'Item Statistics';
                     Image = Statistics;
                     RunObject = Page "Item Statistics 2";
-                    RunPageLink = "No." = field("No."),
-                                      "Date Filter" = field("Date Filter"),
-                                      "Global Dimension 1 Filter" = field("Global Dimension 1 Filter"),
-                                      "Global Dimension 2 Filter" = field("Global Dimension 2 Filter"),
-                                      "Location Filter" = field("Location Filter"),
-                                      "Drop Shipment Filter" = field("Drop Shipment Filter"),
-                                      "Variant Filter" = field("Variant Filter");
+                    RunPageLink = "Item No." = field("No.");
                     ToolTip = 'View item statistics. Summarised sales, inventory value, turnover and aging based on the selected filters, with drill-down to related ledger and value entries.';
                 }
                 action(Statistics)
@@ -2340,6 +2335,9 @@ page 30 "Item Card"
                 {
                 }
                 actionref(ApplyTemplate_Promoted; ApplyTemplate)
+                {
+                }
+                actionref("Update Variant Attributes_Promoted"; "Update Variant Attributes")
                 {
                 }
             }

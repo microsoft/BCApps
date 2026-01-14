@@ -8,13 +8,17 @@ using Microsoft.CRM.Contact;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Vendor;
-using System.Environment;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 using System;
+using System.Environment;
 using System.Reflection;
 using System.Xml;
 
+/// <summary>
+/// Manages VAT registration number validation logging and VIES service integration.
+/// Provides comprehensive validation tracking and external service communication for EU VAT verification.
+/// </summary>
 codeunit 249 "VAT Registration Log Mgt."
 {
     Permissions = TableData "VAT Registration Log" = rimd;
@@ -49,6 +53,10 @@ codeunit 249 "VAT Registration Log Mgt."
         DetailsNotVerifiedMsg: Label 'The specified VAT registration number is valid.\The VAT VIES validation service did not provide additional details.';
         DetailsIgnoredMsg: Label 'The specified VAT registration number is valid.\The current configuration of the VAT VIES validation service excludes additional details.';
 
+    /// <summary>
+    /// Creates VAT registration log entry for customer and initiates validation if service is enabled.
+    /// </summary>
+    /// <param name="Customer">Customer record containing VAT registration number for validation</param>
     procedure LogCustomer(Customer: Record Customer)
     var
         VATRegistrationLog: Record "VAT Registration Log";
@@ -62,6 +70,10 @@ codeunit 249 "VAT Registration Log Mgt."
           Customer."VAT Registration No.", CountryCode, VATRegistrationLog."Account Type"::Customer, Customer."No.");
     end;
 
+    /// <summary>
+    /// Creates VAT registration log entry for vendor and initiates validation if service is enabled.
+    /// </summary>
+    /// <param name="Vendor">Vendor record containing VAT registration number for validation</param>
     procedure LogVendor(Vendor: Record Vendor)
     var
         VATRegistrationLog: Record "VAT Registration Log";
@@ -75,6 +87,10 @@ codeunit 249 "VAT Registration Log Mgt."
           Vendor."VAT Registration No.", CountryCode, VATRegistrationLog."Account Type"::Vendor, Vendor."No.");
     end;
 
+    /// <summary>
+    /// Creates VAT registration log entry for contact and initiates validation if service is enabled.
+    /// </summary>
+    /// <param name="Contact">Contact record containing VAT registration number for validation</param>
     procedure LogContact(Contact: Record Contact)
     var
         VATRegistrationLog: Record "VAT Registration Log";
@@ -214,6 +230,10 @@ codeunit 249 "VAT Registration Log Mgt."
         OnAfterInsertVATRegistrationLog(VATRegistrationLog);
     end;
 
+    /// <summary>
+    /// Deletes all VAT registration log entries associated with the specified customer.
+    /// </summary>
+    /// <param name="Customer">Customer record for which to delete VAT registration logs</param>
     procedure DeleteCustomerLog(Customer: Record Customer)
     var
         VATRegistrationLog: Record "VAT Registration Log";
@@ -224,6 +244,10 @@ codeunit 249 "VAT Registration Log Mgt."
             VATRegistrationLog.DeleteAll();
     end;
 
+    /// <summary>
+    /// Deletes all VAT registration log entries associated with the specified vendor.
+    /// </summary>
+    /// <param name="Vendor">Vendor record for which to delete VAT registration logs</param>
     procedure DeleteVendorLog(Vendor: Record Vendor)
     var
         VATRegistrationLog: Record "VAT Registration Log";
@@ -234,6 +258,10 @@ codeunit 249 "VAT Registration Log Mgt."
             VATRegistrationLog.DeleteAll();
     end;
 
+    /// <summary>
+    /// Deletes all VAT registration log entries associated with the specified contact.
+    /// </summary>
+    /// <param name="Contact">Contact record for which to delete VAT registration logs</param>
     procedure DeleteContactLog(Contact: Record Contact)
     var
         VATRegistrationLog: Record "VAT Registration Log";
@@ -244,6 +272,10 @@ codeunit 249 "VAT Registration Log Mgt."
             VATRegistrationLog.DeleteAll();
     end;
 
+    /// <summary>
+    /// Opens VAT registration log page for customer with validation and logging capabilities.
+    /// </summary>
+    /// <param name="Customer">Customer record for VAT registration management</param>
     procedure AssistEditCustomerVATReg(Customer: Record Customer)
     var
         VATRegistrationLog: Record "VAT Registration Log";
@@ -254,6 +286,10 @@ codeunit 249 "VAT Registration Log Mgt."
         Page.RunModal(Page::"VAT Registration Log", VATRegistrationLog);
     end;
 
+    /// <summary>
+    /// Validates that customer has country/region code set when VAT registration service is enabled.
+    /// </summary>
+    /// <param name="Customer">Customer record to validate for country/region code requirement</param>
     procedure CheckIfCountryCodeIsSet(Customer: Record Customer)
     var
         VATRegNoSrvConfig: Record "VAT Reg. No. Srv Config";
@@ -270,6 +306,10 @@ codeunit 249 "VAT Registration Log Mgt."
         end;
     end;
 
+    /// <summary>
+    /// Opens VAT registration log page for vendor with validation and logging capabilities.
+    /// </summary>
+    /// <param name="Vendor">Vendor record for VAT registration management</param>
     procedure AssistEditVendorVATReg(Vendor: Record Vendor)
     var
         VATRegistrationLog: Record "VAT Registration Log";
@@ -279,6 +319,10 @@ codeunit 249 "VAT Registration Log Mgt."
         Page.RunModal(Page::"VAT Registration Log", VATRegistrationLog);
     end;
 
+    /// <summary>
+    /// Opens VAT registration log page for contact with validation and logging capabilities.
+    /// </summary>
+    /// <param name="Contact">Contact record for VAT registration management</param>
     procedure AssistEditContactVATReg(Contact: Record Contact)
     var
         VATRegistrationLog: Record "VAT Registration Log";
@@ -288,6 +332,9 @@ codeunit 249 "VAT Registration Log Mgt."
         Page.RunModal(Page::"VAT Registration Log", VATRegistrationLog);
     end;
 
+    /// <summary>
+    /// Opens VAT registration log page for company information with validation and logging capabilities.
+    /// </summary>
     procedure AssistEditCompanyInfoVATReg()
     var
         VATRegistrationLog: Record "VAT Registration Log";
@@ -340,6 +387,15 @@ codeunit 249 "VAT Registration Log Mgt."
         exit(FoundXmlNode.InnerText);
     end;
 
+    /// <summary>
+    /// Validates VAT registration number against VIES service for EU countries.
+    /// </summary>
+    /// <param name="RecordRef">Record reference containing VAT registration number</param>
+    /// <param name="VATRegistrationLog">VAT registration log entry for validation results</param>
+    /// <param name="RecordVariant">Record variant for validation</param>
+    /// <param name="EntryNo">Entry number identifier</param>
+    /// <param name="CountryCode">Country/region code for validation</param>
+    /// <param name="AccountType">Account type for validation logging</param>
     procedure CheckVIESForVATNo(var RecordRef: RecordRef; var VATRegistrationLog: Record "VAT Registration Log"; RecordVariant: Variant; EntryNo: Code[20]; CountryCode: Code[10]; AccountType: Option)
     var
         DummyCustomer: Record Customer;
@@ -348,6 +404,16 @@ codeunit 249 "VAT Registration Log Mgt."
             RecordRef, VATRegistrationLog, RecordVariant, EntryNo, CountryCode, AccountType, DummyCustomer.FieldName("VAT Registration No."));
     end;
 
+    /// <summary>
+    /// Validates VAT registration number against VIES service for EU countries with custom field name.
+    /// </summary>
+    /// <param name="RecordRef">Record reference containing VAT registration number</param>
+    /// <param name="VATRegistrationLog">VAT registration log entry for validation results</param>
+    /// <param name="RecordVariant">Record variant for validation</param>
+    /// <param name="EntryNo">Entry number identifier</param>
+    /// <param name="CountryCode">Country/region code for validation</param>
+    /// <param name="AccountType">Account type for validation logging</param>
+    /// <param name="VATNoFieldName">Name of VAT registration number field to validate</param>
     procedure CheckVIESForVATNoField(var RecordRef: RecordRef; var VATRegistrationLog: Record "VAT Registration Log"; RecordVariant: Variant; EntryNo: Code[20]; CountryCode: Code[10]; AccountType: Option; VATNoFieldName: Text)
     var
         VATRegNoSrvConfig: Record "VAT Reg. No. Srv Config";
@@ -382,6 +448,12 @@ codeunit 249 "VAT Registration Log Mgt."
         end;
     end;
 
+    /// <summary>
+    /// Updates business entity record with validated VAT registration information from VIES response.
+    /// </summary>
+    /// <param name="RecordRef">Record reference to update with validated data</param>
+    /// <param name="RecordVariant">Record variant for validation</param>
+    /// <param name="VATRegistrationLog">VAT registration log containing validation results</param>
     procedure UpdateRecordFromVATRegLog(var RecordRef: RecordRef; RecordVariant: Variant; VATRegistrationLog: Record "VAT Registration Log")
     var
         IsHandled: Boolean;
@@ -417,6 +489,9 @@ codeunit 249 "VAT Registration Log Mgt."
         end;
     end;
 
+    /// <summary>
+    /// Initializes VAT registration number service configuration with default settings.
+    /// </summary>
     procedure InitServiceSetup()
     var
         VATRegNoSrvConfig: Record "VAT Reg. No. Srv Config";
@@ -430,6 +505,9 @@ codeunit 249 "VAT Registration Log Mgt."
         end;
     end;
 
+    /// <summary>
+    /// Opens configuration page for VAT registration number service setup.
+    /// </summary>
     procedure SetupService()
     var
         VATRegNoSrvConfig: Record "VAT Reg. No. Srv Config";
@@ -439,6 +517,9 @@ codeunit 249 "VAT Registration Log Mgt."
         InitServiceSetup();
     end;
 
+    /// <summary>
+    /// Enables VAT registration number validation service if not already configured.
+    /// </summary>
     procedure EnableService()
     var
         VATRegNoSrvConfig: Record "VAT Reg. No. Srv Config";
@@ -452,6 +533,14 @@ codeunit 249 "VAT Registration Log Mgt."
         VATRegNoSrvConfig.Modify();
     end;
 
+    /// <summary>
+    /// Validates VAT registration number with VIES service and displays validation results.
+    /// </summary>
+    /// <param name="RecordRef">Record reference containing VAT registration number</param>
+    /// <param name="RecordVariant">Record variant for validation</param>
+    /// <param name="EntryNo">Entry number identifier</param>
+    /// <param name="AccountType">Account type for validation logging</param>
+    /// <param name="CountryCode">Country/region code for validation</param>
     procedure ValidateVATRegNoWithVIES(var RecordRef: RecordRef; RecordVariant: Variant; EntryNo: Code[20]; AccountType: Option; CountryCode: Code[10])
     var
         VATRegistrationLog: Record "VAT Registration Log";
@@ -468,11 +557,19 @@ codeunit 249 "VAT Registration Log Mgt."
             UpdateRecordFromVATRegLog(RecordRef, RecordVariant, VATRegistrationLog);
     end;
 
+    /// <summary>
+    /// Returns URL for VAT registration service disclaimer information.
+    /// </summary>
+    /// <returns>Disclaimer URL for VIES service terms and conditions</returns>
     procedure GetServiceDisclaimerUR(): Text
     begin
         exit(VATSrvDisclaimerUrlTok);
     end;
 
+    /// <summary>
+    /// Registers VIES VAT registration service connection for service management.
+    /// </summary>
+    /// <param name="ServiceConnection">Service connection record for registration</param>
     [EventSubscriber(ObjectType::Table, Database::"Service Connection", 'OnRegisterServiceConnection', '', false, false)]
     procedure HandleViesRegisterServiceConnection(var ServiceConnection: Record "Service Connection")
     var
@@ -497,46 +594,100 @@ codeunit 249 "VAT Registration Log Mgt."
         exit(ClientTypeManagement.GetCurrentClientType() in [ClientType::Api, ClientType::SOAP, ClientType::OData, ClientType::ODataV4])
     end;
 
+    /// <summary>
+    /// Integration event raised after creating VAT registration log entry.
+    /// </summary>
+    /// <param name="VATRegistrationLog">VAT registration log entry that was created</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertVATRegistrationLog(var VATRegistrationLog: Record "VAT Registration Log")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before opening VAT registration log page for contact.
+    /// </summary>
+    /// <param name="VATRegistrationLog">VAT registration log entry for display</param>
+    /// <param name="Contact">Contact record being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnAssistEditContactVATRegOnBeforeRunPageVATRegistrationLog(var VATRegistrationLog: Record "VAT Registration Log"; Contact: Record Contact)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before opening VAT registration log page for customer.
+    /// </summary>
+    /// <param name="VATRegistrationLog">VAT registration log entry for display</param>
+    /// <param name="Customer">Customer record being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnAssistEditCustomerVATRegOnBeforeRunPageVATRegistrationLog(var VATRegistrationLog: Record "VAT Registration Log"; Customer: Record Customer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before displaying VAT registration log page for vendor VAT assist edit operations.
+    /// </summary>
+    /// <param name="VATRegistrationLog">VAT registration log record being processed</param>
+    /// <param name="Vendor">Vendor record being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnAssistEditVendorVATRegOnBeforeRunPageVATRegistrationLog(var VATRegistrationLog: Record "VAT Registration Log"; Vendor: Record Vendor)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating a record with validated data from VAT registration log.
+    /// </summary>
+    /// <param name="RecordRef">Record reference being updated</param>
+    /// <param name="RecordVariant">Record variant containing the source data</param>
+    /// <param name="VATRegistrationLog">VAT registration log with validation results</param>
+    /// <param name="IsHandled">Set to true to skip standard record update processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateRecordFromVATRegLog(var RecordRef: RecordRef; RecordVariant: Variant; VATRegistrationLog: Record "VAT Registration Log"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking VIES validation for a VAT number field to allow custom field identification.
+    /// </summary>
+    /// <param name="RecordRef">Record reference containing the VAT number field</param>
+    /// <param name="VATRegistrationLog">VAT registration log for the validation</param>
+    /// <param name="RecordVariant">Record variant containing the source data</param>
+    /// <param name="EntryNo">Entry number for the validation</param>
+    /// <param name="CountryCode">Country code for the validation</param>
+    /// <param name="AccountType">Account type being validated</param>
+    /// <param name="VATNoFieldName">Name of the VAT number field to validate</param>
+    /// <param name="IsHandled">Set to true to skip standard field checking</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckVIESForVATNoField(var RecordRef: RecordRef; var VATRegistrationLog: Record "VAT Registration Log"; RecordVariant: Variant; EntryNo: Code[20]; CountryCode: Code[10]; AccountType: Option; var VATNoFieldName: Text; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting a valid VAT registration log verification entry.
+    /// </summary>
+    /// <param name="VatRegistrationLog">VAT registration log entry being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertValidLogVerification(var VatRegistrationLog: Record "VAT Registration Log")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting an invalid VAT registration log verification entry.
+    /// </summary>
+    /// <param name="VatRegistrationLog">VAT registration log entry being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertInvalidLogVerification(var VatRegistrationLog: Record "VAT Registration Log")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating VAT registration number with VIES service to allow custom validation logic.
+    /// </summary>
+    /// <param name="RecordRef">Record reference containing the VAT number to validate</param>
+    /// <param name="RecordVariant">Record variant containing the source data</param>
+    /// <param name="EntryNo">Entry number for the validation</param>
+    /// <param name="CountryCode">Country code for the validation</param>
+    /// <param name="AccountType">Account type being validated</param>
+    /// <param name="IsHandled">Set to true to skip standard VIES validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateVATRegNoWithVIES(var RecordRef: RecordRef; RecordVariant: Variant; EntryNo: Code[20]; CountryCode: Code[10]; AccountType: Option; var IsHandled: Boolean)
     begin

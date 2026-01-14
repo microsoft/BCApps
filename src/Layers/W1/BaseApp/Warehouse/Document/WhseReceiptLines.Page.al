@@ -174,8 +174,10 @@ page 7342 "Whse. Receipt Lines"
                     trigger OnAction()
                     var
                         WhseRcptHeader: Record "Warehouse Receipt Header";
+                        WMSManagement: Codeunit "WMS Management";
                     begin
                         WhseRcptHeader.Get(Rec."No.");
+                        WMSManagement.CheckUserIsWhseEmployeeForLocation(WhseRcptHeader."Location Code", false);
                         PAGE.Run(PAGE::"Warehouse Receipt", WhseRcptHeader);
                     end;
                 }

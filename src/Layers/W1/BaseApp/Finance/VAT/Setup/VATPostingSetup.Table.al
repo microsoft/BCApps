@@ -14,6 +14,15 @@ using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Foundation.Enums;
 
+/// <summary>
+/// Defines VAT calculation rules and G/L account mappings for specific combinations of VAT business and product posting groups.
+/// Core table controlling VAT processing, account assignments, and calculation methods for all VAT transactions.
+/// </summary>
+/// <remarks>
+/// Key functionality: VAT percentage calculation, G/L account mapping, unrealized VAT handling, reverse charge processing.
+/// Integration points: General Ledger, VAT Ledger Entries, Sales/Purchase documents, VAT reporting.
+/// Extensibility: VAT posting setup validation events and custom calculation method hooks.
+/// </remarks>
 table 325 "VAT Posting Setup"
 {
     Caption = 'VAT Posting Setup';
@@ -23,16 +32,25 @@ table 325 "VAT Posting Setup"
 
     fields
     {
+        /// <summary>
+        /// VAT business posting group code identifying the customer/vendor VAT category.
+        /// </summary>
         field(1; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
             TableRelation = "VAT Business Posting Group";
         }
+        /// <summary>
+        /// VAT product posting group code identifying the item/service VAT category.
+        /// </summary>
         field(2; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
             TableRelation = "VAT Product Posting Group";
         }
+        /// <summary>
+        /// VAT calculation method determining how VAT amounts are computed for this posting group combination.
+        /// </summary>
         field(3; "VAT Calculation Type"; Enum "Tax Calculation Type")
         {
             Caption = 'VAT Calculation Type';
@@ -42,6 +60,9 @@ table 325 "VAT Posting Setup"
                 FailIfVATPostingSetupHasVATEntries();
             end;
         }
+        /// <summary>
+        /// VAT percentage rate used for standard VAT calculations when VAT Calculation Type is Normal VAT.
+        /// </summary>
         field(4; "VAT %"; Decimal)
         {
             AutoFormatType = 0;
@@ -56,6 +77,9 @@ table 325 "VAT Posting Setup"
                 CheckVATIdentifier();
             end;
         }
+        /// <summary>
+        /// Unrealized VAT handling method controlling when VAT is realized for accounting purposes.
+        /// </summary>
         field(5; "Unrealized VAT Type"; Option)
         {
             Caption = 'Unrealized VAT Type';
@@ -74,6 +98,9 @@ table 325 "VAT Posting Setup"
                 end;
             end;
         }
+        /// <summary>
+        /// Controls whether VAT amounts are adjusted when payment discounts are applied to invoices.
+        /// </summary>
         field(6; "Adjust for Payment Discount"; Boolean)
         {
             Caption = 'Adjust for Payment Discount';
@@ -88,6 +115,9 @@ table 325 "VAT Posting Setup"
                 end;
             end;
         }
+        /// <summary>
+        /// G/L account for posting sales VAT amounts when VAT is realized.
+        /// </summary>
         field(7; "Sales VAT Account"; Code[20])
         {
             Caption = 'Sales VAT Account';
@@ -100,6 +130,9 @@ table 325 "VAT Posting Setup"
                 CheckGLAcc("Sales VAT Account");
             end;
         }
+        /// <summary>
+        /// G/L account for posting unrealized sales VAT amounts before payment is received.
+        /// </summary>
         field(8; "Sales VAT Unreal. Account"; Code[20])
         {
             Caption = 'Sales VAT Unreal. Account';
@@ -112,6 +145,9 @@ table 325 "VAT Posting Setup"
                 CheckGLAcc("Sales VAT Unreal. Account");
             end;
         }
+        /// <summary>
+        /// G/L account for posting purchase VAT amounts when VAT is realized.
+        /// </summary>
         field(9; "Purchase VAT Account"; Code[20])
         {
             Caption = 'Purchase VAT Account';
@@ -124,6 +160,9 @@ table 325 "VAT Posting Setup"
                 CheckGLAcc("Purchase VAT Account");
             end;
         }
+        /// <summary>
+        /// G/L account for posting unrealized purchase VAT amounts before payment is made.
+        /// </summary>
         field(10; "Purch. VAT Unreal. Account"; Code[20])
         {
             Caption = 'Purch. VAT Unreal. Account';
@@ -136,6 +175,9 @@ table 325 "VAT Posting Setup"
                 CheckGLAcc("Purch. VAT Unreal. Account");
             end;
         }
+        /// <summary>
+        /// G/L account for posting reverse charge VAT amounts for EU and domestic transactions.
+        /// </summary>
         field(11; "Reverse Chrg. VAT Acc."; Code[20])
         {
             Caption = 'Reverse Chrg. VAT Acc.';
@@ -148,6 +190,9 @@ table 325 "VAT Posting Setup"
                 CheckGLAcc("Reverse Chrg. VAT Acc.");
             end;
         }
+        /// <summary>
+        /// G/L account for posting unrealized reverse charge VAT amounts before payment is made.
+        /// </summary>
         field(12; "Reverse Chrg. VAT Unreal. Acc."; Code[20])
         {
             Caption = 'Reverse Chrg. VAT Unreal. Acc.';
@@ -160,6 +205,9 @@ table 325 "VAT Posting Setup"
                 CheckGLAcc("Reverse Chrg. VAT Unreal. Acc.");
             end;
         }
+        /// <summary>
+        /// Unique identifier used for VAT reporting and grouping VAT posting setups with identical VAT characteristics.
+        /// </summary>
         field(13; "VAT Identifier"; Code[20])
         {
             Caption = 'VAT Identifier';
@@ -170,41 +218,68 @@ table 325 "VAT Posting Setup"
                 NonDeductibleVAT.CheckVATPostingSetupChangeIsAllowed(Rec);
             end;
         }
+        /// <summary>
+        /// Indicates whether this setup applies to EU services requiring special VAT handling.
+        /// </summary>
         field(14; "EU Service"; Boolean)
         {
             Caption = 'EU Service';
         }
+        /// <summary>
+        /// VAT clause code for additional VAT terms and conditions displayed on documents.
+        /// </summary>
         field(15; "VAT Clause Code"; Code[20])
         {
             Caption = 'VAT Clause Code';
             TableRelation = "VAT Clause";
         }
+        /// <summary>
+        /// Indicates whether a Certificate of Supply is required for this VAT posting setup combination.
+        /// </summary>
         field(16; "Certificate of Supply Required"; Boolean)
         {
             Caption = 'Certificate of Supply Required';
         }
+        /// <summary>
+        /// Tax category code used for electronic document transmission and VAT reporting purposes.
+        /// </summary>
         field(17; "Tax Category"; Code[10])
         {
             Caption = 'Tax Category';
         }
+        /// <summary>
+        /// Descriptive text explaining the purpose and usage of this VAT posting setup combination.
+        /// </summary>
         field(20; Description; Text[100])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// Prevents the use of this VAT posting setup in new transactions when enabled.
+        /// </summary>
         field(21; Blocked; Boolean)
         {
             Caption = 'Blocked';
         }
+        /// <summary>
+        /// VAT reporting code used for sales VAT return and statistical reporting purposes.
+        /// </summary>
         field(25; "Sale VAT Reporting Code"; Code[20])
         {
             Caption = 'Sale VAT Reporting Code';
             TableRelation = "VAT Reporting Code";
         }
+        /// <summary>
+        /// VAT reporting code used for purchase VAT return and statistical reporting purposes.
+        /// </summary>
         field(26; "Purch. VAT Reporting Code"; Code[20])
         {
             Caption = 'Purchase VAT Reporting Code';
             TableRelation = "VAT Reporting Code";
         }
+        /// <summary>
+        /// Percentage of VAT amount that cannot be deducted and must be added to the cost of goods or services.
+        /// </summary>
         field(6200; "Non-Deductible VAT %"; Decimal)
         {
             AutoFormatType = 0;
@@ -220,6 +295,9 @@ table 325 "VAT Posting Setup"
                 NonDeductibleVAT.CheckVATPostingSetupChangeIsAllowed(Rec);
             end;
         }
+        /// <summary>
+        /// G/L account for posting non-deductible purchase VAT amounts that are added to asset or expense costs.
+        /// </summary>
         field(6202; "Non-Ded. Purchase VAT Account"; Code[20])
         {
             Caption = 'Non-Deductible Purchase VAT Account';
@@ -231,6 +309,9 @@ table 325 "VAT Posting Setup"
                 CheckGLAcc("Non-Ded. Purchase VAT Account");
             end;
         }
+        /// <summary>
+        /// Controls whether non-deductible VAT functionality is allowed for this VAT posting setup combination.
+        /// </summary>
         field(6203; "Allow Non-Deductible VAT"; Enum "Allow Non-Deductible VAT Type")
         {
             Caption = 'Allow Non-Deductible VAT';
@@ -300,6 +381,10 @@ table 325 "VAT Posting Setup"
             Error(VATPostingSetupHasVATEntriesErr);
     end;
 
+    /// <summary>
+    /// Validates that the specified G/L account exists and is properly configured for VAT posting.
+    /// </summary>
+    /// <param name="AccNo">G/L Account number to validate</param>
     procedure CheckGLAcc(AccNo: Code[20])
     var
         GLAcc: Record "G/L Account";
@@ -326,6 +411,11 @@ table 325 "VAT Posting Setup"
             Error(YouCannotDeleteOrModifyErr, VATBusPostingGroup, VATProdPostingGroup);
     end;
 
+    /// <summary>
+    /// Validates that the specified field is not used when VAT Calculation Type is Sales Tax.
+    /// Prevents configuration of VAT fields that are incompatible with Sales Tax calculation method.
+    /// </summary>
+    /// <param name="FromFieldName">Name of the field being validated for Sales Tax compatibility</param>
     procedure TestNotSalesTax(FromFieldName: Text[100])
     begin
         if "VAT Calculation Type" = "VAT Calculation Type"::"Sales Tax" then
@@ -364,6 +454,12 @@ table 325 "VAT Posting Setup"
         exit(VATPostingSetup."VAT %");
     end;
 
+    /// <summary>
+    /// Returns the appropriate sales VAT G/L account based on whether unrealized VAT is being processed.
+    /// Retrieves either realized or unrealized sales VAT account with validation for required account setup.
+    /// </summary>
+    /// <param name="Unrealized">Whether to return unrealized VAT account instead of standard VAT account</param>
+    /// <returns>G/L Account number for sales VAT posting</returns>
     procedure GetSalesAccount(Unrealized: Boolean): Code[20]
     var
         SalesVATAccountNo: Code[20];
@@ -385,6 +481,12 @@ table 325 "VAT Posting Setup"
         exit("Sales VAT Account");
     end;
 
+    /// <summary>
+    /// Returns the appropriate purchase VAT G/L account based on whether unrealized VAT is being processed.
+    /// Retrieves either realized or unrealized purchase VAT account with validation for required account setup.
+    /// </summary>
+    /// <param name="Unrealized">Whether to return unrealized VAT account instead of standard VAT account</param>
+    /// <returns>G/L Account number for purchase VAT posting</returns>
     procedure GetPurchAccount(Unrealized: Boolean): Code[20]
     var
         PurchVATAccountNo: Code[20];
@@ -406,6 +508,12 @@ table 325 "VAT Posting Setup"
         exit("Purchase VAT Account");
     end;
 
+    /// <summary>
+    /// Returns the appropriate reverse charge VAT G/L account based on whether unrealized VAT is being processed.
+    /// Retrieves either realized or unrealized reverse charge VAT account for EU and domestic reverse charge transactions.
+    /// </summary>
+    /// <param name="Unrealized">Whether to return unrealized VAT account instead of standard VAT account</param>
+    /// <returns>G/L Account number for reverse charge VAT posting</returns>
     procedure GetRevChargeAccount(Unrealized: Boolean): Code[20]
     begin
         if Unrealized then begin
@@ -420,6 +528,12 @@ table 325 "VAT Posting Setup"
         exit("Reverse Chrg. VAT Acc.");
     end;
 
+    /// <summary>
+    /// Sets visibility flags for unrealized VAT and payment discount adjustment based on General Ledger Setup configuration.
+    /// Controls UI field visibility for VAT posting setup pages based on system-wide VAT settings.
+    /// </summary>
+    /// <param name="UnrealizedVATVisible">Returns true if unrealized VAT fields should be visible</param>
+    /// <param name="AdjustForPmtDiscVisible">Returns true if payment discount adjustment fields should be visible</param>
     procedure SetAccountsVisibility(var UnrealizedVATVisible: Boolean; var AdjustForPmtDiscVisible: Boolean)
     begin
         GLSetup.Get();
@@ -427,6 +541,10 @@ table 325 "VAT Posting Setup"
         AdjustForPmtDiscVisible := GLSetup."Adjust for Payment Disc.";
     end;
 
+    /// <summary>
+    /// Suggests G/L account assignments for VAT posting setup based on existing similar setups and account patterns.
+    /// Provides automated account suggestion functionality to streamline VAT posting setup configuration.
+    /// </summary>
     procedure SuggestSetupAccounts()
     var
         RecRef: RecordRef;
@@ -496,16 +614,48 @@ table 325 "VAT Posting Setup"
         end;
     end;
 
+    /// <summary>
+    /// Integration event raised before retrieving purchase VAT account to allow custom account selection logic.
+    /// Enables extensions to override standard purchase VAT account determination based on custom business rules.
+    /// </summary>
+    /// <param name="VATPostingSetup">VAT posting setup record for account determination</param>
+    /// <param name="Unrealized">Whether unrealized VAT account is being requested</param>
+    /// <param name="PurchVATAccountNo">Custom purchase VAT account number to use</param>
+    /// <param name="IsHandled">Set to true to skip standard account determination</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetPurchAccount(var VATPostingSetup: Record "VAT Posting Setup"; Unrealized: Boolean; var PurchVATAccountNo: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before retrieving sales VAT account to allow custom account selection logic.
+    /// Enables extensions to override standard sales VAT account determination based on custom business rules.
+    /// </summary>
+    /// <param name="VATPostingSetup">VAT posting setup record for account determination</param>
+    /// <param name="Unrealized">Whether unrealized VAT account is being requested</param>
+    /// <param name="SalesVATAccountNo">Custom sales VAT account number to use</param>
+    /// <param name="IsHandled">Set to true to skip standard account determination</param>
+    /// <summary>
+    /// Integration event raised before retrieving sales VAT account to allow custom account selection logic.
+    /// Enables extensions to override standard sales VAT account determination based on custom business rules.
+    /// </summary>
+    /// <param name="VATPostingSetup">VAT posting setup record for account determination</param>
+    /// <param name="Unrealized">Whether unrealized VAT account is being requested</param>
+    /// <param name="SalesVATAccountNo">Custom sales VAT account number to use</param>
+    /// <param name="IsHandled">Set to true to skip standard account determination</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetSalesAccount(var VATPostingSetup: Record "VAT Posting Setup"; Unrealized: Boolean; var SalesVATAccountNo: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking VAT posting setup usage to allow custom validation logic.
+    /// Enables extensions to perform additional validation or override standard setup usage checks.
+    /// </summary>
+    /// <param name="VATPostingSetup">VAT posting setup record being validated</param>
+    /// <param name="IsHandled">Set to true to skip standard setup usage validation</param>
+    /// <param name="VATBusPostingGroup">VAT business posting group being validated</param>
+    /// <param name="VATProdPostingGroup">VAT product posting group being validated</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckSetupUsage(var VATPostingSetup: Record "VAT Posting Setup"; var IsHandled: Boolean; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20])
     begin

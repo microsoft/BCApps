@@ -7,6 +7,10 @@ namespace Microsoft.Finance.Dimension;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 
+/// <summary>
+/// Manages dimension functionality specific to manufacturing objects including work center dimension integration.
+/// Handles global dimension updates for manufacturing master data and supports dimension validation for manufacturing-related transactions.
+/// </summary>
 codeunit 99000780 "Mfg. Dimension Management"
 {
     [EventSubscriber(ObjectType::Table, Database::"Default Dimension", 'OnAfterUpdateGlobalDimCode', '', false, false)]
@@ -43,6 +47,13 @@ codeunit 99000780 "Mfg. Dimension Management"
         end;
     end;
 
+    /// <summary>
+    /// Integration event raised for handling additional global dimension code updates on work centers beyond global dimensions 1 and 2.
+    /// Enables custom dimension management for work center records when shortcut dimensions are updated.
+    /// </summary>
+    /// <param name="GlobalDimCodeNo">Global dimension number being updated (3-8)</param>
+    /// <param name="WorkCenterNo">Work center number being updated</param>
+    /// <param name="NewDimValue">New dimension value code to assign</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateWorkCenterGlobalDimCodeCaseElse(GlobalDimCodeNo: Integer; WorkCenterNo: Code[20]; NewDimValue: Code[20])
     begin

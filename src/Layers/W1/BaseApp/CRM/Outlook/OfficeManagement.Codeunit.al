@@ -6,7 +6,6 @@ namespace Microsoft.CRM.Outlook;
 
 using Microsoft.CRM.BusinessRelation;
 using Microsoft.CRM.Contact;
-using System.EMail;
 using Microsoft.EServices.EDocument;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
@@ -14,6 +13,7 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
 using System;
 using System.Automation;
+using System.EMail;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Integration;

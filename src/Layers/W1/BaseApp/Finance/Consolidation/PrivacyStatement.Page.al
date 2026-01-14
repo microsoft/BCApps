@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Consolidation;
 
+/// <summary>
+/// Privacy statement and consent page for consolidation data processing and external service integration.
+/// Displays privacy information and collects user consent for consolidation-related data operations.
+/// </summary>
+/// <remarks>
+/// Navigate page presenting privacy information and consent collection for consolidation features.
+/// Ensures compliance with data protection requirements for consolidation data processing.
+/// Required for consolidation scenarios involving external services or cloud-based processing.
+/// </remarks>
 page 109 "Privacy Statement"
 {
     PageType = NavigatePage;

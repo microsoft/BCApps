@@ -16,6 +16,7 @@ codeunit 137504 "SCM Warehouse Unit Tests"
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibrarySales: Codeunit "Library - Sales";
+        LibraryService: Codeunit "Library - Service";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -30,6 +31,7 @@ codeunit 137504 "SCM Warehouse Unit Tests"
         NotificationMsg: Label 'The available inventory for item %1 is lower than the entered quantity at this location.', Comment = '%1=Item No.';
         CannotCreateBinWithoutLocationErr: Label 'Location Code must have a value';
         ItemTrkgManagedByWhseMsg: Label 'You cannot assign a serial, lot or package number because item tracking for this document line is done through a warehouse activity.';
+        QtytoCrossDockErr: Label 'Qty. to Cross-Dock must be have value.';
 
     [Test]
     [Scope('OnPrem')]
@@ -3005,6 +3007,107 @@ codeunit 137504 "SCM Warehouse Unit Tests"
         Assert.AreEqual(1, ItemLedgerEntry.Count, '');
     end;
 
+    [Test]
+    procedure CrossDockDueDateCalculationRespectsWorkingDaysSkipsWeekend()
+    var
+        BaseCalendar: Record "Base Calendar";
+        BaseCalendarChange: Record "Base Calendar Change";
+        Location: Record Location;
+        Item: Record Item;
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        WarehouseReceiptHeader: Record "Warehouse Receipt Header";
+        WarehouseReceiptLine: Record "Warehouse Receipt Line";
+        CrossDockDueDateFormula: DateFormula;
+        WorkingDate: Date;
+        ExpectedShipmentDate: Date;
+    begin
+        // [SCENARIO 611687] Cross-Dock Due Date calculation respects Base Calendar and skips weekend days when using "WD" formula
+        Initialize();
+
+        // [GIVEN] A Base Calendar with Saturday and Sunday marked as Non-working days.
+        LibraryService.CreateBaseCalendar(BaseCalendar);
+        CreateNonWorkingBaseCalendarChange(BaseCalendar.Code, BaseCalendarChange.Day::Saturday);
+        CreateNonWorkingBaseCalendarChange(BaseCalendar.Code, BaseCalendarChange.Day::Sunday);
+
+        // [GIVEN] A Location with directed put-away and pick enabled, Base Calendar assigned, and "Cross-Dock Due Date Calc." = "2WD".
+        LibraryWarehouse.CreateFullWMSLocation(Location, 2);
+        Location.Validate("Base Calendar Code", BaseCalendar.Code);
+        Evaluate(CrossDockDueDateFormula, '<2WD>');
+        Location.Validate("Cross-Dock Due Date Calc.", CrossDockDueDateFormula);
+        Location.Modify(true);
+
+        // [GIVEN] An Item with "Use Cross-Docking" enabled.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Use Cross-Docking", true);
+        Item.Modify(true);
+
+        // [GIVEN] A Customer with the same Base Calendar.
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Base Calendar Code", BaseCalendar.Code);
+        Customer.Modify(true);
+
+        // [GIVEN] Work Date is Friday ="5".
+        WorkingDate := GetRandomDateForDayOfWeek(5);
+        WorkDate(WorkingDate);
+
+        // [GIVEN] Expected Shipment Date is Monday skipping weekend days.
+        ExpectedShipmentDate := CalcDate('<3D>', WorkingDate);
+
+        // [GIVEN] A Sales Order with Shipment Date = Monday.
+        LibrarySales.CreateSalesDocumentWithItem(
+            SalesHeader,
+            SalesLine,
+            SalesHeader."Document Type"::Order,
+            Customer."No.",
+            Item."No.",
+            LibraryRandom.RandInt(50),
+            Location.Code,
+            ExpectedShipmentDate);
+        SalesLine.Validate("Shipment Date", ExpectedShipmentDate);
+        SalesLine.Modify(true);
+
+        // [GIVEN] The Sales Order is Released.
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+
+        // [GIVEN] A Purchase Order with Expected Receipt Date = Friday
+        LibraryPurchase.CreatePurchaseDocumentWithItem(
+            PurchaseHeader,
+            PurchaseLine,
+            PurchaseHeader."Document Type"::Order,
+            '',
+            Item."No.",
+            LibraryRandom.RandIntInRange(60, 100),
+            Location.Code,
+            WorkingDate);
+        PurchaseLine.Validate("Expected Receipt Date", WorkingDate);
+        PurchaseLine.Modify(true);
+
+        // [GIVEN] The Purchase Order is Released.
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+
+        // [GIVEN] A Warehouse Receipt created from the Purchase Order
+        LibraryWarehouse.CreateWhseReceiptFromPO(PurchaseHeader);
+
+        // [GIVEN] Warehouse Receipt Header and Line is retrieved.
+        WarehouseReceiptHeader.SetRange("Location Code", Location.Code);
+        WarehouseReceiptHeader.FindFirst();
+        WarehouseReceiptLine.SetRange("No.", WarehouseReceiptHeader."No.");
+        WarehouseReceiptLine.FindFirst();
+
+        // [WHEN] Calculate Cross-Dock is executed with Posting Date = Friday.
+        WarehouseReceiptHeader.Validate("Posting Date", WorkingDate);
+        WarehouseReceiptHeader.Modify(true);
+        CalculateCrossDockForReceipt(WarehouseReceiptHeader."No.", Location.Code);
+
+        // [THEN] "Qty. to Cross-Dock" should be filled with 25
+        WarehouseReceiptLine.FindFirst();
+        Assert.IsTrue(WarehouseReceiptLine."Qty. to Cross-Dock" <> 0, QtytoCrossDockErr);
+    end;
+
     local procedure FilterLinesWithItemToPlan(var Item: Record Item)
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
@@ -3119,6 +3222,45 @@ codeunit 137504 "SCM Warehouse Unit Tests"
         WarehouseActivityLine.FindFirst();
         WarehouseActivityLine.TestField("Shelf No.", ShelfNo);
         WarehouseActivityLine.TestField("Bin Code", BinCode);
+    end;
+
+    local procedure CreateNonWorkingBaseCalendarChange(BaseCalendarCode: Code[10]; Day: Option)
+    var
+        BaseCalendarChange: Record "Base Calendar Change";
+    begin
+        LibraryInventory.CreateBaseCalendarChange(
+            BaseCalendarChange, BaseCalendarCode,
+            BaseCalendarChange."Recurring System"::"Weekly Recurring", 0D, Day);
+        BaseCalendarChange.Validate(Nonworking, true);
+        BaseCalendarChange.Modify(true);
+    end;
+
+    local procedure CalculateCrossDockForReceipt(WarehouseReceiptNo: Code[20]; LocationCode: Code[10])
+    var
+        WhseCrossDockOpp: Record "Whse. Cross-Dock Opportunity";
+        WhseCrossDockMgt: Codeunit "Whse. Cross-Dock Management";
+    begin
+        WhseCrossDockMgt.CalculateCrossDockLines(WhseCrossDockOpp, '', WarehouseReceiptNo, LocationCode);
+    end;
+
+    local procedure GetRandomDateForDayOfWeek(DayOfWeek: Integer): Date
+    var
+        BaseDate: Date;
+        CurrentDayOfWeek: Integer;
+        DaysToAdd: Integer;
+    begin
+        // Get a random date in the future (30-365 days from work date)
+        BaseDate := CalcDate('<' + Format(LibraryRandom.RandIntInRange(30, 365)) + 'D>', WorkDate());
+
+        // Calculate current day of week (1=Monday, 7=Sunday)
+        CurrentDayOfWeek := Date2DWY(BaseDate, 1);
+
+        // Calculate days to add to reach the desired day of week
+        DaysToAdd := DayOfWeek - CurrentDayOfWeek;
+        if DaysToAdd < 0 then
+            DaysToAdd += 7;
+
+        exit(CalcDate('<' + Format(DaysToAdd) + 'D>', BaseDate));
     end;
 
     [MessageHandler]

@@ -4,19 +4,19 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
-using Microsoft.Inventory.Ledger;
-using System.Environment.Configuration;
 using Microsoft.Assembly.Document;
+using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Location;
-using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Journal;
-using Microsoft.Inventory.Availability;
-using Microsoft.Sales.Document;
-using Microsoft.Purchases.Document;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Setup;
-using Microsoft.Foundation.NoSeries;
+using Microsoft.Purchases.Document;
+using Microsoft.Sales.Document;
+using System.Environment.Configuration;
 
 codeunit 137906 "SCM Assembly Availability"
 {
@@ -37,6 +37,7 @@ codeunit 137906 "SCM Assembly Availability"
         LibraryKitting: Codeunit "Library - Kitting";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryPlanning: Codeunit "Library - Planning";
+        LibraryRandom: Codeunit "Library - Random";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
         DummyAssemblyOrderTestPage: TestPage "Assembly Order";
@@ -44,6 +45,7 @@ codeunit 137906 "SCM Assembly Availability"
         WorkDate2: Date;
         MSG_IS_BEFORE_WORKDATE: Label 'is before work date';
         Initialized: Boolean;
+        AvailabilityWarningErr: Label 'Availability warning should be false after adding sufficient stock.';
 
     [Normal]
     local procedure Initialize()
@@ -524,6 +526,43 @@ codeunit 137906 "SCM Assembly Availability"
           1, AssemblyInfoPaneManagement.CalcAvailability(AssemblyLine[1]), 'Wrong available quantity for the assembly line.');
         Assert.AreEqual(
           0, AssemblyInfoPaneManagement.CalcAvailability(AssemblyLine[2]), 'Wrong available quantity for the assembly line.');
+    end;
+
+    [Test]
+    procedure AvailWarningUpdatesAfterStockAddition()
+    var
+        AssmemblyItem: Record Item;
+        ComponentItem: Record Item;
+        BOMComponent: Record "BOM Component";
+        ItemJournalLine: Record "Item Journal Line";
+        AssemblyHeader: Record "Assembly Header";
+        AssemblyOrder: TestPage "Assembly Order";
+    begin
+        // [SCENARIO 611481] Availability Warning should be updated after adding stock to assembly component.
+        Initialize();
+
+        // [GIVEN] Assembly Item with a component.
+        LibraryInventory.CreateItem(AssmemblyItem);
+        AssmemblyItem.Validate("Replenishment System", AssmemblyItem."Replenishment System"::Assembly);
+        AssmemblyItem.Modify(true);
+
+        // [GIVEN] Create Component Item with no stock.
+        LibraryInventory.CreateItem(ComponentItem);
+        LibraryInventory.CreateBOMComponent(
+          BOMComponent, AssmemblyItem."No.", BOMComponent.Type::Item, ComponentItem."No.", LibraryRandom.RandIntInRange(1, 1), ComponentItem."Base Unit of Measure");
+
+        // [GIVEN] Assembly order for 1 pc.
+        LibraryAssembly.CreateAssemblyHeader(AssemblyHeader, WorkDate2, AssmemblyItem."No.", '', LibraryRandom.RandIntInRange(1, 10), '');
+
+        // [WHEN] Add sufficient stock via item journal.
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, ComponentItem."No.", '', '', LibraryRandom.RandIntInRange(1, 10));
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [THEN] Availability warning should be cleared.
+        AssemblyOrder.OpenEdit();
+        AssemblyOrder.GoToRecord(AssemblyHeader);
+        Assert.IsFalse(AssemblyOrder.Lines."Avail. Warning".AsBoolean(), AvailabilityWarningErr);
+        NotificationLifecycleMgt.RecallAllNotifications();
     end;
 
     [Normal]

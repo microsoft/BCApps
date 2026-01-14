@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Analysis;
 
+/// <summary>
+/// Displays analysis view entries with drill-down capability to underlying transactions.
+/// Provides detailed view of aggregated financial data with dimension breakdown and filtering options.
+/// </summary>
 page 558 "Analysis View Entries"
 {
     ApplicationArea = Dimensions;

@@ -49,15 +49,26 @@ page 520 "Item Availability by Lot No."
                     ApplicationArea = Assembly;
                     Caption = 'Location Filter';
                     ToolTip = 'Specifies the location that availability is shown for.';
-                    TableRelation = Location;
 
-                    trigger OnValidate()
+                    trigger OnLookup(var Text: Text): Boolean
                     var
                         Location: Record Location;
+                        LocationList: Page "Location List";
                     begin
-                        if LocationFilter <> '' then
-                            Location.Get(LocationFilter);
-                        RefreshPage();
+                        LocationList.SetTableView(Location);
+                        LocationList.LookupMode := true;
+                        if LocationList.RunModal() = ACTION::LookupOK then begin
+                            LocationList.GetRecord(Location);
+                            Text := Location.Code;
+                            exit(true);
+                        end;
+                        exit(false);
+                    end;
+
+                    trigger OnValidate()
+                    begin
+                        if LocationFilter <> Rec.GetFilter("Location Filter") then
+                            RefreshPage();
                     end;
                 }
                 field(VariantFilter; VariantFilter)
@@ -65,15 +76,27 @@ page 520 "Item Availability by Lot No."
                     ApplicationArea = Planning;
                     Caption = 'Variant Filter';
                     ToolTip = 'Specifies the item variant you want to show availability for.';
-                    TableRelation = "Item Variant".Code where("Item No." = field("No."));
 
-                    trigger OnValidate()
+                    trigger OnLookup(var Text: Text): Boolean
                     var
                         ItemVariant: Record "Item Variant";
+                        ItemVariants: Page "Item Variants";
                     begin
-                        if VariantFilter <> '' then
-                            ItemVariant.Get(Rec."No.", VariantFilter);
-                        RefreshPage();
+                        ItemVariant.SetFilter("Item No.", Rec."No.");
+                        ItemVariants.SetTableView(ItemVariant);
+                        ItemVariants.LookupMode := true;
+                        if ItemVariants.RunModal() = ACTION::LookupOK then begin
+                            ItemVariants.GetRecord(ItemVariant);
+                            Text := ItemVariant.Code;
+                            exit(true);
+                        end;
+                        exit(false);
+                    end;
+
+                    trigger OnValidate()
+                    begin
+                        if VariantFilter <> Rec.GetFilter("Variant Filter") then
+                            RefreshPage();
                     end;
                 }
                 group(Period1)

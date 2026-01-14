@@ -6,6 +6,14 @@ namespace Microsoft.Finance.Dimension;
 
 using System.Globalization;
 
+/// <summary>
+/// Provides multilingual translation management for dimension names and captions.
+/// Enables users to define dimension translations for different languages to support international business operations.
+/// </summary>
+/// <remarks>
+/// Used for maintaining dimension translations across multiple languages for consistent reporting and user interface localization.
+/// Integrates with the Language table to provide dimension names in the user's preferred language.
+/// </remarks>
 page 580 "Dimension Translations"
 {
     Caption = 'Dimension Translations';

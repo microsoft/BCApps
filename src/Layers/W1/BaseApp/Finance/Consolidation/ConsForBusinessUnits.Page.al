@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Consolidation;
 
+/// <summary>
+/// Displays consolidation processes and status for specific business units.
+/// Provides read-only view of business unit participation in consolidation operations.
+/// </summary>
+/// <remarks>
+/// Read-only list page showing consolidation process involvement for business units.
+/// Displays business unit consolidation history, status, and process details.
+/// Essential for tracking business unit participation in multi-company consolidation workflows.
+/// </remarks>
 page 258 "Cons. for Business Units"
 {
     SourceTable = "Bus. Unit In Cons. Process";

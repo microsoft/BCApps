@@ -17,8 +17,8 @@ using Microsoft.Manufacturing.Setup;
 using Microsoft.Warehouse.Structure;
 using System.Environment;
 using System.Environment.Configuration;
-using System.Integration;
 using System.Globalization;
+using System.Integration;
 
 page 5510 "Production Journal"
 {

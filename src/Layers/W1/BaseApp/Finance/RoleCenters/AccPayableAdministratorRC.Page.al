@@ -289,18 +289,26 @@ page 9045 "Acc. Payable Administrator RC"
             {
                 Caption = 'Reports';
 
+#if not CLEAN28
                 action("Aged Accounts Payable")
                 {
-                    Caption = 'Aged Accounts Payable';
+                    Caption = 'Aged Accounts Payable (Obsolete)';
                     RunObject = Report "Aged Accounts Payable";
                     ToolTip = 'View the aged accounts payable report.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the report Aged Accounts Payable (Excel). This report will be removed in a future release.';
+                    ObsoleteTag = '28.0';
                 }
                 action(PaymentsOnHold)
                 {
-                    Caption = 'Payments on Hold';
+                    Caption = 'Payments on Hold (Obsolete)';
                     RunObject = Report "Payments on Hold";
                     ToolTip = 'View the payments on hold report.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report is obsolete and will be removed in a future release.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
                 action(PurchaseStatistics)
                 {
                     Caption = 'Purchase Statistics';
@@ -337,12 +345,17 @@ page 9045 "Acc. Payable Administrator RC"
                     RunObject = Report "Vendor - Labels";
                     ToolTip = 'View the vendor labels report.';
                 }
+#if not CLEAN28
                 action(VendorList)
                 {
-                    Caption = 'Vendor List';
+                    Caption = 'Vendor List (Obsolete)';
                     RunObject = Report "Vendor - List";
                     ToolTip = 'View the vendor list report.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report is obsolete and will be removed in a future release. Please see the documentation for alternative options.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
                 action(VendorOrderDetail)
                 {
                     Caption = 'Vendor Order Detail';
@@ -361,18 +374,26 @@ page 9045 "Acc. Payable Administrator RC"
                     RunObject = Report "Vendor - Purchase List";
                     ToolTip = 'View the vendor purchase list report.';
                 }
+#if not CLEAN28
                 action(VendorSummaryAging)
                 {
-                    Caption = 'Vendor Summary Aging';
+                    Caption = 'Vendor Summary Aging (Obsolete)';
                     RunObject = Report "Vendor - Summary Aging";
                     ToolTip = 'View the vendor summary aging report.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report is obsolete and will be removed in a future release. See the documentation for alternative options.';
+                    ObsoleteTag = '28.0';
                 }
                 action(VendorTop10List)
                 {
-                    Caption = 'Vendor Top 10 List';
+                    Caption = 'Vendor Top 10 List (Obsolete)';
                     RunObject = Report "Vendor - Top 10 List";
                     ToolTip = 'View the vendor top 10 list report.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the report Vendor - Top List (Excel). This report will be removed in a future release.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
                 action(VendorTrialBalance)
                 {
                     Caption = 'Vendor Trial Balance';

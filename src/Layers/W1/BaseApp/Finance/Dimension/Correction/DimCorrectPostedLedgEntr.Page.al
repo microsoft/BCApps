@@ -7,6 +7,9 @@ namespace Microsoft.Finance.Dimension.Correction;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using System.Security.User;
 
+/// <summary>
+/// List part page displaying G/L entries after dimension correction posting. Shows the completed correction results with updated dimension values.
+/// </summary>
 page 2584 "Dim Correct Posted Ledg Entr"
 {
     PageType = ListPart;
@@ -357,6 +360,10 @@ page 2584 "Dim Correct Posted Ledg Entr"
         until GLEntry.Next() = 0;
     end;
 
+    /// <summary>
+    /// Sets the dimension correction entry number for displaying posted G/L entries with corrected dimensions.
+    /// </summary>
+    /// <param name="NewDimensionCorrectionEntryNo">The dimension correction entry number to filter posted entries</param>
     procedure SetDimensionCorrectionEntryNo(NewDimensionCorrectionEntryNo: Integer)
     begin
         if NewDimensionCorrectionEntryNo <> DimensionCorrectionEntryNo then begin

@@ -148,9 +148,6 @@ codeunit 103401 "_Set Global Preconditions"
         WhseActivityLine: Record "Warehouse Activity Line";
         InventoryPeriod: Record "Inventory Period";
         InventoryPeriodEntry: Record "Inventory Period Entry";
-#if not CLEAN25
-        SalesLineDiscount: Record "Sales Line Discount";
-#endif
         PriceListLine: Record "Price List Line";
         PostValueEntryToGL: Record "Post Value Entry to G/L";
         GLItemLedgRelation: Record "G/L - Item Ledger Relation";
@@ -249,9 +246,6 @@ codeunit 103401 "_Set Global Preconditions"
         WhseActivityLine.DeleteAll();
         InventoryPeriodEntry.DeleteAll();
         InventoryPeriod.DeleteAll();
-#if not CLEAN25
-        SalesLineDiscount.DeleteAll();
-#endif
         PriceListLine.DeleteAll();
         PostValueEntryToGL.DeleteAll();
         GLItemLedgRelation.DeleteAll();
@@ -975,4 +969,3 @@ codeunit 103401 "_Set Global Preconditions"
         Customer.Modify();
     end;
 }
-

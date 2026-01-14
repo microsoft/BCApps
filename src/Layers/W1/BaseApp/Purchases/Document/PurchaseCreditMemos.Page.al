@@ -259,19 +259,6 @@ page 9309 "Purchase Credit Memos"
         }
         area(factboxes)
         {
-#if not CLEAN25
-            part(AttachedDocuments; "Document Attachment Factbox")
-            {
-                ObsoleteTag = '25.0';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The "Document Attachment FactBox" has been replaced by "Doc. Attachment List Factbox", which supports multiple files upload.';
-                ApplicationArea = All;
-                Caption = 'Attachments';
-                SubPageLink = "Table ID" = const(Database::"Purchase Header"),
-                              "No." = field("No."),
-                              "Document Type" = field("Document Type");
-            }
-#endif
             part("Attached Documents List"; "Doc. Attachment List Factbox")
             {
                 ApplicationArea = All;
@@ -600,14 +587,19 @@ page 9309 "Purchase Credit Memos"
             {
                 Caption = 'Sales';
                 Image = Sales;
+#if not CLEAN28
                 action("<Report Vendor - Top 10 List>")
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Vendor - Top 10 List';
+                    Caption = 'Vendor - Top 10 List (Obsolete)';
                     Image = "Report";
                     RunObject = Report "Vendor - Top 10 List";
                     ToolTip = 'View a list of the vendors from whom you purchase the most or to whom you owe the most.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the report Vendor - Top List (Excel). This report will be removed in a future release.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
                 action("<Report Vendor - Purchase List>")
                 {
                     ApplicationArea = Basic, Suite;
@@ -653,22 +645,30 @@ page 9309 "Purchase Credit Memos"
                     RunObject = Report "Vendor - Detail Trial Balance";
                     ToolTip = 'View the balance for vendors with balances on a specified date, for example, at the close of an accounting period or for an audit.';
                 }
+#if not CLEAN28
                 action("<Report Vendor - Summary Aging")
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Vendor - Summary Aging';
+                    Caption = 'Vendor - Summary Aging (Obsolete)';
                     Image = "Report";
                     RunObject = Report "Vendor - Summary Aging";
                     ToolTip = 'View, print, or save a summary of the payables owed to each vendor, divided into three time periods. The report can be used to prepare liquidity analyses.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report will be removed in a future release. Check the documentation for alternative options such as the report Aged Accounts Payable (Excel).';
+                    ObsoleteTag = '28.0';
                 }
                 action("<Report Aged Accounts Payables")
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Aged Accounts Payables';
+                    Caption = 'Aged Accounts Payable (Obsolete)';
                     Image = "Report";
                     RunObject = Report "Aged Accounts Payable";
                     ToolTip = 'View an overview of when your payables to vendors are due or overdue (divided into four periods). You must specify the date you want aging calculated from and the length of the period that each column will contain data for.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the report Aged Accounts Payable (Excel). This report will be removed in a future release.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
                 action("<Report Vendor - Payment Recei")
                 {
                     ApplicationArea = Suite;

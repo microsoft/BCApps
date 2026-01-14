@@ -5,8 +5,8 @@
 namespace Microsoft.Sales.History;
 
 using Microsoft.Finance.Dimension;
-using Microsoft.Utilities;
 using Microsoft.Sales.Document;
+using Microsoft.Utilities;
 
 page 6638 "Get Return Receipt Lines"
 {

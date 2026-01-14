@@ -6,14 +6,14 @@ using Microsoft.API;
 using Microsoft.API.Upgrade;
 using Microsoft.Assembly.Comment;
 using Microsoft.Assembly.Reports;
-using Microsoft.Booking;
-using Microsoft.Bank.Payment;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Check;
 using Microsoft.Bank.DirectDebit;
+using Microsoft.Bank.Payment;
 using Microsoft.Bank.PositivePay;
 using Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.Setup;
+using Microsoft.Booking;
 using Microsoft.CashFlow.Forecast;
 using Microsoft.CRM.Analysis;
 using Microsoft.CRM.Campaign;
@@ -28,11 +28,11 @@ using Microsoft.CRM.Team;
 using Microsoft.EServices.EDocument;
 using Microsoft.EServices.OnlineMap;
 using Microsoft.Finance.Analysis;
-using Microsoft.Finance.Currency;
 using Microsoft.Finance.Consolidation;
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.Deferral;
-using Microsoft.Finance.Dimension.Correction;
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.Dimension.Correction;
 using Microsoft.Finance.FinancialReports;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Budget;
@@ -142,7 +142,6 @@ using Microsoft.Warehouse.RoleCenters;
 using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
 using Microsoft.Warehouse.Tracking;
-
 using System.AI;
 using System.Apps;
 using System.Automation;
@@ -420,9 +419,13 @@ permissionset 959 "D365 BUS FULL ACCESS"
                   tabledata "Error Message Register" = RIMD,
                   tabledata "Excel Buffer" = RIMD,
                   tabledata "Excel Template Storage" = RIMD,
+#if not CLEAN28
                   tabledata "Exchange Contact" = RIMD,
+#endif
                   tabledata "Exchange Object" = RIMD,
+#if not CLEAN28
                   tabledata "Exchange Sync" = RIMD,
+#endif
                   tabledata "Experience Tier Buffer" = RIMD,
                   tabledata "Experience Tier Setup" = RIMD,
                   tabledata "Extended Text Header" = RIMD,
@@ -506,6 +509,7 @@ permissionset 959 "D365 BUS FULL ACCESS"
                   tabledata "Item Attribute" = RIMD,
                   tabledata "Item Attribute Translation" = RIMD,
                   tabledata "Item Attribute Value" = RIMD,
+                  tabledata "Item Var. Attr. Value Mapping" = RIMD,
                   tabledata "Item Attribute Value Selection" = RIMD,
                   tabledata "Item Availability Buffer" = RIMD,
                   tabledata "Item Availability by Date" = RIM,

@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.RoleCenters;
 
+using Microsoft.Inventory.Reports;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Reports;
-using Microsoft.Inventory.Reports;
 
 pageextension 99000780 "Mfg. Finance Manager RC" extends "Finance Manager Role Center"
 {

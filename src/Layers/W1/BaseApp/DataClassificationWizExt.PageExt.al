@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft;
 
-using System.Reflection;
 using System.Privacy;
+using System.Reflection;
 
 pageextension 1758 "Data Classification Wiz. Ext." extends "Data Classification Wizard"
 {

@@ -7,6 +7,10 @@ namespace Microsoft.Finance.VAT.Reporting;
 using Microsoft.Foundation.NoSeries;
 using System.Utilities;
 
+/// <summary>
+/// Manages VAT return periods with deadlines, status tracking, and associated VAT return document links.
+/// Controls the periodic VAT reporting cycle and provides automated period management capabilities.
+/// </summary>
 table 737 "VAT Return Period"
 {
     Caption = 'VAT Return Period';
@@ -15,40 +19,67 @@ table 737 "VAT Return Period"
 
     fields
     {
+        /// <summary>
+        /// Unique identifier for the VAT return period assigned from number series.
+        /// </summary>
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
         }
+        /// <summary>
+        /// Number series used for generating VAT return period numbers.
+        /// </summary>
         field(2; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
         }
+        /// <summary>
+        /// Period key identifier used for matching with tax authority period data.
+        /// </summary>
         field(3; "Period Key"; Code[10])
         {
             Caption = 'Period Key';
         }
+        /// <summary>
+        /// Starting date of the VAT return period for transaction inclusion.
+        /// </summary>
         field(4; "Start Date"; Date)
         {
             Caption = 'Start Date';
         }
+        /// <summary>
+        /// Ending date of the VAT return period for transaction inclusion.
+        /// </summary>
         field(5; "End Date"; Date)
         {
             Caption = 'End Date';
         }
+        /// <summary>
+        /// Due date for submitting the VAT return to tax authorities.
+        /// </summary>
         field(6; "Due Date"; Date)
         {
             Caption = 'Due Date';
         }
+        /// <summary>
+        /// Current status of the VAT return period indicating processing stage.
+        /// </summary>
         field(7; Status; Option)
         {
             Caption = 'Status';
             OptionCaption = 'Open,Closed';
             OptionMembers = Open,Closed;
         }
+        /// <summary>
+        /// Date when the VAT return period information was received from tax authorities.
+        /// </summary>
         field(8; "Received Date"; Date)
         {
             Caption = 'Received Date';
         }
+        /// <summary>
+        /// Number of the associated VAT return document created for this period.
+        /// </summary>
         field(20; "VAT Return No."; Code[20])
         {
             Caption = 'VAT Return No.';
@@ -62,6 +93,9 @@ table 737 "VAT Return Period"
                 Rec.DrillDownVATReturn();
             end;
         }
+        /// <summary>
+        /// Current status of the associated VAT return document from VAT Report Header.
+        /// </summary>
         field(21; "VAT Return Status"; Enum "VAT Return Status")
         {
             CalcFormula = lookup("VAT Report Header".Status where("VAT Report Config. Code" = const("VAT Return"),
@@ -122,6 +156,11 @@ table 737 "VAT Return Period"
         exit(VATReportSetup."VAT Return Period No. Series");
     end;
 
+    /// <summary>
+    /// Copies VAT return period information to a VAT report header.
+    /// Sets period dates, year, and number for VAT return creation.
+    /// </summary>
+    /// <param name="VATReportHeader">VAT report header to populate with period data</param>
     procedure CopyToVATReturn(var VATReportHeader: Record "VAT Report Header")
     begin
         TestField("Start Date");
@@ -155,6 +194,12 @@ table 737 "VAT Return Period"
         end;
     end;
 
+    /// <summary>
+    /// Finds VAT period containing the specified reporting date.
+    /// Filters by start and end date range.
+    /// </summary>
+    /// <param name="VATReportingDate">Date to search for within VAT periods</param>
+    /// <returns>True if a VAT period contains the specified date</returns>
     internal procedure FindVATPeriodByDate(VATReportingDate: Date): Boolean
     begin
         Rec.SetFilter("End Date", '>=%1', VATReportingDate);
@@ -162,6 +207,14 @@ table 737 "VAT Return Period"
         exit(Rec.FindFirst());
     end;
 
+    /// <summary>
+    /// Finds VAT return period matching the specified start and end dates.
+    /// Used to locate existing periods for validation and processing.
+    /// </summary>
+    /// <param name="VATReturnPeriod">VAT return period record to populate if found</param>
+    /// <param name="StartDate">Period start date to match</param>
+    /// <param name="EndDate">Period end date to match</param>
+    /// <returns>True if matching VAT return period is found</returns>
     procedure FindVATReturnPeriod(var VATReturnPeriod: Record "VAT Return Period"; StartDate: Date; EndDate: Date): Boolean
     begin
         VATReturnPeriod.SetRange("Start Date", StartDate);
@@ -169,6 +222,12 @@ table 737 "VAT Return Period"
         exit(VATReturnPeriod.FindFirst());
     end;
 
+    /// <summary>
+    /// Compares current period with another VAT return period for differences.
+    /// Checks due date, status, received date, and period key for changes.
+    /// </summary>
+    /// <param name="VATReturnPeriod">VAT return period to compare against</param>
+    /// <returns>True if periods have different values in key fields</returns>
     procedure DiffersFromVATReturnPeriod(var VATReturnPeriod: Record "VAT Return Period"): Boolean
     begin
         exit(
@@ -178,6 +237,10 @@ table 737 "VAT Return Period"
           ("Period Key" <> VATReturnPeriod."Period Key"));
     end;
 
+    /// <summary>
+    /// Opens VAT return card for the current period.
+    /// Creates new VAT return if none exists for open periods.
+    /// </summary>
     procedure DrillDownVATReturn()
     var
         VATReportMgt: Codeunit "VAT Report Mgt.";
@@ -195,6 +258,11 @@ table 737 "VAT Return Period"
         VATReportSetupGot := true;
     end;
 
+    /// <summary>
+    /// Calculates and returns status text for open or overdue VAT periods.
+    /// Provides due date warnings and overdue notifications based on setup.
+    /// </summary>
+    /// <returns>Formatted text indicating period status and days until/since due date</returns>
     procedure CheckOpenOrOverdue(): Text
     begin
         GetVATReportSetup();

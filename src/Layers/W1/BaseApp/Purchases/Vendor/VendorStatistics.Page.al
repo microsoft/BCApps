@@ -6,9 +6,9 @@ namespace Microsoft.Purchases.Vendor;
 
 using Microsoft.Foundation.Period;
 using Microsoft.Inventory.Item;
+using Microsoft.Purchase.Vendor;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
-using Microsoft.Purchase.Vendor;
 
 page 152 "Vendor Statistics"
 {

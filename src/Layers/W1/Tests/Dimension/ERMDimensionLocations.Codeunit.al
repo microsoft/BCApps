@@ -1290,6 +1290,67 @@ codeunit 134474 "ERM Dimension Locations"
         VerifyDimensionValue(ItemJournalLine."Dimension Set ID", DimensionValue[1]);
     end;
 
+    [Test]
+    procedure CorrectNewDimValueWhenChangingSalespersonWithoutLocationsOnItemJournalLine()
+    var
+        DimensionValue: array[2] of Record "Dimension Value";
+        Item: Record Item;
+        LocationRed: Record Location;
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        SalespersonJO: Record "Salesperson/Purchaser";
+        SalespersonKH: Record "Salesperson/Purchaser";
+    begin
+        // [SCENARIO 602464] Item Reclass Journal: When changing salesperson, the new dimension value should be updated correctly instead of keeping the wrong old dimension value
+        Initialize();
+
+        // [GIVEN] Global dimension 1 values "JO_DIM" and "KH_DIM".
+        LibraryDimension.CreateDimensionValue(DimensionValue[1], LibraryERM.GetGlobalDimensionCode(1));
+        LibraryDimension.CreateDimensionValue(DimensionValue[2], LibraryERM.GetGlobalDimensionCode(1));
+
+        // [GIVEN] Create Item and Location "RED" without default dimensions.
+        LibraryInventory.CreateItem(Item);
+        LibraryWarehouse.CreateLocation(LocationRed);
+
+        // [GIVEN] Create Salesperson "JO" with dimension value "JO_DIM".
+        LibrarySales.CreateSalesperson(SalespersonJO);
+        CreateDefaultDimensionWithSpecCode(SalespersonJO.Code, DATABASE::"Salesperson/Purchaser");
+
+        // [GIVEN] Create Salesperson "KH" with dimension value "KH_DIM".
+        LibrarySales.CreateSalesperson(SalespersonKH);
+        CreateDefaultDimensionWithSpecCodeAndDimValue(SalespersonKH.Code, DATABASE::"Salesperson/Purchaser", DimensionValue[2]);
+
+        // [GIVEN] Create item reclassification journal line.
+        LibraryInventory.SelectItemJournalTemplateName(ItemJournalTemplate, ItemJournalTemplate.Type::Transfer);
+        LibraryInventory.SelectItemJournalBatchName(ItemJournalBatch, ItemJournalTemplate.Type, ItemJournalTemplate.Name);
+        LibraryInventory.CreateItemJnlLineWithNoItem(
+            ItemJournalLine, ItemJournalBatch, ItemJournalTemplate.Name, ItemJournalBatch.Name, "Item Ledger Entry Type"::Transfer);
+        ItemJournalLine.Validate("Item No.", Item."No.");
+
+        // [GIVEN] Set "Salespers./Purch. Code" = "JO" on the item journal line.
+        ItemJournalLine.Validate("Salespers./Purch. Code", SalespersonJO.Code);
+
+        // [WHEN] Set "Location Code" = "RED" (no default dimension).
+        ItemJournalLine.Validate("Location Code", LocationRed.Code);
+
+        // [WHEN] Set "New Location Code" = "RED" (no default dimension).
+        ItemJournalLine.Validate("New Location Code", LocationRed.Code);
+
+        // [WHEN] Change "Salespers./Purch. Code" to "KH".
+        ItemJournalLine.Validate("Salespers./Purch. Code", SalespersonKH.Code);
+
+        // [THEN] "Shortcut Dimension 1 Code" = "KH_DIM" (should be updated to KH's dimension).
+        // [THEN] "Dimension Set ID" includes value "KH_DIM".
+        ItemJournalLine.TestField("Shortcut Dimension 1 Code", DimensionValue[2].Code);
+        VerifyDimensionValue(ItemJournalLine."Dimension Set ID", DimensionValue[2]);
+
+        // [THEN] "New Shortcut Dimension 1 Code" = "KH_DIM" (should be updated to KH's dimension, not remain as JO's).
+        // [THEN] "New Dimension Set ID" includes value "KH_DIM".
+        ItemJournalLine.TestField("New Shortcut Dimension 1 Code", DimensionValue[2].Code);
+        VerifyDimensionValue(ItemJournalLine."New Dimension Set ID", DimensionValue[2]);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"ERM Dimension Locations");
@@ -1407,6 +1468,13 @@ codeunit 134474 "ERM Dimension Locations"
         LibraryDimension.CreateDimension(Dimension);
         CreateDimensionValueWithSpecCode(DimensionValue, AccountNo, Dimension.Code);
         LibraryDimension.CreateDefaultDimension(DefaultDimension, TableID, AccountNo, Dimension.Code, DimensionValue.Code);
+    end;
+
+    local procedure CreateDefaultDimensionWithSpecCodeAndDimValue(AccountNo: Code[20]; TableID: Integer; DimensionValue: Record "Dimension Value")
+    var
+        DefaultDimension: Record "Default Dimension";
+    begin
+        LibraryDimension.CreateDefaultDimension(DefaultDimension, TableID, AccountNo, DimensionValue."Dimension Code", DimensionValue.Code);
     end;
 
     local procedure CreateDimensionValueWithSpecCode(var DimensionValue: Record "Dimension Value"; DimensionValueCode: Code[20]; DimensionCode: Code[20])

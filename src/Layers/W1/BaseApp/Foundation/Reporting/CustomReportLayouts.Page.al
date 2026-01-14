@@ -5,12 +5,12 @@
 namespace Microsoft.Foundation.Reporting;
 
 using Microsoft.EServices.EDocument;
+using System.Environment.Configuration;
 using System.Integration;
 using System.IO;
 using System.Reflection;
 using System.Security.User;
 using System.Utilities;
-using System.Environment.Configuration;
 
 page 9650 "Custom Report Layouts"
 {

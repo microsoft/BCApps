@@ -4,11 +4,20 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.Outbox;
 
-using Microsoft.Intercompany.Comment;
 using Microsoft.Intercompany;
+using Microsoft.Intercompany.Comment;
 using Microsoft.Intercompany.Journal;
 using Microsoft.Intercompany.Partner;
 
+/// <summary>
+/// Stores processed intercompany outbox transactions after successful transmission to partners.
+/// Maintains historical archive of completed intercompany transactions for audit and tracking purposes.
+/// </summary>
+/// <remarks>
+/// Historical archive table for completed intercompany outbox transactions.
+/// Supports transaction tracking, status monitoring, and comprehensive audit trails for intercompany operations.
+/// Integration points: IC Partner, transaction source documents, G/L accounts, journal processing.
+/// </remarks>
 table 416 "Handled IC Outbox Trans."
 {
     Caption = 'Handled IC Outbox Trans.';
@@ -16,11 +25,17 @@ table 416 "Handled IC Outbox Trans."
 
     fields
     {
+        /// <summary>
+        /// Unique transaction number for intercompany transaction identification.
+        /// </summary>
         field(1; "Transaction No."; Integer)
         {
             Caption = 'Transaction No.';
             Editable = false;
         }
+        /// <summary>
+        /// Intercompany partner code identifying the receiving company.
+        /// </summary>
         field(2; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
@@ -28,6 +43,9 @@ table 416 "Handled IC Outbox Trans."
             TableRelation = "IC Partner";
         }
 #if not CLEANSCHEMA29
+        /// <summary>
+        /// Source type of the intercompany transaction for legacy transaction categorization.
+        /// </summary>
         field(3; "Source Type"; Enum "IC Transaction Source Type")
         {
             Caption = 'Source Type';
@@ -42,26 +60,41 @@ table 416 "Handled IC Outbox Trans."
 #endif
         }
 #endif
+        /// <summary>
+        /// Source type of the intercompany transaction for classification and routing.
+        /// </summary>
         field(4; "IC Source Type"; Enum "IC Transaction Source Type")
         {
             Caption = 'IC Source Type';
             Editable = false;
         }
+        /// <summary>
+        /// Document type for the intercompany transaction processing.
+        /// </summary>
         field(5; "Document Type"; Enum "IC Transaction Document Type")
         {
             Caption = 'Document Type';
             Editable = false;
         }
+        /// <summary>
+        /// Document number for transaction identification and reference.
+        /// </summary>
         field(6; "Document No."; Code[20])
         {
             Caption = 'Document No.';
             Editable = false;
         }
+        /// <summary>
+        /// Date when the intercompany transaction was posted for accounting and audit purposes.
+        /// </summary>
         field(7; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
             Editable = false;
         }
+        /// <summary>
+        /// Source of the transaction indicating whether created by current company or rejected by partner.
+        /// </summary>
         field(8; "Transaction Source"; Option)
         {
             Caption = 'Transaction Source';
@@ -69,11 +102,17 @@ table 416 "Handled IC Outbox Trans."
             OptionCaption = 'Rejected by Current Company,Created by Current Company';
             OptionMembers = "Rejected by Current Company","Created by Current Company";
         }
+        /// <summary>
+        /// Document date from the source transaction for chronological tracking and reporting.
+        /// </summary>
         field(9; "Document Date"; Date)
         {
             Caption = 'Document Date';
             Editable = false;
         }
+        /// <summary>
+        /// Current status of the handled intercompany transaction indicating transmission and processing state.
+        /// </summary>
         field(11; Status; Option)
         {
             Caption = 'Status';
@@ -82,6 +121,9 @@ table 416 "Handled IC Outbox Trans."
             OptionMembers = "Sent to IC Partner","Rejection Sent to IC Partner",Cancelled;
         }
 #if not CLEANSCHEMA25
+        /// <summary>
+        /// IC partner G/L account number for legacy transaction mapping and compatibility.
+        /// </summary>
         field(12; "IC Partner G/L Acc. No."; Code[20])
         {
             Caption = 'IC Partner G/L Acc. No.';
@@ -90,14 +132,23 @@ table 416 "Handled IC Outbox Trans."
             ObsoleteTag = '25.0';
         }
 #endif
+        /// <summary>
+        /// Source line number from the originating document for detailed transaction traceability.
+        /// </summary>
         field(13; "Source Line No."; Integer)
         {
             Caption = 'Source Line No.';
         }
+        /// <summary>
+        /// Type of intercompany account used for transaction classification and posting.
+        /// </summary>
         field(14; "IC Account Type"; Enum "IC Journal Account Type")
         {
             Caption = 'IC Account Type';
         }
+        /// <summary>
+        /// Intercompany account number for transaction posting and partner reconciliation.
+        /// </summary>
         field(15; "IC Account No."; Code[20])
         {
             Caption = 'IC Account No.';
@@ -143,6 +194,10 @@ table 416 "Handled IC Outbox Trans."
         DeleteComments("Transaction No.", "IC Partner Code");
     end;
 
+    /// <summary>
+    /// Opens the appropriate detail page for viewing handled intercompany transaction line details.
+    /// Displays journal lines, sales documents, or purchase documents based on transaction source type.
+    /// </summary>
     procedure ShowDetails()
     var
         HandledICOutboxJnlLine: Record "Handled IC Outbox Jnl. Line";
@@ -195,11 +250,21 @@ table 416 "Handled IC Outbox Trans."
         ICCommentLine.DeleteAll();
     end;
 
+    /// <summary>
+    /// Integration event raised after showing transaction details for custom processing or navigation.
+    /// Enables additional detail display or post-processing when viewing handled IC outbox transactions.
+    /// </summary>
+    /// <param name="HandledICOutboxTrans">Handled IC outbox transaction record displayed</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterShowDetails(var HandledICOutboxTrans: Record "Handled IC Outbox Trans.")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised during deletion for custom source type processing.
+    /// Enables custom cleanup logic for non-standard transaction source types.
+    /// </summary>
+    /// <param name="HandledICOutboxTrans">Handled IC outbox transaction being deleted</param>
     [IntegrationEvent(false, false)]
     local procedure OnDeleteOnSourceTypeCase(var HandledICOutboxTrans: Record "Handled IC Outbox Trans.")
     begin

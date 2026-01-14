@@ -1,30 +1,30 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.Warehouse.Structure;
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.VAT.RateChange;
+using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.Calendar;
+using Microsoft.Foundation.Shipping;
+using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Availability;
+using Microsoft.Inventory.Intrastat;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Setup;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Inventory.Transfer;
+using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
-using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Inventory.Setup;
-using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Journal;
-using Microsoft.Inventory.Tracking;
-using Microsoft.Inventory.Location;
-using Microsoft.Inventory.Item.Catalog;
-using Microsoft.Inventory.Availability;
-using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.Source;
 using Microsoft.Pricing.Worksheet;
 using Microsoft.Purchases.Pricing;
 using Microsoft.Sales.Pricing;
-using Microsoft.Inventory.Transfer;
-using Microsoft.Warehouse.Setup;
-using Microsoft.Foundation.Calendar;
-using Microsoft.Foundation.AuditCodes;
 using Microsoft.Utilities;
-using Microsoft.Foundation.Shipping;
-using Microsoft.Inventory.Intrastat;
-using Microsoft.Foundation.UOM;
-using Microsoft.Finance.VAT.RateChange;
+using Microsoft.Warehouse.Setup;
+using Microsoft.Warehouse.Structure;
 
 permissionset 2928 "Inventory - Admin"
 {

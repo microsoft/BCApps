@@ -1173,7 +1173,8 @@ table 246 "Requisition Line"
                 GetItem();
 
                 if Item.IsNonInventoriableType() then
-                    TestField("Replenishment System", "Replenishment System"::Purchase);
+                    if "Replenishment System" <> "Replenishment System"::Purchase then
+                        Error(ErrorInfo.Create(StrSubstNo(ReplenishmentSystemPurchaseErr, Item."No.", "Location Code", Rec.FieldCaption("Replenishment System"), "Replenishment System"::Purchase, "Replenishment System")));
 
                 StockkeepingUnit := Item.GetSKU("Location Code", "Variant Code");
                 OnValidateReplenishmentSystemOnAfterSetStockkeepingUnit(Rec, StockkeepingUnit, Subcontracting);
@@ -1515,6 +1516,7 @@ table 246 "Requisition Line"
         ConfirmDeleteAllLinesQst: Label 'Go ahead and delete all lines?';
         BlockedErr: Label 'You cannot choose %1 %2 because the %3 check box is selected on its %1 card.', Comment = '%1 - Table Caption (item/variant), %2 - Item No./Variant Code, %3 - Field Caption';
         ItemVariantPrimaryKeyLbl: Label '%1, %2', Comment = '%1 - Item No., %2 - Variant Code', Locked = true;
+        ReplenishmentSystemPurchaseErr: Label 'Item %1 in Location %2 should have %3 set to %4. Current %3 is %5.', Comment = '%1= Item No., %2= Location Code, %3= Replenishment System Caption, %4= Replenishment System::Purchase, %5= Field Value.';
 
     protected var
         Item: Record Item;
@@ -1999,6 +2001,8 @@ table 246 "Requisition Line"
         until RequisitionLine.Next() = 0;
 
         DeleteRelations(true);
+
+        OnAfterClearPlanningWorksheet(Rec);
     end;
 
     internal procedure ClearOrderPlanningWorksheet()
@@ -3436,6 +3440,11 @@ table 246 "Requisition Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyFromItem(var RequisitionLine: Record "Requisition Line"; Item: Record Item; CurrentFieldNo: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterClearPlanningWorksheet(var RequisitionLine: Record "Requisition Line")
     begin
     end;
 

@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+/// <summary>
+/// Manages VAT statement templates and names including creation, selection, and navigation functionality.
+/// Provides centralized management for VAT statement setup and user interface operations.
+/// </summary>
 codeunit 340 VATStmtManagement
 {
     Permissions = TableData "VAT Statement Template" = rimd,
@@ -22,6 +26,13 @@ codeunit 340 VATStmtManagement
 #pragma warning restore AA0074
         OpenFromBatch: Boolean;
 
+    /// <summary>
+    /// Handles VAT statement template selection for a specific page and applies filtering.
+    /// Creates default template if none exists or shows template selection if multiple templates available.
+    /// </summary>
+    /// <param name="PageID">Page ID to filter templates by</param>
+    /// <param name="VATStmtLine">VAT statement line record to apply template filtering</param>
+    /// <param name="StmtSelected">Returns true if template was successfully selected</param>
     procedure TemplateSelection(PageID: Integer; var VATStmtLine: Record "VAT Statement Line"; var StmtSelected: Boolean)
     var
         VATStmtTmpl: Record "VAT Statement Template";
@@ -57,6 +68,11 @@ codeunit 340 VATStmtManagement
         end;
     end;
 
+    /// <summary>
+    /// Opens VAT statement page from batch selection with template-specific page configuration.
+    /// Applies template and statement name filters before launching the statement page.
+    /// </summary>
+    /// <param name="VATStmtName">VAT statement name record containing template and name information</param>
     procedure TemplateSelectionFromBatch(var VATStmtName: Record "VAT Statement Name")
     var
         VATStmtLine: Record "VAT Statement Line";
@@ -76,6 +92,12 @@ codeunit 340 VATStmtManagement
         PAGE.Run(VATStmtTmpl."Page ID", VATStmtLine);
     end;
 
+    /// <summary>
+    /// Opens VAT statement with specified name and applies proper filtering.
+    /// Validates template name and sets statement name filter for VAT statement lines.
+    /// </summary>
+    /// <param name="CurrentStmtName">Current statement name to open and filter by</param>
+    /// <param name="VATStmtLine">VAT statement line record to apply filtering</param>
     procedure OpenStmt(var CurrentStmtName: Code[10]; var VATStmtLine: Record "VAT Statement Line")
     begin
         OnBeforeOpenStmt(CurrentStmtName, VATStmtLine);
@@ -86,6 +108,11 @@ codeunit 340 VATStmtManagement
         VATStmtLine.FilterGroup(0);
     end;
 
+    /// <summary>
+    /// Opens VAT statement batch with template selection and proper filtering setup.
+    /// Handles template selection when multiple templates exist and creates default statement names.
+    /// </summary>
+    /// <param name="VATStmtName">VAT statement name record to open in batch mode</param>
     procedure OpenStmtBatch(var VATStmtName: Record "VAT Statement Name")
     var
         VATStmtTmpl: Record "VAT Statement Template";
@@ -145,6 +172,12 @@ codeunit 340 VATStmtManagement
         end;
     end;
 
+    /// <summary>
+    /// Validates that the specified statement name exists for the current template.
+    /// Ensures statement name is valid for the current VAT statement line context.
+    /// </summary>
+    /// <param name="CurrentStmtName">Statement name to validate</param>
+    /// <param name="VATStmtLine">VAT statement line providing template context</param>
     procedure CheckName(CurrentStmtName: Code[10]; var VATStmtLine: Record "VAT Statement Line")
     var
         VATStmtName: Record "VAT Statement Name";
@@ -152,6 +185,12 @@ codeunit 340 VATStmtManagement
         VATStmtName.Get(VATStmtLine.GetRangeMax("Statement Template Name"), CurrentStmtName);
     end;
 
+    /// <summary>
+    /// Sets the statement name filter on VAT statement lines and positions to first record.
+    /// Applies statement name filtering and navigates to the first matching line.
+    /// </summary>
+    /// <param name="CurrentStmtName">Statement name to set as filter</param>
+    /// <param name="VATStmtLine">VAT statement line record to apply filtering and positioning</param>
     procedure SetName(CurrentStmtName: Code[10]; var VATStmtLine: Record "VAT Statement Line")
     begin
         VATStmtLine.FilterGroup(2);
@@ -160,6 +199,14 @@ codeunit 340 VATStmtManagement
         if VATStmtLine.Find('-') then;
     end;
 
+    /// <summary>
+    /// Opens lookup page for VAT statement names within the specified template.
+    /// Allows user selection of VAT statement name and returns the selected name.
+    /// </summary>
+    /// <param name="CurrentStmtTemplateName">Template name to filter statement names</param>
+    /// <param name="CurrentStmtName">Current statement name for initial positioning</param>
+    /// <param name="EntrdStmtName">Returns the selected statement name</param>
+    /// <returns>True if statement name was selected, false if cancelled</returns>
     procedure LookupName(CurrentStmtTemplateName: Code[10]; CurrentStmtName: Code[10]; var EntrdStmtName: Text[10]): Boolean
     var
         VATStmtName: Record "VAT Statement Name";
@@ -176,6 +223,12 @@ codeunit 340 VATStmtManagement
         exit(true);
     end;
 
+    /// <summary>
+    /// Integration event raised before opening a VAT statement to allow customization.
+    /// Enables modification of statement name or VAT statement line before opening.
+    /// </summary>
+    /// <param name="CurrentStmtName">Current statement name being opened</param>
+    /// <param name="VATStatementLine">VAT statement line record being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOpenStmt(var CurrentStmtName: Code[10]; var VATStatementLine: Record "VAT Statement Line")
     begin

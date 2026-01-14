@@ -1,6 +1,8 @@
+/// <summary>
+/// Provides pseudo-random number generation functions for test data creation.
+/// </summary>
 codeunit 130440 "Library - Random"
 {
-    // Pseudo random number generator.
 
     SingleInstance = true;
 

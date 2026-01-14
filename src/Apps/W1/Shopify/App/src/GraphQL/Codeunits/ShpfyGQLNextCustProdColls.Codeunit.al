@@ -16,6 +16,6 @@ codeunit 30416 "Shpfy GQL NextCustProdColls" implements "Shpfy IGraphQL"
 
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(32);
+        exit(8);
     end;
 }

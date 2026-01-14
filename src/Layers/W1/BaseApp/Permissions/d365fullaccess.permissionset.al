@@ -1,11 +1,11 @@
 namespace System.Security.AccessControl;
 
-using System.Reflection;
-using System.Apps;
-using System.Environment.Configuration;
-using System.Tooling;
-using System.Diagnostics;
 using Microsoft;
+using System.Apps;
+using System.Diagnostics;
+using System.Environment.Configuration;
+using System.Reflection;
+using System.Tooling;
 
 permissionset 6948 "D365 FULL ACCESS"
 {

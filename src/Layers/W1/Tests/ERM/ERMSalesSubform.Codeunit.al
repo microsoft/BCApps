@@ -41,6 +41,11 @@ codeunit 134393 "ERM Sales Subform"
         MustMatchErr: Label '%1 and %2 must match.';
         InvoiceDiscPct: Label 'Invoice Disc. Pct.';
         ItemTestDescriptionLbl: Label 'Test Description';
+        LineNoRemainsZeroLbl: Label 'Line No. should remain zero as zero is allowed';
+        LineNoPositiveAfterInsertNegativeLbl: Label 'Line No. should be positive after insert with negative';
+        NewLineNoGreaterThanPreviousLbl: Label 'New Line No. should be greater than previous';
+        PositiveLineNoRemainUnchangedLbl: Label 'Positive Line No. should remain unchanged';
+        SalesLineDescriptionMustMatchExtendedTextErr: Label 'Sales Line Description must match Extended Text';
 
 #if not CLEAN26
     [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
@@ -6637,6 +6642,108 @@ codeunit 134393 "ERM Sales Subform"
            StrSubstNo(MustMatchErr, CustInvoiceDisc.FieldCaption("Discount %"), InvoiceDiscPct));
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure OrderLineNoRemainsPositiveWhenAutoSplitKeyExhausted()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Customer: Record Customer;
+        Item: Record Item;
+        PreviousLineNo: Integer;
+    begin
+        // [SCENARIO 612776] When AutoSplitKey exhausts line numbering space causing negative line numbers, new lines get positive line numbers
+        Initialize();
+
+        // [GIVEN] A sales order with a base line
+        LibrarySales.CreateCustomer(Customer);
+        LibraryInventory.CreateItem(Item);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+
+        // [GIVEN] Create a base line to establish max line number
+        SalesLine.Init();
+        SalesLine."Document Type" := SalesHeader."Document Type";
+        SalesLine."Document No." := SalesHeader."No.";
+        SalesLine."Line No." := 10000;
+        SalesLine.Insert(true);
+        PreviousLineNo := SalesLine."Line No.";
+
+        // [WHEN] Inserting a sales line with negative Line No. (simulating AutoSplitKey exhaustion)
+        SalesLine.Init();
+        SalesLine."Document Type" := SalesHeader."Document Type";
+        SalesLine."Document No." := SalesHeader."No.";
+        SalesLine."Line No." := -10000; // Simulate AutoSplitKey assigning negative
+        SalesLine.Insert(true);
+
+        // [THEN] Line No. is reassigned to a positive value greater than previous
+        SalesLine.Find();
+        Assert.IsTrue(SalesLine."Line No." > 0, LineNoPositiveAfterInsertNegativeLbl);
+        Assert.IsTrue(SalesLine."Line No." > PreviousLineNo, NewLineNoGreaterThanPreviousLbl);
+
+        // [WHEN] Inserting a line with Line No. = 0 (zero is allowed, should remain zero)
+        SalesLine.Init();
+        SalesLine."Document Type" := SalesHeader."Document Type";
+        SalesLine."Document No." := SalesHeader."No.";
+        SalesLine."Line No." := 0;
+        SalesLine.Insert(true);
+
+        // [THEN] Line No. remains zero (zero is allowed)
+        SalesLine.Find();
+        Assert.AreEqual(0, SalesLine."Line No.", LineNoRemainsZeroLbl);
+
+        // [WHEN] Inserting a normal line with positive Line No.
+        SalesLine.Init();
+        SalesLine."Document Type" := SalesHeader."Document Type";
+        SalesLine."Document No." := SalesHeader."No.";
+        SalesLine."Line No." := PreviousLineNo + 20000;
+        SalesLine.Insert(true);
+
+        // [THEN] Line No. remains unchanged
+        SalesLine.Find();
+        Assert.AreEqual(PreviousLineNo + 20000, SalesLine."Line No.", PositiveLineNoRemainUnchangedLbl);
+    end;
+
+    [Test]
+    procedure VerifyExtendedTextSalesQuoteFromDescription()
+    var
+        customer: Record Customer;
+        ExtendedTextLine: array[2] of Record "Extended Text Line";
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesQuote: TestPage "Sales Quote";
+    begin
+        // [SCENARIO 616553] Extended Texts are being pulled into the sales document if there are more than just one Extended Text for an item.
+        Initialize();
+
+        // [GIVEN] Create Item with Extended Text.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Automatic Ext. Texts", true);
+        Item.Modify(true);
+        CreateExtendedTextForItem(Item, ExtendedTextLine[1]);
+
+        // [WHEN] Create Customer.
+        LibrarySales.CreateCustomer(Customer);
+
+        // [GIVEN] Open New Sales quote page and set Sell-to Customer No.
+        SalesQuote.OpenNew();
+        SalesQuote."Sell-to Customer No.".SetValue(Customer."No.");
+        SalesHeader.SetRange("Document Type", SalesHeader."Document Type"::Quote);
+        SalesHeader.SetRange("Sell-to Customer No.", Customer."No.");
+        SalesHeader.FindFirst();
+
+        // [WHEN] Insert Sales Line with the Item created above.
+        SalesQuote.SalesLines.New();
+        SalesQuote.SalesLines.Type.SetValue(SalesLine.Type::Item);
+        SalesQuote.SalesLines.Description.SetValue(Item.Description);
+
+        // [THEN] Verify that Extended Text is pulled into Sales Line Description.
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Description, ExtendedTextLine[1].Text);
+        SalesLine.FindFirst();
+        Assert.AreEqual(1, SalesLine.Count(), SalesLineDescriptionMustMatchExtendedTextErr);
+    end;
+
     local procedure Initialize()
     var
         SalesHeader: Record "Sales Header";
@@ -7585,6 +7692,16 @@ codeunit 134393 "ERM Sales Subform"
           CustInvoiceDisc, Customer."No.", Customer."Currency Code", MinValue);
         CustInvoiceDisc.Validate("Discount %", DiscountPct);
         CustInvoiceDisc.Modify(true);
+    end;
+
+    local procedure CreateExtendedTextForItem(Item: Record Item; var ExtendedTextLine: Record "Extended Text Line")
+    var
+        ExtendedTextHeader: Record "Extended Text Header";
+    begin
+        LibraryInventory.CreateExtendedTextHeaderItem(ExtendedTextHeader, Item."No.");
+        LibraryInventory.CreateExtendedTextLineItem(ExtendedTextLine, ExtendedTextHeader);
+        LibraryUtility.FillFieldMaxText(ExtendedTextLine, ExtendedTextLine.FieldNo(Text));
+        ExtendedTextLine.Find();
     end;
 
     [ConfirmHandler]

@@ -7,6 +7,15 @@ namespace Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Finance.VAT.Setup;
 
+/// <summary>
+/// Subform page for displaying VAT entries in a hierarchical tree view during posting preview.
+/// Organizes VAT entries by VAT posting setup groups with individual entries as child nodes.
+/// </summary>
+/// <remarks>
+/// Used within posting preview infrastructure to show VAT entry details in a structured format.
+/// Groups entries by VAT Business and Product Posting Group combinations with collapsible tree structure.
+/// Provides comprehensive field visibility for VAT entry analysis including posting groups and amounts.
+/// </remarks>
 page 1572 "VAT Entries Preview Subform"
 {
     PageType = ListPart;
@@ -169,6 +178,10 @@ page 1572 "VAT Entries Preview Subform"
     protected var
         Emphasize: Boolean;
 
+    /// <summary>
+    /// Populates the subform with VAT entries from posting preview event handler.
+    /// </summary>
+    /// <param name="PostingPreviewEventHandler">Event handler containing VAT entry preview data</param>
     procedure Set(PostingPreviewEventHandler: Codeunit "Posting Preview Event Handler")
     var
         TempVATEntryPostingPreview: Record "VAT Entry Posting Preview" temporary;
@@ -235,11 +248,21 @@ page 1572 "VAT Entries Preview Subform"
             until TempVATPostingSetup.Next() = 0;
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting VAT posting group summary entry in hierarchical view.
+    /// </summary>
+    /// <param name="TempVATEntryPostingPreview">VAT entry posting preview record being created</param>
+    /// <param name="TempVATEntry">Source VAT entry records for the posting group</param>
     [IntegrationEvent(false, false)]
     local procedure OnLoadBufferAsHierarchicalViewOnBeforeInsertGroupEntry(var TempVATEntryPostingPreview: Record "VAT Entry Posting Preview" temporary; var TempVATEntry: Record "VAT Entry" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting individual VAT entry in hierarchical view.
+    /// </summary>
+    /// <param name="TempVATEntryPostingPreview">VAT entry posting preview record being created</param>
+    /// <param name="TempVATEntry">Source VAT entry record</param>
     [IntegrationEvent(false, false)]
     local procedure OnLoadBufferAsHierarchicalViewOnBeforeInsertEntry(var TempVATEntryPostingPreview: Record "VAT Entry Posting Preview" temporary; var TempVATEntry: Record "VAT Entry" temporary)
     begin

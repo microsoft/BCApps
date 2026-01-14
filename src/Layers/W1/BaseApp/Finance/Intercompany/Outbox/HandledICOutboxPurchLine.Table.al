@@ -15,6 +15,15 @@ using Microsoft.Projects.Project.Job;
 using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Stores processed purchase document lines for intercompany outbox transactions.
+/// Maintains historical archive of transmitted purchase line details sent to IC partners.
+/// </summary>
+/// <remarks>
+/// Historical archive table for completed intercompany outbox purchase line transactions.
+/// Supports detailed purchase line tracking, cost allocation, and transaction history reporting.
+/// Integration points: IC Partner, Item Catalog, Job Projects, dimension management.
+/// </remarks>
 table 433 "Handled IC Outbox Purch. Line"
 {
     Caption = 'Handled IC Outbox Purch. Line';
@@ -22,31 +31,49 @@ table 433 "Handled IC Outbox Purch. Line"
 
     fields
     {
+        /// <summary>
+        /// Purchase document type for intercompany transaction processing.
+        /// </summary>
         field(1; "Document Type"; Enum "IC Outbox Purchase Document Type")
         {
             Caption = 'Document Type';
             Editable = false;
         }
+        /// <summary>
+        /// Unique document number for the purchase transaction.
+        /// </summary>
         field(3; "Document No."; Code[20])
         {
             Caption = 'Document No.';
             Editable = false;
         }
+        /// <summary>
+        /// Line number for ordering and identification within the document.
+        /// </summary>
         field(4; "Line No."; Integer)
         {
             Caption = 'Line No.';
             Editable = false;
         }
+        /// <summary>
+        /// Primary description of the purchased item or service.
+        /// </summary>
         field(11; Description; Text[100])
         {
             Caption = 'Description';
             Editable = false;
         }
+        /// <summary>
+        /// Additional description details for the purchased item or service.
+        /// </summary>
         field(12; "Description 2"; Text[50])
         {
             Caption = 'Description 2';
             Editable = false;
         }
+        /// <summary>
+        /// Quantity of the purchased item or service.
+        /// </summary>
         field(15; Quantity; Decimal)
         {
             AutoFormatType = 0;
@@ -54,6 +81,9 @@ table 433 "Handled IC Outbox Purch. Line"
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
+        /// <summary>
+        /// Direct unit cost for the purchased item or service.
+        /// </summary>
         field(22; "Direct Unit Cost"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -61,6 +91,9 @@ table 433 "Handled IC Outbox Purch. Line"
             Caption = 'Direct Unit Cost';
             Editable = false;
         }
+        /// <summary>
+        /// Line discount percentage applied to the purchase line.
+        /// </summary>
         field(27; "Line Discount %"; Decimal)
         {
             AutoFormatType = 0;
@@ -69,6 +102,9 @@ table 433 "Handled IC Outbox Purch. Line"
             MaxValue = 100;
             MinValue = 0;
         }
+        /// <summary>
+        /// Line discount amount applied to the purchase line.
+        /// </summary>
         field(28; "Line Discount Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -76,6 +112,9 @@ table 433 "Handled IC Outbox Purch. Line"
             Caption = 'Line Discount Amount';
             Editable = false;
         }
+        /// <summary>
+        /// Total amount for the purchase line excluding VAT.
+        /// </summary>
         field(29; Amount; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -83,6 +122,9 @@ table 433 "Handled IC Outbox Purch. Line"
             Caption = 'Amount';
             Editable = false;
         }
+        /// <summary>
+        /// Total amount for the purchase line including VAT.
+        /// </summary>
         field(30; "Amount Including VAT"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -90,18 +132,27 @@ table 433 "Handled IC Outbox Purch. Line"
             Caption = 'Amount Including VAT';
             Editable = false;
         }
+        /// <summary>
+        /// Job number for project-related purchase line allocation.
+        /// </summary>
         field(45; "Job No."; Code[20])
         {
             AccessByPermission = TableData Job = R;
             Caption = 'Project No.';
             Editable = false;
         }
+        /// <summary>
+        /// Indirect cost percentage applied to the purchase line.
+        /// </summary>
         field(54; "Indirect Cost %"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Indirect Cost %';
             Editable = false;
         }
+        /// <summary>
+        /// Invoice discount amount applied at document level.
+        /// </summary>
         field(69; "Inv. Discount Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -109,18 +160,27 @@ table 433 "Handled IC Outbox Purch. Line"
             Caption = 'Inv. Discount Amount';
             Editable = false;
         }
+        /// <summary>
+        /// Indicates whether this line is for drop shipment to customer.
+        /// </summary>
         field(73; "Drop Shipment"; Boolean)
         {
             AccessByPermission = TableData "Drop Shpt. Post. Buffer" = R;
             Caption = 'Drop Shipment';
             Editable = false;
         }
+        /// <summary>
+        /// Currency code for the purchase line amounts.
+        /// </summary>
         field(91; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
             Editable = false;
             TableRelation = Currency;
         }
+        /// <summary>
+        /// VAT base amount for tax calculation.
+        /// </summary>
         field(99; "VAT Base Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -128,6 +188,9 @@ table 433 "Handled IC Outbox Purch. Line"
             Caption = 'VAT Base Amount';
             Editable = false;
         }
+        /// <summary>
+        /// Unit cost for the purchased item including indirect costs.
+        /// </summary>
         field(100; "Unit Cost"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -135,6 +198,9 @@ table 433 "Handled IC Outbox Purch. Line"
             Caption = 'Unit Cost';
             Editable = false;
         }
+        /// <summary>
+        /// Line amount before discounts and VAT.
+        /// </summary>
         field(103; "Line Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -142,6 +208,9 @@ table 433 "Handled IC Outbox Purch. Line"
             Caption = 'Line Amount';
             Editable = false;
         }
+        /// <summary>
+        /// VAT difference amount for manual VAT adjustments.
+        /// </summary>
         field(104; "VAT Difference"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -149,11 +218,17 @@ table 433 "Handled IC Outbox Purch. Line"
             Caption = 'VAT Difference';
             Editable = false;
         }
+        /// <summary>
+        /// Intercompany partner reference type for item mapping.
+        /// </summary>
         field(107; "IC Partner Ref. Type"; Enum "IC Partner Reference Type")
         {
             Caption = 'IC Partner Ref. Type';
             Editable = false;
         }
+        /// <summary>
+        /// Intercompany partner reference number for item or account mapping.
+        /// </summary>
         field(108; "IC Partner Reference"; Code[20])
         {
             Caption = 'IC Partner Reference';
@@ -166,17 +241,26 @@ table 433 "Handled IC Outbox Purch. Line"
             else
             if ("IC Partner Ref. Type" = const("Charge (Item)")) "Item Charge";
         }
+        /// <summary>
+        /// Intercompany partner code identifying the receiving company.
+        /// </summary>
         field(125; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
             Editable = false;
             TableRelation = "IC Partner";
         }
+        /// <summary>
+        /// Unique identifier for the intercompany transaction.
+        /// </summary>
         field(126; "IC Transaction No."; Integer)
         {
             Caption = 'IC Transaction No.';
             Editable = false;
         }
+        /// <summary>
+        /// Origin of the intercompany transaction indicating creation or rejection source.
+        /// </summary>
         field(127; "Transaction Source"; Option)
         {
             Caption = 'Transaction Source';
@@ -184,21 +268,33 @@ table 433 "Handled IC Outbox Purch. Line"
             OptionCaption = 'Rejected by Current Company,Created by Current Company';
             OptionMembers = "Rejected by Current Company","Created by Current Company";
         }
+        /// <summary>
+        /// Intercompany item reference number for cross-company item mapping.
+        /// </summary>
         field(138; "IC Item Reference No."; Code[50])
         {
             AccessByPermission = TableData "Item Reference" = R;
             Caption = 'IC Item Reference No.';
         }
+        /// <summary>
+        /// Unit of measure code for the purchased item quantity.
+        /// </summary>
         field(5407; "Unit of Measure Code"; Code[10])
         {
             Caption = 'Unit of Measure Code';
             Editable = false;
         }
+        /// <summary>
+        /// Requested receipt date for delivery planning.
+        /// </summary>
         field(5790; "Requested Receipt Date"; Date)
         {
             Caption = 'Requested Receipt Date';
             Editable = false;
         }
+        /// <summary>
+        /// Vendor's promised receipt date for delivery confirmation.
+        /// </summary>
         field(5791; "Promised Receipt Date"; Date)
         {
             Caption = 'Promised Receipt Date';
@@ -226,6 +322,9 @@ table 433 "Handled IC Outbox Purch. Line"
           DATABASE::"Handled IC Outbox Purch. Line", "IC Transaction No.", "IC Partner Code", "Transaction Source", "Line No.");
     end;
 
+    /// <summary>
+    /// Displays dimensions associated with the handled intercompany outbox purchase line.
+    /// </summary>
     procedure ShowDimensions()
     var
         ICDocDim: Record "IC Document Dimension";

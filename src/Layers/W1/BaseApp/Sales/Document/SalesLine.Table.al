@@ -54,14 +54,14 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Posting;
 using Microsoft.Sales.Pricing;
 using Microsoft.Sales.Setup;
+using Microsoft.Utilities;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
-using Microsoft.Utilities;
-using System.Utilities;
 using System.Environment.Configuration;
+using System.Utilities;
 
 table 37 "Sales Line"
 {
@@ -631,6 +631,7 @@ table 37 "Sales Line"
         }
         field(15; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             ToolTip = 'Specifies how many units are being sold.';
             DecimalPlaces = 0 : 5;
@@ -776,6 +777,7 @@ table 37 "Sales Line"
         }
         field(16; "Outstanding Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Outstanding Quantity';
             ToolTip = 'Specifies how many units on the order line have not yet been shipped.';
             DecimalPlaces = 0 : 5;
@@ -783,6 +785,7 @@ table 37 "Sales Line"
         }
         field(17; "Qty. to Invoice"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Invoice';
             DecimalPlaces = 0 : 5;
 
@@ -819,6 +822,7 @@ table 37 "Sales Line"
         field(18; "Qty. to Ship"; Decimal)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
+            AutoFormatType = 0;
             Caption = 'Qty. to Ship';
             ToolTip = 'Specifies the quantity of items that remain to be shipped.';
             DecimalPlaces = 0 : 5;
@@ -881,6 +885,7 @@ table 37 "Sales Line"
         }
         field(23; "Unit Cost (LCY)"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 2;
             Caption = 'Unit Cost (LCY)';
 
@@ -932,12 +937,14 @@ table 37 "Sales Line"
         }
         field(25; "VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'VAT %';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(27; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Line Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -1089,21 +1096,25 @@ table 37 "Sales Line"
         }
         field(34; "Gross Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Gross Weight';
             DecimalPlaces = 0 : 5;
         }
         field(35; "Net Weight"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Net Weight';
             DecimalPlaces = 0 : 5;
         }
         field(36; "Units per Parcel"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Units per Parcel';
             DecimalPlaces = 0 : 5;
         }
         field(37; "Unit Volume"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Unit Volume';
             DecimalPlaces = 0 : 5;
         }
@@ -1255,6 +1266,7 @@ table 37 "Sales Line"
         }
         field(58; "Qty. Shipped Not Invoiced"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. Shipped Not Invoiced';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -1289,12 +1301,14 @@ table 37 "Sales Line"
         field(60; "Quantity Shipped"; Decimal)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
+            AutoFormatType = 0;
             Caption = 'Quantity Shipped';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(61; "Quantity Invoiced"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity Invoiced';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -1311,6 +1325,7 @@ table 37 "Sales Line"
         }
         field(67; "Profit %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Profit %';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -1605,18 +1620,22 @@ table 37 "Sales Line"
         }
         field(92; "Outstanding Amount (LCY)"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Outstanding Amount (LCY)';
             Editable = false;
         }
         field(93; "Shipped Not Invoiced (LCY)"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Shipped Not Invoiced (LCY) Incl. VAT';
             Editable = false;
         }
         field(94; "Shipped Not Inv. (LCY) No VAT"; Decimal)
         {
+            AutoFormatExpression = '';
+            AutoFormatType = 1;
             Caption = 'Shipped Not Invoiced (LCY)';
             Editable = false;
             FieldClass = Normal;
@@ -1624,6 +1643,7 @@ table 37 "Sales Line"
         field(95; "Reserved Quantity"; Decimal)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
+            AutoFormatType = 0;
             CalcFormula = - sum("Reservation Entry".Quantity where("Source ID" = field("Document No."),
                                                                    "Source Ref. No." = field("Line No."),
                                                                    "Source Type" = const(37),
@@ -1861,6 +1881,7 @@ table 37 "Sales Line"
         }
         field(109; "Prepayment %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Prepayment %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -1945,6 +1966,7 @@ table 37 "Sales Line"
         }
         field(115; "Prepayment VAT %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Prepayment VAT %';
             DecimalPlaces = 0 : 5;
             Editable = false;
@@ -2048,6 +2070,7 @@ table 37 "Sales Line"
         }
         field(129; "Prepmt. Amount Inv. (LCY)"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Prepmt. Amount Inv. (LCY)';
             Editable = false;
@@ -2070,9 +2093,10 @@ table 37 "Sales Line"
         }
         field(132; "Prepmt. VAT Amount Inv. (LCY)"; Decimal)
         {
+            AutoFormatExpression = '';
+            AutoFormatType = 1;
             Caption = 'Prepmt. VAT Amount Inv. (LCY)';
             Editable = false;
-            AutoFormatType = 1;
         }
         field(135; "Prepayment VAT Difference"; Decimal)
         {
@@ -2162,6 +2186,7 @@ table 37 "Sales Line"
         field(900; "Qty. to Assemble to Order"; Decimal)
         {
             AccessByPermission = TableData "BOM Component" = R;
+            AutoFormatType = 0;
             Caption = 'Qty. to Assemble to Order';
             DecimalPlaces = 0 : 5;
 
@@ -2215,6 +2240,7 @@ table 37 "Sales Line"
         }
         field(901; "Qty. to Asm. to Order (Base)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Qty. to Asm. to Order (Base)';
             DecimalPlaces = 0 : 5;
 
@@ -2234,6 +2260,7 @@ table 37 "Sales Line"
         field(902; "ATO Whse. Outstanding Qty."; Decimal)
         {
             AccessByPermission = TableData "BOM Component" = R;
+            AutoFormatType = 0;
             BlankZero = true;
             CalcFormula = sum("Warehouse Shipment Line"."Qty. Outstanding" where("Source Type" = const(37),
 #pragma warning disable AL0603
@@ -3259,6 +3286,7 @@ table 37 "Sales Line"
         }
         field(5808; "Return Rcd. Not Invd. (LCY)"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Return Rcd. Not Invd. (LCY)';
             Editable = false;
@@ -3479,6 +3507,7 @@ table 37 "Sales Line"
         CapableToPromise: Codeunit "Capable to Promise";
         JobCreateInvoice: Codeunit "Job Create-Invoice";
         IsHandled: Boolean;
+        RequiresVATRoundingAdjustment: Boolean;
     begin
         IsHandled := false;
         OnDeleteOnBeforeTestStatusOpen(Rec, IsHandled);
@@ -3531,9 +3560,10 @@ table 37 "Sales Line"
             SalesCommentLine.DeleteAll();
 
         // In case we have roundings on VAT or Sales Tax, we should update some other line
-        if (Type <> Type::" ") and ("Line No." <> 0) and not IsExtendedText() and ("Job Contract Entry No." = 0) and
-           (Quantity <> 0) and (Amount <> 0) and (Amount <> "Amount Including VAT") and not StatusCheckSuspended
-        then begin
+        RequiresVATRoundingAdjustment := (Type <> Type::" ") and ("Line No." <> 0) and not IsExtendedText() and ("Job Contract Entry No." = 0) and
+           (Quantity <> 0) and (Amount <> 0) and (Amount <> "Amount Including VAT") and not StatusCheckSuspended;
+        OnBeforeVATRoundingAdjustment(Rec, StatusCheckSuspended, RequiresVATRoundingAdjustment);
+        if RequiresVATRoundingAdjustment then begin
             Quantity := 0;
             "Quantity (Base)" := 0;
             "Qty. to Invoice" := 0;
@@ -3558,6 +3588,8 @@ table 37 "Sales Line"
         TestStatusOpen();
         if not HasSalesHeader then
             Error(CannotInsertSalesLineWithoutHeaderErr);
+
+        EnsurePositiveLineNo();
 
         if Quantity <> 0 then begin
             OnBeforeVerifyReservedQty(Rec, xRec, 0);
@@ -3598,6 +3630,20 @@ table 37 "Sales Line"
     trigger OnRename()
     begin
         Error(Text001, TableCaption);
+    end;
+
+    local procedure EnsurePositiveLineNo()
+    var
+        SalesLine: Record "Sales Line";
+        MaxLineNo: Integer;
+    begin
+        if "Line No." < 0 then begin
+            SalesLine.SetRange("Document Type", "Document Type");
+            SalesLine.SetRange("Document No.", "Document No.");
+            if SalesLine.FindLast() then
+                MaxLineNo := SalesLine."Line No.";
+            "Line No." := MaxLineNo + 10000;
+        end;
     end;
 
     var
@@ -4895,7 +4941,7 @@ table 37 "Sales Line"
             if CurrFieldNo = FieldNo("Prepayment %") then
                 if "System-Created Entry" and not IsServiceChargeLine() then
                     FieldError("Prepmt. Line Amount", StrSubstNo(Text045, 0));
-            if "System-Created Entry" and not IsServiceChargeLine() then
+            if "System-Created Entry" and not IsServiceChargeLine() and (CurrFieldNo <> 0) then
                 "Prepayment %" := 0;
             GenPostingSetup.Get("Gen. Bus. Posting Group", "Gen. Prod. Posting Group");
             if GenPostingSetup."Sales Prepayments Account" <> '' then begin
@@ -5538,7 +5584,7 @@ table 37 "Sales Line"
     begin
         IsHandled := false;
         ResultDate := 0D;
-        OnBeforeGetDate(ResultDate, IsHandled);
+        OnBeforeGetDate(Rec, ResultDate, IsHandled);
         if IsHandled then
             exit(ResultDate);
 
@@ -12027,7 +12073,7 @@ table 37 "Sales Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetDate(var ResultDate: Date; var IsHandled: Boolean)
+    local procedure OnBeforeGetDate(var SalesLine: Record "Sales Line"; var ResultDate: Date; var IsHandled: Boolean)
     begin
     end;
 
@@ -12315,6 +12361,11 @@ table 37 "Sales Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnCalcVATAmountLinesOnBeforeGetDeferralAmount(var SalesLine: Record "Sales Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeVATRoundingAdjustment(var SalesLine: Record "Sales Line"; StatusCheckSuspended: Boolean; var RequiresVATRoundingAdjustment: Boolean)
     begin
     end;
 }

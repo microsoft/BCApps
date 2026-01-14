@@ -8,6 +8,15 @@ using System;
 using System.IO;
 using System.Xml;
 
+/// <summary>
+/// Handles the import and parsing of bank statement files in XML format through the data exchange framework.
+/// Processes XML bank statement files and converts them into structured data exchange records.
+/// </summary>
+/// <remarks>
+/// Parses XML bank statement files according to configured data exchange definitions.
+/// Creates data exchange field records for further processing by bank statement import workflows.
+/// Integrates with Data Exchange Framework for standardized file processing and error handling.
+/// </remarks>
 codeunit 1200 "Import Bank Statement"
 {
     Permissions = TableData "Data Exch. Field" = rimd;
@@ -103,11 +112,28 @@ codeunit 1200 "Import Bank Statement"
         end;
     end;
 
+    /// <summary>
+    /// Integration event raised after completing the bank statement import run.
+    /// </summary>
+    /// <param name="DataExch">The data exchange record that was processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnAfterRun(var DataExch: Record "Data Exch.")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting a column during bank statement import processing.
+    /// Allows custom handling of column data before insertion into data exchange fields.
+    /// </summary>
+    /// <param name="DataExchLineDef">The data exchange line definition being processed.</param>
+    /// <param name="EntryNo">The entry number of the data exchange record.</param>
+    /// <param name="LineNo">The line number being processed.</param>
+    /// <param name="NodeId">The XML node identifier.</param>
+    /// <param name="Name">The column name.</param>
+    /// <param name="ProgressWindow">The progress dialog window.</param>
+    /// <param name="IsHandled">Set to true to skip the default column insertion processing.</param>
+    /// <param name="Path">The XML path to the data.</param>
+    /// <param name="Value">The column value to be inserted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertColumn(var DataExchLineDef: Record "Data Exch. Line Def"; EntryNo: Integer; LineNo: Integer; NodeId: Text[250]; Name: Text; var ProgressWindow: Dialog; var IsHandled: Boolean; Path: Text; Value: Text)
     begin

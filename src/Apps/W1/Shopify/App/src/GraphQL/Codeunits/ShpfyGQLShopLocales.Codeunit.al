@@ -15,6 +15,6 @@ codeunit 30358 "Shpfy GQL ShopLocales" implements "Shpfy IGraphQL"
 
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(3);
+        exit(1);
     end;
 }

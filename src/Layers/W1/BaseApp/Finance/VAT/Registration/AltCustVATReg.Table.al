@@ -4,12 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Registration;
 
-using Microsoft.Foundation.Address;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Address;
 using Microsoft.Sales.Customer;
 using System.Telemetry;
 
+/// <summary>
+/// Stores alternative VAT registration numbers for customers operating in multiple countries.
+/// Enables country-specific VAT configurations with associated posting groups and validation rules.
+/// </summary>
 table 213 "Alt. Cust. VAT Reg."
 {
     Caption = 'Alternative Customer VAT Registration';
@@ -18,11 +22,17 @@ table 213 "Alt. Cust. VAT Reg."
 
     fields
     {
+        /// <summary>
+        /// Unique identifier for the alternative VAT registration record.
+        /// </summary>
         field(1; ID; Integer)
         {
             DataClassification = SystemMetadata;
             AutoIncrement = true;
         }
+        /// <summary>
+        /// Customer number associated with this alternative VAT registration.
+        /// </summary>
         field(2; "Customer No."; Code[20])
         {
             DataClassification = CustomerContent;
@@ -30,6 +40,9 @@ table 213 "Alt. Cust. VAT Reg."
             NotBlank = true;
             ToolTip = 'Specifies the customer number.';
         }
+        /// <summary>
+        /// Country or region code for which this alternative VAT registration applies.
+        /// </summary>
         field(3; "VAT Country/Region Code"; Code[10])
         {
             DataClassification = CustomerContent;
@@ -62,6 +75,9 @@ table 213 "Alt. Cust. VAT Reg."
                     VATRegistrationValidation();
             end;
         }
+        /// <summary>
+        /// VAT registration number for the specified country or region.
+        /// </summary>
         field(4; "VAT Registration No."; Text[20])
         {
             Caption = 'VAT Registration No.';
@@ -75,6 +91,9 @@ table 213 "Alt. Cust. VAT Reg."
                     VATRegistrationValidation();
             end;
         }
+        /// <summary>
+        /// General business posting group for transactions in this VAT jurisdiction.
+        /// </summary>
         field(5; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
@@ -91,6 +110,9 @@ table 213 "Alt. Cust. VAT Reg."
                         Validate("VAT Bus. Posting Group", GenBusPostingGrp."Def. VAT Bus. Posting Group");
             end;
         }
+        /// <summary>
+        /// VAT business posting group for transactions in this VAT jurisdiction.
+        /// </summary>
         field(6; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
@@ -127,6 +149,9 @@ table 213 "Alt. Cust. VAT Reg."
         AltCustVATRegFacade.CheckAltCustVATRegConsistent(Rec);
     end;
 
+    /// <summary>
+    /// Validates VAT registration number against format rules and VIES service when enabled.
+    /// </summary>
     procedure VATRegistrationValidation()
     var
         VATRegistrationNoFormat: Record "VAT Registration No. Format";
@@ -166,6 +191,11 @@ table 213 "Alt. Cust. VAT Reg."
         end;
     end;
 
+    /// <summary>
+    /// Integration event raised before starting VAT registration validation process.
+    /// </summary>
+    /// <param name="AltCustVATReg">Alternative customer VAT registration record being validated</param>
+    /// <param name="IsHandled">Set to true to skip standard validation processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeVATRegistrationValidation(var AltCustVATReg: Record "Alt. Cust. VAT Reg."; var IsHandled: Boolean)
     begin

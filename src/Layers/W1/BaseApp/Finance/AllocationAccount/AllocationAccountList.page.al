@@ -6,6 +6,10 @@ namespace Microsoft.Finance.AllocationAccount;
 
 using System.Telemetry;
 
+/// <summary>
+/// List interface for allocation accounts with support for creating and managing both fixed and variable allocation methods.
+/// Provides overview of allocation account configurations with direct navigation to detailed setup.
+/// </summary>
 page 2673 "Allocation Account List"
 {
     ApplicationArea = All;

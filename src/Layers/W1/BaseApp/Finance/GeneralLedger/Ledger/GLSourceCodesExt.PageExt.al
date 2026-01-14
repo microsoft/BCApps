@@ -6,6 +6,15 @@ namespace Microsoft.Finance.GeneralLedger.Ledger;
 
 using Microsoft.Foundation.AuditCodes;
 
+/// <summary>
+/// Extends Source Codes page with G/L register navigation functionality.
+/// Adds action to view G/L registers filtered by the selected source code.
+/// </summary>
+/// <remarks>
+/// Extends Source Codes page. Adds navigation group with G/L Registers action.
+/// Enables drill-down from source codes to related G/L posting registers.
+/// Provides filtered view of G/L registers based on source code selection.
+/// </remarks>
 pageextension 45 GLSourceCodesExt extends "Source Codes"
 {
     actions

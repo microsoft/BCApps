@@ -4,31 +4,31 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
-using Microsoft.Sales.Setup;
-using Microsoft.Inventory.Setup;
-using Microsoft.Assembly.Setup;
-using Microsoft.Foundation.AuditCodes;
-using Microsoft.Inventory.Item;
-using System.Environment.Configuration;
-using System.TestLibraries.Utilities;
 using Microsoft.Assembly.Document;
-using Microsoft.Inventory.Journal;
-using Microsoft.Manufacturing.Document;
-using Microsoft.Sales.Document;
-using Microsoft.Inventory.Reconciliation;
-using Microsoft.Finance.GeneralLedger.Ledger;
-using Microsoft.Inventory.Ledger;
-using Microsoft.Manufacturing.ProductionBOM;
-using Microsoft.Manufacturing.Routing;
-using Microsoft.Manufacturing.Capacity;
-using Microsoft.Inventory.Costing;
 using Microsoft.Assembly.History;
-using Microsoft.Foundation.Enums;
+using Microsoft.Assembly.Setup;
+using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.Enums;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.Costing;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Reconciliation;
 using Microsoft.Inventory.Reports;
+using Microsoft.Inventory.Setup;
+using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Reports;
+using Microsoft.Manufacturing.Routing;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.Setup;
+using System.Environment.Configuration;
+using System.TestLibraries.Utilities;
 
 codeunit 137390 "SCM Kitting -  Reports"
 {

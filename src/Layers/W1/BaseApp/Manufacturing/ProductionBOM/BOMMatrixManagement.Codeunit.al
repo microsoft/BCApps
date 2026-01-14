@@ -262,7 +262,7 @@ codeunit 99000771 "BOM Matrix Management"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeBuildMatrix(ProductionBOMNo: Code[20]; VersionCode: Code[20]; Level: Integer; Quantity: Decimal; var IsHandled: Boolean)
+    local procedure OnBeforeBuildMatrix(ProductionBOMNo: Code[20]; var VersionCode: Code[20]; Level: Integer; Quantity: Decimal; var IsHandled: Boolean)
     begin
     end;
 }

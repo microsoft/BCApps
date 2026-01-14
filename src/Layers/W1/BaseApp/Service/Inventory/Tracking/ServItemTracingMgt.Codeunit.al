@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Tracking;
 
-using Microsoft.Service.History;
 using Microsoft.Inventory.Ledger;
+using Microsoft.Service.History;
 
 codeunit 6481 "Serv. Item Tracing Mgt."
 {

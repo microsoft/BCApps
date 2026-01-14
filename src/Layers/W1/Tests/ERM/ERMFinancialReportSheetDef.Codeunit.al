@@ -23,134 +23,134 @@ codeunit 135009 "ERM Financial Report Sheet Def"
     end;
 
     [Test]
-    [HandlerFunctions('SheetDefDimTotalingLookupDimValListHandler')]
-    procedure SheetDefDimTotalingLookup()
+    [HandlerFunctions('DimPerspectiveDimTotalingLookupDimValListHandler')]
+    procedure DimPerspectiveDimTotalingLookup()
     var
-        SheetDefinition: TestPage "Sheet Definition";
+        DimPerspective: TestPage "Dimension Perspective";
     begin
         // [SCENARIO] Dimension totaling lookup filters to the correct dimension code
-        // [GIVEN] A sheet definition of type custom
-        OpenSheetDefForDimTotalingLookup(SheetDefinition);
+        // [GIVEN] A Dimension perspective of type custom
+        OpenDimPerspectiveForDimTotalingLookup(DimPerspective);
         // [WHEN] Looking up a specific dimension totaling
         LibraryVariableStorage.Enqueue(GLSetup."Global Dimension 1 Code");
-        SheetDefinition."Dimension 1 Totaling".Lookup();
+        DimPerspective."Dimension 1 Totaling".Lookup();
         // [THEN] The lookup is filtered to dimension values for the specified dimension
         // Handled by DimValueListLookupHandler
 
         // Repeat for all other 7 dimensions
         LibraryVariableStorage.Enqueue(GLSetup."Global Dimension 2 Code");
-        SheetDefinition."Dimension 2 Totaling".Lookup();
+        DimPerspective."Dimension 2 Totaling".Lookup();
         LibraryVariableStorage.Enqueue(GLSetup."Shortcut Dimension 3 Code");
-        SheetDefinition."Dimension 3 Totaling".Lookup();
+        DimPerspective."Dimension 3 Totaling".Lookup();
         LibraryVariableStorage.Enqueue(GLSetup."Shortcut Dimension 4 Code");
-        SheetDefinition."Dimension 4 Totaling".Lookup();
+        DimPerspective."Dimension 4 Totaling".Lookup();
         LibraryVariableStorage.Enqueue(GLSetup."Shortcut Dimension 5 Code");
-        SheetDefinition."Dimension 5 Totaling".Lookup();
+        DimPerspective."Dimension 5 Totaling".Lookup();
         LibraryVariableStorage.Enqueue(GLSetup."Shortcut Dimension 6 Code");
-        SheetDefinition."Dimension 6 Totaling".Lookup();
+        DimPerspective."Dimension 6 Totaling".Lookup();
         LibraryVariableStorage.Enqueue(GLSetup."Shortcut Dimension 7 Code");
-        SheetDefinition."Dimension 7 Totaling".Lookup();
+        DimPerspective."Dimension 7 Totaling".Lookup();
         LibraryVariableStorage.Enqueue(GLSetup."Shortcut Dimension 8 Code");
-        SheetDefinition."Dimension 8 Totaling".Lookup();
+        DimPerspective."Dimension 8 Totaling".Lookup();
     end;
 
-    local procedure OpenSheetDefForDimTotalingLookup(var SheetDefinition: TestPage "Sheet Definition")
+    local procedure OpenDimPerspectiveForDimTotalingLookup(var DimPerspective: TestPage "Dimension Perspective")
     var
-        SheetDefName: Record "Sheet Definition Name";
-        SheetDefLine: Record "Sheet Definition Line";
-        SheetDefinitions: TestPage "Sheet Definitions";
+        DimPerspectiveName: Record "Dimension Perspective Name";
+        DimPerspectiveLine: Record "Dimension Perspective Line";
+        DimPerspectives: TestPage "Dimension Perspectives";
     begin
         Initialize();
 
-        SheetDefName := CreateSheetDefName(Enum::"Sheet Type"::Custom);
-        SheetDefLine := CreateSheetDefLine(SheetDefName.Name);
+        DimPerspectiveName := CreateDimPerspectiveName(Enum::"Dimension Perspective Type"::Custom);
+        DimPerspectiveLine := CreateDimPerspectiveLine(DimPerspectiveName.Name);
 
-        SheetDefinitions.OpenEdit();
-        SheetDefinitions.GoToRecord(SheetDefName);
-        SheetDefinition.Trap();
-        SheetDefinitions.EditDefinition.Invoke();
+        DimPerspectives.OpenEdit();
+        DimPerspectives.GoToRecord(DimPerspectiveName);
+        DimPerspective.Trap();
+        DimPerspectives.EditDefinition.Invoke();
 
         LibraryVariableStorage.Clear();
     end;
 
     [ModalPageHandler]
-    procedure SheetDefDimTotalingLookupDimValListHandler(var Page: TestPage "Dimension Value List")
+    procedure DimPerspectiveDimTotalingLookupDimValListHandler(var Page: TestPage "Dimension Value List")
     begin
         Page.First();
         Assert.AreEqual(LibraryVariableStorage.DequeueText(), Page.Filter.GetFilter("Dimension Code"), 'Dimension code filter in lookup should match shortcut dimension code');
     end;
 
     [Test]
-    [HandlerFunctions('ChangeSheetTypeCustomToDimConfirmHandler')]
-    procedure ChangeSheetTypeCustomToDim()
+    [HandlerFunctions('ChangePerspectiveTypeCustomToDimConfirmHandler')]
+    procedure ChangePerspectiveTypeCustomToDim()
     var
         DimensionValue: Record "Dimension Value";
-        SheetDefName: Record "Sheet Definition Name";
-        SheetDefLine: Record "Sheet Definition Line";
+        DimPerspectiveName: Record "Dimension Perspective Name";
+        DimPerspectiveLine: Record "Dimension Perspective Line";
     begin
-        // [SCENARIO] Changing a sheet definition type from custom to dimension will delete definition lines 
+        // [SCENARIO] Changing a Dimension perspective type from custom to dimension will delete definition lines 
         Initialize();
 
-        // [GIVEN] A sheet definition of type custom with lines
+        // [GIVEN] A Dimension perspective of type custom with lines
         GLSetup.Get();
         LibraryDimension.CreateDimensionValue(DimensionValue, GLSetup."Global Dimension 1 Code");
 
-        SheetDefName := CreateSheetDefName(Enum::"Sheet Type"::Custom);
-        SheetDefLine := CreateSheetDefLine(SheetDefName.Name);
+        DimPerspectiveName := CreateDimPerspectiveName(Enum::"Dimension Perspective Type"::Custom);
+        DimPerspectiveLine := CreateDimPerspectiveLine(DimPerspectiveName.Name);
 
-        // [WHEN] Changing the sheet type to dimension 1
-        SheetDefName.Validate("Sheet Type", SheetDefName."Sheet Type"::Dimension1);
+        // [WHEN] Changing the perspective type to dimension 1
+        DimPerspectiveName.Validate("Perspective Type", DimPerspectiveName."Perspective Type"::Dimension1);
         // Handled by ConfirmOKHandler
-        SheetDefName.Modify();
+        DimPerspectiveName.Modify();
 
         // [THEN] The definition lines are deleted
-        SheetDefLine.SetRange(Name, SheetDefName.Name);
-        Assert.IsTrue(SheetDefLine.IsEmpty(), 'Sheet definition lines should be deleted');
+        DimPerspectiveLine.SetRange(Name, DimPerspectiveName.Name);
+        Assert.IsTrue(DimPerspectiveLine.IsEmpty(), 'Dimension perspective lines should be deleted');
     end;
 
     [ConfirmHandler]
-    procedure ChangeSheetTypeCustomToDimConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    procedure ChangePerspectiveTypeCustomToDimConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
     end;
 
     [Test]
-    [HandlerFunctions('AnalysisViewSheetTypeLookupDimSelHandler')]
-    procedure AnalysisViewSheetTypeLookup()
+    [HandlerFunctions('AnalysisViewPerspectiveTypeLookupDimSelHandler')]
+    procedure AnalysisViewPerspectiveTypeLookup()
     var
         DimensionValue: Record "Dimension Value";
         AnalysisView: Record "Analysis View";
-        SheetDefName: Record "Sheet Definition Name";
-        SheetDefinitions: TestPage "Sheet Definitions";
-        SheetDefinition: TestPage "Sheet Definition";
+        DimPerspectiveName: Record "Dimension Perspective Name";
+        DimPerspectives: TestPage "Dimension Perspectives";
+        DimPerspective: TestPage "Dimension Perspective";
     begin
-        // [SCENARIO] Sheet type lookup for analysis views filters to the analysis view's dimensions plus custom
+        // [SCENARIO] Perspective type lookup for analysis views filters to the analysis view's dimensions plus custom
         Initialize();
 
-        // [GIVEN] A sheet definition with an analysis view
+        // [GIVEN] A Dimension perspective with an analysis view
         CreateAnalysisViewWithDim2(AnalysisView, DimensionValue);
 
-        SheetDefName := CreateSheetDefName(Enum::"Sheet Type"::Custom);
-        SheetDefName.Validate("Analysis View Name", AnalysisView.Name);
-        SheetDefName.Modify();
+        DimPerspectiveName := CreateDimPerspectiveName(Enum::"Dimension Perspective Type"::Custom);
+        DimPerspectiveName.Validate("Analysis View Name", AnalysisView.Name);
+        DimPerspectiveName.Modify();
 
-        SheetDefinitions.OpenEdit();
-        SheetDefinitions.GoToRecord(SheetDefName);
-        SheetDefinition.Trap();
-        SheetDefinitions.EditDefinition.Invoke();
+        DimPerspectives.OpenEdit();
+        DimPerspectives.GoToRecord(DimPerspectiveName);
+        DimPerspective.Trap();
+        DimPerspectives.EditDefinition.Invoke();
 
         LibraryVariableStorage.Clear();
-        LibraryVariableStorage.Enqueue(Format(Enum::"Sheet Type"::Custom));
+        LibraryVariableStorage.Enqueue(Format(Enum::"Dimension Perspective Type"::Custom));
         LibraryVariableStorage.Enqueue(DimensionValue."Dimension Code");
-        // [WHEN] Looking up sheet type
-        SheetDefinition.SheetType.Lookup();
+        // [WHEN] Looking up perspective type
+        DimPerspective.PerspectiveType.Lookup();
         // [THEN] The lookup contains the analysis view's dimension codes and custom
-        // Handled in AnalysisViewSheetTypeLookupDimSelHandler
+        // Handled in AnalysisViewPerspectiveTypeLookupDimSelHandler
         LibraryVariableStorage.Clear();
     end;
 
     [ModalPageHandler]
-    procedure AnalysisViewSheetTypeLookupDimSelHandler(var Page: TestPage "Dimension Selection")
+    procedure AnalysisViewPerspectiveTypeLookupDimSelHandler(var Page: TestPage "Dimension Selection")
     var
         i: Integer;
     begin
@@ -163,9 +163,9 @@ codeunit 135009 "ERM Financial Report Sheet Def"
     procedure AnalysisViewDimTotalingLookup()
     var
         AnalysisView: Record "Analysis View";
-        SheetDefName: Record "Sheet Definition Name";
-        SheetDefinitions: TestPage "Sheet Definitions";
-        SheetDefinition: TestPage "Sheet Definition";
+        DimPerspectiveName: Record "Dimension Perspective Name";
+        DimPerspectives: TestPage "Dimension Perspectives";
+        DimPerspective: TestPage "Dimension Perspective";
     begin
         // [SCENARIO] Dimension totaling lookup filters to the dimension from the analysis view
         Initialize();
@@ -178,30 +178,30 @@ codeunit 135009 "ERM Financial Report Sheet Def"
         AnalysisView.Validate("Dimension 4 Code", GLSetup."Shortcut Dimension 8 Code");
         AnalysisView.Modify(true);
 
-        // [GIVEN] A sheet definition with the analysis view
-        SheetDefName := CreateSheetDefName(Enum::"Sheet Type"::Custom);
-        SheetDefName.Validate("Analysis View Name", AnalysisView.Name);
-        SheetDefName.Modify();
+        // [GIVEN] A Dimension perspective with the analysis view
+        DimPerspectiveName := CreateDimPerspectiveName(Enum::"Dimension Perspective Type"::Custom);
+        DimPerspectiveName.Validate("Analysis View Name", AnalysisView.Name);
+        DimPerspectiveName.Modify();
 
-        SheetDefinitions.OpenEdit();
-        SheetDefinitions.GoToRecord(SheetDefName);
-        SheetDefinition.Trap();
-        SheetDefinitions.EditDefinition.Invoke();
+        DimPerspectives.OpenEdit();
+        DimPerspectives.GoToRecord(DimPerspectiveName);
+        DimPerspective.Trap();
+        DimPerspectives.EditDefinition.Invoke();
 
         LibraryVariableStorage.Clear();
         LibraryVariableStorage.Enqueue(AnalysisView."Dimension 1 Code");
         // [WHEN] Looking up a specific dimension totaling
-        SheetDefinition."Dimension 1 Totaling".Lookup();
+        DimPerspective."Dimension 1 Totaling".Lookup();
         // [THEN] The lookup is filtered to dimension values for the analysis view dimension
         // Handled by AnalysisViewDimTotalingLookupDimValListHandler
 
         // Repeat for the other analysis view dimensions
         LibraryVariableStorage.Enqueue(AnalysisView."Dimension 2 Code");
-        SheetDefinition."Dimension 2 Totaling".Lookup();
+        DimPerspective."Dimension 2 Totaling".Lookup();
         LibraryVariableStorage.Enqueue(AnalysisView."Dimension 3 Code");
-        SheetDefinition."Dimension 3 Totaling".Lookup();
+        DimPerspective."Dimension 3 Totaling".Lookup();
         LibraryVariableStorage.Enqueue(AnalysisView."Dimension 4 Code");
-        SheetDefinition."Dimension 4 Totaling".Lookup();
+        DimPerspective."Dimension 4 Totaling".Lookup();
     end;
 
     [ModalPageHandler]
@@ -212,58 +212,58 @@ codeunit 135009 "ERM Financial Report Sheet Def"
     end;
 
     [Test]
-    procedure AnalysisViewSheetTypeTotalingCaption()
+    procedure AnalysisViewPerspectiveTypeTotalingCaption()
     var
         DimensionValue: Record "Dimension Value";
         AnalysisView: Record "Analysis View";
-        SheetDefName: Record "Sheet Definition Name";
-        SheetDefinitions: TestPage "Sheet Definitions";
-        SheetDefinition: TestPage "Sheet Definition";
+        DimPerspectiveName: Record "Dimension Perspective Name";
+        DimPerspectives: TestPage "Dimension Perspectives";
+        DimPerspective: TestPage "Dimension Perspective";
         ExpectedDim1Caption: Text;
     begin
         // [SCENARIO] Dimension totaling caption is based on the analysis view dimensions
         Initialize();
 
-        // [GIVEN] The dimension 1 totaling caption for a sheet definition without an analysis view
+        // [GIVEN] The dimension 1 totaling caption for a Dimension perspective without an analysis view
         GLSetup.Get();
         LibraryDimension.CreateDimensionValue(DimensionValue, GLSetup."Global Dimension 1 Code");
 
-        SheetDefName := CreateSheetDefName(Enum::"Sheet Type"::Custom);
+        DimPerspectiveName := CreateDimPerspectiveName(Enum::"Dimension Perspective Type"::Custom);
 
-        SheetDefinitions.OpenEdit();
-        SheetDefinitions.GoToRecord(SheetDefName);
-        SheetDefinition.Trap();
-        SheetDefinitions.EditDefinition.Invoke();
+        DimPerspectives.OpenEdit();
+        DimPerspectives.GoToRecord(DimPerspectiveName);
+        DimPerspective.Trap();
+        DimPerspectives.EditDefinition.Invoke();
 
         // Get expected value dynamically to avoid hardcoding labels
-        ExpectedDim1Caption := SheetDefinition."Dimension 1 Totaling".Caption;
-        SheetDefinition.Close();
-        SheetDefinitions.Close();
-        Clear(SheetDefinition);
-        Clear(SheetDefinitions);
+        ExpectedDim1Caption := DimPerspective."Dimension 1 Totaling".Caption;
+        DimPerspective.Close();
+        DimPerspectives.Close();
+        Clear(DimPerspective);
+        Clear(DimPerspectives);
 
-        // [GIVEN] A sheet definition with an analysis view containing the same dimension 1
+        // [GIVEN] A Dimension perspective with an analysis view containing the same dimension 1
         CreateAnalysisViewWithDim2(AnalysisView, DimensionValue);
-        SheetDefName.Validate("Analysis View Name", AnalysisView.Name);
-        SheetDefName.Modify();
+        DimPerspectiveName.Validate("Analysis View Name", AnalysisView.Name);
+        DimPerspectiveName.Modify();
 
-        SheetDefinitions.OpenEdit();
-        SheetDefinitions.GoToRecord(SheetDefName);
-        SheetDefinition.Trap();
-        // [WHEN] The sheet definition is opened
-        SheetDefinitions.EditDefinition.Invoke();
+        DimPerspectives.OpenEdit();
+        DimPerspectives.GoToRecord(DimPerspectiveName);
+        DimPerspective.Trap();
+        // [WHEN] The Dimension perspective is opened
+        DimPerspectives.EditDefinition.Invoke();
 
         // [THEN] The analysis view dimension totaling caption matches the caption without an analysis view
-        Assert.AreEqual(ExpectedDim1Caption, SheetDefinition."Dimension 2 Totaling".Caption, 'Dimension totaling caption for analysis view does not match caption for the same dimension without analysis view.');
+        Assert.AreEqual(ExpectedDim1Caption, DimPerspective."Dimension 2 Totaling".Caption, 'Dimension totaling caption for analysis view does not match caption for the same dimension without analysis view.');
     end;
 
     [Test]
     procedure TotalingCaptionWithoutDimension()
     var
-        SheetDefName: Record "Sheet Definition Name";
-        SheetDefLine: Record "Sheet Definition Line";
-        SheetDefinitions: TestPage "Sheet Definitions";
-        SheetDefinition: TestPage "Sheet Definition";
+        DimPerspectiveName: Record "Dimension Perspective Name";
+        DimPerspectiveLine: Record "Dimension Perspective Line";
+        DimPerspectives: TestPage "Dimension Perspectives";
+        DimPerspective: TestPage "Dimension Perspective";
     begin
         // [SCENARIO] Dimension totaling caption uses default caption when there is no shortcut dimension
         Initialize();
@@ -273,44 +273,44 @@ codeunit 135009 "ERM Financial Report Sheet Def"
         GLSetup."Shortcut Dimension 8 Code" := '';
         GLSetup.Modify();
 
-        // [WHEN] The sheet definition page is opened
-        SheetDefName := CreateSheetDefName(Enum::"Sheet Type"::Custom);
-        SheetDefinitions.OpenEdit();
-        SheetDefinitions.GoToRecord(SheetDefName);
-        SheetDefinition.Trap();
-        SheetDefinitions.EditDefinition.Invoke();
+        // [WHEN] The Dimension perspective page is opened
+        DimPerspectiveName := CreateDimPerspectiveName(Enum::"Dimension Perspective Type"::Custom);
+        DimPerspectives.OpenEdit();
+        DimPerspectives.GoToRecord(DimPerspectiveName);
+        DimPerspective.Trap();
+        DimPerspectives.EditDefinition.Invoke();
 
         // [THEN] The dimension 8 totaling caption is the default caption
-        Assert.AreEqual(SheetDefLine.FieldCaption("Dimension 8 Totaling"), SheetDefinition."Dimension 8 Totaling".Caption, 'Dimension totaling caption should be default when shortcut dimension is blank.');
+        Assert.AreEqual(DimPerspectiveLine.FieldCaption("Dimension 8 Totaling"), DimPerspective."Dimension 8 Totaling".Caption, 'Dimension totaling caption should be default when shortcut dimension is blank.');
     end;
 
     [Test]
     procedure InvalidSetupWithAnalysisViewOnAccScheduleName()
     var
         AccScheduleName: Record "Acc. Schedule Name";
-        SheetDefName: Record "Sheet Definition Name";
-        SheetDefLine: Record "Sheet Definition Line";
+        DimPerspectiveName: Record "Dimension Perspective Name";
+        DimPerspectiveLine: Record "Dimension Perspective Line";
         DimensionValue: Record "Dimension Value";
         AnalysisView: Record "Analysis View";
         FinancialReport: Record "Financial Report";
     begin
-        // [SCENARIO] A financial report with an analysis view on the row definition cannot use a sheet definition without analysis view
+        // [SCENARIO] A financial report with an analysis view on the row definition cannot use a Dimension perspective without analysis view
         Initialize();
 
         GLSetup.Get();
         LibraryDimension.CreateDimensionValue(DimensionValue, GLSetup."Global Dimension 1 Code");
         CreateAnalysisViewWithDim2(AnalysisView, DimensionValue);
 
-        // [GIVEN] A sheet definition without an analysis view
-        SheetDefName := CreateSheetDefName(Enum::"Sheet Type"::Dimension1);
-        SheetDefLine := CreateSheetDefLine(SheetDefName.Name);
-        SheetDefLine."Dimension 1 Totaling" := DimensionValue.Code;
-        SheetDefLine.Modify();
+        // [GIVEN] A Dimension perspective without an analysis view
+        DimPerspectiveName := CreateDimPerspectiveName(Enum::"Dimension Perspective Type"::Dimension1);
+        DimPerspectiveLine := CreateDimPerspectiveLine(DimPerspectiveName.Name);
+        DimPerspectiveLine."Dimension 1 Totaling" := DimensionValue.Code;
+        DimPerspectiveLine.Modify();
 
-        // [THEN] A financial report without an analysis view can use the sheet definition
+        // [THEN] A financial report without an analysis view can use the Dimension perspective
         LibraryERM.CreateAccScheduleName(AccScheduleName);
         FinancialReport.Get(AccScheduleName.Name);
-        FinancialReport.Validate(SheetDefinition, SheetDefName.Name);
+        FinancialReport.Validate(DimPerspective, DimPerspectiveName.Name);
 
         // [GIVEN] The same financial report with an analysis view
         Clear(FinancialReport);
@@ -318,44 +318,44 @@ codeunit 135009 "ERM Financial Report Sheet Def"
         AccScheduleName.Validate("Analysis View Name", AnalysisView.Name);
         AccScheduleName.Modify();
 
-        // [THEN] The same sheet definition cannot be used
-        asserterror FinancialReport.Validate(SheetDefinition, SheetDefName.Name);
+        // [THEN] The same Dimension perspective cannot be used
+        asserterror FinancialReport.Validate(DimPerspective, DimPerspectiveName.Name);
     end;
 
     [Test]
-    procedure InvalidSetupWithAnalysisViewOnSheetDef()
+    procedure InvalidSetupWithAnalysisViewOnDimPerspective()
     var
         AccScheduleName: Record "Acc. Schedule Name";
-        SheetDefName: Record "Sheet Definition Name";
-        SheetDefLine: Record "Sheet Definition Line";
+        DimPerspectiveName: Record "Dimension Perspective Name";
+        DimPerspectiveLine: Record "Dimension Perspective Line";
         DimensionValue: Record "Dimension Value";
         AnalysisView: Record "Analysis View";
         FinancialReport: Record "Financial Report";
     begin
-        // [SCENARIO] A sheet definition with an analysis view cannot be used on a financial report without an analysis view
+        // [SCENARIO] A Dimension perspective with an analysis view cannot be used on a financial report without an analysis view
         Initialize();
 
         GLSetup.Get();
         LibraryDimension.CreateDimensionValue(DimensionValue, GLSetup."Global Dimension 1 Code");
         CreateAnalysisViewWithDim2(AnalysisView, DimensionValue);
 
-        // [GIVEN] A sheet definition with an analysis view
-        SheetDefName := CreateSheetDefName(Enum::"Sheet Type"::Custom);
-        SheetDefName.Validate("Analysis View Name", AnalysisView.Name);
-        SheetDefName.Modify();
-        SheetDefLine := CreateSheetDefLine(SheetDefName.Name);
-        SheetDefLine."Dimension 2 Totaling" := DimensionValue.Code;
-        SheetDefLine.Modify();
+        // [GIVEN] A Dimension perspective with an analysis view
+        DimPerspectiveName := CreateDimPerspectiveName(Enum::"Dimension Perspective Type"::Custom);
+        DimPerspectiveName.Validate("Analysis View Name", AnalysisView.Name);
+        DimPerspectiveName.Modify();
+        DimPerspectiveLine := CreateDimPerspectiveLine(DimPerspectiveName.Name);
+        DimPerspectiveLine."Dimension 2 Totaling" := DimensionValue.Code;
+        DimPerspectiveLine.Modify();
 
         LibraryERM.CreateAccScheduleName(AccScheduleName);
         FinancialReport.Get(AccScheduleName.Name);
 
-        // [THEN] The financial report without an analysis view cannot use the sheet definition
-        asserterror FinancialReport.Validate(SheetDefinition, SheetDefName.Name);
+        // [THEN] The financial report without an analysis view cannot use the Dimension perspective
+        asserterror FinancialReport.Validate(DimPerspective, DimPerspectiveName.Name);
     end;
 
     [Test]
-    procedure ExportExcelWithSingleDimSheetDef()
+    procedure ExportExcelWithSingleDimDimPerspective()
     var
         DimensionValue: array[2] of Record "Dimension Value";
         FinancialReport: Record "Financial Report";
@@ -365,22 +365,22 @@ codeunit 135009 "ERM Financial Report Sheet Def"
         InStream: InStream;
         ExpectedAmounts: array[2] of Decimal;
         ActualAmount: Decimal;
-        ExpectedSheetNames: List of [Text];
+        ExpectedPerspectiveNames: List of [Text];
     begin
-        // [SCENARIO] Exporting an account schedule with a single dimension sheet definition will create a sheet per dimension value
+        // [SCENARIO] Exporting an account schedule with a single dimension Dimension perspective will create a perspective per dimension value
         // [GIVEN] An account schedule with amounts posted to two dimension values
-        // [GIVEN] A financial report with a sheet definition totaling by the dimension
-        CreateFinReportWithSingleDimSheet(FinancialReport, DimensionValue, ExpectedAmounts);
+        // [GIVEN] A financial report with a Dimension perspective totaling by the dimension
+        CreateFinReportWithSingleDimPerspective(FinancialReport, DimensionValue, ExpectedAmounts);
 
-        ExpectedSheetNames.Add(FinancialReport.Name);
-        ExpectedSheetNames.Add(DimensionValue[1].Name);
-        ExpectedSheetNames.Add(DimensionValue[2].Name);
+        ExpectedPerspectiveNames.Add(FinancialReport.Name);
+        ExpectedPerspectiveNames.Add(DimensionValue[1].Name);
+        ExpectedPerspectiveNames.Add(DimensionValue[2].Name);
 
         // [WHEN] The financial report is exported to Excel
         ExportAccSchedToExcelStream(FinancialReport, TempBlob);
         TempBlob.CreateInStream(InStream);
 
-        // [THEN] The Excel contains the default sheet and a sheet per dimension value with amounts filtered to the dimension value
+        // [THEN] The Excel contains the default perspective and a perspective per dimension value with amounts filtered to the dimension value
         TempExcelBuffer.GetSheetsNameListFromStream(InStream, TempNameValueBuffer);
         TempNameValueBuffer.FindSet();
         repeat
@@ -392,65 +392,65 @@ codeunit 135009 "ERM Financial Report Sheet Def"
 
             case TempNameValueBuffer.Value of
                 FinancialReport.Name:
-                    Assert.AreEqual(ExpectedAmounts[1] + ExpectedAmounts[2], ActualAmount, 'Total amount on the default sheet is incorrect.');
+                    Assert.AreEqual(ExpectedAmounts[1] + ExpectedAmounts[2], ActualAmount, 'Total amount on the default perspective is incorrect.');
                 DimensionValue[1].Name:
-                    Assert.AreEqual(ExpectedAmounts[1], ActualAmount, 'Amount for dimension sheet ' + DimensionValue[1].Code + ' is incorrect.');
+                    Assert.AreEqual(ExpectedAmounts[1], ActualAmount, 'Amount for dimension perspective ' + DimensionValue[1].Code + ' is incorrect.');
                 DimensionValue[2].Name:
-                    Assert.AreEqual(ExpectedAmounts[2], ActualAmount, 'Amount for dimension sheet ' + DimensionValue[2].Code + ' is incorrect.');
+                    Assert.AreEqual(ExpectedAmounts[2], ActualAmount, 'Amount for dimension perspective ' + DimensionValue[2].Code + ' is incorrect.');
                 else
-                    Assert.Fail('Unexpected sheet with name: ' + TempNameValueBuffer.Value);
+                    Assert.Fail('Unexpected perspective with name: ' + TempNameValueBuffer.Value);
             end;
 
-            ExpectedSheetNames.Remove(TempNameValueBuffer.Value);
+            ExpectedPerspectiveNames.Remove(TempNameValueBuffer.Value);
         until TempNameValueBuffer.Next() = 0;
 
-        if ExpectedSheetNames.Count > 0 then
-            Assert.Fail('Not all expected sheet names were found: ' + ExpectedSheetNames.Get(0));
+        if ExpectedPerspectiveNames.Count > 0 then
+            Assert.Fail('Not all expected perspective names were found: ' + ExpectedPerspectiveNames.Get(0));
     end;
 
     [Test]
-    procedure ExportPDFWithSingleDimSheetDef()
+    procedure ExportPDFWithSingleDimDimPerspective()
     var
         DimensionValue: array[2] of Record "Dimension Value";
         FinancialReport: Record "Financial Report";
-        FinReportSheetHandler: Codeunit "ERM Fin. Report Sheet Handler";
+        FinReportPerspectiveHandler: Codeunit "ERM Fin. Report Sheet Handler";
         TempBlob: Codeunit "Temp Blob";
         InStream: InStream;
         ExpectedAmounts: array[2] of Decimal;
-        SheetTempBlobs: Dictionary of [Integer, Codeunit "Temp Blob"];
-        SheetLineKey: Integer;
+        PerspectiveTempBlobs: Dictionary of [Integer, Codeunit "Temp Blob"];
+        PerspectiveLineKey: Integer;
     begin
-        // [SCENARIO] Exporting an account schedule with a single dimension sheet definition will create a sheet per dimension value
+        // [SCENARIO] Exporting an account schedule with a single dimension Dimension perspective will create a perspective per dimension value
         // [GIVEN] An account schedule with amounts posted to two dimension values
-        // [GIVEN] A financial report with a sheet definition totaling by the dimension
-        CreateFinReportWithSingleDimSheet(FinancialReport, DimensionValue, ExpectedAmounts);
+        // [GIVEN] A financial report with a Dimension perspective totaling by the dimension
+        CreateFinReportWithSingleDimPerspective(FinancialReport, DimensionValue, ExpectedAmounts);
 
         // [WHEN] The financial report is exported to PDF (XML)
-        BindSubscription(FinReportSheetHandler);
+        BindSubscription(FinReportPerspectiveHandler);
         ExportAccSchedToXMLStream(FinancialReport, TempBlob);
         TempBlob.CreateInStream(InStream);
 
-        // [THEN] The XML contains the default sheet and a sheet per dimension value, with amounts filtered to the respective dimension value
+        // [THEN] The XML contains the default perspective and a perspective per dimension value, with amounts filtered to the respective dimension value
         LibraryReportDataSet.LoadFromInStream(InStream);
-        Assert.IsTrue(LibraryReportDataSet.FindRow('AccScheduleName_Description', FinancialReport.Description) = 0, 'The default sheet should contain the financial report description.');
-        Assert.IsTrue(LibraryReportDataSet.FindRow('ColumnValue1', Format(ExpectedAmounts[1] + ExpectedAmounts[2])) = 0, 'The default sheet should contain the total amount.');
+        Assert.IsTrue(LibraryReportDataSet.FindRow('AccScheduleName_Description', FinancialReport.Description) = 0, 'The default perspective should contain the financial report description.');
+        Assert.IsTrue(LibraryReportDataSet.FindRow('ColumnValue1', Format(ExpectedAmounts[1] + ExpectedAmounts[2])) = 0, 'The default perspective should contain the total amount.');
 
-        foreach SheetLineKey in SheetTempBlobs.Keys do begin
-            SheetTempBlobs.Get(SheetLineKey).CreateInStream(InStream);
+        foreach PerspectiveLineKey in PerspectiveTempBlobs.Keys do begin
+            PerspectiveTempBlobs.Get(PerspectiveLineKey).CreateInStream(InStream);
             Clear(LibraryReportDataSet);
             LibraryReportDataSet.LoadFromInStream(InStream);
             case true of
                 LibraryReportDataSet.FindRow('AccScheduleName_Description', DimensionValue[1].Name) = 0:
-                    Assert.IsTrue(LibraryReportDataSet.FindRow('ColumnValue1', Format(ExpectedAmounts[1])) = 0, 'Incorrect amount for sheet with dimension: ' + DimensionValue[1].Name);
+                    Assert.IsTrue(LibraryReportDataSet.FindRow('ColumnValue1', Format(ExpectedAmounts[1])) = 0, 'Incorrect amount for perspective with dimension: ' + DimensionValue[1].Name);
                 LibraryReportDataSet.FindRow('AccScheduleName_Description', DimensionValue[2].Name) = 0:
-                    Assert.IsTrue(LibraryReportDataSet.FindRow('ColumnValue1', Format(ExpectedAmounts[2])) = 0, 'Incorrect amount for sheet with dimension: ' + DimensionValue[2].Name);
+                    Assert.IsTrue(LibraryReportDataSet.FindRow('ColumnValue1', Format(ExpectedAmounts[2])) = 0, 'Incorrect amount for perspective with dimension: ' + DimensionValue[2].Name);
                 else
-                    Assert.Fail('Unexpected description in sheet: ' + SheetLineKey.ToText());
+                    Assert.Fail('Unexpected description in perspective: ' + PerspectiveLineKey.ToText());
             end;
         end;
     end;
 
-    local procedure CreateFinReportWithSingleDimSheet(
+    local procedure CreateFinReportWithSingleDimPerspective(
         var FinancialReport: Record "Financial Report";
         var DimensionValue: array[2] of Record "Dimension Value";
         var ExpectedAmounts: array[2] of Decimal)
@@ -458,7 +458,7 @@ codeunit 135009 "ERM Financial Report Sheet Def"
         AccScheduleName: Record "Acc. Schedule Name";
         AccScheduleLine: Record "Acc. Schedule Line";
         Dimension: Record Dimension;
-        SheetDefName: Record "Sheet Definition Name";
+        DimPerspectiveName: Record "Dimension Perspective Name";
     begin
         Initialize();
 
@@ -476,33 +476,33 @@ codeunit 135009 "ERM Financial Report Sheet Def"
         PostAmountToGLAccWithDim(AccScheduleLine.Totaling, Dimension.Code, DimensionValue[1].Code, ExpectedAmounts[1]);
         PostAmountToGLAccWithDim(AccScheduleLine.Totaling, Dimension.Code, DimensionValue[2].Code, ExpectedAmounts[2]);
 
-        SheetDefName := CreateSheetDefName(Enum::"Sheet Type"::Dimension8);
+        DimPerspectiveName := CreateDimPerspectiveName(Enum::"Dimension Perspective Type"::Dimension8);
 
         FinancialReport.Get(AccScheduleName.Name);
         FinancialReport.Description := CopyStr(LibraryRandom.RandText(20), 1, MaxStrLen(FinancialReport.Description));
-        FinancialReport.Validate(SheetDefinition, SheetDefName.Name);
+        FinancialReport.Validate(DimPerspective, DimPerspectiveName.Name);
         FinancialReport.Modify();
     end;
 
     [Test]
-    procedure ExportExcelWithMultiDimSheetDef()
+    procedure ExportExcelWithMultiDimDimPerspective()
     var
         AccScheduleName: Record "Acc. Schedule Name";
         AccScheduleLine: Record "Acc. Schedule Line";
         Dimension: Record Dimension;
         DimensionValue: array[2, 2] of Record "Dimension Value";
         FinancialReport: Record "Financial Report";
-        SheetDefName: Record "Sheet Definition Name";
-        SheetDefLine: array[2] of Record "Sheet Definition Line";
+        DimPerspectiveName: Record "Dimension Perspective Name";
+        DimPerspectiveLine: array[2] of Record "Dimension Perspective Line";
         TempExcelBuffer: Record "Excel Buffer" temporary;
         TempNameValueBuffer: Record "Name/Value Buffer" temporary;
         TempBlob: Codeunit "Temp Blob";
         InStream: InStream;
         ExpectedAmounts: array[2] of Decimal;
         ActualAmount: Decimal;
-        ExpectedSheetNames: List of [Text];
+        ExpectedPerspectiveNames: List of [Text];
     begin
-        // [SCENARIO] Exporting an account schedule with combinations of dimension filters will create a sheet per combination
+        // [SCENARIO] Exporting an account schedule with combinations of dimension filters will create a perspective per combination
         Initialize();
 
         // [GIVEN] Account schedule totaled to one GL account and two dimensions
@@ -519,20 +519,20 @@ codeunit 135009 "ERM Financial Report Sheet Def"
         GLSetup."Shortcut Dimension 8 Code" := DimensionValue[2, 1]."Dimension Code";
         GLSetup.Modify();
 
-        // [GIVEN] Sheet definition lines totaled by two combinations of two dimensions
-        SheetDefName := CreateSheetDefName(Enum::"Sheet Type"::Custom);
-        SheetDefLine[1] := CreateSheetDefLine(SheetDefName.Name);
-        SheetDefLine[1]."Dimension 7 Totaling" := DimensionValue[1, 1].Code;
-        SheetDefLine[1]."Dimension 8 Totaling" := DimensionValue[2, 2].Code;
-        SheetDefLine[1].Modify();
-        SheetDefLine[2] := CreateSheetDefLine(SheetDefName.Name);
-        SheetDefLine[2]."Dimension 7 Totaling" := DimensionValue[1, 2].Code;
-        SheetDefLine[2]."Dimension 8 Totaling" := DimensionValue[2, 1].Code;
-        SheetDefLine[2].Modify();
+        // [GIVEN] Dimension perspective lines totaled by two combinations of two dimensions
+        DimPerspectiveName := CreateDimPerspectiveName(Enum::"Dimension Perspective Type"::Custom);
+        DimPerspectiveLine[1] := CreateDimPerspectiveLine(DimPerspectiveName.Name);
+        DimPerspectiveLine[1]."Dimension 7 Totaling" := DimensionValue[1, 1].Code;
+        DimPerspectiveLine[1]."Dimension 8 Totaling" := DimensionValue[2, 2].Code;
+        DimPerspectiveLine[1].Modify();
+        DimPerspectiveLine[2] := CreateDimPerspectiveLine(DimPerspectiveName.Name);
+        DimPerspectiveLine[2]."Dimension 7 Totaling" := DimensionValue[1, 2].Code;
+        DimPerspectiveLine[2]."Dimension 8 Totaling" := DimensionValue[2, 1].Code;
+        DimPerspectiveLine[2].Modify();
 
-        ExpectedSheetNames.Add(AccScheduleName.Name);
-        ExpectedSheetNames.Add(SheetDefLine[1]."Sheet Header");
-        ExpectedSheetNames.Add(SheetDefLine[2]."Sheet Header");
+        ExpectedPerspectiveNames.Add(AccScheduleName.Name);
+        ExpectedPerspectiveNames.Add(DimPerspectiveLine[1]."Perspective Header");
+        ExpectedPerspectiveNames.Add(DimPerspectiveLine[2]."Perspective Header");
 
         // [GIVEN] Amounts posted to the two combinations of the two dimensions
         ExpectedAmounts[1] := LibraryRandom.RandDecInRange(1000, 2000, 2);
@@ -547,14 +547,14 @@ codeunit 135009 "ERM Financial Report Sheet Def"
             ExpectedAmounts[2]);
 
         FinancialReport.Get(AccScheduleName.Name);
-        FinancialReport.Validate(SheetDefinition, SheetDefName.Name);
+        FinancialReport.Validate(DimPerspective, DimPerspectiveName.Name);
         FinancialReport.Modify();
 
         // [WHEN] The financial report is exported to Excel
         ExportAccSchedToExcelStream(FinancialReport, TempBlob);
         TempBlob.CreateInStream(InStream);
 
-        // [THEN] The Excel contains the default sheet and a sheet per combination with amounts filtered to the combination
+        // [THEN] The Excel contains the default perspective and a perspective per combination with amounts filtered to the combination
         TempExcelBuffer.GetSheetsNameListFromStream(InStream, TempNameValueBuffer);
         TempNameValueBuffer.FindSet();
         repeat
@@ -566,39 +566,39 @@ codeunit 135009 "ERM Financial Report Sheet Def"
 
             case TempNameValueBuffer.Value of
                 AccScheduleName.Name:
-                    Assert.AreEqual(ExpectedAmounts[1] + ExpectedAmounts[2], ActualAmount, 'Amount for sheet ' + AccScheduleName.Name + ' is incorrect.');
-                SheetDefLine[1]."Sheet Header":
-                    Assert.AreEqual(ExpectedAmounts[1], ActualAmount, 'Amount for sheet ' + SheetDefLine[1]."Sheet Header" + ' is incorrect.');
-                SheetDefLine[2]."Sheet Header":
-                    Assert.AreEqual(ExpectedAmounts[2], ActualAmount, 'Amount for sheet ' + SheetDefLine[2]."Sheet Header" + ' is incorrect.');
+                    Assert.AreEqual(ExpectedAmounts[1] + ExpectedAmounts[2], ActualAmount, 'Amount for perspective ' + AccScheduleName.Name + ' is incorrect.');
+                DimPerspectiveLine[1]."Perspective Header":
+                    Assert.AreEqual(ExpectedAmounts[1], ActualAmount, 'Amount for perspective ' + DimPerspectiveLine[1]."Perspective Header" + ' is incorrect.');
+                DimPerspectiveLine[2]."Perspective Header":
+                    Assert.AreEqual(ExpectedAmounts[2], ActualAmount, 'Amount for perspective ' + DimPerspectiveLine[2]."Perspective Header" + ' is incorrect.');
                 else
-                    Assert.Fail('Unexpected sheet with name: ' + TempNameValueBuffer.Value);
+                    Assert.Fail('Unexpected perspective with name: ' + TempNameValueBuffer.Value);
             end;
 
-            ExpectedSheetNames.Remove(TempNameValueBuffer.Value);
+            ExpectedPerspectiveNames.Remove(TempNameValueBuffer.Value);
         until TempNameValueBuffer.Next() = 0;
 
-        if ExpectedSheetNames.Count > 0 then
-            Assert.Fail('Not all expected sheet names were found: ' + ExpectedSheetNames.Get(0));
+        if ExpectedPerspectiveNames.Count > 0 then
+            Assert.Fail('Not all expected perspective names were found: ' + ExpectedPerspectiveNames.Get(0));
     end;
 
-    local procedure CreateSheetDefName(SheetType: Enum "Sheet Type") SheetDefName: Record "Sheet Definition Name"
+    local procedure CreateDimPerspectiveName(PerspectiveType: Enum "Dimension Perspective Type") DimPerspectiveName: Record "Dimension Perspective Name"
     begin
-        SheetDefName.Init();
-        SheetDefName.Name := LibraryUtility.GenerateRandomCode(SheetDefName.FieldNo(Name), Database::"Sheet Definition Name");
-        SheetDefName."Sheet Type" := SheetType;
-        SheetDefName.Insert();
+        DimPerspectiveName.Init();
+        DimPerspectiveName.Name := LibraryUtility.GenerateRandomCode(DimPerspectiveName.FieldNo(Name), Database::"Dimension Perspective Name");
+        DimPerspectiveName."Perspective Type" := PerspectiveType;
+        DimPerspectiveName.Insert();
     end;
 
-    local procedure CreateSheetDefLine(SheetDefName: Code[10]) SheetDefLine: Record "Sheet Definition Line"
+    local procedure CreateDimPerspectiveLine(DimPerspectiveName: Code[10]) DimPerspectiveLine: Record "Dimension Perspective Line"
     begin
-        SheetDefLine.SetRange(Name, SheetDefName);
-        if SheetDefLine.FindLast() then;
-        SheetDefLine.Init();
-        SheetDefLine.Name := SheetDefName;
-        SheetDefLine."Line No." += 10000;
-        SheetDefLine."Sheet Header" := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(30, 1), 1, MaxStrLen(SheetDefLine."Sheet Header"));
-        SheetDefLine.Insert();
+        DimPerspectiveLine.SetRange(Name, DimPerspectiveName);
+        if DimPerspectiveLine.FindLast() then;
+        DimPerspectiveLine.Init();
+        DimPerspectiveLine.Name := DimPerspectiveName;
+        DimPerspectiveLine."Line No." += 10000;
+        DimPerspectiveLine."Perspective Header" := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(30, 1), 1, MaxStrLen(DimPerspectiveLine."Perspective Header"));
+        DimPerspectiveLine.Insert();
     end;
 
     local procedure CreateAnalysisViewWithDim2(Var AnalysisView: Record "Analysis View"; Var DimensionValue: Record "Dimension Value")
@@ -663,7 +663,7 @@ codeunit 135009 "ERM Financial Report Sheet Def"
         AccScheduleLine.SetRange("Date Filter", WorkDate());
         ExportAccSchedToExcel.SetOptions(AccScheduleLine,
             FinancialReport."Financial Report Column Group", FinancialReport.UseAmountsInAddCurrency,
-            FinancialReport.Name, FinancialReport.SheetDefinition);
+            FinancialReport.Name, FinancialReport.DimPerspective);
         ExportAccSchedToExcel.SetSaveToStream(true);
         ExportAccSchedToExcel.UseRequestPage(false);
         ExportAccSchedToExcel.RunModal();
@@ -680,7 +680,7 @@ codeunit 135009 "ERM Financial Report Sheet Def"
         AccountSchedule.SetFinancialReportName(FinancialReport.Name);
         AccountSchedule.SetAccSchedName(FinancialReport."Financial Report Row Group");
         AccountSchedule.SetColumnLayoutName(FinancialReport."Financial Report Column Group");
-        AccountSchedule.SetSheetDefName(FinancialReport.SheetDefinition);
+        AccountSchedule.SetDimPerspectiveName(FinancialReport.DimPerspective);
         AccountSchedule.SetFilters(
             Format(WorkDate()), FinancialReport.GLBudgetFilter, FinancialReport.CostBudgetFilter, '',
             FinancialReport.Dim1Filter, FinancialReport.Dim2Filter, FinancialReport.Dim3Filter, FinancialReport.Dim4Filter,

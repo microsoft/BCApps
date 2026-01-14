@@ -4,32 +4,32 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Test;
 
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
-using System.TestLibraries.Utilities;
-using Microsoft.Manufacturing.Setup;
-using Microsoft.Inventory.Item;
-using Microsoft.Purchases.Document;
-using Microsoft.Inventory.Journal;
-using Microsoft.Manufacturing.Document;
-using Microsoft.Purchases.History;
-using Microsoft.Inventory.Setup;
-using Microsoft.Inventory.Requisition;
-using Microsoft.Manufacturing.Journal;
-using Microsoft.Sales.Document;
-using Microsoft.Foundation.Period;
-using Microsoft.Manufacturing.ProductionBOM;
-using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.Period;
+using Microsoft.Inventory.Costing;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Posting;
+using Microsoft.Inventory.Requisition;
+using Microsoft.Inventory.Setup;
+using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Journal;
+using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.StandardCost;
 using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Manufacturing.Routing;
-using Microsoft.Manufacturing.Capacity;
-using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Finance.Currency;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
-using Microsoft.Finance.GeneralLedger.Ledger;
-using Microsoft.Inventory.Costing;
-using Microsoft.Inventory.Posting;
+using Microsoft.Sales.Document;
+using System.TestLibraries.Utilities;
 
 codeunit 137003 "SCM WIP Costing Production-I"
 {

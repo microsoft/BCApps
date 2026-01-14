@@ -4,6 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.ReceivablesPayables;
 
+/// <summary>
+/// Warning dialog page for handling late payment discount scenarios during payment application.
+/// Provides user options for managing payment discounts when payments are applied after the discount period has expired.
+/// </summary>
+/// <remarks>
+/// Interactive confirmation dialog presented when payment applications involve late payment discount situations.
+/// Offers options to post as payment discount tolerance or reject the late payment discount.
+/// Displays detailed information about the payment discount opportunity and associated document details.
+/// Integrates with payment discount tolerance management for consistent handling across application scenarios.
+/// </remarks>
 page 599 "Payment Disc Tolerance Warning"
 {
     Caption = 'Payment Discount Tolerance Warning';
@@ -118,6 +128,16 @@ page 599 "Payment Disc Tolerance Warning"
         DocNo: Code[20];
         CurrencyCode: Code[10];
 
+    /// <summary>
+    /// Sets the display values for the payment discount tolerance warning dialog.
+    /// </summary>
+    /// <param name="ShowPostingDate">Posting date for the transaction</param>
+    /// <param name="ShowCustVendNo">Customer or vendor number</param>
+    /// <param name="ShowDocNo">Document number</param>
+    /// <param name="ShowCurrencyCode">Currency code for amounts</param>
+    /// <param name="ShowAmount">Total document amount</param>
+    /// <param name="ShowAppliedAmount">Applied payment amount</param>
+    /// <param name="ShowBalance">Balance amount requiring tolerance decision</param>
     procedure SetValues(ShowPostingDate: Date; ShowCustVendNo: Code[20]; ShowDocNo: Code[20]; ShowCurrencyCode: Code[10]; ShowAmount: Decimal; ShowAppliedAmount: Decimal; ShowBalance: Decimal)
     begin
         PostingDate := ShowPostingDate;
@@ -129,11 +149,19 @@ page 599 "Payment Disc Tolerance Warning"
         BalanceAmount := ShowBalance;
     end;
 
+    /// <summary>
+    /// Sets the account name displayed in the warning dialog.
+    /// </summary>
+    /// <param name="NewAccountName">Account name to display</param>
     procedure SetAccountName(NewAccountName: Text)
     begin
         AccountName := NewAccountName;
     end;
 
+    /// <summary>
+    /// Returns the user's posting action selection from the warning dialog.
+    /// </summary>
+    /// <param name="PostingAction">Selected posting action (1=Payment Tolerance, 2=Remaining Amount, 3=Cancel)</param>
     procedure GetValues(var PostingAction: Integer)
     begin
         PostingAction := NewPostingAction
@@ -153,6 +181,10 @@ page 599 "Payment Disc Tolerance Warning"
         NewPostingAction := 3;
     end;
 
+    /// <summary>
+    /// Initializes the posting action option value for the warning dialog.
+    /// </summary>
+    /// <param name="OptionValue">Initial posting action option value</param>
     procedure InitializeNewPostingAction(OptionValue: Integer)
     begin
         NewPostingAction := OptionValue;

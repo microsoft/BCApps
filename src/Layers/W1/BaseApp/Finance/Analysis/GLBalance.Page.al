@@ -14,6 +14,10 @@ using Microsoft.Foundation.Period;
 using System.Text;
 using System.Utilities;
 
+/// <summary>
+/// Matrix worksheet for displaying G/L account balances across multiple time periods.
+/// Provides period-based analysis of account balances with flexible date range and dimension filtering.
+/// </summary>
 page 414 "G/L Balance"
 {
     Caption = 'G/L Balance';

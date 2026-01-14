@@ -14,6 +14,10 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Period;
 using System.Utilities;
 
+/// <summary>
+/// Matrix page displaying G/L balance data by dimensions with configurable column perspectives.
+/// Provides dynamic matrix view of G/L account balances organized by dimensional analysis with drill-down capabilities.
+/// </summary>
 page 9233 "G/L Balance by Dim. Matrix"
 {
     Caption = 'G/L Balance by Dim. Matrix';
@@ -1395,6 +1399,16 @@ page 9233 "G/L Balance by Dim. Matrix"
         MATRIX_CellData[MATRIX_ColumnOrdinal] := MatrixAmount;
     end;
 
+    /// <summary>
+    /// Loads matrix configuration and parameters for dimensional analysis display.
+    /// Initializes the matrix page with analysis parameters, dimension codes, column captions, and primary key positioning.
+    /// </summary>
+    /// <param name="NewAnalysisByDimParameters">Analysis parameters defining filters, rounding, and dimension options</param>
+    /// <param name="NewLineDimCode">Dimension code for row organization</param>
+    /// <param name="NewColumnDimCode">Dimension code for column organization</param>
+    /// <param name="NewMATRIX_ColumnCaptions">Array of column captions for matrix display</param>
+    /// <param name="NewPrimKeyFirstCol">Primary key positioning for first column</param>
+    /// <param name="CurrSetLength">Number of active columns in current matrix set</param>
     procedure Load(NewAnalysisByDimParameters: Record "Analysis by Dim. Parameters"; NewLineDimCode: Text[30]; NewColumnDimCode: Text[30]; NewMATRIX_ColumnCaptions: array[32] of Text[1024]; NewPrimKeyFirstCol: Text[1024]; CurrSetLength: Integer)
     begin
         FindPeriod('');
@@ -1408,6 +1422,10 @@ page 9233 "G/L Balance by Dim. Matrix"
         RoundingFactorFormatString := MatrixMgt.FormatRoundingFactor(AnalysisByDimParameters."Rounding Factor", false);
     end;
 
+    /// <summary>
+    /// Configures visibility of matrix columns based on current set length.
+    /// Controls which matrix field columns are displayed based on the number of active columns in the current matrix view.
+    /// </summary>
     procedure SetColumnVisibility()
     begin
         Field1Visible := MATRIX_CurrSetLength >= 1;
@@ -1518,91 +1536,216 @@ page 9233 "G/L Balance by Dim. Matrix"
         if Rec.FindFirst() then;
     end;
 
+    /// <summary>
+    /// Integration event raised after finding record in dimensional navigation.
+    /// Enables custom logic for record positioning and filtering in matrix navigation operations.
+    /// </summary>
+    /// <param name="DimOption">Dimension option being used for record navigation</param>
+    /// <param name="DimCodeBuf">Dimension code buffer record being processed</param>
+    /// <param name="Which">Navigation direction or criteria</param>
+    /// <param name="Found">Boolean indicating if record was found</param>
+    /// <param name="AnalysisbyDimParameters">Analysis parameters for filtering and configuration</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterFindRec(DimOption: Option "G/L Account",Period,"Business Unit","Dimension 1","Dimension 2",Fund,"Dimension 3","Dimension 4","Dimension 5","Dimension 6","Dimension 7","Dimension 8"; var DimCodeBuf: Record "Dimension Code Buffer"; Which: Text; var Found: Boolean; AnalysisbyDimParameters: Record "Analysis by Dim. Parameters")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after navigating to next record in matrix view.
+    /// Enables custom navigation logic and step calculation for matrix record positioning.
+    /// </summary>
+    /// <param name="DimOption">Dimension option being used for navigation</param>
+    /// <param name="DimCodeBuf">Dimension code buffer record being navigated</param>
+    /// <param name="Steps">Number of steps requested in navigation</param>
+    /// <param name="ResultSteps">Actual steps taken in navigation</param>
+    /// <param name="AnalysisbyDimParameters">Analysis parameters for filtering and configuration</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterNextRec(DimOption: Option "G/L Account",Period,"Business Unit","Dimension 1","Dimension 2",Fund,"Dimension 3","Dimension 4","Dimension 5","Dimension 6","Dimension 7","Dimension 8"; var DimCodeBuf: Record "Dimension Code Buffer"; Steps: Integer; var ResultSteps: Integer; AnalysisbyDimParameters: Record "Analysis by Dim. Parameters")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting common filters on G/L Account records.
+    /// Enables custom filtering logic for G/L account selection in dimensional analysis.
+    /// </summary>
+    /// <param name="GLAccount">G/L Account record being filtered</param>
+    /// <param name="AnalysisByDimParameters">Analysis parameters containing filter criteria</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterSetCommonFilters(var GLAccount: Record "G/L Account"; AnalysisByDimParameters: Record "Analysis by Dim. Parameters")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after calculating actual amounts for G/L accounts.
+    /// Enables custom amount calculation logic for actual balance analysis.
+    /// </summary>
+    /// <param name="GLAccount">G/L Account record for amount calculation</param>
+    /// <param name="AnalysisByDimParameters">Analysis parameters affecting calculation</param>
+    /// <param name="Amount">Calculated amount available for modification</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcActualAmount(var GLAccount: Record "G/L Account"; AnalysisByDimParameters: Record "Analysis by Dim. Parameters"; var Amount: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Integration event for customizing budget amount calculation in GL balance by dimension matrix.
+    /// </summary>
+    /// <param name="GLAccount">G/L account for budget calculation</param>
+    /// <param name="AnalysisByDimParameters">Analysis parameters for calculation context</param>
+    /// <param name="Amount">Budget amount to be customized</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcBudgetAmount(var GLAccount: Record "G/L Account"; AnalysisByDimParameters: Record "Analysis by Dim. Parameters"; var Amount: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Integration event for custom actual amount calculation logic in GL balance by dimension matrix.
+    /// </summary>
+    /// <param name="GLAcc">G/L account for actual amount calculation</param>
+    /// <param name="AnalysisByDimParameters">Analysis parameters for calculation context</param>
+    /// <param name="Amount">Actual amount to be customized</param>
+    /// <param name="IsHandled">Set to true to skip standard calculation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcActualAmounts(var GLAcc: Record "G/L Account"; AnalysisByDimParameters: Record "Analysis by Dim. Parameters"; var Amount: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event for custom drill-down logic in GL balance by dimension matrix.
+    /// </summary>
+    /// <param name="SetColFilter">Whether column filter should be set</param>
+    /// <param name="GLAcc">G/L account for drill-down context</param>
+    /// <param name="AnalysisByDimParameters">Analysis parameters for drill-down</param>
+    /// <param name="IsHandled">Set to true to skip standard drill-down</param>
+    /// <param name="GLEntry">G/L entry for drill-down target</param>
+    /// <param name="GLBudgetEntry">G/L budget entry for drill-down target</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDrillDown(SetColFilter: Boolean; var GLAcc: Record "G/L Account"; AnalysisByDimParameters: Record "Analysis by Dim. Parameters"; var IsHandled: Boolean; var GLEntry: Record "G/L Entry"; var GLBudgetEntry: Record "G/L Budget Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event for custom dimension code to option conversion logic.
+    /// </summary>
+    /// <param name="DimCode">Dimension code to convert</param>
+    /// <param name="Result">Resulting option value</param>
+    /// <param name="IsHandled">Set to true to skip standard conversion</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDimCodeToOption(DimCode: Text[30]; var Result: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event for custom record finding logic in GL balance by dimension matrix.
+    /// </summary>
+    /// <param name="DimOption">Dimension option for record finding context</param>
+    /// <param name="DimensionValue">Dimension value being found</param>
+    /// <param name="GLAccount">G/L account for finding context</param>
+    /// <param name="DimensionCodeBuffer">Dimension code buffer for finding</param>
+    /// <param name="Which">Which direction to find (e.g., next, previous)</param>
+    /// <param name="Found">Whether record was found</param>
+    /// <param name="IsHandled">Set to true to skip standard finding</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeFindRec(DimOption: Enum "Analysis Dimension Option"; var DimensionValue: Record "Dimension Value"; var GLAccount: Record "G/L Account"; var DimensionCodeBuffer: Record "Dimension Code Buffer"; Which: Text[1024]; var Found: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event for custom record navigation logic in GL balance by dimension matrix.
+    /// </summary>
+    /// <param name="DimOption">Dimension option for navigation context</param>
+    /// <param name="DimensionValue">Dimension value being navigated</param>
+    /// <param name="GLAccount">G/L account for navigation context</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeNextRec(DimOption: Enum "Analysis Dimension Option"; var DimensionValue: Record "Dimension Value"; var GLAccount: Record "G/L Account")
     begin
     end;
 
+    /// <summary>
+    /// Integration event for custom filter logic after setting G/L account filters in amount calculation.
+    /// </summary>
+    /// <param name="GLAcc">G/L account with applied filters</param>
+    /// <param name="SetColFilter">Whether column filter should be applied</param>
     [IntegrationEvent(true, false)]
     local procedure OnCalcAmountOnAfterGLAccSetFilters(var GLAcc: Record "G/L Account"; SetColFilter: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before running the General Ledger Entries page during drill-down operations.
+    /// Enables customization of drill-down behavior for general ledger entries.
+    /// </summary>
+    /// <param name="GLAcc">G/L Account record for the drill-down</param>
+    /// <param name="GLEntry">G/L Entry record for drill-down filtering</param>
     [IntegrationEvent(true, false)]
     local procedure OnDrillDownOnBeforeRunGeneralLedgerEntriesPage(var GLAcc: Record "G/L Account"; var GLEntry: Record "G/L Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before running the G/L Budget Entries page during drill-down operations.
+    /// Enables customization of drill-down behavior for budget entries.
+    /// </summary>
+    /// <param name="GLAcc">G/L Account record for the drill-down</param>
+    /// <param name="GLBudgetEntry">G/L Budget Entry record for drill-down filtering</param>
     [IntegrationEvent(true, false)]
     local procedure OnDrillDownOnBeforeRunGLBudgetEntriesPage(var GLAcc: Record "G/L Account"; var GLBudgetEntry: Record "G/L Budget Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised for custom dimension option handling in lookup code operations.
+    /// Enables extension of dimension lookup functionality beyond standard dimensions.
+    /// </summary>
+    /// <param name="DimOption">Dimension option being processed</param>
+    /// <param name="DimCode">Dimension code for lookup</param>
+    /// <param name="Code">Code value for dimension lookup</param>
     [IntegrationEvent(false, false)]
     local procedure OnLookupCodeOnCaseElse(var DimOption: Option "G/L Account",Period,"Business Unit","Dimension 1","Dimension 2",Fund,"Dimension 3","Dimension 4","Dimension 5","Dimension 6","Dimension 7","Dimension 8"; DimCode: Text[30]; Code: Text[30])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised for custom dimension filter setup beyond standard dimensions.
+    /// Enables extension of dimension filtering functionality in GL balance by dimension analysis.
+    /// </summary>
+    /// <param name="DimOption">Dimension option for filter setup</param>
+    /// <param name="TheGLAcc">G/L Account record for filtering</param>
+    /// <param name="DimCodeBuf">Dimension code buffer for filter configuration</param>
     [IntegrationEvent(true, false)]
     local procedure OnSetDimFiltersOnCaseElse(DimOption: Option "G/L Account",Period,"Business Unit","Dimension 1","Dimension 2",Fund,"Dimension 3","Dimension 4","Dimension 5","Dimension 6","Dimension 7","Dimension 8"; var TheGLAcc: Record "G/L Account"; var DimCodeBuf: Record "Dimension Code Buffer")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after calculating and assigning amount values in GL balance by dimension analysis.
+    /// Enables custom amount calculation adjustments and result modification.
+    /// </summary>
+    /// <param name="AnalysisByDimParameters">Analysis parameters for calculation context</param>
+    /// <param name="GLAccount">G/L Account record for the calculation</param>
+    /// <param name="Result">Calculated result amount that can be modified</param>
     [IntegrationEvent(true, false)]
     local procedure OnCalcAmountOnAfterAssignAmount(var AnalysisByDimParameters: Record "Analysis by Dim. Parameters"; var GLAccount: record "G/L Account"; var Result: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after copying dimension value data to dimension code buffer.
+    /// Enables custom handling of dimension value data during buffer operations.
+    /// </summary>
+    /// <param name="DimVal">Dimension value record being copied</param>
+    /// <param name="DimCodeBuf">Dimension code buffer receiving the data</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyDimValueToBuf(var DimVal: Record "Dimension Value"; var DimCodeBuf: Record "Dimension Code Buffer")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after copying G/L Account data to dimension code buffer.
+    /// Enables custom handling of G/L Account data during buffer operations in dimensional analysis.
+    /// </summary>
+    /// <param name="GLAcc">G/L Account record being copied</param>
+    /// <param name="DimCodeBuf">Dimension code buffer receiving the account data</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyGLAccToBuf(GLAcc: Record "G/L Account"; var DimCodeBuf: Record "Dimension Code Buffer")
     begin

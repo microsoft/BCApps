@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -126,10 +126,6 @@ codeunit 361 MoveEntries
     procedure MoveCustEntries(Cust: Record Customer)
     var
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-#if not CLEAN25
-        ServLedgEntry: Record Microsoft.Service.Ledger."Service Ledger Entry";
-        WarrantyLedgEntry: Record Microsoft.Service.Ledger."Warranty Ledger Entry";
-#endif
         NewCustNo: Code[20];
     begin
         OnBeforeMoveCustEntries(Cust, NewCustNo);
@@ -168,12 +164,6 @@ codeunit 361 MoveEntries
 
         OnMoveCustEntriesOnAfterModifyCustLedgEntries(Cust, NewCustNo);
 
-#if not CLEAN25
-        ServLedgEntry.SetRange("Customer No.", Cust."No.");
-        WarrantyLedgEntry.SetRange("Customer No.", Cust."No.");
-
-        OnAfterMoveCustEntries(Cust, CustLedgEntry, ReminderEntry, ServLedgEntry, WarrantyLedgEntry);
-#endif
     end;
 
     local procedure SetCustLedgEntryFilterByAccPeriod()
@@ -193,9 +183,6 @@ codeunit 361 MoveEntries
     procedure MoveVendorEntries(Vend: Record Vendor)
     var
         DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
-#if not CLEAN25
-        WarrantyLedgEntry: Record Microsoft.Service.Ledger."Warranty Ledger Entry";
-#endif
         NewVendNo: Code[20];
     begin
         OnBeforeMoveVendEntries(Vend, NewVendNo);
@@ -226,10 +213,6 @@ codeunit 361 MoveEntries
         DetailedVendorLedgEntry.ModifyAll("Vendor No.", NewVendNo);
 
         OnMoveVendEntriesOnAfterModifyVendLedgEntries(Vend, NewVendNo);
-#if not CLEAN25
-        WarrantyLedgEntry.SetRange("Vendor No.", Vend."No.");
-        OnAfterMoveVendorEntries(Vend, VendLedgEntry, WarrantyLedgEntry);
-#endif
     end;
 
     local procedure SetVendLedgEntryFilterByAccPeriod()
@@ -284,10 +267,6 @@ codeunit 361 MoveEntries
 
     procedure MoveItemEntries(Item: Record Item)
     var
-#if not CLEAN25
-        ServiceLedgerEntry: Record Microsoft.Service.Ledger."Service Ledger Entry";
-        WarrantyLedgerEntry: Record Microsoft.Service.Ledger."Warranty Ledger Entry";
-#endif
         WarehouseEntry: Record "Warehouse Entry";
         AvgCostEntryPointHandler: Codeunit "Avg. Cost Entry Point Handler";
         NewItemNo: Code[20];
@@ -362,14 +341,6 @@ codeunit 361 MoveEntries
 
         OnMoveItemEntriesOnAfterModifyItemLedgerEntries(Item, NewItemNo);
 
-#if not CLEAN25
-        ServiceLedgerEntry.SetRange(Type, ServiceLedgerEntry.Type::Item);
-        ServiceLedgerEntry.SetRange("No.", Item."No.");
-        WarrantyLedgerEntry.SetRange(Type, WarrantyLedgerEntry.Type::Item);
-        WarrantyLedgerEntry.SetRange("No.", Item."No.");
-
-        OnAfterMoveItemEntries(Item, ItemLedgEntry, ValueEntry, ServiceLedgerEntry, WarrantyLedgerEntry, InvtAdjmtEntryOrder);
-#endif
 
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.ModifyAll("Item No.", NewItemNo);
@@ -377,10 +348,6 @@ codeunit 361 MoveEntries
 
     procedure MoveResEntries(Res: Record Resource)
     var
-#if not CLEAN25
-        ServiceLedgerEntry: Record Microsoft.Service.Ledger."Service Ledger Entry";
-        WarrantyLedgerEntry: Record Microsoft.Service.Ledger."Warranty Ledger Entry";
-#endif
         NewResNo: Code[20];
     begin
         OnBeforeMoveResEntries(Res, NewResNo);
@@ -402,24 +369,11 @@ codeunit 361 MoveEntries
         ResLedgEntry.ModifyAll("Resource No.", NewResNo);
 
         OnMoveResEntriesOnAfterModifyResLedgerEntries(Res, NewResNo);
-#if not CLEAN25
-        ServiceLedgerEntry.Reset();
-        ServiceLedgerEntry.SetRange(Type, ServiceLedgerEntry.Type::Resource);
-        ServiceLedgerEntry.SetRange("No.", Res."No.");
-        WarrantyLedgerEntry.LockTable();
-        WarrantyLedgerEntry.SetRange(Type, WarrantyLedgerEntry.Type::Resource);
-        WarrantyLedgerEntry.SetRange("No.", Res."No.");
-
-        OnAfterMoveResEntries(Res, ResLedgEntry, ServiceLedgerEntry, WarrantyLedgerEntry);
-#endif
     end;
 
     procedure MoveJobEntries(Job: Record Job)
     var
         TimeSheetLine: Record "Time Sheet Line";
-#if not CLEAN25
-        ServiceLedgerEntry: Record Microsoft.Service.Ledger."Service Ledger Entry";
-#endif
         NewJobNo: Code[20];
     begin
         OnBeforeMoveJobEntries(Job, NewJobNo);
@@ -451,41 +405,10 @@ codeunit 361 MoveEntries
         end;
 
         OnMoveJobEntriesOnAfterModifyJobLedgerEntries(Job, NewJobNo);
-#if not CLEAN25
-        ServiceLedgerEntry.SetRange("Job No.", Job."No.");
-        OnAfterMoveJobEntries(Job, JobLedgEntry, TimeSheetLine, ServiceLedgerEntry);
-#endif
     end;
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit ServMoveEntries', '25.0')]
-    procedure MoveServiceItemLedgerEntries(ServiceItem: Record Microsoft.Service.Item."Service Item")
-    var
-        ServMoveEntries: Codeunit "Serv. Move Entries";
-    begin
-        ServMoveEntries.MoveServiceItemLedgerEntries(ServiceItem);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit ServMoveEntries', '25.0')]
-    procedure MoveServContractLedgerEntries(ServiceContractHeader: Record Microsoft.Service.Contract."Service Contract Header")
-    var
-        ServMoveEntries: Codeunit "Serv. Move Entries";
-    begin
-        ServMoveEntries.MoveServContractLedgerEntries(ServiceContractHeader);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit ServMoveEntries', '25.0')]
-    procedure MoveServiceCostLedgerEntries(ServiceCost: Record Microsoft.Service.Pricing."Service Cost")
-    var
-        ServMoveEntries: Codeunit "Serv. Move Entries";
-    begin
-        ServMoveEntries.MoveServiceCostLedgerEntries(ServiceCost);
-    end;
-#endif
 
     procedure MoveCashFlowEntries(CashFlowAccount: Record "Cash Flow Account")
     var
@@ -570,15 +493,6 @@ codeunit 361 MoveEntries
         OnAfterMoveDocRelatedEntries(TableNo, DocNo);
     end;
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit ServMoveEntries', '25.0')]
-    procedure CheckIfServiceItemCanBeDeleted(var ServiceLedgerEntry: Record Microsoft.Service.Ledger."Service Ledger Entry"; ServiceItemNo: Code[20]): Text
-    var
-        ServMoveEntries: Codeunit "Serv. Move Entries";
-    begin
-        exit(ServMoveEntries.CheckIfServiceItemCanBeDeleted(ServiceLedgerEntry, ServiceItemNo));
-    end;
-#endif
 
     local procedure CheckGLAccountEntries(GLAccount: Record "G/L Account"; var GeneralLedgerSetup: Record "General Ledger Setup")
     var
@@ -642,89 +556,18 @@ codeunit 361 MoveEntries
     begin
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by event OnMoveCustEntriesOnAfterModifyCustLedgEntries', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterMoveCustEntries(Customer: Record Customer; var CustLedgerEntry: Record "Cust. Ledger Entry"; var ReminderFinChargeEntry: Record "Reminder/Fin. Charge Entry"; var ServiceLedgerEntry: Record Microsoft.Service.Ledger."Service Ledger Entry"; var WarrantyLedgerEntry: Record Microsoft.Service.Ledger."Warranty Ledger Entry")
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by event OnMoveVendEntriesOnAfterModifyVendLedgEntries', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterMoveVendorEntries(Vendor: Record Vendor; var VendorLedgerEntry: Record "Vendor Ledger Entry"; var WarrantyLedgerEntry: Record Microsoft.Service.Ledger."Warranty Ledger Entry")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterMoveBankAccEntries(BankAccount: Record "Bank Account"; var BankAccountLedgerEntry: Record "Bank Account Ledger Entry"; var CheckLedgerEntry: Record "Check Ledger Entry")
     begin
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by event OnMoveItemEntriesOnAfterModifyItemLedgEntries', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterMoveItemEntries(Item: Record Item; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntry: Record "Value Entry"; var ServiceLedgerEntry: Record Microsoft.Service.Ledger."Service Ledger Entry"; var WarrantyLedgerEntry: Record Microsoft.Service.Ledger."Warranty Ledger Entry"; var InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)")
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by event OnMoveResEntriesOnAfterModifyResLedgEntries', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterMoveResEntries(Resource: Record Resource; var ResLedgerEntry: Record "Res. Ledger Entry"; var ServiceLedgerEntry: Record Microsoft.Service.Ledger."Service Ledger Entry"; var WarrantyLedgerEntry: Record Microsoft.Service.Ledger."Warranty Ledger Entry")
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by event OnMoveJobEntriesOnAfterModifyJobLedgEntries', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterMoveJobEntries(Job: Record Job; var JobLedgerEntry: Record "Job Ledger Entry"; var TimeSheetLine: Record "Time Sheet Line"; var ServiceLedgerEntry: Record Microsoft.Service.Ledger."Service Ledger Entry")
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnAfterMoveServiceItemLedgerEntries(ServiceItem: Record Microsoft.Service.Item."Service Item")
-    begin
-        OnAfterMoveServiceItemLedgerEntries(ServiceItem);
-    end;
 
-    [Obsolete('Moved to codeunit ServMoveEntries', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterMoveServiceItemLedgerEntries(ServiceItem: Record Microsoft.Service.Item."Service Item")
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnAfterMoveServContractLedgerEntries(ServiceContractHeader: Record Microsoft.Service.Contract."Service Contract Header")
-    begin
-        OnAfterMoveServContractLedgerEntries(ServiceContractHeader);
-    end;
-
-    [Obsolete('Moved to codeunit ServMoveEntries', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterMoveServContractLedgerEntries(ServiceContractHeader: Record Microsoft.Service.Contract."Service Contract Header")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnAfterMoveServiceCostLedgerEntries(ServiceCost: Record Microsoft.Service.Pricing."Service Cost")
-    begin
-        OnAfterMoveServiceCostLedgerEntries(ServiceCost);
-    end;
-
-    [Obsolete('Moved to codeunit ServMoveEntries', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterMoveServiceCostLedgerEntries(ServiceCost: Record Microsoft.Service.Pricing."Service Cost")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterMoveCashFlowEntries(CashFlowAccount: Record "Cash Flow Account"; CashFlowSetup: Record "Cash Flow Setup")
@@ -786,44 +629,8 @@ codeunit 361 MoveEntries
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforeMoveServiceItemLedgerEntries(ServiceItem: Record Microsoft.Service.Item."Service Item"; var NewServiceItemNo: Code[20])
-    begin
-        OnBeforeMoveServiceItemLedgerEntries(ServiceItem, NewServiceItemNo);
-    end;
 
-    [Obsolete('Moved to codeunit ServMoveEntries', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeMoveServiceItemLedgerEntries(ServiceItem: Record Microsoft.Service.Item."Service Item"; var NewServiceItemNo: Code[20])
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnBeforeMoveServContractLedgerEntries(ServiceContractHeader: Record Microsoft.Service.Contract."Service Contract Header"; var NewContractNo: Code[20])
-    begin
-        OnBeforeMoveServContractLedgerEntries(ServiceContractHeader, NewContractNo);
-    end;
-
-    [Obsolete('Moved to codeunit ServMoveEntries', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeMoveServContractLedgerEntries(ServiceContractHeader: Record Microsoft.Service.Contract."Service Contract Header"; var NewContractNo: Code[20])
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnBeforeMoveServiceCostLedgerEntries(ServiceCost: Record Microsoft.Service.Pricing."Service Cost"; var NewCostCode: Code[10])
-    begin
-        OnBeforeMoveServiceCostLedgerEntries(ServiceCost, NewCostCode);
-    end;
-
-    [Obsolete('Moved to codeunit ServMoveEntries', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeMoveServiceCostLedgerEntries(ServiceCost: Record Microsoft.Service.Pricing."Service Cost"; var NewCostCode: Code[10])
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeMoveCashFlowEntries(CashFlowAccount: Record "Cash Flow Account"; var NewAccountNo: Code[20])
@@ -845,18 +652,6 @@ codeunit 361 MoveEntries
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnMoveItemEntriesOnAfterResetServLedgEntry(var ServiceLedgerEntry: Record Microsoft.Service.Ledger."Service Ledger Entry")
-    begin
-        OnMoveItemEntriesOnAfterResetServLedgEntry(ServiceLedgerEntry);
-    end;
-
-    [Obsolete('Moved to codeunit ServMoveEntries', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnMoveItemEntriesOnAfterResetServLedgEntry(var ServiceLedgerEntry: Record Microsoft.Service.Ledger."Service Ledger Entry")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnMoveCustEntriesOnAfterModifyCustLedgEntries(var Customer: Record Customer; NewCustNo: Code[20])
@@ -883,4 +678,3 @@ codeunit 361 MoveEntries
     begin
     end;
 }
-

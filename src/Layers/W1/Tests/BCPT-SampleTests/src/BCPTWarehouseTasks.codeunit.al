@@ -1,20 +1,21 @@
 namespace System.Test.Tooling;
-using Microsoft.Inventory.Transfer;
-using Microsoft.Inventory.Location;
-using Microsoft.Warehouse.Setup;
-using Microsoft.Inventory.Item;
-using Microsoft.Warehouse.Document;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Inventory.Setup;
-using Microsoft.Warehouse.Activity;
-using Microsoft.Sales.Document;
-using Microsoft.Purchases.Document;
-using Microsoft.Warehouse.Structure;
-using Microsoft.Inventory.Journal;
-using Microsoft.Foundation.NoSeries;
-using System.Tooling;
+
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Duplicates;
+using Microsoft.Foundation.NoSeries;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Setup;
+using Microsoft.Inventory.Transfer;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Document;
+using Microsoft.Warehouse.Activity;
+using Microsoft.Warehouse.Document;
+using Microsoft.Warehouse.Setup;
+using Microsoft.Warehouse.Structure;
+using System.Tooling;
 
 codeunit 149201 "BCPT Warehouse Tasks"
 {

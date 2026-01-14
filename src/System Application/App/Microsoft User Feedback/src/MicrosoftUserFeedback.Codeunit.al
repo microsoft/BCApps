@@ -132,7 +132,7 @@ codeunit 1590 "Microsoft User Feedback"
         EmptyContextProperties: Dictionary of [Text, Text];
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        this.FeedbackImpl.RequestDislikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, EmptyContextProperties, EmptyContextFiles, CallerModuleInfo);
+        this.FeedbackImpl.RequestDislikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, EmptyContextFiles, EmptyContextProperties, CallerModuleInfo);
     end;
 
     /// <summary>
@@ -141,14 +141,14 @@ codeunit 1590 "Microsoft User Feedback"
     /// <param name="FeatureName">The name of the feature for which dislike feedback is requested.</param>
     /// <param name="FeatureArea">The area or sub-area of the feature. ID of the sub-area on OCV.</param>
     /// <param name="FeatureAreaDisplayName">The display name of the feature area.</param>
-    /// <param name="ContextFiles">Map of filename to base64 file to attach to the feedback. Must contain the filename in the extension.</param>
     /// <param name="ContextProperties">Additional data to pass properties to the feedback mechanism.</param>
+    /// <param name="ContextFiles">Map of filename to base64 file to attach to the feedback. Must contain the filename in the extension.</param>
     procedure RequestDislikeFeedback(FeatureName: Text; FeatureArea: Text; FeatureAreaDisplayName: Text; ContextProperties: Dictionary of [Text, Text]; ContextFiles: Dictionary of [Text, Text])
     var
         CallerModuleInfo: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        this.FeedbackImpl.RequestDislikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, ContextProperties, ContextFiles, CallerModuleInfo);
+        this.FeedbackImpl.RequestDislikeFeedback(FeatureName, FeatureArea, FeatureAreaDisplayName, ContextFiles, ContextProperties, CallerModuleInfo);
     end;
 
     /// <summary>
@@ -159,6 +159,85 @@ codeunit 1590 "Microsoft User Feedback"
     procedure SetIsAIFeedback(IsAIFeedback: Boolean): Codeunit "Microsoft User Feedback"
     begin
         this.FeedbackImpl := this.FeedbackImpl.SetIsAIFeedback(IsAIFeedback);
+        exit(this);
+    end;
+
+    /// <summary>
+    /// Sets a custom question to be included in the feedback prompt.
+    /// </summary>
+    /// <param name="Question">The text of the custom question.</param>
+    /// <param name="QuestionDisplay">The display text of the custom question.</param>
+    /// <returns>The current instance of the "Microsoft User Feedback Impl" codeunit.</returns>
+    procedure WithCustomQuestion(Question: Text; QuestionDisplay: Text): Codeunit "Microsoft User Feedback"
+    begin
+        this.FeedbackImpl := this.FeedbackImpl.WithCustomQuestion(Question, QuestionDisplay);
+        exit(this);
+    end;
+
+    /// <summary>
+    /// Sets the type of the custom question to be included in the feedback prompt.
+    /// </summary>
+    /// <param name="QuestionType">The type of the custom question.</param>
+    /// <returns>The current instance of the "Microsoft User Feedback Impl" codeunit.</returns>
+    procedure WithCustomQuestionType(QuestionType: Enum FeedbackQuestionType): Codeunit "Microsoft User Feedback"
+    begin
+        this.FeedbackImpl := this.FeedbackImpl.WithCustomQuestionType(QuestionType);
+        exit(this);
+    end;
+
+    /// <summary>
+    /// Sets the required behavior for the custom question to be included in the feedback prompt.
+    /// </summary>
+    /// <param name="RequiredBehavior">The behaviour.</param>
+    /// <param name="Enabled">If true, enables the specified required behavior; if false, disables it.</param>
+    /// <returns>The current instance of the "Microsoft User Feedback Impl" codeunit.</returns>
+    procedure WithCustomQuestionRequiredBehavior(RequiredBehavior: Enum FeedbackRequiredBehavior; Enabled: Boolean): Codeunit "Microsoft User Feedback"
+    begin
+        this.FeedbackImpl := this.FeedbackImpl.WithCustomQuestionRequiredBehavior(RequiredBehavior, Enabled);
+        exit(this);
+    end;
+
+    /// <summary>
+    /// Sets the required behavior for the custom question to be included in the feedback prompt.
+    /// </summary>
+    /// <param name="RequiredBehavior">A dictionary defining the required behavior for the custom question.</param>
+    /// <returns>The current instance of the "Microsoft User Feedback Impl" codeunit.</returns>
+    procedure WithCustomQuestionRequiredBehavior(RequiredBehavior: Dictionary of [Enum FeedbackRequiredBehavior, Text]): Codeunit "Microsoft User Feedback"
+    begin
+        this.FeedbackImpl := this.FeedbackImpl.WithCustomQuestionRequiredBehavior(RequiredBehavior);
+        exit(this);
+    end;
+
+    /// <summary>
+    /// Adds an answer option for the custom question to be included in the feedback prompt.
+    /// </summary>
+    /// <param name="AnswerOption">The answer option.</param>
+    /// <param name="AnswerDisplayText">The display text for the answer option.</param>
+    /// <returns>The current instance of the "Microsoft User Feedback Impl" codeunit.</returns>
+    procedure WithCustomQuestionAnswerOption(AnswerOption: Text; AnswerDisplayText: Text): Codeunit "Microsoft User Feedback"
+    begin
+        this.FeedbackImpl := this.FeedbackImpl.WithCustomQuestionAnswerOption(AnswerOption, AnswerDisplayText);
+        exit(this);
+    end;
+
+    /// <summary>
+    /// Sets the answer options for the custom question to be included in the feedback prompt.
+    /// </summary>
+    /// <param name="AnswerOptions">A dictionary defining the answer options for the custom question.</param>
+    /// <returns>The current instance of the "Microsoft User Feedback Impl" codeunit.</returns>
+    procedure WithCustomQuestionAnswerOptions(AnswerOptions: Dictionary of [Text, Text]): Codeunit "Microsoft User Feedback"
+    begin
+        this.FeedbackImpl := this.FeedbackImpl.WithCustomQuestionAnswerOptions(AnswerOptions);
+        exit(this);
+    end;
+
+    /// <summary>
+    /// Clears any previously set custom question.
+    /// </summary>
+    /// <returns>The current instance of the "Microsoft User Feedback" codeunit.</returns>
+    procedure ClearCustomQuestion(): Codeunit "Microsoft User Feedback"
+    begin
+        this.FeedbackImpl := this.FeedbackImpl.ClearCustomQuestion();
         exit(this);
     end;
 

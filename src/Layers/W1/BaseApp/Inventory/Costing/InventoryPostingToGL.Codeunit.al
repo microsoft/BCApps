@@ -141,7 +141,7 @@ codeunit 5802 "Inventory Posting To G/L"
         Result: Boolean;
     begin
         IsHandled := false;
-        OnBeforeBufferInvtPosting(ValueEntry, Result, IsHandled, RunOnlyCheck, CalledFromTestReport);
+        OnBeforeBufferInvtPosting(ValueEntry, Result, IsHandled, RunOnlyCheck, CalledFromTestReport, TempGlobalInvtPostingBuffer);
         if IsHandled then
             exit(Result);
 
@@ -1423,7 +1423,7 @@ codeunit 5802 "Inventory Posting To G/L"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeBufferInvtPosting(var ValueEntry: Record "Value Entry"; var Result: Boolean; var IsHandled: Boolean; RunOnlyCheck: Boolean; CalledFromTestReport: Boolean)
+    local procedure OnBeforeBufferInvtPosting(var ValueEntry: Record "Value Entry"; var Result: Boolean; var IsHandled: Boolean; RunOnlyCheck: Boolean; CalledFromTestReport: Boolean; var GlobalInvtPostingBuffer: Record "Invt. Posting Buffer")
     begin
     end;
 

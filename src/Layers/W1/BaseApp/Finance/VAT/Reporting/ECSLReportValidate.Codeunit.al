@@ -6,6 +6,10 @@ namespace Microsoft.Finance.VAT.Reporting;
 
 using System.Utilities;
 
+/// <summary>
+/// Validates ECSL (European Community Sales List) reports for completeness and accuracy before release.
+/// Performs validation checks on ECSL report lines including VAT registration numbers and supply values.
+/// </summary>
 codeunit 143 "ECSL Report Validate"
 {
     TableNo = "VAT Report Header";

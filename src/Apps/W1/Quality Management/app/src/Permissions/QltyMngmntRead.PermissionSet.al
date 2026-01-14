@@ -5,14 +5,14 @@
 namespace Microsoft.QualityManagement.Permissions;
 
 using Microsoft.QualityManagement.Configuration.GenerationRule;
-using Microsoft.QualityManagement.Configuration.Grade;
+using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Integration.Inventory.Transfer;
 using Microsoft.QualityManagement.RoleCenters;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 
 permissionset 20401 "QltyMngmnt - Read"
 {
@@ -23,9 +23,9 @@ permissionset 20401 "QltyMngmnt - Read"
     IncludedPermissionSets = "QltyMngmnt - Objects";
 
     Permissions =
-        tabledata "Qlty. In. Test Generation Rule" = R,
-        tabledata "Qlty. I. Grade Condition Conf." = R,
-        tabledata "Qlty. Inspection Grade" = R,
+        tabledata "Qlty. Inspection Gen. Rule" = R,
+        tabledata "Qlty. I. Result Condit. Conf." = R,
+        tabledata "Qlty. Inspection Result" = R,
         tabledata "Qlty. Lookup Code" = R,
         tabledata "Qlty. Management Setup" = R,
         tabledata "Qlty. Related Transfers Buffer" = RIMD,
@@ -34,7 +34,7 @@ permissionset 20401 "QltyMngmnt - Read"
         tabledata "Qlty. Inspect. Source Config." = R,
         tabledata "Qlty. Inspection Template Line" = R,
         tabledata "Qlty. Inspection Template Hdr." = R,
-        tabledata "Qlty. Inspection Test Line" = R,
-        tabledata "Qlty. Inspection Test Header" = R,
-        tabledata "Qlty. Field" = R;
+        tabledata "Qlty. Inspection Line" = R,
+        tabledata "Qlty. Inspection Header" = R,
+        tabledata "Qlty. Test" = R;
 }

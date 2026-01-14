@@ -11,6 +11,10 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.Period;
 using System.Utilities;
 
+/// <summary>
+/// Displays G/L account balance and budget analysis across periods with comparison capabilities.
+/// Provides period-based analysis of actual vs. budget amounts with percentage variance calculations.
+/// </summary>
 page 350 "G/L Acc. Balance/Budget Lines"
 {
     Caption = 'Lines';
@@ -211,6 +215,13 @@ page 350 "G/L Acc. Balance/Budget Lines"
         PeriodType: Enum "Analysis Period Type";
         AmountType: Enum "Analysis Amount Type";
 
+    /// <summary>
+    /// Configures the page with G/L account data and analysis parameters for period-based comparison.
+    /// </summary>
+    /// <param name="NewGLAcc">G/L account record containing the accounts to analyze</param>
+    /// <param name="NewPeriodType">Period type for analysis breakdown (Day, Week, Month, Quarter, Year)</param>
+    /// <param name="NewAmountType">Amount type for balance calculation (Net Change, Balance at Date)</param>
+    /// <param name="NewClosingEntryFilter">Whether to include or exclude closing entries in analysis</param>
     procedure SetLines(var NewGLAcc: Record "G/L Account"; NewPeriodType: Enum "Analysis Period Type"; NewAmountType: Enum "Analysis Amount Type"; NewClosingEntryFilter: Option Include,Exclude)
     begin
         GLAcc.Copy(NewGLAcc);
@@ -314,21 +325,42 @@ page 350 "G/L Acc. Balance/Budget Lines"
         OnAfterCalcFormFields(GLAcc, Rec."Balance/Budget Pct.", Rec, ClosingEntryFilter);
     end;
 
+    /// <summary>
+    /// Returns the current G/L account filter configuration used by the page.
+    /// </summary>
+    /// <param name="NewGLAcc">G/L account record to populate with current filter settings</param>
     procedure GetGLAcc(var NewGLAcc: Record "G/L Account")
     begin
         NewGLAcc.Copy(GLAcc);
     end;
 
+    /// <summary>
+    /// Integration event for custom calculation logic after computing form field values and budget percentages.
+    /// </summary>
+    /// <param name="GLAccount">G/L account being analyzed</param>
+    /// <param name="BudgetPct">Budget percentage calculation result</param>
+    /// <param name="GLAccBalanceBudgetBuffer">Balance/budget buffer record with calculated values</param>
+    /// <param name="ClosingEntryFilter">Closing entry filter setting (Include or Exclude)</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcFormFields(var GLAccount: Record "G/L Account"; var BudgetPct: Decimal; var GLAccBalanceBudgetBuffer: Record "G/L Acc. Balance/Budget Buffer"; ClosingEntryFilter: Option Include,Exclude)
     begin
     end;
 
+    /// <summary>
+    /// Integration event for custom filter logic when drilling down to G/L entries from balance analysis.
+    /// </summary>
+    /// <param name="GLEntry">G/L entry record for drill-down filtering</param>
+    /// <param name="GLAccount">G/L account context for filter application</param>
     [IntegrationEvent(true, false)]
     local procedure OnBalanceDrillDownOnAfterSetFilters(var GLEntry: Record "G/L Entry"; GLAccount: Record "G/L Account")
     begin
     end;
 
+    /// <summary>
+    /// Integration event for custom filter logic when drilling down to G/L budget entries from budget analysis.
+    /// </summary>
+    /// <param name="GLBudgetEntry">G/L budget entry record for drill-down filtering</param>
+    /// <param name="GLAccount">G/L account context for filter application</param>
     [IntegrationEvent(false, false)]
     local procedure OnBudgetDrillDownOnAfterSetFilters(var GLBudgetEntry: Record "G/L Budget Entry"; GLAccount: Record "G/L Account")
     begin

@@ -32,6 +32,7 @@ report 99003800 "Reg. Abs. (from Machine Ctr.)"
                     AbsenceChange.Description := Description;
                     AbsenceChange.Capacity := Capacity2;
                     AbsenceChange.UpdateDatetime();
+                    OnAfterGetRecordMachineCenterOnBeforeAbsenceChangeInsertOrModify(AbsenceChange, "Machine Center");
                     if not AbsenceChange.Insert() then
                         if Overwrite then
                             AbsenceChange.Modify();
@@ -164,5 +165,10 @@ report 99003800 "Reg. Abs. (from Machine Ctr.)"
         Description: Text[30];
         Date: Date;
         Overwrite: Boolean;
-}
 
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetRecordMachineCenterOnBeforeAbsenceChangeInsertOrModify(var RegisteredAbsence: Record "Registered Absence"; var MachineCenter: Record "Machine Center")
+    begin
+    end;
+}

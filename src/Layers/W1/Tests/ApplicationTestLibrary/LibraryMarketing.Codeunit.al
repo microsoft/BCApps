@@ -1,7 +1,8 @@
+/// <summary>
+/// Provides utility functions for creating and managing marketing-related entities in test scenarios, including contacts, campaigns, and segments.
+/// </summary>
 codeunit 131900 "Library - Marketing"
 {
-    //  Contains utility functions related to Marketing.
-
 
     trigger OnRun()
     begin

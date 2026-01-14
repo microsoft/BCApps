@@ -13,8 +13,10 @@ codeunit 134005 "ERM Payment Tolerance Customer"
     var
         LibraryERM: Codeunit "Library - ERM";
         LibraryRandom: Codeunit "Library - Random";
+        LibrarySales: Codeunit "Library - Sales";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryPmtDiscSetup: Codeunit "Library - Pmt Disc Setup";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         isInitialized: Boolean;
         PaymentToleranceError: Label 'The amount must be %1 in %2 %3 =%4.';
         RoundingMessage: Label '%1 must be %2 in %3 %4=%5.';
@@ -748,6 +750,72 @@ codeunit 134005 "ERM Payment Tolerance Customer"
         CustLedgerEntry.TestField("Remaining Amount", CustLedgerEntry.Amount);
     end;
 
+    [Test]
+    [HandlerFunctions('PaymentToleranceWarningHandler')]
+    [Scope('OnPrem')]
+    procedure PaymentAmountNotRecalculatedWithBothTolerances()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        Customer: Record Customer;
+        PaymentTerms: Record "Payment Terms";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        InvoiceAmount: Decimal;
+        PaymentAmount: Decimal;
+        InvoiceDate: Date;
+        PaymentDate: Date;
+    begin
+        // [FEATURE] [Payment Tolerance] [Payment Discount Tolerance] [Sales]
+        // [SCENARIO 613787] Payment amount should not be recalculated when applying payment within discount grace period with both payment discount tolerance and payment tolerance involved
+
+        // Setup
+        Initialize();
+
+        // [GIVEN] General Ledger Setup with Payment Tolerance % = 10, Max Payment Tolerance Amount = 5
+        // [GIVEN] Payment Discount Grace Period = 5D, Both warnings enabled
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.Validate("Payment Tolerance %", 10);
+        GeneralLedgerSetup.Validate("Max. Payment Tolerance Amount", 5);
+        Evaluate(GeneralLedgerSetup."Payment Discount Grace Period", '<5D>');
+        GeneralLedgerSetup.Validate("Payment Tolerance Posting", GeneralLedgerSetup."Payment Tolerance Posting"::"Payment Tolerance Accounts");
+        GeneralLedgerSetup.Validate("Pmt. Disc. Tolerance Posting", GeneralLedgerSetup."Pmt. Disc. Tolerance Posting"::"Payment Tolerance Accounts");
+        GeneralLedgerSetup.Modify(true);
+
+        LibraryPmtDiscSetup.SetPmtToleranceWarning(true);
+
+        // [GIVEN] Payment Terms with discount 2% within 8 days
+        LibraryERM.GetDiscountPaymentTerm(PaymentTerms);
+
+        // [GIVEN] Customer with Payment Terms
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Payment Terms Code", PaymentTerms.Code);
+        Customer.Modify(true);
+        UpdateCustomerPostingGroup(Customer."Customer Posting Group");
+
+        // [GIVEN] Posted Invoice for 1000 on 01/01/2027
+        InvoiceAmount := 1000;
+        InvoiceDate := DMY2Date(1, 1, 2027);
+
+        // [GIVEN] Posted Payment for -979 (1000 - 20 discount - 1 tolerance) on 01/13/2027 (within grace period)
+        PaymentAmount := -979;
+        PaymentDate := DMY2Date(13, 1, 2027);
+
+        LibraryERM.SelectLastGenJnBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        CreateDocumentLine(GenJournalLine, GenJournalBatch, GenJournalLine."Document Type"::Invoice, Customer."No.", InvoiceAmount, InvoiceDate, '');
+        CreateDocumentLine(GenJournalLine, GenJournalBatch, GenJournalLine."Document Type"::Payment, Customer."No.", PaymentAmount, PaymentDate, '');
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [WHEN] Apply payment to invoice and post (handlers will accept both warnings)
+        LibraryVariableStorage.Enqueue(1); // Post as Payment Discount Tolerance
+        LibraryVariableStorage.Enqueue(1); // Post the Balance as Payment Tolerance
+        ApplyAndPostCustomerEntry(GenJournalLine."Document Type", GenJournalLine."Document No.");
+
+        // [THEN] Payment and invoice are fully applied with correct amounts
+        VerifyCustomerLedgerEntryClosed(Customer."No.", GenJournalLine."Document Type"::Invoice);
+        VerifyCustomerLedgerEntryClosed(Customer."No.", GenJournalLine."Document Type"::Payment);
+    end;
+
     [Normal]
     local procedure Initialize()
     var
@@ -1151,5 +1219,24 @@ codeunit 134005 "ERM Payment Tolerance Customer"
         DeltaAssert.AddWatch(
           DATABASE::"Cust. Ledger Entry", CustLedgerEntry.GetPosition(), CustLedgerEntry.FieldNo("Original Pmt. Disc. Possible"),
           CustLedgerEntry."Original Pmt. Disc. Possible" - DiscountAmount);
+    end;
+
+    local procedure VerifyCustomerLedgerEntryClosed(CustomerNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type")
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+    begin
+        CustLedgerEntry.SetRange("Customer No.", CustomerNo);
+        CustLedgerEntry.SetRange("Document Type", DocumentType);
+        CustLedgerEntry.FindFirst();
+        CustLedgerEntry.TestField(Open, false);
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure PaymentToleranceWarningHandler(var PaymentToleranceWarning: Page "Payment Tolerance Warning"; var Response: Action)
+    begin
+        // Modal Page Handler for Payment Tolerance Warning.
+        PaymentToleranceWarning.InitializeOption(LibraryVariableStorage.DequeueInteger());
+        Response := ACTION::Yes;
     end;
 }

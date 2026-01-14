@@ -37,23 +37,10 @@ codeunit 99000778 OrderTrackingManagement
         ItemLedgEntry: Record "Item Ledger Entry";
         ItemLedgEntry2: Record "Item Ledger Entry";
         ItemLedgEntry3: Record "Item Ledger Entry";
-#if not CLEAN25
-        SalesLine: Record "Sales Line";
-#endif
         PurchLine: Record "Purchase Line";
         ItemJnlLine: Record "Item Journal Line";
         ReqLine: Record "Requisition Line";
-#if not CLEAN25
-        ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line";
-        ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component";
-        AsmHeader: Record Microsoft.Assembly.Document."Assembly Header";
-        AsmLine: Record Microsoft.Assembly.Document."Assembly Line";
-#endif
         PlanningComponent: Record "Planning Component";
-#if not CLEAN25
-        ServLine: Record Microsoft.Service.Document."Service Line";
-        JobPlanningLine: Record Microsoft.Projects.Project.Planning."Job Planning Line";
-#endif
         ReservEntry: Record "Reservation Entry";
         TempReservEntryList: Record "Reservation Entry" temporary;
         TempOrderTrackingEntry: Record "Order Tracking Entry" temporary;
@@ -84,32 +71,6 @@ codeunit 99000778 OrderTrackingManagement
         exit(CaptionText);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by SetSourceLine()', '25.0')]
-    procedure SetSalesLine(var CurrentSalesLine: Record "Sales Line")
-    var
-        SaleShptLine: Record Microsoft.Sales.History."Sales Shipment Line";
-    begin
-        CurrentSalesLine.TestField(Type, CurrentSalesLine.Type::Item);
-        SalesLine := CurrentSalesLine;
-        ReservEntry."Source Type" := DATABASE::"Sales Line";
-
-        ReservEntry.InitSortingAndFilters(false);
-        SalesLine.SetReservationFilters(ReservEntry);
-        CaptionText := SalesLine.GetSourceCaption();
-
-        if CurrentSalesLine."Qty. Shipped (Base)" <> 0 then begin
-            SaleShptLine.SetCurrentKey("Order No.", "Order Line No.");
-            SaleShptLine.SetRange("Order No.", CurrentSalesLine."Document No.");
-            SaleShptLine.SetRange("Order Line No.", CurrentSalesLine."Line No.");
-            if SaleShptLine.Find('-') then
-                repeat
-                    if ItemLedgEntry2.Get(SaleShptLine."Item Shpt. Entry No.") then
-                        ItemLedgEntry2.Mark(true);
-                until SaleShptLine.Next() = 0;
-        end;
-    end;
-#endif
 
     procedure SetReqLine(var CurrentReqLine: Record "Requisition Line")
     begin
@@ -121,137 +82,10 @@ codeunit 99000778 OrderTrackingManagement
         IsPlanning := ReqLine."Planning Line Origin" <> ReqLine."Planning Line Origin"::" ";
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by SetSourceLine()', '25.0')]
-    procedure SetPurchLine(var CurrentPurchLine: Record "Purchase Line")
-    var
-        PurchRcptLine: Record Microsoft.Purchases.History."Purch. Rcpt. Line";
-    begin
-        CurrentPurchLine.TestField(Type, CurrentPurchLine.Type::Item);
-        PurchLine := CurrentPurchLine;
 
-        ReservEntry.InitSortingAndFilters(false);
-        PurchLine.SetReservationFilters(ReservEntry);
-        CaptionText := PurchLine.GetSourceCaption();
 
-        if CurrentPurchLine."Qty. Received (Base)" <> 0 then begin
-            PurchRcptLine.SetCurrentKey("Order No.", "Order Line No.");
-            PurchRcptLine.SetRange("Order No.", CurrentPurchLine."Document No.");
-            PurchRcptLine.SetRange("Order Line No.", CurrentPurchLine."Line No.");
-            if PurchRcptLine.Find('-') then
-                repeat
-                    if ItemLedgEntry2.Get(PurchRcptLine."Item Rcpt. Entry No.") then
-                        ItemLedgEntry2.Mark(true);
-                until PurchRcptLine.Next() = 0;
-        end;
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by SetSourceLine()', '25.0')]
-    procedure SetProdOrderLine(var CurrentProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line")
-    begin
-        ProdOrderLine := CurrentProdOrderLine;
 
-        ReservEntry.InitSortingAndFilters(false);
-        ProdOrderLine.SetReservationFilters(ReservEntry);
-        CaptionText := ProdOrderLine.GetSourceCaption();
-
-        if CurrentProdOrderLine."Finished Quantity" <> 0 then begin
-            ItemLedgEntry2.SetCurrentKey("Order Type", "Order No.", "Order Line No.", "Entry Type");
-            ItemLedgEntry2.SetRange("Order Type", ItemLedgEntry2."Order Type"::Production);
-            ItemLedgEntry2.SetRange("Order No.", CurrentProdOrderLine."Prod. Order No.");
-            ItemLedgEntry2.SetRange("Order Line No.", CurrentProdOrderLine."Line No.");
-            ItemLedgEntry2.SetRange("Entry Type", ItemLedgEntry."Entry Type"::Output);
-            ItemLedgEntry2.SetRange("Item No.", CurrentProdOrderLine."Item No.");
-
-            if ItemLedgEntry2.Find('-') then
-                repeat
-                    ItemLedgEntry2.Mark(true);
-                until ItemLedgEntry2.Next() = 0;
-        end;
-    end;
-#endif
-
-#if not CLEAN25
-    [Obsolete('Replaced by SetSourceLine()', '25.0')]
-    procedure SetProdOrderComp(var CurrentProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-        ProdOrderComp := CurrentProdOrderComp;
-
-        ReservEntry.InitSortingAndFilters(false);
-        ProdOrderComp.SetReservationFilters(ReservEntry);
-        CaptionText := ProdOrderComp.GetSourceCaption();
-
-        if (CurrentProdOrderComp."Remaining Quantity" <> CurrentProdOrderComp."Expected Quantity") and
-           (CurrentProdOrderComp.Status in
-            [CurrentProdOrderComp.Status::Released, CurrentProdOrderComp.Status::Finished])
-        then begin
-            ProdOrderLine.Get(
-              CurrentProdOrderComp.Status,
-              CurrentProdOrderComp."Prod. Order No.",
-              CurrentProdOrderComp."Prod. Order Line No.");
-
-            ItemLedgEntry2.SetCurrentKey("Order Type", "Order No.", "Order Line No.", "Entry Type", "Prod. Order Comp. Line No.");
-            ItemLedgEntry2.SetRange("Order Type", ItemLedgEntry2."Order Type"::Production);
-            ItemLedgEntry2.SetRange("Order No.", CurrentProdOrderComp."Prod. Order No.");
-            ItemLedgEntry2.SetRange("Order Line No.", CurrentProdOrderComp."Prod. Order Line No.");
-            ItemLedgEntry2.SetRange("Prod. Order Comp. Line No.", CurrentProdOrderComp."Line No.");
-            ItemLedgEntry2.SetRange("Entry Type", ItemLedgEntry."Entry Type"::Consumption);
-            ItemLedgEntry2.SetRange("Item No.", CurrentProdOrderComp."Item No.");
-            if ItemLedgEntry2.Find('-') then
-                repeat
-                    ItemLedgEntry2.Mark(true);
-                until ItemLedgEntry2.Next() = 0;
-        end;
-    end;
-#endif
-
-#if not CLEAN25
-    [Obsolete('Replaced by SetSourceLine()', '25.0')]
-    procedure SetAsmHeader(var CurrentAsmHeader: Record Microsoft.Assembly.Document."Assembly Header")
-    begin
-        AsmHeader := CurrentAsmHeader;
-
-        ReservEntry.InitSortingAndFilters(false);
-        AsmHeader.SetReservationFilters(ReservEntry);
-        CaptionText := AsmHeader.GetSourceCaption();
-
-        if CurrentAsmHeader."Assembled Quantity (Base)" <> 0 then begin
-            ItemLedgEntry2.SetCurrentKey("Order Type", "Order No.");
-            ItemLedgEntry2.SetRange("Order Type", ItemLedgEntry2."Order Type"::Assembly);
-            ItemLedgEntry2.SetRange("Order No.", CurrentAsmHeader."No.");
-            ItemLedgEntry2.SetRange("Order Line No.", 0);
-            if ItemLedgEntry2.Find('-') then
-                repeat
-                    ItemLedgEntry2.Mark(true);
-                until ItemLedgEntry2.Next() = 0;
-        end;
-    end;
-#endif
-
-#if not CLEAN25
-    [Obsolete('Replaced by SetSourceLine()', '25.0')]
-    procedure SetAsmLine(var CurrentAsmLine: Record Microsoft.Assembly.Document."Assembly Line")
-    begin
-        AsmLine := CurrentAsmLine;
-
-        ReservEntry.InitSortingAndFilters(false);
-        AsmLine.SetReservationFilters(ReservEntry);
-        CaptionText := AsmLine.GetSourceCaption();
-
-        if CurrentAsmLine."Consumed Quantity (Base)" <> 0 then begin
-            ItemLedgEntry2.SetCurrentKey("Order Type", "Order No.");
-            ItemLedgEntry2.SetRange("Order Type", ItemLedgEntry."Order Type"::Assembly);
-            ItemLedgEntry2.SetRange("Order No.", CurrentAsmLine."No.");
-            ItemLedgEntry2.SetRange("Order Line No.", CurrentAsmLine."Line No.");
-            if ItemLedgEntry2.Find('-') then
-                repeat
-                    ItemLedgEntry2.Mark(true);
-                until ItemLedgEntry2.Next() = 0;
-        end;
-    end;
-#endif
 
     procedure SetPlanningComponent(var CurrentPlanningComponent: Record "Planning Component")
     begin
@@ -299,68 +133,11 @@ codeunit 99000778 OrderTrackingManagement
         MultipleItemLedgEntries := (TempItemLedgEntry.Count > 1);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by SetSourceLine()', '25.0')]
-    procedure SetServLine(var CurrentServLine: Record Microsoft.Service.Document."Service Line")
-    var
-        ServShptLine: Record Microsoft.Service.History."Service Shipment Line";
-    begin
-        CurrentServLine.TestField(Type, CurrentServLine.Type::Item);
-        ServLine := CurrentServLine;
-        ReservEntry."Source Type" := DATABASE::Microsoft.Service.Document."Service Line";
 
-        ReservEntry.InitSortingAndFilters(false);
-        ServLine.SetReservationFilters(ReservEntry);
-        CaptionText := ServLine.GetSourceCaption();
-
-        if CurrentServLine."Qty. Shipped (Base)" <> 0 then begin
-            ServShptLine.SetCurrentKey("Order No.", "Order Line No.");
-            ServShptLine.SetRange("Order No.", CurrentServLine."Document No.");
-            ServShptLine.SetRange("Order Line No.", CurrentServLine."Line No.");
-            if ServShptLine.Find('-') then
-                repeat
-                    if ItemLedgEntry2.Get(ServShptLine."Item Shpt. Entry No.") then
-                        ItemLedgEntry2.Mark(true);
-                until ServShptLine.Next() = 0;
-        end;
-    end;
-#endif
-
-#if not CLEAN25
-    [Obsolete('Replaced by SetSourceLine()', '25.0')]
-    procedure SetJobPlanningLine(var CurrentJobPlanningLine: Record Microsoft.Projects.Project.Planning."Job Planning Line")
-    var
-        JobUsageLink: Record Microsoft.Projects.Project.Job."Job Usage Link";
-        JobLedgEntry: Record Microsoft.Projects.Project.Ledger."Job Ledger Entry";
-    begin
-        CurrentJobPlanningLine.TestField(Type, CurrentJobPlanningLine.Type::Item);
-        JobPlanningLine := CurrentJobPlanningLine;
-        ReservEntry."Source Type" := DATABASE::Microsoft.Projects.Project.Planning."Job Planning Line";
-
-        ReservEntry.InitSortingAndFilters(false);
-        JobPlanningLine.SetReservationFilters(ReservEntry);
-        CaptionText := JobPlanningLine.GetSourceCaption();
-
-        if CurrentJobPlanningLine."Qty. Posted" <> 0 then begin
-            JobUsageLink.SetRange("Job No.", CurrentJobPlanningLine."Job No.");
-            JobUsageLink.SetRange("Job Task No.", CurrentJobPlanningLine."Job Task No.");
-            JobUsageLink.SetRange("Line No.", CurrentJobPlanningLine."Line No.");
-            if JobUsageLink.Find('-') then
-                repeat
-                    JobLedgEntry.Get(JobUsageLink."Entry No.");
-                    if ItemLedgEntry2.Get(JobLedgEntry."Ledger Entry No.") then
-                        ItemLedgEntry2.Mark(true);
-                until JobUsageLink.Next() = 0;
-        end;
-    end;
-#endif
 
     procedure SetSourceRecord(var SourceRecordVar: Variant)
     begin
         OnSetSourceRecord(SourceRecordVar, ReservEntry, CaptionText, ItemLedgEntry2);
-#if not CLEAN25
-        OnAfterSetSoucreRecord(SourceRecordVar, ReservEntry, CaptionText, ItemLedgEntry2);
-#endif
     end;
 
     procedure TrackedQuantity(): Decimal
@@ -911,13 +688,6 @@ codeunit 99000778 OrderTrackingManagement
     begin
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by event with corrected name OnSetSourceRecord', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterSetSoucreRecord(var SourceRecordVar: Variant; var ReservationEntry: Record "Reservation Entry"; var CaptionText: Text; var ItemLedgerEntry2: Record "Item Ledger Entry")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnSetSourceRecord(var SourceRecordVar: Variant; var ReservationEntry: Record "Reservation Entry"; var CaptionText: Text; var ItemLedgerEntry2: Record "Item Ledger Entry")

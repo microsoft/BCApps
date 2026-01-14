@@ -5,21 +5,21 @@
 namespace Microsoft.Assembly.Test;
 
 using Microsoft.Assembly.Document;
-using Microsoft.Inventory.Item;
-using Microsoft.Warehouse.Document;
-using Microsoft.Sales.Document;
-using Microsoft.Inventory.Location;
-using Microsoft.Warehouse.Activity;
-using Microsoft.Warehouse.Worksheet;
-using Microsoft.Inventory.BOM;
 using Microsoft.Assembly.History;
-using Microsoft.Inventory.Item.Substitution;
-using Microsoft.Inventory.Posting;
-using Microsoft.Warehouse.Tracking;
-using Microsoft.Warehouse.Ledger;
-using Microsoft.Inventory.Tracking;
-using Microsoft.Warehouse.Availability;
 using Microsoft.Assembly.Setup;
+using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Item.Substitution;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Posting;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Sales.Document;
+using Microsoft.Warehouse.Activity;
+using Microsoft.Warehouse.Availability;
+using Microsoft.Warehouse.Document;
+using Microsoft.Warehouse.Ledger;
+using Microsoft.Warehouse.Tracking;
+using Microsoft.Warehouse.Worksheet;
 
 codeunit 137928 "SCM Assembly UT"
 {

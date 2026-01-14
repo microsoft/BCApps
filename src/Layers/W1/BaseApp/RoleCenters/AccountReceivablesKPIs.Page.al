@@ -3,9 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.RoleCenters;
+
 using Microsoft.RoleCenters;
-using System.Visualization;
 using Microsoft.Sales.Receivables;
+using System.Visualization;
 
 page 1318 "Account Receivables KPIs"
 {

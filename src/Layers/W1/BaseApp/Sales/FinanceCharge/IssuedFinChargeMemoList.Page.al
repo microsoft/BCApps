@@ -212,22 +212,6 @@ page 452 "Issued Fin. Charge Memo List"
         }
         area(reporting)
         {
-#if not CLEAN25
-            action("Finance Charge Memo Nos.")
-            {
-                ApplicationArea = Suite;
-                Caption = 'The action will be obsoleted.';
-                Image = "Report";
-                //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
-                //PromotedCategory = "Report";
-                RunObject = Report "Finance Charge Memo";
-                ToolTip = 'View or edit the finance charge memo numbers that are set up. ';
-                Visible = false;
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The related report doesn''t exist anymore';
-                ObsoleteTag = '25.0';
-            }
-#endif
             action("Customer - Balance to Date")
             {
                 ApplicationArea = Basic, Suite;
@@ -291,4 +275,3 @@ page 452 "Issued Fin. Charge Memo List"
         }
     }
 }
-

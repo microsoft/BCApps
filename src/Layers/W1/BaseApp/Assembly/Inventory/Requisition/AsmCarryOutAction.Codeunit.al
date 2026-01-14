@@ -5,11 +5,11 @@
 namespace Microsoft.Inventory.Requisition;
 
 using Microsoft.Assembly.Document;
-using Microsoft.Inventory.Tracking;
-using Microsoft.Inventory.Planning;
-using Microsoft.Inventory.Item;
-using Microsoft.Inventory.BOM;
 using Microsoft.Foundation.Navigate;
+using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Planning;
+using Microsoft.Inventory.Tracking;
 
 codeunit 945 "Asm. Carry Out Action"
 {

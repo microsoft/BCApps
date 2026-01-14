@@ -7,6 +7,10 @@ namespace Microsoft.Finance.Analysis;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Enums;
 
+/// <summary>
+/// Analysis page for receivables and payables balances with period-based comparison and cash flow analysis.
+/// Provides comprehensive view of outstanding customer and vendor balances organized by periods for cash flow planning.
+/// </summary>
 page 159 "Receivables-Payables"
 {
     ApplicationArea = Suite;

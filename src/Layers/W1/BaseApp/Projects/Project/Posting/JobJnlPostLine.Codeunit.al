@@ -9,6 +9,7 @@ using Microsoft.Assembly.History;
 using Microsoft.Assembly.Posting;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
@@ -25,7 +26,6 @@ using Microsoft.Projects.Resources.Journal;
 using Microsoft.Projects.Resources.Ledger;
 using Microsoft.Sales.Customer;
 using Microsoft.Warehouse.Journal;
-using Microsoft.Foundation.NoSeries;
 
 codeunit 1012 "Job Jnl.-Post Line"
 {

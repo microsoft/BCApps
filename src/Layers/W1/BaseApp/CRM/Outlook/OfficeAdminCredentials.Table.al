@@ -85,15 +85,6 @@ table 1612 "Office Admin. Credentials"
         Modify();
     end;
 
-#if not CLEAN25
-    [NonDebuggable]
-    [Obsolete('Replaced by GetPasswordAsSecretText.', '25.0')]
-    [Scope('OnPrem')]
-    procedure GetPassword(): Text
-    begin
-        exit(GetPasswordAsSecretText().Unwrap());
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure GetPasswordAsSecretText(): SecretText
@@ -106,4 +97,3 @@ table 1612 "Office Admin. Credentials"
         exit(Value);
     end;
 }
-

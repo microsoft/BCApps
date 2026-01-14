@@ -1,8 +1,8 @@
 namespace System.Security.AccessControl;
 
 using Microsoft.Service.Contract;
-using Microsoft.Service.Resources;
 using Microsoft.Service.Item;
+using Microsoft.Service.Resources;
 
 permissionsetextension 5903 "SERV D365 Basic Read" extends "D365 Basic - Read"
 {

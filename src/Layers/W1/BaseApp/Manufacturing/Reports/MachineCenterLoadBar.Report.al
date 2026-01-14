@@ -1,3 +1,4 @@
+#if not CLEAN27
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -298,4 +299,4 @@ report 99000786 "Machine Center Load/Bar"
         PeriodStartingDateCaptionLbl: Label 'Period Starting Date';
         PeriodEndingDateCaptionLbl: Label 'Period Ending Date';
 }
-
+#endif

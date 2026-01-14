@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+
 namespace Microsoft.Finance.Dimension;
 
 using Microsoft.Bank.BankAccount;
@@ -19,10 +20,15 @@ using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
+using System.Globalization;
 using System.Reflection;
 using System.Text;
-using System.Globalization;
 
+/// <summary>
+/// Table Default Dimension (ID 352).
+/// Stores default dimension value assignments for master data records.
+/// These defaults are automatically applied when creating transactions involving the associated record.
+/// </summary>
 table 352 "Default Dimension"
 {
     Caption = 'Default Dimension';
@@ -31,6 +37,10 @@ table 352 "Default Dimension"
 
     fields
     {
+        /// <summary>
+        /// The table ID of the master data record for which this default dimension applies.
+        /// Only specific tables that support dimensions can be used here.
+        /// </summary>
         field(1; "Table ID"; Integer)
         {
             Caption = 'Table ID';
@@ -67,6 +77,10 @@ table 352 "Default Dimension"
                     FieldError("Table ID");
             end;
         }
+        /// <summary>
+        /// The primary key value of the record in the table specified by Table ID.
+        /// This links the default dimension to a specific master data record.
+        /// </summary>
         field(2; "No."; Code[20])
         {
             Caption = 'No.';
@@ -90,6 +104,10 @@ table 352 "Default Dimension"
                 RecRef.Close();
             end;
         }
+        /// <summary>
+        /// The dimension code that this default value applies to.
+        /// Must reference an existing dimension that is not blocked.
+        /// </summary>
         field(3; "Dimension Code"; Code[20])
         {
             Caption = 'Dimension Code';
@@ -104,6 +122,11 @@ table 352 "Default Dimension"
                     Validate("Dimension Value Code", '');
             end;
         }
+        /// <summary>
+        /// The default dimension value code to be applied.
+        /// Must reference an existing, unblocked dimension value for the specified dimension.
+        /// Can be left blank depending on the Value Posting setting.
+        /// </summary>
         field(4; "Dimension Value Code"; Code[20])
         {
             Caption = 'Dimension Value Code';
@@ -116,6 +139,10 @@ table 352 "Default Dimension"
                 UpdateDimensionValueId();
             end;
         }
+        /// <summary>
+        /// Controls how the dimension value is handled during posting.
+        /// Determines whether the dimension value is required, optional, prohibited, or must match a specific value.
+        /// </summary>
         field(5; "Value Posting"; Enum "Default Dimension Value Posting Type")
         {
             Caption = 'Value Posting';
@@ -130,6 +157,10 @@ table 352 "Default Dimension"
                     ClearAllowedValuesFilter(DimValuePerAccount);
             end;
         }
+        /// <summary>
+        /// Calculated field that displays the caption of the table associated with this default dimension.
+        /// Provides a user-friendly name for the table ID.
+        /// </summary>
         field(6; "Table Caption"; Text[250])
         {
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Table),
@@ -138,12 +169,20 @@ table 352 "Default Dimension"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Used in multi-selection scenarios to specify the action to perform on multiple default dimension records.
+        /// Supports changing or deleting multiple records at once.
+        /// </summary>
         field(7; "Multi Selection Action"; Option)
         {
             Caption = 'Multi Selection Action';
             OptionCaption = ' ,Change,Delete';
             OptionMembers = " ",Change,Delete;
         }
+        /// <summary>
+        /// Indicates the hierarchical relationship type for this default dimension.
+        /// Used to organize default dimensions in parent-child relationships for complex setups.
+        /// </summary>
         field(8; "Parent Type"; Enum "Default Dimension Parent Type")
         {
             Caption = 'Parent Type';
@@ -162,6 +201,10 @@ table 352 "Default Dimension"
                 end;
             end;
         }
+        /// <summary>
+        /// Filter that restricts which dimension values can be used for this default dimension.
+        /// When specified, only dimension values matching this filter are available for selection.
+        /// </summary>
         field(10; "Allowed Values Filter"; Text[250])
         {
             Caption = 'Allowed Values Filter';
@@ -182,6 +225,10 @@ table 352 "Default Dimension"
                     UpdateDimValuesPerAccountFromAllowedValuesFilter(DimValuePerAccount);
             end;
         }
+        /// <summary>
+        /// Flow field that displays the name of the selected dimension value.
+        /// Automatically populated from the Dimension Value table for user convenience.
+        /// </summary>
         field(20; "Dimension Value Name"; Text[50])
         {
             CalcFormula = lookup("Dimension Value".Name where("Dimension Code" = field("Dimension Code"), Code = field("Dimension Value Code")));
@@ -189,6 +236,10 @@ table 352 "Default Dimension"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// System identifier linking this default dimension to its parent master data record.
+        /// Used for API integration and maintaining referential integrity across table relationships.
+        /// </summary>
         field(8000; ParentId; Guid)
         {
             Caption = 'ParentId';
@@ -209,6 +260,10 @@ table 352 "Default Dimension"
                     UpdateTableIdAndNo(ParentId);
             end;
         }
+        /// <summary>
+        /// System identifier linking this default dimension to the dimension record.
+        /// Used for API integration and maintaining referential integrity with the parent dimension.
+        /// </summary>
         field(8001; DimensionId; Guid)
         {
             Caption = 'DimensionId';
@@ -226,6 +281,10 @@ table 352 "Default Dimension"
                 "Dimension Code" := Dimension.Code;
             end;
         }
+        /// <summary>
+        /// System identifier linking this default dimension to the dimension value record.
+        /// Used for API integration and maintaining referential integrity with the dimension value.
+        /// </summary>
         field(8002; DimensionValueId; Guid)
         {
             Caption = 'DimensionValueId';
@@ -364,6 +423,11 @@ table 352 "Default Dimension"
         InvalidAllowedValuesFilterErr: Label 'There are no dimension values for allowed values filter %1.', Comment = '%1 - allowed values filter';
         DefaultDimValueErr: Label 'You cannot block dimension value %1 because it is a default value for %2, %3.', Comment = '%1 = dimension value code and %2- table name, %3 - account number';
 
+    /// <summary>
+    /// Generates a descriptive caption for the default dimension record.
+    /// Returns a formatted text showing the table name and record number for user identification.
+    /// </summary>
+    /// <returns>The formatted caption text combining source table name and record number.</returns>
     procedure GetCaption() Result: Text[250]
     var
         ObjectTranslation: Record "Object Translation";
@@ -404,6 +468,14 @@ table 352 "Default Dimension"
         exit('');
     end;
 
+    /// <summary>
+    /// Updates global dimension codes in master data records when default dimension values change.
+    /// Synchronizes global dimension values across tables when dimension posting requirements change.
+    /// </summary>
+    /// <param name="GlobalDimCodeNo">The global dimension number (1-8) being updated.</param>
+    /// <param name="TableID">The table ID of the master data record to update.</param>
+    /// <param name="AccNo">The account or record number to update.</param>
+    /// <param name="NewDimValue">The new dimension value to assign to the global dimension field.</param>
     procedure UpdateGlobalDimCode(GlobalDimCodeNo: Integer; TableID: Integer; AccNo: Code[20]; NewDimValue: Code[20])
     var
         IsHandled: Boolean;
@@ -743,6 +815,14 @@ table 352 "Default Dimension"
         end;
     end;
 
+    /// <summary>
+    /// Integration event raised after updating global dimension codes in master data records.
+    /// Allows extensions to perform additional processing after global dimension synchronization.
+    /// </summary>
+    /// <param name="GlobalDimCodeNo">The global dimension number (1-8) that was updated.</param>
+    /// <param name="TableID">The table ID of the master data record that was updated.</param>
+    /// <param name="AccNo">The account or record number that was updated.</param>
+    /// <param name="NewDimValue">The new dimension value that was assigned.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateGlobalDimCode(GlobalDimCodeNo: Integer; TableID: Integer; AccNo: Code[20]; NewDimValue: Code[20])
     begin
@@ -772,6 +852,11 @@ table 352 "Default Dimension"
                 Error(DimensionManagement.GetNotAllowedDimValuePerAccount(Rec, "Dimension Value Code"));
     end;
 
+    /// <summary>
+    /// Clears the allowed values filter and related dimension value per account records.
+    /// Called when changing from Code Mandatory posting type to allow unrestricted dimension value selection.
+    /// </summary>
+    /// <param name="DimValuePerAccount">Record variable for accessing dimension value per account data.</param>
     procedure ClearAllowedValuesFilter(var DimValuePerAccount: Record "Dim. Value per Account")
     begin
         if (xRec."Value Posting" = "Value Posting"::"Code Mandatory") and ("Value Posting" <> "Value Posting"::"Code Mandatory") then begin
@@ -785,6 +870,12 @@ table 352 "Default Dimension"
         end;
     end;
 
+    /// <summary>
+    /// Creates a dimension value per account record from a dimension value.
+    /// Used to populate allowed dimension values for account-specific dimension restrictions.
+    /// </summary>
+    /// <param name="DimValue">The dimension value to create the account-specific record from.</param>
+    /// <param name="ShouldUpdateAllowed">Indicates whether to mark the dimension value as allowed.</param>
     procedure CreateDimValuePerAccountFromDimValue(DimValue: Record "Dimension Value"; ShouldUpdateAllowed: Boolean)
     var
         DimValuePerAccount: Record "Dim. Value per Account";
@@ -801,6 +892,12 @@ table 352 "Default Dimension"
         DimValuePerAccount.Insert();
     end;
 
+    /// <summary>
+    /// Checks whether a dimension value per account record is included in the allowed values filter.
+    /// Returns true if the dimension value matches the current allowed values filter criteria.
+    /// </summary>
+    /// <param name="DimValuePerAccount">The dimension value per account record to check against the filter.</param>
+    /// <returns>True if the dimension value is included in the allowed values filter; false otherwise.</returns>
     procedure IncludedInAllowedValuesFilter(DimValuePerAccount: Record "Dim. Value per Account"): Boolean
     var
         TempDimValuePerAccount: Record "Dim. Value per Account" temporary;
@@ -817,6 +914,11 @@ table 352 "Default Dimension"
             exit(true);
     end;
 
+    /// <summary>
+    /// Updates dimension values per account records based on the allowed values filter.
+    /// Synchronizes the allowed dimension values list with the current filter criteria.
+    /// </summary>
+    /// <param name="DimValuePerAccount">Record variable for managing dimension value per account records.</param>
     procedure UpdateDimValuesPerAccountFromAllowedValuesFilter(var DimValuePerAccount: Record "Dim. Value per Account")
     begin
         if "Allowed Values Filter" = '' then begin
@@ -859,12 +961,21 @@ table 352 "Default Dimension"
             Error(InvalidAllowedValuesFilterErr, "Allowed Values Filter");
     end;
 
+    /// <summary>
+    /// Validates that a dimension value is not disallowed for use with this default dimension.
+    /// Prevents assignment of dimension values that are restricted by the allowed values filter.
+    /// </summary>
+    /// <param name="DimValuePerAccount">The dimension value per account record to validate.</param>
     procedure CheckDisallowedDimensionValue(DimValuePerAccount: Record "Dim. Value per Account")
     begin
         if "Dimension Value Code" = DimValuePerAccount."Dimension Value Code" then
             Error(DefaultDimValueErr, DimValuePerAccount."Dimension Value Code", DimValuePerAccount.GetTableCaption(), "No.");
     end;
 
+    /// <summary>
+    /// Updates the allowed values filter field based on currently allowed dimension values.
+    /// Rebuilds the filter string from dimension value per account records marked as allowed.
+    /// </summary>
     procedure UpdateDefaultDimensionAllowedValuesFilter()
     var
         DimValuePerAccount: Record "Dim. Value per Account";
@@ -884,6 +995,11 @@ table 352 "Default Dimension"
         end;
     end;
 
+    /// <summary>
+    /// Returns the allowed values filter as a text string truncated to field length.
+    /// Provides the current filter that restricts dimension value selection for this default dimension.
+    /// </summary>
+    /// <returns>The allowed values filter string truncated to the maximum field length.</returns>
     procedure GetAllowedValuesFilter(): Text[250]
     var
         DimValuePerAccount: Record "Dim. Value per Account";
@@ -891,6 +1007,12 @@ table 352 "Default Dimension"
         exit(CopyStr(GetFullAllowedValuesFilter(DimValuePerAccount), 1, MaxStrLen("Allowed Values Filter")));
     end;
 
+    /// <summary>
+    /// Returns the complete allowed values filter without length restrictions.
+    /// Generates a filter string from all allowed dimension values for this default dimension.
+    /// </summary>
+    /// <param name="DimValuePerAccount">Record variable for accessing dimension value per account data.</param>
+    /// <returns>The complete allowed values filter string without truncation.</returns>
     procedure GetFullAllowedValuesFilter(var DimValuePerAccount: Record "Dim. Value per Account"): Text
     var
         SelectionFilterMgt: Codeunit SelectionFilterManagement;
@@ -1058,6 +1180,11 @@ table 352 "Default Dimension"
         exit(RecordFound);
     end;
 
+    /// <summary>
+    /// Updates the parent type field based on the current table ID.
+    /// Maps specific table IDs to their corresponding parent type enum values.
+    /// </summary>
+    /// <returns>True if the parent type was changed; false if it remained the same.</returns>
     procedure UpdateParentType(): Boolean
     var
         NewParentType: Enum "Default Dimension Parent Type";
@@ -1082,6 +1209,11 @@ table 352 "Default Dimension"
         exit(true);
     end;
 
+    /// <summary>
+    /// Updates the parent ID field based on the current table ID and record number.
+    /// Links the default dimension to the correct master data record using system IDs.
+    /// </summary>
+    /// <returns>True if the parent ID was changed; false if it remained the same.</returns>
     procedure UpdateParentId(): Boolean
     var
         Customer: Record Customer;
@@ -1163,12 +1295,21 @@ table 352 "Default Dimension"
         exit(false);
     end;
 
+    /// <summary>
+    /// Updates all referenced ID fields and modifies the record if any changes occurred.
+    /// Ensures system IDs are synchronized with the current dimension and parent record references.
+    /// </summary>
     procedure UpdateReferencedIds()
     begin
         if UpdateReferencedIdFields() then
             Modify(false);
     end;
 
+    /// <summary>
+    /// Updates all referenced ID fields and returns whether any changes were made.
+    /// Coordinates updates to parent ID, parent type, dimension ID, and dimension value ID fields.
+    /// </summary>
+    /// <returns>True if any referenced ID fields were modified; false otherwise.</returns>
     procedure UpdateReferencedIdFields(): Boolean
     var
         Modified: Boolean;
@@ -1258,196 +1399,455 @@ table 352 "Default Dimension"
         end;
     end;
 
+    /// <summary>
+    /// Integration event raised after setting range filters to the last field in primary key operations.
+    /// Allows extensions to customize record filtering behavior during key-based searches.
+    /// </summary>
+    /// <param name="RecRef">The record reference being filtered.</param>
+    /// <param name="Value">The value being used for the range filter.</param>
+    /// <param name="FieldRef">The field reference for the last primary key field.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetRangeToLastFieldInPrimaryKey(RecRef: RecordRef; Value: Code[20]; var FieldRef: FieldRef)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating the No. field in default dimension records.
+    /// Allows extensions to implement custom validation logic or skip standard validation.
+    /// </summary>
+    /// <param name="DefaultDimension">The default dimension record being validated.</param>
+    /// <param name="IsHandled">Set to true to skip standard validation processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateNo(DefaultDimension: Record "Default Dimension"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating global dimension codes in master data records.
+    /// Allows extensions to implement custom update logic or prevent standard updates.
+    /// </summary>
+    /// <param name="GlobalDimCodeNo">The global dimension number (1-8) being updated.</param>
+    /// <param name="TableID">The table ID of the master data record to update.</param>
+    /// <param name="AccNo">The account or record number to update.</param>
+    /// <param name="NewDimValue">The new dimension value to assign.</param>
+    /// <param name="IsHandled">Set to true to skip standard update processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateGlobalDimCode(GlobalDimCodeNo: Integer; TableID: Integer; AccNo: Code[20]; NewDimValue: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before deleting a default dimension record.
+    /// Allows extensions to perform custom validation or cleanup before deletion.
+    /// </summary>
+    /// <param name="DefaultDimension">The default dimension record being deleted.</param>
+    /// <param name="DimensionManagement">The dimension management codeunit instance.</param>
+    /// <param name="IsHandled">Set to true to skip standard deletion processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnDelete(var DefaultDimension: Record "Default Dimension"; var DimensionManagement: Codeunit DimensionManagement; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting a default dimension record.
+    /// Allows extensions to perform custom validation or initialization before insertion.
+    /// </summary>
+    /// <param name="DefaultDimension">The default dimension record being inserted.</param>
+    /// <param name="DimensionManagement">The dimension management codeunit instance.</param>
+    /// <param name="IsHandled">Set to true to skip standard insertion processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnInsert(var DefaultDimension: Record "Default Dimension"; var DimensionManagement: Codeunit DimensionManagement; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying a default dimension record.
+    /// Allows extensions to perform custom validation or processing before modification.
+    /// </summary>
+    /// <param name="DefaultDimension">The default dimension record being modified.</param>
+    /// <param name="DimensionManagement">The dimension management codeunit instance.</param>
+    /// <param name="IsHandled">Set to true to skip standard modification processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnModify(var DefaultDimension: Record "Default Dimension"; var DimensionManagement: Codeunit DimensionManagement; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before renaming a default dimension record.
+    /// Allows extensions to perform custom validation or prevent rename operations.
+    /// </summary>
+    /// <param name="DefaultDimension">The default dimension record being renamed.</param>
+    /// <param name="IsHandled">Set to true to skip standard rename processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnRename(var DefaultDimension: Record "Default Dimension"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised for non-standard global dimension code updates on G/L accounts.
+    /// Allows extensions to handle global dimension updates beyond dimensions 1 and 2.
+    /// </summary>
+    /// <param name="GlobalDimCodeNo">The global dimension number being updated.</param>
+    /// <param name="GLAccNo">The G/L account number to update.</param>
+    /// <param name="NewDimValue">The new dimension value to assign.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateGLAccGlobalDimCodeOnCaseElse(GlobalDimCodeNo: Integer; GLAccNo: Code[20]; NewDimValue: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying G/L account global dimension codes.
+    /// Allows extensions to customize G/L account updates during global dimension synchronization.
+    /// </summary>
+    /// <param name="GLAcc">The G/L account record being modified.</param>
+    /// <param name="NewDimValue">The new dimension value being assigned.</param>
+    /// <param name="GlobalDimCodeNo">The global dimension number being updated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateGLAccGlobalDimCodeOnBeforeGLAccModify(var GLAcc: Record "G/L Account"; NewDimValue: Code[20]; GlobalDimCodeNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised for non-standard global dimension code updates on bank accounts.
+    /// Allows extensions to handle global dimension updates beyond dimensions 1 and 2.
+    /// </summary>
+    /// <param name="GlobalDimCodeNo">The global dimension number being updated.</param>
+    /// <param name="BankAccNo">The bank account number to update.</param>
+    /// <param name="NewDimValue">The new dimension value to assign.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateBankGlobalDimCodeCaseElse(GlobalDimCodeNo: Integer; BankAccNo: Code[20]; NewDimValue: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying bank account record during global dimension code update.
+    /// Enables custom logic before bank account dimension values are updated.
+    /// </summary>
+    /// <param name="BankAccount">Bank account record being modified</param>
+    /// <param name="NewDimValue">New dimension value being assigned</param>
+    /// <param name="GlobalDimCodeNo">Global dimension number being updated</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateBankGlobalDimCodeOnBeforeBankModify(var BankAccount: Record "Bank Account"; NewDimValue: Code[20]; GlobalDimCodeNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised for additional global dimension code updates on campaigns beyond global dimensions 1 and 2.
+    /// Enables custom dimension management for campaign records when shortcut dimensions are updated.
+    /// </summary>
+    /// <param name="GlobalDimCodeNo">Global dimension number being updated (3-8)</param>
+    /// <param name="CampaignNo">Campaign number being updated</param>
+    /// <param name="NewDimValue">New dimension value code to assign</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateCampaignGlobalDimCodeCaseElse(GlobalDimCodeNo: Integer; CampaignNo: Code[20]; NewDimValue: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised for additional global dimension code updates on customers beyond global dimensions 1 and 2.
+    /// Enables custom dimension management for customer records when shortcut dimensions are updated.
+    /// </summary>
+    /// <param name="GlobalDimCodeNo">Global dimension number being updated (3-8)</param>
+    /// <param name="CustNo">Customer number being updated</param>
+    /// <param name="NewDimValue">New dimension value code to assign</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateCustGlobalDimCodeOnCaseElse(GlobalDimCodeNo: Integer; CustNo: Code[20]; NewDimValue: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying customer record during global dimension code update.
+    /// Enables custom logic before customer dimension values are updated.
+    /// </summary>
+    /// <param name="Customer">Customer record being modified</param>
+    /// <param name="NewDimValue">New dimension value being assigned</param>
+    /// <param name="GlobalDimCodeNo">Global dimension number being updated</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateCustGlobalDimCodeOnBeforeCustModify(var Customer: Record Customer; NewDimValue: Code[20]; GlobalDimCodeNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised for additional global dimension code updates on customer templates beyond global dimensions 1 and 2.
+    /// Enables custom dimension management for customer template records when shortcut dimensions are updated.
+    /// </summary>
+    /// <param name="GlobalDimCodeNo">Global dimension number being updated (3-8)</param>
+    /// <param name="CustomerTemplCode">Customer template code being updated</param>
+    /// <param name="NewDimValue">New dimension value code to assign</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateCustomerTemplGlobalDimCodeCaseElse(GlobalDimCodeNo: Integer; CustomerTemplCode: Code[20]; NewDimValue: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when updating employee global dimension codes for non-standard dimension numbers.
+    /// Enables custom handling of global dimension updates beyond the standard two global dimensions.
+    /// </summary>
+    /// <param name="GlobalDimCodeNo">Global dimension number being updated (typically 3-8)</param>
+    /// <param name="EmployeeNo">Employee number being updated</param>
+    /// <param name="NewDimValue">New dimension value code to assign</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateEmpoyeeGlobalDimCodeCaseElse(GlobalDimCodeNo: Integer; EmployeeNo: Code[20]; NewDimValue: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying employee record during global dimension update.
+    /// Allows customization of employee record before dimension value assignment.
+    /// </summary>
+    /// <param name="Employee">Employee record being modified</param>
+    /// <param name="NewDimValue">New dimension value being assigned</param>
+    /// <param name="GlobalDimCodeNo">Global dimension number being updated</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateEmployeeGlobalDimCodeOnBeforeEmployeeModify(var Employee: Record Employee; NewDimValue: Code[20]; GlobalDimCodeNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when updating employee template global dimension codes for non-standard dimension numbers.
+    /// Enables custom handling of global dimension updates for employee templates.
+    /// </summary>
+    /// <param name="GlobalDimCodeNo">Global dimension number being updated (typically 3-8)</param>
+    /// <param name="EmployeeTemplCode">Employee template code being updated</param>
+    /// <param name="NewDimValue">New dimension value code to assign</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateEmployeeTemplGlobalDimCodeCaseElse(GlobalDimCodeNo: Integer; EmployeeTemplCode: Code[20]; NewDimValue: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when updating fixed asset global dimension codes for non-standard dimension numbers.
+    /// Enables custom handling of global dimension updates for fixed assets.
+    /// </summary>
+    /// <param name="GlobalDimCodeNo">Global dimension number being updated (typically 3-8)</param>
+    /// <param name="FANo">Fixed asset number being updated</param>
+    /// <param name="NewDimValue">New dimension value code to assign</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateFAGlobalDimCodeCaseElse(GlobalDimCodeNo: Integer; FANo: Code[20]; NewDimValue: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying fixed asset record during global dimension update.
+    /// Allows customization of fixed asset record before dimension value assignment.
+    /// </summary>
+    /// <param name="FixedAsset">Fixed asset record being modified</param>
+    /// <param name="NewDimValue">New dimension value being assigned</param>
+    /// <param name="GlobalDimCodeNo">Global dimension number being updated</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateFAGlobalDimCodeOnBeforeFAModify(var FixedAsset: Record "Fixed Asset"; NewDimValue: Code[20]; GlobalDimCodeNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when updating insurance global dimension codes for non-standard dimension numbers.
+    /// Enables custom handling of global dimension updates for insurance records.
+    /// </summary>
+    /// <param name="GlobalDimCodeNo">Global dimension number being updated (typically 3-8)</param>
+    /// <param name="InsuranceNo">Insurance number being updated</param>
+    /// <param name="NewDimValue">New dimension value code to assign</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateInsuranceGlobalDimCodeCaseElse(GlobalDimCodeNo: Integer; InsuranceNo: Code[20]; NewDimValue: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying insurance record during global dimension update.
+    /// Allows customization of insurance record before dimension value assignment.
+    /// </summary>
+    /// <param name="Insurance">Insurance record being modified</param>
+    /// <param name="NewDimValue">New dimension value being assigned</param>
+    /// <param name="GlobalDimCodeNo">Global dimension number being updated</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateInsuranceGlobalDimCodeOnBeforeInsuranceModify(var Insurance: Record Insurance; NewDimValue: Code[20]; GlobalDimCodeNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when updating item global dimension codes for non-standard dimension numbers.
+    /// Enables custom handling of global dimension updates for items.
+    /// </summary>
+    /// <param name="GlobalDimCodeNo">Global dimension number being updated (typically 3-8)</param>
+    /// <param name="ItemNo">Item number being updated</param>
+    /// <param name="NewDimValue">New dimension value code to assign</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateItemGlobalDimCodeOnCaseElse(GlobalDimCodeNo: Integer; ItemNo: Code[20]; NewDimValue: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying item record during global dimension update.
+    /// Allows customization of item record before dimension value assignment.
+    /// </summary>
+    /// <param name="Item">Item record being modified</param>
+    /// <param name="NewDimValue">New dimension value being assigned</param>
+    /// <param name="GlobalDimCodeNo">Global dimension number being updated</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateItemGlobalDimCodeOnBeforeItemModify(var Item: Record Item; NewDimValue: Code[20]; GlobalDimCodeNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when updating item template global dimension codes for non-standard dimension numbers.
+    /// Enables custom handling of global dimension updates for item templates.
+    /// </summary>
+    /// <param name="GlobalDimCodeNo">Global dimension number being updated (typically 3-8)</param>
+    /// <param name="ItemTemplCode">Item template code being updated</param>
+    /// <param name="NewDimValue">New dimension value code to assign</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateItemTemplGlobalDimCodeCaseElse(GlobalDimCodeNo: Integer; ItemTemplCode: Code[20]; NewDimValue: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when updating job global dimension code for cases not handled by standard processing.
+    /// </summary>
+    /// <param name="GlobalDimCodeNo">Global dimension code number being updated</param>
+    /// <param name="JobNo">Job number being updated</param>
+    /// <param name="NewDimValue">New dimension value to assign</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateJobGlobalDimCodeCaseElse(GlobalDimCodeNo: Integer; JobNo: Code[20]; NewDimValue: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying job record when updating global dimension code.
+    /// </summary>
+    /// <param name="Job">Job record being modified</param>
+    /// <param name="NewDimValue">New dimension value to assign</param>
+    /// <param name="GlobalDimCodeNo">Global dimension code number being updated</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateJobGlobalDimCodeOnBeforeJobModify(var Job: Record Job; NewDimValue: Code[20]; GlobalDimCodeNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when updating neutral revenue global dimension code for cases not handled by standard processing.
+    /// </summary>
+    /// <param name="GlobalDimCodeNo">Global dimension code number being updated</param>
+    /// <param name="CFManualRevenueNo">Cash flow manual revenue number being updated</param>
+    /// <param name="NewDimValue">New dimension value to assign</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateNeutrRevGlobalDimCodeCaseElse(GlobalDimCodeNo: Integer; CFManualRevenueNo: Code[20]; NewDimValue: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when updating neutral payment global dimension code for cases not handled by standard processing.
+    /// </summary>
+    /// <param name="GlobalDimCodeNo">Global dimension code number being updated</param>
+    /// <param name="CFManualExpenseNo">Cash flow manual expense number being updated</param>
+    /// <param name="NewDimValue">New dimension value to assign</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateNeutrPayGlobalDimCodeCaseElse(GlobalDimCodeNo: Integer; CFManualExpenseNo: Code[20]; NewDimValue: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when updating resource group global dimension code for cases not handled by standard processing.
+    /// </summary>
+    /// <param name="GlobalDimCodeNo">Global dimension code number being updated</param>
+    /// <param name="ResGrNo">Resource group number being updated</param>
+    /// <param name="NewDimValue">New dimension value to assign</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateResGrGlobalDimCodeOnCaseElse(GlobalDimCodeNo: Integer; ResGrNo: Code[20]; NewDimValue: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying resource group record when updating global dimension code.
+    /// </summary>
+    /// <param name="ResGr">Resource group record being modified</param>
+    /// <param name="NewDimValue">New dimension value to assign</param>
+    /// <param name="GlobalDimCodeNo">Global dimension code number being updated</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateResGrGlobalDimCodeOnBeforeResGrModify(var ResGr: Record "Resource Group"; NewDimValue: Code[20]; GlobalDimCodeNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when updating resource global dimension code for cases not handled by standard processing.
+    /// </summary>
+    /// <param name="GlobalDimCodeNo">Global dimension code number being updated</param>
+    /// <param name="ResNo">Resource number being updated</param>
+    /// <param name="NewDimValue">New dimension value to assign</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateResGlobalDimCodeCaseElse(GlobalDimCodeNo: Integer; ResNo: Code[20]; NewDimValue: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying resource record when updating global dimension code.
+    /// </summary>
+    /// <param name="Resource">Resource record being modified</param>
+    /// <param name="NewDimValue">New dimension value to assign</param>
+    /// <param name="GlobalDimCodeNo">Global dimension code number being updated</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateResGlobalDimCodeOnBeforeResModify(var Resource: Record Resource; NewDimValue: Code[20]; GlobalDimCodeNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when updating responsibility center global dimension code for cases not handled by standard processing.
+    /// </summary>
+    /// <param name="GlobalDimCodeNo">Global dimension code number being updated</param>
+    /// <param name="RespCenterNo">Responsibility center number being updated</param>
+    /// <param name="NewDimValue">New dimension value to assign</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateRespCenterGlobalDimCodeCaseElse(GlobalDimCodeNo: Integer; RespCenterNo: Code[20]; NewDimValue: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying responsibility center record when updating global dimension code.
+    /// </summary>
+    /// <param name="RespCenter">Responsibility center record being modified</param>
+    /// <param name="NewDimValue">New dimension value to assign</param>
+    /// <param name="GlobalDimCodeNo">Global dimension code number being updated</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateRespCenterGlobalDimCodeOnBeforeRespCenterModify(var RespCenter: Record "Responsibility Center"; NewDimValue: Code[20]; GlobalDimCodeNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when updating salesperson/purchaser global dimension code for cases not handled by standard processing.
+    /// </summary>
+    /// <param name="GlobalDimCodeNo">Global dimension code number being updated</param>
+    /// <param name="SalespersonPurchaserNo">Salesperson/purchaser number being updated</param>
+    /// <param name="NewDimValue">New dimension value to assign</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateSalesPurchGlobalDimCodeCaseElse(GlobalDimCodeNo: Integer; SalespersonPurchaserNo: Code[20]; NewDimValue: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when updating vendor global dimension code for cases not handled by standard processing.
+    /// </summary>
+    /// <param name="GlobalDimCodeNo">Global dimension code number being updated</param>
+    /// <param name="VendNo">Vendor number being updated</param>
+    /// <param name="NewDimValue">New dimension value to assign</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateVendGlobalDimCodeOnCaseElse(GlobalDimCodeNo: Integer; VendNo: Code[20]; NewDimValue: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying vendor record when updating global dimension code.
+    /// </summary>
+    /// <param name="Vend">Vendor record being modified</param>
+    /// <param name="NewDimValue">New dimension value to assign</param>
+    /// <param name="GlobalDimCodeNo">Global dimension code number being updated</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateVendGlobalDimCodeOnBeforeVendModify(var Vend: Record Vendor; NewDimValue: Code[20]; GlobalDimCodeNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when updating vendor template global dimension code for cases not handled by standard processing.
+    /// </summary>
+    /// <param name="GlobalDimCodeNo">Global dimension code number being updated</param>
+    /// <param name="VendorTemplCode">Vendor template code being updated</param>
+    /// <param name="NewDimValue">New dimension value to assign</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateVendorTemplGlobalDimCodeCaseElse(GlobalDimCodeNo: Integer; VendorTemplCode: Code[20]; NewDimValue: Code[20])
     begin
@@ -1459,6 +1859,12 @@ table 352 "Default Dimension"
         OnUpdateWorkCenterGlobalDimCodeCaseElse(GlobalDimCodeNo, WorkCenterNo, NewDimValue);
     end;
 
+    /// <summary>
+    /// Integration event raised when updating work center global dimension code for cases not handled by standard processing.
+    /// </summary>
+    /// <param name="GlobalDimCodeNo">Global dimension code number being updated</param>
+    /// <param name="WorkCenterNo">Work center number being updated</param>
+    /// <param name="NewDimValue">New dimension value to assign</param>
     [Obsolete('Moved to codeunit Mfg. Dimension Management', '26.0')]
     [IntegrationEvent(false, false)]
     local procedure OnUpdateWorkCenterGlobalDimCodeCaseElse(GlobalDimCodeNo: Integer; WorkCenterNo: Code[20]; NewDimValue: Code[20])
@@ -1466,21 +1872,51 @@ table 352 "Default Dimension"
     end;
 #endif
 
+    /// <summary>
+    /// Integration event raised before setting range filter to the last field in primary key during default dimension validation.
+    /// Enables custom field identification logic and primary key range filtering.
+    /// </summary>
+    /// <param name="RecRef">Record reference for the table being processed</param>
+    /// <param name="Value">Field value to set as range filter</param>
+    /// <param name="IsHandled">Set to true to skip standard range setting logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetRangeToLastFieldInPrimaryKey(RecRef: RecordRef; Value: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after assigning new table number during caption generation.
+    /// Enables custom caption formatting and table name resolution for specialized tables.
+    /// </summary>
+    /// <param name="NewTableID">Table ID being processed for caption generation</param>
+    /// <param name="SourceTableName">Original table name before processing</param>
+    /// <param name="NewNo">New identifier assigned to the table</param>
+    /// <param name="Result">Generated caption result that can be modified</param>
+    /// <param name="IsHandled">Set to true to use custom caption result</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetCaptionOnAfterAssignNewNo(NewTableID: Integer; SourceTableName: Text[250]; NewNo: Code[20]; var Result: Text[250]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating Table ID field assignment.
+    /// Enables custom table ID validation logic and table existence verification.
+    /// </summary>
+    /// <param name="RecDefaultDimension">Default dimension record being validated</param>
+    /// <param name="xRecDefaultDimension">Previous version of default dimension record</param>
+    /// <param name="IsHandled">Set to true to skip standard table ID validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateTableID(var RecDefaultDimension: Record "Default Dimension"; xRecDefaultDimension: Record "Default Dimension"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating Allowed Values Filter field assignment.
+    /// Enables custom filter validation logic and dimension value constraint verification.
+    /// </summary>
+    /// <param name="RecDefaultDimension">Default dimension record being validated</param>
+    /// <param name="xRecDefaultDimension">Previous version of default dimension record</param>
+    /// <param name="IsHandled">Set to true to skip standard allowed values filter validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateAllowedValuesFilter(var RecDefaultDimension: Record "Default Dimension"; xRecDefaultDimension: Record "Default Dimension"; var IsHandled: Boolean)
     begin

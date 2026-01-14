@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Capacity;
 
-using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.WorkCenter;
 
 pageextension 99000802 "Mfg. Capacity Ledger Entries" extends "Capacity Ledger Entries"
 {

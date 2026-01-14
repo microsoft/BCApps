@@ -1,11 +1,11 @@
 namespace System.Test.Tooling;
 
-using Microsoft.Inventory.Setup;
-using Microsoft.Foundation.NoSeries;
-using Microsoft.Inventory.Item;
-using Microsoft.Foundation.UOM;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Setup;
 
 codeunit 149127 "BCPT Create Item"
 {

@@ -10,6 +10,10 @@ using Microsoft.Intercompany.Partner;
 using System.Environment.Configuration;
 using System.Utilities;
 
+/// <summary>
+/// Main workspace for managing incoming intercompany transactions from partner companies.
+/// Provides filtering, viewing, and processing capabilities for IC inbox transactions including acceptance and rejection workflows.
+/// </summary>
 page 615 "IC Inbox Transactions"
 {
     ApplicationArea = Intercompany;
@@ -438,6 +442,10 @@ page 615 "IC Inbox Transactions"
         CurrPage.Update(false);
     end;
 
+    /// <summary>
+    /// Executes the inbox transactions page for a specific set of IC inbox transactions.
+    /// </summary>
+    /// <param name="ICInboxTransaction">IC Inbox Transaction record to filter and display</param>
     procedure RunInboxTransactions(var ICInboxTransaction: Record "IC Inbox Transaction")
     var
         ICInboxTransactionCopy: Record "IC Inbox Transaction";

@@ -56,5 +56,6 @@
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
+  "resourceFolders": ["Resources/Files"],
   "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/"
 }

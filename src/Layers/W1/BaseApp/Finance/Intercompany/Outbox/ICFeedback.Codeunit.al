@@ -5,12 +5,21 @@
 namespace Microsoft.Intercompany.Outbox;
 
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Intercompany;
 using Microsoft.Intercompany.Journal;
 using Microsoft.Intercompany.Setup;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
-using Microsoft.Intercompany;
 
+/// <summary>
+/// Manages user feedback and messaging for intercompany transaction processing.
+/// Provides standardized notifications about transaction creation, outbox placement, and automatic sending status.
+/// </summary>
+/// <remarks>
+/// Handles user communication for both manual and automatic intercompany transaction workflows.
+/// Supports purchase and sales document feedback with partner-specific messaging.
+/// Integrates with IC Setup for auto-send configuration and outbox transaction management.
+/// </remarks>
 codeunit 404 "IC Feedback"
 {
     var
@@ -19,11 +28,22 @@ codeunit 404 "IC Feedback"
         CreatedAndSentTransactionMsg: Label 'An entry for document %1 has been created as an intercompany transaction. The entry was automatically sent to IC partner %2.', Comment = '%1 = Document No., %2 = IC Partner No.';
         CreatedAndSentMultipleTransactionsMsg: Label 'Multiple entries have been created as intercompany transactions. The entries were automatically sent to their corresponding IC partners.';
 
+    /// <summary>
+    /// Shows intercompany transaction feedback message for purchase documents using the document number.
+    /// </summary>
+    /// <param name="PurchaseHeader">Purchase document header for transaction feedback</param>
+    /// <param name="ICTransactionDocumentType">Type of IC transaction document created</param>
     procedure ShowIntercompanyMessage(PurchaseHeader: Record "Purchase Header"; ICTransactionDocumentType: Enum "IC Transaction Document Type")
     begin
         ShowIntercompanyMessage(PurchaseHeader, ICTransactionDocumentType, PurchaseHeader."No.");
     end;
 
+    /// <summary>
+    /// Shows intercompany transaction feedback message for purchase documents with custom document number.
+    /// </summary>
+    /// <param name="PurchaseHeader">Purchase document header for transaction feedback</param>
+    /// <param name="ICTransactionDocumentType">Type of IC transaction document created</param>
+    /// <param name="DocumentNo">Custom document number for the feedback message</param>
     procedure ShowIntercompanyMessage(PurchaseHeader: Record "Purchase Header"; ICTransactionDocumentType: Enum "IC Transaction Document Type"; DocumentNo: Code[20])
     var
         ICSetup: Record "IC Setup";
@@ -51,11 +71,22 @@ codeunit 404 "IC Feedback"
         end;
     end;
 
+    /// <summary>
+    /// Shows intercompany transaction feedback message for sales documents using the document number.
+    /// </summary>
+    /// <param name="SalesHeader">Sales document header for transaction feedback</param>
+    /// <param name="ICTransactionDocumentType">Type of IC transaction document created</param>
     procedure ShowIntercompanyMessage(SalesHeader: Record "Sales Header"; ICTransactionDocumentType: Enum "IC Transaction Document Type")
     begin
         ShowIntercompanyMessage(SalesHeader, ICTransactionDocumentType, SalesHeader."No.");
     end;
 
+    /// <summary>
+    /// Shows intercompany transaction feedback message for sales documents with custom document number.
+    /// </summary>
+    /// <param name="SalesHeader">Sales document header for transaction feedback</param>
+    /// <param name="ICTransactionDocumentType">Type of IC transaction document created</param>
+    /// <param name="DocumentNo">Custom document number for the feedback message</param>
     procedure ShowIntercompanyMessage(SalesHeader: Record "Sales Header"; ICTransactionDocumentType: Enum "IC Transaction Document Type"; DocumentNo: Code[20])
     var
         ICSetup: Record "IC Setup";

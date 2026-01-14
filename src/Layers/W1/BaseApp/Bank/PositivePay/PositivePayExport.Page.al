@@ -151,6 +151,13 @@ page 1233 "Positive Pay Export"
         LastUploadTime: Time;
         CutoffUploadDate: Date;
 
+    /// <summary>
+    /// Updates the positive pay export detail subform with current filter settings and bank account information.
+    /// </summary>
+    /// <remarks>
+    /// This procedure refreshes the detail subform to display check ledger entries based on the specified date range,
+    /// cutoff date, and bank account. It also applies the selected bank payment type filter to the subform.
+    /// </remarks>
     [Scope('OnPrem')]
     procedure UpdateSubForm()
     begin

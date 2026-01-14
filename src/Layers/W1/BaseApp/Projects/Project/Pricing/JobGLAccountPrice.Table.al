@@ -83,6 +83,7 @@ table 1014 "Job G/L Account Price"
         }
         field(8; "Line Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Line Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;

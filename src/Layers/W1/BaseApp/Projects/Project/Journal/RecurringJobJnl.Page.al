@@ -633,12 +633,12 @@ page 289 "Recurring Job Jnl."
         JobJnlManagement: Codeunit JobJnlManagement;
         ReportPrint: Codeunit "Test Report-Print";
         JobJnlReconcile: Page "Job Journal Reconcile";
-        JobDescription: Text[100];
-        AccName: Text[100];
         CurrentJnlBatchName: Code[10];
 
     protected var
         ShortcutDimCode: array[8] of Code[20];
+        JobDescription: Text[100];
+        AccName: Text[100];
 
     local procedure CurrentJnlBatchNameOnAfterVali()
     begin

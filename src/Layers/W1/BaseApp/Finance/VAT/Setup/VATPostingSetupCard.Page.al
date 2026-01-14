@@ -6,6 +6,15 @@ namespace Microsoft.Finance.VAT.Setup;
 
 using Microsoft.Finance.VAT.Calculation;
 
+/// <summary>
+/// VAT posting setup card page for detailed configuration of specific VAT business and product posting group combinations.
+/// Provides comprehensive interface for setting VAT rates, G/L account assignments, calculation methods, and non-deductible VAT options.
+/// </summary>
+/// <remarks>
+/// Key functionality: Configure VAT percentage, unrealized VAT handling, account assignments for sales/purchase/reverse charge scenarios.
+/// Advanced features: Non-deductible VAT percentage and account setup, VAT clause assignments, EU service indicators.
+/// User workflow: Access from VAT Posting Setup list to configure detailed settings for specific posting group combinations.
+/// </remarks>
 page 473 "VAT Posting Setup Card"
 {
     Caption = 'VAT Posting Setup Card';

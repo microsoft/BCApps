@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.FinancialReports;
 
+/// <summary>
+/// Management codeunit for trial balance cache operations including staleness detection and refresh scheduling.
+/// Optimizes trial balance performance through intelligent caching with configurable refresh intervals.
+/// </summary>
+/// <remarks>
+/// Performance optimization codeunit that manages trial balance data caching to reduce calculation overhead.
+/// Provides cache staleness detection, refresh interval management, and automated cache maintenance
+/// for improved trial balance response times in high-usage scenarios.
+/// </remarks>
 codeunit 1331 "Trial Balance Cache Mgt."
 {
 
@@ -127,6 +136,11 @@ codeunit 1331 "Trial Balance Cache Mgt."
             Error(RefreshFrequencyErr);
     end;
 
+    /// <summary>
+    /// Integration event for customizing trial balance cache refresh interval.
+    /// Enables modification of the default cache refresh frequency for performance tuning.
+    /// </summary>
+    /// <param name="Interval">Cache refresh interval in milliseconds, can be modified</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetCacheRefreshInterval(var Interval: Duration)
     begin

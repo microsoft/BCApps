@@ -11,20 +11,22 @@ codeunit 138008 "Cust/Vend/Item/Empl Templates"
 
     var
         Assert: Codeunit Assert;
-        LibraryTemplates: Codeunit "Library - Templates";
         LibraryDimension: Codeunit "Library - Dimension";
-        LibraryVariableStorage: Codeunit "Library - Variable Storage";
-        LibraryMarketing: Codeunit "Library - Marketing";
-        LibrarySales: Codeunit "Library - Sales";
-        LibraryPurchase: Codeunit "Library - Purchase";
-        LibraryInventory: Codeunit "Library - Inventory";
         LibraryERM: Codeunit "Library - ERM";
-        LibraryUtility: Codeunit "Library - Utility";
-        LibrarySetupStorage: Codeunit "Library - Setup Storage";
-        LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryHumanResource: Codeunit "Library - Human Resource";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+        LibraryMarketing: Codeunit "Library - Marketing";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryRandom: Codeunit "Library - Random";
         LibraryRapidStart: Codeunit "Library - Rapid Start";
+        LibrarySales: Codeunit "Library - Sales";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        LibraryTemplates: Codeunit "Library - Templates";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryUtility: Codeunit "Library - Utility";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
         IsInitialized: Boolean;
         TemplateFeatureEnabled: Boolean;
         GlobalDimCodeTemplateErr: Label 'Value of template Global Dimension Code is wrong';
@@ -37,6 +39,7 @@ codeunit 138008 "Cust/Vend/Item/Empl Templates"
         PaymentMethodErr: Label 'that cannot be found in the related table';
         ItemTemplateAllowInvoiceDiscErr: Label 'Item template should have value "Allow Invoice Disc." set to %1', Comment = '%1 = value of "Allow Invoice Disc." field which can be either true or false.';
         ItemAllowInvoiceDiscErr: Label 'Item should have received the value "Allow Invoice Disc." = % from the Item Template', Comment = '%1 = value of "Allow Invoice Disc." field which can be either true or false.';
+        ItemTrackingCodeErr: Label '%1 should be empty', Comment = '%1 = Field Caption';
 
     [Test]
     [Scope('OnPrem')]
@@ -3291,6 +3294,42 @@ codeunit 138008 "Cust/Vend/Item/Empl Templates"
         Item.TestField("Flushing Method", ItemTempl."Flushing Method");
         Item.TestField("Safety Lead Time", ItemTempl."Safety Lead Time");
         Item.TestField("Country/Region of Origin Code", ItemTempl."Country/Region of Origin Code");
+    end;
+
+    [Test]
+    [HandlerFunctions('SelectItemTemplListHandler,ConfirmHandlerFalse')]
+    procedure ItemTemplApplyTemplateDoesNotChangeTrackingCodeWithInventory()
+    var
+        Item: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        ItemTempl: Record "Item Templ.";
+        ItemTrackingCode: Record "Item Tracking Code";
+        ItemTemplMgt: Codeunit "Item Templ. Mgt.";
+    begin
+        // [SCENARIO 610902] Apply item template with tracking code should not change tracking code when item has inventory entries
+        Initialize();
+
+        // [GIVEN] Create Item without item tracking code
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] Create and post positive adjustment to create item ledger entries
+        LibraryInventory.CreateItemJnlLine(ItemJournalLine, ItemJournalLine."Entry Type"::"Positive Adjmt.", WorkDate(), Item."No.", LibraryRandom.RandIntInRange(100, 200), '');
+        LibraryInventory.PostItemJnlLineWithCheck(ItemJournalLine);
+
+        // [GIVEN] Create Item template with item tracking code.
+        LibraryTemplates.CreateItemTemplate(ItemTempl);
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        ItemTempl.Validate("Base Unit of Measure", Item."Base Unit of Measure");
+        ItemTempl.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        ItemTempl.Modify(true);
+        LibraryVariableStorage.Enqueue(ItemTempl.Code);
+
+        // [WHEN] Apply item template to item.
+        ItemTemplMgt.UpdateItemFromTemplate(Item);
+
+        // [THEN] Item tracking code remains empty (not updated from template)
+        Item.Get(Item."No.");
+        Assert.AreEqual('', Item."Item Tracking Code", StrSubstNo(ItemTrackingCodeErr, Item.FieldCaption("Item Tracking Code")));
     end;
 
     local procedure Initialize()

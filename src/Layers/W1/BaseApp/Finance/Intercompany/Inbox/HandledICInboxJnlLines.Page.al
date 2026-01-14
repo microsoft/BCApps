@@ -6,6 +6,10 @@ namespace Microsoft.Intercompany.Inbox;
 
 using Microsoft.Intercompany.Dimension;
 
+/// <summary>
+/// List page for viewing and managing handled intercompany inbox journal lines.
+/// Displays processed journal entries with account details, amounts, and dimensions for completed intercompany transactions.
+/// </summary>
 page 618 "Handled IC Inbox Jnl. Lines"
 {
     Caption = 'Handled IC Inbox Jnl. Lines';

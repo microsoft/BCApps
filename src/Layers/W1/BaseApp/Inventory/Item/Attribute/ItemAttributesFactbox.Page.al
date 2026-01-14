@@ -92,8 +92,12 @@ page 9110 "Item Attributes Factbox"
         TranslatedValuesVisible := ClientTypeManagement.GetCurrentClientType() <> CLIENTTYPE::Phone;
         IsVisible := true;
         if ItemAttCode <> '' then begin
-            LoadItemAttributesData(ItemAttCode);
+            if VariantAttCode <> '' then
+                LoadItemVariantAttributesData(ItemAttCode, VariantAttCode)
+            else
+                LoadItemAttributesData(ItemAttCode);
             ItemAttCode := '';
+            VariantAttCode := '';
         end;
 
         if CategoryAttCode <> '' then begin
@@ -106,12 +110,13 @@ page 9110 "Item Attributes Factbox"
         ClientTypeManagement: Codeunit "Client Type Management";
 
     protected var
-        ContextType: Option "None",Item,Category;
+        ContextType: Option "None",Item,Category,"Item Variant";
         ContextValue: Code[20];
         IsItem: Boolean;
         IsVisible: Boolean;
         ItemAttCode: Code[20];
         CategoryAttCode: Code[20];
+        VariantAttCode: Code[10];
         TranslatedValuesVisible: Boolean;
 
     procedure LoadItemAttributesData(KeyValue: Code[20])
@@ -122,6 +127,18 @@ page 9110 "Item Attributes Factbox"
         end;
         Rec.LoadItemAttributesFactBoxData(KeyValue);
         SetContext(ContextType::Item, KeyValue);
+        CurrPage.Update(false);
+    end;
+
+    procedure LoadItemVariantAttributesData(ItemNo: Code[20]; VariantCode: Code[10])
+    begin
+        if not IsVisible then begin
+            ItemAttCode := ItemNo;
+            VariantAttCode := VariantCode;
+            exit;
+        end;
+        Rec.LoadItemVariantAttributesFactBoxData(ItemNo, VariantCode);
+        SetContext(ContextType::"Item Variant", VariantCode);
         CurrPage.Update(false);
     end;
 

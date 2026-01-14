@@ -132,6 +132,10 @@ table 1231 "Positive Pay Entry"
     var
         PositivePayFileNotFoundErr: Label 'The original positive pay export file was not found.';
 
+    /// <summary>
+    /// Gets the currency code from the associated bank account for amount formatting.
+    /// </summary>
+    /// <returns>Currency code from the bank account, or empty string if not found.</returns>
     local procedure GetCurrencyCodeFromBank(): Code[10]
     var
         BankAccount: Record "Bank Account";
@@ -145,6 +149,14 @@ table 1231 "Positive Pay Entry"
         exit('');
     end;
 
+    /// <summary>
+    /// Re-exports the previously generated positive pay file by downloading it from the stored BLOB.
+    /// </summary>
+    /// <remarks>
+    /// This procedure allows users to download a copy of a previously exported positive pay file.
+    /// The file name is formatted as BankAccountNo + Export Date in MMDDYYYY format with .TXT extension.
+    /// Raises an error if the original file content is not found in the BLOB field.
+    /// </remarks>
     [Scope('OnPrem')]
     procedure Reexport()
     var

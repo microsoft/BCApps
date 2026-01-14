@@ -1,0 +1,54 @@
+{
+    "id": "016a19f8-20b7-4c7a-8259-658d67e40129",
+    "name": "SFTP Client",
+    "publisher": "Microsoft",
+    "version": "28.0.0.0",
+    "brief": "Connects to SFTP servers.",
+    "description": "The purpose of this module is to provide ability to connect to SFTP servers.",
+    "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
+    "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+    "help": "https://go.microsoft.com/fwlink/?linkid=2103698",
+    "url": "https://go.microsoft.com/fwlink/?linkid=724011",
+    "logo": "",
+    "dependencies": [
+        {
+            "id": "7e3b999e-1182-45d2-8b82-d5127ddba9b2",
+            "name": "DotNet Aliases",
+            "publisher": "Microsoft",
+            "version": "28.0.0.0"
+        },
+        {
+            "id": "a2ca2793-e1b4-461d-8251-dbe934daec78",
+            "name": "Password",
+            "publisher": "Microsoft",
+            "version": "28.0.0.0"
+        },
+        {
+            "id": "e31ad830-3d46-472e-afeb-1d3d35247943",
+            "name": "BLOB Storage",
+            "publisher": "Microsoft",
+            "version": "28.0.0.0"
+        }
+    ],
+    "screenshots": [],
+    "platform": "28.0.0.0",
+    "idRanges": [
+        {
+            "from": 9760,
+            "to": 9765
+        }
+    ],
+    "resourceExposurePolicy": {
+        "allowDebugging": true,
+        "allowDownloadingSource": true,
+        "includeSourceInSymbolFile": true
+    },
+    "internalsVisibleTo": [
+        {
+            "id": "d367ef25-dc5e-4585-b5ec-915b78878799",
+            "name": "SFTP Client Test",
+            "publisher": "Microsoft"
+        }
+    ],
+    "target": "OnPrem"
+}

@@ -6,8 +6,8 @@ namespace Microsoft.Inventory.Requisition;
 
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
-using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Planning;
+using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Pricing.Calculation;
 using Microsoft.Purchases.Vendor;
@@ -151,11 +151,6 @@ report 699 "Calculate Plan - Req. Wksh."
                         Caption = 'Price Calculation Method';
                         ToolTip = 'Specifies the price calculation method.';
                         Visible = ExtendedPriceEnabled;
-
-                        trigger OnValidate()
-                        begin
-                            ValidatePriceCalcMethod();
-                        end;
                     }
                 }
             }

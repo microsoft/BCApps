@@ -6,6 +6,16 @@ namespace Microsoft.Finance.GeneralLedger.Journal;
 
 using Microsoft.Foundation.NoSeries;
 
+/// <summary>
+/// Provides API library functions for general journal operations including line initialization and management.
+/// Supports programmatic journal line creation and configuration for integration scenarios and automated processes.
+/// </summary>
+/// <remarks>
+/// API support library for general journal programmatic operations. Provides standardized functions for journal line
+/// initialization, configuration, and management for integration with external systems and automated workflows.
+/// Key features: Journal line initialization, document number management, batch configuration, field setup automation.
+/// Integration: Used by API endpoints, integration processes, and automated journal creation scenarios.
+/// </remarks>
 codeunit 5469 "Library API - General Journal"
 {
 
@@ -16,6 +26,14 @@ codeunit 5469 "Library API - General Journal"
     var
         GenJnlManagement: Codeunit GenJnlManagement;
 
+    /// <summary>
+    /// Initializes a general journal line with proper line number, document numbers, and default values based on existing lines.
+    /// Replicates journal page behavior for API-driven journal line creation with appropriate field inheritance.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record to initialize with template and batch already set</param>
+    /// <param name="LineNo">Line number to assign to the journal line</param>
+    /// <param name="DocumentNo">Document number to assign, or empty to auto-generate based on external document</param>
+    /// <param name="ExternalDocumentNo">External document number for reference and document number generation</param>
     procedure InitializeLine(var GenJournalLine: Record "Gen. Journal Line"; LineNo: Integer; DocumentNo: Code[20]; ExternalDocumentNo: Code[35])
     var
         GenJournalBatch: Record "Gen. Journal Batch";
@@ -44,6 +62,12 @@ codeunit 5469 "Library API - General Journal"
             AlterDocNoBasedOnExternalDocNo(GenJournalLine, CopyValuesFromGenJnlLine, GenJournalBatch, CopyValuesFromGenJnlLineSpecified);
     end;
 
+    /// <summary>
+    /// Ensures that a general journal batch exists for the specified template and batch names, creating it if necessary.
+    /// Provides batch creation with default configuration for API scenarios requiring guaranteed batch availability.
+    /// </summary>
+    /// <param name="TemplateNameTxt">Journal template name for the batch</param>
+    /// <param name="BatchNameTxt">Journal batch name to create or verify existence</param>
     procedure EnsureGenJnlBatchExists(TemplateNameTxt: Text[10]; BatchNameTxt: Text[10])
     var
         GenJournalBatch: Record "Gen. Journal Batch";
@@ -114,6 +138,12 @@ codeunit 5469 "Library API - General Journal"
             GenJournalLine."Document No." := NoSeriesBatch.SimulateGetNextNo(GenJnlBatch."No. Series", GenJournalLine."Posting Date", GenJournalLine."Document No.");
     end;
 
+    /// <summary>
+    /// Retrieves journal batch name from the specified system ID for API lookup scenarios.
+    /// Provides system ID to batch name resolution for API integration requirements.
+    /// </summary>
+    /// <param name="JournalBatchId">System ID of the journal batch to retrieve</param>
+    /// <returns>Batch name corresponding to the specified system ID</returns>
     procedure GetBatchNameFromId(JournalBatchId: Guid): Code[10]
     var
         GenJournalBatch: Record "Gen. Journal Batch";

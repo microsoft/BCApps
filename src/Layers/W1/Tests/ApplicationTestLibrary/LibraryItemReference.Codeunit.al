@@ -1,8 +1,8 @@
+/// <summary>
+/// Provides utility functions for creating and managing item references (cross-references) in test scenarios.
+/// </summary>
 codeunit 132225 "Library - Item Reference"
 {
-    // Unsupported version tags:
-    // 
-    // Contains all utility functions related to Item Reference.
 
     trigger OnRun()
     begin

@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Customer;
 
-using Microsoft.EServices.OnlineMap;
 using Microsoft.CRM.Team;
-using Microsoft.Finance.VAT.Registration;
+using Microsoft.EServices.OnlineMap;
 using Microsoft.Finance.SalesTax;
+using Microsoft.Finance.VAT.Registration;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Inventory.Location;

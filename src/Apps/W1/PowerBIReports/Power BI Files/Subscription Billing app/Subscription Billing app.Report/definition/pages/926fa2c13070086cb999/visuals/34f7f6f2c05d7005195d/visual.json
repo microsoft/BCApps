@@ -20,6 +20,36 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Fiscal Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Year",
+              "nativeQueryRef": "Fiscal Year",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Fiscal Month Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Month Year",
+              "nativeQueryRef": "Fiscal Month Year",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
                       "Entity": "Salesperson"
                     }
                   },
@@ -28,7 +58,7 @@
               },
               "queryRef": "Salesperson.Salesperson Name",
               "nativeQueryRef": "Salesperson Name",
-              "active": true
+              "active": false
             },
             {
               "field": {
@@ -43,7 +73,7 @@
               },
               "queryRef": "Customers.Customer Name",
               "nativeQueryRef": "Customer Name",
-              "active": true
+              "active": false
             },
             {
               "field": {
@@ -133,6 +163,20 @@
               },
               "queryRef": "Subscription Billing KPIs.Churn",
               "nativeQueryRef": "Churn"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "Active Customers"
+                }
+              },
+              "queryRef": "Subscription Billing KPIs.Active Customers",
+              "nativeQueryRef": "Active Customers"
             }
           ]
         }
@@ -144,6 +188,44 @@
           "Rows"
         ],
         "levels": [
+          {
+            "queryRefs": [
+              "Date.Fiscal Year"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Fiscal Year"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Date.Fiscal Month Year"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Fiscal Month Year"
+                }
+              }
+            ],
+            "isPinned": true
+          },
           {
             "queryRefs": [
               "Salesperson.Salesperson Name"
@@ -184,7 +266,7 @@
               "identityValues": [
                 {
                   "Literal": {
-                    "Value": "'Detlef Hembrock'"
+                    "Value": "'F 2026'"
                   }
                 }
               ],
@@ -236,6 +318,125 @@
           },
           "selector": {
             "metadata": "Subscription Billing KPIs.Churn"
+          }
+        }
+      ],
+      "values": [
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "Customer Contract Line Back Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Subscription Billing KPIs.MRR"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "Vendor Contract Line Back Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Subscription Billing KPIs.MRC"
+          }
+        }
+      ],
+      "columnFormatting": [
+        {
+          "properties": {
+            "dataBars": {
+              "positiveColor": {
+                "solid": {
+                  "color": {
+                    "expr": {
+                      "Literal": {
+                        "Value": "'#b3d8dd'"
+                      }
+                    }
+                  }
+                }
+              },
+              "negativeColor": {
+                "solid": {
+                  "color": {
+                    "expr": {
+                      "Literal": {
+                        "Value": "'#f1c8bf'"
+                      }
+                    }
+                  }
+                }
+              },
+              "axisColor": {
+                "solid": {
+                  "color": {
+                    "expr": {
+                      "Literal": {
+                        "Value": "'#FFFFFF'"
+                      }
+                    }
+                  }
+                }
+              },
+              "reverseDirection": {
+                "expr": {
+                  "Literal": {
+                    "Value": "false"
+                  }
+                }
+              },
+              "hideText": {
+                "expr": {
+                  "Literal": {
+                    "Value": "false"
+                  }
+                }
+              },
+              "totalMatchingOption": {
+                "expr": {
+                  "Literal": {
+                    "Value": "1L"
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Subscription Billing KPIs.NMRP % of MRR"
           }
         }
       ]

@@ -5,8 +5,8 @@
 namespace Microsoft.Projects.Project.Job;
 
 using Microsoft.CRM.Outlook;
-using Microsoft.Projects.Project.Archive;
 using Microsoft.Foundation.Reporting;
+using Microsoft.Projects.Project.Archive;
 using Microsoft.Sales.Customer;
 
 codeunit 1016 "Jobs-Send"

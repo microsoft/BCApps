@@ -41,9 +41,6 @@ codeunit 1035 "Job Planning Invt. Profile"
         InventoryProfile."Planning Flexibility" := InventoryProfile."Planning Flexibility"::None;
 
         OnAfterTransferInventoryProfileFromJobPlanningLine(InventoryProfile, JobPlanningLine);
-#if not CLEAN25
-        InventoryProfile.RunOnAfterTransferFromJobPlanningLine(InventoryProfile, JobPlanningLine);
-#endif
     end;
 
     [IntegrationEvent(false, false)]
@@ -84,9 +81,6 @@ codeunit 1035 "Job Planning Invt. Profile"
     local procedure TransJobPlanningLineToProfile(var InventoryProfile: Record "Inventory Profile"; var Item: Record Item; var TempReservationEntry: Record "Reservation Entry" temporary; var NextLineNo: Integer)
     var
         JobPlanningLine: Record "Job Planning Line";
-#if not CLEAN25
-        InventoryProfileOffsetting: Codeunit "Inventory Profile Offsetting";
-#endif
         ShouldProcess: Boolean;
     begin
         if JobPlanningLine.FindLinesWithItemToPlan(Item) then
@@ -95,9 +89,6 @@ codeunit 1035 "Job Planning Invt. Profile"
                 if ShouldProcess then
                     ShouldProcess := not ShouldReducePurchaseOrderReceiptQuantity(JobPlanningLine);
                 OnTransJobPlanningLineToProfileOnBeforeProcessLine(JobPlanningLine, ShouldProcess);
-#if not CLEAN25
-                InventoryProfileOffsetting.RunOnTransJobPlanningLineToProfileOnBeforeProcessLine(JobPlanningLine, ShouldProcess);
-#endif
                 if ShouldProcess then begin
                     InventoryProfile.
                Init();

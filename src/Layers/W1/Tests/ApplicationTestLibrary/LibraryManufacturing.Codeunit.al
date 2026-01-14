@@ -1,10 +1,9 @@
 #pragma warning disable AL0801
+/// <summary>
+/// Provides utility functions for creating and managing manufacturing-related entities in test scenarios, including production orders, BOMs, routings, and work centers.
+/// </summary>
 codeunit 132202 "Library - Manufacturing"
 {
-    // Unsupported version tags:
-    // 
-    // Contains all utility functions related to Manufacturing.
-
 
     trigger OnRun()
     begin

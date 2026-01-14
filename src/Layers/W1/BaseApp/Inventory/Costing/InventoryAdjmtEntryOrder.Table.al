@@ -301,7 +301,8 @@ table 5896 "Inventory Adjmt. Entry (Order)"
         Item.Get("Item No.");
         OnGetUnroundedCostsFromItemOnAfterGetItem(Item, Rec);
 
-        "Indirect Cost %" := Item."Indirect Cost %";
+        if "Indirect Cost %" = 0 then
+            "Indirect Cost %" := Item."Indirect Cost %";
         "Overhead Rate" := Item."Overhead Rate";
 
         GetSingleLevelCosts();

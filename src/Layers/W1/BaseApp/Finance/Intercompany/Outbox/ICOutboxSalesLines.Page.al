@@ -6,6 +6,15 @@ namespace Microsoft.Intercompany.Outbox;
 
 using Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Intercompany outbox sales lines interface for viewing and managing line details of outbound sales transactions.
+/// Provides detailed line-level view for sales document lines pending transmission to intercompany partners.
+/// </summary>
+/// <remarks>
+/// Primary data source: IC Outbox Sales Line. Used as part of sales document review and management workflow.
+/// Navigation: Sales line list part → Line details, dimensions, and transaction information.
+/// Extensible via page extensions for additional sales line fields and custom validation logic.
+/// </remarks>
 page 637 "IC Outbox Sales Lines"
 {
     Caption = 'Lines';

@@ -98,6 +98,11 @@ codeunit 1700 "Exp. Launcher Pos. Pay"
         end;
     end;
 
+    /// <summary>
+    /// Updates check ledger entries with positive pay export tracking information.
+    /// </summary>
+    /// <param name="CheckLedgerEntry">The check ledger entries to update with export information.</param>
+    /// <param name="DataExchEntryCodeDetail">The data exchange entry code for audit trail linking.</param>
     local procedure UpdateCheckLedger(var CheckLedgerEntry: Record "Check Ledger Entry"; DataExchEntryCodeDetail: Integer)
     var
         CheckLedgerEntry2: Record "Check Ledger Entry";
@@ -121,6 +126,13 @@ codeunit 1700 "Exp. Launcher Pos. Pay"
         CheckLedgerEntry2.ModifyAll("Data Exch. Voided Entry No.", DataExchEntryCodeDetail, true);
     end;
 
+    /// <summary>
+    /// Processes header records for the positive pay export by creating data exchange entries and generating header files.
+    /// </summary>
+    /// <param name="BankAccount">The bank account for which headers are being processed.</param>
+    /// <param name="DataExchDefCode">The data exchange definition code defining the export format.</param>
+    /// <param name="HeaderArray">Array to store the data exchange entry numbers for generated headers.</param>
+    /// <param name="Filename">The target filename for the export file.</param>
     local procedure ProcessHeaders(var BankAccount: Record "Bank Account"; DataExchDefCode: Code[20]; var HeaderArray: array[100] of Integer; Filename: Text)
     var
         DataExch: Record "Data Exch.";
@@ -166,6 +178,14 @@ codeunit 1700 "Exp. Launcher Pos. Pay"
             until DataExchLineDef.Next() = 0;
     end;
 
+    /// <summary>
+    /// Processes detail records for the positive pay export by converting check ledger entries into data exchange format.
+    /// </summary>
+    /// <param name="CheckLedgerEntry">The check ledger entries to process for the export.</param>
+    /// <param name="DataExchDefCode">The data exchange definition code defining the export format.</param>
+    /// <param name="DataExchEntryCodeDetail">Returns the data exchange entry code for the detail records.</param>
+    /// <param name="DetailArray">Array to store the data exchange entry numbers for generated details.</param>
+    /// <param name="Filename">The target filename for the export file.</param>
     local procedure ProcessDetails(var CheckLedgerEntry: Record "Check Ledger Entry"; DataExchDefCode: Code[20]; var DataExchEntryCodeDetail: Integer; var DetailArray: array[100] of Integer; Filename: Text)
     var
         DataExch: Record "Data Exch.";
@@ -225,6 +245,15 @@ codeunit 1700 "Exp. Launcher Pos. Pay"
         end;
     end;
 
+    /// <summary>
+    /// Processes footer records for the positive pay export by creating summary information and generating footer files.
+    /// </summary>
+    /// <param name="BankAccount">The bank account for which footers are being processed.</param>
+    /// <param name="DataExchDefCode">The data exchange definition code defining the export format.</param>
+    /// <param name="FooterArray">Array to store the data exchange entry numbers for generated footers.</param>
+    /// <param name="Filename">The target filename for the export file.</param>
+    /// <param name="DataExchEntryCodeDetail">The data exchange entry code of the associated detail records.</param>
+    /// <param name="DataExchEntryCodeFooter">Returns the data exchange entry code for the footer record.</param>
     local procedure ProcessFooters(var BankAccount: Record "Bank Account"; DataExchDefCode: Code[20]; var FooterArray: array[100] of Integer; Filename: Text; DataExchEntryCodeDetail: Integer; var DataExchEntryCodeFooter: Integer)
     var
         DataExch: Record "Data Exch.";

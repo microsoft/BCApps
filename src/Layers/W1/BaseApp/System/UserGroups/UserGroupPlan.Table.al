@@ -1,4 +1,4 @@
-#if not CLEANSCHEMA25 
+#if not CLEANSCHEMA25
 namespace System.Security.AccessControl;
 
 table 9007 "User Group Plan"
@@ -13,22 +13,27 @@ table 9007 "User Group Plan"
 
     fields
     {
+#pragma warning disable AL0602
         field(1; "Plan ID"; Guid)
         {
             Caption = 'Plan ID';
             TableRelation = System.Azure.Identity.Plan."Plan ID";
         }
+#pragma warning restore AL0602
+
         field(2; "User Group Code"; Code[20])
         {
             Caption = 'User Group Code';
             TableRelation = "User Group".Code;
         }
+#pragma warning disable AL0602
         field(10; "Plan Name"; Text[50])
         {
             CalcFormula = lookup(System.Azure.Identity.Plan.Name where("Plan ID" = field("Plan ID")));
             Caption = 'Plan Name';
             FieldClass = FlowField;
         }
+#pragma warning restore AL0602
         field(11; "User Group Name"; Text[50])
         {
             CalcFormula = lookup("User Group".Name where(Code = field("User Group Code")));
@@ -50,5 +55,5 @@ table 9007 "User Group Plan"
     }
 }
 
- 
+
 #endif

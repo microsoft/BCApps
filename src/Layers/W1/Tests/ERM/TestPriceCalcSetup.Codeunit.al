@@ -909,7 +909,7 @@ codeunit 134158 "Test Price Calc. Setup"
         PriceType: Enum "Price Type";
         ExpectedMethod: Enum "Price Calculation Method";
     begin
-        ExpectedMethod := ExpectedMethod::"Test Price (not Implemented)";
+        ExpectedMethod := ExpectedMethod::" ";
         LibraryJob.CreateJob(Job);
         JobPlanningLine."Job No." := Job."No.";
         JobPlanningLine."Price Calculation Method" := ExpectedMethod;

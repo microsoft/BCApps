@@ -10,8 +10,8 @@ using Microsoft.Inventory.Item;
 using Microsoft.Pricing.Calculation;
 using Microsoft.Sales.Customer;
 using System.Environment;
-using System.Text;
 using System.Globalization;
+using System.Text;
 
 page 7002 "Sales Prices"
 {
@@ -533,9 +533,13 @@ page 7002 "Sales Prices"
     var
         FilterRecordRef: RecordRef;
         FilterFieldRef: FieldRef;
+        EmptyFilter: Boolean;
     begin
-        if FilterTxt = '' then
+        EmptyFilter := FilterTxt = '';
+        OnBeforeCheckFilters(Rec, TableNo, FilterTxt, EmptyFilter);
+        if EmptyFilter then
             exit;
+
         Clear(FilterRecordRef);
         Clear(FilterFieldRef);
         FilterRecordRef.Open(TableNo);
@@ -667,6 +671,11 @@ page 7002 "Sales Prices"
 
     [IntegrationEvent(true, false)]
     local procedure OnOpenPageOnBeforeGetRecFilters(var SalesPrice: Record "Sales Price"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckFilters(var SalesPrice: Record "Sales Price"; TableNo: Integer; var FilterTxt: Text; var IsEmptyFilter: Boolean)
     begin
     end;
 }

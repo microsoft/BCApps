@@ -27,6 +27,6 @@ codeunit 30302 "Shpfy GQL Company" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(10);
+        exit(14);
     end;
 }

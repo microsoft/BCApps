@@ -1,7 +1,8 @@
+/// <summary>
+/// Provides utility functions for creating and managing resource entities in test scenarios, including resources, resource groups, and resource prices.
+/// </summary>
 codeunit 130511 "Library - Resource"
 {
-    // Contains all utility functions related to Resource.
-
 
     trigger OnRun()
     begin

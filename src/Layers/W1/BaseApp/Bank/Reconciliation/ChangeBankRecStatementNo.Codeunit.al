@@ -7,6 +7,10 @@ namespace Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.Check;
 using Microsoft.Bank.Ledger;
 
+/// <summary>
+/// Provides functionality to change bank reconciliation statement numbers.
+/// Handles statement number updates and related data integrity operations.
+/// </summary>
 codeunit 1253 "Change Bank Rec. Statement No."
 {
     Permissions = TableData "Bank Acc. Reconciliation" = rimd,

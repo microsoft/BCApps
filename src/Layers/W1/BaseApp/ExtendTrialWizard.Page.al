@@ -26,7 +26,7 @@ page 1828 "Extend Trial Wizard"
                 field("MediaResourcesStandard.""Media Reference"""; MediaResourcesStandard."Media Reference")
 #pragma warning restore AA0100
                 {
-                    ApplicationArea = Invoicing, Basic, Suite;
+                    ApplicationArea = Basic, Suite;
                     Editable = false;
                     ShowCaption = false;
                 }
@@ -39,7 +39,7 @@ page 1828 "Extend Trial Wizard"
                     Caption = 'Need more time to try things out?';
                     field(ExtendTrialTxt; ExtendTrialTxt)
                     {
-                        ApplicationArea = Invoicing, Basic, Suite;
+                        ApplicationArea = Basic, Suite;
                         Editable = false;
                         Enabled = false;
                         MultiLine = true;
@@ -53,7 +53,7 @@ page 1828 "Extend Trial Wizard"
                     Visible = not IsPreview;
                     field(SubscribeNowLbl; SubscribeNowLbl)
                     {
-                        ApplicationArea = Invoicing, Basic, Suite;
+                        ApplicationArea = Basic, Suite;
                         Editable = false;
                         ShowCaption = false;
 
@@ -69,7 +69,7 @@ page 1828 "Extend Trial Wizard"
                     InstructionalText = 'If you are not sure what this is about, get more information about extending trial periods.';
                     field(LearnMoreLbl; LearnMoreLbl)
                     {
-                        ApplicationArea = Invoicing, Basic, Suite;
+                        ApplicationArea = Basic, Suite;
                         Editable = false;
                         ShowCaption = false;
 
@@ -89,7 +89,7 @@ page 1828 "Extend Trial Wizard"
         {
             action(ActionExtendTrial)
             {
-                ApplicationArea = Invoicing, Basic, Suite;
+                ApplicationArea = Basic, Suite;
                 Caption = 'Extend Trial';
                 Image = Approve;
                 InFooterBar = true;
@@ -180,4 +180,3 @@ page 1828 "Extend Trial Wizard"
     begin
     end;
 }
-

@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.Dimension;
 
+/// <summary>
+/// Provides functionality to update indentation levels for intercompany dimension values.
+/// Automatically indents dimension values based on their hierarchical structure (Begin-Total, End-Total).
+/// </summary>
 codeunit 429 "IC Dimension Value-Indent"
 {
     TableNo = "IC Dimension Value";

@@ -15,6 +15,16 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 using System.Utilities;
 
+/// <summary>
+/// Manages payment tolerance processing for customer and vendor transactions.
+/// Handles payment discrepancies within configured tolerance limits and processes related adjustments.
+/// </summary>
+/// <remarks>
+/// Core engine for payment tolerance validation, calculation, and posting operations.
+/// Integrates with payment application processes to handle underpayments and overpayments within tolerance.
+/// Supports both payment amount tolerances and payment discount date tolerances with VAT handling.
+/// Provides extensibility through integration events for custom tolerance logic.
+/// </remarks>
 codeunit 426 "Payment Tolerance Management"
 {
     Permissions = TableData Currency = r,
@@ -34,6 +44,12 @@ codeunit 426 "Payment Tolerance Management"
         SuppressCommit: Boolean;
         SuppressWarning: Boolean;
 
+    /// <summary>
+    /// Validates payment tolerance for customer ledger entries and shows tolerance warning if needed.
+    /// Calculates tolerance amounts and displays confirmation dialog for tolerance processing.
+    /// </summary>
+    /// <param name="CustLedgEntry">Customer ledger entry to validate for payment tolerance</param>
+    /// <returns>True if tolerance is accepted or not needed, false if tolerance is rejected</returns>
     procedure PmtTolCust(var CustLedgEntry: Record "Cust. Ledger Entry"): Boolean
     var
         GLSetup: Record "General Ledger Setup";
@@ -46,6 +62,7 @@ codeunit 426 "Payment Tolerance Management"
         MaxPmtTolAmount: Decimal;
         CustEntryApplId: Code[50];
         ApplnRoundingPrecision: Decimal;
+        PaymentTolWarning: Boolean;
     begin
         MaxPmtTolAmount := 0;
         PmtDiscAmount := 0;
@@ -81,6 +98,10 @@ codeunit 426 "Payment Tolerance Management"
 
         if Abs(AmounttoApply) >= Abs(AppliedAmount - PmtDiscAmount - MaxPmtTolAmount) then begin
             AppliedAmount := AppliedAmount - PmtDiscAmount;
+
+            PaymentTolWarning := GLSetup."Payment Tolerance Warning";
+            OnPmtTolCustOnAfterSetPaymentTolWarning(GLSetup, PaymentTolWarning);
+
             if (Abs(AppliedAmount) > Abs(AmounttoApply)) and (AppliedAmount * PmtDiscAmount >= 0) then
                 AppliedAmount := AmounttoApply;
 
@@ -88,7 +109,7 @@ codeunit 426 "Payment Tolerance Management"
                (MaxPmtTolAmount <> 0) and ((Abs(AppliedAmount + ApplyingAmount) - ApplnRoundingPrecision) <> 0)
                and (Abs(AppliedAmount + ApplyingAmount) > ApplnRoundingPrecision)
             then
-                if GLSetup."Payment Tolerance Warning" then begin
+                if PaymentTolWarning then begin
                     if CallPmtTolWarning(
                          CustLedgEntry."Posting Date", CustLedgEntry."Customer No.", CustLedgEntry."Document No.",
                          CustLedgEntry."Currency Code", ApplyingAmount, OriginalAppliedAmount, "Payment Tolerance Account Type"::Customer)
@@ -105,6 +126,12 @@ codeunit 426 "Payment Tolerance Management"
         exit(true);
     end;
 
+    /// <summary>
+    /// Validates payment tolerance for vendor ledger entries and shows tolerance warning if needed.
+    /// Calculates tolerance amounts and displays confirmation dialog for tolerance processing.
+    /// </summary>
+    /// <param name="VendLedgEntry">Vendor ledger entry to validate for payment tolerance</param>
+    /// <returns>True if tolerance is accepted or not needed, false if tolerance is rejected</returns>
     procedure PmtTolVend(var VendLedgEntry: Record "Vendor Ledger Entry"): Boolean
     var
         GLSetup: Record "General Ledger Setup";
@@ -117,6 +144,7 @@ codeunit 426 "Payment Tolerance Management"
         MaxPmtTolAmount: Decimal;
         VendEntryApplID: Code[50];
         ApplnRoundingPrecision: Decimal;
+        PaymentTolWarning: Boolean;
     begin
         MaxPmtTolAmount := 0;
         PmtDiscAmount := 0;
@@ -150,6 +178,8 @@ codeunit 426 "Payment Tolerance Management"
 
         if Abs(AmounttoApply) >= Abs(AppliedAmount - PmtDiscAmount - MaxPmtTolAmount) then begin
             AppliedAmount := AppliedAmount - PmtDiscAmount;
+            PaymentTolWarning := GLSetup."Payment Tolerance Warning";
+            OnPmtTolVendOnAfterSetPaymentTolWarning(GLSetup, PaymentTolWarning);
             if (Abs(AppliedAmount) > Abs(AmounttoApply)) and (AppliedAmount * PmtDiscAmount >= 0) then
                 AppliedAmount := AmounttoApply;
 
@@ -157,7 +187,7 @@ codeunit 426 "Payment Tolerance Management"
                (MaxPmtTolAmount <> 0) and ((Abs(AppliedAmount + ApplyingAmount) - ApplnRoundingPrecision) <> 0) and
                (Abs(AppliedAmount + ApplyingAmount) > ApplnRoundingPrecision)
             then
-                if GLSetup."Payment Tolerance Warning" then begin
+                if PaymentTolWarning then begin
                     if CallPmtTolWarning(
                          VendLedgEntry."Posting Date", VendLedgEntry."Vendor No.", VendLedgEntry."Document No.",
                          VendLedgEntry."Currency Code", ApplyingAmount, OriginalAppliedAmount, "Payment Tolerance Account Type"::Vendor)
@@ -174,6 +204,12 @@ codeunit 426 "Payment Tolerance Management"
         exit(true);
     end;
 
+    /// <summary>
+    /// Validates payment tolerance for general journal line payments.
+    /// Determines if tolerance warnings should be shown for customer and vendor payments.
+    /// </summary>
+    /// <param name="NewGenJnlLine">General journal line to validate for payment tolerance</param>
+    /// <returns>True if tolerance is accepted or not needed, false if tolerance is rejected</returns>
     procedure PmtTolGenJnl(var NewGenJnlLine: Record "Gen. Journal Line") Result: Boolean
     var
         TempGenJnlLine: Record "Gen. Journal Line" temporary;
@@ -259,6 +295,12 @@ codeunit 426 "Payment Tolerance Management"
             GenJnlLine."Currency Code"));
     end;
 
+    /// <summary>
+    /// Processes payment tolerance for bank account reconciliation lines.
+    /// Determines whether payment tolerance should be applied based on account type.
+    /// </summary>
+    /// <param name="NewBankAccReconciliationLine">Bank reconciliation line to process for payment tolerance</param>
+    /// <returns>True if payment tolerance was successfully processed, false otherwise</returns>
     procedure PmtTolPmtReconJnl(var NewBankAccReconciliationLine: Record "Bank Acc. Reconciliation Line") Result: Boolean
     var
         BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line";
@@ -336,6 +378,7 @@ codeunit 426 "Payment Tolerance Management"
         ApplnRoundingPrecision: Decimal;
         IsHandled: Boolean;
         Result: Boolean;
+        PaymentTolWarning: Boolean;
     begin
         GLSetup.Get();
         CalcCustApplnAmount(
@@ -357,6 +400,8 @@ codeunit 426 "Payment Tolerance Management"
 
         if Abs(AmounttoApply) >= Abs(AppliedAmount - PmtDiscAmount - MaxPmtTolAmount) then begin
             AppliedAmount := AppliedAmount - PmtDiscAmount;
+            PaymentTolWarning := GLSetup."Payment Tolerance Warning";
+            OnPmtTolCustLedgEntryOnAfterSetPaymentTolWarning(GLSetup, PaymentTolWarning);
             if (Abs(AppliedAmount) > Abs(AmounttoApply)) and (AppliedAmount * PmtDiscAmount > 0) then
                 AppliedAmount := AmounttoApply;
 
@@ -364,7 +409,7 @@ codeunit 426 "Payment Tolerance Management"
                (MaxPmtTolAmount <> 0) and ((Abs(AppliedAmount + ApplyingAmount) - ApplnRoundingPrecision) <> 0) and
                (Abs(AppliedAmount + ApplyingAmount) > ApplnRoundingPrecision)
             then
-                if GLSetup."Payment Tolerance Warning" then
+                if PaymentTolWarning then
                     if CallPmtTolWarning(
                          PostingDate, AccountNo, DocNo,
                          CurrencyCode, ApplyingAmount, OriginalAppliedAmount, "Payment Tolerance Account Type"::Customer)
@@ -395,6 +440,7 @@ codeunit 426 "Payment Tolerance Management"
         ApplnRoundingPrecision: Decimal;
         IsHandled: Boolean;
         Result: Boolean;
+        PaymentTolWarning: Boolean;
     begin
         GLSetup.Get();
         CalcVendApplnAmount(
@@ -416,6 +462,8 @@ codeunit 426 "Payment Tolerance Management"
 
         if Abs(AmounttoApply) >= Abs(AppliedAmount - PmtDiscAmount - MaxPmtTolAmount) then begin
             AppliedAmount := AppliedAmount - PmtDiscAmount;
+            PaymentTolWarning := GLSetup."Payment Tolerance Warning";
+            OnPmtTolVendLedgEntryOnAfterSetPaymentTolWarning(GLSetup, PaymentTolWarning);
             if (Abs(AppliedAmount) > Abs(AmounttoApply)) and (AppliedAmount * PmtDiscAmount > 0) then
                 AppliedAmount := AmounttoApply;
 
@@ -423,7 +471,7 @@ codeunit 426 "Payment Tolerance Management"
                (MaxPmtTolAmount <> 0) and ((Abs(AppliedAmount + ApplyingAmount) - ApplnRoundingPrecision) <> 0) and
                (Abs(AppliedAmount + ApplyingAmount) > ApplnRoundingPrecision)
             then
-                if GLSetup."Payment Tolerance Warning" then
+                if PaymentTolWarning then
                     if CallPmtTolWarning(
                          PostingDate, AccountNo, DocNo, CurrencyCode, ApplyingAmount, OriginalAppliedAmount, "Payment Tolerance Account Type"::Vendor)
                     then begin
@@ -885,6 +933,20 @@ codeunit 426 "Payment Tolerance Management"
         exit(false);
     end;
 
+    /// <summary>
+    /// Displays payment discount tolerance warning dialog and handles user response.
+    /// Calculates whether payment discount tolerance should be applied based on user choice.
+    /// </summary>
+    /// <param name="PostingDate">Posting date for the transaction</param>
+    /// <param name="No">Account number (customer/vendor)</param>
+    /// <param name="DocNo">Document number</param>
+    /// <param name="CurrencyCode">Currency code for the transaction</param>
+    /// <param name="Amount">Transaction amount</param>
+    /// <param name="AppliedAmount">Amount being applied</param>
+    /// <param name="PmtDiscAmount">Payment discount amount</param>
+    /// <param name="RemainingAmountTest">Returns whether remaining amount test passed</param>
+    /// <param name="AccountType">Type of account (customer/vendor)</param>
+    /// <returns>True if payment discount tolerance should be applied, false otherwise</returns>
     procedure CallPmtDiscTolWarning(PostingDate: Date; No: Code[20]; DocNo: Code[20]; CurrencyCode: Code[10]; Amount: Decimal; AppliedAmount: Decimal; PmtDiscAmount: Decimal; var RemainingAmountTest: Boolean; AccountType: Enum "Payment Tolerance Account Type") Result: Boolean
     var
         GenJnlPostPreview: Codeunit "Gen. Jnl.-Post Preview";
@@ -926,6 +988,18 @@ codeunit 426 "Payment Tolerance Management"
         exit(true);
     end;
 
+    /// <summary>
+    /// Displays payment tolerance warning dialog and processes user response.
+    /// Allows user to accept or reject payment tolerance amounts for transactions.
+    /// </summary>
+    /// <param name="PostingDate">Posting date for the transaction</param>
+    /// <param name="No">Account number (customer/vendor)</param>
+    /// <param name="DocNo">Document number</param>
+    /// <param name="CurrencyCode">Currency code for the transaction</param>
+    /// <param name="Amount">Transaction amount (by reference, may be modified)</param>
+    /// <param name="AppliedAmount">Amount being applied</param>
+    /// <param name="AccountType">Type of account (customer/vendor)</param>
+    /// <returns>True if payment tolerance was accepted, false otherwise</returns>
     procedure CallPmtTolWarning(PostingDate: Date; No: Code[20]; DocNo: Code[20]; CurrencyCode: Code[10]; var Amount: Decimal; AppliedAmount: Decimal; AccountType: Enum "Payment Tolerance Account Type"): Boolean
     var
         GenJnlPostPreview: Codeunit "Gen. Jnl.-Post Preview";
@@ -1187,49 +1261,68 @@ codeunit 426 "Payment Tolerance Management"
     local procedure DelCustPmtTolAcc(CustledgEntry: Record "Cust. Ledger Entry"; CustEntryApplID: Code[50])
     var
         AppliedCustLedgEntry: Record "Cust. Ledger Entry";
-        PmtTolHasBeenModified: Boolean;
     begin
-        AppliedCustLedgEntry.SetCurrentKey("Customer No.", Open, Positive);
-        AppliedCustLedgEntry.SetRange("Customer No.", CustledgEntry."Customer No.");
-        AppliedCustLedgEntry.SetRange(Open, true);
-        AppliedCustLedgEntry.ReadIsolation(IsolationLevel::UpdLock);
-        AppliedCustLedgEntry.SetLoadFields("Document No.", "Applies-to ID", "Accepted Payment Tolerance", "Accepted Pmt. Disc. Tolerance");
-        if AppliedCustLedgEntry.Find('-') then
-            repeat
-                if (AppliedCustLedgEntry."Applies-to ID" = CustEntryApplID) or (AppliedCustLedgEntry."Document No." = CustledgEntry."Applies-to Doc. No.") then begin
-                    AppliedCustLedgEntry."Accepted Payment Tolerance" := 0;
-                    AppliedCustLedgEntry."Accepted Pmt. Disc. Tolerance" := false;
-                    AppliedCustLedgEntry.Modify();
-                    PmtTolHasBeenModified := true;
-                end;
-            until AppliedCustLedgEntry.Next() = 0;
-        if PmtTolHasBeenModified and (not SuppressCommit) then
-            Commit();
+        if CustledgEntry."Applies-to Doc. No." <> '' then begin
+            AppliedCustLedgEntry.SetRange("Customer No.", CustledgEntry."Customer No.");
+            AppliedCustLedgEntry.SetRange(Open, true);
+            AppliedCustLedgEntry.SetRange("Document No.", CustledgEntry."Applies-to Doc. No.");
+            AppliedCustLedgEntry.ReadIsolation(IsolationLevel::UpdLock);
+            AppliedCustLedgEntry.SetLoadFields("Accepted Payment Tolerance", "Accepted Pmt. Disc. Tolerance");
+            if AppliedCustLedgEntry.FindFirst() then begin
+                AppliedCustLedgEntry."Accepted Payment Tolerance" := 0;
+                AppliedCustLedgEntry."Accepted Pmt. Disc. Tolerance" := false;
+                AppliedCustLedgEntry.Modify();
+                if not SuppressCommit then
+                    Commit();
+            end;
+        end;
+
+        if CustEntryApplID <> '' then begin
+            AppliedCustLedgEntry.SetRange("Customer No.", CustledgEntry."Customer No.");
+            AppliedCustLedgEntry.SetRange(Open, true);
+            AppliedCustLedgEntry.SetRange("Applies-to ID", CustEntryApplID);
+            AppliedCustLedgEntry.ModifyAll("Accepted Payment Tolerance", 0);
+            AppliedCustLedgEntry.ModifyAll("Accepted Pmt. Disc. Tolerance", false);
+            if not SuppressCommit then
+                Commit();
+        end;
     end;
 
     local procedure DelVendPmtTolAcc(VendLedgEntry: Record "Vendor Ledger Entry"; VendEntryApplID: Code[50])
     var
         AppliedVendLedgEntry: Record "Vendor Ledger Entry";
-        PmtTolHasBeenModified: Boolean;
     begin
-        AppliedVendLedgEntry.SetCurrentKey("Vendor No.", "Applies-to ID", Open, Positive, "Due Date");
-        AppliedVendLedgEntry.SetRange("Vendor No.", VendLedgEntry."Vendor No.");
-        AppliedVendLedgEntry.SetRange(Open, true);
-        AppliedVendLedgEntry.ReadIsolation(IsolationLevel::UpdLock);
-        AppliedVendLedgEntry.SetLoadFields("Document No.", "Applies-to ID", "Accepted Payment Tolerance", "Accepted Pmt. Disc. Tolerance");
-        if AppliedVendLedgEntry.FindSet() then
-            repeat
-                if (AppliedVendLedgEntry."Applies-to ID" = VendEntryApplID) or (AppliedVendLedgEntry."Document No." = VendLedgEntry."Applies-to Doc. No.") then begin
-                    AppliedVendLedgEntry."Accepted Payment Tolerance" := 0;
-                    AppliedVendLedgEntry."Accepted Pmt. Disc. Tolerance" := false;
-                    AppliedVendLedgEntry.Modify();
-                    PmtTolHasBeenModified := true;
-                end;
-            until AppliedVendLedgEntry.Next() = 0;
-        if PmtTolHasBeenModified and (not SuppressCommit) then
-            Commit();
+        if VendLedgEntry."Applies-to Doc. No." <> '' then begin
+            AppliedVendLedgEntry.SetRange("Vendor No.", VendLedgEntry."Vendor No.");
+            AppliedVendLedgEntry.SetRange(Open, true);
+            AppliedVendLedgEntry.SetRange("Document No.", VendLedgEntry."Applies-to Doc. No.");
+            AppliedVendLedgEntry.ReadIsolation(IsolationLevel::UpdLock);
+            AppliedVendLedgEntry.SetLoadFields("Accepted Payment Tolerance", "Accepted Pmt. Disc. Tolerance");
+            if AppliedVendLedgEntry.FindFirst() then begin
+                AppliedVendLedgEntry."Accepted Payment Tolerance" := 0;
+                AppliedVendLedgEntry."Accepted Pmt. Disc. Tolerance" := false;
+                AppliedVendLedgEntry.Modify();
+                if not SuppressCommit then
+                    Commit();
+            end;
+        end;
+
+        if VendEntryApplID <> '' then begin
+            AppliedVendLedgEntry.SetRange("Vendor No.", VendLedgEntry."Vendor No.");
+            AppliedVendLedgEntry.SetRange(Open, true);
+            AppliedVendLedgEntry.SetRange("Applies-to ID", VendEntryApplID);
+            AppliedVendLedgEntry.ModifyAll("Accepted Payment Tolerance", 0);
+            AppliedVendLedgEntry.ModifyAll("Accepted Pmt. Disc. Tolerance", false);
+            if not SuppressCommit then
+                Commit();
+        end;
     end;
 
+    /// <summary>
+    /// Calculates and updates payment tolerance grace period for all open customer and vendor ledger entries.
+    /// Processes entries that fall within the specified grace period for payment tolerance.
+    /// </summary>
+    /// <param name="PmtTolGracePeriode">Grace period date formula for payment tolerance calculation</param>
     procedure CalcGracePeriodCVLedgEntry(PmtTolGracePeriode: DateFormula)
     var
         Customer: Record Customer;
@@ -1295,6 +1388,11 @@ codeunit 426 "Payment Tolerance Management"
             until VendLedgEntry.Next() = 0;
     end;
 
+    /// <summary>
+    /// Calculates payment tolerance for customer ledger entries.
+    /// Updates customer ledger entries with payment tolerance amounts based on General Ledger setup and currency configuration.
+    /// </summary>
+    /// <param name="Customer">Customer record to calculate payment tolerance for</param>
     procedure CalcTolCustLedgEntry(Customer: Record Customer)
     var
         GLSetup: Record "General Ledger Setup";
@@ -1362,6 +1460,11 @@ codeunit 426 "Payment Tolerance Management"
         until CustLedgEntry.Next() = 0;
     end;
 
+    /// <summary>
+    /// Deletes payment tolerance settings for customer ledger entries.
+    /// Resets payment tolerance amount and maximum payment tolerance to zero for the specified customer.
+    /// </summary>
+    /// <param name="Customer">Customer record to delete payment tolerance for</param>
     procedure DelTolCustLedgEntry(Customer: Record Customer)
     var
         GLSetup: Record "General Ledger Setup";
@@ -1383,6 +1486,11 @@ codeunit 426 "Payment Tolerance Management"
         until CustLedgEntry.Next() = 0;
     end;
 
+    /// <summary>
+    /// Calculates payment tolerance for vendor ledger entries.
+    /// Updates vendor ledger entries with payment tolerance amounts based on General Ledger setup and currency configuration.
+    /// </summary>
+    /// <param name="Vendor">Vendor record to calculate payment tolerance for</param>
     procedure CalcTolVendLedgEntry(Vendor: Record Vendor)
     var
         GLSetup: Record "General Ledger Setup";
@@ -1445,6 +1553,11 @@ codeunit 426 "Payment Tolerance Management"
         until VendLedgEntry.Next() = 0;
     end;
 
+    /// <summary>
+    /// Deletes payment tolerance settings for vendor ledger entries.
+    /// Resets payment tolerance amount and maximum payment tolerance to zero for the specified vendor.
+    /// </summary>
+    /// <param name="Vendor">Vendor record to delete payment tolerance for</param>
     procedure DelTolVendLedgEntry(Vendor: Record Vendor)
     var
         GLSetup: Record "General Ledger Setup";
@@ -1466,6 +1579,12 @@ codeunit 426 "Payment Tolerance Management"
         until VendLedgEntry.Next() = 0;
     end;
 
+    /// <summary>
+    /// Deletes payment tolerance for applications with the specified document number.
+    /// Removes tolerance settings from customer or vendor ledger entries based on account type in the general journal line.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line containing account type and number</param>
+    /// <param name="DocumentNo">Document number to filter tolerance deletion</param>
     procedure DelPmtTolApllnDocNo(GenJnlLine: Record "Gen. Journal Line"; DocumentNo: Code[20])
     var
         AppliedCustLedgEntry: Record "Cust. Ledger Entry";
@@ -1518,6 +1637,14 @@ codeunit 426 "Payment Tolerance Management"
         OnAfterDelPmtTolApllnDocNo(GenJnlLine, DocumentNo, SuppressCommit);
     end;
 
+    /// <summary>
+    /// Returns the decimal value with minimum absolute value considering tolerance.
+    /// Compares two decimal values and returns the one with the smaller absolute value after applying tolerance.
+    /// </summary>
+    /// <param name="Decimal1">First decimal value for comparison</param>
+    /// <param name="Decimal2">Second decimal value for comparison</param>
+    /// <param name="Decimal1Tolerance">Tolerance amount to subtract from first decimal's absolute value</param>
+    /// <returns>The decimal value with smaller absolute value after tolerance adjustment</returns>
     procedure ABSMinTol(Decimal1: Decimal; Decimal2: Decimal; Decimal1Tolerance: Decimal): Decimal
     begin
         if Abs(Decimal1) - Abs(Decimal1Tolerance) < Abs(Decimal2) then
@@ -1535,26 +1662,25 @@ codeunit 426 "Payment Tolerance Management"
         if IsHandled then
             exit;
 
-        if CustEntryApplID <> '' then begin
-            AppliedCustLedgEntry.SetCurrentKey("Customer No.", Open, Positive);
-            AppliedCustLedgEntry.SetRange("Customer No.", CustledgEntry."Customer No.");
-            AppliedCustLedgEntry.SetRange(Open, true);
-            AppliedCustLedgEntry.ReadIsolation(IsolationLevel::UpdLock);
-            AppliedCustLedgEntry.SetLoadFields("Applies-to ID", "Document Type", "Accepted Payment Tolerance", "Accepted Pmt. Disc. Tolerance");
-            if AppliedCustLedgEntry.FindSet() then
-                repeat
-                    if (CustledgEntry."Document Type" = CustledgEntry."Document Type"::Payment) and (AppliedCustLedgEntry."Document Type" <> AppliedCustLedgEntry."Document Type"::Invoice) then
-                        continue;
-                    if (CustledgEntry."Document Type" = CustledgEntry."Document Type"::Refund) and (AppliedCustLedgEntry."Document Type" <> AppliedCustLedgEntry."Document Type"::"Credit Memo") then
-                        continue;
-                    if AppliedCustLedgEntry."Applies-to ID" = CustEntryApplID then begin
-                        AppliedCustLedgEntry."Accepted Payment Tolerance" := 0;
-                        AppliedCustLedgEntry."Accepted Pmt. Disc. Tolerance" := false;
-                        AppliedCustLedgEntry.Modify();
-                        if not SuppressCommit then
-                            Commit();
-                    end;
-                until AppliedCustLedgEntry.Next() = 0;
+        if CustEntryApplID = '' then
+            exit;
+        AppliedCustLedgEntry.SetCurrentKey("Customer No.", Open, Positive);
+        AppliedCustLedgEntry.SetRange("Customer No.", CustledgEntry."Customer No.");
+        AppliedCustLedgEntry.SetRange(Open, true);
+        AppliedCustLedgEntry.SetRange("Applies-to ID", CustEntryApplID);
+        if CustledgEntry."Document Type" = CustledgEntry."Document Type"::Payment then
+            AppliedCustLedgEntry.SetRange("Document Type", AppliedCustLedgEntry."Document Type"::Invoice);
+        if CustledgEntry."Document Type" = CustledgEntry."Document Type"::Refund then
+            AppliedCustLedgEntry.SetRange("Document Type", AppliedCustLedgEntry."Document Type"::"Credit Memo");
+
+        AppliedCustLedgEntry.LockTable();
+
+        if AppliedCustLedgEntry.FindLast() then begin
+            AppliedCustLedgEntry."Accepted Payment Tolerance" := 0;
+            AppliedCustLedgEntry."Accepted Pmt. Disc. Tolerance" := false;
+            AppliedCustLedgEntry.Modify();
+            if not SuppressCommit then
+                Commit();
         end;
     end;
 
@@ -1562,26 +1688,26 @@ codeunit 426 "Payment Tolerance Management"
     var
         AppliedVendLedgEntry: Record "Vendor Ledger Entry";
     begin
-        if VendEntryApplID <> '' then begin
-            AppliedVendLedgEntry.SetCurrentKey("Vendor No.", Open, Positive);
-            AppliedVendLedgEntry.SetRange("Vendor No.", VendLedgEntry."Vendor No.");
-            AppliedVendLedgEntry.SetRange(Open, true);
-            AppliedVendLedgEntry.ReadIsolation(IsolationLevel::UpdLock);
-            AppliedVendLedgEntry.SetLoadFields("Applies-to ID", "Document Type", "Accepted Payment Tolerance", "Accepted Pmt. Disc. Tolerance");
-            if AppliedVendLedgEntry.FindLast() then
-                repeat
-                    if (VendLedgEntry."Document Type" = VendLedgEntry."Document Type"::Payment) and (AppliedVendLedgEntry."Document Type" <> AppliedVendLedgEntry."Document Type"::Invoice) then
-                        continue;
-                    if (VendLedgEntry."Document Type" = VendLedgEntry."Document Type"::Refund) and (AppliedVendLedgEntry."Document Type" <> AppliedVendLedgEntry."Document Type"::"Credit Memo") then
-                        continue;
-                    if AppliedVendLedgEntry."Applies-to ID" = VendEntryApplID then begin
-                        AppliedVendLedgEntry."Accepted Payment Tolerance" := 0;
-                        AppliedVendLedgEntry."Accepted Pmt. Disc. Tolerance" := false;
-                        AppliedVendLedgEntry.Modify();
-                        if not SuppressCommit then
-                            Commit();
-                    end;
-                until AppliedVendLedgEntry.Next() = 0;
+        if VendEntryApplID = '' then
+            exit;
+
+        AppliedVendLedgEntry.SetCurrentKey("Vendor No.", Open, Positive);
+        AppliedVendLedgEntry.SetRange("Vendor No.", VendLedgEntry."Vendor No.");
+        AppliedVendLedgEntry.SetRange(Open, true);
+        AppliedVendLedgEntry.SetRange("Applies-to ID", VendEntryApplID);
+        if VendLedgEntry."Document Type" = VendLedgEntry."Document Type"::Payment then
+            AppliedVendLedgEntry.SetRange("Document Type", AppliedVendLedgEntry."Document Type"::Invoice);
+        if VendLedgEntry."Document Type" = VendLedgEntry."Document Type"::Refund then
+            AppliedVendLedgEntry.SetRange("Document Type", AppliedVendLedgEntry."Document Type"::"Credit Memo");
+
+        AppliedVendLedgEntry.LockTable();
+
+        if AppliedVendLedgEntry.FindLast() then begin
+            AppliedVendLedgEntry."Accepted Payment Tolerance" := 0;
+            AppliedVendLedgEntry."Accepted Pmt. Disc. Tolerance" := false;
+            AppliedVendLedgEntry.Modify();
+            if not SuppressCommit then
+                Commit();
         end;
     end;
 
@@ -1603,6 +1729,14 @@ codeunit 426 "Payment Tolerance Management"
         GetAmountRoundingPrecision(ApplnRoundingPrecision, AmountRoundingPrecision, ApplnInMultiCurrency, ApplnCurrencyCode);
     end;
 
+    /// <summary>
+    /// Gets application rounding precision for applies-to document currency operations.
+    /// Determines rounding precision values based on applied entry and application currency codes.
+    /// </summary>
+    /// <param name="AppliedEntryCurrencyCode">Currency code of the applied entry</param>
+    /// <param name="ApplnRoundingPrecision">Variable to receive application rounding precision</param>
+    /// <param name="AmountRoundingPrecision">Variable to receive amount rounding precision</param>
+    /// <param name="ApplnCurrencyCode">Currency code for the application</param>
     procedure GetApplicationRoundingPrecisionForAppliesToDoc(AppliedEntryCurrencyCode: Code[10]; var ApplnRoundingPrecision: Decimal; var AmountRoundingPrecision: Decimal; ApplnCurrencyCode: Code[20])
     var
         Currency: Record Currency;
@@ -1826,6 +1960,14 @@ codeunit 426 "Payment Tolerance Management"
                 AppliedVendLedgEntry."Remaining Pmt. Disc. Possible" - MaxPmtTolAmount)));
     end;
 
+    /// <summary>
+    /// Gets amount rounding precision for multi-currency applications.
+    /// Determines application and amount rounding precision based on currency and multi-currency settings.
+    /// </summary>
+    /// <param name="ApplnRoundingPrecision">Variable to receive application rounding precision</param>
+    /// <param name="AmountRoundingPrecision">Variable to receive amount rounding precision</param>
+    /// <param name="ApplnInMultiCurrency">Indicates if application involves multiple currencies</param>
+    /// <param name="ApplnCurrencyCode">Currency code for the application</param>
     procedure GetAmountRoundingPrecision(var ApplnRoundingPrecision: Decimal; var AmountRoundingPrecision: Decimal; ApplnInMultiCurrency: Boolean; ApplnCurrencyCode: Code[20])
     var
         Currency: Record Currency;
@@ -1844,6 +1986,14 @@ codeunit 426 "Payment Tolerance Management"
         AmountRoundingPrecision := Currency."Amount Rounding Precision";
     end;
 
+    /// <summary>
+    /// Calculates remaining payment discount for CV ledger entry buffers.
+    /// Updates payment discount amounts and remaining payment discount possible fields based on application scenarios.
+    /// </summary>
+    /// <param name="NewCVLedgEntryBuf">New CV ledger entry buffer being applied</param>
+    /// <param name="OldCVLedgEntryBuf">Existing CV ledger entry buffer being applied to</param>
+    /// <param name="OldCVLedgEntryBuf2">Secondary CV ledger entry buffer for calculation</param>
+    /// <param name="GLSetup">General Ledger Setup for payment discount configuration</param>
     procedure CalcRemainingPmtDisc(var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf2: Record "CV Ledger Entry Buffer"; GLSetup: Record "General Ledger Setup")
     var
         Handled: Boolean;
@@ -1902,6 +2052,16 @@ codeunit 426 "Payment Tolerance Management"
         end;
     end;
 
+    /// <summary>
+    /// Calculates maximum payment tolerance for a document.
+    /// Determines payment tolerance amount based on document type, currency, amount, and General Ledger setup configuration.
+    /// </summary>
+    /// <param name="DocumentType">Type of document for tolerance calculation</param>
+    /// <param name="CurrencyCode">Currency code for tolerance calculation</param>
+    /// <param name="Amount">Document amount in original currency</param>
+    /// <param name="AmountLCY">Document amount in local currency</param>
+    /// <param name="Sign">Sign factor for amount calculation</param>
+    /// <param name="MaxPaymentTolerance">Variable to receive calculated maximum payment tolerance</param>
     procedure CalcMaxPmtTolerance(DocumentType: Enum "Gen. Journal Document Type"; CurrencyCode: Code[10]; Amount: Decimal; AmountLCY: Decimal; Sign: Decimal; var MaxPaymentTolerance: Decimal)
     var
         Currency: Record Currency;
@@ -1952,6 +2112,16 @@ codeunit 426 "Payment Tolerance Management"
         OnAfterCalcMaxPmtTolerance(DocumentType.AsInteger(), CurrencyCode, Amount, AmountLCY, Sign, MaxPaymentTolerance);
     end;
 
+    /// <summary>
+    /// Checks and calculates payment discount for CV ledger entry buffers.
+    /// Validates payment discount eligibility and calculates discount amounts based on application parameters.
+    /// </summary>
+    /// <param name="NewCVLedgEntryBuf">New CV ledger entry buffer being applied</param>
+    /// <param name="OldCVLedgEntryBuf2">Existing CV ledger entry buffer being applied to</param>
+    /// <param name="ApplnRoundingPrecision">Application rounding precision for calculations</param>
+    /// <param name="CheckFilter">Whether to apply filter validation</param>
+    /// <param name="CheckAmount">Whether to validate amount conditions</param>
+    /// <returns>True if payment discount calculation is valid, false otherwise</returns>
     procedure CheckCalcPmtDisc(var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf2: Record "CV Ledger Entry Buffer"; ApplnRoundingPrecision: Decimal; CheckFilter: Boolean; CheckAmount: Boolean): Boolean
     var
         Handled: Boolean;
@@ -1992,6 +2162,16 @@ codeunit 426 "Payment Tolerance Management"
         exit(false);
     end;
 
+    /// <summary>
+    /// Checks and calculates payment discount for CV ledger entry buffer against customer ledger entry.
+    /// Validates payment discount eligibility between CV buffer and customer entries.
+    /// </summary>
+    /// <param name="NewCVLedgEntryBuf">New CV ledger entry buffer being applied</param>
+    /// <param name="OldCustLedgEntry2">Customer ledger entry being applied to</param>
+    /// <param name="ApplnRoundingPrecision">Application rounding precision for calculations</param>
+    /// <param name="CheckFilter">Whether to apply filter validation</param>
+    /// <param name="CheckAmount">Whether to validate amount conditions</param>
+    /// <returns>True if payment discount calculation is valid, false otherwise</returns>
     procedure CheckCalcPmtDiscCVCust(var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCustLedgEntry2: Record "Cust. Ledger Entry"; ApplnRoundingPrecision: Decimal; CheckFilter: Boolean; CheckAmount: Boolean): Boolean
     var
         OldCVLedgEntryBuf2: Record "CV Ledger Entry Buffer";
@@ -2003,6 +2183,16 @@ codeunit 426 "Payment Tolerance Management"
             NewCVLedgEntryBuf, OldCVLedgEntryBuf2, ApplnRoundingPrecision, CheckFilter, CheckAmount));
     end;
 
+    /// <summary>
+    /// Checks and calculates payment discount between customer ledger entries.
+    /// Validates payment discount eligibility between new and existing customer ledger entries.
+    /// </summary>
+    /// <param name="NewCustLedgEntry">New customer ledger entry being applied</param>
+    /// <param name="OldCustLedgEntry2">Existing customer ledger entry being applied to</param>
+    /// <param name="ApplnRoundingPrecision">Application rounding precision for calculations</param>
+    /// <param name="CheckFilter">Whether to apply filter validation</param>
+    /// <param name="CheckAmount">Whether to validate amount conditions</param>
+    /// <returns>True if payment discount calculation is valid, false otherwise</returns>
     procedure CheckCalcPmtDiscCust(var NewCustLedgEntry: Record "Cust. Ledger Entry"; var OldCustLedgEntry2: Record "Cust. Ledger Entry"; ApplnRoundingPrecision: Decimal; CheckFilter: Boolean; CheckAmount: Boolean): Boolean
     var
         NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer";
@@ -2016,6 +2206,15 @@ codeunit 426 "Payment Tolerance Management"
             NewCVLedgEntryBuf, OldCVLedgEntryBuf2, ApplnRoundingPrecision, CheckFilter, CheckAmount));
     end;
 
+    /// <summary>
+    /// Checks and calculates payment discount for general journal line against customer ledger entry.
+    /// Validates payment discount eligibility between journal line and customer entry.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line being processed</param>
+    /// <param name="OldCustLedgEntry2">Customer ledger entry being applied to</param>
+    /// <param name="ApplnRoundingPrecision">Application rounding precision for calculations</param>
+    /// <param name="CheckAmount">Whether to validate amount conditions</param>
+    /// <returns>True if payment discount calculation is valid, false otherwise</returns>
     procedure CheckCalcPmtDiscGenJnlCust(GenJnlLine: Record "Gen. Journal Line"; OldCustLedgEntry2: Record "Cust. Ledger Entry"; ApplnRoundingPrecision: Decimal; CheckAmount: Boolean): Boolean
     var
         NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer";
@@ -2030,6 +2229,16 @@ codeunit 426 "Payment Tolerance Management"
             NewCVLedgEntryBuf, OldCVLedgEntryBuf2, ApplnRoundingPrecision, false, CheckAmount));
     end;
 
+    /// <summary>
+    /// Checks and calculates payment discount for CV ledger entry buffer against vendor ledger entry.
+    /// Validates payment discount eligibility between CV buffer and vendor entries.
+    /// </summary>
+    /// <param name="NewCVLedgEntryBuf">New CV ledger entry buffer being applied</param>
+    /// <param name="OldVendLedgEntry2">Vendor ledger entry being applied to</param>
+    /// <param name="ApplnRoundingPrecision">Application rounding precision for calculations</param>
+    /// <param name="CheckFilter">Whether to apply filter validation</param>
+    /// <param name="CheckAmount">Whether to validate amount conditions</param>
+    /// <returns>True if payment discount calculation is valid, false otherwise</returns>
     procedure CheckCalcPmtDiscCVVend(var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldVendLedgEntry2: Record "Vendor Ledger Entry"; ApplnRoundingPrecision: Decimal; CheckFilter: Boolean; CheckAmount: Boolean): Boolean
     var
         OldCVLedgEntryBuf2: Record "CV Ledger Entry Buffer";
@@ -2041,6 +2250,16 @@ codeunit 426 "Payment Tolerance Management"
             NewCVLedgEntryBuf, OldCVLedgEntryBuf2, ApplnRoundingPrecision, CheckFilter, CheckAmount));
     end;
 
+    /// <summary>
+    /// Checks and calculates payment discount between vendor ledger entries.
+    /// Validates payment discount eligibility between new and existing vendor ledger entries.
+    /// </summary>
+    /// <param name="NewVendLedgEntry">New vendor ledger entry being applied</param>
+    /// <param name="OldVendLedgEntry2">Existing vendor ledger entry being applied to</param>
+    /// <param name="ApplnRoundingPrecision">Application rounding precision for calculations</param>
+    /// <param name="CheckFilter">Whether to apply filter validation</param>
+    /// <param name="CheckAmount">Whether to validate amount conditions</param>
+    /// <returns>True if payment discount calculation is valid, false otherwise</returns>
     procedure CheckCalcPmtDiscVend(var NewVendLedgEntry: Record "Vendor Ledger Entry"; var OldVendLedgEntry2: Record "Vendor Ledger Entry"; ApplnRoundingPrecision: Decimal; CheckFilter: Boolean; CheckAmount: Boolean): Boolean
     var
         NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer";
@@ -2054,6 +2273,15 @@ codeunit 426 "Payment Tolerance Management"
             NewCVLedgEntryBuf, OldCVLedgEntryBuf2, ApplnRoundingPrecision, CheckFilter, CheckAmount));
     end;
 
+    /// <summary>
+    /// Checks and calculates payment discount for general journal line against vendor ledger entry.
+    /// Validates payment discount eligibility between journal line and vendor entry.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line being processed</param>
+    /// <param name="OldVendLedgEntry2">Vendor ledger entry being applied to</param>
+    /// <param name="ApplnRoundingPrecision">Application rounding precision for calculations</param>
+    /// <param name="CheckAmount">Whether to validate amount conditions</param>
+    /// <returns>True if payment discount calculation is valid, false otherwise</returns>
     procedure CheckCalcPmtDiscGenJnlVend(GenJnlLine: Record "Gen. Journal Line"; OldVendLedgEntry2: Record "Vendor Ledger Entry"; ApplnRoundingPrecision: Decimal; CheckAmount: Boolean): Boolean
     var
         NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer";
@@ -2106,13 +2334,14 @@ codeunit 426 "Payment Tolerance Management"
                         AppliedAmount := AppliedAmount + AppliedCustLedgEntry."Remaining Pmt. Disc. Possible";
                         AmountToApply := AmountToApply + AppliedCustLedgEntry."Remaining Pmt. Disc. Possible";
                     end else
-                        if (AppliedCustLedgEntry."Remaining Pmt. Disc. Possible" - AppliedCustLedgEntry."Remaining Amount") <> NewCustLedgEntry.Amount then begin
-                            NewCustLedgEntry.Amount += AppliedCustLedgEntry."Remaining Pmt. Disc. Possible";
-                            UpdateGenJournalLineAmount(NewCustLedgEntry.Amount);
-                            AdjustRemainingAmount(NewCustLedgEntry, AppliedCustLedgEntry."Remaining Amount");
-                            if not SuppressCommit then
-                                Commit();
-                        end;
+                        if (AppliedCustLedgEntry."Remaining Pmt. Disc. Possible" - AppliedCustLedgEntry."Remaining Amount") <> NewCustLedgEntry.Amount then
+                            if NewCustLedgEntry.Amount < (AppliedCustLedgEntry."Remaining Pmt. Disc. Possible" - AppliedCustLedgEntry."Remaining Amount") then begin
+                                NewCustLedgEntry.Amount += AppliedCustLedgEntry."Remaining Pmt. Disc. Possible";
+                                UpdateGenJournalLineAmount(NewCustLedgEntry.Amount);
+                                AdjustRemainingAmount(NewCustLedgEntry, AppliedCustLedgEntry."Remaining Amount");
+                                if not SuppressCommit then
+                                    Commit();
+                            end;
                 end else begin
                     DelCustPmtTolAcc(NewCustLedgEntry, GenJnlLineApplID);
                     exit(false);
@@ -2168,11 +2397,21 @@ codeunit 426 "Payment Tolerance Management"
         exit(true);
     end;
 
+    /// <summary>
+    /// Sets whether database commit operations should be suppressed during payment tolerance processing.
+    /// Used to control transaction behavior in batch processing scenarios.
+    /// </summary>
+    /// <param name="NewSuppressCommit">True to suppress commit operations, false to allow commits</param>
     procedure SetSuppressCommit(NewSuppressCommit: Boolean)
     begin
         SuppressCommit := NewSuppressCommit;
     end;
 
+    /// <summary>
+    /// Sets whether warning dialogs should be suppressed during payment tolerance processing.
+    /// Used to control user interaction during automated processing scenarios.
+    /// </summary>
+    /// <param name="NewSuppressWarning">True to suppress warning dialogs, false to show warnings</param>
     procedure SetSuppressWarning(NewSuppressWarning: Boolean)
     begin
         SuppressWarning := NewSuppressWarning;
@@ -2220,6 +2459,12 @@ codeunit 426 "Payment Tolerance Management"
         exit(false);
     end;
 
+    /// <summary>
+    /// Validates that the specified account type matches the account type or balance account type in the general journal line.
+    /// Ensures proper account type validation for payment tolerance operations.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line to validate</param>
+    /// <param name="AccountType">Expected account type to validate against</param>
     procedure CheckAccountType(GenJnlLine: Record "Gen. Journal Line"; AccountType: Enum "Gen. Journal Account Type")
     var
         DummyGenJnlLine: Record "Gen. Journal Line";
@@ -2229,6 +2474,12 @@ codeunit 426 "Payment Tolerance Management"
             Error(AccTypeOrBalAccTypeIsIncorrectErr, DummyGenJnlLine."Account Type");
     end;
 
+    /// <summary>
+    /// Gets the applies-to ID from the general journal line for payment application.
+    /// Returns the applies-to ID if no specific document number is specified.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line to extract applies-to ID from</param>
+    /// <returns>Applies-to ID if available and no document number specified, otherwise empty</returns>
     procedure GetAppliesToID(GenJnlLine: Record "Gen. Journal Line"): Code[50]
     begin
         if GenJnlLine."Applies-to Doc. No." = '' then
@@ -2314,228 +2565,603 @@ codeunit 426 "Payment Tolerance Management"
         end;
     end;
 
+    /// <summary>
+    /// Integration event raised after calculating maximum payment tolerance amount.
+    /// Enables custom calculation of maximum tolerance amounts based on business rules.
+    /// </summary>
+    /// <param name="DocumentType">Document type determining tolerance rules</param>
+    /// <param name="CurrencyCode">Currency code for tolerance calculation</param>
+    /// <param name="Amount">Document amount for tolerance calculation</param>
+    /// <param name="AmountLCY">Document amount in local currency</param>
+    /// <param name="Sign">Sign factor for tolerance calculation</param>
+    /// <param name="MaxPaymentTolerance">Maximum payment tolerance amount calculated</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcMaxPmtTolerance(DocumentType: Option " ",Payment,Invoice,"Credit Memo","Finance Charge Memo",Reminder,Refund; CurrencyCode: Code[10]; Amount: Decimal; AmountLCY: Decimal; Sign: Decimal; var MaxPaymentTolerance: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after deleting payment tolerance application document number.
+    /// Enables custom cleanup operations following tolerance application removal.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being processed</param>
+    /// <param name="DocumentNo">Document number for tolerance application</param>
+    /// <param name="SuppressCommit">Whether database commit should be suppressed</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterDelPmtTolApllnDocNo(var GenJournalLine: Record "Gen. Journal Line"; DocumentNo: Code[20]; SuppressCommit: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after processing payment tolerance for general journal lines.
+    /// Enables custom post-processing logic following tolerance calculations.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line processed for tolerance</param>
+    /// <param name="SuppressCommit">Whether database commit should be suppressed</param>
+    /// <param name="Result">Result of payment tolerance processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPmtTolGenJnl(GenJournalLine: Record "Gen. Journal Line"; SuppressCommit: Boolean; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after processing payment tolerance for payment reconciliation journal.
+    /// Enables custom processing for bank reconciliation tolerance scenarios.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line being processed</param>
+    /// <param name="SuppressCommit">Whether database commit should be suppressed</param>
+    /// <param name="Result">Result of payment tolerance processing for reconciliation</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPmtTolPmtReconJnl(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; SuppressCommit: Boolean; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before calculating maximum payment tolerance amount.
+    /// Enables custom tolerance calculation logic to override standard processing.
+    /// </summary>
+    /// <param name="DocumentType">Document type determining tolerance rules</param>
+    /// <param name="CurrencyCode">Currency code for tolerance calculation</param>
+    /// <param name="Amount">Document amount for tolerance calculation</param>
+    /// <param name="AmountLCY">Document amount in local currency</param>
+    /// <param name="Sign">Sign factor for tolerance calculation</param>
+    /// <param name="MaxPaymentTolerance">Maximum payment tolerance amount to be calculated</param>
+    /// <param name="IsHandled">Set to true to skip standard tolerance calculation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcMaxPmtTolerance(DocumentType: Option " ",Payment,Invoice,"Credit Memo","Finance Charge Memo",Reminder,Refund; CurrencyCode: Code[10]; Amount: Decimal; AmountLCY: Decimal; Sign: Decimal; var MaxPaymentTolerance: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before calculating remaining payment discount for CV ledger entries.
+    /// Enables custom payment discount calculation logic in tolerance scenarios.
+    /// </summary>
+    /// <param name="NewCVLedgEntryBuf">New CV ledger entry buffer for discount calculation</param>
+    /// <param name="OldCVLedgEntryBuf">Original CV ledger entry buffer for comparison</param>
+    /// <param name="OldCVLedgEntryBuf2">Second original CV ledger entry buffer for comparison</param>
+    /// <param name="GLSetup">General Ledger Setup for discount parameters</param>
+    /// <param name="Handled">Set to true to skip standard discount calculation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcRemainingPmtDisc(var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf2: Record "CV Ledger Entry Buffer"; GLSetup: Record "General Ledger Setup"; var Handled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before displaying payment discount tolerance warning dialog.
+    /// Enables custom validation logic before showing tolerance warnings to users.
+    /// </summary>
+    /// <param name="PostingDate">Posting date for tolerance validation</param>
+    /// <param name="No">Account number for tolerance processing</param>
+    /// <param name="DocNo">Document number for tolerance application</param>
+    /// <param name="CurrencyCode">Currency code for tolerance calculation</param>
+    /// <param name="Amount">Document amount for tolerance validation</param>
+    /// <param name="AppliedAmount">Applied amount for tolerance calculation</param>
+    /// <param name="PmtDiscAmount">Payment discount amount involved</param>
+    /// <param name="RemainingAmountTest">Remaining amount test result</param>
+    /// <param name="AccountType">Account type (Customer or Vendor)</param>
+    /// <param name="ActionType">Action type for warning dialog</param>
+    /// <param name="Result">Result of warning call</param>
+    /// <param name="IsHandled">Set to true to skip standard warning display</param>
+    /// <param name="SuppressCommit">Whether database commit should be suppressed</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCallPmtDiscTolWarning(PostingDate: Date; No: Code[20]; DocNo: Code[20]; CurrencyCode: Code[10]; Amount: Decimal; AppliedAmount: Decimal; PmtDiscAmount: Decimal; var RemainingAmountTest: Boolean; AccountType: Option Customer,Vendor; var ActionType: Integer; var Result: Boolean; var IsHandled: Boolean; SuppressCommit: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before calculating and checking payment discount for CV ledger entries.
+    /// Enables custom discount validation logic before standard processing.
+    /// </summary>
+    /// <param name="NewCVLedgEntryBuf">New CV ledger entry buffer for discount calculation</param>
+    /// <param name="OldCVLedgEntryBuf2">Original CV ledger entry buffer for comparison</param>
+    /// <param name="ApplnRoundingPrecision">Application rounding precision for calculations</param>
+    /// <param name="CheckFilter">Whether filter validation should be performed</param>
+    /// <param name="CheckAmount">Whether amount validation should be performed</param>
+    /// <param name="Handled">Set to true to skip standard discount checking</param>
+    /// <param name="Result">Result of discount check operation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckCalcPmtDisc(var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf2: Record "CV Ledger Entry Buffer"; ApplnRoundingPrecision: Decimal; CheckFilter: Boolean; CheckAmount: Boolean; var Handled: Boolean; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking payment discount tolerance for customer ledger entries.
+    /// Enables custom validation logic for customer-specific tolerance scenarios.
+    /// </summary>
+    /// <param name="NewPostingdate">New posting date for tolerance validation</param>
+    /// <param name="NewDocType">New document type for tolerance checking</param>
+    /// <param name="NewAmount">New amount for tolerance calculation</param>
+    /// <param name="OldCustLedgEntry">Original customer ledger entry for comparison</param>
+    /// <param name="ApplnRoundingPrecision">Application rounding precision</param>
+    /// <param name="MaxPmtTolAmount">Maximum payment tolerance amount allowed</param>
+    /// <param name="IsHandled">Set to true to skip standard tolerance checking</param>
+    /// <param name="Result">Result of tolerance check operation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckPmtDiscTolCust(NewPostingdate: Date; NewDocType: Enum "Gen. Journal Document Type"; NewAmount: Decimal; OldCustLedgEntry: Record "Cust. Ledger Entry"; ApplnRoundingPrecision: Decimal; MaxPmtTolAmount: Decimal; var IsHandled: Boolean; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking payment discount tolerance for vendor ledger entries.
+    /// Enables custom validation logic for vendor-specific tolerance scenarios.
+    /// </summary>
+    /// <param name="NewPostingdate">New posting date for tolerance validation</param>
+    /// <param name="NewDocType">New document type for tolerance checking</param>
+    /// <param name="NewAmount">New amount for tolerance calculation</param>
+    /// <param name="OldVendLedgEntry">Original vendor ledger entry for comparison</param>
+    /// <param name="ApplnRoundingPrecision">Application rounding precision</param>
+    /// <param name="MaxPmtTolAmount">Maximum payment tolerance amount allowed</param>
+    /// <param name="IsHandled">Set to true to skip standard tolerance checking</param>
+    /// <param name="Result">Result of tolerance check operation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckPmtDiscTolVend(NewPostingdate: Date; NewDocType: Enum "Gen. Journal Document Type"; NewAmount: Decimal; OldVendLedgEntry: Record "Vendor Ledger Entry"; ApplnRoundingPrecision: Decimal; MaxPmtTolAmount: Decimal; var IsHandled: Boolean; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before deleting payment tolerance application document number.
+    /// Enables custom validation before tolerance application removal.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDelPmtTolApllnDocNo(var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before showing modal payment tolerance warning dialog.
+    /// Enables custom logic before displaying tolerance warnings to users.
+    /// </summary>
+    /// <param name="PostingDate">Posting date for tolerance validation</param>
+    /// <param name="No">Account number for tolerance processing</param>
+    /// <param name="DocNo">Document number for tolerance application</param>
+    /// <param name="CurrencyCode">Currency code for tolerance calculation</param>
+    /// <param name="Amount">Document amount for tolerance validation</param>
+    /// <param name="AppliedAmount">Applied amount for tolerance calculation</param>
+    /// <param name="AccountType">Account type (Customer or Vendor)</param>
+    /// <param name="ActionType">Action type for warning dialog</param>
+    /// <param name="IsHandled">Set to true to skip standard warning display</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRunModalPmtTolWarningCallPmtTolWarning(PostingDate: Date; No: Code[20]; DocNo: Code[20]; CurrencyCode: Code[10]; var Amount: Decimal; AppliedAmount: Decimal; AccountType: Option Customer,Vendor; var ActionType: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating customer amounts for application in tolerance scenarios.
+    /// Enables custom modification of customer application amounts.
+    /// </summary>
+    /// <param name="AppliedCustLedgerEntry">Applied customer ledger entry for amount update</param>
+    /// <param name="CustLedgerEntry">Customer ledger entry being applied</param>
+    /// <param name="AppliedCustLedgerEntryTemp">Temporary applied customer ledger entry</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcCustApplnAmountOnBeforeUpdateCustAmountsForApplication(var AppliedCustLedgerEntry: Record "Cust. Ledger Entry"; var CustLedgerEntry: Record "Cust. Ledger Entry"; var AppliedCustLedgerEntryTemp: Record "Cust. Ledger Entry" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after looping through applied customer ledger entries.
+    /// Enables custom processing after customer application amount calculations.
+    /// </summary>
+    /// <param name="AppliedCustLedgerEntry">Applied customer ledger entry processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcCustApplnAmountOnAfterAppliedCustLedgEntryLoop(var AppliedCustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating vendor amounts for application in tolerance scenarios.
+    /// Enables custom modification of vendor application amounts.
+    /// </summary>
+    /// <param name="AppliedVendorLedgerEntry">Applied vendor ledger entry for amount update</param>
+    /// <param name="VendoerLedgerEntry">Vendor ledger entry being applied</param>
+    /// <param name="AppliedVendorLedgerEntryTemp">Temporary applied vendor ledger entry</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcVendApplnAmountOnBeforeUpdateVendAmountsForApplication(var AppliedVendorLedgerEntry: Record "Vendor Ledger Entry"; var VendoerLedgerEntry: Record "Vendor Ledger Entry"; var AppliedVendorLedgerEntryTemp: Record "Vendor Ledger Entry" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after looping through applied vendor ledger entries.
+    /// Enables custom processing after vendor application amount calculations.
+    /// </summary>
+    /// <param name="AppliedVendorLedgerEntry">Applied vendor ledger entry processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcVendApplnAmountOnAfterAppliedVendLedgEntryLoop(var AppliedVendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying customer ledger entry during tolerance calculations.
+    /// Enables custom validation or modification before tolerance updates.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Customer ledger entry being modified</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcTolCustLedgEntryOnBeforeModify(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying vendor ledger entry during tolerance calculations.
+    /// Enables custom validation or modification before tolerance updates.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry being modified</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcTolVendLedgEntryOnBeforeModify(var VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised at start of customer ledger entry loop iteration during tolerance calculation.
+    /// Enables custom processing or skipping of specific customer entries.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Customer ledger entry being processed</param>
+    /// <param name="GeneralLedgerSetup">General Ledger Setup for tolerance parameters</param>
+    /// <param name="IsHandled">Set to true to skip standard processing for this entry</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcTolCustLedgEntryOnCustLedgEntryLoopIterationStart(CustLedgerEntry: Record "Cust. Ledger Entry"; GeneralLedgerSetup: Record "General Ledger Setup"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised for custom account name resolution in tolerance scenarios.
+    /// Enables custom account name determination for payment tolerance account types.
+    /// </summary>
+    /// <param name="AccountType">Payment tolerance account type</param>
+    /// <param name="AccountNo">Account number for name resolution</param>
+    /// <param name="Result">Custom account name result</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetAccountNameOnCaseElse(AccountType: Enum "Payment Tolerance Account Type"; AccountNo: Code[20]; var Result: text)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting customer entry application ID for payment tolerance.
+    /// Enables custom handling of customer application identifiers.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Customer ledger entry with application ID</param>
+    /// <param name="CustEntryApplId">Customer entry application identifier</param>
     [IntegrationEvent(false, false)]
     local procedure OnPmtTolCustOnAfterSetCustEntryApplId(var CustLedgerEntry: Record "Cust. Ledger Entry"; var CustEntryApplId: code[50])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting vendor entry application ID for payment tolerance.
+    /// Enables custom handling of vendor application identifiers.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry with application ID</param>
+    /// <param name="VendEntryApplId">Vendor entry application identifier</param>
     [IntegrationEvent(false, false)]
     local procedure OnPmtTolVendOnAfterSetVendEntryApplId(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var VendEntryApplId: code[50])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters on applied customer ledger entries for tolerance amounts.
+    /// Enables custom filter modification for customer payment tolerance calculations.
+    /// </summary>
+    /// <param name="AppliedCustLedgerEntry">Applied customer ledger entry with filters</param>
+    /// <param name="CustLedgerEntry">Original customer ledger entry for comparison</param>
     [IntegrationEvent(false, false)]
     local procedure OnPutCustPmtTolAmountOnAfterAppliedCustLedgEntrySetFilters(var AppliedCustLedgerEntry: Record "Cust. Ledger Entry"; CustLedgerEntry: Record "Cust. Ledger Entry");
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters on vendor ledger entries for tolerance amounts.
+    /// Enables custom filter modification for vendor payment tolerance calculations.
+    /// </summary>
+    /// <param name="AppliedVendorLedgerEntry">Applied vendor ledger entry with filters</param>
+    /// <param name="VendorLedgerEntry">Original vendor ledger entry for comparison</param>
     [IntegrationEvent(false, false)]
     local procedure OnPutVendPmtTolAmountOnAfterVendLedgEntrySetFilters(var AppliedVendorLedgerEntry: Record "Vendor Ledger Entry"; VendorLedgerEntry: Record "Vendor Ledger Entry");
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying customer ledger entry during grace period calculations.
+    /// Enables custom validation before grace period tolerance updates.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Customer ledger entry being modified</param>
+    /// <param name="PmtTolGracePeriode">Payment tolerance grace period formula</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcGracePeriodCVLedgEntryOnBeforeCustLedgEntryModify(var CustLedgerEntry: Record "Cust. Ledger Entry"; PmtTolGracePeriode: DateFormula);
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying vendor ledger entry during grace period calculations.
+    /// Enables custom validation before grace period tolerance updates.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry being modified</param>
+    /// <param name="PmtTolGracePeriode">Payment tolerance grace period formula</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcGracePeriodCVLedgEntryOnBeforeVendLedgEntryModify(var VendorLedgerEntry: Record "Vendor Ledger Entry"; PmtTolGracePeriode: DateFormula);
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying customer ledger entry during tolerance deletion.
+    /// Enables custom validation before removing customer tolerance entries.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Customer ledger entry being modified</param>
     [IntegrationEvent(false, false)]
     local procedure OnDelTolCustLedgEntryOnBeforeModify(var CustLedgerEntry: Record "Cust. Ledger Entry");
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying vendor ledger entry during tolerance deletion.
+    /// Enables custom validation before removing vendor tolerance entries.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry being modified</param>
     [IntegrationEvent(false, false)]
     local procedure OnDelTolVendLedgEntryOnBeforeModify(var VendorLedgerEntry: Record "Vendor Ledger Entry");
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after checking conditions for payment tolerance in general journal processing.
+    /// Enables custom post-validation logic following tolerance condition checks.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being processed</param>
+    /// <param name="SuppressCommit">Whether database commit should be suppressed</param>
+    /// <param name="Result">Result of tolerance condition checking</param>
     [IntegrationEvent(false, false)]
     local procedure OnPmtTolGenJnlOnAfterCheckConditions(GenJournalLine: Record "Gen. Journal Line"; var SuppressCommit: Boolean; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after calculating remaining amount in customer application scenarios.
+    /// Enables custom processing following customer application amount calculations.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Customer ledger entry with calculated remaining amount</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcCustApplnAmountAfterCalcRemainingAmount(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after calculating remaining amount in vendor application scenarios.
+    /// Enables custom processing following vendor application amount calculations.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry with calculated remaining amount</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcVendApplnAmountAfterCalcRemainingAmount(var VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after calculating remaining amount for customer payment discount tolerance warnings.
+    /// Enables custom processing following customer discount tolerance calculations.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Customer ledger entry with calculated remaining amount</param>
     [IntegrationEvent(false, false)]
     local procedure OnManagePaymentDiscToleranceWarningCustomerAfterCalcRemainingAmount(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after calculating remaining amount for vendor payment discount tolerance warnings.
+    /// Enables custom processing following vendor discount tolerance calculations.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry with calculated remaining amount</param>
     [IntegrationEvent(false, false)]
     local procedure OnManagePaymentDiscToleranceWarningVendorAfterCalcRemainingAmount(var VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before calculating customer application amount in payment tolerance scenarios.
+    /// Enables custom pre-processing of customer tolerance calculations.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Customer ledger entry for application amount calculation</param>
     [IntegrationEvent(false, false)]
     local procedure OnPmtTolCustBeforeCalcCustApplnAmount(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before calculating vendor application amount in payment tolerance scenarios.
+    /// Enables custom pre-processing of vendor tolerance calculations.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry for application amount calculation</param>
     [IntegrationEvent(false, false)]
     local procedure OnPmtTolVendBeforeCalcVendApplnAmount(var VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after calculating customer payment tolerance amount.
+    /// Enables custom post-processing following customer tolerance amount calculations.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Customer ledger entry with calculated tolerance amount</param>
     [IntegrationEvent(false, false)]
     local procedure OnPutCustPmtTolAmountAfterCalcAmount(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after calculating vendor payment tolerance amount.
+    /// Enables custom post-processing following vendor tolerance amount calculations.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry with calculated tolerance amount</param>
     [IntegrationEvent(false, false)]
     local procedure OnPutVendPmtTolAmountAfterCalcAmount(var VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after calculating remaining amount for customer application updates.
+    /// Enables custom processing following customer amount updates for application.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Customer ledger entry with updated amounts for application</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateCustAmountsForApplicationAfterCalcRemainingAmount(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after calculating remaining amount for vendor application updates.
+    /// Enables custom processing following vendor amount updates for application.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry with updated amounts for application</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateVendAmountsForApplicationAfterCalcRemainingAmount(var VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before showing warning for customer payment tolerance ledger entries.
+    /// Enables custom validation and modification before displaying tolerance warnings.
+    /// </summary>
+    /// <param name="CustledgEntry">Customer ledger entry for tolerance warning</param>
+    /// <param name="GLSetup">General Ledger Setup for tolerance parameters</param>
+    /// <param name="AppliedAmount">Applied amount for tolerance calculation</param>
+    /// <param name="ApplyingAmount">Applying amount for tolerance calculation</param>
+    /// <param name="AmounttoApply">Amount to apply for tolerance validation</param>
+    /// <param name="PmtDiscAmount">Payment discount amount involved</param>
+    /// <param name="MaxPmtTolAmount">Maximum payment tolerance amount allowed</param>
+    /// <param name="CustEntryApplID">Customer entry application identifier</param>
+    /// <param name="ApplnRoundingPrecision">Application rounding precision</param>
+    /// <param name="IsHandled">Set to true to skip standard warning display</param>
+    /// <param name="Result">Result of warning operation</param>
     [IntegrationEvent(false, false)]
     local procedure OnPmtTolCustLedgEntryOnBeforeWarning(var CustledgEntry: Record "Cust. Ledger Entry"; GLSetup: Record "General Ledger Setup"; var AppliedAmount: Decimal; var ApplyingAmount: Decimal; var AmounttoApply: Decimal; var PmtDiscAmount: Decimal; var MaxPmtTolAmount: Decimal; CustEntryApplID: Code[50]; var ApplnRoundingPrecision: Decimal; var IsHandled: Boolean; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before showing warning for vendor payment tolerance ledger entries.
+    /// Enables custom validation and modification before displaying vendor tolerance warnings.
+    /// </summary>
+    /// <param name="VendledgEntry">Vendor ledger entry for tolerance warning</param>
+    /// <param name="GLSetup">General Ledger Setup for tolerance parameters</param>
+    /// <param name="AppliedAmount">Applied amount for tolerance calculation</param>
+    /// <param name="ApplyingAmount">Applying amount for tolerance calculation</param>
+    /// <param name="AmounttoApply">Amount to apply for tolerance validation</param>
+    /// <param name="PmtDiscAmount">Payment discount amount involved</param>
+    /// <param name="MaxPmtTolAmount">Maximum payment tolerance amount allowed</param>
+    /// <param name="VendEntryApplID">Vendor entry application identifier</param>
+    /// <param name="ApplnRoundingPrecision">Application rounding precision</param>
+    /// <param name="IsHandled">Set to true to skip standard warning display</param>
+    /// <param name="Result">Result of warning operation</param>
     [IntegrationEvent(false, false)]
     local procedure OnPmtTolVendLedgEntryOnBeforeWarning(var VendledgEntry: Record "Vendor Ledger Entry"; GLSetup: Record "General Ledger Setup"; var AppliedAmount: Decimal; var ApplyingAmount: Decimal; var AmounttoApply: Decimal; var PmtDiscAmount: Decimal; var MaxPmtTolAmount: Decimal; VendEntryApplID: Code[50]; var ApplnRoundingPrecision: Decimal; var IsHandled: Boolean; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking customer payment tolerance scenarios.
+    /// Enables custom validation logic before standard customer tolerance checking.
+    /// </summary>
+    /// <param name="NewDocType">New document type for tolerance checking</param>
+    /// <param name="OldCustLedgEntry">Original customer ledger entry for comparison</param>
+    /// <param name="IsHandled">Set to true to skip standard tolerance checking</param>
+    /// <param name="Result">Result of tolerance check operation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckPmtTolCust(var NewDocType: Enum "Gen. Journal Document Type"; var OldCustLedgEntry: Record "Cust. Ledger Entry"; var IsHandled: Boolean; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before deleting customer payment tolerance account entries.
+    /// Enables custom validation before customer tolerance account deletion.
+    /// </summary>
+    /// <param name="CustledgEntry">Customer ledger entry for tolerance account deletion</param>
+    /// <param name="CustEntryApplID">Customer entry application identifier</param>
+    /// <param name="IsHandled">Set to true to skip standard deletion process</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDelCustPmtTolAcc2(CustledgEntry: Record "Cust. Ledger Entry"; CustEntryApplID: Code[50]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before determining customer positive filter for payment tolerance.
+    /// Enables custom logic for customer positive amount filtering.
+    /// </summary>
+    /// <param name="DocumentType">Document type for filter determination</param>
+    /// <param name="TempAmount">Temporary amount for filter calculation</param>
+    /// <param name="IsHandled">Set to true to skip standard filter logic</param>
+    /// <param name="PositiveFilter">Positive filter result</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetCustPositiveFilter(DocumentType: Enum "Gen. Journal Document Type"; TempAmount: Decimal; var IsHandled: Boolean; var PositiveFilter: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters on customer ledger entries during grace period calculations.
+    /// Enables custom filter modification for customer grace period processing.
+    /// </summary>
+    /// <param name="CustLedgEntry">Customer ledger entry with grace period filters</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcGracePeriodCVLedgEntryOnAfterCustLedgEntrySetFilters(var CustLedgEntry: Record "Cust. Ledger Entry");
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised after setting payment tolerance warning flag in customer scenarios.
+    /// Enables custom handling of payment tolerance warnings for customers.
+    /// </summary>
+    /// <param name="GLSetup">General Ledger Setup for tolerance parameters</param>
+    /// <param name="PaymentTolWarning">Payment tolerance warning flag</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnPmtTolCustOnAfterSetPaymentTolWarning(GLSetup: Record "General Ledger Setup"; var PaymentTolWarning: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised after setting payment tolerance warning flag in vendor scenarios.
+    /// Enables custom handling of payment tolerance warnings for vendors.
+    /// </summary>
+    /// <param name="GLSetup">General Ledger Setup for tolerance parameters</param>
+    /// <param name="PaymentTolWarning">Payment tolerance warning flag</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnPmtTolVendOnAfterSetPaymentTolWarning(GLSetup: Record "General Ledger Setup"; var PaymentTolWarning: Boolean)
+    begin
+    end;
+
+
+    /// <summary>
+    /// Integration event raised after setting payment tolerance warning flag in customer ledger entry processing.
+    /// Enables custom handling of payment tolerance warnings for customer ledger entries.
+    /// </summary>
+    /// <param name="GLSetup">General Ledger Setup for tolerance parameters</param>
+    /// <param name="PaymentTolWarning">Payment tolerance warning flag</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnPmtTolCustLedgEntryOnAfterSetPaymentTolWarning(GLSetup: Record "General Ledger Setup"; var PaymentTolWarning: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised after setting payment tolerance warning flag in vendor ledger entry processing.
+    /// Enables custom handling of payment tolerance warnings for vendor ledger entries.
+    /// </summary>
+    /// <param name="GLSetup">General Ledger Setup for tolerance parameters</param>
+    /// <param name="PaymentTolWarning">Payment tolerance warning flag</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnPmtTolVendLedgEntryOnAfterSetPaymentTolWarning(GLSetup: Record "General Ledger Setup"; var PaymentTolWarning: Boolean)
     begin
     end;
 }

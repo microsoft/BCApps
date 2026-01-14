@@ -512,16 +512,21 @@ page 371 "Bank Account List"
                 RunObject = Report "Receivables-Payables";
                 ToolTip = 'View a summary of the receivables and payables for the account, including customer and vendor balance due amounts.';
             }
+#if not CLEAN28
             action("Trial Balance")
             {
                 ApplicationArea = Suite;
-                Caption = 'Trial Balance';
+                Caption = 'Trial Balance (Obsolete)';
                 Image = "Report";
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Trial Balance";
                 ToolTip = 'View a detailed trial balance for the selected bank account.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report has been replaced by the report Trial Balance (Excel). This report will be removed in a future release.';
+                ObsoleteTag = '28.0';
             }
+#endif
             action("Bank Account Statements")
             {
                 ApplicationArea = Suite;

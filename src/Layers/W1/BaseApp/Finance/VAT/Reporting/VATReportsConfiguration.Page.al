@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+/// <summary>
+/// Configuration interface for VAT report types and processing codeunits.
+/// Manages codeunit assignments for suggest lines, validation, and submission processes.
+/// </summary>
 page 746 "VAT Reports Configuration"
 {
     ApplicationArea = VAT;

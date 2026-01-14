@@ -4,13 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Projects.Project.Archive;
 
-using System.Utilities;
-using Microsoft.Projects.Project.Job;
-using Microsoft.Projects.Project.Planning;
 using Microsoft.Foundation.Comment;
+using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Project.Ledger;
+using Microsoft.Projects.Project.Planning;
 using Microsoft.Projects.Project.Setup;
 using Microsoft.Sales.Document;
+using System.Utilities;
 
 codeunit 5139 "Job Archive Management"
 {
@@ -318,6 +318,97 @@ codeunit 5139 "Job Archive Management"
                     exit(1);
                 end;
         end;
+    end;
+
+    procedure RenameJobArchieve(OldJobNo: Code[20]; NewJobNo: Code[20])
+    var
+        NewJobArchive: Record "Job Archive";
+        OldJobArchive: Record "Job Archive";
+    begin
+        if OldJobNo = '' then
+            exit;
+
+        OldJobArchive.SetLoadFields("No.");
+        OldJobArchive.SetRange("No.", OldJobNo);
+        if OldJobArchive.IsEmpty() then
+            exit;
+
+        if OldJobArchive.FindSet() then
+            repeat
+                NewJobArchive.Init();
+                NewJobArchive.TransferFields(OldJobArchive);
+                NewJobArchive."No." := NewJobNo;
+                RecordLinkManagement.CopyLinks(OldJobArchive, NewJobArchive);
+                NewJobArchive.Insert();
+                RenameJobTaskArchive(OldJobNo, NewJobNo, OldJobArchive."Version No.");
+                RenameJobPlanningLineArchive(OldJobNo, NewJobNo, OldJobArchive."Version No.");
+                RenameCommentLineArchive(OldJobNo, NewJobNo, OldJobArchive."Version No.");
+            until OldJobArchive.Next() = 0;
+
+        DeleteJobArchive(OldJobNo);
+    end;
+
+    local procedure RenameJobTaskArchive(OldJobNo: Code[20]; NewJobNo: Code[20]; VersionNo: Integer)
+    var
+        NewJobTaskArchive: Record "Job Task Archive";
+        OldJobTaskArchive: Record "Job Task Archive";
+    begin
+        OldJobTaskArchive.SetLoadFields("Job No.", "Version No.");
+        OldJobTaskArchive.SetRange("Job No.", OldJobNo);
+        OldJobTaskArchive.SetRange("Version No.", VersionNo);
+        if OldJobTaskArchive.FindSet() then
+            repeat
+                NewJobTaskArchive.Init();
+                NewJobTaskArchive.TransferFields(OldJobTaskArchive);
+                NewJobTaskArchive."Job No." := NewJobNo;
+                RecordLinkManagement.CopyLinks(OldJobTaskArchive, NewJobTaskArchive);
+                NewJobTaskArchive.Insert();
+            until OldJobTaskArchive.Next() = 0;
+    end;
+
+    local procedure RenameJobPlanningLineArchive(OldJobNo: Code[20]; NewJobNo: Code[20]; VersionNo: Integer)
+    var
+        NewJobPlanningLineArchive: Record "Job Planning Line Archive";
+        OldJobPlanningLineArchive: Record "Job Planning Line Archive";
+    begin
+        OldJobPlanningLineArchive.SetLoadFields("Job No.", "Version No.");
+        OldJobPlanningLineArchive.SetRange("Job No.", OldJobNo);
+        OldJobPlanningLineArchive.SetRange("Version No.", VersionNo);
+        if OldJobPlanningLineArchive.FindSet() then
+            repeat
+                NewJobPlanningLineArchive.Init();
+                NewJobPlanningLineArchive.TransferFields(OldJobPlanningLineArchive);
+                NewJobPlanningLineArchive."Job No." := NewJobNo;
+                RecordLinkManagement.CopyLinks(OldJobPlanningLineArchive, NewJobPlanningLineArchive);
+                NewJobPlanningLineArchive.Insert();
+            until OldJobPlanningLineArchive.Next() = 0;
+    end;
+
+    local procedure RenameCommentLineArchive(OldJobNo: Code[20]; NewJobNo: Code[20]; VersionNo: Integer)
+    var
+        NewCommentLineArchive: Record "Comment Line Archive";
+        OldCommentLineArchive: Record "Comment Line Archive";
+    begin
+        OldCommentLineArchive.SetLoadFields("No.", "Version No.");
+        OldCommentLineArchive.SetRange("Table Name", OldCommentLineArchive."Table Name"::Job);
+        OldCommentLineArchive.SetRange("No.", OldJobNo);
+        OldCommentLineArchive.SetRange("Version No.", VersionNo);
+        if OldCommentLineArchive.FindSet() then
+            repeat
+                NewCommentLineArchive.Init();
+                NewCommentLineArchive.TransferFields(OldCommentLineArchive);
+                NewCommentLineArchive."No." := NewJobNo;
+                NewCommentLineArchive.Insert();
+            until OldCommentLineArchive.Next() = 0;
+    end;
+
+    local procedure DeleteJobArchive(JobNo: Code[20])
+    var
+        JobArchive: Record "Job Archive";
+    begin
+        JobArchive.SetRange("No.", JobNo);
+        if not JobArchive.IsEmpty() then
+            JobArchive.DeleteAll(true);
     end;
 
     [IntegrationEvent(false, false)]

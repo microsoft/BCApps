@@ -4,19 +4,19 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
-using Microsoft.Sales.Receivables;
-using Microsoft.Foundation.Company;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Reporting;
 using Microsoft.Sales.Customer;
-using System.Globalization;
-using System.Text;
 using Microsoft.Sales.FinanceCharge;
+using Microsoft.Sales.Receivables;
+using System.EMail;
 #if not CLEAN26
 using System.Environment.Configuration;
 #endif
+using System.Globalization;
 using System.Reflection;
-using Microsoft.Foundation.Reporting;
-using System.EMail;
+using System.Text;
 using System.Utilities;
 
 codeunit 1890 "Reminder Communication"
@@ -708,7 +708,7 @@ codeunit 1890 "Reminder Communication"
     begin
         if ReminderTerms.IsEmpty() then
             exit;
-        DefaultLanguageCode := Language.GetLanguageCode(Language.GetDefaultApplicationLanguageId());
+        DefaultLanguageCode := Language.GetUserLanguageCode();
         ReminderTerms.FindSet();
         repeat
             Clear(ReminderAttachmentText);
@@ -742,7 +742,7 @@ codeunit 1890 "Reminder Communication"
     begin
         if ReminderLevel.IsEmpty() then
             exit;
-        DefaultLanguageCode := Language.GetLanguageCode(Language.GetDefaultApplicationLanguageId());
+        DefaultLanguageCode := Language.GetUserLanguageCode();
         ReminderLevel.FindSet();
         repeat
             Clear(ReminderAttachmentText);

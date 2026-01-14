@@ -12,9 +12,6 @@ codeunit 103025 PPUtil
 
     var
         GLUtil: Codeunit GLUtil;
-#if not CLEAN25
-        CopyFromToPriceListLine: Codeunit CopyFromToPriceListLine;
-#endif
 
     [Scope('OnPrem')]
     procedure InsertPurchHeader(var PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; DocType: Enum "Purchase Document Type")
@@ -127,7 +124,6 @@ codeunit 103025 PPUtil
         ItemChargeAssgntPurch.Insert();
     end;
 
-#if CLEAN25
     procedure AllowEditingActivePrice(Allow: Boolean)
     var
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
@@ -136,35 +132,12 @@ codeunit 103025 PPUtil
         PurchasesPayablesSetup."Allow Editing Active Price" := Allow;
         PurchasesPayablesSetup.Modify();
     end;
-#endif
 
     [Scope('OnPrem')]
     procedure InsertPurchLineDisc(VendorNo: Code[20]; ItemNo: Code[20]; StartDate: Date; EndDate: Date; MinQty: Decimal; CurrencyCode: Code[10]; UOMCode: Code[20]; VarCode: Code[20]; LineDiscPct: Decimal)
     var
-#if not CLEAN25
-        PurchLineDisc: Record "Purchase Line Discount";
-#endif
         PriceListLine: Record "Price List Line";
     begin
-#if not CLEAN25
-        PurchLineDisc.Init();
-        PurchLineDisc.Validate("Vendor No.", VendorNo);
-        PurchLineDisc.Validate("Item No.", ItemNo);
-        PurchLineDisc.Validate("Starting Date", StartDate);
-        PurchLineDisc.Validate("Currency Code", CurrencyCode);
-        if VarCode <> '' then
-            PurchLineDisc.Validate("Variant Code", VarCode);
-        if UOMCode <> '' then
-            PurchLineDisc.Validate("Unit of Measure Code", UOMCode);
-        PurchLineDisc.Validate("Minimum Quantity", MinQty);
-        PurchLineDisc.Insert(true);
-        PurchLineDisc.Validate("Ending Date", EndDate);
-        PurchLineDisc.Validate("Line Discount %", LineDiscPct);
-        PurchLineDisc.Modify(true);
-
-        PurchLineDisc.SetRecFilter();
-        CopyFromToPriceListLine.CopyFrom(PurchLineDisc, PriceListLine);
-#else
         PriceListLine.Init();
         PriceListLine.Validate("Source Type", "Price Source Type"::Vendor);
         PriceListLine.Validate("Source No.", VendorNo);
@@ -181,7 +154,6 @@ codeunit 103025 PPUtil
         PriceListLine."Amount Type" := PriceListLine."Amount Type"::Discount;
         PriceListLine.Status := "Price Status"::Active;
         PriceListLine.Insert(true);
-#endif
     end;
 
     [Scope('OnPrem')]
@@ -201,28 +173,8 @@ codeunit 103025 PPUtil
     [Scope('OnPrem')]
     procedure InsertPurchPrice(VendorNo: Code[20]; ItemNo: Code[20]; StartDate: Date; EndDate: Date; MinQty: Decimal; CurrencyCode: Code[10]; UOMCode: Code[20]; VarCode: Code[20]; DirectUnitCost: Decimal)
     var
-#if not CLEAN25
-        PurchPrice: Record "Purchase Price";
-#endif
         PriceListLine: Record "Price List Line";
     begin
-#if not CLEAN25
-        PurchPrice.Init();
-        PurchPrice.Validate("Vendor No.", VendorNo);
-        PurchPrice.Validate("Item No.", ItemNo);
-        PurchPrice.Validate("Starting Date", StartDate);
-        PurchPrice.Validate("Ending Date", EndDate);
-        PurchPrice.Validate("Minimum Quantity", MinQty);
-        PurchPrice.Validate("Currency Code", CurrencyCode);
-        PurchPrice.Validate("Unit of Measure Code", UOMCode);
-        PurchPrice.Validate("Variant Code", VarCode);
-        PurchPrice.Insert(true);
-        PurchPrice.Validate("Direct Unit Cost", DirectUnitCost);
-        PurchPrice.Modify(true);
-
-        PurchPrice.SetRecFilter();
-        CopyFromToPriceListLine.CopyFrom(PurchPrice, PriceListLine);
-#else
         PriceListLine.Init();
         PriceListLine.Validate("Source Type", "Price Source Type"::Vendor);
         PriceListLine.Validate("Source No.", VendorNo);
@@ -238,7 +190,5 @@ codeunit 103025 PPUtil
         PriceListLine."Amount Type" := PriceListLine."Amount Type"::Price;
         PriceListLine.Status := "Price Status"::Active;
         PriceListLine.Insert(true);
-#endif
     end;
 }
-

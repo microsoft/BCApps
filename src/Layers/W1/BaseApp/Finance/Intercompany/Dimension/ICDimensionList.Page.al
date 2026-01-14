@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.Dimension;
 
+/// <summary>
+/// Provides a read-only list view of intercompany dimensions for selection and lookup purposes.
+/// Used as lookup page for intercompany dimension fields throughout the system.
+/// </summary>
 page 602 "IC Dimension List"
 {
     Caption = 'Intercompany Dimension List';

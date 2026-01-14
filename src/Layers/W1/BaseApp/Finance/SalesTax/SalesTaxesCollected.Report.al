@@ -8,6 +8,10 @@ using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Foundation.Company;
 using System.Utilities;
 
+/// <summary>
+/// Generates sales tax collection reports with detailed tax amounts by jurisdiction and tax group.
+/// Supports summary, normal, and detailed report formats with optional use tax inclusion.
+/// </summary>
 report 24 "Sales Taxes Collected"
 {
     DefaultLayout = RDLC;

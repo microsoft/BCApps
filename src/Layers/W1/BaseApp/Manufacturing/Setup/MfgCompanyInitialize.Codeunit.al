@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Setup;
 
-using Microsoft.Foundation.Company;
 using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.Company;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Journal;
 

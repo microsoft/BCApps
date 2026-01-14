@@ -6,8 +6,8 @@ namespace Microsoft.Service.CashFlow;
 
 using Microsoft.CashFlow.Forecast;
 using Microsoft.CashFlow.Setup;
-using Microsoft.Finance.Analysis;
 using Microsoft.CashFlow.Worksheet;
+using Microsoft.Finance.Analysis;
 using Microsoft.Foundation.Enums;
 
 codeunit 6493 "Serv. CashFlow Subscribers"

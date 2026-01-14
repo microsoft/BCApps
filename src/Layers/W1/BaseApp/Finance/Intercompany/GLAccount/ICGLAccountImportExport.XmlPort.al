@@ -6,6 +6,10 @@ namespace Microsoft.Intercompany.GLAccount;
 
 using System.Telemetry;
 
+/// <summary>
+/// XML data exchange interface for importing and exporting intercompany G/L account structures.
+/// Enables account structure exchange between companies and external systems.
+/// </summary>
 xmlport 10 "IC G/L Account Import/Export"
 {
     Caption = 'IC G/L Account Import/Export';

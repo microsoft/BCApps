@@ -5,8 +5,8 @@
 
 namespace System.IO;
 
-using System.Text;
 using System.Reflection;
+using System.Text;
 
 codeunit 1244 "Transform. Rule - Basic" implements "Transformation Rule"
 {

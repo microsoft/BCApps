@@ -27,10 +27,7 @@ codeunit 134335 "ERM Purch. Doc. Reports"
         InteractionLogEntryExistErr: Label 'Interaction Log Entry must exist.';
         UndefinedDateErr: Label 'You cannot base a date calculation on an undefined date.';
         BalanceOnCaptionTxt: Label 'Balance on %1', Comment = '%1 = Work date';
-        AgedBy: Label 'Aged by %1';
         DimensionValueTxt: Label '%1 - %2', Comment = '%1 = Dimension Code, %2 = Dimension Value Code';
-        AgingBy: Option "Due Date","Posting Date","Document Date";
-        HeadingType: Option "Date Interval","Number of Days";
         UndoReceiptMsg: Label 'Do you really want to undo the selected Receipt lines?';
         UndoPurchRetOrderMsg: Label 'Do you really want to undo the selected Return Shipment lines?';
         MustBeEqualErr: Label '%1 must be equal to %2.', Comment = '%1 = Expected Amount %2 = Actual Amount.';
@@ -202,82 +199,6 @@ codeunit 134335 "ERM Purch. Doc. Reports"
         // [THEN] 'NegOriginalAmt_VendLedgEntry' = Payment Amount LCY = "P"
         // [THEN] 'NegRemainingAmt' Payment Amount Not Allocated LCY = Payment Remaining Amount LCY
         VerifyVendorPaymentReceiptReport(DocumentNo, GenJournalLine."Document No.", GenJournalLine.Amount);
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure SummaryAgingNoOption()
-    var
-        VendorSummaryAging: Report "Vendor - Summary Aging";
-    begin
-        // Check Vendor Summary Aging Report without any option selected.
-
-        // Setup.
-        Initialize();
-
-        // Exercise: Try to Save Vendor Summary Aging without any option.
-        Clear(VendorSummaryAging);
-        VendorSummaryAging.InitializeRequest(0D, '', false);
-        asserterror VendorSummaryAging.SaveAsExcel('Test');
-
-        // Verify: Verify Error raised during save Vendor Summary Aging Report.
-        Assert.ExpectedError(UndefinedDateErr);
-    end;
-
-    [Test]
-    [HandlerFunctions('ReportHandlerVendorSummaryAging')]
-    [Scope('OnPrem')]
-    procedure SummaryAgingPostingDate()
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-    begin
-        // Check Vendor Summary Aging Report with Posting Date.
-
-        // Setup: Post Invoice Entry for Vendor on WORKDATE.
-        Initialize();
-        CreatePostGeneralJournalLine(GenJournalLine, LibraryPurchase.CreateVendorNo(), '', '0D');
-
-        // Exercise: Save Vendor Summary Aging Report with Posting Date.
-        SaveVendorSummaryAging(GenJournalLine."Account No.", GenJournalLine."Posting Date", Format(0D), false);
-
-        // Verify: Verify Saved Report Data.
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists('TotalVendAmtDueLCY', GenJournalLine.Amount);
-        LibraryReportDataset.AssertElementWithValueExists('VendBalanceDueLCY_1_', 0);
-    end;
-
-    [Test]
-    [HandlerFunctions('ReportHandlerVendorSummaryAging')]
-    [Scope('OnPrem')]
-    procedure SummaryAgingPeriodLength()
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-    begin
-        // Check Vendor Summary Aging Report with Period Length.
-
-        // Setup: Post Invoice Entry for Vendor on WORKDATE.
-        Initialize();
-        CreatePostGeneralJournalLine(GenJournalLine, LibraryPurchase.CreateVendorNo(), '', '0D');
-
-        // Save and Verify Vendor Summary Aging Report with Period Length.
-        SaveAndVerifySummaryAging(GenJournalLine, false);
-    end;
-
-    [Test]
-    [HandlerFunctions('ReportHandlerVendorSummaryAging')]
-    [Scope('OnPrem')]
-    procedure SummaryAgingCurrency()
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-    begin
-        // Check Vendor Summary Aging Report with Currency.
-
-        // Setup: Post Invoice Entry for Vendor on WORKDATE with Currency Attached.
-        Initialize();
-        CreatePostGeneralJournalLine(GenJournalLine, LibraryPurchase.CreateVendorNo(), CreateCurrencyAndExchangeRate(), '0D');
-
-        // Save and Verify Vendor Summary Aging Report with Currency.
-        SaveAndVerifySummaryAging(GenJournalLine, true);
     end;
 
     [Test]
@@ -854,146 +775,6 @@ codeunit 134335 "ERM Purch. Doc. Reports"
         Vendor.CalcFields("Pmt. Tolerance (LCY)");
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementWithValueExists('VendPaymentTolLcy_1_', Vendor."Pmt. Tolerance (LCY)");
-    end;
-
-    [Test]
-    [HandlerFunctions('ReportHandlerAgedAccountPayable')]
-    [Scope('OnPrem')]
-    procedure AgedAccountsPayableDueDate()
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-        Counter: Integer;
-        VendorNo: Code[20];
-        Amount: array[5] of Decimal;
-    begin
-        // Check Aged Accounts Payable Report with Aging By Due Date option.
-
-        // Setup: Create Vendor and Post Multiple General Journal Lines with Custom Posting Dates.
-        Initialize();
-        VendorNo := CreateAndUpdateVendor();
-        for Counter := 1 to 5 do begin
-            CreatePostGeneralJournalLine(GenJournalLine, VendorNo, '', '<-' + Format(Counter - 1) + 'M>');
-            Amount[Counter] := GenJournalLine.Amount;
-        end;
-
-        // Exercise: Save Aged Accounts Payable Report with Aging By Due Date option.
-        SaveAgedAccountsPayable(VendorNo, AgingBy::"Due Date", false, false, HeadingType::"Date Interval");
-
-        // Verify: Verify Report Data for all columns.
-        LibraryReportDataset.LoadDataSetFile();
-
-        LibraryReportDataset.AssertElementWithValueExists('SelectAgeByDuePostngDocDt', StrSubstNo(AgedBy, Format(AgingBy::"Due Date")));
-        LibraryReportDataset.AssertElementWithValueExists('GrandTotalVLE1RemAmtLCY', Amount[1]);
-        LibraryReportDataset.AssertElementWithValueExists('GrandTotalVLE2RemAmtLCY', Amount[2]);
-        LibraryReportDataset.AssertElementWithValueExists('GrandTotalVLE3RemAmtLCY', Amount[3]);
-        LibraryReportDataset.AssertElementWithValueExists('GrandTotalVLE4RemAmtLCY', Amount[4]);
-        LibraryReportDataset.AssertElementWithValueExists('GrandTotalVLE5RemAmtLCY', Amount[5]);
-    end;
-
-    [Test]
-    [HandlerFunctions('ReportHandlerAgedAccountPayable')]
-    [Scope('OnPrem')]
-    procedure AgedAccountsPayablePostingDate()
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-    begin
-        // Check Aged Accounts Payable Report with Aging By Posting Date option.
-
-        // Setup: Create and Post General Journal Lines for Vendor. Save Report with Aging By: Document Date.
-        Initialize();
-        SetupSaveAgedAccountsPayable(GenJournalLine, '', AgingBy::"Posting Date", false, false, HeadingType::"Date Interval");
-
-        // Verify: Verify Report Data.
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists('AgedVendLedgEnt2RemAmtLCY', GenJournalLine.Amount);
-        LibraryReportDataset.AssertElementWithValueExists('GrandTotalVLE2RemAmtLCY', GenJournalLine.Amount);
-        LibraryReportDataset.AssertElementWithValueExists('SelectAgeByDuePostngDocDt',
-          StrSubstNo(AgedBy, Format(AgingBy::"Posting Date")));
-    end;
-
-    [Test]
-    [HandlerFunctions('ReportHandlerAgedAccountPayable')]
-    [Scope('OnPrem')]
-    procedure AgedAccountsPayableDocDate()
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-    begin
-        // Check Aged Accounts Payable Report with Aging By Document Date option.
-
-        // Setup: Create and Post General Journal Lines for Vendor. Save Report with Aging By: Document Date.
-        Initialize();
-        SetupSaveAgedAccountsPayable(GenJournalLine, '', AgingBy::"Document Date", false, false, HeadingType::"Date Interval");
-
-        // Verify: Verify Values.
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists('AgedVendLedgEnt2RemAmtLCY', GenJournalLine.Amount);
-        LibraryReportDataset.AssertElementWithValueExists('GrandTotalVLE2RemAmtLCY', GenJournalLine.Amount);
-        LibraryReportDataset.AssertElementWithValueExists('SelectAgeByDuePostngDocDt',
-          StrSubstNo(AgedBy, Format(AgingBy::"Document Date")));
-    end;
-
-    [Test]
-    [HandlerFunctions('ReportHandlerAgedAccountPayable')]
-    [Scope('OnPrem')]
-    procedure AgedAccountsPayableAmountLCY()
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-    begin
-        // Check Aged Accounts Payable Report with Print Amounts in LCY option TRUE.
-
-        // Setup: Post Invoice with Currency for Vendor. Save Report with Print Amounts in LCY option TRUE.
-        Initialize();
-        SetupSaveAgedAccountsPayable(
-          GenJournalLine, CreateCurrencyAndExchangeRate(), AgingBy::"Due Date", true, false, HeadingType::"Date Interval");
-
-        // Verify: Verify Report Values.
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists('AgedVendLedgEnt2RemAmtLCY', GenJournalLine."Amount (LCY)");
-        LibraryReportDataset.AssertElementWithValueExists('GrandTotalVLE2RemAmtLCY', GenJournalLine."Amount (LCY)");
-    end;
-
-    [Test]
-    [HandlerFunctions('ReportHandlerAgedAccountPayable')]
-    [Scope('OnPrem')]
-    procedure AgedAccountsPayablePrintDetail()
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-    begin
-        // Check Aged Accounts Payable Report with Print Details option TRUE.
-
-        // Setup: Create Currency and Post General Journal Lines using it. Save Aged Accounts Payable Report with Print Details TRUE.
-        Initialize();
-        SetupSaveAgedAccountsPayable(
-          GenJournalLine, CreateCurrencyAndExchangeRate(), AgingBy::"Due Date", false, true, HeadingType::"Date Interval");
-
-        // Verify: Verify Report Values.
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists('AgedVendLedgEnt2RemAmt', GenJournalLine.Amount);
-        LibraryReportDataset.AssertElementWithValueExists('GrandTotalVLE2RemAmtLCY', GenJournalLine."Amount (LCY)");
-        LibraryReportDataset.AssertElementWithValueExists('TempCurrency2Code', GenJournalLine."Currency Code");
-    end;
-
-    [Test]
-    [HandlerFunctions('ReportHandlerAgedAccountPayable')]
-    [Scope('OnPrem')]
-    procedure AgedAccountsPayableHeadingType()
-    var
-        GeneralLedgerSetup: Record "General Ledger Setup";
-        GenJournalLine: Record "Gen. Journal Line";
-    begin
-        // Check Aged Accounts Payable Report with Heading Type: Number of Days option.
-
-        // Setup: Create and Post General Journal Lines for Vendor. Save Aged Accounts Payable Report with Heading Type= Number of Days.
-        Initialize();
-        GeneralLedgerSetup.Get();
-        SetupSaveAgedAccountsPayable(GenJournalLine, '', AgingBy::"Due Date", false, false, HeadingType::"Number of Days");
-
-        // Verify: Verify Values.
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists('VendLedgEntryEndingDtAmt', GenJournalLine.Amount);
-        LibraryReportDataset.AssertElementWithValueExists('VLEEndingDateRemAmtLCY', GenJournalLine.Amount);
-        LibraryReportDataset.AssertElementWithValueExists('AgedVendLedgEnt2RemAmtLCY', GenJournalLine.Amount);
-        LibraryReportDataset.AssertElementWithValueExists('CurrCode_TempVenLedgEntryLoop', GeneralLedgerSetup."LCY Code");
     end;
 
     [Test]
@@ -2501,41 +2282,6 @@ codeunit 134335 "ERM Purch. Doc. Reports"
         DetailedVendorLedgEntry.Insert();
     end;
 
-    local procedure SaveAgedAccountsPayable(No: Code[20]; AgingBy: Option; PrintAmountLCY: Boolean; PrintDetails: Boolean; HeadingType: Option)
-    var
-        Vendor: Record Vendor;
-        AgedAccountsPayable: Report "Aged Accounts Payable";
-        DatePeriod: DateFormula;
-    begin
-        // Taking Date Period 1M to generate columns with One Month difference and New Page Per Vendor option as FALSE.
-        LibraryVariableStorage.Enqueue(AgingBy);
-        LibraryVariableStorage.Enqueue(PrintAmountLCY);
-        LibraryVariableStorage.Enqueue(PrintDetails);
-        LibraryVariableStorage.Enqueue(HeadingType);
-
-        Clear(AgedAccountsPayable);
-        Vendor.SetRange("No.", No);
-        AgedAccountsPayable.SetTableView(Vendor);
-        Evaluate(DatePeriod, '<1M>');
-        AgedAccountsPayable.InitializeRequest(WorkDate(), AgingBy, DatePeriod, PrintAmountLCY, PrintDetails, HeadingType, false);
-        AgedAccountsPayable.Run();
-    end;
-
-    local procedure SaveAndVerifySummaryAging(GenJournalLine: Record "Gen. Journal Line"; AmountLCY: Boolean)
-    var
-        DatePeriod: DateFormula;
-    begin
-        // Exercise: Save Vendor Summary Aging Report with Currency.
-        Evaluate(DatePeriod, '<' + Format(LibraryRandom.RandInt(5)) + 'M>');
-        SaveVendorSummaryAging(GenJournalLine."Account No.", GenJournalLine."Posting Date", Format(DatePeriod), AmountLCY);
-
-        // Verify: Verify Saved Report Data.
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists('TotalVendAmtDueLCY', GenJournalLine."Amount (LCY)");
-        LibraryReportDataset.AssertElementWithValueExists('VendBalanceDueLCY_3_', 0);
-        LibraryReportDataset.AssertElementWithValueExists('TotalVendAmtDueLCY', GenJournalLine."Amount (LCY)");
-    end;
-
     local procedure SaveBlanketPurchaseOrder(No: Code[20]; DocumentType: Enum "Purchase Document Type"; ShowInternalInfo: Boolean; LogInteraction: Boolean)
     var
         PurchaseHeader: Record "Purchase Header";
@@ -2673,22 +2419,6 @@ codeunit 134335 "ERM Purch. Doc. Reports"
         VendorPaymentReceipt.Run();
     end;
 
-    local procedure SaveVendorSummaryAging(AccountNo: Code[20]; PostingDate: Date; DatePeriod: Text[10]; AmountLCY: Boolean)
-    var
-        Vendor: Record Vendor;
-        VendorSummaryAging: Report "Vendor - Summary Aging";
-    begin
-        LibraryVariableStorage.Enqueue(PostingDate);
-        LibraryVariableStorage.Enqueue(DatePeriod);
-        LibraryVariableStorage.Enqueue(AmountLCY);
-
-        Commit(); // Required to run report with request page.
-        Clear(VendorSummaryAging);
-        Vendor.SetRange("No.", AccountNo);
-        VendorSummaryAging.SetTableView(Vendor);
-        VendorSummaryAging.Run();
-    end;
-
     local procedure SaveVendorBalanceToDate(PurchaseHeader: Record "Purchase Header"; AmountLCY: Boolean; Unapplied: Boolean; ShowEntriesWithZeroBalance: Boolean)
     var
         Vendor: Record Vendor;
@@ -2790,15 +2520,6 @@ codeunit 134335 "ERM Purch. Doc. Reports"
 
         // Make Payment for Vendor, Apply it on Invoice and Post it.
         ApplyPaymentFromGenJournalLine(GenJournalLine, PurchaseHeader."Buy-from Vendor No.", Amount - PmtTolerance, DocumentNo);
-    end;
-
-    local procedure SetupSaveAgedAccountsPayable(var GenJournalLine: Record "Gen. Journal Line"; CurrencyCode: Code[10]; AgingBy: Option; PrintAmountLCY: Boolean; PrintDetails: Boolean; HeadingType: Option)
-    begin
-        // Setup:  Post Invoice Entry for Vendor. Take Posting Date One Month earlier than WORKDATE to generate data for Report.
-        CreatePostGeneralJournalLine(GenJournalLine, CreateAndUpdateVendor(), CurrencyCode, '<-1M>');
-
-        // Exercise: Save Aged Accounts Payable Report as per the option selected.
-        SaveAgedAccountsPayable(GenJournalLine."Account No.", AgingBy, PrintAmountLCY, PrintDetails, HeadingType);
     end;
 
     local procedure UndoPurchaseReceiptLines(No: Code[20])
@@ -3093,25 +2814,6 @@ codeunit 134335 "ERM Purch. Doc. Reports"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure ReportHandlerVendorSummaryAging(var VendorSummaryAging: TestRequestPage "Vendor - Summary Aging")
-    var
-        StartingDate: Variant;
-        AmountLCY: Variant;
-        DatePeriod: Variant;
-        DatePeriodFormula: DateFormula;
-    begin
-        LibraryVariableStorage.Dequeue(StartingDate);
-        LibraryVariableStorage.Dequeue(DatePeriod);
-        Evaluate(DatePeriodFormula, DatePeriod);
-        LibraryVariableStorage.Dequeue(AmountLCY);
-        VendorSummaryAging."PeriodStartDate[2]".SetValue(StartingDate);
-        VendorSummaryAging.PeriodLength.SetValue(DatePeriodFormula);
-        VendorSummaryAging.PrintAmountsInLCY.SetValue(AmountLCY);
-        VendorSummaryAging.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure ReportHandlerVendorOrderSummary(var VendorOrderSummary: TestRequestPage "Vendor - Order Summary")
     var
         StartingDate: Variant;
@@ -3193,26 +2895,6 @@ codeunit 134335 "ERM Purch. Doc. Reports"
     procedure ReportHandlerVendorPurchaseStatistics(var PurchaseStatistics: TestRequestPage "Purchase Statistics")
     begin
         PurchaseStatistics.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure ReportHandlerAgedAccountPayable(var AgedAccountsPayable: TestRequestPage "Aged Accounts Payable")
-    var
-        AgingBy: Variant;
-        PrintAmountLCY: Variant;
-        PrintDetails: Variant;
-        HeadingType: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(AgingBy);
-        LibraryVariableStorage.Dequeue(PrintAmountLCY);
-        LibraryVariableStorage.Dequeue(PrintDetails);
-        LibraryVariableStorage.Dequeue(HeadingType);
-        AgedAccountsPayable.AgingBy.SetValue(AgingBy);
-        AgedAccountsPayable.PrintAmountInLCY.SetValue(PrintAmountLCY);
-        AgedAccountsPayable.PrintDetails.SetValue(PrintDetails);
-        AgedAccountsPayable.HeadingType.SetValue(HeadingType);
-        AgedAccountsPayable.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
     [RequestPageHandler]

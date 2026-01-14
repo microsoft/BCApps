@@ -8,6 +8,15 @@ using Microsoft.Finance.Analysis;
 using Microsoft.Finance.GeneralLedger.Account;
 using System.Visualization;
 
+/// <summary>
+/// Handles drill-down operations from bar chart visualizations to underlying account schedule data.
+/// Processes bar chart buffer data to navigate to appropriate financial analysis pages.
+/// </summary>
+/// <remarks>
+/// Primary functionality: Bar chart drill-down processing, data extraction from chart buffer tags.
+/// Integration: Links with Bar Chart Buffer, Account Schedule system, and G/L Account analysis.
+/// Extensibility: Integration events for custom drill-down handling and filter customization.
+/// </remarks>
 codeunit 436 "Acc. Sched. BarChart DrillDown"
 {
     TableNo = "Bar Chart Buffer";
@@ -131,11 +140,25 @@ codeunit 436 "Acc. Sched. BarChart DrillDown"
 #pragma warning restore AA0074
         s: Text[50];
 
+    /// <summary>
+    /// Integration event raised after account schedule management sets G/L account row filters.
+    /// Enables additional filter customization for drill-down from bar chart data points.
+    /// </summary>
+    /// <param name="GLAcc">G/L Account record with applied row filters</param>
+    /// <param name="AccScheduleLine">Account schedule line record defining row filter criteria</param>
+    /// <param name="ColumnLayout">Column layout record providing additional filter context</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAccSchedManagementSetGLAccRowFilters(var GLAcc: Record "G/L Account"; var AccScheduleLine: Record "Acc. Schedule Line"; var ColumnLayout: Record "Column Layout")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after account schedule management sets G/L account column filters.
+    /// Enables additional filter customization for drill-down from bar chart data points.
+    /// </summary>
+    /// <param name="GLAcc">G/L Account record with applied column filters</param>
+    /// <param name="AccScheduleLine">Account schedule line record providing filter context</param>
+    /// <param name="ColumnLayout">Column layout record defining column filter criteria</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAccSchedManagementSetGLAccColumnFilters(var GLAcc: Record "G/L Account"; var AccScheduleLine: Record "Acc. Schedule Line"; var ColumnLayout: Record "Column Layout")
     begin

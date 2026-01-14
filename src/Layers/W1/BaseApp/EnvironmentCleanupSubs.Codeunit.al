@@ -3,16 +3,17 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace System.Environment;
-
+#if not CLEAN28
 using Microsoft.CRM.Outlook;
+#endif
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Integration.Dataverse;
 using Microsoft.Utilities;
+using System.Automation;
 using System.DataAdministration;
 using System.Threading;
-using System.Automation;
 
 codeunit 8912 "Environment Cleanup Subs"
 {
@@ -26,7 +27,9 @@ codeunit 8912 "Environment Cleanup Subs"
         CurrExchRateUpdateSetup: Record "Curr. Exch. Rate Update Setup";
         VATRegNoSrvConfig: Record "VAT Reg. No. Srv Config";
         ServiceConnection: Record "Service Connection";
+#if not CLEAN28
         ExchangeSync: Record "Exchange Sync";
+#endif
         JobQueueManagement: Codeunit "Job Queue Management";
         CDSIntegrationImpl: Codeunit "CDS Integration Impl.";
         nullGUID: Guid;
@@ -38,7 +41,9 @@ codeunit 8912 "Environment Cleanup Subs"
             CurrExchRateUpdateSetup.ChangeCompany(CompanyName);
             VATRegNoSrvConfig.ChangeCompany(CompanyName);
             ServiceConnection.ChangeCompany(CompanyName);
+#if not CLEAN28
             ExchangeSync.ChangeCompany(CompanyName);
+#endif
         end;
 
         OCRServiceSetup.ModifyAll("Password Key", nullGUID);
@@ -53,8 +58,9 @@ codeunit 8912 "Environment Cleanup Subs"
         CDSIntegrationImpl.CleanCDSIntegration(CompanyName);
 
         ServiceConnection.ModifyAll(Status, ServiceConnection.Status::Disabled);
+#if not CLEAN28
         ExchangeSync.ModifyAll(Enabled, false);
-
+#endif
         JobQueueManagement.SetRecurringJobsOnHold(CompanyName);
     end;
 

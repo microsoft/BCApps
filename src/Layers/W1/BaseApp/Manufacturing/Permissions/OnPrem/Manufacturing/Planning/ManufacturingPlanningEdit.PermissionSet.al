@@ -1,29 +1,29 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.Warehouse.Structure;
-using Microsoft.Manufacturing.Capacity;
-using Microsoft.Inventory.Tracking;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Calculation;
+using Microsoft.Finance.VAT.RateChange;
+using Microsoft.Finance.VAT.Reporting;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
-using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Inventory.Planning;
-using Microsoft.Manufacturing.Routing;
-using Microsoft.Manufacturing.Document;
-using Microsoft.Manufacturing.ProductionBOM;
-using Microsoft.Manufacturing.Forecast;
-using Microsoft.Purchases.Document;
 using Microsoft.Inventory.Requisition;
-using Microsoft.Sales.Document;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Forecast;
+using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Foundation.AuditCodes;
-using Microsoft.Foundation.UOM;
-using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.VAT.RateChange;
-using Microsoft.Finance.VAT.Reporting;
-using Microsoft.Finance.VAT.Calculation;
+using Microsoft.Purchases.Document;
+using Microsoft.Sales.Document;
+using Microsoft.Warehouse.Structure;
 
 permissionset 2694 "Manufacturing Planning - Edit"
 {

@@ -9,6 +9,15 @@ using System.Environment;
 using System.Integration;
 using System.Telemetry;
 
+/// <summary>
+/// Deprecated codeunit for launching retained earnings statement Excel template generation.
+/// Provides backward compatibility for Excel-based retained earnings reporting functionality.
+/// </summary>
+/// <remarks>
+/// Obsolete functionality that will be removed in future release.
+/// Generates Excel workbook template for retained earnings statement data analysis and presentation.
+/// Includes telemetry logging for usage tracking and mobile client handling.
+/// </remarks>
 codeunit 579 "Run Template Retained Earn."
 {
     ObsoleteReason = 'This report is deprecated and will be removed in a future release.';

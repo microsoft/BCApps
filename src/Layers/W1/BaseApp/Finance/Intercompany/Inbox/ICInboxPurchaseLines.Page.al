@@ -6,6 +6,10 @@ namespace Microsoft.Intercompany.Inbox;
 
 using Microsoft.Finance.Dimension;
 
+/// <summary>
+/// List part page for displaying and managing intercompany inbox purchase document lines.
+/// Provides line-level detail view for purchase transactions received from IC partners.
+/// </summary>
 page 647 "IC Inbox Purchase Lines"
 {
     Caption = 'Lines';

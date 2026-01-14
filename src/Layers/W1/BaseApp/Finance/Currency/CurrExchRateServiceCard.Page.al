@@ -13,6 +13,15 @@ using System.IO;
 using System.Reflection;
 using System.Xml;
 
+/// <summary>
+/// Provides a detailed card interface for configuring currency exchange rate service connections.
+/// Manages service setup, authentication, data exchange mappings, and automated update scheduling.
+/// </summary>
+/// <remarks>
+/// Source Table: Curr. Exch. Rate Update Setup (1650). Supports configuration of external
+/// exchange rate providers, data transformation mappings, and job queue integration
+/// for automated currency rate synchronization.
+/// </remarks>
 page 1651 "Curr. Exch. Rate Service Card"
 {
     Caption = 'Currency Exch. Rate Service';

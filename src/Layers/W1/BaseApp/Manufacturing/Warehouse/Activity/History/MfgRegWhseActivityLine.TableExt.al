@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Warehouse.Activity.History;
 
-using Microsoft.Manufacturing.Family;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Family;
 
 tableextension 99000762 "Mfg. Reg. Whse. Activity Line" extends "Registered Whse. Activity Line"
 {

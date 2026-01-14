@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Reconciliation;
 
+/// <summary>
+/// Displays detailed matching information for payment reconciliation entries.
+/// Shows match criteria and confidence levels to help users understand automatic matching results.
+/// </summary>
 page 1289 "Additional Match Details"
 {
     Caption = 'Additional Match Details';

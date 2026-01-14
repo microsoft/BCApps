@@ -6,6 +6,15 @@ namespace Microsoft.Intercompany.Outbox;
 
 using Microsoft.Intercompany.Dimension;
 
+/// <summary>
+/// Intercompany outbox journal lines interface for viewing and managing outbound general journal transactions.
+/// Provides detailed line-level view for journal transactions pending transmission to intercompany partners.
+/// </summary>
+/// <remarks>
+/// Primary data source: IC Outbox Jnl. Line. Used for journal transaction review and management before partner transmission.
+/// Navigation: Journal line list view → Transaction details and dimension information.
+/// Extensible via page extensions for additional journal line fields and custom validation logic.
+/// </remarks>
 page 612 "IC Outbox Jnl. Lines"
 {
     Caption = 'IC Outbox Jnl. Lines';

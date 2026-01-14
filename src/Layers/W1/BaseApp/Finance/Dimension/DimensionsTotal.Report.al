@@ -15,6 +15,10 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using System.Text;
 using System.Utilities;
 
+/// <summary>
+/// Generates total amounts by dimension values for financial analysis and reporting.
+/// Supports multiple data sources including G/L accounts, budgets, and cash flow forecasts with detailed dimension breakdown.
+/// </summary>
 report 27 "Dimensions - Total"
 {
     DefaultLayout = RDLC;
@@ -1482,11 +1486,21 @@ report 27 "Dimensions - Total"
                 ColumnLayoutName := ColumnLayoutNameRec.Name;
     end;
 
+    /// <summary>
+    /// Integration event raised before G/L Account filtering in the FillTempGLAccount procedure.
+    /// Enables custom G/L account filtering logic for dimension total reporting.
+    /// </summary>
+    /// <param name="GLAccount">G/L Account record that will be used for filtering</param>
     [IntegrationEvent(false, false)]
     local procedure OnFillTempGLAccountOnBeforeGLAccFind(var GLAccount: Record "G/L Account")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after dimension value filters have been set in the OnPreReport trigger.
+    /// Enables additional custom filtering of dimension values for report processing.
+    /// </summary>
+    /// <param name="DimensionValue">Dimension Value record with applied filters</param>
     [IntegrationEvent(false, false)]
     local procedure OnPreReportOnAfterDimValSetFilters(var DimensionValue: Record "Dimension Value")
     begin

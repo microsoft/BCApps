@@ -7,6 +7,10 @@ namespace Microsoft.Finance.VAT.Reporting;
 using Microsoft.Foundation.Company;
 using System.Utilities;
 
+/// <summary>
+/// Generates ECSL (European Community Sales List) report lines by analyzing VAT entries for EU transactions.
+/// Creates summarized lines by customer VAT registration number and transaction type for EU trade reporting.
+/// </summary>
 codeunit 140 "EC Sales List Suggest Lines"
 {
     TableNo = "VAT Report Header";
@@ -148,11 +152,24 @@ codeunit 140 "EC Sales List Suggest Lines"
         ECSLVATReportLine.DeleteAll();
     end;
 
+    /// <summary>
+    /// Integration event raised before adding or updating an ECSL line during line suggestion.
+    /// Allows customization of ECSL line creation logic and data population.
+    /// </summary>
+    /// <param name="EUVATEntries">Query record containing EU VAT entry data</param>
+    /// <param name="ECSLVATReportLine">ECSL report line being processed</param>
+    /// <param name="IsHandled">Set to true to skip standard processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAddOrUpdateECLLine(EUVATEntries: Query "EU VAT Entries"; var ECSLVATReportLine: Record "ECSL VAT Report Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters on EU VAT entries query during line population.
+    /// Allows additional filtering or modification of VAT entry selection criteria.
+    /// </summary>
+    /// <param name="VATReportHeader">VAT report header containing period and configuration information</param>
+    /// <param name="EUVATEntries">EU VAT entries query with filters applied</param>
     [IntegrationEvent(false, false)]
     local procedure OnPopulateVatEntryLinesOnAfterEUVATEntriesSetFilters(var VATReportHeader: Record "VAT Report Header"; var EUVATEntries: Query "EU VAT Entries")
     begin

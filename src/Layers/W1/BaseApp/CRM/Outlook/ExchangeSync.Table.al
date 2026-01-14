@@ -73,8 +73,9 @@ table 6700 "Exchange Sync"
         IsolatedStorageManagement: Codeunit "Isolated Storage Management";
 
         EncryptionIsNotActivatedQst: Label 'Data encryption is not activated. It is recommended that you encrypt data. \Do you want to open the Data Encryption Management window?';
+#if not CLEAN28
         IsDefaultProdEndpointTxt: Label 'Configured Exchange endpoint is the BC default: %1', Locked = true;
-
+#endif
     [NonDebuggable]
     [Scope('OnPrem')]
     procedure SetExchangeAccountPassword(PasswordText: Text)
@@ -95,13 +96,17 @@ table 6700 "Exchange Sync"
     procedure GetExchangeEndpoint() Endpoint: Text[250]
     var
         ExchangeWebServicesServer: Codeunit "Exchange Web Services Server";
+#if not CLEAN28
         O365SyncManagement: Codeunit "O365 Sync. Management";
+#endif
     begin
         Endpoint := "Exchange Service URI";
         if Endpoint = '' then
             Endpoint := CopyStr(ExchangeWebServicesServer.GetEndpoint(), 1, 250);
+#if not CLEAN28
 
         Session.LogMessage('0000GP0', StrSubstNo(IsDefaultProdEndpointTxt, ExchangeWebServicesServer.IsDefaultProdEndpoint(Endpoint)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', O365SyncManagement.TraceCategory());
+#endif
     end;
 
     local procedure CheckEncryption()
@@ -143,4 +148,3 @@ table 6700 "Exchange Sync"
         ActivityLog.DeleteAll();
     end;
 }
-

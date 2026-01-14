@@ -5,6 +5,15 @@
 namespace Microsoft.Finance.FinancialReports;
 using System.IO;
 
+/// <summary>
+/// List page for managing Excel templates used in financial report layouts and formatting.
+/// Provides interface for creating, importing, and configuring Excel-based financial report templates.
+/// </summary>
+/// <remarks>
+/// Enables custom Excel formatting and layout design for financial reports without developer involvement.
+/// Supports template upload, preview, and association with specific financial reports for enhanced
+/// presentation and visualization of financial data through Excel workbooks.
+/// </remarks>
 page 773 "Fin. Report Excel Templates"
 {
     ApplicationArea = Basic, Suite;
@@ -94,7 +103,7 @@ page 773 "Fin. Report Excel Templates"
                 begin
                     ExportAccSchedToExcel.SetOptions(
                         this.AccScheduleLine, this.TempFinancialReport."Financial Report Column Group", this.TempFinancialReport.UseAmountsInAddCurrency,
-                        this.TempFinancialReport.Name, this.TempFinancialReport.SheetDefinition);
+                        this.TempFinancialReport.Name, this.TempFinancialReport.DimPerspective);
                     ExportAccSchedToExcel.SetUseExistingTemplate(Rec);
                     ExportAccSchedToExcel.Run();
                 end;
@@ -145,7 +154,7 @@ page 773 "Fin. Report Excel Templates"
     begin
         ExportAccSchedToExcel.SetOptions(
             this.AccScheduleLine, this.TempFinancialReport."Financial Report Column Group", this.TempFinancialReport.UseAmountsInAddCurrency,
-            this.TempFinancialReport.Name, this.TempFinancialReport.SheetDefinition);
+            this.TempFinancialReport.Name, this.TempFinancialReport.DimPerspective);
         ExportAccSchedToExcel.SetSaveToStream(true);
         ExportAccSchedToExcel.RunModal();
         Rec.Template.CreateOutStream(OutStream);

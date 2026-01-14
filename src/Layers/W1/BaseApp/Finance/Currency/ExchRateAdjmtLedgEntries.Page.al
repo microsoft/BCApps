@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Currency;
 
+/// <summary>
+/// Provides a detailed view of exchange rate adjustment ledger entries.
+/// Displays individual adjustment transactions with account details, amounts, and audit information.
+/// </summary>
+/// <remarks>
+/// Source Table: Exch. Rate Adjmt. Ledg. Entry (186). Offers comprehensive visibility
+/// into adjustment calculations including base amounts, adjustment amounts, and
+/// currency factors used for each individual adjustment entry.
+/// </remarks>
 page 186 "Exch.Rate Adjmt. Ledg.Entries"
 {
     ApplicationArea = Basic, Suite;

@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Integration.Graph;
 
-using Microsoft.Sales.Document;
 using Microsoft.Integration.Entity;
+using Microsoft.Sales.Document;
 
 codeunit 5532 "Disable Aggregate Table Update"
 {

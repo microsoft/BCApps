@@ -20,19 +20,23 @@ table 5209 Union
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a union code.';
             NotBlank = true;
         }
         field(2; Name; Text[100])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the union.';
         }
         field(3; Address; Text[100])
         {
             Caption = 'Address';
+            ToolTip = 'Specifies the union''s address.';
         }
         field(4; "Post Code"; Code[20])
         {
             Caption = 'Post Code';
+            ToolTip = 'Specifies the postal code.';
             TableRelation = if ("Country/Region Code" = const('')) "Post Code"
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Country/Region Code"));
@@ -56,6 +60,7 @@ table 5209 Union
         field(5; City; Text[30])
         {
             Caption = 'City';
+            ToolTip = 'Specifies the city of the address.';
             TableRelation = if ("Country/Region Code" = const('')) "Post Code".City
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Country/Region Code"));
@@ -79,6 +84,7 @@ table 5209 Union
         field(6; "Phone No."; Text[30])
         {
             Caption = 'Phone No.';
+            ToolTip = 'Specifies the union''s telephone number.';
             ExtendedDatatype = PhoneNo;
         }
         field(7; "No. of Members Employed"; Integer)
@@ -86,6 +92,7 @@ table 5209 Union
             CalcFormula = count(Employee where(Status = filter(<> Terminated),
                                                 "Union Code" = field(Code)));
             Caption = 'No. of Members Employed';
+            ToolTip = 'Specifies the number of members employed.';
             Editable = false;
             FieldClass = FlowField;
         }

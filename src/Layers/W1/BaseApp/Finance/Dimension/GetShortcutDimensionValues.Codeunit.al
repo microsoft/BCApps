@@ -6,6 +6,15 @@ namespace Microsoft.Finance.Dimension;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 
+/// <summary>
+/// Codeunit for retrieving shortcut dimension values from dimension sets.
+/// Provides efficient access to global and shortcut dimension values using cached GL setup configuration.
+/// </summary>
+/// <remarks>
+/// Single instance codeunit that caches GL setup for optimal performance during dimension value retrieval.
+/// Supports both global dimensions (1-2) and all shortcut dimensions (1-8) extraction from dimension sets.
+/// Uses temporary caching to minimize database reads during repetitive dimension value access.
+/// </remarks>
 codeunit 480 "Get Shortcut Dimension Values"
 {
     SingleInstance = true;
@@ -22,6 +31,17 @@ codeunit 480 "Get Shortcut Dimension Values"
         WhenGotGLSetup: DateTime;
         GLSetupShortcutDimCode: array[8] of Code[20];
 
+    /// <summary>
+    /// Retrieves global dimension values (dimensions 1-2) from a dimension set.
+    /// Extracts dimension value codes for global dimensions configured in General Ledger Setup.
+    /// </summary>
+    /// <param name="DimSetID">Dimension set ID to extract global dimension values from</param>
+    /// <param name="ShortcutDimCode">Array to receive global dimension value codes (positions 1-2 populated)</param>
+    /// <remarks>
+    /// Only populates the first two positions of the array corresponding to global dimensions.
+    /// Uses cached GL setup configuration for optimal performance during repeated calls.
+    /// Returns empty codes for dimensions not present in the dimension set.
+    /// </remarks>
     procedure GetGlobalDimensions(DimSetID: Integer; var ShortcutDimCode: array[8] of Code[20])
     var
         i: Integer;
@@ -36,6 +56,17 @@ codeunit 480 "Get Shortcut Dimension Values"
                     ShortcutDimCode[i] := DimensionSetEntry."Dimension Value Code";
     end;
 
+    /// <summary>
+    /// Retrieves all shortcut dimension values (dimensions 1-8) from a dimension set.
+    /// Extracts dimension value codes for all shortcut dimensions configured in General Ledger Setup.
+    /// </summary>
+    /// <param name="DimSetID">Dimension set ID to extract shortcut dimension values from</param>
+    /// <param name="ShortcutDimCode">Array to receive all shortcut dimension value codes (positions 1-8)</param>
+    /// <remarks>
+    /// Populates all eight positions of the array corresponding to shortcut dimensions 1-8.
+    /// Uses temporary caching for improved performance during repetitive dimension access.
+    /// Returns empty codes for dimensions not configured or not present in the dimension set.
+    /// </remarks>
     procedure GetShortcutDimensions(DimSetID: Integer; var ShortcutDimCode: array[8] of Code[20])
     var
         i: Integer;

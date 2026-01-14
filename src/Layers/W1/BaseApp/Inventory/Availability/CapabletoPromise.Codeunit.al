@@ -8,11 +8,11 @@ using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
-using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Sales.Document;
 
 codeunit 99000886 "Capable to Promise"

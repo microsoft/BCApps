@@ -204,11 +204,6 @@ report 780 "Certificate of Supply"
             var
                 Language: Codeunit Language;
             begin
-#if not CLEAN25
-                Clear(TempServiceShipmentHeader);
-                TempServiceShipmentLine.Reset();
-                TempServiceShipmentLine.DeleteAll();
-#endif
                 Clear(TempSalesShipmentHeader);
                 TempSalesShipmentLine.Reset();
                 TempSalesShipmentLine.DeleteAll();
@@ -303,12 +298,6 @@ report 780 "Certificate of Supply"
     protected var
         TempSalesShipmentHeader: Record "Sales Shipment Header" temporary;
         TempSalesShipmentLine: Record "Sales Shipment Line" temporary;
-#if not CLEAN25
-        [Obsolete('Use report Serv. Certificate of Supply instead.', '25.0')]
-        TempServiceShipmentHeader: Record Microsoft.Service.History."Service Shipment Header" temporary;
-        [Obsolete('Use report Serv. Certificate of Supply instead.', '25.0')]
-        TempServiceShipmentLine: Record Microsoft.Service.History."Service Shipment Line" temporary;
-#endif
 
         Quantity_of_the_object_of_the_supply_Lbl: Label '(Quantity of the object of the supply)';
         Standard_commercial_description___in_the_case_of_vehicles__including_vehicle_identification_number_Lbl: Label '(Standard commercial description - in the case of vehicles, including vehicle identification number)';
@@ -364,9 +353,6 @@ report 780 "Certificate of Supply"
         TempSalesShipmentHeader."Sell-to E-Mail" := Customer."E-Mail";
 
         OnAfterSetSourceFromSalesHeader(SalesShipmentHeader, TempSalesShipmentHeader);
-#if not CLEAN25
-        OnAfterSetSourceSales(SalesShipmentHeader, TempServiceShipmentHeader);
-#endif
     end;
 
     local procedure SetSourceFromPurchaseHeader(ReturnShipmentHeader: Record "Return Shipment Header")
@@ -392,9 +378,6 @@ report 780 "Certificate of Supply"
         TempSalesShipmentHeader."Ship-to Country/Region Code" := ReturnShipmentHeader."Ship-to Country/Region Code";
 
         OnAfterSetSourceFromPurchaseHeader(ReturnShipmentHeader, TempSalesShipmentHeader);
-#if not CLEAN25
-        OnAfterSetSourcePurchase(ReturnShipmentHeader, TempServiceShipmentHeader);
-#endif
     end;
 
     local procedure IsReportInPreviewMode(): Boolean
@@ -534,58 +517,21 @@ report 780 "Certificate of Supply"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnCertificateOfSupplyOnPreDataItemOnAfterFilterForServiceShipmentHeader(var CertificateOfSupply: Record "Certificate of Supply"; var ServiceShipmentHeader: Record Microsoft.Service.History."Service Shipment Header")
-    begin
-        OnCertificateOfSupplyOnPreDataItemOnAfterFilterForServiceShipmentHeader(CertificateOfSupply, ServiceShipmentHeader);
-    end;
-
-    [Obsolete('Use report Serv. Certificate of Supply instead.', '25.0')]
-    [IntegrationEvent(true, false)]
-    local procedure OnCertificateOfSupplyOnPreDataItemOnAfterFilterForServiceShipmentHeader(var CertificateOfSupply: Record "Certificate of Supply"; var ServiceShipmentHeader: Record Microsoft.Service.History."Service Shipment Header")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(true, false)]
     local procedure OnCertificateOfSupplyOnPreDataItemOnAfterFilterForReturnShipmentHeader(var CertificateOfSupply: Record "Certificate of Supply"; var ReturnShipmentHeader: Record "Return Shipment Header")
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnAfterSetSourcePurchase(var ReturnShipmentHeader: Record "Return Shipment Header"; var TempServiceShipmentHeader: Record Microsoft.Service.History."Service Shipment Header" temporary)
-    begin
-        OnAfterSetSourcePurchase(ReturnShipmentHeader, TempServiceShipmentHeader);
-    end;
-
-    [Obsolete('Use report Serv. Certificate of Supply instead.', '25.0')]
-    [IntegrationEvent(true, false)]
-    local procedure OnAfterSetSourcePurchase(var ReturnShipmentHeader: Record "Return Shipment Header"; var TempServiceShipmentHeader: Record Microsoft.Service.History."Service Shipment Header" temporary)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(true, false)]
     local procedure OnAfterSetSourceFromPurchaseHeader(var ReturnShipmentHeader: Record "Return Shipment Header"; var TempSalesShipmentHeader: Record Microsoft.Sales.History."Sales Shipment Header" temporary)
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnAfterSetSourceSales(var SalesShipmentHeader: Record "Sales Shipment Header"; var TempServiceShipmentHeader: Record Microsoft.Service.History."Service Shipment Header" temporary)
-    begin
-        OnAfterSetSourceSales(SalesShipmentHeader, TempServiceShipmentHeader);
-    end;
-
-    [Obsolete('Use report Serv. Certificate of Supply instead.', '25.0')]
-    [IntegrationEvent(true, false)]
-    local procedure OnAfterSetSourceSales(var SalesShipmentHeader: Record "Sales Shipment Header"; var TempServiceShipmentHeader: Record Microsoft.Service.History."Service Shipment Header" temporary)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(true, false)]
     local procedure OnAfterSetSourceFromSalesHeader(var SalesShipmentHeader: Record "Sales Shipment Header"; var TempServiceShipmentHeader: Record Microsoft.Sales.History."Sales Shipment Header" temporary)
     begin
     end;
 }
-

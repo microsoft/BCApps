@@ -72,6 +72,7 @@ codeunit 30238 "Shpfy Fulfillment Orders API"
 
     internal procedure ExtractFulfillmentOrder(var ShopifyShop: Record "Shpfy Shop"; JFulfillmentOrder: JsonToken; var Cursor: Text)
     var
+        DataCapture: Record "Shpfy Data Capture";
         FulfillmentOrderHeader: Record "Shpfy FulFillment Order Header";
         Id: BigInteger;
         JNode: JsonObject;
@@ -98,6 +99,7 @@ codeunit 30238 "Shpfy Fulfillment Orders API"
             FulfillmentOrderHeader."Delivery Method Type" := ConvertToDeliveryMethodType(JsonHelper.GetValueAsText(JNode, 'deliveryMethod.methodType'));
             if not FulfillmentOrderHeader.Insert() then
                 FulfillmentOrderHeader.Modify();
+            DataCapture.Add(Database::"Shpfy FulFillment Order Header", FulfillmentOrderHeader.SystemId, JNode);
             GetFulfillmentOrderLines(ShopifyShop, FulfillmentOrderHeader);
         end;
     end;
@@ -105,6 +107,7 @@ codeunit 30238 "Shpfy Fulfillment Orders API"
     internal procedure ExtractFulfillmentOrderLines(var ShopifyShop: Record "Shpfy Shop"; var FulfillmentOrderHeader: Record "Shpfy FulFillment Order Header"; JResponse: JsonObject; var Cursor: Text): Boolean
     var
         FulfillmentOrderLine: Record "Shpfy FulFillment Order Line";
+        DataCapture: Record "Shpfy Data Capture";
         Modified: Boolean;
         Id: BigInteger;
         JFulfillmentOrderLines: JsonArray;
@@ -165,6 +168,7 @@ codeunit 30238 "Shpfy Fulfillment Orders API"
                     end;
                 end;
             end;
+            DataCapture.Add(Database::"Shpfy FulFillment Order Header", FulfillmentOrderHeader.SystemId, JFulfillmentOrderLines.AsToken());
             exit(true);
         end;
     end;

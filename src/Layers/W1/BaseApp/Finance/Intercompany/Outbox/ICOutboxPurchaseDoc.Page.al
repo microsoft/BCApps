@@ -6,6 +6,15 @@ namespace Microsoft.Intercompany.Outbox;
 
 using Microsoft.Intercompany.Dimension;
 
+/// <summary>
+/// Intercompany outbox purchase document interface for viewing and managing outbound purchase transactions.
+/// Provides detailed document view for purchase transactions pending transmission to intercompany partners.
+/// </summary>
+/// <remarks>
+/// Primary data source: IC Outbox Purchase Header. Used for transaction review and management before partner transmission.
+/// Navigation: Document header view → Related purchase lines and transaction details.
+/// Extensible via page extensions for additional purchase document fields and custom validation logic.
+/// </remarks>
 page 638 "IC Outbox Purchase Doc."
 {
     Caption = 'IC Outbox Purchase Doc.';

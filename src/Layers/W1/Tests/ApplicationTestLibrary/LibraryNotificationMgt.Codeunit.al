@@ -1,3 +1,6 @@
+/// <summary>
+/// Provides utility functions for managing and handling notifications in test scenarios.
+/// </summary>
 codeunit 132222 "Library - Notification Mgt."
 {
 

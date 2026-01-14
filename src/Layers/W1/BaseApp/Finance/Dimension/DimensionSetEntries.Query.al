@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Query providing direct access to dimension set entry data for reporting and analysis.
+/// Retrieves all dimension set entries with associated dimension and dimension value information.
+/// </summary>
+/// <remarks>
+/// Optimized for scenarios requiring full dimension set entry details including codes, names, and identifiers.
+/// Provides structured access to dimension set data without complex joins or filtering logic.
+/// Suitable for data export, reporting, and integration scenarios requiring complete dimension information.
+/// </remarks>
 query 260 "Dimension Set Entries"
 {
     Caption = 'Dimension Set Entries';

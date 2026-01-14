@@ -2,22 +2,22 @@ namespace System.Security.AccessControl;
 
 using Microsoft;
 using Microsoft.CRM.BusinessRelation;
-using Microsoft.Integration.Dataverse;
 using Microsoft.Integration.D365Sales;
+using Microsoft.Integration.Dataverse;
 using Microsoft.Inventory.BOM.Tree;
 using Microsoft.Inventory.Costing;
 using Microsoft.Sales.Analysis;
-using Microsoft.Warehouse.Availability;
 using Microsoft.Utilities;
+using Microsoft.Warehouse.Availability;
 using System.AI;
-using System.Email;
-using System.Integration;
-using System.Environment.Configuration;
 using System.DataAdministration;
-using System.Telemetry;
-using System.Environment;
-using System.Threading;
 using System.Diagnostics;
+using System.Email;
+using System.Environment;
+using System.Environment.Configuration;
+using System.Integration;
+using System.Telemetry;
+using System.Threading;
 
 permissionset 23 "Internal BaseApp Obj. - Exec"
 {

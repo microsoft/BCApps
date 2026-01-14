@@ -6,6 +6,15 @@ namespace Microsoft.Bank.Statement;
 
 using System.IO;
 
+/// <summary>
+/// Displays detailed information for bank statement lines in a read-only format.
+/// Provides comprehensive view of transaction details including imported data fields.
+/// </summary>
+/// <remarks>
+/// Source Table: Data Exch. Field (1221). Shows detailed field data from bank statement imports.
+/// Read-only interface for viewing all imported transaction fields and their values.
+/// Used for detailed analysis and troubleshooting of bank statement import data.
+/// </remarks>
 page 1221 "Bank Statement Line Details"
 {
     Caption = 'Bank Statement Line Details';

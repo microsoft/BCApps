@@ -235,12 +235,19 @@ codeunit 1100 "Cost Account Mgt"
         if IsHandled then
             exit(ShouldNotUpdate);
 
-        ShouldNotUpdate :=
-            (GLAcc."Income/Balance" <> GLAcc."Income/Balance"::"Income Statement") or
-            ((CallingTrigger = CallingTrigger::OnModify) and (Format(GLAcc) = Format(xGLAcc))) or
-            (not CostAccSetup.Get()) or
-            (CostType.Get(GLAcc."No.") and (GLAcc."Cost Type No." = '')) or
-            (not CheckAlignment(GLAcc, CallingTrigger));
+        if not ShouldNotUpdate then
+            ShouldNotUpdate :=
+                (GLAcc."Income/Balance" <> GLAcc."Income/Balance"::"Income Statement") or
+                ((CallingTrigger = CallingTrigger::OnModify) and (Format(GLAcc) = Format(xGLAcc)));
+
+        if not ShouldNotUpdate then
+            ShouldNotUpdate :=
+                not CostAccSetup.Get();
+
+        if not ShouldNotUpdate then
+            ShouldNotUpdate :=
+                (CostType.Get(GLAcc."No.") and (GLAcc."Cost Type No." = '')) or
+                (not CheckAlignment(GLAcc, CallingTrigger));
 
         OnAfterShouldNotUpdateCostTypeFromGLAcc(GLAcc, xGLAcc, CostAccSetup, CallingTrigger, ShouldNotUpdate);
     end;

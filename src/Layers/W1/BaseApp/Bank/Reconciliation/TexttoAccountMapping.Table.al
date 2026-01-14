@@ -10,6 +10,20 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 
+/// <summary>
+/// Defines automatic mapping rules that match bank statement transaction text to specific accounts.
+/// This table enables automatic posting of recurring transactions by recognizing text patterns
+/// in bank statement descriptions and applying them to predefined general ledger accounts,
+/// customers, vendors, or bank accounts. Provides high-confidence automatic matching for
+/// routine transactions such as utilities, rent, salaries, and other predictable payments.
+/// </summary>
+/// <remarks>
+/// Key features include text pattern matching, automatic debit/credit account assignment,
+/// balancing source account configuration, vendor-specific mappings, and integration with
+/// payment application workflows. Rules support exact text matching and enable automatic
+/// posting of transactions that would otherwise require manual intervention.
+/// Commonly used for bank charges, recurring payments, payroll transactions, and vendor payments.
+/// </remarks>
 table 1251 "Text-to-Account Mapping"
 {
     Caption = 'Text-to-Account Mapping';
@@ -18,10 +32,18 @@ table 1251 "Text-to-Account Mapping"
 
     fields
     {
+        /// <summary>
+        /// Sequential line number for the text-to-account mapping rule.
+        /// Provides unique identification and ordering of mapping rules.
+        /// </summary>
         field(1; "Line No."; Integer)
         {
             Caption = 'Line No.';
         }
+        /// <summary>
+        /// Text pattern to match against bank statement transaction descriptions.
+        /// When this text is found in transaction descriptions, the mapping rule is applied automatically.
+        /// </summary>
         field(2; "Mapping Text"; Text[250])
         {
             Caption = 'Mapping Text';
@@ -32,6 +54,10 @@ table 1251 "Text-to-Account Mapping"
                 "Mapping Text" := CopyStr(RecordMatchMgt.Trim("Mapping Text"), 1, 250);
             end;
         }
+        /// <summary>
+        /// General ledger account to be debited when this mapping rule is applied.
+        /// Must be a posting account that allows direct posting for transaction processing.
+        /// </summary>
         field(3; "Debit Acc. No."; Code[20])
         {
             Caption = 'Debit Acc. No.';
@@ -39,6 +65,10 @@ table 1251 "Text-to-Account Mapping"
                                                  Blocked = const(false),
                                                  "Direct Posting" = const(true));
         }
+        /// <summary>
+        /// General ledger account to be credited when this mapping rule is applied.
+        /// Must be a posting account that allows direct posting for transaction processing.
+        /// </summary>
         field(4; "Credit Acc. No."; Code[20])
         {
             Caption = 'Credit Acc. No.';
@@ -46,6 +76,10 @@ table 1251 "Text-to-Account Mapping"
                                                  Blocked = const(false),
                                                  "Direct Posting" = const(true));
         }
+        /// <summary>
+        /// Type of balancing source account for the automatic posting.
+        /// Determines the account type (G/L Account, Customer, Vendor, Bank Account) for balancing entries.
+        /// </summary>
         field(5; "Bal. Source Type"; Option)
         {
             Caption = 'Bal. Source Type';
@@ -57,6 +91,10 @@ table 1251 "Text-to-Account Mapping"
                 Validate("Bal. Source No.", '');
             end;
         }
+        /// <summary>
+        /// Account number for the balancing source account.
+        /// Specifies the specific account within the chosen source type for balancing entries.
+        /// </summary>
         field(6; "Bal. Source No."; Code[20])
         {
             Caption = 'Bal. Source No.';
@@ -69,6 +107,10 @@ table 1251 "Text-to-Account Mapping"
             else
             if ("Bal. Source Type" = const("Bank Account")) "Bank Account";
         }
+        /// <summary>
+        /// Specific vendor number for vendor-related text mappings.
+        /// Used to create vendor-specific mapping rules that apply only to transactions from this vendor.
+        /// </summary>
         field(7; "Vendor No."; Code[20])
         {
             Caption = 'Vendor No.';

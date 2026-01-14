@@ -65,16 +65,10 @@ codeunit 6455 "Serv. Sales-Post"
 
     local procedure CreateServItemOnSalesInvoice(var SalesHeader: Record "Sales Header")
     var
-#if not CLEAN25
-        SalesPost: Codeunit Microsoft.Sales.Posting."Sales-Post";
-#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
         OnBeforeCreateServItemOnSalesInvoice(SalesHeader, IsHandled);
-#if not CLEAN25
-        SalesPost.RunOnBeforeCreateServItemOnSalesInvoice(SalesHeader, IsHandled);
-#endif
         if IsHandled then
             exit;
 

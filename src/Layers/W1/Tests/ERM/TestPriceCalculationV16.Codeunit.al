@@ -5675,6 +5675,62 @@ codeunit 134159 "Test Price Calculation - V16"
         Assert.RecordIsEmpty(RequisitionLine);
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
+    procedure PurchaseLineAllowInvoiceDiscForGLAccountFromPriceList()
+    var
+        PriceListHeader: Record "Price List Header";
+        PriceListLine: Record "Price List Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        GLAccountNo: Code[20];
+        OldHandler: Enum "Price Calculation Handler";
+    begin
+        // [SCENARIO 613067] Allow Invoice Discount field on purchase line should be Yes when selecting G/L Account with price list that has Allow Invoice Discount enabled
+        Initialize();
+        PriceListLine.DeleteAll();
+
+        // [GIVEN] Default price calculation is 'V16'
+        OldHandler := LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
+
+        // [GIVEN] "Default G/L Account Quantity" is enabled in Purchases & Payables Setup
+        EnableDefaultGLAccountQuantity();
+
+        // [GIVEN] Create a new G/L account.
+        GLAccountNo := LibraryERM.CreateGLAccountWithPurchSetup();
+
+        // [GIVEN] Create Price List Header for purchase with "Allow Invoice Disc." = TRUE.
+        LibraryPriceCalculation.CreatePriceHeader(
+            PriceListHeader, PriceListHeader."Price Type"::Purchase, PriceListHeader."Source Type"::"All Vendors", '');
+        PriceListHeader.Validate("Allow Updating Defaults", true);
+        PriceListHeader.Validate("Allow Invoice Disc.", true);
+        PriceListHeader.Modify(true);
+
+        // [GIVEN] Create Price List Line for purchase with G/L Account and "Minimum Quantity" = 0
+        LibraryPriceCalculation.CreatePurchPriceLine(
+            PriceListLine, PriceListHeader.Code, "Price Source Type"::"All Vendors", '', "Price Asset Type"::"G/L Account", '');
+        PriceListLine.Validate("Direct Unit Cost", LibraryRandom.RandDec(100, 2));
+        PriceListLine.Modify(true);
+
+        // [GIVEN] Change status Active.
+        PriceListHeader.Get(PriceListHeader.Code);
+        PriceListHeader.Validate(Status, PriceListHeader.Status::Active);
+        PriceListHeader.Modify(true);
+
+        // [GIVEN] Create a Purchase Order.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, LibraryPurchase.CreateVendorNo());
+
+        // [WHEN] Create Purchase Line with Type "G/L Account", "No." = 'X' (which sets default Quantity = 1)
+        LibraryPurchase.CreatePurchaseLineSimple(PurchaseLine, PurchaseHeader);
+        PurchaseLine.Validate(Type, PurchaseLine.Type::"G/L Account");
+        PurchaseLine.Validate("No.", GLAccountNo);
+        PurchaseLine.Modify(true);
+
+        // [THEN] Purchase Line "Allow Invoice Disc." is TRUE (from price list)
+        VerifyPurchaseLineFields(PurchaseLine);
+        LibraryPriceCalculation.SetupDefaultHandler(OldHandler);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -6513,6 +6569,21 @@ codeunit 134159 "Test Price Calculation - V16"
         SalesLine.SetRange("Document No.", SalesOrdertNo);
         SalesLine.SetRange("No.", ItemNo);
         SalesLine.FindFirst();
+    end;
+
+    local procedure EnableDefaultGLAccountQuantity()
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Default G/L Account Quantity", true);
+        PurchasesPayablesSetup.Modify(true);
+    end;
+
+    local procedure VerifyPurchaseLineFields(var PurchaseLine: Record "Purchase Line")
+    begin
+        PurchaseLine.TestField("Allow Invoice Disc.", true);
+        PurchaseLine.TestField(Quantity, 1);
     end;
 
     [RequestPageHandler]

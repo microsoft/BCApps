@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Item;
 
+using Microsoft.Inventory.Item.Attribute;
 using Microsoft.Inventory.Item.Catalog;
 using System.Text;
 
@@ -68,6 +69,10 @@ page 5401 "Item Variants"
         }
         area(factboxes)
         {
+            part(ItemAttributesFactbox; "Item Attributes Factbox")
+            {
+                ApplicationArea = Basic, Suite;
+            }
             systempart(Control1900383207; Links)
             {
                 ApplicationArea = RecordLinks;
@@ -93,6 +98,9 @@ page 5401 "Item Variants"
                 {
                 }
                 actionref(Translation_Promoted; Translations)
+                {
+                }
+                actionref(Attributes_Promoted; Attributes)
                 {
                 }
             }
@@ -125,6 +133,21 @@ page 5401 "Item Variants"
                     Scope = Repeater;
                     ToolTip = 'Set up a customer''s or vendor''s own identification of the selected item variant.';
                 }
+                action(Attributes)
+                {
+                    AccessByPermission = TableData "Item Attribute" = R;
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Attributes';
+                    Image = Category;
+                    ToolTip = 'View or edit the item''s variant attributes, such as color, size, or other characteristics that help to describe the item variant.';
+
+                    trigger OnAction()
+                    begin
+                        Page.RunModal(Page::"Item Variant Attribute Editor", Rec);
+                        CurrPage.SaveRecord();
+                        CurrPage.ItemAttributesFactbox.Page.LoadItemVariantAttributesData(Rec."Item No.", Rec.Code);
+                    end;
+                }
             }
         }
     }
@@ -136,6 +159,11 @@ page 5401 "Item Variants"
     begin
         CurrPage.SetSelectionFilter(ItemVariant);
         exit(SelectionFilterManagement.GetSelectionFilterForItemVariant(ItemVariant));
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        CurrPage.ItemAttributesFactBox.Page.LoadItemVariantAttributesData(Rec."Item No.", Rec.Code);
     end;
 
     trigger OnFindRecord(Which: Text): Boolean

@@ -6,6 +6,10 @@ namespace Microsoft.Bank.Reconciliation;
 
 using Microsoft.Bank.BankAccount;
 
+/// <summary>
+/// Stores header information for posted payment reconciliations.
+/// Maintains completed reconciliation summary data for audit and reporting purposes.
+/// </summary>
 table 1295 "Posted Payment Recon. Hdr"
 {
     Caption = 'Posted Payment Recon. Hdr';
@@ -15,27 +19,42 @@ table 1295 "Posted Payment Recon. Hdr"
 
     fields
     {
+        /// <summary>
+        /// Bank account identifier for the posted reconciliation.
+        /// </summary>
         field(1; "Bank Account No."; Code[20])
         {
             Caption = 'Bank Account No.';
             NotBlank = true;
             TableRelation = "Bank Account";
         }
+        /// <summary>
+        /// Statement number for the posted reconciliation.
+        /// </summary>
         field(2; "Statement No."; Code[20])
         {
             Caption = 'Statement No.';
             NotBlank = true;
         }
+        /// <summary>
+        /// Ending balance from the bank statement.
+        /// </summary>
         field(3; "Statement Ending Balance"; Decimal)
         {
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Statement Ending Balance';
         }
+        /// <summary>
+        /// Date of the bank statement.
+        /// </summary>
         field(4; "Statement Date"; Date)
         {
             Caption = 'Statement Date';
         }
+        /// <summary>
+        /// Stored bank statement file or data.
+        /// </summary>
         field(6; "Bank Statement"; BLOB)
         {
             Caption = 'Bank Statement';
@@ -48,14 +67,23 @@ table 1295 "Posted Payment Recon. Hdr"
                                                                     "Statement No." = field("Statement No."),
                                                                     Reconciled = const(true)));
         }
+        /// <summary>
+        /// Indicates whether this posted payment reconciliation has been reversed.
+        /// </summary>
         field(11; "Is Reversed"; Boolean)
         {
             Caption = 'Is Reversed';
         }
+        /// <summary>
+        /// Specifies the G/L Register number where the posted payment reconciliation entries were recorded.
+        /// </summary>
         field(12; "G/L Register No."; Integer)
         {
             Caption = 'G/L Register No.';
         }
+        /// <summary>
+        /// Indicates whether entries were found with the associated G/L Register.
+        /// </summary>
         field(13; "Entries found with G/L Reg."; Boolean)
         {
             Caption = 'Entries found with G/L Register';

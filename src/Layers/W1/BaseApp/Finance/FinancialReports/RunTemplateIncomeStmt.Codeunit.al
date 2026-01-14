@@ -9,6 +9,15 @@ using System.Environment;
 using System.Integration;
 using System.Telemetry;
 
+/// <summary>
+/// Deprecated codeunit for launching income statement Excel template generation.
+/// Provides backward compatibility for Excel-based income statement reporting functionality.
+/// </summary>
+/// <remarks>
+/// Obsolete functionality that will be removed in future release.
+/// Generates Excel workbook template for income statement data analysis and presentation.
+/// Includes telemetry logging for usage tracking and mobile client handling.
+/// </remarks>
 codeunit 577 "Run Template Income Stmt."
 {
     ObsoleteReason = 'This report is deprecated and will be removed in a future release.';

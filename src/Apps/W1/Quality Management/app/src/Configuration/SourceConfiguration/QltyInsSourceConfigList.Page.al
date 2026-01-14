@@ -12,7 +12,7 @@ using Microsoft.QualityManagement.Configuration;
 page 20412 "Qlty. Ins. Source Config. List"
 {
     Caption = 'Quality Inspection Source Configurations';
-    CardPageID = "Qlty. Inspect. Source Config.";
+    CardPageId = "Qlty. Inspect. Source Config.";
     DeleteAllowed = false;
     Editable = false;
     InsertAllowed = false;
@@ -94,7 +94,7 @@ page 20412 "Qlty. Ins. Source Config. List"
     var
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
     begin
-        QltyAutoConfigure.EnsureAtLeastOneSourceConfiguration(false);
+        QltyAutoConfigure.EnsureAtLeastOneSourceConfigurationExist(false);
     end;
 
     trigger OnAfterGetRecord()

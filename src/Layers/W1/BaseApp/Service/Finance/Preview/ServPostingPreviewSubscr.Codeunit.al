@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Preview;
 
-using Microsoft.Service.Ledger;
 using Microsoft.Foundation.Navigate;
+using Microsoft.Service.Ledger;
 
 codeunit 6498 "Serv. Posting Preview Subscr."
 {

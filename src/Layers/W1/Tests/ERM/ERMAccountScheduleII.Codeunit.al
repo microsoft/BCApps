@@ -951,7 +951,7 @@
     end;
 
     [Test]
-    procedure ExportAccScheduleToExcelWithSheetDefinition()
+    procedure ExportAccScheduleToExcelWithDimPerspective()
     var
         AccScheduleName: Record "Acc. Schedule Name";
         AccScheduleLine: Record "Acc. Schedule Line";
@@ -960,21 +960,21 @@
         FinancialReport: Record "Financial Report";
         GenJournalLine: Record "Gen. Journal Line";
         GLAccount: Record "G/L Account";
-        SheetDefName: Record "Sheet Definition Name";
-        SheetDefLine: Record "Sheet Definition Line";
+        DimPerspectiveName: Record "Dimension Perspective Name";
+        DimPerspectiveLine: Record "Dimension Perspective Line";
         DimensionValue: array[2] of Record "Dimension Value";
         ExpectedCellValue: Decimal;
         i: Integer;
     begin
         // [FEATURE] [Excel]
-        // [SCENARIO] Financial Report export to excel must create and filter by the Sheet Definition
+        // [SCENARIO] Financial Report export to excel must create and filter by the Dimension Perspective
         Initialize();
 
-        // [GIVEN] Sheet Definition for two global dimension 1 values
-        SheetDefName.Init();
-        SheetDefName.Name := LibraryUtility.GenerateRandomCode(SheetDefName.FieldNo(Name), Database::"Sheet Definition Name");
-        SheetDefName."Sheet Type" := SheetDefName."Sheet Type"::Custom;
-        SheetDefName.Insert();
+        // [GIVEN] Dimension Perspective for two global dimension 1 values
+        DimPerspectiveName.Init();
+        DimPerspectiveName.Name := LibraryUtility.GenerateRandomCode(DimPerspectiveName.FieldNo(Name), Database::"Dimension Perspective Name");
+        DimPerspectiveName."Perspective Type" := DimPerspectiveName."Perspective Type"::Custom;
+        DimPerspectiveName.Insert();
 
         // [GIVEN] A G/L Account with transactions under each dimension value
         LibraryERM.CreateGLAccount(GLAccount);
@@ -987,22 +987,22 @@
             GenJournalLine.Modify(true);
             LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
-            SheetDefLine.Init();
-            SheetDefLine.Name := SheetDefName.Name;
-            SheetDefLine."Line No." := i * 10000;
-            SheetDefLine."Sheet Header" := DimensionValue[i].Code;
-            SheetDefLine."Dimension 1 Totaling" := DimensionValue[i].Code;
-            SheetDefLine.Insert();
+            DimPerspectiveLine.Init();
+            DimPerspectiveLine.Name := DimPerspectiveName.Name;
+            DimPerspectiveLine."Line No." := i * 10000;
+            DimPerspectiveLine."Perspective Header" := DimensionValue[i].Code;
+            DimPerspectiveLine."Dimension 1 Totaling" := DimensionValue[i].Code;
+            DimPerspectiveLine.Insert();
         end;
 
-        // [GIVEN] Financial Report using said Sheet Definition
+        // [GIVEN] Financial Report using said Dimension Perspective
         LibraryERM.CreateAccScheduleName(AccScheduleName);
         CreateAccScheduleLineWithGLAcc(AccScheduleLine, AccScheduleName.Name, GenJournalLine."Account No.", AccScheduleLine.Show::Yes);
         LibraryERM.CreateColumnLayoutName(ColumnLayoutName);
         CreateColumnLayoutLine(ColumnLayout, ColumnLayoutName.Name, ColumnLayout."Column Type"::"Net Change", '');
         FinancialReport.Get(AccScheduleLine."Schedule Name");
         FinancialReport."Financial Report Column Group" := ColumnLayout."Column Layout Name";
-        FinancialReport.SheetDefinition := SheetDefName.Name;
+        FinancialReport.DimPerspective := DimPerspectiveName.Name;
         FinancialReport.Modify();
 
         // [WHEN] The report is exported to Excel
@@ -2787,7 +2787,7 @@
     begin
         FinancialReport.Get(AccScheduleName.Name);
         ExportAccSchedToExcel.SetFileNameSilent(LibraryReportValidation.GetFileName());
-        ExportAccSchedToExcel.SetOptions(AccScheduleLine, FinancialReport."Financial Report Column Group", false, FinancialReport.Name, FinancialReport.SheetDefinition);
+        ExportAccSchedToExcel.SetOptions(AccScheduleLine, FinancialReport."Financial Report Column Group", false, FinancialReport.Name, FinancialReport.DimPerspective);
         ExportAccSchedToExcel.SetTestMode(true);
         ExportAccSchedToExcel.UseRequestPage(false);
         ExportAccSchedToExcel.Run();

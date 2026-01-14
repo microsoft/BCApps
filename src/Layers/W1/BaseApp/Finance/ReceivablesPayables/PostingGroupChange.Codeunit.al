@@ -15,11 +15,27 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.Setup;
 
+/// <summary>
+/// Implements posting group change validation and processing for customer, vendor, and employee posting groups.
+/// Handles validation logic when posting groups are modified in documents and journal lines.
+/// </summary>
+/// <remarks>
+/// Core implementation of posting group change validation ensuring data integrity and proper setup requirements.
+/// Validates posting group changes across sales headers, purchase headers, general journal lines, and finance charge memos.
+/// Integrates with substitute posting group setup to support alternative posting group configurations.
+/// Extensible through the posting group change method interface for custom validation scenarios.
+/// </remarks>
 codeunit 960 "Posting Group Change" implements "Posting Group Change Method"
 {
     var
         CannotChangePostingGroupErr: Label 'You cannot change the value %1 to %2 because %3 has not been filled in.', Comment = '%1 = old posting group; %2 = new posting group; %3 = tablecaption of Subst. Vendor/Customer Posting Group';
 
+    /// <summary>
+    /// Changes posting group with validation based on document type and substitute posting group setup.
+    /// </summary>
+    /// <param name="NewPostingGroup">New posting group code to apply</param>
+    /// <param name="OldPostingGroup">Current posting group code</param>
+    /// <param name="SourceRecordVar">Source record variant containing the posting group field</param>
     procedure ChangePostingGroup(NewPostingGroup: Code[20]; OldPostingGroup: Code[20]; SourceRecordVar: Variant)
     var
         SourceRecordRef: RecordRef;
@@ -110,6 +126,11 @@ codeunit 960 "Posting Group Change" implements "Posting Group Change Method"
             Error(CannotChangePostingGroupErr, OldPostingGroup, NewPostingGroup, AltCustomerPostingGroup.TableCaption());
     end;
 
+    /// <summary>
+    /// Checks vendor posting group substitute setup before allowing posting group change.
+    /// </summary>
+    /// <param name="NewPostingGroup">New vendor posting group code</param>
+    /// <param name="OldPostingGroup">Current vendor posting group code</param>
     procedure CheckVendorPostingGroupSubstSetup(NewPostingGroup: Code[20]; OldPostingGroup: Code[20])
     var
         AltVendorPostingGroup: Record "Alt. Vendor Posting Group";
@@ -118,6 +139,11 @@ codeunit 960 "Posting Group Change" implements "Posting Group Change Method"
             Error(CannotChangePostingGroupErr, OldPostingGroup, NewPostingGroup, AltVendorPostingGroup.TableCaption());
     end;
 
+    /// <summary>
+    /// Checks employee posting group substitute setup before allowing posting group change.
+    /// </summary>
+    /// <param name="NewPostingGroup">New employee posting group code</param>
+    /// <param name="OldPostingGroup">Current employee posting group code</param>
     procedure CheckEmployeePostingGroupSubstSetup(NewPostingGroup: Code[20]; OldPostingGroup: Code[20])
     var
         AltEmployeePostingGroup: Record "Alt. Employee Posting Group";
@@ -126,6 +152,9 @@ codeunit 960 "Posting Group Change" implements "Posting Group Change Method"
             Error(CannotChangePostingGroupErr, OldPostingGroup, NewPostingGroup, AltEmployeePostingGroup.TableCaption());
     end;
 
+    /// <summary>
+    /// Checks if sales and receivables setup allows multiple posting groups before changing customer posting groups.
+    /// </summary>
     procedure CheckAllowChangeSalesSetup()
     var
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
@@ -135,18 +164,10 @@ codeunit 960 "Posting Group Change" implements "Posting Group Change Method"
         SalesReceivablesSetup.TestField("Check Multiple Posting Groups", "Posting Group Change Method"::"Alternative Groups");
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure CheckAllowChangeServiceSetup() in codeunit "Serv. Posting Group Change"', '25.0')]
-    procedure CheckAllowChangeServiceSetup()
-    var
-        ServiceMgtSetup: Record Microsoft.Service.Setup."Service Mgt. Setup";
-    begin
-        ServiceMgtSetup.Get();
-        ServiceMgtSetup.TestField("Allow Multiple Posting Groups");
-        ServiceMgtSetup.TestField("Check Multiple Posting Groups", "Posting Group Change Method"::"Alternative Groups");
-    end;
-#endif
 
+    /// <summary>
+    /// Checks if purchases and payables setup allows multiple posting groups before changing vendor posting groups.
+    /// </summary>
     procedure CheckAllowChangePurchaseSetup()
     var
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
@@ -156,6 +177,9 @@ codeunit 960 "Posting Group Change" implements "Posting Group Change Method"
         PurchasesPayablesSetup.TestField("Check Multiple Posting Groups", "Posting Group Change Method"::"Alternative Groups");
     end;
 
+    /// <summary>
+    /// Checks if human resources setup allows multiple posting groups before changing employee posting groups.
+    /// </summary>
     procedure CheckAllowChangeHRSetup()
     var
         HumanResourcesSetup: Record "Human Resources Setup";
@@ -165,6 +189,12 @@ codeunit 960 "Posting Group Change" implements "Posting Group Change Method"
         HumanResourcesSetup.TestField("Check Multiple Posting Groups", "Posting Group Change Method"::"Alternative Groups");
     end;
 
+    /// <summary>
+    /// Checks if a customer already has the same posting group to avoid unnecessary validation.
+    /// </summary>
+    /// <param name="NewPostingGroup">New customer posting group code</param>
+    /// <param name="CustomerNo">Customer number to check</param>
+    /// <returns>True if customer already has the new posting group</returns>
     procedure HasCustomerSamePostingGroup(NewPostingGroup: Code[20]; CustomerNo: Code[20]): Boolean
     var
         Customer: Record Customer;
@@ -174,6 +204,12 @@ codeunit 960 "Posting Group Change" implements "Posting Group Change Method"
         exit(false);
     end;
 
+    /// <summary>
+    /// Checks if a vendor already has the same posting group to avoid unnecessary validation.
+    /// </summary>
+    /// <param name="NewPostingGroup">New vendor posting group code</param>
+    /// <param name="VendorNo">Vendor number to check</param>
+    /// <returns>True if vendor already has the new posting group</returns>
     procedure HasVendorSamePostingGroup(NewPostingGroup: Code[20]; VendorNo: Code[20]): Boolean
     var
         Vendor: Record Vendor;
@@ -183,6 +219,12 @@ codeunit 960 "Posting Group Change" implements "Posting Group Change Method"
         exit(false);
     end;
 
+    /// <summary>
+    /// Checks if an employee already has the same posting group to avoid unnecessary validation.
+    /// </summary>
+    /// <param name="NewPostingGroup">New employee posting group code</param>
+    /// <param name="EmployeeNo">Employee number to check</param>
+    /// <returns>True if employee already has the new posting group</returns>
     procedure HasEmployeeSamePostingGroup(NewPostingGroup: Code[20]; EmployeeNo: Code[20]): Boolean
     var
         Employee: Record Employee;
@@ -192,9 +234,14 @@ codeunit 960 "Posting Group Change" implements "Posting Group Change Method"
         exit(false);
     end;
 
+    /// <summary>
+    /// Integration event raised after changing posting group to allow custom processing.
+    /// </summary>
+    /// <param name="SourceRecordRef">Record reference of the source record with changed posting group</param>
+    /// <param name="NewPostingGroup">New posting group code that was applied</param>
+    /// <param name="OldPostingGroup">Previous posting group code</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterChangePostingGroup(SourceRecordRef: RecordRef; NewPostingGroup: Code[20]; OldPostingGroup: Code[20])
     begin
     end;
 }
-

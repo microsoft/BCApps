@@ -15,14 +15,14 @@ using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Pricing.Calculation;
+using Microsoft.Projects.Project.Ledger;
+using Microsoft.Projects.Project.Planning;
 using Microsoft.Projects.Resources.Ledger;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Sales.Pricing;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Structure;
 using System.Security.AccessControl;
-using Microsoft.Projects.Project.Planning;
-using Microsoft.Projects.Project.Ledger;
 
 table 5137 "Job Planning Line Archive"
 {

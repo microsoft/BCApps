@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Report for updating global dimension numbers in dimension set entries.
+/// Fixes inconsistent settings between global dimensions and dimension set entry configurations.
+/// </summary>
+/// <remarks>
+/// Processing-only report that delegates to Update Dim. Set Glbl. Dim. No. codeunit for the actual update logic.
+/// Used for data maintenance when global dimension configurations become inconsistent with dimension set entries.
+/// Can be scheduled to run during non-working hours due to potentially long processing time for large datasets.
+/// </remarks>
 report 482 "Update Dim. Set Glbl. Dim. No."
 {
     Caption = 'Update Global Dimension No. for Dimension Set Entries';

@@ -44,7 +44,7 @@ page 3731 "Product Video Topics"
         {
             action("Show Assisted Setup")
             {
-                ApplicationArea = Invoicing, Basic, Suite;
+                ApplicationArea = Basic, Suite;
                 Caption = 'Show Assisted Setup';
                 Tooltip = 'Get assistance with set-up.';
 
@@ -61,7 +61,7 @@ page 3731 "Product Video Topics"
         i: Integer;
     begin
         foreach i in "Video Category".Ordinals() do
-            // skip showing uncategoried videos- as this page should focus on meaningful topics for new users 
+            // skip showing uncategoried videos- as this page should focus on meaningful topics for new users
             if Format("Video Category".FromInteger(i)) <> Format("Video Category"::Uncategorized) then begin
                 Rec.Init();
                 Rec.Number := i;

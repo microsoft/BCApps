@@ -10,6 +10,14 @@ using Microsoft.Intercompany.DataExchange;
 using Microsoft.Intercompany.Setup;
 using System.Environment;
 
+/// <summary>
+/// Provides detailed view and editing capabilities for intercompany partner configuration.
+/// Manages partner communication settings, account mappings, and transaction preferences.
+/// </summary>
+/// <remarks>
+/// Primary data source: IC Partner table. Supports configuration of transfer types, customer/vendor links,
+/// and G/L account mappings for intercompany transactions. Includes dimension and bank account management.
+/// </remarks>
 page 609 "IC Partner Card"
 {
     Caption = 'Intercompany Partner';
@@ -300,6 +308,11 @@ page 609 "IC Partner Card"
         end;
     end;
 
+    /// <summary>
+    /// Integration event raised when setting inbox details caption for custom transfer types.
+    /// </summary>
+    /// <param name="ICPartner">IC Partner record being processed</param>
+    /// <param name="TransferTypeText">Transfer type text to be set</param>
     [IntegrationEvent(false, false)]
     local procedure OnSetInboxDetailsCaptionOnCaseElse(var ICPartner: Record "IC Partner"; var TransferTypeText: Text)
     begin

@@ -531,6 +531,10 @@ table 122 "Purch. Inv. Header"
             Caption = 'VAT Date';
             Editable = false;
         }
+        field(180; "Self-Billing Invoice"; Boolean)
+        {
+            Caption = 'Self-Billing Invoice';
+        }
         field(210; "Ship-to Phone No."; Text[30])
         {
             Caption = 'Ship-to Phone No.';

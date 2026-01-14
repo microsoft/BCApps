@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEAN28
 namespace Microsoft.CRM.Outlook;
 
 table 6701 "Exchange Contact"
@@ -10,6 +11,9 @@ table 6701 "Exchange Contact"
     DataClassification = CustomerContent;
     ExternalName = 'Contact';
     TableType = Exchange;
+    ObsoleteReason = 'Contact sync is now moved to assisted setup experience with new Graph based implementation.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
 
     fields
     {
@@ -118,3 +122,4 @@ table 6701 "Exchange Contact"
     }
 }
 
+#endif

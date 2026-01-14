@@ -38,7 +38,6 @@ codeunit 134982 "ERM Financial Reports"
         FileNameNotEditableErr: Label 'The FileName value on the request form should be editable';
         FileNameNotPersistedErr: Label 'The FileName value on the request form should be persisted between successive invocations of the report.';
         FilePathTxt: Label 'TestFileName';
-        BlankLinesQtyErr: Label 'Wrong blank lines quantity in dataset.';
         SourceBalanceErr: Label 'Source Currency Balance Must be 0';
         JournalLineCreatedMsg: Label 'The journal lines have successfully been created.';
         SourceCurrencyCodeErr: Label 'Source Currency Amount should not be zero after reversing and closing income statement.';
@@ -335,73 +334,6 @@ codeunit 134982 "ERM Financial Reports"
     end;
 
     [Test]
-    [HandlerFunctions('RHFixedAssetWithoutOption')]
-    [Scope('OnPrem')]
-    procedure FixedAssetWithoutOption()
-    var
-        FixedAssetDetails: Report "Fixed Asset - Details";
-    begin
-        // Verify Error on Fixed Asset Detail Report when no option is set.
-
-        // Setup.
-        Clear(FixedAssetDetails);
-
-        // Exercise: Save Fixed Asset Detail Report.
-        asserterror FixedAssetDetails.Run();
-
-        // Verify: Verify error on Fixed Asset Detail Report when no option is set.
-        Assert.ExpectedErrorCannotFind(Database::"Depreciation Book");
-    end;
-
-    [Test]
-    [HandlerFunctions('RHFixedAssetDetails')]
-    [Scope('OnPrem')]
-    procedure FixedAssetWithoutReversal()
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-    begin
-        // Verify Fixed Asset Detail Report when Print Reverse Entries option is false.
-
-        // Setup.
-        Initialize();
-        CreateAndPostFAGenJournalLine(GenJournalLine, GenJournalLine."FA Posting Type"::"Acquisition Cost");
-
-        // Exercise: Save Fixed Asset Detail Report.
-        FixedAssetDetailReport(GenJournalLine."Account No.", GenJournalLine."Depreciation Book Code", false, false);
-
-        // Verify: Verify Amount on Fixed Asset Detail Report.
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.SetRange('FA_Ledger_Entry__Document_No__', GenJournalLine."Document No.");
-        if LibraryReportDataset.GetNextRow() then
-            LibraryReportDataset.AssertCurrentRowValueEquals('FA_Ledger_Entry_Amount', GenJournalLine.Amount)
-        else
-            Error(ReportErr, GenJournalLine.FieldCaption(Amount), GenJournalLine.Amount);
-    end;
-
-    [Test]
-    [HandlerFunctions('ConfirmHandler,MessageHandler,RHFixedAssetDetails')]
-    [Scope('OnPrem')]
-    procedure FixedAssetWithReversal()
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-    begin
-        // Verify Fixed Asset Detail Report when Print Reverse Entries option is True.
-
-        // Setup.
-        Initialize();
-        CreateAndPostFAGenJournalLine(GenJournalLine, GenJournalLine."FA Posting Type"::"Acquisition Cost");
-        ReverseFALedgerEntry(GenJournalLine."Document No.");
-
-        // Exercise: Save Fixed Asset Detail Report.
-        FixedAssetDetailReport(GenJournalLine."Account No.", GenJournalLine."Depreciation Book Code", false, true);
-
-        // Verify: Verify Amounts on Fixed Asset Detail Report.
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists('FA_Ledger_Entry_Amount', GenJournalLine.Amount);
-        LibraryReportDataset.AssertElementWithValueExists('FA_Ledger_Entry_Amount', -GenJournalLine.Amount);
-    end;
-
-    [Test]
     [HandlerFunctions('RHMaintenanceDetailsWithOutOption')]
     [Scope('OnPrem')]
     procedure MaintenanceDetailWithoutOption()
@@ -596,90 +528,6 @@ codeunit 134982 "ERM Financial Reports"
         // Verify: Verify GL Register Report.
         VerifyGLRegisterReport(GenJournalLine, GLRegister."No.");
     end;
-
-    [Test]
-    [HandlerFunctions('RHTrialBalance')]
-    [Scope('OnPrem')]
-    procedure TrialBalance()
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-    begin
-        CreateAndPostGenLineAndRunTrialBalance(GenJournalLine, 0);
-
-        // Verify: Verify Trial Balance Report.
-        VerifyTrialBalanceReport(GenJournalLine);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHTrialBalance')]
-    [Scope('OnPrem')]
-    procedure TrialBalance_GLAccountWithNewPage_PageBreakGroupChangedAfterGLAcc()
-    var
-        GenJournalLine1: Record "Gen. Journal Line";
-        GenJournalLine2: Record "Gen. Journal Line";
-        GLAccount: Record "G/L Account";
-    begin
-        Initialize();
-        CreateAndPostGenLine(GenJournalLine1);
-        CreateAndPostGenLine(GenJournalLine2);
-
-        GLAccount.Get(GenJournalLine1."Account No.");
-        GLAccount.Validate("New Page", true);
-        GLAccount.Modify(true);
-
-        TrialBalanceReport(GenJournalLine1."Account No." + '|' + GenJournalLine2."Account No.");
-
-        LibraryReportDataset.LoadDataSetFile();
-        VerifyTrialBalanceReportWithPageBreakGroup(GenJournalLine1, GenJournalLine2);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHTrialBalance')]
-    [Scope('OnPrem')]
-    procedure TrialBalance_GLAccountWithBlankLines_BlankLinesExistsInDataset()
-    begin
-        VerifyTrialBalanceReportWithBlankLines(LibraryRandom.RandInt(5) + 1);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHTrialBalance')]
-    [Scope('OnPrem')]
-    procedure TrialBalance_GLAccountWithBlankLine_OnlyOneBlankLineExistsInDataset()
-    begin
-        VerifyTrialBalanceReportWithBlankLines(1);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHTrialBalance')]
-    [Scope('OnPrem')]
-    procedure TrialBalance_GLAccountWithNoBlankLines_NoBlankLinesExistsInDataset()
-    begin
-        VerifyTrialBalanceReportWithBlankLines(0);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHTrialBalanceBudget')]
-    [Scope('OnPrem')]
-    procedure TrialBalanceBudget()
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-        BudgetAtDate: Decimal;
-    begin
-        // Verify Trial Balance Budget Report.
-
-        // Setup: Create and post General Journal Line With Random values.
-        Initialize();
-        CreateAndPostGenLine(GenJournalLine);
-        BudgetAtDate := CreateGLBudgetEntry(GenJournalLine."Account No.", GenJournalLine."Posting Date");
-
-        // Exercise. Save Trial Balance Budget Report.
-        TrialBalanceBudgetReport(GenJournalLine."Account No.", GenJournalLine."Posting Date");
-
-        // Verify: Verify Trial Balance Budget Report.
-        LibraryReportDataset.LoadDataSetFile();
-        VerifyTrialBalanceBudgetReport(GenJournalLine, BudgetAtDate);
-    end;
-
 
     [Test]
     [HandlerFunctions('RHClosingTrialBalance')]
@@ -1016,56 +864,6 @@ codeunit 134982 "ERM Financial Reports"
         LibraryReportDataset.SetRange('DocumentNo_GLEntry', GenJournalLine."Document No.");
         LibraryReportDataset.GetNextRow();
         LibraryReportDataset.AssertCurrentRowValueEquals('ExtDocNo_GLEntry', GenJournalLine."External Document No.")
-    end;
-
-    [Test]
-    [HandlerFunctions('RHFixedAssetDetailsExcel')]
-    [Scope('OnPrem')]
-    procedure FixedAssetDetailsPrintHeader()
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-    begin
-        // [FEATURE] [Fixed Asset]
-        // [SCENARIO 282740] Report "Fixed Asset - Details" prints header fields when "New Page per Asset" unchecked
-
-        Initialize();
-        LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
-
-        // [GIVEN] Created Depreciation Book
-        // [GIVEN] Created Fixed Asset
-        // [GIVEN] Gen. Journal Line for Fixed Asset acquisition created and posted
-        CreateAndPostFAGenJournalLine(GenJournalLine, GenJournalLine."FA Posting Type"::"Acquisition Cost");
-
-        // [WHEN] Run Report "Fixed Asset - Details" with "New Page per Asset" unchecked
-        FixedAssetDetailReport(GenJournalLine."Account No.", GenJournalLine."Depreciation Book Code", false, false);
-
-        // [THEN] Report header fields are printed
-        ValidateFixedAssetDetailsReportHeader(GenJournalLine."Depreciation Book Code");
-    end;
-
-    [Test]
-    [HandlerFunctions('RHFixedAssetDetailsExcel')]
-    [Scope('OnPrem')]
-    procedure FixedAssetDetailsPrintHeaderNewPagePerAsset()
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-    begin
-        // [FEATURE] [Fixed Asset]
-        // [SCENARIO 282740] Report "Fixed Asset - Details" prints header fields when "New Page per Asset" checked
-
-        Initialize();
-        LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
-
-        // [GIVEN] Created Depreciation Book
-        // [GIVEN] Created Fixed Asset
-        // [GIVEN] Gen. Journal Line for Fixed Asset acquisition created and posted
-        CreateAndPostFAGenJournalLine(GenJournalLine, GenJournalLine."FA Posting Type"::"Acquisition Cost");
-
-        // [WHEN] Run Report "Fixed Asset - Details" with "New Page per Asset" checked
-        FixedAssetDetailReport(GenJournalLine."Account No.", GenJournalLine."Depreciation Book Code", true, false);
-
-        // [THEN] Report header fields are printed
-        ValidateFixedAssetDetailsReportHeader(GenJournalLine."Depreciation Book Code");
     end;
 
     [Test]
@@ -1723,23 +1521,6 @@ codeunit 134982 "ERM Financial Reports"
         until BankAccReconciliationLine.Next() = 0;
     end;
 
-    local procedure CreateAndPostGenLineAndRunTrialBalance(var GenJournalLine: Record "Gen. Journal Line"; NoOfBlankLines: Integer)
-    var
-        GLAccount: Record "G/L Account";
-    begin
-        Initialize();
-        CreateAndPostGenLine(GenJournalLine);
-
-        GLAccount.Get(GenJournalLine."Account No.");
-        GLAccount."No. of Blank Lines" := NoOfBlankLines;
-        GLAccount.Modify();
-
-        TrialBalanceReport(GenJournalLine."Account No.");
-
-        // Verify: Verify Trial Balance Report.
-        LibraryReportDataset.LoadDataSetFile();
-    end;
-
     local procedure CreateCustomer(): Code[20]
     var
         VATPostingSetup: Record "VAT Posting Setup";
@@ -2032,44 +1813,6 @@ codeunit 134982 "ERM Financial Reports"
         GLRegisterReport.Run();
     end;
 
-    local procedure TrialBalanceReport(GLAccountNoFilter: Code[250])
-    var
-        GLAccount: Record "G/L Account";
-        TrialBalance: Report "Trial Balance";
-    begin
-        Clear(TrialBalance);
-        GLAccount.SetFilter("No.", GLAccountNoFilter);
-        TrialBalance.SetTableView(GLAccount);
-        Commit();
-        TrialBalance.Run();
-    end;
-
-    local procedure TrialBalanceBudgetReport(GLAccountNo: Code[20]; PostingDate: Date)
-    var
-        GLAccount: Record "G/L Account";
-        TrialBalanceBudget: Report "Trial Balance/Budget";
-    begin
-        Clear(TrialBalanceBudget);
-        GLAccount.SetRange("No.", GLAccountNo);
-        GLAccount.SetFilter("Date Filter", '%1..%2', PostingDate, PostingDate);
-        TrialBalanceBudget.SetTableView(GLAccount);
-        Commit();
-        TrialBalanceBudget.Run();
-    end;
-
-    local procedure CreateGLBudgetEntry(GLAccountNo: Code[20]; BudgetDate: Date): Decimal
-    var
-        GLBudgetEntry: Record "G/L Budget Entry";
-        GLBudgetName: Record "G/L Budget Name";
-    begin
-        // Take Random Amount for GL Budget Entry.
-        LibraryERM.CreateGLBudgetName(GLBudgetName);
-        LibraryERM.CreateGLBudgetEntry(GLBudgetEntry, BudgetDate, GLAccountNo, GLBudgetName.Name);
-        GLBudgetEntry.Validate(Amount, LibraryRandom.RandInt(100));
-        GLBudgetEntry.Modify(true);
-        exit(GLBudgetEntry.Amount);
-    end;
-
     local procedure CreateGLAccountWithConsolidateAccount()
     var
         GLAccount: Record "G/L Account";
@@ -2104,19 +1847,6 @@ codeunit 134982 "ERM Financial Reports"
         GLEntry.SetRange("Document No.", DocumentNo);
         GLEntry.FindLast();
         exit(GLEntry."Transaction No.");
-    end;
-
-    local procedure FixedAssetDetailReport(No: Code[20]; DepreciationBookCode: Code[10]; PrintOnlyOnePerPage: Boolean; IncludeReverseEntries: Boolean)
-    var
-        FixedAsset: Record "Fixed Asset";
-        FixedAssetDetails: Report "Fixed Asset - Details";
-    begin
-        Clear(FixedAssetDetails);
-        FixedAssetDetails.InitializeRequest(DepreciationBookCode, PrintOnlyOnePerPage, IncludeReverseEntries);
-        FixedAsset.SetRange("No.", No);
-        FixedAssetDetails.SetTableView(FixedAsset);
-        Commit();
-        FixedAssetDetails.Run();
     end;
 
     local procedure FindVATEntry(var VATEntry: Record "VAT Entry"; VATRegistrationNo: Text[20])
@@ -2229,17 +1959,6 @@ codeunit 134982 "ERM Financial Reports"
         CloseIncomeStatement.InitializeRequestTest(EndDate, GenJournalLine, GLAccount, true);
         CloseIncomeStatement.UseRequestPage(CallUserRequestPage);
         CloseIncomeStatement.Run();
-    end;
-
-    local procedure ReverseFALedgerEntry(DocumentNo: Code[20])
-    var
-        FALedgerEntry: Record "FA Ledger Entry";
-        ReversalEntry: Record "Reversal Entry";
-    begin
-        FALedgerEntry.SetRange("Document No.", DocumentNo);
-        FALedgerEntry.FindFirst();
-        ReversalEntry.SetHideDialog(true);
-        ReversalEntry.ReverseTransaction(FALedgerEntry."Transaction No.");
     end;
 
     local procedure ReverseMaintenanceLedgerEntry(DocumentNo: Code[20])
@@ -2395,49 +2114,6 @@ codeunit 134982 "ERM Financial Reports"
         LibraryReportDataset.AssertCurrentRowValueEquals('Maintenance_Ledger_Entry_Amount', Amount);
     end;
 
-    local procedure VerifyTrialBalanceReport(GenJournalLine: Record "Gen. Journal Line")
-    begin
-        VerifyTrialBalanceReportField(GenJournalLine, 'G_L_Account___Net_Change_', GenJournalLine."Debit Amount");
-    end;
-
-    local procedure VerifyTrialBalanceReportWithPageBreakGroup(GenJournalLine1: Record "Gen. Journal Line"; GenJournalLine2: Record "Gen. Journal Line")
-    begin
-        VerifyTrialBalanceReportField(GenJournalLine1, 'PageGroupNo', 0);
-        VerifyTrialBalanceReportField(GenJournalLine2, 'PageGroupNo', 1);
-    end;
-
-    local procedure VerifyTrialBalanceReportField(GenJournalLine: Record "Gen. Journal Line"; DataSetField: Text; Value: Decimal)
-    begin
-        LibraryReportDataset.SetRange('G_L_Account_No_', GenJournalLine."Account No.");
-        if not LibraryReportDataset.GetNextRow() then
-            Error(RowNotFoundErr, 'G_L_Account_No_', GenJournalLine."Account No.");
-        LibraryReportDataset.AssertCurrentRowValueEquals(DataSetField, Value);
-    end;
-
-    local procedure VerifyTrialBalanceReportWithBlankLines(NoOfBlankLines: Integer)
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-        ActualRowQty: Integer;
-    begin
-        CreateAndPostGenLineAndRunTrialBalance(GenJournalLine, NoOfBlankLines);
-
-        LibraryReportDataset.SetRange('G_L_Account_No_', GenJournalLine."Account No.");
-        ActualRowQty := 0;
-        while LibraryReportDataset.GetNextRow() do
-            ActualRowQty += 1;
-
-        Assert.AreEqual(NoOfBlankLines, ActualRowQty - 1, BlankLinesQtyErr);
-    end;
-
-    local procedure VerifyTrialBalanceBudgetReport(GenJournalLine: Record "Gen. Journal Line"; BudgetAtDate: Decimal)
-    begin
-        LibraryReportDataset.SetRange('G_L_Account_No_', GenJournalLine."Account No.");
-        if not LibraryReportDataset.GetNextRow() then
-            Error(RowNotFoundErr, 'G_L_Account_No_', GenJournalLine."Account No.");
-        LibraryReportDataset.AssertCurrentRowValueEquals('G_L_Account___Net_Change_', GenJournalLine."Debit Amount");
-        LibraryReportDataset.AssertCurrentRowValueEquals('GLAcc2__Budget_at_Date_', BudgetAtDate);
-    end;
-
     local procedure VerifyDetailTrialBalanceReport(GenJournalLine: Record "Gen. Journal Line"; Amount: Text[30])
     begin
         LibraryReportDataset.SetRange('DocumentNo_GLEntry', GenJournalLine."Document No.");
@@ -2474,18 +2150,6 @@ codeunit 134982 "ERM Financial Reports"
         VATEntry.SetRange("Bill-to/Pay-to No.", CustNo);
         VATEntry.FindFirst();
         VATEntry.TestField("Internal Ref. No.", InternalRefNo);
-    end;
-
-    local procedure ValidateFixedAssetDetailsReportHeader(DepreciationBookCode: Code[10])
-    begin
-        LibraryReportValidation.OpenExcelFile();
-        LibraryReportValidation.VerifyCellValue(1, 1, 'Fixed Asset - Details');
-        LibraryReportValidation.VerifyCellValue(1, 13, Format(Today, 0, 4));
-        LibraryReportValidation.VerifyCellValue(2, 1, StrSubstNo('Depreciation Book: %1', DepreciationBookCode));
-        LibraryReportValidation.VerifyCellValue(2, 15, 'Page');
-        LibraryReportValidation.VerifyCellValue(2, 17, '1'); // verify page number visibility
-        LibraryReportValidation.VerifyCellValue(4, 1, COMPANYPROPERTY.DisplayName());
-        LibraryReportValidation.VerifyCellValue(4, 12, UserId);
     end;
 
     local procedure CreateGLAccountWithEntry(): Code[20]
@@ -2702,27 +2366,6 @@ codeunit 134982 "ERM Financial Reports"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure RHFixedAssetDetails(var FixedAssetDetails: TestRequestPage "Fixed Asset - Details")
-    begin
-        CurrentSaveValuesId := REPORT::"Fixed Asset - Details";
-        if FixedAssetDetails.Editable then;
-        FixedAssetDetails.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-        Sleep(200);
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure RHFixedAssetDetailsExcel(var FixedAssetDetails: TestRequestPage "Fixed Asset - Details")
-    begin
-        CurrentSaveValuesId := REPORT::"Fixed Asset - Details";
-        if FixedAssetDetails.Editable then;
-        FixedAssetDetails.SaveAsExcel(LibraryReportValidation.GetFileName());
-        Sleep(200);
-    end;
-
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure RHMaintenanceDetails(var MaintenanceDetails: TestRequestPage "Maintenance - Details")
     begin
         CurrentSaveValuesId := REPORT::"Maintenance - Details";
@@ -2739,36 +2382,10 @@ codeunit 134982 "ERM Financial Reports"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure RHTrialBalance(var TrialBalance: TestRequestPage "Trial Balance")
-    begin
-        CurrentSaveValuesId := REPORT::"Trial Balance";
-        TrialBalance.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure RHTrialBalanceBudget(var TrialBalanceBudget: TestRequestPage "Trial Balance/Budget")
-    begin
-        CurrentSaveValuesId := REPORT::"Trial Balance/Budget";
-        TrialBalanceBudget.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure RHReconcileCustandVendAccs(var ReconcileCustandVendAccs: TestRequestPage "Reconcile Cust. and Vend. Accs")
     begin
         CurrentSaveValuesId := REPORT::"Reconcile Cust. and Vend. Accs";
         ReconcileCustandVendAccs.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure RHFixedAssetWithoutOption(var FixedAssetDetails: TestRequestPage "Fixed Asset - Details")
-    begin
-        CurrentSaveValuesId := REPORT::"Fixed Asset - Details";
-        FixedAssetDetails.DepreciationBook.SetValue('');
-        FixedAssetDetails.IncludeReversedEntries.SetValue(false);
-        FixedAssetDetails.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName())
     end;
 
     [RequestPageHandler]

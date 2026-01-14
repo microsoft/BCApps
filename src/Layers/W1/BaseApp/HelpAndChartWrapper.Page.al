@@ -19,7 +19,7 @@ page 1392 "Help And Chart Wrapper"
         {
             field("Status Text"; StatusText)
             {
-                ApplicationArea = Invoicing, Basic, Suite;
+                ApplicationArea = Basic, Suite;
                 Caption = 'Status Text';
                 Editable = false;
                 ShowCaption = false;
@@ -29,7 +29,7 @@ page 1392 "Help And Chart Wrapper"
             }
             usercontrol(BusinessChart; BusinessChart)
             {
-                ApplicationArea = Invoicing, Basic, Suite;
+                ApplicationArea = Basic, Suite;
 
                 trigger DataPointClicked(Point: JsonObject)
                 begin
@@ -62,7 +62,7 @@ page 1392 "Help And Chart Wrapper"
         {
             action("Select Chart")
             {
-                ApplicationArea = Invoicing, Basic, Suite;
+                ApplicationArea = Basic, Suite;
                 Caption = 'Select Chart';
                 Image = SelectChart;
                 ToolTip = 'Change the chart that is displayed. You can choose from several charts that show data for different performance indicators.';
@@ -75,7 +75,7 @@ page 1392 "Help And Chart Wrapper"
             }
             action("Previous Chart")
             {
-                ApplicationArea = Invoicing, Basic, Suite;
+                ApplicationArea = Basic, Suite;
                 Caption = 'Previous Chart';
                 Image = PreviousSet;
                 ToolTip = 'View the previous chart.';
@@ -91,7 +91,7 @@ page 1392 "Help And Chart Wrapper"
             }
             action("Next Chart")
             {
-                ApplicationArea = Invoicing, Basic, Suite;
+                ApplicationArea = Basic, Suite;
                 Caption = 'Next Chart';
                 Image = NextSet;
                 ToolTip = 'View the next chart.';
@@ -111,7 +111,7 @@ page 1392 "Help And Chart Wrapper"
                 Image = Period;
                 action(Day)
                 {
-                    ApplicationArea = Invoicing, Basic, Suite;
+                    ApplicationArea = Basic, Suite;
                     Caption = 'Day';
                     Image = DueDate;
                     ToolTip = 'Each stack covers one day.';
@@ -123,7 +123,7 @@ page 1392 "Help And Chart Wrapper"
                 }
                 action(Week)
                 {
-                    ApplicationArea = Invoicing, Basic, Suite;
+                    ApplicationArea = Basic, Suite;
                     Caption = 'Week';
                     Image = DateRange;
                     ToolTip = 'Each stack except for the last stack covers one week. The last stack contains data from the start of the week until the date that is defined by the Show option.';
@@ -135,7 +135,7 @@ page 1392 "Help And Chart Wrapper"
                 }
                 action(Month)
                 {
-                    ApplicationArea = Invoicing, Basic, Suite;
+                    ApplicationArea = Basic, Suite;
                     Caption = 'Month';
                     Image = DateRange;
                     ToolTip = 'Each stack except for the last stack covers one month. The last stack contains data from the start of the month until the date that is defined by the Show option.';
@@ -147,7 +147,7 @@ page 1392 "Help And Chart Wrapper"
                 }
                 action(Quarter)
                 {
-                    ApplicationArea = Invoicing, Basic, Suite;
+                    ApplicationArea = Basic, Suite;
                     Caption = 'Quarter';
                     Image = DateRange;
                     ToolTip = 'Each stack except for the last stack covers one quarter. The last stack contains data from the start of the quarter until the date that is defined by the Show option.';
@@ -159,7 +159,7 @@ page 1392 "Help And Chart Wrapper"
                 }
                 action(Year)
                 {
-                    ApplicationArea = Invoicing, Basic, Suite;
+                    ApplicationArea = Basic, Suite;
                     Caption = 'Year';
                     Image = DateRange;
                     ToolTip = 'Each stack except for the last stack covers one year. The last stack contains data from the start of the year until the date that is defined by the Show option.';
@@ -172,7 +172,7 @@ page 1392 "Help And Chart Wrapper"
             }
             action(PreviousPeriod)
             {
-                ApplicationArea = Invoicing, Basic, Suite;
+                ApplicationArea = Basic, Suite;
                 Caption = 'Previous Period';
                 Enabled = PreviousNextActionEnabled;
                 Image = PreviousRecord;
@@ -186,7 +186,7 @@ page 1392 "Help And Chart Wrapper"
             }
             action(NextPeriod)
             {
-                ApplicationArea = Invoicing, Basic, Suite;
+                ApplicationArea = Basic, Suite;
                 Caption = 'Next Period';
                 Enabled = PreviousNextActionEnabled;
                 Image = NextRecord;
@@ -200,7 +200,7 @@ page 1392 "Help And Chart Wrapper"
             }
             action(ChartInformation)
             {
-                ApplicationArea = Invoicing, Basic, Suite;
+                ApplicationArea = Basic, Suite;
                 Caption = 'Chart Information';
                 Image = AboutNav;
                 ToolTip = 'View a description of the chart.';
@@ -280,4 +280,3 @@ page 1392 "Help And Chart Wrapper"
     begin
     end;
 }
-

@@ -7,6 +7,10 @@ namespace Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using System.Security.AccessControl;
 
+/// <summary>
+/// Stores personalized G/L account favorites for individual users.
+/// Allows users to create shortcuts to frequently accessed accounts for quick navigation and monitoring.
+/// </summary>
 table 9153 "My Account"
 {
     Caption = 'My Account';
@@ -14,6 +18,9 @@ table 9153 "My Account"
 
     fields
     {
+        /// <summary>
+        /// User identifier for the account favorite owner.
+        /// </summary>
         field(1; "User ID"; Code[50])
         {
             Caption = 'User ID';
@@ -21,6 +28,9 @@ table 9153 "My Account"
             TableRelation = User."User Name";
             ValidateTableRelation = false;
         }
+        /// <summary>
+        /// The G/L account number that the user has marked as a favorite.
+        /// </summary>
         field(2; "Account No."; Code[20])
         {
             Caption = 'Account No.';
@@ -32,12 +42,18 @@ table 9153 "My Account"
                 SetAccountFields();
             end;
         }
+        /// <summary>
+        /// The name of the G/L account, populated automatically from the account master data.
+        /// </summary>
         field(3; Name; Text[100])
         {
             Caption = 'Name';
             Editable = false;
         }
 #if not CLEANSCHEMA29
+        /// <summary>
+        /// Legacy account balance field, replaced by "Acc. Balance" to avoid modification issues.
+        /// </summary>
         field(5; "Account Balance"; Decimal)
         {
             Caption = 'Account Balance (to be removed)';
@@ -53,11 +69,17 @@ table 9153 "My Account"
 #endif
         }
 #endif
+        /// <summary>
+        /// The totaling filter from the G/L account, used for calculating balances of total-type accounts.
+        /// </summary>
         field(7; Totaling; Text[250])
         {
             Caption = 'Totaling';
             Editable = false;
         }
+        /// <summary>
+        /// Current balance of the G/L account, calculated from posted G/L entries.
+        /// </summary>
         field(10; "Acc. Balance"; Decimal)
         {
             AutoFormatExpression = '';

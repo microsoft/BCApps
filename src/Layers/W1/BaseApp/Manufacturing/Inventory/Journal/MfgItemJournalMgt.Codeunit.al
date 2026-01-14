@@ -17,12 +17,12 @@ using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Journal;
 using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.StandardCost;
 using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Manufacturing.Setup;
 using Microsoft.Pricing.PriceList;
-using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Setup;
 using Microsoft.Warehouse.Reports;
 
 codeunit 99000762 "Mfg. Item Journal Mgt."

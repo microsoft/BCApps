@@ -15,6 +15,15 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Provides comprehensive management functionality for general journal templates, batches, and line processing.
+/// Handles template selection, batch management, account validation, and journal navigation workflows.
+/// </summary>
+/// <remarks>
+/// Central management codeunit for journal operations including template selection, batch creation, and validation.
+/// Key capabilities: Template selection logic, batch management, account name lookup, and journal page navigation.
+/// Extensibility: Multiple integration events enable custom template selection logic and journal processing workflows.
+/// </remarks>
 codeunit 230 GenJnlManagement
 {
     Permissions = TableData "Gen. Journal Template" = rimd,
@@ -41,6 +50,15 @@ codeunit 230 GenJnlManagement
         Text005: Label 'Default Journal';
 #pragma warning restore AA0074
 
+    /// <summary>
+    /// Manages template selection for journal pages based on page type and recurring journal requirements.
+    /// Filters available templates and launches appropriate journal interface.
+    /// </summary>
+    /// <param name="PageID">Page identifier for the journal type being opened.</param>
+    /// <param name="PageTemplate">Template type enum that determines journal behavior.</param>
+    /// <param name="RecurringJnl">Boolean indicating if this is for recurring journal functionality.</param>
+    /// <param name="GenJnlLine">Journal line record used for context and filtering.</param>
+    /// <param name="JnlSelected">Returns true if a valid template was selected and journal opened.</param>
     procedure TemplateSelection(PageID: Integer; PageTemplate: Enum "Gen. Journal Template Type"; RecurringJnl: Boolean; var GenJnlLine: Record "Gen. Journal Line"; var JnlSelected: Boolean)
     var
         [SecurityFiltering(SecurityFilter::Filtered)]
@@ -85,6 +103,11 @@ codeunit 230 GenJnlManagement
         end;
     end;
 
+    /// <summary>
+    /// Opens journal interface directly from a batch selection, bypassing template selection.
+    /// Validates batch configuration and launches the appropriate journal page.
+    /// </summary>
+    /// <param name="GenJnlBatch">Journal batch record containing template reference and batch settings.</param>
     procedure TemplateSelectionFromBatch(var GenJnlBatch: Record "Gen. Journal Batch")
     var
         [SecurityFiltering(SecurityFilter::Filtered)]
@@ -118,6 +141,12 @@ codeunit 230 GenJnlManagement
         PAGE.Run(GenJnlTemplate."Page ID", GenJnlLine);
     end;
 
+    /// <summary>
+    /// Opens journal batch with current batch name and manages batch selection logic.
+    /// Handles batch validation and provides default batch creation when necessary.
+    /// </summary>
+    /// <param name="CurrentJnlBatchName">Current journal batch name to open or validate.</param>
+    /// <param name="GenJnlLine">Journal line record for context and template information.</param>
     procedure OpenJnl(var CurrentJnlBatchName: Code[10]; var GenJnlLine: Record "Gen. Journal Line")
     begin
         OnBeforeOpenJnl(CurrentJnlBatchName, GenJnlLine);
@@ -133,6 +162,11 @@ codeunit 230 GenJnlManagement
         GenJnlLine.FilterGroup := 0;
     end;
 
+    /// <summary>
+    /// Opens and initializes a general journal batch with template selection and validation.
+    /// Ensures proper batch setup by creating missing templates and handling batch selection logic.
+    /// </summary>
+    /// <param name="GenJnlBatch">General journal batch record to open and configure</param>
     procedure OpenJnlBatch(var GenJnlBatch: Record "Gen. Journal Batch")
     var
         [SecurityFiltering(SecurityFilter::Filtered)]
@@ -197,6 +231,13 @@ codeunit 230 GenJnlManagement
         OnAfterOpenJournalBatch(GenJnlBatch, GenJnlTemplate);
     end;
 
+    /// <summary>
+    /// Checks if the journal batch has an empty number series configuration.
+    /// Validates whether the batch requires manual document numbering or has automatic numbering configured.
+    /// </summary>
+    /// <param name="CurrentJnlBatchName">Journal batch name to check for number series configuration</param>
+    /// <param name="GenJnlLine">Journal line record providing template context for batch lookup</param>
+    /// <returns>True if the batch number series is empty, false if number series is configured</returns>
     procedure IsBatchNoSeriesEmpty(var CurrentJnlBatchName: Code[10]; var GenJnlLine: Record "Gen. Journal Line"): Boolean
     var
         GenJnlBatch: Record "Gen. Journal Batch";
@@ -229,6 +270,12 @@ codeunit 230 GenJnlManagement
         end;
     end;
 
+    /// <summary>
+    /// Validates journal batch exists and gets batch configuration for the specified batch name.
+    /// Ensures batch is properly configured before allowing journal operations.
+    /// </summary>
+    /// <param name="CurrentJnlBatchName">Journal batch name to validate and check.</param>
+    /// <param name="GenJnlLine">Journal line record for template context.</param>
     procedure CheckName(CurrentJnlBatchName: Code[10]; var GenJnlLine: Record "Gen. Journal Line")
     var
         GenJnlBatch: Record "Gen. Journal Batch";
@@ -237,6 +284,11 @@ codeunit 230 GenJnlManagement
         OnAfterCheckName(GenJnlBatch, CurrentJnlBatchName, GenJnlLine);
     end;
 
+    /// <summary>
+    /// Validates currency code exists in the currency master data.
+    /// Provides currency validation for journal line processing.
+    /// </summary>
+    /// <param name="CurrencyCode">Currency code to validate against currency table.</param>
     procedure CheckCurrencyCode(CurrencyCode: Code[10])
     var
         Currency: Record Currency;
@@ -244,6 +296,12 @@ codeunit 230 GenJnlManagement
         Currency.Get(CurrencyCode);
     end;
 
+    /// <summary>
+    /// Sets journal batch filter on journal lines and positions to first record.
+    /// Configures journal line record for batch-specific operations.
+    /// </summary>
+    /// <param name="CurrentJnlBatchName">Journal batch name to filter on.</param>
+    /// <param name="GenJnlLine">Journal line record to configure with batch filter.</param>
     procedure SetName(CurrentJnlBatchName: Code[10]; var GenJnlLine: Record "Gen. Journal Line")
     begin
         GenJnlLine.FilterGroup := 2;
@@ -253,6 +311,12 @@ codeunit 230 GenJnlManagement
         if GenJnlLine.Find('-') then;
     end;
 
+    /// <summary>
+    /// Configures journal page display mode preference for the current user.
+    /// Stores user preference for simple or classic view mode in journal pages.
+    /// </summary>
+    /// <param name="SetToSimpleMode">True to set simple mode, false for classic mode.</param>
+    /// <param name="PageIdToSet">Page identifier to set the preference for.</param>
     procedure SetJournalSimplePageModePreference(SetToSimpleMode: Boolean; PageIdToSet: Integer)
     var
         JournalUserPreferences: Record "Journal User Preferences";
@@ -281,6 +345,12 @@ codeunit 230 GenJnlManagement
         end;
     end;
 
+    /// <summary>
+    /// Retrieves journal page display mode preference for the current user.
+    /// Returns user preference for simple or classic view mode in journal pages.
+    /// </summary>
+    /// <param name="PageIdToCheck">Page identifier to check preference for.</param>
+    /// <returns>True if simple mode is preferred, false for classic mode or if no preference set.</returns>
     procedure GetJournalSimplePageModePreference(PageIdToCheck: Integer): Boolean
     var
         JournalUserPreferences: Record "Journal User Preferences";
@@ -296,6 +366,12 @@ codeunit 230 GenJnlManagement
         exit(false);
     end;
 
+    /// <summary>
+    /// Retrieves the last viewed journal batch name for a specific page from user preferences.
+    /// Returns stored user preference for batch selection when reopening journal pages.
+    /// </summary>
+    /// <param name="PageIdToCheck">Page identifier to retrieve batch preference for.</param>
+    /// <returns>Last viewed journal batch name for the page, or empty string if no preference stored.</returns>
     procedure GetLastViewedJournalBatchName(PageIdToCheck: Integer): Code[10]
     var
         JournalUserPreferences: Record "Journal User Preferences";
@@ -308,6 +384,12 @@ codeunit 230 GenJnlManagement
         exit('');
     end;
 
+    /// <summary>
+    /// Stores the last viewed journal batch name for a specific page in user preferences.
+    /// Updates user preference for batch selection to improve user experience on page reopening.
+    /// </summary>
+    /// <param name="PageIdToCheck">Page identifier to set batch preference for.</param>
+    /// <param name="GenJnlBatch">Journal batch name to store as last viewed preference.</param>
     procedure SetLastViewedJournalBatchName(PageIdToCheck: Integer; GenJnlBatch: Code[10])
     var
         JournalUserPreferences: Record "Journal User Preferences";
@@ -321,6 +403,12 @@ codeunit 230 GenJnlManagement
         end;
     end;
 
+    /// <summary>
+    /// Provides journal batch lookup functionality with filtering and selection capabilities.
+    /// Opens batch selection page and updates current batch name based on user selection.
+    /// </summary>
+    /// <param name="CurrentJnlBatchName">Current journal batch name that will be updated with selection.</param>
+    /// <param name="GenJnlLine">Journal line record providing template context for batch filtering.</param>
     procedure LookupName(var CurrentJnlBatchName: Code[10]; var GenJnlLine: Record "Gen. Journal Line")
     var
         GenJnlBatch: Record "Gen. Journal Batch";
@@ -338,6 +426,11 @@ codeunit 230 GenJnlManagement
         end;
     end;
 
+    /// <summary>
+    /// Opens journal batch name lookup and updates journal line batch assignment.
+    /// Provides user interface for selecting and assigning journal batch to current line.
+    /// </summary>
+    /// <param name="GenJnlLine">Journal line record that will have batch name updated from selection.</param>
     procedure SetJnlBatchName(var GenJnlLine: Record "Gen. Journal Line")
     var
         GenJnlBatch: Record "Gen. Journal Batch";
@@ -352,6 +445,13 @@ codeunit 230 GenJnlManagement
             GenJnlLine."Journal Batch Name" := GenJnlBatch.Name;
     end;
 
+    /// <summary>
+    /// Retrieves and caches account names for display in journal lines to improve user experience.
+    /// Optimizes performance by caching account names to avoid repeated database lookups.
+    /// </summary>
+    /// <param name="GenJnlLine">Journal line record containing account information.</param>
+    /// <param name="AccName">Returns the account name for the primary account.</param>
+    /// <param name="BalAccName">Returns the account name for the balancing account.</param>
     procedure GetAccounts(var GenJnlLine: Record "Gen. Journal Line"; var AccName: Text[100]; var BalAccName: Text[100])
     begin
         if (GenJnlLine."Account Type" <> PrevGenJnlLine."Account Type") or
@@ -465,6 +565,16 @@ codeunit 230 GenJnlManagement
         exit(AccName);
     end;
 
+    /// <summary>
+    /// Calculates running balance and total balance for journal lines within the current batch context.
+    /// Provides balance calculations for journal line display and validation purposes.
+    /// </summary>
+    /// <param name="GenJnlLine">Current journal line for balance calculation context.</param>
+    /// <param name="LastGenJnlLine">Last journal line used for calculation positioning.</param>
+    /// <param name="Balance">Returns the running balance up to the current line.</param>
+    /// <param name="TotalBalance">Returns the total balance for all lines in the batch.</param>
+    /// <param name="ShowBalance">Returns true if running balance should be displayed.</param>
+    /// <param name="ShowTotalBalance">Returns true if total balance should be displayed.</param>
     procedure CalcBalance(var GenJnlLine: Record "Gen. Journal Line"; LastGenJnlLine: Record "Gen. Journal Line"; var Balance: Decimal; var TotalBalance: Decimal; var ShowBalance: Boolean; var ShowTotalBalance: Boolean)
     var
         [SecurityFiltering(SecurityFilter::Filtered)]
@@ -506,6 +616,12 @@ codeunit 230 GenJnlManagement
         OnAfterCalcBalance(GenJnlLine);
     end;
 
+    /// <summary>
+    /// Generates unique journal template names by checking for conflicts and incrementing names when needed.
+    /// Ensures new template names are unique while maintaining meaningful naming based on template type.
+    /// </summary>
+    /// <param name="TemplateName">Proposed template name to check for availability.</param>
+    /// <returns>Available template name, either original or incremented to avoid conflicts.</returns>
     procedure GetAvailableGeneralJournalTemplateName(TemplateName: Code[10]): Code[10]
     var
         GenJnlTemplate: Record "Gen. Journal Template";
@@ -572,96 +688,217 @@ codeunit 230 GenJnlManagement
         exit(FindTemplateFromSelection(GenJnlTemplate, TemplateType, RecurringJnl));
     end;
 
+    /// <summary>
+    /// Integration event raised after retrieving account names for journal line display.
+    /// Enables customization of account name lookup and display logic.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record containing account information.</param>
+    /// <param name="AccName">Account name for the primary account that can be modified.</param>
+    /// <param name="BalAccName">Balancing account name that can be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetAccounts(var GenJournalLine: Record "Gen. Journal Line"; var AccName: Text[100]; var BalAccName: Text[100])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating journal batch name exists and is properly configured.
+    /// Enables custom batch validation logic and post-validation processing.
+    /// </summary>
+    /// <param name="GenJnlBatch">Journal batch record that was validated.</param>
+    /// <param name="CurrentJnlBatchName">Current journal batch name being validated.</param>
+    /// <param name="GenJournalLine">Journal line record providing template context.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckName(GenJnlBatch: Record "Gen. Journal Batch"; CurrentJnlBatchName: Code[10]; var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting journal batch filter on journal lines.
+    /// Enables custom filtering logic and post-filter processing.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record with batch filter applied.</param>
+    /// <param name="CurrentJnlBatchName">Journal batch name that was set as filter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetName(var GenJournalLine: Record "Gen. Journal Line"; CurrentJnlBatchName: Code[10])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after opening journal batch operations complete.
+    /// Enables custom logic after batch and template have been selected and configured.
+    /// </summary>
+    /// <param name="GenJnlBatch">Journal batch record that was opened.</param>
+    /// <param name="GenJnlTemplate">Journal template record associated with the batch.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterOpenJournalBatch(GenJnlBatch: Record "Gen. Journal Batch"; GenJnlTemplate: Record "Gen. Journal Template")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after template selection process completes.
+    /// Enables custom logic after template selection and journal page launch.
+    /// </summary>
+    /// <param name="GenJnlTemplate">Selected journal template record.</param>
+    /// <param name="GenJnlLine">Journal line record used for context.</param>
+    /// <param name="JnlSelected">Boolean indicating if template selection was successful.</param>
+    /// <param name="OpenFromBatch">Boolean indicating if opened from batch context.</param>
+    /// <param name="RecurringJnl">Boolean indicating if this is for recurring journal.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterTemplateSelection(var GenJnlTemplate: Record "Gen. Journal Template"; var GenJnlLine: Record "Gen. Journal Line"; var JnlSelected: Boolean; var OpenFromBatch: Boolean; RecurringJnl: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before journal batch name lookup operations.
+    /// Enables custom filtering or validation logic before batch selection.
+    /// </summary>
+    /// <param name="GenJnlBatch">Journal batch record that will be used for lookup.</param>
+    /// <param name="GenJnlLine">Journal line record providing context for lookup.</param>  
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupName(var GenJnlBatch: Record "Gen. Journal Batch"; var GenJnlLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before retrieving journal simple page mode preference.
+    /// Enables custom logic before preference retrieval.
+    /// </summary>
+    /// <param name="PageIdToCheck">Page identifier to check preference for.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetJournalSimplePageModePreference(PageIdToCheck: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before setting journal simple page mode preference.
+    /// Enables custom validation or modification of preference settings.
+    /// </summary>
+    /// <param name="SetToSimpleMode">Boolean indicating simple mode preference (can be modified).</param>
+    /// <param name="PageIdToSet">Page identifier to set preference for.</param>
+    /// <param name="IsHandled">Set to true to skip standard preference setting logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetJournalSimplePageModePreference(var SetToSimpleMode: Boolean; PageIdToSet: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before opening journal with batch name operations.
+    /// Enables custom validation or preprocessing before journal opening.
+    /// </summary>
+    /// <param name="CurrentJnlBatchName">Current journal batch name being opened.</param>
+    /// <param name="GenJnlLine">Journal line record providing context.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOpenJnl(var CurrentJnlBatchName: Code[10]; var GenJnlLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before journal batch opening operations.
+    /// Enables custom logic to completely override batch opening process.
+    /// </summary>
+    /// <param name="GenJnlBatch">Journal batch record being opened.</param>
+    /// <param name="IsHandled">Set to true to skip standard batch opening logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOpenJnlBatch(var GenJnlBatch: Record "Gen. Journal Batch"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before opening journal page from batch context.
+    /// Enables custom logic to override page opening from batch selection.
+    /// </summary>
+    /// <param name="GenJnlBatch">Journal batch record being opened.</param>
+    /// <param name="GenJnlTemplate">Journal template record associated with batch.</param>
+    /// <param name="IsHandled">Set to true to skip standard page opening logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOpenJournalPageFromBatch(var GenJnlBatch: Record "Gen. Journal Batch"; var GenJnlTemplate: Record "Gen. Journal Template"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before running template journal page operations.
+    /// Enables custom logic to override journal page launching.
+    /// </summary>
+    /// <param name="GenJnlTemplate">Journal template record for page launching.</param>
+    /// <param name="GenJnlLine">Journal line record providing context.</param>
+    /// <param name="OpenFromBatch">Boolean indicating if opened from batch context.</param>
+    /// <param name="IsHandled">Set to true to skip standard page launching logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRunTemplateJournalPage(var GenJnlTemplate: Record "Gen. Journal Template"; var GenJnlLine: Record "Gen. Journal Line"; OpenFromBatch: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised during template selection to enable custom filtering logic.
+    /// Allows modification of template filters and selection criteria.
+    /// </summary>
+    /// <param name="GenJnlTemplate">Journal template record with filters that can be modified.</param>
+    /// <param name="PageTemplate">Template type option that can be modified.</param>
+    /// <param name="RecurringJnl">Boolean indicating recurring journal that can be modified.</param>
+    /// <param name="PageId">Page identifier for template selection context.</param>
+    /// <param name="GenJnlLine">Journal line record providing context.</param>
     [IntegrationEvent(false, false)]
     local procedure OnTemplateSelectionSetFilter(var GenJnlTemplate: Record "Gen. Journal Template"; var PageTemplate: Option; var RecurringJnl: Boolean; PageId: Integer; var GenJnlLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting a new journal template during template selection.
+    /// Enables custom template configuration before insertion.
+    /// </summary>
+    /// <param name="GenJnlTemplate">Journal template record being inserted that can be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFindTemplateFromSelectionOnBeforeGenJnlTemplateInsert(var GenJnlTemplate: Record "Gen. Journal Template")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after template name checking during journal opening.
+    /// Enables custom processing after template validation.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record with template context.</param>
+    /// <param name="CurrentJnlBatchName">Current journal batch name being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnOpenJnlOnAfterCheckTemplateName(var GenJournalLine: Record "Gen. Journal Line"; var CurrentJnlBatchName: Code[10])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking journal template count during batch operations.
+    /// Enables custom template filtering or validation logic.
+    /// </summary>
+    /// <param name="GenJnlBatch">Journal batch record being processed.</param>
+    /// <param name="GenJnlTemplate">Journal template record with filters that can be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnOpenJnlBatchOnBeforeCheckGenJnlTemplateCount(var GenJnlBatch: Record "Gen. Journal Batch"; var GenJnlTemplate: Record "Gen. Journal Template")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after balance calculation operations complete.
+    /// Enables custom processing or validation after balance calculations.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record used for balance calculation context.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcBalance(var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after copying filters during balance calculation setup.
+    /// Enables custom filter modification before balance calculation processing.
+    /// </summary>
+    /// <param name="TempGenJournalLine">Temporary journal line record with copied filters that can be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcBalanceOnAfterCopyFilters(var TempGenJournalLine: Record "Gen. Journal Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before moving to next record during balance calculation.
+    /// Enables custom record positioning logic during balance calculation.
+    /// </summary>
+    /// <param name="TempGenJournalLine">Temporary journal line record being positioned.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcBalanceOnBeforeTempGenJnlLineNext(var TempGenJournalLine: Record "Gen. Journal Line")
     begin

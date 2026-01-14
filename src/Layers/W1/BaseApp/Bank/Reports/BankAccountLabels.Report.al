@@ -7,6 +7,15 @@ namespace Microsoft.Bank.Reports;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Foundation.Address;
 
+/// <summary>
+/// Generates mailing labels for bank accounts with formatted address information.
+/// Supports multiple label formats and column layouts for printing address labels.
+/// </summary>
+/// <remarks>
+/// Data Sources: Bank Account. 
+/// Features: Multiple label format options, address formatting, multi-column printing layouts.
+/// Usage: Mailing label printing, address label generation, bank correspondence addressing.
+/// </remarks>
 report 1405 "Bank Account - Labels"
 {
     DefaultLayout = RDLC;

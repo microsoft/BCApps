@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -8,6 +8,10 @@ using Microsoft.Foundation.Attachment;
 using System.DateTime;
 using System.Utilities;
 
+/// <summary>
+/// Primary interface for creating, managing, and submitting VAT returns to tax authorities.
+/// Provides comprehensive workflow management from line suggestion through submission and response handling.
+/// </summary>
 page 740 "VAT Report"
 {
     Caption = 'VAT Return';
@@ -153,20 +157,6 @@ page 740 "VAT Report"
         }
         area(factboxes)
         {
-#if not CLEAN25
-            part("Attached Documents"; "Document Attachment Factbox")
-            {
-                ObsoleteTag = '25.0';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The "Document Attachment FactBox" has been replaced by "Doc. Attachment List Factbox", which supports multiple files upload.';
-                ApplicationArea = All;
-                Visible = false;
-                Caption = 'Attachments';
-                SubPageLink = "Table ID" = const(Database::"VAT Report Header"),
-                              "No." = field("No."),
-                              "VAT Report Config. Code" = field("VAT Report Config. Code");
-            }
-#endif
             part("Attached Documents List"; "Doc. Attachment List Factbox")
             {
                 ApplicationArea = All;
@@ -546,6 +536,14 @@ page 740 "VAT Report"
         exit(ErrorsExist);
     end;
 
+    /// <summary>
+    /// Integration event raised after initializing page controllers to allow customization of controller status.
+    /// Enables extension of page behavior based on VAT report header status and custom business rules.
+    /// </summary>
+    /// <param name="VATReportHeader">VAT report header record being processed</param>
+    /// <param name="SubmitControllerStatus">Submit action availability status</param>
+    /// <param name="MarkAsSubmitControllerStatus">Mark as submitted action availability status</param>
+    /// <param name="CalcAndPostVATStatus">Calculate and post VAT settlement action availability status</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitPageControllers(VATReportHeader: Record "VAT Report Header"; var SubmitControllerStatus: Boolean; var MarkAsSubmitControllerStatus: Boolean; var CalcAndPostVATStatus: Boolean)
     begin
@@ -561,4 +559,3 @@ page 740 "VAT Report"
     begin
     end;
 }
-

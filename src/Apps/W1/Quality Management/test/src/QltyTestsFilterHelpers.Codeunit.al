@@ -17,7 +17,7 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Vendor;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Integration.Manufacturing.Routing;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.Sales.Customer;
 using Microsoft.Test.QualityManagement.TestLibraries;
@@ -25,7 +25,7 @@ using Microsoft.Warehouse.Structure;
 using System.Reflection;
 using System.TestLibraries.Utilities;
 
-codeunit 139962 "Qlty. Tests - FilterHelpers"
+codeunit 139962 "Qlty. Tests - Filter Helpers"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -1933,11 +1933,11 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
     end;
 
     [Test]
-    [HandlerFunctions('LookupQITemplateListHandler')]
-    procedure EditQITemplate_NoFilter()
+    [HandlerFunctions('LookupQltyInspectionTemplateListHandler')]
+    procedure EditQltyInspectionTemplate_NoFilter()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         Template: Code[20];
         FoundTemplate: Boolean;
     begin
@@ -1945,7 +1945,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
 
         // [GIVEN] A quality inspection template is created if none exist
         if not QltyInspectionTemplateHdr.FindFirst() then
-            QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+            QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
 
         // [WHEN] AssistEditQltyInspectionTemplate is called with no filter
         FoundTemplate := QltyFilterHelpers.AssistEditQltyInspectionTemplate(Template);
@@ -1956,11 +1956,11 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
     end;
 
     [Test]
-    [HandlerFunctions('LookupQITemplateListHandler')]
-    procedure EditQITemplate_TemplateFilter()
+    [HandlerFunctions('LookupQltyInspectionTemplateListHandler')]
+    procedure EditQltyInspectionTemplate_TemplateFilter()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         Template: Code[20];
         FoundTemplate: Boolean;
     begin
@@ -1968,7 +1968,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
 
         // [GIVEN] A quality inspection template is created if none exist
         if not QltyInspectionTemplateHdr.FindFirst() then
-            QltyTestsUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+            QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
 
         Template := QltyInspectionTemplateHdr.Code;
         // [WHEN] AssistEditQltyInspectionTemplate is called with template filter
@@ -2547,7 +2547,7 @@ codeunit 139962 "Qlty. Tests - FilterHelpers"
     /// </summary>
     /// <param name="QltyInspectionTemplateList"></param>
     [ModalPageHandler]
-    procedure LookupQITemplateListHandler(var QltyInspectionTemplateList: TestPage "Qlty. Inspection Template List")
+    procedure LookupQltyInspectionTemplateListHandler(var QltyInspectionTemplateList: TestPage "Qlty. Inspection Template List")
     begin
         QltyInspectionTemplateList.OK().Invoke();
     end;

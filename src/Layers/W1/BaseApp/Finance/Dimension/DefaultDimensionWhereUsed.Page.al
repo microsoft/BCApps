@@ -4,6 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Displays all master data records where a specific default dimension is currently assigned.
+/// Provides read-only view for analyzing dimension usage across tables and records.
+/// </summary>
+/// <remarks>
+/// Enables impact analysis before modifying or deleting dimension values by showing current usage patterns.
+/// Supports dimension cleanup and validation workflows for dimension management operations.
+/// </remarks>
 page 544 "Default Dimension Where-Used"
 {
     PageType = List;

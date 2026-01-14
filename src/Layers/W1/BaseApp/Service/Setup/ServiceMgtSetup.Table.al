@@ -47,6 +47,7 @@ table 5911 "Service Mgt. Setup"
         }
         field(8; "Warranty Disc. % (Parts)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Warranty Disc. % (Parts)';
             DecimalPlaces = 1 : 1;
             InitValue = 100;
@@ -55,6 +56,7 @@ table 5911 "Service Mgt. Setup"
         }
         field(9; "Warranty Disc. % (Labor)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Warranty Disc. % (Labor)';
             DecimalPlaces = 1 : 1;
             InitValue = 100;
@@ -108,18 +110,21 @@ table 5911 "Service Mgt. Setup"
         }
         field(26; "First Warning Within (Hours)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'First Warning Within (Hours)';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(27; "Second Warning Within (Hours)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Second Warning Within (Hours)';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
         }
         field(28; "Third Warning Within (Hours)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Third Warning Within (Hours)';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -192,6 +197,7 @@ table 5911 "Service Mgt. Setup"
         }
         field(45; "Default Response Time (Hours)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Default Response Time (Hours)';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -264,6 +270,7 @@ table 5911 "Service Mgt. Setup"
         }
         field(65; "Contract Value %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Contract Value %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;

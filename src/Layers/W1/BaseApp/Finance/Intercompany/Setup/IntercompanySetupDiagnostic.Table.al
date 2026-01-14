@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.Setup;
 
+/// <summary>
+/// Stores diagnostic results for intercompany setup validation and configuration verification.
+/// Used for displaying setup issues and validation status in diagnostic reports.
+/// </summary>
 table 33 "Intercompany Setup Diagnostic"
 {
     TableType = Temporary;
@@ -11,14 +15,23 @@ table 33 "Intercompany Setup Diagnostic"
 
     fields
     {
+        /// <summary>
+        /// Unique identifier for diagnostic category or validation area.
+        /// </summary>
         field(1; Id; Code[20])
         {
 
         }
+        /// <summary>
+        /// Description of diagnostic finding or validation result message.
+        /// </summary>
         field(2; Description; Text[250])
         {
 
         }
+        /// <summary>
+        /// Validation status indicating severity level of diagnostic result.
+        /// </summary>
         field(3; Status; Option)
         {
             OptionMembers = Ok,Warning,Error;

@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Reconciliation;
 
+/// <summary>
+/// Configuration page for payment application matching rules.
+/// Allows setup of automated matching criteria and confidence levels.
+/// </summary>
 page 1252 "Payment Application Rules"
 {
     AdditionalSearchTerms = 'payment matching rules,automatic payment application';

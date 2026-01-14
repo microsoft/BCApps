@@ -6,6 +6,7 @@ namespace Microsoft.Inventory.Item.Attribute;
 
 using Microsoft.Inventory.Item;
 using System.Text;
+using System.Utilities;
 
 codeunit 7500 "Item Attribute Management"
 {
@@ -17,6 +18,7 @@ codeunit 7500 "Item Attribute Management"
     var
         DeleteAttributesInheritedFromOldCategoryQst: Label 'Do you want to delete the attributes that are inherited from item category ''%1''?', Comment = '%1 - item category code';
         DeleteItemInheritedParentCategoryAttributesQst: Label 'One or more items belong to item category ''''%1'''', which is a child of item category ''''%2''''.\\Do you want to delete the inherited item attributes for the items in question?', Comment = '%1 - item category code,%2 - item category code';
+        ItemVariantInheritedFromItemAttributesQst: Label 'Do you want to update the variant attributes that are inherited from item ''%1''?', Comment = '%1 - Item No.';
 
     procedure FindItemsByAttribute(var FilterItemAttributesBuffer: Record "Filter Item Attributes Buffer") ItemFilter: Text
     var
@@ -460,6 +462,128 @@ codeunit 7500 "Item Attribute Management"
         ItemAttributeValue.Reset();
         ItemAttributeValue.SetFilter(Value, '@' + Text);
         exit(ItemAttributeValue.FindSet());
+    end;
+
+    procedure InheritAttributesFromItem(var ItemVariant: Record "Item Variant"; ItemCode: Code[20])
+    var
+        TempItemAttributeValueToInsert: Record "Item Attribute Value" temporary;
+    begin
+        TempItemAttributeValueToInsert.LoadItemAttributesFactBoxData(ItemCode);
+
+        if not TempItemAttributeValueToInsert.IsEmpty() then
+            InsertItemVariantAttributeValueMapping(ItemVariant, TempItemAttributeValueToInsert, Database::Item, ItemCode);
+    end;
+
+    local procedure InsertItemVariantAttributeValueMapping(ItemVariant: Record "Item Variant"; var TempItemAttributeValueToInsert: Record "Item Attribute Value" temporary; DefinedOnTableID: Integer; DefinedOnKeyValue: Code[20])
+    var
+        ItemVariantAttributeValueMapping: Record "Item Var. Attr. Value Mapping";
+    begin
+        if TempItemAttributeValueToInsert.FindFirst() then
+            repeat
+                ItemVariantAttributeValueMapping."Item No." := ItemVariant."Item No.";
+                ItemVariantAttributeValueMapping."Variant Code" := ItemVariant.Code;
+                ItemVariantAttributeValueMapping."Item Attribute ID" := TempItemAttributeValueToInsert."Attribute ID";
+                ItemVariantAttributeValueMapping."Item Attribute Value ID" := TempItemAttributeValueToInsert.ID;
+                ItemVariantAttributeValueMapping."Inherited-From Table ID" := DefinedOnTableID;
+                ItemVariantAttributeValueMapping."Inherited-From Key Value" := DefinedOnKeyValue;
+                if ItemVariantAttributeValueMapping.Insert(true) then;
+            until TempItemAttributeValueToInsert.Next() = 0;
+    end;
+
+    procedure UpdateItemVariantAttributeFromItem(ItemCode: Code[20])
+    var
+        ItemVariant: Record "Item Variant";
+        TempItemAttributeValue: Record "Item Attribute Value" temporary;
+        ConfirmManagement: Codeunit "Confirm Management";
+    begin
+        if ItemCode = '' then
+            exit;
+
+        if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(ItemVariantInheritedFromItemAttributesQst, ItemCode), true) then
+            exit;
+
+        TempItemAttributeValue.LoadItemAttributesFactBoxData(ItemCode);
+
+        ItemVariant.SetRange("Item No.", ItemCode);
+        if ItemVariant.FindSet() then
+            repeat
+                UpdateItemVariantAttributeFromItem(ItemVariant, TempItemAttributeValue, ItemCode);
+            until ItemVariant.Next() = 0;
+    end;
+
+    local procedure UpdateItemVariantAttributeFromItem(ItemVariant: Record "Item Variant"; var TempItemAttributeValue: Record "Item Attribute Value" temporary; ItemCode: Code[20])
+    var
+        TempItemVariantAttributeValue: Record "Item Attribute Value" temporary;
+        TempItemVariantAttributeValueToInsert: Record "Item Attribute Value" temporary;
+        TempItemVariantAttributeValueToDelete: Record "Item Attribute Value" temporary;
+    begin
+        TempItemVariantAttributeValue.LoadItemVariantAttributesFactBoxData(ItemVariant."Item No.", ItemVariant.Code);
+
+        PrepareItemVariantAttributeValueToInsert(ItemVariant, TempItemAttributeValue, TempItemVariantAttributeValueToInsert);
+        if not TempItemVariantAttributeValueToInsert.IsEmpty() then
+            InsertItemVariantAttributeValueMapping(ItemVariant, TempItemVariantAttributeValueToInsert, Database::Item, ItemCode);
+
+        PrepareItemVariantAttributeValueToDelete(ItemVariant, TempItemAttributeValue, TempItemVariantAttributeValue, TempItemVariantAttributeValueToDelete);
+        if not TempItemVariantAttributeValueToDelete.IsEmpty() then
+            DeleteItemVariantAttributeValueMapping(ItemVariant, TempItemVariantAttributeValueToDelete);
+    end;
+
+    local procedure PrepareItemVariantAttributeValueToInsert(ItemVariant: Record "Item Variant"; var TempItemAttributeValue: Record "Item Attribute Value" temporary; var TempItemVariantAttributeValueToInsert: Record "Item Attribute Value" temporary)
+    var
+        ItemVariantAttributeValueMapping: Record "Item Var. Attr. Value Mapping";
+    begin
+        TempItemVariantAttributeValueToInsert.DeleteAll();
+
+        if TempItemAttributeValue.FindSet() then
+            repeat
+                ItemVariantAttributeValueMapping.SetRange("Item No.", ItemVariant."Item No.");
+                ItemVariantAttributeValueMapping.SetRange("Variant Code", ItemVariant.Code);
+                ItemVariantAttributeValueMapping.SetRange("Item Attribute ID", TempItemAttributeValue."Attribute ID");
+                if ItemVariantAttributeValueMapping.FindFirst() then begin
+                    if (ItemVariantAttributeValueMapping."Inherited-From Table ID" = Database::Item) and (ItemVariantAttributeValueMapping."Item Attribute Value ID" <> TempItemAttributeValue.ID) then begin
+                        ItemVariantAttributeValueMapping."Item Attribute Value ID" := TempItemAttributeValue.ID;
+                        ItemVariantAttributeValueMapping.Modify(true);
+                    end;
+                end else begin
+                    TempItemVariantAttributeValueToInsert.TransferFields(TempItemAttributeValue);
+                    TempItemVariantAttributeValueToInsert.Insert();
+                end;
+            until TempItemAttributeValue.Next() = 0;
+    end;
+
+    local procedure PrepareItemVariantAttributeValueToDelete(ItemVariant: Record "Item Variant"; var TempItemAttributeValue: Record "Item Attribute Value" temporary; var TempItemVariantAttributeValue: Record "Item Attribute Value" temporary; var TempItemVariantAttributeValueToDelete: Record "Item Attribute Value" temporary)
+    var
+        ItemVariantAttributeValueMapping: Record "Item Var. Attr. Value Mapping";
+    begin
+        TempItemVariantAttributeValueToDelete.DeleteAll();
+
+        if TempItemVariantAttributeValue.FindSet() then
+            repeat
+                if not TempItemAttributeValue.Get(TempItemVariantAttributeValue."Attribute ID", TempItemVariantAttributeValue.ID) then begin
+                    ItemVariantAttributeValueMapping.SetRange("Item No.", ItemVariant."Item No.");
+                    ItemVariantAttributeValueMapping.SetRange("Variant Code", ItemVariant.Code);
+                    ItemVariantAttributeValueMapping.SetRange("Item Attribute ID", TempItemVariantAttributeValue."Attribute ID");
+                    ItemVariantAttributeValueMapping.SetRange("Inherited-From Table ID", Database::Item);
+                    if ItemVariantAttributeValueMapping.FindFirst() then begin
+                        TempItemVariantAttributeValueToDelete.TransferFields(TempItemVariantAttributeValue);
+                        TempItemVariantAttributeValueToDelete.Insert();
+                    end;
+                end;
+            until TempItemVariantAttributeValue.Next() = 0;
+    end;
+
+    local procedure DeleteItemVariantAttributeValueMapping(ItemVariant: Record "Item Variant"; var TempItemVariantAttributeValueToDelete: Record "Item Attribute Value" temporary)
+    var
+        ItemVariantAttributeValueMapping: Record "Item Var. Attr. Value Mapping";
+    begin
+        ItemVariantAttributeValueMapping.SetRange("Item No.", ItemVariant."Item No.");
+        ItemVariantAttributeValueMapping.SetRange("Variant Code", ItemVariant.Code);
+        ItemVariantAttributeValueMapping.SetRange("Inherited-From Table ID", Database::Item);
+        if ItemVariantAttributeValueMapping.FindSet() then
+            repeat
+                if TempItemVariantAttributeValueToDelete.Get(ItemVariantAttributeValueMapping."Item Attribute ID", ItemVariantAttributeValueMapping."Item Attribute Value ID") then
+                    ItemVariantAttributeValueMapping.Delete(true);
+            until ItemVariantAttributeValueMapping.Next() = 0;
     end;
 
     [IntegrationEvent(false, false)]

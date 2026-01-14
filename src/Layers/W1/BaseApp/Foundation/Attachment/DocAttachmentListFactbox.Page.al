@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -75,20 +75,10 @@ page 1178 "Doc. Attachment List Factbox"
                 var
                     DocumentAttachment: Record "Document Attachment";
                     DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
-#if not CLEAN25
-                    DocumentAttachmentFactbox: Page "Document Attachment Factbox";
-#endif
                     RecRef: RecordRef;
                 begin
-#if not CLEAN25
-                    if not DocumentAttachmentMgmt.GetRefTable(RecRef, Rec) then begin
-                        DocumentAttachmentFactbox.OnBeforeDrillDown(Rec, RecRef);
-                        OnAfterGetRecRefFail(Rec, RecRef);
-                    end;
-#else
                     if not DocumentAttachmentMgmt.GetRefTable(RecRef, Rec) then
                         OnAfterGetRecRefFail(Rec, RecRef);
-#endif
                     DocumentAttachment.SaveAttachment(files, RecRef);
                     CurrPage.Update();
                 end;
@@ -201,27 +191,14 @@ page 1178 "Doc. Attachment List Factbox"
     var
         DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
         DocumentAttachmentDetails: Page "Document Attachment Details";
-#if not CLEAN25
-        DocumentAttachmentFactbox: Page "Document Attachment Factbox";
-#endif
         RecRef: RecordRef;
     begin
         if Rec."Table ID" = 0 then
             exit;
 
-#if not CLEAN25
-        if not DocumentAttachmentMgmt.GetRefTable(RecRef, Rec) then begin
-            DocumentAttachmentFactbox.OnBeforeDrillDown(Rec, RecRef);
-            OnAfterGetRecRefFail(Rec, RecRef);
-        end;
-#else
         if not DocumentAttachmentMgmt.GetRefTable(RecRef, Rec) then
             OnAfterGetRecRefFail(Rec, RecRef);
-#endif
         DocumentAttachmentDetails.OpenForRecRef(RecRef);
-#if not CLEAN25
-        DocumentAttachmentFactbox.OnBeforeDocumentAttachmentDetailsRunModal(Rec, RecRef, DocumentAttachmentDetails);
-#endif  
         OnBeforeDocumentAttachmentDetailsRunModal(Rec, RecRef, DocumentAttachmentDetails);
         DocumentAttachmentDetails.RunModal();
     end;
@@ -229,20 +206,10 @@ page 1178 "Doc. Attachment List Factbox"
     local procedure InitiateAttachFromEmail()
     var
         DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
-#if not CLEAN25
-        DocumentAttachmentFactbox: Page "Document Attachment Factbox";
-#endif
         RecRef: RecordRef;
     begin
-#if not CLEAN25
-        if not DocumentAttachmentMgmt.GetRefTable(RecRef, Rec) then begin
-            DocumentAttachmentFactbox.OnBeforeDrillDown(Rec, RecRef);
-            OnAfterGetRecRefFail(Rec, RecRef);
-        end;
-#else
         if not DocumentAttachmentMgmt.GetRefTable(RecRef, Rec) then
             OnAfterGetRecRefFail(Rec, RecRef);
-#endif
         OfficeMgmt.InitiateSendToAttachments(RecRef);
         CurrPage.Update(true);
     end;
@@ -308,4 +275,3 @@ page 1178 "Doc. Attachment List Factbox"
     begin
     end;
 }
-

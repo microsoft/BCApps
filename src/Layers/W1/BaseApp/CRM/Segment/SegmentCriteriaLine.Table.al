@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.CRM.Segment;
 
-using System.Reflection;
 using System.Globalization;
+using System.Reflection;
 
 table 5097 "Segment Criteria Line"
 {

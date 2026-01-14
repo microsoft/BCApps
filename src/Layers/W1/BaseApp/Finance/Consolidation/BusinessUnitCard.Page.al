@@ -7,6 +7,14 @@ namespace Microsoft.Finance.Consolidation;
 using System.Environment;
 using System.Telemetry;
 
+/// <summary>
+/// Provides comprehensive business unit configuration interface for consolidation setup and management.
+/// Supports both database and API-based consolidation configurations with validation and testing capabilities.
+/// </summary>
+/// <remarks>
+/// Primary user interface for configuring business units including currency settings, exchange rate accounts,
+/// data import methods, and API endpoint configurations. Integrates validation and connection testing functionality.
+/// </remarks>
 page 241 "Business Unit Card"
 {
     Caption = 'Business Unit Card';

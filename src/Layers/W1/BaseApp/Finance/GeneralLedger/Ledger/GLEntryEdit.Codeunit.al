@@ -6,6 +6,15 @@ namespace Microsoft.Finance.GeneralLedger.Ledger;
 
 using System.Diagnostics;
 
+/// <summary>
+/// Handles editing of G/L entries with validation and change logging capabilities.
+/// Provides controlled modification of limited G/L entry fields with audit trail tracking.
+/// </summary>
+/// <remarks>
+/// TableNo = G/L Entry. Validates critical fields remain unchanged during edit operations.
+/// Includes event subscriber for automatic change logging of G/L Entry modifications.
+/// Extensibility: OnBeforeGLLedgEntryModify event for custom validation logic.
+/// </remarks>
 codeunit 115 "G/L Entry-Edit"
 {
     EventSubscriberInstance = Manual;
@@ -36,6 +45,11 @@ codeunit 115 "G/L Entry-Edit"
     var
         GLEntry: Record "G/L Entry";
 
+    /// <summary>
+    /// Integration event raised before modifying a G/L entry.
+    /// </summary>
+    /// <param name="GLEntry">G/L entry being modified</param>
+    /// <param name="FromGLEntry">G/L entry with new values</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGLLedgEntryModify(var GLEntry: Record "G/L Entry"; FromGLEntry: Record "G/L Entry")
     begin

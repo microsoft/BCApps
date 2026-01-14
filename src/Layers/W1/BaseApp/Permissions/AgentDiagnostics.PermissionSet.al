@@ -5,10 +5,13 @@
 
 namespace System.Security.AccessControl;
 
+using System.Environment.Consumption;
+
 permissionset 4306 "Agent - Diagnostics"
 {
     Assignable = true;
     Caption = 'Agent Diagnostics';
     IncludedPermissionSets = "D365 Agent";
-    Permissions = system "Troubleshoot All Agents" = X;
+    Permissions = tabledata "User AI Consumption Data" = r, 
+                  system "Troubleshoot All Agents" = X;
 }

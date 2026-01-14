@@ -9,6 +9,10 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
 
+/// <summary>
+/// Reconciles G/L account balances with VAT statement line calculations for accuracy verification.
+/// Compares VAT amounts calculated from VAT entries against corresponding G/L account balances to identify discrepancies.
+/// </summary>
 report 11 "G/L - VAT Reconciliation"
 {
     DefaultLayout = RDLC;
@@ -515,6 +519,13 @@ report 11 "G/L - VAT Reconciliation"
         Grand_TotalCaptionLbl: Label 'Grand Total';
         TotalCaptionLbl: Label 'Total';
 
+    /// <summary>
+    /// Conditionally returns amount in either local currency or additional reporting currency.
+    /// Selects appropriate currency amount based on report currency display preferences.
+    /// </summary>
+    /// <param name="AmountToAdd">Amount in local currency</param>
+    /// <param name="AddCurrAmountToAdd">Amount in additional reporting currency</param>
+    /// <returns>Selected amount based on UseAmtsInAddCurr setting</returns>
     procedure ConditionalAdd(AmountToAdd: Decimal; AddCurrAmountToAdd: Decimal): Decimal
     begin
         if UseAmtsInAddCurr then
@@ -523,6 +534,12 @@ report 11 "G/L - VAT Reconciliation"
         exit(AmountToAdd);
     end;
 
+    /// <summary>
+    /// Converts local currency amount to foreign currency equivalent using exchange rates.
+    /// Applies currency conversion for additional reporting currency display purposes.
+    /// </summary>
+    /// <param name="Amount">Amount in local currency to convert</param>
+    /// <returns>Converted amount in foreign currency based on exchange rate settings</returns>
     procedure ExchangeAmtLCYtoFCY(Amount: Decimal): Decimal
     begin
         if not UseAmtsInAddCurr then
@@ -542,6 +559,14 @@ report 11 "G/L - VAT Reconciliation"
             Error(NoGLAccNoOnVATEntriesErr);
     end;
 
+    /// <summary>
+    /// Integration event raised before calculating total amounts during G/L VAT reconciliation.
+    /// Enables custom calculation logic and modification of amount totals before standard processing.
+    /// </summary>
+    /// <param name="VATStmtLine">VAT statement line being reconciled</param>
+    /// <param name="TempVATEntryTable">Temporary VAT entry table for calculation</param>
+    /// <param name="Amount1">Base amount calculation, can be modified</param>
+    /// <param name="VAT">VAT amount calculation, can be modified</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcTotalAmount(VATStmtLine: Record "VAT Statement Line"; var TempVATEntryTable: Record "VAT Entry" temporary; var Amount1: Decimal; var VAT: Decimal)
     begin

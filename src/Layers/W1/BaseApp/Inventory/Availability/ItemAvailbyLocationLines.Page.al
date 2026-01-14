@@ -5,9 +5,9 @@
 namespace Microsoft.Inventory.Availability;
 
 using Microsoft.Foundation.Enums;
-using Microsoft.Purchases.Document;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
+using Microsoft.Purchases.Document;
 
 page 515 "Item Avail. by Location Lines"
 {

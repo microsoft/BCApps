@@ -18,25 +18,25 @@ pageextension 20412 "Qlty. Lot No. Info. Card" extends "Lot No. Information Card
             {
                 Caption = 'Quality Management';
 
-                field(QltyInspectionGradeDescription; MostRecentQltyGradeDescription)
+                field(QltyInspectionResultDescription; MostRecentQltyResultDescription)
                 {
                     ApplicationArea = QualityManagement;
-                    Caption = 'Quality Grade';
-                    ToolTip = 'Specifies the most recent grade for this lot number.';
+                    Caption = 'Quality Result';
+                    ToolTip = 'Specifies the most recent result for this lot number.';
                     Editable = false;
 
                     trigger OnDrillDown()
                     var
-                        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+                        QltyInspectionHeader: Record "Qlty. Inspection Header";
                     begin
-                        QltyInspectionTestHeader.SetRange("Source Item No.", Rec."Item No.");
-                        QltyInspectionTestHeader.SetRange("Source Variant Code", Rec."Variant Code");
-                        QltyInspectionTestHeader.SetRange("Source Lot No.", Rec."Lot No.");
-                        if QltyInspectionTestHeader.FindFirst() then;
-                        Page.Run(Page::"Qlty. Inspection Test List", QltyInspectionTestHeader);
+                        QltyInspectionHeader.SetRange("Source Item No.", Rec."Item No.");
+                        QltyInspectionHeader.SetRange("Source Variant Code", Rec."Variant Code");
+                        QltyInspectionHeader.SetRange("Source Lot No.", Rec."Lot No.");
+                        if QltyInspectionHeader.FindFirst() then;
+                        Page.Run(Page::"Qlty. Inspection List", QltyInspectionHeader);
                     end;
                 }
-                field("Qlty. Inspection Test Count"; Rec."Qlty. Inspection Test Count")
+                field("Qlty. Inspection Count"; Rec."Qlty. Inspection Count")
                 {
                     ApplicationArea = QualityManagement;
                     Editable = false;
@@ -45,13 +45,13 @@ pageextension 20412 "Qlty. Lot No. Info. Card" extends "Lot No. Information Card
         }
     }
     var
-        MostRecentQltyGradeDescription: Text;
+        MostRecentQltyResultDescription: Text;
 
     trigger OnAfterGetRecord()
     var
         QltyItemTracking: Codeunit "Qlty. Item Tracking";
-        DummyGradeCode: Code[20];
+        DummyResultCode: Code[20];
     begin
-        QltyItemTracking.GetMostRecentGradeFor(Rec."Item No.", Rec."Variant Code", Rec."Lot No.", '', '', DummyGradeCode, MostRecentQltyGradeDescription);
+        QltyItemTracking.GetMostRecentResultFor(Rec."Item No.", Rec."Variant Code", Rec."Lot No.", '', '', DummyResultCode, MostRecentQltyResultDescription);
     end;
 }

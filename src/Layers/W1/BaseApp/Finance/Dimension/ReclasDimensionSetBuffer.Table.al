@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Temporary buffer table for dimension reclassification operations.
+/// Manages old and new dimension value mappings during dimension set reclassification processes.
+/// </summary>
+/// <remarks>
+/// Used in dimension reclassification scenarios to track dimension value changes and generate updated dimension sets.
+/// Supports validation and lookup of dimension values during reclassification operations.
+/// Integrates with dimension management for dimension set creation and modification.
+/// </remarks>
 table 482 "Reclas. Dimension Set Buffer"
 {
     Caption = 'Reclas. Dimension Set Buffer';
@@ -14,6 +23,9 @@ table 482 "Reclas. Dimension Set Buffer"
 
     fields
     {
+        /// <summary>
+        /// Code of the dimension being reclassified.
+        /// </summary>
         field(1; "Dimension Code"; Code[20])
         {
             Caption = 'Dimension Code';
@@ -31,6 +43,9 @@ table 482 "Reclas. Dimension Set Buffer"
                 end;
             end;
         }
+        /// <summary>
+        /// Original dimension value code before reclassification.
+        /// </summary>
         field(2; "Dimension Value Code"; Code[20])
         {
             Caption = 'Dimension Value Code';
@@ -42,11 +57,17 @@ table 482 "Reclas. Dimension Set Buffer"
                 "Dimension Value ID" := GetDimValID("Dimension Code", "Dimension Value Code");
             end;
         }
+        /// <summary>
+        /// Unique identifier for the original dimension value.
+        /// </summary>
         field(3; "Dimension Value ID"; Integer)
         {
             Caption = 'Dimension Value ID';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// New dimension value code to replace the original value during reclassification.
+        /// </summary>
         field(4; "New Dimension Value Code"; Code[20])
         {
             Caption = 'New Dimension Value Code';
@@ -58,29 +79,41 @@ table 482 "Reclas. Dimension Set Buffer"
                 "New Dimension Value ID" := GetDimValID("Dimension Code", "New Dimension Value Code");
             end;
         }
+        /// <summary>
+        /// Unique identifier for the new dimension value.
+        /// </summary>
         field(5; "New Dimension Value ID"; Integer)
         {
             Caption = 'New Dimension Value ID';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Display name of the dimension for user interface presentation.
+        /// </summary>
         field(6; "Dimension Name"; Text[30])
         {
-            CalcFormula = lookup (Dimension.Name where(Code = field("Dimension Code")));
+            CalcFormula = lookup(Dimension.Name where(Code = field("Dimension Code")));
             Caption = 'Dimension Name';
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Display name of the original dimension value for user interface presentation.
+        /// </summary>
         field(7; "Dimension Value Name"; Text[50])
         {
-            CalcFormula = lookup ("Dimension Value".Name where("Dimension Code" = field("Dimension Code"),
+            CalcFormula = lookup("Dimension Value".Name where("Dimension Code" = field("Dimension Code"),
                                                                Code = field("Dimension Value Code")));
             Caption = 'Dimension Value Name';
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Display name of the new dimension value for user interface presentation.
+        /// </summary>
         field(8; "New Dimension Value Name"; Text[50])
         {
-            CalcFormula = lookup ("Dimension Value".Name where("Dimension Code" = field("Dimension Code"),
+            CalcFormula = lookup("Dimension Value".Name where("Dimension Code" = field("Dimension Code"),
                                                                Code = field("New Dimension Value Code")));
             Caption = 'New Dimension Value Name';
             Editable = false;
@@ -100,11 +133,31 @@ table 482 "Reclas. Dimension Set Buffer"
     {
     }
 
+    /// <summary>
+    /// Generates dimension set ID from original dimension values in the buffer.
+    /// Creates dimension set ID based on current dimension value codes before reclassification.
+    /// </summary>
+    /// <param name="ReclasDimSetBuf">Reclassification dimension set buffer containing dimension mappings</param>
+    /// <returns>Dimension set ID for the original dimension values</returns>
+    /// <remarks>
+    /// Used to identify the original dimension set before reclassification operations.
+    /// Delegates to GetDimSetID2 with NewVal set to false for original values.
+    /// </remarks>
     procedure GetDimSetID(var ReclasDimSetBuf: Record "Reclas. Dimension Set Buffer"): Integer
     begin
         exit(GetDimSetID2(ReclasDimSetBuf, false));
     end;
 
+    /// <summary>
+    /// Generates dimension set ID from new dimension values in the buffer.
+    /// Creates dimension set ID based on new dimension value codes after reclassification.
+    /// </summary>
+    /// <param name="ReclasDimSetBuf">Reclassification dimension set buffer containing dimension mappings</param>
+    /// <returns>Dimension set ID for the new dimension values</returns>
+    /// <remarks>
+    /// Used to create the target dimension set for reclassification operations.
+    /// Delegates to GetDimSetID2 with NewVal set to true for new values.
+    /// </remarks>
     procedure GetNewDimSetID(var ReclasDimSetBuf: Record "Reclas. Dimension Set Buffer"): Integer
     begin
         exit(GetDimSetID2(ReclasDimSetBuf, true));

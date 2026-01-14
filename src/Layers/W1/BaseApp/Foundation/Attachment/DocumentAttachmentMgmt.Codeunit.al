@@ -838,14 +838,14 @@ codeunit 1173 "Document Attachment Mgmt"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnBeforeDeleteAfterPosting', '', false, false)]
-    local procedure DocAttachForPostedPurchaseDocs(var PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.")
+    local procedure DocAttachForPostedPurchaseDocs(var PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var PurchRcptHeader: Record "Purch. Rcpt. Header")
     var
         FromRecRef: RecordRef;
         ToRecRef: RecordRef;
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeDocAttachForPostedPurchaseDocs(PurchaseHeader, PurchInvHeader, PurchCrMemoHdr, IsHandled);
+        OnBeforeDocAttachForPostedPurchaseDocs(PurchaseHeader, PurchInvHeader, PurchCrMemoHdr, PurchRcptHeader, IsHandled);
         if IsHandled then
             exit;
 
@@ -859,6 +859,9 @@ codeunit 1173 "Document Attachment Mgmt"
         if PurchCrMemoHdr.IsTemporary() then
             exit;
 
+        if PurchRcptHeader.IsTemporary() then
+            exit;
+
         FromRecRef.GetTable(PurchaseHeader);
 
         if PurchInvHeader."No." <> '' then
@@ -866,6 +869,9 @@ codeunit 1173 "Document Attachment Mgmt"
 
         if PurchCrMemoHdr."No." <> '' then
             ToRecRef.GetTable(PurchCrMemoHdr);
+
+        if PurchRcptHeader."No." <> '' then
+            ToRecRef.GetTable(PurchRcptHeader);
 
         if ToRecRef.Number > 0 then
             CopyAttachmentsForPostedDocs(FromRecRef, ToRecRef);
@@ -1610,6 +1616,7 @@ codeunit 1173 "Document Attachment Mgmt"
                 DocumentAttachmentToCreate.Init();
                 DocumentAttachmentToCreate.TransferFields(DocumentAttachmentFound);
                 DocumentAttachmentToCreate.Validate("No.", MoveToRecNo);
+                OnMoveAttachmentsWithinSameRecordTypeOnBeforeInsert(DocumentAttachmentToCreate, MoveToRecRef, MoveToRecNo);
                 DocumentAttachmentToCreate.Insert(true);
             until DocumentAttachmentFound.Next() = 0;
 
@@ -1729,7 +1736,7 @@ codeunit 1173 "Document Attachment Mgmt"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeDocAttachForPostedPurchaseDocs(var PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var IsHandled: Boolean)
+    local procedure OnBeforeDocAttachForPostedPurchaseDocs(var PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var PurchRcptHeader: Record "Purch. Rcpt. Header"; var IsHandled: Boolean)
     begin
     end;
 
@@ -1856,6 +1863,11 @@ codeunit 1173 "Document Attachment Mgmt"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterIsProductionDocumentFlow(TableNo: Integer; var IsDocumentFlow: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnMoveAttachmentsWithinSameRecordTypeOnBeforeInsert(var DocumentAttachmentToCreate: Record "Document Attachment"; MoveToRecRef: RecordRef; MoveToRecNo: Code[20])
     begin
     end;
 }

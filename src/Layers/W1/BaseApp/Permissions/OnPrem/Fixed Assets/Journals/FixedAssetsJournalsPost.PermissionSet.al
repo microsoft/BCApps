@@ -1,34 +1,34 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.Analysis;
 using Microsoft.Bank.BankAccount;
-using Microsoft.Bank.Ledger;
 using Microsoft.Bank.Check;
+using Microsoft.Bank.Ledger;
+using Microsoft.Finance.Analysis;
 using Microsoft.Finance.Currency;
-using Microsoft.Sales.Customer;
 using Microsoft.Finance.Dimension;
-using Microsoft.FixedAssets.FixedAsset;
-using Microsoft.FixedAssets.Depreciation;
-using Microsoft.FixedAssets.Journal;
-using Microsoft.FixedAssets.Ledger;
-using Microsoft.FixedAssets.Posting;
 using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.FixedAssets.Insurance;
-using Microsoft.FixedAssets.Maintenance;
+using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Reversal;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
-using System.Security.User;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Foundation.Period;
-using Microsoft.Foundation.BatchProcessing;
+using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Ledger;
-using Microsoft.Finance.VAT.Setup;
 using Microsoft.Finance.VAT.RateChange;
 using Microsoft.Finance.VAT.Reporting;
-using Microsoft.Finance.VAT.Calculation;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.FixedAssets.Depreciation;
+using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Insurance;
+using Microsoft.FixedAssets.Journal;
+using Microsoft.FixedAssets.Ledger;
+using Microsoft.FixedAssets.Maintenance;
+using Microsoft.FixedAssets.Posting;
+using Microsoft.Foundation.BatchProcessing;
+using Microsoft.Foundation.Period;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
+using System.Security.User;
 
 permissionset 2018 "Fixed Assets Journals - Post"
 {

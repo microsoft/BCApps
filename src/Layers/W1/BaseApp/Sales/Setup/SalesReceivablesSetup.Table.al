@@ -21,9 +21,9 @@ using Microsoft.Projects.Resources.Resource;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Pricing;
-using Microsoft.Warehouse.Structure;
 using Microsoft.Upgrade;
 using Microsoft.Utilities;
+using Microsoft.Warehouse.Structure;
 using System.Environment;
 using System.Threading;
 

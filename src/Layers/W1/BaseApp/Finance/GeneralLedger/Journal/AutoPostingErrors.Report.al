@@ -27,8 +27,8 @@ using Microsoft.Intercompany.GLAccount;
 using Microsoft.Intercompany.Partner;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Purchases.Payables;
-using Microsoft.Purchases.Vendor;
 using Microsoft.Purchases.Setup;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
@@ -36,6 +36,17 @@ using System.Integration;
 using System.Security.User;
 using System.Utilities;
 
+/// <summary>
+/// Report for automatically posting general journal batches and capturing posting errors for analysis and correction.
+/// Processes multiple journal batches in sequence and generates comprehensive error reports for failed postings.
+/// </summary>
+/// <remarks>
+/// Batch posting automation with error handling and reporting capabilities. Designed for high-volume journal processing
+/// with detailed error tracking and recovery support for failed transactions.
+/// Key features: Batch selection filtering, comprehensive error capture, posting progress tracking, performance optimization.
+/// Output: Error report with specific validation failures, line-by-line posting status, and recommended corrections.
+/// Usage: Primarily for automated posting scenarios and batch processing workflows requiring error analysis.
+/// </remarks>
 report 6250 "Auto Posting Errors"
 {
     Caption = 'Auto Posting Errors';
@@ -1441,6 +1452,10 @@ report 6250 "Auto Posting Errors"
             AddError(StrSubstNo(Text058Txt, GenJnlLine.FieldCaption("Depreciation Book Code")));
     end;
 
+    /// <summary>
+    /// Tests posting type consistency between journal line account types and document types.
+    /// Validates that customer accounts are not used with purchase documents and vendor accounts are not used with sales documents.
+    /// </summary>
     procedure TestPostingType()
     begin
         case true of
@@ -1625,6 +1640,11 @@ report 6250 "Auto Posting Errors"
         end;
     end;
 
+    /// <summary>
+    /// Initializes the report request parameters for controlling dimension display.
+    /// Sets up whether dimensions should be shown in the error report output.
+    /// </summary>
+    /// <param name="NewShowDim">True to show dimensions in the report, false to hide them.</param>
     procedure InitializeRequest(NewShowDim: Boolean)
     begin
         ShowDim := NewShowDim;
@@ -2141,11 +2161,27 @@ report 6250 "Auto Posting Errors"
             end;
     end;
 
+    /// <summary>
+    /// Integration event that occurs before validating posting date after retrieving general journal line data.
+    /// Allows custom validation of posting date logic and error message handling.
+    /// </summary>
+    /// <param name="GenJournalLine">The general journal line being validated for posting date.</param>
+    /// <param name="ErrorText">Array of error text messages for collecting validation errors.</param>
+    /// <param name="ErrorCounter">Counter for tracking number of errors found.</param>
+    /// <param name="IsHandled">Set to true to skip standard posting date validation processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnAfterGetGenJnlLinePostingDate(var GenJournalLine: Record "Gen. Journal Line"; var ErrorText: array[50] of Text[250]; var ErrorCounter: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event that occurs before checking posting date and fixed asset field validation.
+    /// Allows custom handling of posting date validation for fixed asset related journal lines.
+    /// </summary>
+    /// <param name="GenJnlLine">The general journal line being validated for fixed asset posting date requirements.</param>
+    /// <param name="ErrorText">Array of error text messages for collecting validation errors.</param>
+    /// <param name="ErrorCounter">Counter for tracking number of errors found.</param>
+    /// <param name="IsHandled">Set to true to skip standard fixed asset posting date validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckPostingDateFAFields(var GenJnlLine: Record "Gen. Journal Line"; var ErrorText: array[50] of Text[250]; var ErrorCounter: Integer; var IsHandled: Boolean)
     begin

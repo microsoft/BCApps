@@ -1,3 +1,6 @@
+/// <summary>
+/// Provides utility functions for creating and managing assembly-related entities in test scenarios, including assembly orders, BOMs, and assembly items.
+/// </summary>
 codeunit 132207 "Library - Assembly"
 {
     Subtype = Normal;
@@ -796,8 +799,6 @@ codeunit 132207 "Library - Assembly"
         TmpWarehouseRequest: Record "Warehouse Request";
         CreateInvtPutAwayPick: Report "Create Invt Put-away/Pick/Mvmt";
     begin
-        // TODO - align with previous function
-
         Commit();
         CreateInvtPutAwayPick.InitializeRequest(
           NewCreateInvtPutAway, NewCreateInvtPick, NewCreateInvtMovement, NewPrintDocument, NewShowError);
@@ -2013,7 +2014,6 @@ codeunit 132207 "Library - Assembly"
                 ItemLedgerEntry.SetRange("Item No.", TempAssemblyLine."No.");
                 ItemLedgerEntry.SetRange("Variant Code", TempAssemblyLine."Variant Code");
                 ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::"Assembly Consumption");
-                // ItemLedgerEntry.SETRANGE(Description,TempAssemblyLine.Description); - bug in ATO - description is not filled in
                 ItemLedgerEntry.SetRange("Location Code", TempAssemblyLine."Location Code");
                 ItemLedgerEntry.SetRange(Quantity, -TempAssemblyLine."Quantity to Consume (Base)");
                 ItemLedgerEntry.SetRange("Remaining Quantity", 0);
@@ -2248,7 +2248,6 @@ codeunit 132207 "Library - Assembly"
                 ValueEntry.SetRange("Variant Code", TempAssemblyLine."Variant Code");
                 ValueEntry.SetRange("Item Ledger Entry Type", ValueEntry."Item Ledger Entry Type"::"Assembly Consumption");
                 ValueEntry.SetRange("Location Code", TempAssemblyLine."Location Code");
-                // ValueEntry.SETRANGE(Description,TempAssemblyLine.Description); - bug for ATO
                 ValueEntry.SetRange("Valued Quantity", -TempAssemblyLine."Quantity to Consume (Base)");
                 ValueEntry.SetRange("Item Ledger Entry Quantity", -TempAssemblyLine."Quantity to Consume (Base)");
                 ValueEntry.SetRange("Invoiced Quantity", -TempAssemblyLine."Quantity to Consume (Base)");
@@ -2362,7 +2361,6 @@ codeunit 132207 "Library - Assembly"
                 ValueEntry.SetRange("Variant Code", TempAssemblyLine."Variant Code");
                 ValueEntry.SetRange("Item Ledger Entry Type", ValueEntry."Item Ledger Entry Type"::"Assembly Consumption");
                 ValueEntry.SetRange("Location Code", TempAssemblyLine."Location Code");
-                // ValueEntry.SETRANGE(Description,TempAssemblyLine.Description); - bug for ATO
                 ValueEntry.SetRange("Valued Quantity", -TempAssemblyLine."Quantity to Consume (Base)");
                 ValueEntry.SetRange("Item Ledger Entry Quantity", -TempAssemblyLine."Quantity to Consume (Base)");
                 ValueEntry.SetRange("Invoiced Quantity", -TempAssemblyLine."Quantity to Consume (Base)");
@@ -3110,11 +3108,6 @@ codeunit 132207 "Library - Assembly"
         SourceCodeSetup.Get();
         WarehouseEntry.Reset();
         WarehouseEntry.SetRange("Source Code", SourceCodeSetup.Assembly);
-        // TODO - bug as fields are not populated
-        // WarehouseEntry.SETRANGE("Whse. Document Type",WarehouseEntry."Whse. Document Type"::Assembly);
-        // WarehouseEntry.SETRANGE("Whse. Document No.",TempAssemblyHeader."No.");
-        // WarehouseEntry.SETRANGE("Source Document",WarehouseEntry."Source Document"::"Assembly Order");
-        // WarehouseEntry.SETRANGE("Source Line No.",0);
         WarehouseEntry.SetRange("Source No.", TempAssemblyHeader."No.");
         WarehouseEntry.SetRange("Registering Date", TempAssemblyHeader."Posting Date");
         WarehouseEntry.SetRange("User ID", UserId);
@@ -3142,11 +3135,6 @@ codeunit 132207 "Library - Assembly"
         repeat
             WarehouseEntry.Reset();
             WarehouseEntry.SetRange("Source Code", SourceCodeSetup.Assembly);
-            // TODO - bug as fields are not populated
-            // WarehouseEntry.SETRANGE("Whse. Document Type",WarehouseEntry."Whse. Document Type"::Assembly);
-            // WarehouseEntry.SETRANGE("Whse. Document No.",TempAssemblyHeader."No.");
-            // WarehouseEntry.SETRANGE("Source Document",WarehouseEntry."Source Document"::"Assembly Consumption");
-            // WarehouseEntry.SETRANGE("Source Line No.",0);
             WarehouseEntry.SetRange("Source No.", TempAssemblyHeader."No.");
             WarehouseEntry.SetRange("Registering Date", TempAssemblyHeader."Posting Date");
             WarehouseEntry.SetRange("User ID", UserId);

@@ -4,48 +4,48 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Test;
 
-using Microsoft.Inventory.Journal;
-using Microsoft.Warehouse.Journal;
-using Microsoft.Inventory.Location;
-using System.TestLibraries.Utilities;
-using Microsoft.Manufacturing.Capacity;
-using Microsoft.Inventory.Item;
-using Microsoft.Warehouse.Structure;
-using Microsoft.Manufacturing.Document;
-using Microsoft.Inventory.Tracking;
-using Microsoft.Purchases.Document;
-using Microsoft.Warehouse.Activity;
-using Microsoft.Sales.Document;
-using Microsoft.Manufacturing.Planning;
-using Microsoft.Warehouse.Activity.History;
-using Microsoft.Manufacturing.Family;
-using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Manufacturing.Routing;
-using Microsoft.Inventory.Requisition;
-using Microsoft.Manufacturing.StandardCost;
-using Microsoft.Manufacturing.ProductionBOM;
-using Microsoft.Foundation.UOM;
-using Microsoft.Inventory.Planning;
-using Microsoft.Inventory.Ledger;
-using System.Utilities;
-using Microsoft.Inventory.Transfer;
-using Microsoft.Manufacturing.Journal;
-using Microsoft.Manufacturing.Setup;
-using Microsoft.Warehouse.Setup;
-using Microsoft.Foundation.Enums;
 using Microsoft.Finance.GeneralLedger.Preview;
-using Microsoft.Warehouse.Request;
-using Microsoft.Warehouse.Worksheet;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Purchases.Setup;
-using Microsoft.Sales.Setup;
-using Microsoft.Manufacturing.MachineCenter;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Warehouse.InventoryDocument;
+using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.Navigate;
-using Microsoft.Inventory.Costing;
-using Microsoft.Sales.Customer;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Costing;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Planning;
+using Microsoft.Inventory.Requisition;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Inventory.Transfer;
+using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Family;
+using Microsoft.Manufacturing.Journal;
+using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.Planning;
+using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
+using Microsoft.Manufacturing.StandardCost;
+using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Setup;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.Setup;
+using Microsoft.Warehouse.Activity;
+using Microsoft.Warehouse.Activity.History;
+using Microsoft.Warehouse.InventoryDocument;
+using Microsoft.Warehouse.Journal;
+using Microsoft.Warehouse.Request;
+using Microsoft.Warehouse.Setup;
+using Microsoft.Warehouse.Structure;
+using Microsoft.Warehouse.Worksheet;
+using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 137072 "SCM Production Orders II"
 {
@@ -59,36 +59,36 @@ codeunit 137072 "SCM Production Orders II"
     end;
 
     var
-        ItemJournalTemplate: Record "Item Journal Template";
-        ItemJournalBatch: Record "Item Journal Batch";
-        OutputItemJournalTemplate: Record "Item Journal Template";
-        OutputItemJournalBatch: Record "Item Journal Batch";
-        ConsumptionItemJournalTemplate: Record "Item Journal Template";
         ConsumptionItemJournalBatch: Record "Item Journal Batch";
-        RevaluationItemJournalTemplate: Record "Item Journal Template";
-        RevaluationItemJournalBatch: Record "Item Journal Batch";
-        WarehouseJournalTemplate: Record "Warehouse Journal Template";
-        WarehouseJournalBatch: Record "Warehouse Journal Batch";
+        ConsumptionItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalTemplate: Record "Item Journal Template";
         LocationGreen: Record Location;
-        LocationRed: Record Location;
-        LocationYellow: Record Location;
-        LocationWhite: Record Location;
         LocationGreen2: Record Location;
+        LocationRed: Record Location;
+        LocationWhite: Record Location;
+        LocationYellow: Record Location;
+        OutputItemJournalBatch: Record "Item Journal Batch";
+        OutputItemJournalTemplate: Record "Item Journal Template";
+        RevaluationItemJournalBatch: Record "Item Journal Batch";
+        RevaluationItemJournalTemplate: Record "Item Journal Template";
+        WarehouseJournalBatch: Record "Warehouse Journal Batch";
+        WarehouseJournalTemplate: Record "Warehouse Journal Template";
         Assert: Codeunit Assert;
-        LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        LibraryInventory: Codeunit "Library - Inventory";
-        LibraryItemTracking: Codeunit "Library - Item Tracking";
-        LibraryUtility: Codeunit "Library - Utility";
-        LibraryManufacturing: Codeunit "Library - Manufacturing";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryCosting: Codeunit "Library - Costing";
         LibraryERM: Codeunit "Library - ERM";
-        LibraryPurchase: Codeunit "Library - Purchase";
-        LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryPlanning: Codeunit "Library - Planning";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
-        LibraryRandom: Codeunit "Library - Random";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryUtility: Codeunit "Library - Utility";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
         ShopCalendarMgt: Codeunit "Shop Calendar Management";
         IsInitialized: Boolean;
         NothingToHandleErr: Label 'Nothing to handle';
@@ -136,6 +136,8 @@ codeunit 137072 "SCM Production Orders II"
         CostAmtNonInvtblMustNotBeZeroErr: Label '%1 must not be 0 in %2', Comment = '%1 = Cost Amount (Non-Invtbl.) Caption, %2 = Item Ledger Entry Table';
         LotNoMustBeEqualErr: Label '%1 must be equal to %2 in %3', Comment = '%1 = Lot No. Caption, %2 = Expected Lot No., %3 = Warehouse Activity Line Table';
         ProdOrderLineErr: Label 'Production Order should have two lines for variant-based BOM structure.';
+        NoOfRecordsMustBeSameErr: Label 'The number of records in table %1 must be the same.', Comment = '%1- TableCaption';
+        UnitCostMustBeEqualErr: Label '%1 must be correct in %2', Comment = '%1 =Field Name %2 = Table Name';
 
     [Test]
     [Scope('OnPrem')]
@@ -7387,6 +7389,139 @@ codeunit 137072 "SCM Production Orders II"
         Assert.RecordIsNotEmpty(ProductionOrder);
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandlerNoText,WhseSourceCreateDocPageHandler')]
+    procedure MultiplePartialPickRegistrationForLotTrackedProdOrderComponent()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        ParentItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProductionBOMHeader: Record "Production BOM Header";
+        RegisteredWhseActivityHdr: Record "Registered Whse. Activity Hdr.";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        LotNo: Code[50];
+        FirstPickQty, SecondPickQty, ThirdPickQty, TotalQuantity : Decimal;
+    begin
+        // [SCENARIO 611884] Register multiple partial warehouse picks for lot-tracked items on production order without item tracking error
+        Initialize();
+
+        // [GIVEN] Location with "Require Pick" and "Prod. Consump. Whse. Handling" = "Warehouse Pick (mandatory)"
+        CreateLocationRequirePick(Location);
+
+        // [GIVEN] Lot-tracked item  with lot and inventory.
+        CreateLotSpecificItem(Item);
+
+        TotalQuantity := LibraryRandom.RandIntInRange(100, 100);
+        LotNo := LibraryRandom.RandText(50);
+
+        // [GIVEN] Create and post item journal.
+        CreateAndPostLotTrackedItemJournal(Location, Item."No.", LotNo, TotalQuantity);
+        // CreateAndPostLotTrackedItemJournal(Location, Item."No.", LotNo, TotalQuantity);
+
+        // [GIVEN] Released Production Order with lot-tracked item as component
+        LibraryInventory.CreateItem(ParentItem);
+        LibraryManufacturing.CreateCertifiedProductionBOM(ProductionBOMHeader, Item."No.", 1);
+        ParentItem.Validate("Production BOM No.", ProductionBOMHeader."No.");
+        ParentItem.Modify(true);
+
+        // [GIVEN] Create a new relesed production order.
+        CreateAndRefreshProductionOrder(ProductionOrder, ProductionOrder.Status::Released, ParentItem."No.", TotalQuantity, Location.Code, '');
+
+        // [GIVEN] Warehouse Pick created for Production Order
+        ProductionOrder.CreatePick('', 0, false, false, false);
+        FindWhseActivityLine(
+            WarehouseActivityLine, WarehouseActivityLine."Activity Type"::Pick,
+            WarehouseActivityLine."Action Type"::Take, Location.Code, ProductionOrder."No.");
+
+        // [GIVEN] Find Warehouse Activity Header.
+        WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
+
+        // [GIVEN] Set Lot No. on warehouse activity lines
+        WarehouseActivityLine.SetRange("Action Type");
+        if WarehouseActivityLine.FindSet() then
+            repeat
+                WarehouseActivityLine.Validate("Lot No.", LotNo);
+                WarehouseActivityLine.Modify(true);
+            until WarehouseActivityLine.Next() = 0;
+
+        // [WHEN] Register first partial pick
+        FirstPickQty := TotalQuantity - LibraryRandom.RandIntInRange(70, 90);
+        UpdateQuantityToHandleOnActivityLines(WarehouseActivityHeader."Type", WarehouseActivityHeader."No.", FirstPickQty);
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+
+        // [WHEN] Register second partial pick
+        SecondPickQty := TotalQuantity - LibraryRandom.RandIntInRange(70, 90);
+        UpdateQuantityToHandleOnActivityLines(WarehouseActivityHeader."Type", WarehouseActivityHeader."No.", SecondPickQty);
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+
+        // [WHEN] Register third partial pick
+        ThirdPickQty := TotalQuantity - FirstPickQty - SecondPickQty;
+        UpdateQuantityToHandleOnActivityLines(WarehouseActivityHeader."Type", WarehouseActivityHeader."No.", ThirdPickQty);
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+
+        // [THEN] All three partial picks are registered successfully without error
+        RegisteredWhseActivityHdr.SetRange("Whse. Activity No.", WarehouseActivityHeader."No.");
+        RegisteredWhseActivityHdr.SetRange("Location Code", Location.Code);
+        RegisteredWhseActivityHdr.SetRange(Type, RegisteredWhseActivityHdr.Type::Pick);
+        Assert.AreEqual(3, RegisteredWhseActivityHdr.Count, StrSubstNo(NoOfRecordsMustBeSameErr, RegisteredWhseActivityHdr.TableCaption));
+    end;
+
+    [Test]
+    [HandlerFunctions('ProductionJnlPageHandler4,ConfirmHandler,MessageHandlerNoText')]
+    [Scope('OnPrem')]
+    procedure UnitCostCorrectlyCalculatedWhenFinishedQtyDiffersFromProdOrderQty()
+    var
+        Item: array[2] of Record Item;
+        Location: Record Location;
+        ProductionOrder: Record "Production Order";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProdOrderLine: Record "Prod. Order Line";
+    begin
+        // [SCENARIO 563091] When Finished quantity is different than Prod. Order quantity, Unit Cost on 
+        // Finished Prod. Order is calculated correctly
+        Initialize();
+
+        // [GIVEN] Create Item [1] and Validate Costing Method.
+        CreateItemWithProductionBOM(Item[1], LibraryRandom.RandIntInRange(10, 10), ProductionBOMHeader."No.");
+
+        // [GIVEN] Create and Post Item Journal Line.
+        CreateAndPostItemJournalLine(Item[1]."No.", LibraryRandom.RandIntInRange(50, 100), '', '', false);
+
+        // // [GIVEN] Create a Production BOM
+        LibraryManufacturing.CreateCertifiedProductionBOM(ProductionBOMHeader, Item[1]."No.", LibraryRandom.RandInt(1));
+
+        // [GIVEN] Create Item [2] and Validate Costing Method and Production BOM No.
+        CreateItemWithProductionBOM(Item[2], 0, ProductionBOMHeader."No.");
+
+        // [GIVEN] Create and Refresh Production Order.
+        CreateAndRefreshProductionOrder(ProductionOrder, ProductionOrder.Status::Released, Item[2]."No.", LibraryRandom.RandInt(5), Location.Code, '');
+
+        // [GIVEN] Find Prod. Order Line.
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status::Released);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+
+        // [GIVEN] Create and Post Production Journal.
+        CreateAndPostProductionJournal(ProductionOrder, ProdOrderLine."Line No.");
+
+        // [WHEN] Finish the Production Order with Finished Quantity different than Prod. Order Quantity.
+        LibraryManufacturing.ChangeProdOrderStatus(ProductionOrder, ProductionOrder.Status::Finished, WorkDate(), true);
+
+        // [THEN] Find Finished Production Order.
+        ProductionOrder.Get(ProductionOrder.Status::Finished, ProductionOrder."No.");
+
+        // [THEN] Get Finished Production Order and verify the Unit Cost Updated correctly.
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status::Finished);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+
+        // [THEN] Unit Cost is correctly calculated.
+        Assert.AreEqual(Round(ProdOrderLine."Cost Amount" / ProdOrderLine."Finished Quantity"), ProdOrderLine."Unit Cost",
+            StrSubstNo(UnitCostMustBeEqualErr, ProdOrderLine.FieldCaption("Unit Cost"), ProdOrderLine.TableCaption()));
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -9552,6 +9687,104 @@ codeunit 137072 "SCM Production Orders II"
         ProductionBOMHeader.Modify(true);
     end;
 
+    local procedure CreateLocationRequirePick(var Location: Record Location)
+    var
+        WarehouseEmployee: Record "Warehouse Employee";
+    begin
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        Location.Validate("Bin Mandatory", true);
+        Location.Validate("Require Receive", true);
+        Location.Validate("Require Shipment", true);
+        Location.Validate("Require Pick", true);
+        Location.Validate("Prod. Output Whse. Handling", "Prod. Output Whse. Handling"::"Inventory Put-away");
+        Location.Validate("Prod. Consump. Whse. Handling", "Prod. Consump. Whse. Handling"::"Warehouse Pick (mandatory)");
+        Location.Modify(true);
+        Location.Validate("Open Shop Floor Bin Code", CreateBinCode(Location.Code));
+        Location.Validate("To-Production Bin Code", CreateBinCode(Location.Code));
+        Location.Validate("From-Production Bin Code", CreateBinCode(Location.Code));
+        Location.Validate("Receipt Bin Code", CreateBinCode(Location.Code));
+        Location.Validate("Shipment Bin Code", CreateBinCode(Location.Code));
+        Location.Modify(true);
+
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
+    end;
+
+    local procedure CreateBinCode(LocationCode: Code[10]): Code[20]
+    var
+        Bin: Record Bin;
+    begin
+        LibraryWarehouse.CreateBin(Bin, LocationCode, LibraryUtility.GenerateGUID(), '', '');
+        exit(Bin.Code);
+    end;
+
+    local procedure CreateLotSpecificItem(var Item: Record Item)
+    var
+        ItemTrackingCode: Record "Item Tracking Code";
+    begin
+        LibraryInventory.CreateItemTrackingCode(ItemTrackingCode);
+        ItemTrackingCode.Validate("Lot Specific Tracking", true);
+        ItemTrackingCode.Modify(true);
+
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        Item.Modify(true);
+    end;
+
+    local procedure CreateAndPostLotTrackedItemJournal(Location: Record Location; ItemNo: Code[20]; LotNo: Code[50]; Quantity: Decimal)
+    var
+        ItemJournalLine: Record "Item Journal Line";
+        ReservationvEntry: Record "Reservation Entry";
+    begin
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, ItemNo, Location.Code, Location."Receipt Bin Code", Quantity);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationvEntry, ItemJournalLine, '', LotNo, '', Quantity);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+    end;
+
+    local procedure FindWhseActivityLine(var WarehouseActivityLine: Record "Warehouse Activity Line"; ActivityType: Enum "Warehouse Activity Type"; ActionType: Enum "Warehouse Action Type"; LocationCode: Code[10]; SourceNo: Code[20])
+    begin
+        WarehouseActivityLine.SetRange("Activity Type", ActivityType);
+        WarehouseActivityLine.SetRange("Location Code", LocationCode);
+        WarehouseActivityLine.SetRange("No.", FindWarehouseActivityNo(SourceNo, ActivityType));
+        WarehouseActivityLine.SetRange("Action Type", ActionType);
+        WarehouseActivityLine.FindSet();
+    end;
+
+    local procedure UpdateQuantityToHandleOnActivityLines(ActivityType: Enum "Warehouse Activity Type"; ActivityNo: Code[20]; Quantity: Decimal)
+    var
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        WarehouseActivityLine.SetRange("Activity Type", ActivityType);
+        WarehouseActivityLine.SetRange("No.", ActivityNo);
+        WarehouseActivityLine.FindSet();
+        repeat
+            WarehouseActivityLine.Validate("Qty. to Handle", Quantity);
+            WarehouseActivityLine.Modify(true);
+        until WarehouseActivityLine.Next() = 0;
+    end;
+
+    local procedure FindWarehouseActivityNo(SourceNo: Code[20]; ActivityType: Enum "Warehouse Activity Type"): Code[20]
+    var
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        WarehouseActivityLine.SetRange("Source No.", SourceNo);
+        WarehouseActivityLine.SetRange("Activity Type", ActivityType);
+        WarehouseActivityLine.FindFirst();
+
+        exit(WarehouseActivityLine."No.");
+    end;
+
+    local procedure CreateItemWithProductionBOM(var Item: Record Item; UnitCost: Decimal; ProductionBOMNo: Code[20])
+    begin
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Costing Method", Item."Costing Method"::FIFO);
+        if UnitCost <> 0 then
+            Item.Validate("Unit Cost", UnitCost);
+        if ProductionBOMNo <> '' then
+            Item.Validate("Production BOM No.", ProductionBOMNo);
+
+        Item.Modify(true);
+    end;
+
     [ModalPageHandler]
     procedure ProductionJournalModalPageHandler(var ProductionJournal: TestPage "Production Journal")
     begin
@@ -9937,6 +10170,18 @@ codeunit 137072 "SCM Production Orders II"
                 end;
         end;
         ItemTrackingLines.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure ProductionJnlPageHandler4(var ProductionJournal: TestPage "Production Journal")
+    var
+        OutputQuantity: Decimal;
+    begin
+        ProductionJournal.Next();
+        OutputQuantity := ProductionJournal."Output Quantity".AsDecimal();
+        ProductionJournal."Output Quantity".SetValue(OutputQuantity + 1);
+        ProductionJournal.Post.Invoke();
     end;
 }
 

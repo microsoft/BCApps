@@ -4,12 +4,21 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.Outbox;
 
-using Microsoft.Intercompany.Comment;
 using Microsoft.Intercompany;
+using Microsoft.Intercompany.Comment;
 using Microsoft.Intercompany.Journal;
 using Microsoft.Intercompany.Partner;
 using System.Utilities;
 
+/// <summary>
+/// Stores intercompany transactions pending transmission to partner companies.
+/// Manages outbound transaction staging, status tracking, and partner communication for intercompany operations.
+/// </summary>
+/// <remarks>
+/// Primary staging table for outbound intercompany transactions. Integrates with partner setup, transaction processing, and status management.
+/// Key relationships: IC Partner, IC Outbox Sales Header, IC Outbox Purchase Header, IC Outbox Jnl. Line.
+/// Extensible via table extensions for custom transaction types and additional status tracking fields.
+/// </remarks>
 table 414 "IC Outbox Transaction"
 {
     Caption = 'IC Outbox Transaction';
@@ -17,11 +26,17 @@ table 414 "IC Outbox Transaction"
 
     fields
     {
+        /// <summary>
+        /// Unique identifier for the intercompany outbox transaction.
+        /// </summary>
         field(1; "Transaction No."; Integer)
         {
             Caption = 'Transaction No.';
             Editable = false;
         }
+        /// <summary>
+        /// Code identifying the intercompany partner for this outbound transaction.
+        /// </summary>
         field(2; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
@@ -29,6 +44,9 @@ table 414 "IC Outbox Transaction"
             TableRelation = "IC Partner".Code;
         }
 #if not CLEANSCHEMA29
+        /// <summary>
+        /// Source type option indicating the origin of the intercompany transaction.
+        /// </summary>
         field(3; "Source Type"; Option)
         {
             Caption = 'Source Type';
@@ -45,16 +63,25 @@ table 414 "IC Outbox Transaction"
 #endif
         }
 #endif
+        /// <summary>
+        /// Source type enum indicating the origin of the intercompany transaction.
+        /// </summary>
         field(4; "IC Source Type"; Enum "IC Transaction Source Type")
         {
             Caption = 'IC Source Type';
             Editable = false;
         }
+        /// <summary>
+        /// Document type classification for the intercompany transaction.
+        /// </summary>
         field(5; "Document Type"; Enum "IC Transaction Document Type")
         {
             Caption = 'Document Type';
             Editable = false;
         }
+        /// <summary>
+        /// Document number of the source transaction being processed for intercompany transmission.
+        /// </summary>
         field(6; "Document No."; Code[20])
         {
             Caption = 'Document No.';
@@ -65,11 +92,17 @@ table 414 "IC Outbox Transaction"
                 OnBeforeLookupDocumentNo(Rec);
             end;
         }
+        /// <summary>
+        /// Posting date of the source transaction for intercompany processing.
+        /// </summary>
         field(7; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
             Editable = false;
         }
+        /// <summary>
+        /// Source classification indicating whether transaction was created by current company or rejected by partner.
+        /// </summary>
         field(8; "Transaction Source"; Option)
         {
             Caption = 'Transaction Source';
@@ -77,11 +110,17 @@ table 414 "IC Outbox Transaction"
             OptionCaption = 'Rejected by Current Company,Created by Current Company';
             OptionMembers = "Rejected by Current Company","Created by Current Company";
         }
+        /// <summary>
+        /// Document date from the source transaction for intercompany transmission.
+        /// </summary>
         field(9; "Document Date"; Date)
         {
             Caption = 'Document Date';
             Editable = false;
         }
+        /// <summary>
+        /// Action to be performed on the outbox transaction line during processing.
+        /// </summary>
         field(10; "Line Action"; Option)
         {
             Caption = 'Line Action';
@@ -99,6 +138,9 @@ table 414 "IC Outbox Transaction"
             end;
         }
 #if not CLEANSCHEMA25
+        /// <summary>
+        /// IC Partner G/L account number for the intercompany transaction.
+        /// </summary>
         field(12; "IC Partner G/L Acc. No."; Code[20])
         {
             Caption = 'IC Partner G/L Acc. No.';
@@ -107,14 +149,23 @@ table 414 "IC Outbox Transaction"
             ObsoleteTag = '25.0';
         }
 #endif
+        /// <summary>
+        /// Source line number from the originating document for transaction traceability.
+        /// </summary>
         field(13; "Source Line No."; Integer)
         {
             Caption = 'Source Line No.';
         }
+        /// <summary>
+        /// Account type for intercompany journal transactions.
+        /// </summary>
         field(14; "IC Account Type"; Enum "IC Journal Account Type")
         {
             Caption = 'IC Account Type';
         }
+        /// <summary>
+        /// Account number for intercompany journal transactions based on IC Account Type.
+        /// </summary>
         field(15; "IC Account No."; Code[20])
         {
             Caption = 'IC Account No.';
@@ -182,6 +233,10 @@ table 414 "IC Outbox Transaction"
             until ICCommentLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Opens the detailed view for the outbox transaction based on its source type.
+    /// Displays appropriate page for journal lines, sales documents, or purchase documents.
+    /// </summary>
     procedure ShowDetails()
     var
         ICOutboxJnlLine: Record "IC Outbox Jnl. Line";
@@ -297,21 +352,51 @@ table 414 "IC Outbox Transaction"
         exit(not HandledICOutboxTrans.IsEmpty());
     end;
 
+    /// <summary>
+    /// Integration event raised after showing transaction details to enable custom processing.
+    /// </summary>
+    /// <param name="IOutboxTransction">IC Outbox Transaction record after details display</param>
+    /// <remarks>
+    /// Raised from ShowDetails procedure after displaying transaction details page.
+    /// </remarks>
     [IntegrationEvent(false, false)]
     local procedure OnAfterShowDetails(var IOutboxTransction: Record "IC Outbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before document number lookup to enable custom lookup logic.
+    /// </summary>
+    /// <param name="ICOutboxTransaction">IC Outbox Transaction record for lookup context</param>
+    /// <remarks>
+    /// Raised from Document No. field OnLookup trigger.
+    /// </remarks>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupDocumentNo(ICOutboxTransaction: Record "IC Outbox Transaction");
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before outbox send validation to enable custom send checks.
+    /// </summary>
+    /// <param name="ICOutboxTransaction">IC Outbox Transaction record being validated</param>
+    /// <param name="IsHandled">Set to true to skip standard send validation</param>
+    /// <remarks>
+    /// Raised from OutboxCheckSend procedure before standard validation logic.
+    /// </remarks>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOutboxCheckSend(var ICOutboxTransaction: Record "IC Outbox Transaction"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised during transaction deletion based on source type.
+    /// Enables custom cleanup logic for specific source type scenarios.
+    /// </summary>
+    /// <param name="ICOutboxTransaction">IC Outbox Transaction record being deleted</param>
+    /// <remarks>
+    /// Raised from OnDelete trigger during source type-specific deletion processing.
+    /// </remarks>
     [IntegrationEvent(false, false)]
     local procedure OnDeleteOnSourceTypeCase(var ICOutboxTransaction: Record "IC Outbox Transaction")
     begin

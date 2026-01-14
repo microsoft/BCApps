@@ -103,18 +103,6 @@ page 6301 "Azure AD App Setup Part"
     begin
         RedirectUrl := AzureADMgt.GetDefaultRedirectUrl();
     end;
-#if not CLEAN25
-
-    [NonDebuggable]
-    [Obsolete('Replaced by SetAppDetails(ApplicationId: Guid; "Key": SecretText)', '25.0')]
-    procedure SetAppDetails(ApplicationId: Guid; "Key": Text)
-    var
-        KeyAsSecretText: SecretText;
-    begin
-        KeyAsSecretText := Key;
-        SetAppDetails(ApplicationId, KeyAsSecretText);
-    end;
-#endif
 
     [NonDebuggable]
     procedure SetAppDetails(ApplicationId: Guid; "Key": SecretText)
@@ -128,4 +116,3 @@ page 6301 "Azure AD App Setup Part"
         exit(RedirectUrl);
     end;
 }
-

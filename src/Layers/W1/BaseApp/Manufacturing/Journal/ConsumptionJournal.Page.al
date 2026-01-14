@@ -13,11 +13,13 @@ using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
-using Microsoft.Warehouse.Structure;
 using Microsoft.Utilities;
+using Microsoft.Warehouse.Structure;
+using System.Automation;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Integration;
+using System.Privacy;
 
 page 99000846 "Consumption Journal"
 {
@@ -37,27 +39,39 @@ page 99000846 "Consumption Journal"
     {
         area(content)
         {
-            field(CurrentJnlBatchName; CurrentJnlBatchName)
+            group(Control120)
             {
-                ApplicationArea = Manufacturing;
-                Caption = 'Batch Name';
-                Lookup = true;
-                ToolTip = 'Specifies the name of the journal batch, a personalized journal layout, that the journal is based on.';
+                ShowCaption = false;
+                field(CurrentJnlBatchName; CurrentJnlBatchName)
+                {
+                    ApplicationArea = Manufacturing;
+                    Caption = 'Batch Name';
+                    Lookup = true;
+                    ToolTip = 'Specifies the name of the journal batch, a personalized journal layout, that the journal is based on.';
 
-                trigger OnLookup(var Text: Text): Boolean
-                begin
-                    CurrPage.SaveRecord();
-                    ItemJnlMgt.LookupName(CurrentJnlBatchName, Rec);
-                    SetControlAppearanceFromBatch();
-                    CurrPage.Update(false);
-                    ItemJnlMgt.CheckName(CurrentJnlBatchName, Rec);
-                end;
+                    trigger OnLookup(var Text: Text): Boolean
+                    begin
+                        CurrPage.SaveRecord();
+                        ItemJnlMgt.LookupName(CurrentJnlBatchName, Rec);
+                        SetControlAppearanceFromBatch();
+                        CurrPage.Update(false);
+                        ItemJnlMgt.CheckName(CurrentJnlBatchName, Rec);
+                    end;
 
-                trigger OnValidate()
-                begin
-                    ItemJnlMgt.CheckName(CurrentJnlBatchName, Rec);
-                    CurrentJnlBatchNameOnAfterValidate();
-                end;
+                    trigger OnValidate()
+                    begin
+                        ItemJnlMgt.CheckName(CurrentJnlBatchName, Rec);
+                        CurrentJnlBatchNameOnAfterValidate();
+                    end;
+                }
+                field(ItemJnlBatchApprovalStatus; ItemJnlBatchApprovalStatus)
+                {
+                    ApplicationArea = Manufacturing;
+                    Caption = 'Approval Status';
+                    Editable = false;
+                    Visible = EnabledItemJnlBatchWorkflowsExist;
+                    ToolTip = 'Specifies the approval status for consumption journal batch.';
+                }
             }
             repeater(Control1)
             {
@@ -391,6 +405,15 @@ page 99000846 "Consumption Journal"
                               "Journal Batch Name" = field("Journal Batch Name"),
                               "Line No." = field("Line No.");
             }
+            part(WorkflowStatusBatch; "Workflow Status FactBox")
+            {
+                ApplicationArea = Suite;
+                Caption = 'Batch Workflows';
+                Editable = false;
+                Enabled = false;
+                ShowFilter = false;
+                Visible = ShowWorkflowStatusOnBatch;
+            }
             systempart(Control1900383207; Links)
             {
                 ApplicationArea = RecordLinks;
@@ -493,6 +516,21 @@ page 99000846 "Consumption Journal"
                         RunPageView = sorting("Order Type", "Order No.");
                         ToolTip = 'View the capacity ledger entries of the involved production order. Capacity is recorded either as time (run time, stop time, or setup time) or as quantity (scrap quantity or output quantity).';
                     }
+                }
+                action(Approvals)
+                {
+                    AccessByPermission = TableData "Approval Entry" = R;
+                    ApplicationArea = Suite;
+                    Caption = 'Approvals';
+                    Image = Approvals;
+                    ToolTip = 'View a list of the records that are waiting to be approved. For example, you can see who requested the record to be approved, when it was sent, and when it is due to be approved.';
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        ApprovalsMgmt.ShowJournalApprovalEntries(Rec);
+                    end;
                 }
             }
         }
@@ -598,6 +636,134 @@ page 99000846 "Consumption Journal"
                     ItemJnlLine.PrintInventoryMovement();
                 end;
             }
+            group("Request Approval")
+            {
+                Caption = 'Request Approval';
+                group(SendApprovalRequest)
+                {
+                    Caption = 'Send Approval Request';
+                    Image = SendApprovalRequest;
+                    action(SendApprovalRequestJournalBatch)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Journal Batch';
+                        Enabled = not OpenApprovalEntriesOnJnlBatchExist and CanRequestFlowApprovalForBatch and EnabledItemJnlBatchWorkflowsExist;
+                        Image = SendApprovalRequest;
+                        ToolTip = 'Send all journal lines for approval, also those that you may not see because of filters.';
+
+                        trigger OnAction()
+                        var
+                            ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                        begin
+                            ApprovalsMgmt.TrySendJournalBatchApprovalRequest(Rec);
+                            SetControlAppearanceFromBatch();
+                        end;
+                    }
+                }
+                group(CancelApprovalRequest)
+                {
+                    Caption = 'Cancel Approval Request';
+                    Image = Cancel;
+                    action(CancelApprovalRequestJournalBatch)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Journal Batch';
+                        Enabled = CanCancelApprovalForJnlBatch or CanCancelFlowApprovalForBatch;
+                        Image = CancelApprovalRequest;
+                        ToolTip = 'Cancel sending all journal lines for approval, also those that you may not see because of filters.';
+
+                        trigger OnAction()
+                        var
+                            ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                        begin
+                            ApprovalsMgmt.TryCancelJournalBatchApprovalRequest(Rec);
+                            SetControlAppearanceFromBatch();
+                        end;
+                    }
+                }
+                group(Flow)
+                {
+                    Caption = 'Power Automate';
+                    Image = Flow;
+
+                    customaction(CreateApprovalFlowFromTemplate)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Create approval flow';
+                        ToolTip = 'Create a new flow in Power Automate from a list of relevant flow templates.';
+                        Visible = IsSaaS and IsPowerAutomatePrivacyNoticeApproved;
+                        CustomActionType = FlowTemplateGallery;
+                        FlowTemplateCategoryName = 'd365bc_approval_itemJournal';
+                    }
+                }
+            }
+            group(Approval)
+            {
+                Caption = 'Approval';
+                action(Approve)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Approve';
+                    Image = Approve;
+                    ToolTip = 'Approve the requested changes.';
+                    Visible = OpenApprovalEntriesExistForCurrUser;
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        ApprovalsMgmt.ApproveItemJournalRequest(Rec);
+                    end;
+                }
+                action(Reject)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Reject';
+                    Image = Reject;
+                    ToolTip = 'Reject the approval request.';
+                    Visible = OpenApprovalEntriesExistForCurrUser;
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        ApprovalsMgmt.RejectItemJournalRequest(Rec);
+                    end;
+                }
+                action(Delegate)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Delegate';
+                    Image = Delegate;
+                    ToolTip = 'Delegate the approval to a substitute approver.';
+                    Visible = OpenApprovalEntriesExistForCurrUser;
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        ApprovalsMgmt.DelegateItemJournalRequest(Rec);
+                    end;
+                }
+                action(Comments)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Comments';
+                    Image = ViewComments;
+                    ToolTip = 'View or add comments for the record.';
+                    Visible = OpenApprovalEntriesExistForCurrUser or ApprovalEntriesExistSentByCurrentUser;
+
+                    trigger OnAction()
+                    var
+                        ItemJournalBatch: Record "Item Journal Batch";
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        if OpenApprovalEntriesOnJnlBatchExist then
+                            if ItemJournalBatch.Get(Rec."Journal Template Name", Rec."Journal Batch Name") then
+                                ApprovalsMgmt.GetApprovalComment(ItemJournalBatch);
+                    end;
+                }
+            }
             group("Page")
             {
                 Caption = 'Page';
@@ -682,6 +848,44 @@ page 99000846 "Consumption Journal"
                 {
                 }
             }
+            group(Category_Category10)
+            {
+                Caption = 'Approve', Comment = 'Generated from the PromotedActionCategories property index 7.';
+
+                actionref(Approve_Promoted; Approve)
+                {
+                }
+                actionref(Reject_Promoted; Reject)
+                {
+                }
+                actionref(Comments_Promoted; Comments)
+                {
+                }
+                actionref(Delegate_Promoted; Delegate)
+                {
+                }
+            }
+            group("Category_Request Approval")
+            {
+                Caption = 'Request Approval';
+
+                group("Category_Send Approval Request")
+                {
+                    Caption = 'Send Approval Request';
+
+                    actionref(SendApprovalRequestJournalBatch_Promoted; SendApprovalRequestJournalBatch)
+                    {
+                    }
+                }
+                group("Category_Cancel Approval Request")
+                {
+                    Caption = 'Cancel Approval Request';
+
+                    actionref(CancelApprovalRequestJournalBatch_Promoted; CancelApprovalRequestJournalBatch)
+                    {
+                    }
+                }
+            }
             group(Category_Category5)
             {
                 Caption = 'Prepare', Comment = 'Generated from the PromotedActionCategories property index 4.';
@@ -694,6 +898,9 @@ page 99000846 "Consumption Journal"
                 {
                 }
                 actionref(Dimensions_Promoted; Dimensions)
+                {
+                }
+                actionref(Approvals_Promoted; Approvals)
                 {
                 }
             }
@@ -727,6 +934,8 @@ page 99000846 "Consumption Journal"
     }
 
     trigger OnAfterGetCurrRecord()
+    var
+        ItemJournalBatch: Record "Item Journal Batch";
     begin
         MfgItemJournalMgt.GetConsump(Rec, ProdOrderDescription);
 
@@ -735,6 +944,13 @@ page 99000846 "Consumption Journal"
             ItemTrackingEditable := not Rec.ReservEntryExist();
 
         ExpirationDateEditable := SetExpirationDateVisibility();
+
+        if ItemJournalBatch.Get(Rec.GetRangeMax("Journal Template Name"), CurrentJnlBatchName) then begin
+            ItemJournalBatch.SetApprovalStateForBatch(ItemJournalBatch, Rec, OpenApprovalEntriesExistForCurrUser, OpenApprovalEntriesOnJnlBatchExist, CanCancelApprovalForJnlBatch, CanRequestFlowApprovalForBatch, CanCancelFlowApprovalForBatch, ApprovalEntriesExistSentByCurrentUser, EnabledItemJnlBatchWorkflowsExist);
+            ShowWorkflowStatusOnBatch := CurrPage.WorkflowStatusBatch.Page.SetFilterOnWorkflowRecord(ItemJournalBatch.RecordId());
+        end;
+
+        ApprovalMgmt.GetItemJnlBatchApprovalStatus(Rec, ItemJnlBatchApprovalStatus, EnabledItemJnlBatchWorkflowsExist);
     end;
 
     trigger OnAfterGetRecord()
@@ -751,6 +967,11 @@ page 99000846 "Consumption Journal"
             SetItemTrackingFieldsEditabilityForOData();
     end;
 
+    trigger OnInit()
+    begin
+        IsPowerAutomatePrivacyNoticeApproved := PrivacyNotice.GetPrivacyNoticeApprovalState(FlowServiceManagement.GetPowerAutomatePrivacyNoticeId()) = "Privacy Notice Approval State"::Agreed;
+    end;
+
     trigger OnDeleteRecord(): Boolean
     var
         ItemJnlLineReserve: Codeunit "Item Jnl. Line-Reserve";
@@ -759,6 +980,11 @@ page 99000846 "Consumption Journal"
         if not ItemJnlLineReserve.DeleteLineConfirm(Rec) then
             exit(false);
         ItemJnlLineReserve.DeleteLine(Rec);
+    end;
+
+    trigger OnModifyRecord(): Boolean
+    begin
+        ApprovalMgmt.CleanItemJournalApprovalStatus(Rec, ItemJnlBatchApprovalStatus);
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -771,9 +997,11 @@ page 99000846 "Consumption Journal"
     trigger OnOpenPage()
     var
         ServerSetting: Codeunit "Server Setting";
+        EnvironmentInfo: Codeunit "Environment Information";
         JnlSelected: Boolean;
     begin
         IsSaaSExcelAddinEnabled := ServerSetting.GetIsSaasExcelAddinEnabled();
+        IsSaaS := EnvironmentInfo.IsSaaS();
         if ClientTypeManagement.GetCurrentClientType() = CLIENTTYPE::ODataV4 then
             exit;
 
@@ -796,11 +1024,25 @@ page 99000846 "Consumption Journal"
         MfgItemJournalMgt: Codeunit "Mfg. Item Journal Mgt.";
         ReportPrint: Codeunit "Test Report-Print";
         ClientTypeManagement: Codeunit "Client Type Management";
+        ApprovalMgmt: Codeunit "Approvals Mgmt.";
+        PrivacyNotice: Codeunit "Privacy Notice";
+        FlowServiceManagement: Codeunit "Flow Service Management";
         ItemJournalErrorsMgt: Codeunit "Item Journal Errors Mgt.";
         ProdOrderDescription: Text[100];
+        ItemJnlBatchApprovalStatus: Text[20];
         BackgroundErrorCheck: Boolean;
         ShowAllLinesEnabled: Boolean;
         IsSaaSExcelAddinEnabled: Boolean;
+        ApprovalEntriesExistSentByCurrentUser: Boolean;
+        OpenApprovalEntriesExistForCurrUser: Boolean;
+        OpenApprovalEntriesOnJnlBatchExist: Boolean;
+        EnabledItemJnlBatchWorkflowsExist: Boolean;
+        ShowWorkflowStatusOnBatch: Boolean;
+        CanCancelApprovalForJnlBatch: Boolean;
+        CanRequestFlowApprovalForBatch: Boolean;
+        CanCancelFlowApprovalForBatch: Boolean;
+        IsPowerAutomatePrivacyNoticeApproved: Boolean;
+        IsSaaS: Boolean;
 
     protected var
         CurrentJnlBatchName: Code[10];
@@ -839,6 +1081,8 @@ page 99000846 "Consumption Journal"
         ItemTrackingCode.SetRange("Package Specific Tracking", true);
         PackageNoVisible := CanSelectItemTrackingOnLines and not ItemTrackingCode.IsEmpty();
 
+        ShowWorkflowStatusOnBatch := CurrPage.WorkflowStatusBatch.Page.SetFilterOnWorkflowRecord(ItemJournalBatch.RecordId());
+        ItemJournalBatch.SetApprovalStateForBatch(ItemJournalBatch, Rec, OpenApprovalEntriesExistForCurrUser, OpenApprovalEntriesOnJnlBatchExist, CanCancelApprovalForJnlBatch, CanRequestFlowApprovalForBatch, CanCancelFlowApprovalForBatch, ApprovalEntriesExistSentByCurrentUser, EnabledItemJnlBatchWorkflowsExist);
         Rec.SwitchLinesWithErrorsFilter(ShowAllLinesEnabled);
         ItemJournalErrorsMgt.SetFullBatchCheck(true);
     end;

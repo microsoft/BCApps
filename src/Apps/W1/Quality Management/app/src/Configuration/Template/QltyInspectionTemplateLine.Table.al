@@ -5,11 +5,11 @@
 namespace Microsoft.QualityManagement.Configuration.Template;
 
 using Microsoft.Foundation.UOM;
-using Microsoft.QualityManagement.Configuration.Grade;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Result;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 
 /// <summary>
-/// A template line describes which field should be added to the template, and in what order as well
+/// A template line describes which test should be added to the template, and in what order as well
 /// as specific pass criteria.
 /// </summary>
 table 20403 "Qlty. Inspection Template Line"
@@ -22,57 +22,57 @@ table 20403 "Qlty. Inspection Template Line"
         field(1; "Template Code"; Code[20])
         {
             Caption = 'Template Code';
-            Description = 'A template is a collection of fields which could represent questions or measurements to take.';
+            Description = 'A template is a collection of tests which could represent questions or measurements to take.';
             NotBlank = true;
             TableRelation = "Qlty. Inspection Template Hdr.".Code;
         }
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
-            ToolTip = 'Specifies the line no. of the field in this template.';
+            ToolTip = 'Specifies the line no. of the test in this template.';
         }
-        field(3; "Field Code"; Code[20])
+        field(3; "Test Code"; Code[20])
         {
-            Caption = 'Field Code';
+            Caption = 'Test Code';
             NotBlank = false;
-            TableRelation = "Qlty. Field".Code;
-            ToolTip = 'Specifies the Field that is to be tested. Click the field to see a list of Fields.';
+            TableRelation = "Qlty. Test".Code;
+            ToolTip = 'Specifies the Test that is to be tested. Click the field to see a list of Tests.';
 
             trigger OnValidate()
             var
-                QltyField: Record "Qlty. Field";
+                QltyTest: Record "Qlty. Test";
             begin
-                if Rec."Field Code" = '' then
+                if Rec."Test Code" = '' then
                     Rec.Description := ''
                 else
-                    if QltyField.Get("Field Code") then begin
-                        Rec.Description := QltyField.Description;
-                        Rec."Unit of Measure Code" := QltyField."Unit of Measure Code";
+                    if QltyTest.Get("Test Code") then begin
+                        Rec.Description := QltyTest.Description;
+                        Rec."Unit of Measure Code" := QltyTest."Unit of Measure Code";
                     end;
 
-                EnsureGrades(Rec."Field Code" <> xRec."Field Code");
+                EnsureResultsExist(Rec."Test Code" <> xRec."Test Code");
             end;
         }
         field(4; Description; Text[100])
         {
             Caption = 'Description';
-            ToolTip = 'Specifies the description that is to be displayed. Contains the value of the description field from the Field template. You can replace the text as needed.';
+            ToolTip = 'Specifies the description that is to be displayed. Contains the value of the description field from the Test template. You can replace the text as needed.';
         }
-        field(5; "Field Type"; Enum "Qlty. Field Type")
+        field(5; "Test Value Type"; Enum "Qlty. Test Value Type")
         {
-            CalcFormula = lookup("Qlty. Field"."Field Type" where(Code = field("Field Code")));
-            Caption = 'Field Type';
+            CalcFormula = lookup("Qlty. Test"."Test Value Type" where(Code = field("Test Code")));
+            Caption = 'Test Value Type';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies the field type of the Field. The program automatically retrieves the value from the Field Type Field Type field on the Field template.';
+            ToolTip = 'Specifies the value type of the Test. The program automatically retrieves the value from the Test Value Type field on the Test template.';
         }
         field(7; "Allowable Values"; Text[500])
         {
-            CalcFormula = lookup("Qlty. Field"."Allowable Values" where(Code = field("Field Code")));
+            CalcFormula = lookup("Qlty. Test"."Allowable Values" where(Code = field("Test Code")));
             Caption = 'Allowable Values';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies an expression for the range of values you can enter or select on the Quality Inspection Test line. The program automatically retrieves the value from the Allowable Values field on the Field template.';
+            ToolTip = 'Specifies an expression for the range of values you can enter or select on the Quality Inspection line. The program automatically retrieves the value from the Allowable Values field on the Field template.';
         }
         field(10; "Copied From Template Code"; Code[20])
         {
@@ -81,22 +81,22 @@ table 20403 "Qlty. Inspection Template Line"
         }
         field(11; "Default Value"; Text[250])
         {
-            CalcFormula = lookup("Qlty. Field"."Default Value" where(Code = field("Field Code")));
+            CalcFormula = lookup("Qlty. Test"."Default Value" where(Code = field("Test Code")));
             Caption = 'Default Value';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies a default value to set on the test.';
+            ToolTip = 'Specifies a default value to set on the inspection.';
         }
         field(12; "Expression Formula"; Text[500])
         {
             Caption = 'Expression Formula';
-            ToolTip = 'Specifies the formula for the expression content when using expression field types.';
+            ToolTip = 'Specifies the formula for the expression content when using expression test value types.';
 
             trigger OnValidate()
             begin
-                Rec.CalcFields("Field Type");
+                Rec.CalcFields("Test Value Type");
                 if Rec."Expression Formula" <> '' then begin
-                    if not (Rec."Field Type" in [Rec."Field Type"::"Field Type Text Expression"]) then
+                    if not (Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Text Expression"]) then
                         Error(OnlyFieldExpressionErr);
 
                     ValidateExpressionFormula();
@@ -117,7 +117,7 @@ table 20403 "Qlty. Inspection Template Line"
         {
             Clustered = true;
         }
-        key(Key2; "Template Code", "Field Code")
+        key(Key2; "Template Code", "Test Code")
         {
         }
     }
@@ -131,8 +131,8 @@ table 20403 "Qlty. Inspection Template Line"
             exit;
 
         InitLineNoIfNeeded();
-        EnsureGrades(true);
-        Rec.CalcFields("Field Type");
+        EnsureResultsExist(true);
+        Rec.CalcFields("Test Value Type");
     end;
 
     procedure InitLineNoIfNeeded()
@@ -150,21 +150,21 @@ table 20403 "Qlty. Inspection Template Line"
 
     trigger OnModify()
     begin
-        EnsureGrades(false);
-        Rec.CalcFields("Field Type");
-        if Rec."Field Type" in [Rec."Field Type"::"Field Type Text Expression"] then
+        EnsureResultsExist(false);
+        Rec.CalcFields("Test Value Type");
+        if Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Text Expression"] then
             ValidateExpressionFormula();
     end;
 
     /// <summary>
-    /// Ensures grades exist for this template line.
+    /// Ensures results exist for this template line.
     /// </summary>
     /// <param name="ForceOverwriteConditions"></param>
-    procedure EnsureGrades(ForceOverwriteConditions: Boolean)
+    procedure EnsureResultsExist(ForceOverwriteConditions: Boolean)
     var
-        QltyGradeConditionMgmt: Codeunit "Qlty. Grade Condition Mgmt.";
+        QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
     begin
-        QltyGradeConditionMgmt.CopyGradeConditionsFromFieldToTemplateLine(Rec."Template Code", Rec."Line No.", '', ForceOverwriteConditions);
+        QltyResultConditionMgmt.CopyResultConditionsFromTestToTemplateLine(Rec."Template Code", Rec."Line No.", '', ForceOverwriteConditions);
     end;
 
     /// <summary>
@@ -174,7 +174,7 @@ table 20403 "Qlty. Inspection Template Line"
     var
         Handled: Boolean;
     begin
-        Rec.CalcFields("Field Type");
+        Rec.CalcFields("Test Value Type");
 
         OnValidateExpressionFormula(Rec, Handled);
         if Handled then

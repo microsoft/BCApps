@@ -15,6 +15,15 @@ using System.Environment.Configuration;
 using System.IO;
 using System.Utilities;
 
+/// <summary>
+/// Guided setup wizard for configuring VAT posting groups, VAT posting setups, and VAT account assignments.
+/// Provides step-by-step VAT configuration with templates and automated setup for standard VAT scenarios.
+/// </summary>
+/// <remarks>
+/// Key functionality: VAT business/product posting group creation, VAT posting setup generation, G/L account assignment.
+/// Templates: Pre-configured VAT setups for common business scenarios and country-specific requirements.
+/// Integration: Creates complete VAT configuration including posting groups, setups, and account mappings.
+/// </remarks>
 page 1877 "VAT Setup Wizard"
 {
     Caption = 'VAT Setup';
@@ -199,7 +208,7 @@ page 1877 "VAT Setup Wizard"
         {
             action(ActionBack)
             {
-                ApplicationArea = Invoicing, Basic, Suite;
+                ApplicationArea = Basic, Suite;
                 Caption = 'Back';
                 Enabled = BackActionEnabled;
                 Image = PreviousRecord;
@@ -212,7 +221,7 @@ page 1877 "VAT Setup Wizard"
             }
             action(ActionNext)
             {
-                ApplicationArea = Invoicing, Basic, Suite;
+                ApplicationArea = Basic, Suite;
                 Caption = 'Next';
                 Enabled = NextActionEnabled;
                 Image = NextRecord;
@@ -225,7 +234,7 @@ page 1877 "VAT Setup Wizard"
             }
             action(ActionFinish)
             {
-                ApplicationArea = Invoicing, Basic, Suite;
+                ApplicationArea = Basic, Suite;
                 Caption = 'Finish';
                 Enabled = FinishActionEnabled;
                 Image = Approve;
@@ -755,9 +764,14 @@ page 1877 "VAT Setup Wizard"
         until GenProductPostingGroup.Next() = 0;
     end;
 
+    /// <summary>
+    /// Integration event raised before deleting VAT product posting group to allow custom deletion validation.
+    /// Enables extensions to prevent deletion or perform cleanup operations before VAT product posting group removal.
+    /// </summary>
+    /// <param name="VATProductPostingGroup">VAT product posting group being deleted</param>
+    /// <param name="ShouldDelete">Set to false to prevent deletion of the VAT product posting group</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDeleteVATProdPostingGroup(var VATProductPostingGroup: Record "VAT Product Posting Group"; var ShouldDelete: Boolean)
     begin
     end;
 }
-

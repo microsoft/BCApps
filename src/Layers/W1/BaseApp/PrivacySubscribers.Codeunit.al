@@ -4,17 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.Privacy;
 
-using Microsoft.CRM.Team;
 using Microsoft.CRM.Contact;
+using Microsoft.CRM.Team;
 using Microsoft.HumanResources.Employee;
-using Microsoft.Purchases.Vendor;
 using Microsoft.Projects.Resources.Resource;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 using System.Apps;
 using System.Reflection;
-using System.Security.User;
 using System.Security.AccessControl;
+using System.Security.User;
 
 codeunit 1755 "Privacy Subscribers"
 {

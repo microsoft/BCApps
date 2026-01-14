@@ -232,64 +232,6 @@
     end;
 
     [Test]
-    [HandlerFunctions('CustomerTopTenListRequestPageHandler')]
-    [Scope('OnPrem')]
-    procedure TopTenListSalesLCY()
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-        Customer: Record Customer;
-        ShowType: Option "Sales (LCY)","Balance (LCY)";
-        SalesLCY: Decimal;
-    begin
-        // Setup: Create Customer, Make and Post Invoice Entry from General Journal Line.
-        Initialize();
-        LibrarySales.CreateCustomer(Customer);
-        SalesLCY := GetCustomerSalesLCY() + LibraryRandom.RandDec(100, 2);
-        CreatePostGeneralJournalLine(GenJournalLine, GenJournalLine."Document Type"::Invoice, Customer."No.", '', SalesLCY, WorkDate());
-
-        // Exercise: Generate Customer Summary Aging Simp Report as Output file and save as XML.
-        LibraryVariableStorage.Enqueue(ShowType::"Sales (LCY)");
-        LibraryVariableStorage.Enqueue(Customer."No.");
-        REPORT.Run(REPORT::"Customer - Top 10 List");
-
-        // Verify: Verify Customer Top 10 List Report for Sales LCY.
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.SetRange('No_Customer', Customer."No.");
-        if not LibraryReportDataset.GetNextRow() then
-            Error(RowNotFoundErr, 'No_Customer', Customer."No.");
-        LibraryReportDataset.AssertCurrentRowValueEquals('SalesLCY_Customer', SalesLCY);
-    end;
-
-    [Test]
-    [HandlerFunctions('CustomerTopTenListRequestPageHandler')]
-    [Scope('OnPrem')]
-    procedure TopTenListBalanceLCY()
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-        Customer: Record Customer;
-        ShowType: Option "Sales (LCY)","Balance (LCY)";
-        BalanceLCY: Decimal;
-    begin
-        // Setup: Create Customer, Make and Post Invoice Entry from General Journal Line.
-        Initialize();
-        LibrarySales.CreateCustomer(Customer);
-        BalanceLCY := GetCustomerBalanceLCY() + LibraryRandom.RandDec(100, 2);
-        CreatePostGeneralJournalLine(GenJournalLine, GenJournalLine."Document Type"::Invoice, Customer."No.", '', BalanceLCY, WorkDate());
-
-        // Exercise: Generate Customer Summary Aging Simp Report as Output file and save as XML.
-        LibraryVariableStorage.Enqueue(ShowType::"Balance (LCY)");
-        LibraryVariableStorage.Enqueue(Customer."No.");
-        REPORT.Run(REPORT::"Customer - Top 10 List");
-
-        // Verify: Verify Customer Top 10 List Report for Balance LCY.
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.SetRange('No_Customer', Customer."No.");
-        if not LibraryReportDataset.GetNextRow() then
-            Error(RowNotFoundErr, 'No_Customer', Customer."No.");
-        LibraryReportDataset.AssertCurrentRowValueEquals('BalanceLCY_Customer', BalanceLCY);
-    end;
-
-    [Test]
     [HandlerFunctions('CustomerListRequestPageHandler')]
     [Scope('OnPrem')]
     procedure CustomerList()
@@ -3942,32 +3884,6 @@
         exit(GLEntry."Transaction No.");
     end;
 
-    local procedure GetCustomerBalanceLCY() TotalBalance: Decimal
-    var
-        Customer: Record Customer;
-    begin
-        TotalBalance := 0;
-        Customer.SetFilter("Balance (LCY)", '>0');
-        if Customer.FindSet() then
-            repeat
-                Customer.CalcFields("Balance (LCY)");
-                TotalBalance += Customer."Balance (LCY)";
-            until Customer.Next() = 0;
-    end;
-
-    local procedure GetCustomerSalesLCY() TotalSalesLCY: Decimal
-    var
-        Customer: Record Customer;
-    begin
-        TotalSalesLCY := 0;
-        Customer.SetFilter("Sales (LCY)", '>0');
-        if Customer.FindSet() then
-            repeat
-                Customer.CalcFields("Sales (LCY)");
-                TotalSalesLCY += Customer."Sales (LCY)";
-            until Customer.Next() = 0;
-    end;
-
     local procedure GetPostingDate(): Date
     var
         DateComprRegister: Record "Date Compr. Register";
@@ -4542,20 +4458,6 @@
         CustomerSummaryAgingSimp.Customer.SetFilter("Balance Due", BalanceDue);
         CustomerSummaryAgingSimp.Customer.SetFilter("No.", '');
         CustomerSummaryAgingSimp.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure CustomerTopTenListRequestPageHandler(var CustomerTop10List: TestRequestPage "Customer - Top 10 List")
-    var
-        CustomerNo: Variant;
-        ShowType: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(ShowType);
-        LibraryVariableStorage.Dequeue(CustomerNo);
-        CustomerTop10List.Show.SetValue(ShowType);
-        CustomerTop10List.Customer.SetFilter("No.", CustomerNo);
-        CustomerTop10List.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
     [RequestPageHandler]

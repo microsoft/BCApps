@@ -1,6 +1,7 @@
 namespace System.Environment.Configuration;
 
 using System;
+using System.Agents;
 using System.Reflection;
 using System.Tooling;
 
@@ -301,6 +302,13 @@ page 9190 "Profile Customization List"
             exit(StrSubstNo(PageSuccessfullyValidatedWithInformationalMessagesTxt, TempDesignerDiagnostics.Count()));
         end;
         exit(PageSuccessfullyValidatedTxt)
+    end;
+
+    trigger OnOpenPage()
+    var
+        AgentUtilities: Codeunit "Agent Utilities";
+    begin
+        AgentUtilities.BlockPageFromBeingOpenedByAgent();
     end;
 
     trigger OnAfterGetRecord()

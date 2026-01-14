@@ -1,8 +1,8 @@
+/// <summary>
+/// Provides utility functions for creating and managing cost accounting entities in test scenarios, including cost centers, cost objects, and cost types.
+/// </summary>
 codeunit 131340 "Library - Cost Accounting"
 {
-    // Feature: 92842 - Cost Accounting.
-    // Test Brief: http://vstfnav/Sites/DynamicsNAV7/Document Repository/Test Briefs and TDS/92842 - TDS - Cost Accounting.docx
-
 
     trigger OnRun()
     begin

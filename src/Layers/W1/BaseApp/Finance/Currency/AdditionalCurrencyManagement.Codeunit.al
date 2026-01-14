@@ -6,6 +6,16 @@ namespace Microsoft.Finance.Currency;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 
+/// <summary>
+/// Manages additional reporting currency functionality for parallel currency reporting.
+/// Provides calculation and conversion services for maintaining financial data
+/// in both local currency and an additional reporting currency simultaneously.
+/// </summary>
+/// <remarks>
+/// Integrates with General Ledger Setup to support dual-currency reporting requirements.
+/// Used primarily for statutory reporting in multinational organizations where
+/// financial statements must be presented in multiple currencies.
+/// </remarks>
 codeunit 5837 "Additional-Currency Management"
 {
 
@@ -36,6 +46,14 @@ codeunit 5837 "Additional-Currency Management"
         exit(true);
     end;
 
+    /// <summary>
+    /// Calculates amount in additional reporting currency using current exchange rates.
+    /// Converts local currency amounts to additional currency for parallel reporting.
+    /// </summary>
+    /// <param name="Amount">The amount in local currency to be converted.</param>
+    /// <param name="PostingDate">The posting date for exchange rate lookup.</param>
+    /// <param name="IsUnitAmount">Set to true if converting unit amounts (uses unit-amount rounding precision).</param>
+    /// <returns>The converted amount in additional reporting currency, properly rounded.</returns>
     procedure CalcACYAmt(Amount: Decimal; PostingDate: Date; IsUnitAmount: Boolean): Decimal
     var
         CurrExchRate: Record "Currency Exchange Rate";
@@ -50,6 +68,13 @@ codeunit 5837 "Additional-Currency Management"
             IsUnitAmount));
     end;
 
+    /// <summary>
+    /// Rounds additional currency amounts using appropriate precision settings.
+    /// Applies currency-specific rounding rules for amounts in additional reporting currency.
+    /// </summary>
+    /// <param name="UnroundedACYAmt">The unrounded amount in additional currency.</param>
+    /// <param name="IsUnitAmount">Set to true for unit amounts (uses unit-amount rounding), false for regular amounts.</param>
+    /// <returns>The properly rounded amount according to additional currency precision settings.</returns>
     procedure RoundACYAmt(UnroundedACYAmt: Decimal; IsUnitAmount: Boolean): Decimal
     var
         RndgPrec: Decimal;

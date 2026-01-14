@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.StandardCost;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Location;
@@ -15,7 +16,6 @@ using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
 using Microsoft.Projects.Resources.Pricing;
 using Microsoft.Projects.Resources.Resource;
-using Microsoft.Inventory.Costing;
 
 report 5855 "Implement Standard Cost Change"
 {

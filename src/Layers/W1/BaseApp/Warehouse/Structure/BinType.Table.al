@@ -210,16 +210,10 @@ table 7303 "Bin Type"
 
     procedure AllowPutawayOrQCBinsOnly()
     var
-#if not CLEAN25
-        WhseIntegrationManagement: Codeunit "Whse. Integration Management";
-#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
         OnBeforeAllowPutawayOrQCBinsOnly(Rec, IsHandled);
-#if not CLEAN25
-        WhseIntegrationManagement.RunOnBeforeAllowPutawayOrQCBinsOnly(Rec, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -229,16 +223,10 @@ table 7303 "Bin Type"
 
     procedure AllowPutawayPickOrQCBinsOnly()
     var
-#if not CLEAN25
-        WhseIntegrationManagement: Codeunit "Whse. Integration Management";
-#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
         OnBeforeAllowPutawayPickOrQCBinsOnly(Rec, IsHandled);
-#if not CLEAN25
-        WhseIntegrationManagement.RunOnBeforeAllowPutawayPickOrQCBinsOnly(Rec, IsHandled);
-#endif
         if IsHandled then
             exit;
 

@@ -1,3 +1,6 @@
+/// <summary>
+/// Provides utility functions for creating and managing job (project) entities in test scenarios, including job tasks, job planning lines, and job journals.
+/// </summary>
 codeunit 131920 "Library - Job"
 {
 

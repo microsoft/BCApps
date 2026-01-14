@@ -37,6 +37,8 @@ codeunit 134099 "Purchase Documents"
         ConfirmZeroQuantityPostingMsg: Label 'One or more document lines with a value in the No. field do not have a quantity specified. \Do you want to continue?';
         PostedPurchaseInvoiceNotFoundLbl: Label 'Posted Purchase Invoice %1 not found', Comment = '%1 = Posted Purchase Invoice No.';
         DocAmountFieldVisibleErr: Label 'The field %1 should be visible on the purchase invoice page.', Comment = '%1 = Field Caption';
+        PurchaseInvoiceSelfBillingErr: Label 'Posted purchase invoice is not marked as self-billing invoice';
+        SelfBillingInvoiceReportCaptionLbl: Label 'Self Billing Invoice ';
 
     [Test]
     [HandlerFunctions('RecallNotificationHandler,SendNotificationHandler')]
@@ -2028,6 +2030,106 @@ codeunit 134099 "Purchase Documents"
         VendorCard.Close();
     end;
 
+    [Test]
+    [HandlerFunctions('PurchaseInvoiceRequestHandler')]
+    procedure VerifySelfInvoicePrintForPurchaseOrder()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        Vendor: Record Vendor;
+        LibraryReportDataSet: Codeunit "Library - Report Dataset";
+        PostedPurchaseInvoice: TestPage "Posted Purchase Invoice";
+        SelfBillingInvNo: Code[20];
+        RequestPageXML: Text;
+    begin
+        // [SCENARIO 580348] Verify Self-Invoice Print for Purchase Order.
+        Initialize();
+
+        // [GIVEN] Set Report Selection for Purchase Invoice to use "Purchase - Invoice" report.
+        CreateInvoiceReportSelection();
+
+        // [GIVEN] Purchases & Payables Setup "Posted Self-Billing Inv. Nos." is set to a No. Series.
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Posted Self-Billing Inv. Nos.", LibraryERM.CreateNoSeriesCode());
+        PurchasesPayablesSetup.Modify(true);
+
+        // [GIVEN] Create Vendor with "Self-Billing Agreement" enabled.
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("Self-Billing Agreement", true);
+        Vendor.Modify(true);
+
+        // [GIVEN] Create Purchase Order with Item line.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(
+            PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, LibraryInventory.CreateItemNo(), LibraryRandom.RandInt(10));
+
+        // [WHEN] Post Purchase Order as Self-Billing Invoice.
+        SelfBillingInvNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] Verify "Self-Billing Invoice" is marked in Posted Purchase Invoice.
+        PurchInvHeader.Get(SelfBillingInvNo);
+        Assert.IsTrue(PurchInvHeader."Self-Billing Invoice", PurchaseInvoiceSelfBillingErr);
+
+        // [THEN] Verify "Self-Billing Invoice" layout is used in Print of Posted Purchase Invoice.
+        PostedPurchaseInvoice.OpenEdit();
+        PostedPurchaseInvoice.GotoRecord(PurchInvHeader);
+        RequestPageXML := REPORT.RunRequestPage(REPORT::"Purchase - Invoice", RequestPageXML);
+        LibraryReportDataset.RunReportAndLoad(REPORT::"Purchase - Invoice", PurchInvHeader, RequestPageXML);
+        LibraryReportDataset.AssertElementWithValueExists('SelfBillingCaption', SelfBillingInvoiceReportCaptionLbl);
+    end;
+
+    [Test]
+    [HandlerFunctions('PurchaseInvoiceRequestHandler')]
+    procedure VerifySelfInvoicePrintForPurchaseInvoice()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        Vendor: Record Vendor;
+        LibraryReportDataSet: Codeunit "Library - Report Dataset";
+        PostedPurchaseInvoice: TestPage "Posted Purchase Invoice";
+        SelfBillingInvNo: Code[20];
+        RequestPageXML: Text;
+    begin
+        // [SCENARIO 580348] Verify Self-Invoice Print for Purchase Invoice.
+        Initialize();
+
+        // [GIVEN] Set Report Selection for Purchase Invoice to use "Purchase - Invoice" report.
+        CreateInvoiceReportSelection();
+
+        // [GIVEN] Purchases & Payables Setup "Posted Self-Billing Inv. Nos." is set to a No. Series.
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Posted Self-Billing Inv. Nos.", LibraryERM.CreateNoSeriesCode());
+        PurchasesPayablesSetup.Modify(true);
+
+        // [GIVEN] Create Vendor with "Self-Billing Agreement" enabled.
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("Self-Billing Agreement", true);
+        Vendor.Modify(true);
+
+        // [GIVEN] Create Purchase Invoice with Item line.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(
+            PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, LibraryInventory.CreateItemNo(), LibraryRandom.RandInt(10));
+
+        // [WHEN] Post Purchase Invoice as Self-Billing Invoice.
+        SelfBillingInvNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] Verify "Self-Billing Invoice" is marked in Posted Purchase Invoice.
+        PurchInvHeader.Get(SelfBillingInvNo);
+        Assert.IsTrue(PurchInvHeader."Self-Billing Invoice", PurchaseInvoiceSelfBillingErr);
+
+        // [THEN] Verify "Self-Billing Invoice" layout is used in Print of Posted Purchase Invoice.
+        PostedPurchaseInvoice.OpenEdit();
+        PostedPurchaseInvoice.GotoRecord(PurchInvHeader);
+        RequestPageXML := REPORT.RunRequestPage(REPORT::"Purchase - Invoice", RequestPageXML);
+        LibraryReportDataset.RunReportAndLoad(REPORT::"Purchase - Invoice", PurchInvHeader, RequestPageXML);
+        LibraryReportDataset.AssertElementWithValueExists('SelfBillingCaption', SelfBillingInvoiceReportCaptionLbl);
+    end;
+
     local procedure Initialize()
     var
         ReportSelections: Record "Report Selections";
@@ -2325,6 +2427,20 @@ codeunit 134099 "Purchase Documents"
         PurchasesPayablesSetup.Modify(true);
     end;
 
+    local procedure CreateInvoiceReportSelection()
+    var
+        CustomReportSelection: Record "Custom Report Selection";
+        ReportSelections: Record "Report Selections";
+    begin
+        ReportSelections.DeleteAll();
+        CustomReportSelection.DeleteAll();
+
+        ReportSelections.Init();
+        ReportSelections.Usage := ReportSelections.Usage::"P.Invoice";
+        ReportSelections."Report ID" := REPORT::"Purchase - Invoice";
+        if ReportSelections.Insert() then;
+    end;
+
     [RecallNotificationHandler]
     [Scope('OnPrem')]
     procedure RecallNotificationHandler(var Notification: Notification): Boolean
@@ -2372,6 +2488,12 @@ codeunit 134099 "Purchase Documents"
     begin
         PurchaseQuote.Cancel().Invoke();
         LibraryVariableStorage.Enqueue(REPORT::"Purchase - Quote");
+    end;
+
+    [RequestPageHandler]
+    procedure PurchaseInvoiceRequestHandler(var PurchaseInvoice: TestRequestPage "Purchase - Invoice")
+    begin
+        //Close Handler
     end;
 
     [MessageHandler]

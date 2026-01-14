@@ -147,6 +147,15 @@ codeunit 1210 "Payment Export Mgt"
         until DataExchFieldMapping.Next() = 0;
     end;
 
+    /// <summary>
+    /// Processes column mapping for payment export data exchange with FlowField grouping support.
+    /// </summary>
+    /// <param name="DataExch">Data exchange record</param>
+    /// <param name="RecRef">Record reference containing source data</param>
+    /// <param name="DataExchFlowFieldGrBuff">FlowField grouping buffer for aggregated fields</param>
+    /// <param name="LineNo">Line number in the data exchange</param>
+    /// <param name="DataExchLineDefCode">Data exchange line definition code</param>
+    /// <param name="TableID">Table ID of the source record</param>
     procedure ProcessColumnMapping(var DataExch: Record "Data Exch."; RecRef: RecordRef; var DataExchFlowFieldGrBuff: Record "Data Exch. FlowField Gr. Buff."; LineNo: Integer; DataExchLineDefCode: Code[20]; TableID: Integer)
     var
         DataExchDef: Record "Data Exch. Def";
@@ -362,6 +371,10 @@ codeunit 1210 "Payment Export Mgt"
         exit(Format(DataExchDef.Type));
     end;
 
+    /// <summary>
+    /// Exports payment data to a file using the specified data exchange entry.
+    /// </summary>
+    /// <param name="EntryNo">Data exchange entry number containing the payment data to export</param>
     [Scope('OnPrem')]
     procedure ExportToFile(EntryNo: Integer)
     var
@@ -382,6 +395,11 @@ codeunit 1210 "Payment Export Mgt"
         DataExch.Delete();
     end;
 
+    /// <summary>
+    /// Enables export to server temporary file mode instead of client download.
+    /// </summary>
+    /// <param name="NewMode">True to enable server temp file mode, false for client download</param>
+    /// <param name="NewExtension">File extension for the server temp file</param>
     procedure EnableExportToServerTempFile(NewMode: Boolean; NewExtension: Text[3])
     begin
         SilentServerMode := NewMode;
@@ -404,6 +422,10 @@ codeunit 1210 "Payment Export Mgt"
         ExportFile.Close();
     end;
 
+    /// <summary>
+    /// Returns the temporary file name created on the server during export operations.
+    /// </summary>
+    /// <returns>Full path and filename of the server temporary file</returns>
     procedure GetServerTempFileName(): Text[1024]
     begin
         exit(ServerFileName);

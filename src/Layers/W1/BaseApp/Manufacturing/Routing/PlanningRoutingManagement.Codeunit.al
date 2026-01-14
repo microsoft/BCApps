@@ -5,10 +5,10 @@
 namespace Microsoft.Manufacturing.Routing;
 
 using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Planning;
-using Microsoft.Inventory.Planning;
 
 codeunit 99000808 PlanningRoutingManagement
 {
@@ -76,6 +76,8 @@ codeunit 99000808 PlanningRoutingManagement
         PlanningRtngLine2: Record "Planning Routing Line";
         SequenceNo: Integer;
     begin
+        OnBeforeSetRtngLineSequenceBack(RoutingType, PlanningRtngLine, MaxSequences, ActSequences, TotalCalculation);
+
         if RoutingType = RoutingType::Parallel then begin
             if (Actsequences - 1) > Maxsequences then
                 ErrorInRouting(
@@ -586,6 +588,11 @@ codeunit 99000808 PlanningRoutingManagement
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalculatePlanningLineDates(var RequisitionLine: Record "Requisition Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeSetRtngLineSequenceBack(RoutingType: Option Serial,Parallel; var PlanningRoutingLine: Record "Planning Routing Line"; MaxSequences: Integer; ActSequences: Integer; TotalCalculation: Boolean)
     begin
     end;
 }

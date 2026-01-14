@@ -6,6 +6,10 @@ namespace Microsoft.Intercompany.Dimension;
 
 using Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Enables mapping of intercompany dimensions to local company dimensions for incoming transactions.
+/// Provides editing interface for establishing dimension code mappings between IC and local structures.
+/// </summary>
 page 657 "IC Mapping Dimension Incoming"
 {
     PageType = ListPart;
@@ -49,6 +53,10 @@ page 657 "IC Mapping Dimension Incoming"
         }
     }
 
+    /// <summary>
+    /// Retrieves the currently selected intercompany dimension lines for processing.
+    /// </summary>
+    /// <param name="ICDimensions">Record variable to store selected IC dimension records</param>
     procedure GetSelectedLines(var ICDimensions: Record "IC Dimension")
     begin
         CurrPage.SetSelectionFilter(ICDimensions);

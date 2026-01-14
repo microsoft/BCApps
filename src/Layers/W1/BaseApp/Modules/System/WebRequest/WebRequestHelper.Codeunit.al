@@ -115,19 +115,6 @@ codeunit 1299 "Web Request Helper"
 
         exit('');
     end;
-#if not CLEAN25
-
-    [TryFunction]
-    [Scope('OnPrem')]
-    [Obsolete('Replaced by GetResponseTextUsingCharset(Method: Text; Url: Text; AccessToken: SecretText; var ResponseText: Text)', '25.0')]
-    procedure GetResponseTextUsingCharset(Method: Text; Url: Text; AccessToken: Text; var ResponseText: Text)
-    var
-        AccessTokenAsSecretText: SecretText;
-    begin
-        AccessTokenAsSecretText := AccessToken;
-        GetResponseTextUsingCharset(Method, Url, AccessTokenAsSecretText, ResponseText);
-    end;
-#endif
 
     [TryFunction]
     [Scope('OnPrem')]
@@ -221,4 +208,3 @@ codeunit 1299 "Web Request Helper"
         exit(IntStatusCode > 399);
     end;
 }
-

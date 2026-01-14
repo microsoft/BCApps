@@ -6,9 +6,9 @@
 namespace System.IO;
 
 using System;
-using System.Reflection;
 using System.DateTime;
 using System.Globalization;
+using System.Reflection;
 
 codeunit 1245 "Transform. Rule - Formatting" implements "Transformation Rule"
 {

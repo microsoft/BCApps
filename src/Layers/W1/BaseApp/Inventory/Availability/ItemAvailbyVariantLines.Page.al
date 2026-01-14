@@ -5,8 +5,8 @@
 namespace Microsoft.Inventory.Availability;
 
 using Microsoft.Foundation.Enums;
-using Microsoft.Purchases.Document;
 using Microsoft.Inventory.Item;
+using Microsoft.Purchases.Document;
 
 page 5415 "Item Avail. by Variant Lines"
 {

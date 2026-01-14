@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Document;
 
-using Microsoft.Manufacturing.Document;
 using Microsoft.Inventory.Tracking;
+using Microsoft.Manufacturing.Document;
 
 codeunit 99000883 "Mfg. Sales Order Planning"
 {

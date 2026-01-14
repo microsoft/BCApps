@@ -17,12 +17,12 @@ page 823 "Name/Value Lookup"
                 ShowCaption = false;
                 field(Name; Rec.Name)
                 {
-                    ApplicationArea = Invoicing, Basic, Suite;
+                    ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the name.';
                 }
                 field(Value; Rec.Value)
                 {
-                    ApplicationArea = Invoicing, Basic, Suite;
+                    ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the value.';
                 }
             }
@@ -50,4 +50,3 @@ page 823 "Name/Value Lookup"
         Rec.Insert();
     end;
 }
-

@@ -450,6 +450,74 @@ codeunit 134084 "Item Avail. by Lot No Tests"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure LocationFilterWithLogicalOperators()
+    var
+        Item: Record Item;
+        LocationQuarantine: Record Location;
+        LocationEast: Record Location;
+        LocationWest: Record Location;
+        ItemAvailabilityByLotNo: TestPage "Item Availability by Lot No.";
+    begin
+        // [SCENARIO] Location filter should support logical operators like <>, |, etc. without throwing errors.
+        Initialize();
+
+        CreateItem(Item);
+
+        // [GIVEN] Three locations: QUARANTINE, EAST, and WEST.
+        CreateLocation(LocationQuarantine);
+        CreateLocation(LocationEast);
+        CreateLocation(LocationWest);
+
+        // [GIVEN] Posted purchase orders with lot tracking for each location.
+        CreatePurchaseOrder(Item, 'LOT1', LocationQuarantine.Code, '', 10, true);
+        CreatePurchaseOrder(Item, 'LOT1', LocationEast.Code, '', 20, true);
+        CreatePurchaseOrder(Item, 'LOT1', LocationWest.Code, '', 30, true);
+
+        // [GIVEN] Unposted purchase orders for each location.
+        CreatePurchaseOrder(Item, 'LOT1', LocationQuarantine.Code, '', 5, false);
+        CreatePurchaseOrder(Item, 'LOT1', LocationEast.Code, '', 15, false);
+        CreatePurchaseOrder(Item, 'LOT1', LocationWest.Code, '', 25, false);
+
+        // [WHEN] Opening page for item with amount type of balance at date.
+        ItemAvailabilityByLotNo.OpenView();
+        ItemAvailabilityByLotNo.GoToRecord(Item);
+        ItemAvailabilityByLotNo.PeriodType.SetValue("Analysis Period Type"::Week);
+        ItemAvailabilityByLotNo.AmountType.SetValue("Analysis Amount Type"::"Balance at Date");
+        ItemAvailabilityByLotNo.NextPeriod.Invoke();
+        // [THEN] All locations show in total.
+        Assert.AreEqual(60, ItemAvailabilityByLotNo.ItemAvailLoTNoLines.Inventory.AsInteger(), 'Expected inventory of 60 for all locations.');
+        Assert.AreEqual(45, ItemAvailabilityByLotNo.ItemAvailLoTNoLines.ScheduledRcpt.AsInteger(), 'Expected scheduled receipt of 45 for all locations.');
+
+        // [WHEN] Setting location filter with NOT EQUAL TO operator (<>QUARANTINE).
+        ItemAvailabilityByLotNo.LocationFilter.SetValue('<>' + LocationQuarantine.Code);
+
+        // [THEN] Only EAST and WEST locations are shown without error.
+        Assert.AreEqual(50, ItemAvailabilityByLotNo.ItemAvailLoTNoLines.Inventory.AsInteger(), 'Expected inventory of 50 excluding QUARANTINE.');
+        Assert.AreEqual(40, ItemAvailabilityByLotNo.ItemAvailLoTNoLines.ScheduledRcpt.AsInteger(), 'Expected scheduled receipt of 40 excluding QUARANTINE.');
+        // [WHEN] Setting location filter with OR operator (EAST|WEST).
+        ItemAvailabilityByLotNo.LocationFilter.SetValue(LocationEast.Code + '|' + LocationWest.Code);
+
+        // [THEN] Only EAST and WEST locations are shown without error.
+        Assert.AreEqual(50, ItemAvailabilityByLotNo.ItemAvailLoTNoLines.Inventory.AsInteger(), 'Expected inventory of 50 for EAST|WEST.');
+        Assert.AreEqual(40, ItemAvailabilityByLotNo.ItemAvailLoTNoLines.ScheduledRcpt.AsInteger(), 'Expected scheduled receipt of 40 for EAST|WEST.');
+
+        // [WHEN] Setting location filter with single NOT EQUAL TO (<>EAST).
+        ItemAvailabilityByLotNo.LocationFilter.SetValue('<>' + LocationEast.Code);
+        // [THEN] Only QUARANTINE and WEST locations are shown without error.
+        Assert.AreEqual(40, ItemAvailabilityByLotNo.ItemAvailLoTNoLines.Inventory.AsInteger(), 'Expected inventory of 40 excluding EAST.');
+        Assert.AreEqual(30, ItemAvailabilityByLotNo.ItemAvailLoTNoLines.ScheduledRcpt.AsInteger(), 'Expected scheduled receipt of 30 excluding EAST.');
+
+        // [WHEN] Clearing location filter.
+        ItemAvailabilityByLotNo.LocationFilter.SetValue('');
+        // [THEN] All locations show again.
+        Assert.AreEqual(60, ItemAvailabilityByLotNo.ItemAvailLoTNoLines.Inventory.AsInteger(), 'Expected inventory of 60 for all locations after clearing filter.');
+        Assert.AreEqual(45, ItemAvailabilityByLotNo.ItemAvailLoTNoLines.ScheduledRcpt.AsInteger(), 'Expected scheduled receipt of 45 for all locations after clearing filter.');
+
+        ItemAvailabilityByLotNo.Close();
+    end;
+
     local procedure CreateItem(var Item: Record Item)
     begin
         LibraryInventory.CreateItem(Item);

@@ -5,12 +5,16 @@
 namespace Microsoft.Intercompany.DataExchange;
 
 using Microsoft.Intercompany;
+using Microsoft.Intercompany.GLAccount;
 using Microsoft.Intercompany.Inbox;
 using Microsoft.Intercompany.Partner;
-using Microsoft.Intercompany.GLAccount;
-using System.Threading;
 using System.Telemetry;
+using System.Threading;
 
+/// <summary>
+/// Job queue handler for automatically accepting intercompany transactions based on partner configuration.
+/// Processes queued inbox transactions and applies auto-acceptance rules for configured partners.
+/// </summary>
 codeunit 536 "IC Auto Accept JR"
 {
     Permissions = tabledata "IC Inbox Transaction" = m;

@@ -45,6 +45,7 @@ table 460 "Purchase Prepayment %"
         }
         field(5; "Prepayment %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Prepayment %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
@@ -86,4 +87,3 @@ table 460 "Purchase Prepayment %"
             Error(Text000, FieldCaption("Starting Date"), FieldCaption("Ending Date"));
     end;
 }
-

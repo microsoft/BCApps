@@ -12,6 +12,7 @@ codeunit 136361 "UT C Copy Job"
     var
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryInventory: Codeunit "Library - Inventory";
         LibraryJob: Codeunit "Library - Job";
         LibraryRandom: Codeunit "Library - Random";
         LibraryResource: Codeunit "Library - Resource";
@@ -743,6 +744,59 @@ codeunit 136361 "UT C Copy Job"
         Assert.AreEqual(SourceJobPlanningLine."Total Cost", TargetJobPlanningLine."Total Cost", TotalCostMustMatchErr);
         Assert.AreEqual(SourceJobPlanningLine."Unit Price", TargetJobPlanningLine."Unit Price", UnitPriceMustMatchErr);
         Assert.AreEqual(SourceJobPlanningLine."Total Price", TargetJobPlanningLine."Total Price", TotalPriceMustMatchErr);
+    end;
+
+    [Test]
+    procedure CopyJobPlanningLineWithoutPricesClearsLineDiscount()
+    var
+        Item: Record Item;
+        SourceJob: Record Job;
+        SourceJobTask: Record "Job Task";
+        SourceJobPlanningLine: Record "Job Planning Line";
+        TargetJob: Record Job;
+        TargetJobTask: Record "Job Task";
+        TargetJobPlanningLine: Record "Job Planning Line";
+        CopyJob: Codeunit "Copy Job";
+        ItemUnitPrice: Decimal;
+    begin
+        // [SCENARIO 611586] Line Discount should be cleared when copying Job Planning Lines without prices
+        Initialize();
+
+        // [GIVEN] Create an Item with random Unit Price.
+        LibraryInventory.CreateItem(Item);
+        ItemUnitPrice := LibraryRandom.RandDecInRange(1000, 2000, 2);
+        Item.Validate("Unit Price", ItemUnitPrice);
+        Item.Modify(true);
+
+        // [GIVEN] Create Source Job with Job Planning Line for the Item with Quantity = 1
+        LibraryJob.CreateJob(SourceJob);
+        LibraryJob.CreateJobTask(SourceJob, SourceJobTask);
+        LibraryJob.CreateJobPlanningLine(
+            SourceJobPlanningLine."Line Type"::"Both Budget and Billable",
+            SourceJobPlanningLine.Type::Item,
+            SourceJobTask,
+            SourceJobPlanningLine);
+        SourceJobPlanningLine.Validate("No.", Item."No.");
+        SourceJobPlanningLine.Validate(Quantity, 1);
+
+        // [GIVEN] Apply a Line Discount % on the source line
+        SourceJobPlanningLine.Validate("Line Discount %", LibraryRandom.RandDecInRange(10, 30, 2));
+        SourceJobPlanningLine.Modify(true);
+
+        // [GIVEN] Initialize Target Job and Job Task
+        InitJobTask(TargetJob, SourceJob."Bill-to Customer No.", '');
+        TargetJobTask.Init();
+        TargetJobTask."Job No." := TargetJob."No.";
+        TargetJobTask."Job Task No." := SourceJobTask."Job Task No.";
+        TargetJobTask.Insert();
+
+        // [WHEN] Copy Job Planning Lines with Copy Prices = false
+        CopyJob.SetCopyOptions(false, true, true, 0, 0, 0);
+        CopyJob.CopyJobPlanningLines(SourceJobTask, TargetJobTask);
+
+        // [THEN] Target Job Planning Line should have Line Amount equal to Item Unit Price * Quantity
+        TargetJobPlanningLine.Get(TargetJob."No.", TargetJobTask."Job Task No.", SourceJobPlanningLine."Line No.");
+        Assert.AreEqual(ItemUnitPrice, TargetJobPlanningLine."Unit Price", UnitPriceMustMatchErr);
     end;
 
     local procedure Initialize()

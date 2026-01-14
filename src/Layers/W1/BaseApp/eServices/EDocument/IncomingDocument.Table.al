@@ -9,13 +9,13 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
+using Microsoft.Purchases.Archive;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Archive;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using Microsoft.Sales.Archive;
-using Microsoft.Purchases.Archive;
 using Microsoft.Utilities;
 using System;
 using System.Automation;
@@ -135,12 +135,10 @@ table 130 "Incoming Document"
             ClosingDates = true;
             Editable = false;
         }
-        field(18; Status; Option)
+        field(18; Status; Enum "Incoming Document Status")
         {
             Caption = 'Status';
             Editable = false;
-            OptionCaption = 'New,Released,Rejected,Posted,Created,Failed,Pending Approval';
-            OptionMembers = New,Released,Rejected,Posted,Created,Failed,"Pending Approval";
         }
         field(60; URL; Text[1024])
         {
@@ -511,7 +509,7 @@ table 130 "Incoming Document"
         ErrorMessage: Record "Error Message";
         ApprovalsMgmt: Codeunit "Approvals Mgmt.";
         ReleaseIncomingDocument: Codeunit "Release Incoming Document";
-        OldStatus: Option;
+        OldStatus: Enum "Incoming Document Status";
     begin
         Find();
 
@@ -1152,15 +1150,6 @@ table 130 "Incoming Document"
             SalesHeader.AddLink(GetURL(), Description);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by same procedure in codeunit ServDocExchangeMgt', '25.0')]
-    procedure SetServiceDoc(var ServiceHeader: Record Microsoft.Service.Document."Service Header")
-    var
-        ServDocExchangeMgt: Codeunit "Serv. Doc. Exchange Mgt.";
-    begin
-        ServDocExchangeMgt.SetServiceDoc(ServiceHeader, Rec);
-    end;
-#endif
 
     procedure SetPurchDoc(var PurchaseHeader: Record "Purchase Header")
     begin
@@ -1509,7 +1498,7 @@ table 130 "Incoming Document"
 
     procedure SetStatus(NewStatus: Option)
     begin
-        Status := NewStatus;
+        Status := "Incoming Document Status".FromInteger(NewStatus);
         Modify();
     end;
 

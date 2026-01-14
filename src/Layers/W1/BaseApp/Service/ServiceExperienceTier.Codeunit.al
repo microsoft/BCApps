@@ -5,16 +5,16 @@
 namespace System.Environment;
 
 using Microsoft.Service.Archive;
-using Microsoft.Service.Document;
-using Microsoft.Service.Setup;
-using Microsoft.Service.Item;
-using Microsoft.Service.Pricing;
 using Microsoft.Service.Comment;
-using Microsoft.Service.Ledger;
 using Microsoft.Service.Contract;
-using Microsoft.Service.Posting;
+using Microsoft.Service.Document;
 using Microsoft.Service.Email;
 using Microsoft.Service.History;
+using Microsoft.Service.Item;
+using Microsoft.Service.Ledger;
+using Microsoft.Service.Posting;
+using Microsoft.Service.Pricing;
+using Microsoft.Service.Setup;
 
 codeunit 5999 "Service Experience Tier"
 {

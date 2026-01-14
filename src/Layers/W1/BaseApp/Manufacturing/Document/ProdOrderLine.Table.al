@@ -6,20 +6,20 @@ namespace Microsoft.Manufacturing.Document;
 
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Warehouse.Activity;
-using Microsoft.Foundation.UOM;
 using Microsoft.Foundation.Navigate;
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.MachineCenter;
-using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
+using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Activity.History;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Structure;
@@ -534,8 +534,10 @@ table 5406 "Prod. Order Line"
                     else
                         "Unit Cost" := Item."Unit Cost" * "Qty. per Unit of Measure";
                 end;
-
-                "Cost Amount" := Round(Quantity * "Unit Cost");
+                if "Finished Quantity" <> 0 then
+                    "Cost Amount" := Round("Finished Quantity" * "Unit Cost")
+                else
+                    "Cost Amount" := Round(Quantity * "Unit Cost");
             end;
         }
         field(67; "Cost Amount"; Decimal)

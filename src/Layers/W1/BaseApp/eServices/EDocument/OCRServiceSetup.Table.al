@@ -213,18 +213,6 @@ table 1270 "OCR Service Setup"
         TelemetryCategoryTok: Label 'AL OCR Service', Locked = true;
         OCRServiceConsentProvidedLbl: Label 'OCR Service - consent provided by UserSecurityId %1 for company %2.', Comment = '%1 - User Security ID, %2 - Company name', Locked = true;
 
-#if not CLEAN25
-    [Scope('OnPrem')]
-    [Obsolete('Replaced by SavePassword(var PasswordKey: Guid; PasswordText: SecretText)', '25.0')]
-    [NonDebuggable]
-    procedure SavePassword(var PasswordKey: Guid; PasswordText: Text)
-    var
-        PasswordAsSecretText: SecretText;
-    begin
-        PasswordAsSecretText := PasswordText;
-        SavePassword(PasswordKey, PasswordAsSecretText);
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure SavePassword(var PasswordKey: Guid; PasswordText: SecretText)
@@ -236,16 +224,6 @@ table 1270 "OCR Service Setup"
 
         IsolatedStorageManagement.Set(PasswordKey, PasswordText, DATASCOPE::Company);
     end;
-#if not CLEAN25
-
-    [NonDebuggable]
-    [Scope('OnPrem')]
-    [Obsolete('Replaced by GetPasswordAsSecretText', '25.0')]
-    procedure GetPassword(PasswordKey: Guid): Text
-    begin
-        exit(GetPasswordAsSecretText(PasswordKey).Unwrap());
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure GetPasswordAsSecretText(PasswordKey: Guid): SecretText
@@ -386,4 +364,3 @@ table 1270 "OCR Service Setup"
         Session.LogMessage('00008A8', OCRServiceCreatedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
     end;
 }
-

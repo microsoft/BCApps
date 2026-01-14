@@ -6,6 +6,15 @@ namespace Microsoft.Finance.GeneralLedger.Setup;
 
 using System.Utilities;
 
+/// <summary>
+/// List page for managing General Business Posting Groups used in posting setup combinations.
+/// Provides interface for creating and maintaining business posting group codes that represent different business sectors or customer types.
+/// </summary>
+/// <remarks>
+/// Business posting groups combine with product posting groups in General Posting Setup to determine G/L account assignments.
+/// Used extensively across sales, purchase, and service modules for automated posting of transactions.
+/// Essential setup for multi-dimensional posting group configurations and automated account determination.
+/// </remarks>
 page 312 "Gen. Business Posting Groups"
 {
     AdditionalSearchTerms = 'posting setup,general business posting group';

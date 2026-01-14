@@ -5,10 +5,10 @@
 namespace Microsoft.FixedAssets.Posting;
 
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.VAT.Calculation;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Insurance;
-using Microsoft.Finance.VAT.Calculation;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Maintenance;

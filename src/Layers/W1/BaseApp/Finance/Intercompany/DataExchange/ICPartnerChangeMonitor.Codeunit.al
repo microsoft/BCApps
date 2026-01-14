@@ -4,14 +4,18 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.DataExchange;
 
-using System.Security.User;
-using System.Security.AccessControl;
 using Microsoft.Intercompany.GLAccount;
 using Microsoft.Intercompany.Partner;
 using Microsoft.Utilities;
-using System.Telemetry;
 using System.Environment;
+using System.Security.AccessControl;
+using System.Security.User;
+using System.Telemetry;
 
+/// <summary>
+/// Monitors changes to intercompany partner configuration and validates setup consistency.
+/// Tracks modifications to partner settings and logs activities for audit and troubleshooting purposes.
+/// </summary>
 codeunit 489 "IC Partner Change Monitor"
 {
 

@@ -558,7 +558,7 @@ codeunit 9510 "Document Service Management"
         HttpStatusCode: DotNet HttpStatusCode;
         ResponseHeaders: DotNet NameValueCollection;
     begin
-        InitializeWebRequest(FolderUrl, 'GET', 'application/json', HttpWebRequestMgt);
+        InitializeWebRequest(FolderUrl, 'GET', 'application/json', HttpWebRequestMgt, false, false);
 
         if not HttpWebRequestMgt.SendRequestAndReadTextResponse(ResponseBody, ErrorMessage, ErrorDetails, HttpStatusCode, ResponseHeaders) then begin
             Session.LogMessage('0000FML', StrSubstNo(SharepointStatusCodeTelemetryMsg, HttpStatusCode), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SharePointTelemetryCategoryTxt);
@@ -586,8 +586,7 @@ codeunit 9510 "Document Service Management"
     begin
         ResolveItemId(DocumentSharing);
         GetFileDownloadUrl(DocumentSharing, FileUrl);
-
-        InitializeWebRequest(FileUrl, 'GET', '', HttpWebRequestMgt);
+        InitializeWebRequest(FileUrl, 'GET', '', HttpWebRequestMgt, false, true);
 
         if not HttpWebRequestMgt.SendRequestAndReadResponse(TempBlob, ErrorMessage, ErrorDetails, HttpStatusCode, ResponseHeaders) then begin
             Session.LogMessage('0000IN8', StrSubstNo(SharepointStatusCodeTelemetryMsg, HttpStatusCode), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SharePointTelemetryCategoryTxt);
@@ -621,7 +620,7 @@ codeunit 9510 "Document Service Management"
     begin
         MetadataUrl := GetGraphFileByIdUrl(DocumentSharing."Item Id");
 
-        InitializeWebRequest(MetadataUrl, 'GET', 'application/json', HttpWebRequestMgt);
+        InitializeWebRequest(MetadataUrl, 'GET', 'application/json', HttpWebRequestMgt, true, false);
 
         if not HttpWebRequestMgt.SendRequestAndReadTextResponse(ResponseBody, ErrorMessage, ErrorDetails, HttpStatusCode, ResponseHeaders) then begin
             Session.LogMessage('0000IN8', StrSubstNo(SharepointStatusCodeTelemetryMsg, HttpStatusCode), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SharePointTelemetryCategoryTxt);
@@ -637,7 +636,6 @@ codeunit 9510 "Document Service Management"
             Error(DownloadUrlDoesNotExistErr, ResponseBody);
 
         FileUrl := JsonToken.AsValue().AsText();
-
         if FileUrl = '' then
             Session.LogMessage('0000JWY', SharepointUnableToGetDownloadUrlMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SharePointTelemetryCategoryTxt);
     end;
@@ -656,7 +654,7 @@ codeunit 9510 "Document Service Management"
         ResolveItemId(DocumentSharing);
         FileUrl := GetGraphFileByIdUrl(DocumentSharing."Item Id");
 
-        InitializeWebRequest(FileUrl, 'DELETE', 'application/json', HttpWebRequestMgt);
+        InitializeWebRequest(FileUrl, 'DELETE', 'application/json', HttpWebRequestMgt, false, false);
 
         if not HttpWebRequestMgt.SendRequestAndReadTextResponse(ResponseBody, ErrorMessage, ErrorDetails, HttpStatusCode, ResponseHeaders) then begin
             Session.LogMessage('0000J18', StrSubstNo(SharepointStatusCodeTelemetryMsg, HttpStatusCode), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SharePointTelemetryCategoryTxt);
@@ -683,7 +681,7 @@ codeunit 9510 "Document Service Management"
             exit;
 
         FileUrl := GetGraphItemIdUrl(DocumentSharing);
-        InitializeWebRequest(FileUrl, 'GET', 'application/json', HttpWebRequestMgt);
+        InitializeWebRequest(FileUrl, 'GET', 'application/json', HttpWebRequestMgt, false, false);
 
         if not HttpWebRequestMgt.SendRequestAndReadTextResponse(ResponseBody, ErrorMessage, ErrorDetails, HttpStatusCode, ResponseHeaders) then begin
             Session.LogMessage('0000J19', StrSubstNo(SharepointStatusCodeTelemetryMsg, HttpStatusCode), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SharePointTelemetryCategoryTxt);
@@ -707,22 +705,33 @@ codeunit 9510 "Document Service Management"
         Session.LogMessage('0000JB5', StrSubstNo(SharepointItemIdMsg, DocumentSharing."Item Id"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SharePointTelemetryCategoryTxt);
     end;
 
-    local procedure InitializeWebRequest(Url: Text; Method: Text; ReturnType: Text; var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.")
+    local procedure InitializeWebRequest(
+            Url: Text;
+            Method: Text;
+            ReturnType: Text;
+            var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
+            isPacTokenNPreferred: Boolean;
+            SharepointToken: Boolean)
     var
         AzureADMgt: Codeunit "Azure AD Mgt.";
         Token: SecretText;
     begin
-        Token := AzureADMgt.GetAccessTokenAsSecretText(GetGraphDomain(), AzureADMgt.GetO365ResourceName(), false);
+        if SharepointToken then
+            Token := AzureADMgt.GetOnBehalfAccessTokenAsSecretText(GetResourceUrl(Url))
+        else
+            Token := AzureADMgt.GetAccessTokenAsSecretText(GetGraphDomain(), AzureADMgt.GetO365ResourceName(), false);
         if Token.IsEmpty() then begin
-            Session.LogMessage('0000FMK', EmptyTokenTelemetryMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SharePointTelemetryCategoryTxt);
+            Session.LogMessage('0000FMK', 'Token from sharepoint' + Format(SharepointToken) + EmptyTokenTelemetryMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SharePointTelemetryCategoryTxt);
             LicenseError();
         end;
-
         HttpWebRequestMgt.Initialize(Url);
         HttpWebRequestMgt.DisableUI();
         HttpWebRequestMgt.SetMethod(Method);
         HttpWebRequestMgt.SetReturnType(ReturnType);
         HttpWebRequestMgt.AddHeader('Authorization', SecretStrSubstNo('Bearer %1', Token));
+        // Add Prefer header to get the new downloadurl for the onedrive content while hitting the Getfilecontent function
+        if isPacTokenNPreferred then
+            HttpWebRequestMgt.AddHeader('Prefer', 'pacToken=N');
     end;
 
     local procedure LicenseError()
@@ -896,19 +905,6 @@ codeunit 9510 "Document Service Management"
         end else
             TrySaveStreamFromRec(InStream, TargetName, ConflictBehavior, DocumentServiceRec, DocumentUri, UploadedFileName);
     end;
-#if not CLEAN25
-
-    [NonDebuggable]
-    [Obsolete('Replaced by GetAccessToken(Location: Text; var AccessToken: SecretText; GetTokenFromCache: Boolean)', '25.0')]
-    local procedure GetAccessToken(Location: Text; var AccessToken: Text; GetTokenFromCache: Boolean)
-    var
-        AccessTokenAsSecretText: SecretText;
-    begin
-        AccessTokenAsSecretText := AccessToken;
-        GetAccessToken(Location, AccessTokenAsSecretText, GetTokenFromCache);
-        AccessToken := AccessTokenAsSecretText.Unwrap();
-    end;
-#endif
 
     local procedure GetAccessToken(Location: Text; var AccessToken: SecretText; GetTokenFromCache: Boolean)
     var
@@ -1252,19 +1248,6 @@ codeunit 9510 "Document Service Management"
             exit(true);
         end;
     end;
-#if not CLEAN25
-
-    [Scope('OnPrem')]
-    [NonDebuggable]
-    [Obsolete('Replaced by TestLocationResolves(Location: Text[250]; AccessToken: SecretText)', '25.0')]
-    procedure TestLocationResolves(Location: Text[250]; AccessToken: Text): Boolean
-    var
-        AccessTokenAsSecretText: SecretText;
-    begin
-        AccessTokenAsSecretText := AccessToken;
-        exit(TestLocationResolves(Location, AccessTokenAsSecretText))
-    end;
-#endif
 
     [NonDebuggable]
     [Scope('OnPrem')]
@@ -1479,4 +1462,3 @@ codeunit 9510 "Document Service Management"
     begin
     end;
 }
-

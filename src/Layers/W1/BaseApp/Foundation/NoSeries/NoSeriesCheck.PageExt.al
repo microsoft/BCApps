@@ -5,8 +5,8 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
-using Microsoft.Utilities;
 using Microsoft.Foundation.BatchProcessing;
+using Microsoft.Utilities;
 
 /// <summary>
 /// Adds support for validating the selected no. series in a batch process

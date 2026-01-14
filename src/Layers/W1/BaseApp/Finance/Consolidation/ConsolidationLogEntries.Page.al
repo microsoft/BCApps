@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Consolidation;
 
+/// <summary>
+/// List page displaying consolidation process log entries with execution history and status information.
+/// Provides comprehensive view of consolidation operation logs for monitoring and troubleshooting.
+/// </summary>
+/// <remarks>
+/// List page showing consolidation log entries in descending order by entry number for recent-first viewing.
+/// Read-only interface for reviewing consolidation process execution history and identifying issues.
+/// Essential for consolidation audit trails, process monitoring, and troubleshooting consolidation operations.
+/// </remarks>
 page 1835 "Consolidation Log Entries"
 {
     ApplicationArea = All;

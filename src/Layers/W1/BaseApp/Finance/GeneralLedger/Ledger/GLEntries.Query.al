@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Ledger;
 
+/// <summary>
+/// Query object providing structured access to G/L entry data for reporting and analysis.
+/// Exposes key G/L entry fields in a query format for efficient data retrieval and aggregation.
+/// </summary>
+/// <remarks>
+/// Data source: G/L Entry table. Includes entry numbers, account details, posting information, amounts, and dimensions.
+/// Used for external data access, reporting tools, and business intelligence integration.
+/// Supports filtering and aggregation of G/L entry data through query interface.
+/// </remarks>
 query 261 "G/L Entries"
 {
     Caption = 'G/L Entries';

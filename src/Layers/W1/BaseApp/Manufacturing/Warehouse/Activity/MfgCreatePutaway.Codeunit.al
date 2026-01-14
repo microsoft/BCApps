@@ -768,13 +768,15 @@ codeunit 99000893 "Mfg. Create Put-away"
             CalcQtyToWhsePutAwayForProdOutput(true, false, ProdOrderLine, TempProdOrdLineTrackingBuff);
         end;
 
-        if QtyToPickBase <= 0 then
+        if QtyToPickBase <= 0 then begin
             if MessageText = '' then
                 if CurrLocation."Put-away Bin Policy" = Enum::"Put-away Bin Policy"::"Put-away Template" then
                     MessageText := PutawayNotCreatedMsg
                 else
                     if CurrLocation."Put-away Bin Policy" = Enum::"Put-away Bin Policy"::"Default Bin" then
                         MessageText := NoDefaultBinMsg;
+            exit;
+        end;
 
         if InsertBreakPackageLinesForProdOrderLine(ProdOrderLine) then begin
             TakeLineNo := OldLineNo + 30000;

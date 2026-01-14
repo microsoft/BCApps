@@ -1,21 +1,21 @@
 namespace System.Security.AccessControl;
 
+using Microsoft.Finance.VAT.Calculation;
+using Microsoft.Finance.VAT.Reporting;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
-using Microsoft.Projects.RoleCenters;
-using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.Source;
 using Microsoft.Pricing.Worksheet;
 using Microsoft.Projects.Project.Archive;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Project.Journal;
-using Microsoft.Projects.Project.Pricing;
 using Microsoft.Projects.Project.Ledger;
 using Microsoft.Projects.Project.Planning;
+using Microsoft.Projects.Project.Pricing;
 using Microsoft.Projects.Project.WIP;
-using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.VAT.Calculation;
-using Microsoft.Finance.VAT.Reporting;
+using Microsoft.Projects.RoleCenters;
 
 permissionset 9886 "D365 JOBS, EDIT"
 {

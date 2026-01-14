@@ -4,23 +4,23 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Test;
 
-using System.TestTools.CodeCoverage;
-using System.TestLibraries.Utilities;
-using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Manufacturing.Routing;
-using System.Tooling;
-using Microsoft.Inventory.Item;
-using Microsoft.Manufacturing.Document;
-using Microsoft.Inventory.Tracking;
-using Microsoft.Inventory.Location;
-using Microsoft.Manufacturing.MachineCenter;
-using Microsoft.Manufacturing.Journal;
-using Microsoft.Manufacturing.Capacity;
 using Microsoft.Inventory;
-using Microsoft.Manufacturing.Setup;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Posting;
 using Microsoft.Inventory.Requisition;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Journal;
+using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
+using Microsoft.Manufacturing.WorkCenter;
+using System.TestLibraries.Utilities;
+using System.TestTools.CodeCoverage;
+using System.Tooling;
 
 codeunit 137082 "SCM Manufacturing - Routings"
 {

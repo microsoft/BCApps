@@ -1,9 +1,8 @@
+/// <summary>
+/// Provides utility functions for creating and managing inventory-related entities in test scenarios, including items, item journals, locations, and inventory postings.
+/// </summary>
 codeunit 132201 "Library - Inventory"
 {
-    // Unsupported version tags:
-    // 
-    // Contains all utility functions related to Inventory Management.
-
 
     trigger OnRun()
     begin
@@ -367,6 +366,19 @@ codeunit 132201 "Library - Inventory"
         ItemAttributeValueMapping.Validate("Item Attribute ID", AttributeID);
         ItemAttributeValueMapping.Validate("Item Attribute Value ID", AttributeValueID);
         ItemAttributeValueMapping.Insert(true);
+    end;
+
+    procedure CreateItemVariantAttributeValueMapping(ItemCode: Code[20]; VariantCode: Code[10]; AttributeID: Integer; AttributeValueID: Integer; TableID: Integer; KeyValue: Code[20])
+    var
+        ItemVariantAttributeValueMapping: Record "Item Var. Attr. Value Mapping";
+    begin
+        ItemVariantAttributeValueMapping.Validate("Item No.", ItemCode);
+        ItemVariantAttributeValueMapping.Validate("Variant Code", VariantCode);
+        ItemVariantAttributeValueMapping.Validate("Item Attribute ID", AttributeID);
+        ItemVariantAttributeValueMapping.Validate("Item Attribute Value ID", AttributeValueID);
+        ItemVariantAttributeValueMapping.Validate("Inherited-From Table ID", TableID);
+        ItemVariantAttributeValueMapping.Validate("Inherited-From Key Value", KeyValue);
+        ItemVariantAttributeValueMapping.Insert(true);
     end;
 
     procedure CreateUpdateItemTranslation(ItemNo: Code[20]; VariantCode: Code[10]; LanguageCode: Code[10]; Description: Text[100]; Description2: Text[50])

@@ -8,6 +8,15 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Foundation.AuditCodes;
 
+/// <summary>
+/// Generates comprehensive reports for G/L account currency revaluation analysis.
+/// Provides detailed breakdown of currency adjustments and their impact on financial statements.
+/// </summary>
+/// <remarks>
+/// Processes G/L entries and currency exchange rates to calculate revaluation effects.
+/// Supports filtering by account, currency, and date ranges. Output includes both
+/// summary and detailed views of currency gains/losses for reporting and audit purposes.
+/// </remarks>
 report 597 "G/L Currency Revaluation"
 {
     ApplicationArea = Basic, Suite;
@@ -36,6 +45,29 @@ report 597 "G/L Currency Revaluation"
                 group(Options)
                 {
                     Caption = 'Options';
+                    field(JournalTemplateName; GenJnlTemplate.Name)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Journal Template Name';
+                        TableRelation = "Gen. Journal Template";
+                        ToolTip = 'Specifies the name of the general journal template that the entries are posted from.';
+                        trigger OnLookup(var Text: Text): Boolean
+                        var
+                            GenJnlTemplateList: Record "Gen. Journal Template";
+                        begin
+                            GenJnlTemplateList.SetRange(Type, GenJnlTemplateList.Type::General);
+                            GenJnlTemplateList.SetRange(Recurring, false);
+                            if PAGE.RunModal(0, GenJnlTemplateList) = ACTION::LookupOK then begin
+                                GenJnlTemplate := GenJnlTemplateList;
+                                GenJnlBatch.Name := '';
+                            end;
+                        end;
+
+                        trigger OnValidate()
+                        begin
+                            GenJnlBatch.Name := '';
+                        end;
+                    }
                     field(JournalBatchName; GenJnlBatch.Name)
                     {
                         ApplicationArea = Basic, Suite;
@@ -75,10 +107,8 @@ report 597 "G/L Currency Revaluation"
 
         trigger OnOpenPage()
         begin
+            GenJnlTemplate.Name := '';
             GenJnlBatch.Name := '';
-            GenJnlTemplate.SetRange(Type, GenJnlTemplate.Type::General);
-            GenJnlTemplate.SetRange(Recurring, false);
-            GenJnlTemplate.FindFirst();
         end;
     }
 
@@ -100,7 +130,6 @@ report 597 "G/L Currency Revaluation"
         if GenJnlBatch.Name = '' then
             Error(GenJournalErr);
 
-        GenJnlTemplate.FindFirst();
         GenJnlLine.SetRange("Journal Template Name", GenJnlTemplate.Name);
         GenJnlLine.SetRange("Journal Batch Name", GenJnlBatch.Name);
         GenJnlLine.SetFilter("Account No.", '<>%1', '');

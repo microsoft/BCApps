@@ -4,18 +4,18 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Test;
 
-using Microsoft.Warehouse.Request;
-using Microsoft.Service.Document;
-using Microsoft.Warehouse.Document;
-using Microsoft.Warehouse.Worksheet;
-using Microsoft.Service.Item;
-using Microsoft.Service.History;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
-using Microsoft.Warehouse.Setup;
 using Microsoft.Purchases.Document;
+using Microsoft.Service.Document;
+using Microsoft.Service.History;
+using Microsoft.Service.Item;
 using Microsoft.Warehouse.Activity;
+using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.History;
+using Microsoft.Warehouse.Request;
+using Microsoft.Warehouse.Setup;
+using Microsoft.Warehouse.Worksheet;
 using System.TestLibraries.Utilities;
 
 codeunit 136144 "Service Order Warehouse Pick"

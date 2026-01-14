@@ -8,6 +8,10 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using System.Threading;
 
+/// <summary>
+/// Reverses dimension correction by restoring original dimension values to affected G/L entries.
+/// Runs as background job queue entry with validation and comprehensive logging.
+/// </summary>
 codeunit 2582 "Dimension Correction Undo"
 {
     TableNo = "Job Queue Entry";
@@ -21,6 +25,10 @@ codeunit 2582 "Dimension Correction Undo"
         RunUndoDimensionCorrection(DimensionCorrection);
     end;
 
+    /// <summary>
+    /// Undoes dimension correction by restoring original dimension values to all affected G/L entries.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction record to undo</param>
     procedure RunUndoDimensionCorrection(var DimensionCorrection: Record "Dimension Correction")
     var
         DimensionCorrectionMgt: Codeunit "Dimension Correction Mgt";
@@ -141,11 +149,22 @@ codeunit 2582 "Dimension Correction Undo"
         CompletedUndoDimensionCorrectionEntriesLbl: Label 'Starting undo of Ledger entries of Dimension Correction %1.', Locked = true, Comment = '%1 Dimension Correction Entry No.';
         CommitedUndoLedgerEntriesUpdateTelemetryLbl: Label 'Commited Undo G/L Entries Dimensions. Time from last commit: %1. Number of entries iterated: %2', Locked = true, Comment = '%1 - Time passed between commits, %2 Number';
 
+    /// <summary>
+    /// Integration event raised after updating global dimensions from dimension set ID during undo operation.
+    /// </summary>
+    /// <param name="GLEntry">G/L entry with restored global dimensions</param>
     [IntegrationEvent(false, false)]
     local procedure OnUndoGLEntryOnAfterUpdateGlobalDimFromDimSetID(var GLEntry: Record "G/L Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after undoing dimension changes for a G/L entry.
+    /// </summary>
+    /// <param name="GLEntry">G/L entry that was restored</param>
+    /// <param name="TempDimCorrectionSetBuffer">Temporary dimension correction set buffer</param>
+    /// <param name="Result">Undo operation result status</param>
+    /// <param name="TempInvalidatedDimCorrection">Temporary invalidated dimension correction record</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUndoGLEntry(var GLEntry: Record "G/L Entry"; var TempDimCorrectionSetBuffer: Record "Dim Correction Set Buffer"; var Result: Boolean; var TempInvalidatedDimCorrection: Record "Invalidated Dim Correction" temporary)
     begin

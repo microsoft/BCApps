@@ -24,7 +24,6 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
 
     var
         EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
-        WrongVariantTypeErr: Label 'Only record types are allowed.';
 
     procedure FindRelatedPurchaseHeaderInHistory(EDocument: Record "E-Document"; var EDocVendorAssignmentHistory: Record "E-Doc. Vendor Assign. History"): Boolean
     var
@@ -202,28 +201,6 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
             .SetReferenceSource(Page::"Posted Purchase Invoice", RecordRef)
             .SetReferenceTitle(StrSubstNo(HistoricalExplanationTxt, PurchInvHeader.GetFilter("No.")));
         EDocActivityLogSession.Set(ActivityLogSessionToken, ActivityLog);
-    end;
-
-    /// <summary>
-    /// Track header and line mapping between source and target records.
-    /// </summary>
-    procedure TrackRecord(EDocument: Record "E-Document"; SourceRecord: Variant; TargetRecord: Variant)
-    var
-        EDocRecordLink: Record "E-Doc. Record Link";
-        SourceRecordRef, TargetRecordRef : RecordRef;
-    begin
-        if (not SourceRecord.IsRecord()) or (not TargetRecord.IsRecord()) then
-            Error(WrongVariantTypeErr);
-
-        SourceRecordRef.GetTable(SourceRecord);
-        TargetRecordRef.GetTable(TargetRecord);
-
-        EDocRecordLink."Source Table No." := SourceRecordRef.Number();
-        EDocRecordLink."Source SystemId" := SourceRecordRef.Field(SourceRecordRef.SystemIdNo).Value();
-        EDocRecordLink."Target Table No." := TargetRecordRef.Number();
-        EDocRecordLink."Target SystemId" := TargetRecordRef.Field(TargetRecordRef.SystemIdNo).Value();
-        EDocRecordLink."E-Document Entry No." := EDocument."Entry No";
-        if EDocRecordLink.Insert() then;
     end;
 
     /// <summary>

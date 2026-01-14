@@ -6,10 +6,10 @@ using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
-using Microsoft.Service.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Peppol;
 using Microsoft.Sales.Reminder;
+using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using System.Utilities;
 

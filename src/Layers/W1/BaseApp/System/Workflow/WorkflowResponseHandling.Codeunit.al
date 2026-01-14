@@ -191,6 +191,8 @@ codeunit 1521 "Workflow Response Handling"
                     AddResponsePredecessor(
                         CreateApprovalRequestsCode(), WorkflowEventHandling.RunWorkflowOnGeneralJournalBatchBalancedCode());
                     AddResponsePredecessor(
+                        CreateApprovalRequestsCode(), WorkflowEventHandling.RunWorkflowOnSendItemJournalBatchForApprovalCode());
+                    AddResponsePredecessor(
                         CreateApprovalRequestsCode(), WorkflowEventHandling.RunWorkflowOnSendRequisitionWkshBatchForApprovalCode());
                     AddResponsePredecessor(
                 CreateApprovalRequestsCode(), WorkflowEventHandling.RunWorkflowOnSendJobQueueEntryForApprovalCode());
@@ -226,6 +228,8 @@ codeunit 1521 "Workflow Response Handling"
                     AddResponsePredecessor(
                         SendApprovalRequestForApprovalCode(), WorkflowEventHandling.RunWorkflowOnGeneralJournalBatchBalancedCode());
                     AddResponsePredecessor(
+                        SendApprovalRequestForApprovalCode(), WorkflowEventHandling.RunWorkflowOnSendItemJournalBatchForApprovalCode());
+                    AddResponsePredecessor(
                         SendApprovalRequestForApprovalCode(), WorkflowEventHandling.RunWorkflowOnSendRequisitionWkshBatchForApprovalCode());
                     AddResponsePredecessor(
                         SendApprovalRequestForApprovalCode(), WorkflowEventHandling.RunWorkflowOnApproveApprovalRequestCode());
@@ -252,6 +256,7 @@ codeunit 1521 "Workflow Response Handling"
                     AddResponsePredecessor(OpenDocumentCode(), WorkflowEventHandling.RunWorkflowOnCancelItemApprovalRequestCode());
                     AddResponsePredecessor(OpenDocumentCode(), WorkflowEventHandling.RunWorkflowOnCancelGeneralJournalLineApprovalRequestCode());
                     AddResponsePredecessor(OpenDocumentCode(), WorkflowEventHandling.RunWorkflowOnCancelGeneralJournalBatchApprovalRequestCode());
+                    AddResponsePredecessor(OpenDocumentCode(), WorkflowEventHandling.RunWorkflowOnCancelItemJournalBatchApprovalRequestCode());
                     AddResponsePredecessor(OpenDocumentCode(), WorkflowEventHandling.RunWorkflowOnCancelRequisitionWkshBatchApprovalRequestCode());
                 end;
             CancelAllApprovalRequestsCode():
@@ -272,6 +277,8 @@ codeunit 1521 "Workflow Response Handling"
                         CancelAllApprovalRequestsCode(), WorkflowEventHandling.RunWorkflowOnCancelGeneralJournalLineApprovalRequestCode());
                     AddResponsePredecessor(
                         CancelAllApprovalRequestsCode(), WorkflowEventHandling.RunWorkflowOnCancelGeneralJournalBatchApprovalRequestCode());
+                    AddResponsePredecessor(
+                        CancelAllApprovalRequestsCode(), WorkflowEventHandling.RunWorkflowOnCancelItemJournalBatchApprovalRequestCode());
                     AddResponsePredecessor(
                         CancelAllApprovalRequestsCode(), WorkflowEventHandling.RunWorkflowOnCancelRequisitionWkshBatchApprovalRequestCode());
                     AddResponsePredecessor(

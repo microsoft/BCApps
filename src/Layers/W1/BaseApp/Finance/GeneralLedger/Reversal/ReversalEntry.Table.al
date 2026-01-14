@@ -31,6 +31,15 @@ using Microsoft.Sales.Receivables;
 using System.Security.User;
 using System.Utilities;
 
+/// <summary>
+/// Stores temporary information about ledger entries selected for reversal operations.
+/// Provides comprehensive reversal functionality with entry validation and reversal processing workflow.
+/// </summary>
+/// <remarks>
+/// Central table for managing reversal entries across all ledger types including G/L, customer, vendor, employee, bank account, Fixed Asset, maintenance, and VAT.
+/// Supports both register-based and transaction-based reversal modes with comprehensive validation and audit trail maintenance.
+/// Integrates with all posting engines and maintains referential integrity during reversal operations.
+/// </remarks>
 table 179 "Reversal Entry"
 {
     Caption = 'Reversal Entry';
@@ -39,14 +48,23 @@ table 179 "Reversal Entry"
 
     fields
     {
+        /// <summary>
+        /// Sequential line number for ordering reversal entries within the reversal operation.
+        /// </summary>
         field(1; "Line No."; Integer)
         {
             Caption = 'Line No.';
         }
+        /// <summary>
+        /// Specifies the type of ledger entry being reversed (G/L Account, Customer, Vendor, Employee, Bank Account, Fixed Asset, Maintenance, VAT).
+        /// </summary>
         field(2; "Entry Type"; Enum "Reversal Entry Type")
         {
             Caption = 'Entry Type';
         }
+        /// <summary>
+        /// Entry number of the original ledger entry being reversed, with table relation based on Entry Type.
+        /// </summary>
         field(3; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
@@ -66,28 +84,46 @@ table 179 "Reversal Entry"
             else
             if ("Entry Type" = const(Employee)) "Employee Ledger Entry";
         }
+        /// <summary>
+        /// G/L Register number that contains the entry being reversed, used for register-based reversals.
+        /// </summary>
         field(4; "G/L Register No."; Integer)
         {
             Caption = 'G/L Register No.';
             TableRelation = "G/L Register";
         }
+        /// <summary>
+        /// Source code from the original entry identifying the posting journal or process that created the entry.
+        /// </summary>
         field(5; "Source Code"; Code[10])
         {
             Caption = 'Source Code';
             TableRelation = "Source Code";
         }
+        /// <summary>
+        /// Journal batch name from the original entry used for posting validation and filtering.
+        /// </summary>
         field(6; "Journal Batch Name"; Code[10])
         {
             Caption = 'Journal Batch Name';
         }
+        /// <summary>
+        /// Transaction number linking related entries within the same posting transaction.
+        /// </summary>
         field(7; "Transaction No."; Integer)
         {
             Caption = 'Transaction No.';
         }
+        /// <summary>
+        /// Source type indicating the master table type for the source number (Customer, Vendor, Bank Account, Fixed Asset, Employee).
+        /// </summary>
         field(8; "Source Type"; Enum "Gen. Journal Source Type")
         {
             Caption = 'Source Type';
         }
+        /// <summary>
+        /// Source number referencing the specific master record based on Source Type, with table relation validation.
+        /// </summary>
         field(9; "Source No."; Code[20])
         {
             Caption = 'Source No.';
@@ -101,81 +137,129 @@ table 179 "Reversal Entry"
             else
             if ("Source Type" = const(Employee)) Employee;
         }
+        /// <summary>
+        /// Currency code from the original entry, blank indicates local currency (LCY).
+        /// </summary>
         field(10; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
             TableRelation = Currency;
         }
+        /// <summary>
+        /// Entry description from the original entry providing context for the reversal operation.
+        /// </summary>
         field(11; Description; Text[100])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// Entry amount in the original currency from the entry being reversed.
+        /// </summary>
         field(12; Amount; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Amount';
         }
+        /// <summary>
+        /// Debit amount from the original entry, showing only positive amounts for debit transactions.
+        /// </summary>
         field(13; "Debit Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Debit Amount';
         }
+        /// <summary>
+        /// Credit amount from the original entry, showing only positive amounts for credit transactions.
+        /// </summary>
         field(14; "Credit Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Credit Amount';
         }
+        /// <summary>
+        /// Entry amount in local currency (LCY) from the original entry being reversed.
+        /// </summary>
         field(15; "Amount (LCY)"; Decimal)
         {
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Amount (LCY)';
         }
+        /// <summary>
+        /// Debit amount in local currency (LCY), showing only positive amounts for debit transactions.
+        /// </summary>
         field(16; "Debit Amount (LCY)"; Decimal)
         {
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Debit Amount (LCY)';
         }
+        /// <summary>
+        /// Credit amount in local currency (LCY), showing only positive amounts for credit transactions.
+        /// </summary>
         field(17; "Credit Amount (LCY)"; Decimal)
         {
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Credit Amount (LCY)';
         }
+        /// <summary>
+        /// VAT amount from the original entry that will be reversed.
+        /// </summary>
         field(18; "VAT Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'VAT Amount';
         }
+        /// <summary>
+        /// Posting date from the original entry when the transaction was recorded.
+        /// </summary>
         field(19; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
         }
+        /// <summary>
+        /// Document type from the original entry (Invoice, Credit Memo, Payment, etc.).
+        /// </summary>
         field(20; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';
         }
+        /// <summary>
+        /// Document number from the original entry identifying the source document.
+        /// </summary>
         field(21; "Document No."; Code[20])
         {
             Caption = 'Document No.';
         }
+        /// <summary>
+        /// Account number from the original entry being reversed.
+        /// </summary>
         field(22; "Account No."; Code[20])
         {
             Caption = 'Account No.';
         }
+        /// <summary>
+        /// Account name from the original entry for display and reference purposes.
+        /// </summary>
         field(23; "Account Name"; Text[100])
         {
             Caption = 'Account Name';
         }
+        /// <summary>
+        /// Balance account type from the original entry specifying the type of balance account used.
+        /// </summary>
         field(25; "Bal. Account Type"; Enum "Gen. Journal Account Type")
         {
             Caption = 'Bal. Account Type';
         }
+        /// <summary>
+        /// Balance account number from the original entry for paired account posting validation.
+        /// </summary>
         field(26; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
@@ -189,22 +273,34 @@ table 179 "Reversal Entry"
             else
             if ("Bal. Account Type" = const("Fixed Asset")) "Fixed Asset";
         }
+        /// <summary>
+        /// Fixed Asset posting category from the original entry for FA-related reversal validation.
+        /// </summary>
         field(27; "FA Posting Category"; Enum "FA Ledger Posting Category")
         {
             AccessByPermission = TableData "Fixed Asset" = R;
             Caption = 'FA Posting Category';
         }
+        /// <summary>
+        /// Fixed Asset posting type from the original entry specifying the FA posting classification.
+        /// </summary>
         field(28; "FA Posting Type"; Enum "Reversal Entry FA Posting Type")
         {
             AccessByPermission = TableData "Fixed Asset" = R;
             Caption = 'FA Posting Type';
         }
+        /// <summary>
+        /// Type of reversal operation being performed (Transaction or Register-based reversal).
+        /// </summary>
         field(30; "Reversal Type"; Option)
         {
             Caption = 'Reversal Type';
             OptionCaption = 'Transaction,Register';
             OptionMembers = Transaction,Register;
         }
+        /// <summary>
+        /// Original amount in source currency before any currency conversion.
+        /// </summary>
         field(31; "Source Currency Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Source Currency Code";
@@ -212,6 +308,9 @@ table 179 "Reversal Entry"
             Caption = 'Source Currency Amount';
             DataClassification = CustomerContent;
         }
+        /// <summary>
+        /// Original VAT amount in source currency before any currency conversion.
+        /// </summary>
         field(32; "Source Currency VAT Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Source Currency Code";
@@ -303,11 +402,19 @@ table 179 "Reversal Entry"
         HideWarningDialogs: Boolean;
         MaxPostingDate: Date;
 
+    /// <summary>
+    /// Reverses all ledger entries from a specific transaction number.
+    /// </summary>
+    /// <param name="TransactionNo">Transaction number to reverse</param>
     procedure ReverseTransaction(TransactionNo: Integer)
     begin
         ReverseEntries(TransactionNo, "Reversal Type"::Transaction);
     end;
 
+    /// <summary>
+    /// Reverses all ledger entries from a specific G/L register number.
+    /// </summary>
+    /// <param name="RegisterNo">G/L register number to reverse</param>
     procedure ReverseRegister(RegisterNo: Integer)
     begin
         CheckRegister(RegisterNo);
@@ -374,6 +481,9 @@ table 179 "Reversal Entry"
         if TempReversalEntry.Find('-') then;
     end;
 
+    /// <summary>
+    /// Validates all entries in the reversal list for reversal eligibility and business rule compliance.
+    /// </summary>
     procedure CheckEntries()
     var
         GLAccount: Record "G/L Account";
@@ -774,6 +884,11 @@ table 179 "Reversal Entry"
             TempReversalEntry.TestFieldError();
     end;
 
+    /// <summary>
+    /// Sets up filters on ledger entry tables for reversal processing based on transaction or register number.
+    /// </summary>
+    /// <param name="Number">Transaction or register number to filter by</param>
+    /// <param name="RevType">Type of reversal (Transaction or Register)</param>
     procedure SetReverseFilter(Number: Integer; RevType: Option Transaction,Register)
     var
         IsHandled: Boolean;
@@ -818,6 +933,17 @@ table 179 "Reversal Entry"
         OnAfterSetReverseFilter(Number, RevType, GlobalGLRegister, Rec);
     end;
 
+    /// <summary>
+    /// Copies reversal filters from global ledger entry variables to passed ledger entry record variables.
+    /// </summary>
+    /// <param name="GLEntry">G/L Entry record variable to copy filters to</param>
+    /// <param name="CustLedgerEntry">Customer Ledger Entry record variable to copy filters to</param>
+    /// <param name="VendorLedgerEntry">Vendor Ledger Entry record variable to copy filters to</param>
+    /// <param name="BankAccountLedgerEntry">Bank Account Ledger Entry record variable to copy filters to</param>
+    /// <param name="VATEntry">VAT Entry record variable to copy filters to</param>
+    /// <param name="FALedgerEntry">Fixed Asset Ledger Entry record variable to copy filters to</param>
+    /// <param name="MaintenanceLedgerEntry">Maintenance Ledger Entry record variable to copy filters to</param>
+    /// <param name="EmployeeLedgerEntry">Employee Ledger Entry record variable to copy filters to</param>
     procedure CopyReverseFilters(var GLEntry: Record "G/L Entry"; var CustLedgerEntry: Record "Cust. Ledger Entry"; var VendorLedgerEntry: Record "Vendor Ledger Entry"; var BankAccountLedgerEntry: Record "Bank Account Ledger Entry"; var VATEntry: Record "VAT Entry"; var FALedgerEntry: Record "FA Ledger Entry"; var MaintenanceLedgerEntry: Record "Maintenance Ledger Entry"; var EmployeeLedgerEntry: Record "Employee Ledger Entry")
     begin
         GLEntry.Copy(GlobalGLEntry);
@@ -830,41 +956,66 @@ table 179 "Reversal Entry"
         MaintenanceLedgerEntry.Copy(GlobalMaintenanceLedgerEntry);
     end;
 
+    /// <summary>
+    /// Opens the G/L Entries page filtered for reversal candidates.
+    /// </summary>
     procedure ShowGLEntries()
     begin
         PAGE.Run(0, GlobalGLEntry);
     end;
 
+    /// <summary>
+    /// Opens the Customer Ledger Entries page filtered for reversal candidates.
+    /// </summary>
     procedure ShowCustLedgEntries()
     begin
         PAGE.Run(0, GlobalCustLedgerEntry);
     end;
 
+    /// <summary>
+    /// Opens the Vendor Ledger Entries page filtered for reversal candidates.
+    /// </summary>
     procedure ShowVendLedgEntries()
     begin
         PAGE.Run(0, GlobalVendorLedgerEntry);
     end;
 
+    /// <summary>
+    /// Opens the Bank Account Ledger Entries page filtered for reversal candidates.
+    /// </summary>
     procedure ShowBankAccLedgEntries()
     begin
         PAGE.Run(0, GlobalBankAccountLedgerEntry);
     end;
 
+    /// <summary>
+    /// Opens the Fixed Asset Ledger Entries page filtered for reversal candidates.
+    /// </summary>
     procedure ShowFALedgEntries()
     begin
         PAGE.Run(0, GlobalFALedgerEntry);
     end;
 
+    /// <summary>
+    /// Opens the Maintenance Ledger Entries page filtered for reversal candidates.
+    /// </summary>
     procedure ShowMaintenanceLedgEntries()
     begin
         PAGE.Run(0, GlobalMaintenanceLedgerEntry);
     end;
 
+    /// <summary>
+    /// Opens the VAT Entries page filtered for reversal candidates.
+    /// </summary>
     procedure ShowVATEntries()
     begin
         PAGE.Run(0, GlobalVATEntry);
     end;
 
+    /// <summary>
+    /// Returns a caption describing the entry for display purposes.
+    /// </summary>
+    /// <returns>Caption text based on entry type and source information</returns>
     procedure Caption() Result: Text
     var
         GLAccount: Record "G/L Account";
@@ -933,6 +1084,12 @@ table 179 "Reversal Entry"
         end;
     end;
 
+    /// <summary>
+    /// Validates that the posting date allows reversal based on allowed posting date range.
+    /// </summary>
+    /// <param name="PostingDate">Posting date to validate</param>
+    /// <param name="TableCaption">Table caption for error messaging</param>
+    /// <param name="EntryNo">Entry number for error messaging</param>
     procedure CheckPostingDate(PostingDate: Date; TableCaption: Text; EntryNo: Integer)
     var
         IsHandled: Boolean;
@@ -948,6 +1105,12 @@ table 179 "Reversal Entry"
             MaxPostingDate := PostingDate;
     end;
 
+    /// <summary>
+    /// Validates that the Fixed Asset posting date allows reversal based on FA allowed posting date range.
+    /// </summary>
+    /// <param name="FAPostingDate">FA posting date to validate</param>
+    /// <param name="TableCaption">Table caption for error messaging</param>
+    /// <param name="EntryNo">Entry number for error messaging</param>
     procedure CheckFAPostingDate(FAPostingDate: Date; TableCaption: Text; EntryNo: Integer)
     var
         UserSetup: Record "User Setup";
@@ -979,16 +1142,31 @@ table 179 "Reversal Entry"
             MaxPostingDate := FAPostingDate;
     end;
 
+    /// <summary>
+    /// Raises an error indicating missing required field values for reversal operation.
+    /// </summary>
     procedure TestFieldError()
     begin
         Error(Text004);
     end;
 
+    /// <summary>
+    /// Raises an error indicating the entry has already been reversed.
+    /// </summary>
+    /// <param name="TableCaption">Table caption for error messaging</param>
+    /// <param name="EntryNo">Entry number that was already reversed</param>
     procedure AlreadyReversedEntry(TableCaption: Text; EntryNo: Integer)
     begin
         Error(Text011, TableCaption, EntryNo);
     end;
 
+    /// <summary>
+    /// Verifies that reversal entries are valid and consistent for the specified transaction or register.
+    /// </summary>
+    /// <param name="ReversalEntry2">Reversal entry record to compare against</param>
+    /// <param name="Number">Transaction or register number to verify</param>
+    /// <param name="RevType">Type of reversal (Transaction or Register)</param>
+    /// <returns>True if reversal entries are valid, false otherwise</returns>
     procedure VerifyReversalEntries(var ReversalEntry2: Record "Reversal Entry"; Number: Integer; RevType: Option Transaction,Register) Result: Boolean
     var
         IsHandled: Boolean;
@@ -1011,6 +1189,11 @@ table 179 "Reversal Entry"
         exit(TempReversalEntry.Next() = 0);
     end;
 
+    /// <summary>
+    /// Compares two reversal entries for equality based on Entry Type and Entry No.
+    /// </summary>
+    /// <param name="ReversalEntry2">Reversal entry to compare against</param>
+    /// <returns>True if entries are equal, false otherwise</returns>
     procedure Equal(ReversalEntry2: Record "Reversal Entry"): Boolean
     begin
         exit(
@@ -1018,22 +1201,40 @@ table 179 "Reversal Entry"
           ("Entry No." = ReversalEntry2."Entry No."));
     end;
 
+    /// <summary>
+    /// Returns an error message for entries that have been changed since reversal preparation.
+    /// </summary>
+    /// <param name="TableCaption">Table caption for error messaging</param>
+    /// <param name="EntryNo">Entry number that has changed</param>
+    /// <returns>Formatted error message text</returns>
     procedure ReversalErrorForChangedEntry(TableCaption: Text; EntryNo: Integer): Text[1024]
     begin
         exit(StrSubstNo(Text000, TableCaption, EntryNo));
     end;
 
+    /// <summary>
+    /// Sets whether to hide dialog boxes during reversal processing.
+    /// </summary>
+    /// <param name="NewHideDialog">True to hide dialogs, false to show dialogs</param>
     procedure SetHideDialog(NewHideDialog: Boolean)
     begin
         HideDialog := NewHideDialog;
     end;
 
+    /// <summary>
+    /// Sets both dialog hiding and warning dialog hiding for batch processing.
+    /// </summary>
     procedure SetHideWarningDialogs()
     begin
         HideDialog := true;
         HideWarningDialogs := true;
     end;
 
+    /// <summary>
+    /// Sets the bank account statement context for bank account ledger entry reversals.
+    /// </summary>
+    /// <param name="BankAccountNo">Bank account number</param>
+    /// <param name="StatementNo">Bank statement number</param>
     procedure SetBankAccountStatement(BankAccountNo: Code[20]; StatementNo: Code[20])
     begin
         BankAccountStatement.Get(BankAccountNo, StatementNo);
@@ -1305,6 +1506,10 @@ table 179 "Reversal Entry"
         TempReversalEntry.Insert();
     end;
 
+    /// <summary>
+    /// Copies field values from a Customer Ledger Entry to populate reversal entry information.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Customer Ledger Entry to copy data from</param>
     procedure CopyFromCustLedgEntry(CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
         "Entry No." := CustLedgerEntry."Entry No.";
@@ -1330,6 +1535,10 @@ table 179 "Reversal Entry"
         OnAfterCopyFromCustLedgEntry(Rec, CustLedgerEntry);
     end;
 
+    /// <summary>
+    /// Copies field values from a Bank Account Ledger Entry to populate reversal entry information.
+    /// </summary>
+    /// <param name="BankAccountLedgerEntry">Bank Account Ledger Entry to copy data from</param>
     procedure CopyFromBankAccLedgEntry(BankAccountLedgerEntry: Record "Bank Account Ledger Entry")
     begin
         "Entry No." := BankAccountLedgerEntry."Entry No.";
@@ -1353,6 +1562,10 @@ table 179 "Reversal Entry"
         OnAfterCopyFromBankAccLedgEntry(Rec, BankAccountLedgerEntry);
     end;
 
+    /// <summary>
+    /// Copies field values from a Fixed Asset Ledger Entry to populate reversal entry information.
+    /// </summary>
+    /// <param name="FALedgerEntry">Fixed Asset Ledger Entry to copy data from</param>
     procedure CopyFromFALedgEntry(FALedgerEntry: Record "FA Ledger Entry")
     begin
         "Entry No." := FALedgerEntry."Entry No.";
@@ -1375,6 +1588,10 @@ table 179 "Reversal Entry"
         OnAfterCopyFromFALedgEntry(Rec, FALedgerEntry);
     end;
 
+    /// <summary>
+    /// Copies field values from a G/L Entry to populate reversal entry information.
+    /// </summary>
+    /// <param name="GLEntry">G/L Entry to copy data from</param>
     procedure CopyFromGLEntry(GLEntry: Record "G/L Entry")
     begin
         "Entry No." := GLEntry."Entry No.";
@@ -1400,6 +1617,10 @@ table 179 "Reversal Entry"
         OnAfterCopyFromGLEntry(Rec, GLEntry);
     end;
 
+    /// <summary>
+    /// Copies field values from a Maintenance Ledger Entry to populate reversal entry information.
+    /// </summary>
+    /// <param name="MaintenanceLedgerEntry">Maintenance Ledger Entry to copy data from</param>
     procedure CopyFromMaintenanceEntry(MaintenanceLedgerEntry: Record "Maintenance Ledger Entry")
     begin
         "Entry No." := MaintenanceLedgerEntry."Entry No.";
@@ -1420,6 +1641,10 @@ table 179 "Reversal Entry"
         OnAfterCopyFromMaintenanceEntry(Rec, MaintenanceLedgerEntry);
     end;
 
+    /// <summary>
+    /// Copies field values from a VAT Entry to populate reversal entry information.
+    /// </summary>
+    /// <param name="VATEntry">VAT Entry to copy data from</param>
     procedure CopyFromVATEntry(VATEntry: Record "VAT Entry")
     begin
         "Entry No." := VATEntry."Entry No.";
@@ -1435,6 +1660,10 @@ table 179 "Reversal Entry"
         OnAfterCopyFromVATEntry(Rec, VATEntry);
     end;
 
+    /// <summary>
+    /// Copies field values from a Vendor Ledger Entry to populate reversal entry information.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">Vendor Ledger Entry to copy data from</param>
     procedure CopyFromVendLedgEntry(VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
         "Entry No." := VendorLedgerEntry."Entry No.";
@@ -1460,6 +1689,10 @@ table 179 "Reversal Entry"
         OnAfterCopyFromVendLedgEntry(Rec, VendorLedgerEntry);
     end;
 
+    /// <summary>
+    /// Copies field values from an Employee Ledger Entry to populate reversal entry information.
+    /// </summary>
+    /// <param name="EmployeeLedgerEntry">Employee Ledger Entry to copy data from</param>
     procedure CopyFromEmployeeLedgerEntry(EmployeeLedgerEntry: Record "Employee Ledger Entry")
     begin
         "Entry No." := EmployeeLedgerEntry."Entry No.";
@@ -1540,341 +1773,762 @@ table 179 "Reversal Entry"
         DetailedEmployeeLedgerEntry.SetRange(Unapplied);
     end;
 
+    /// <summary>
+    /// Integration event raised after calculating the caption for a reversal entry, allowing customization of the display text.
+    /// </summary>
+    /// <param name="ReversalEntry">Reversal entry record for which the caption is being calculated</param>
+    /// <param name="NewCaption">Caption text that can be modified by subscribers</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCaption(ReversalEntry: Record "Reversal Entry"; var NewCaption: Text)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after completing entry validation checks, allowing custom validation logic.
+    /// </summary>
+    /// <param name="MaxPostingDate">Maximum posting date found during validation</param>
+    /// <param name="ReversalEntry">Reversal entry record being validated</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckEntries(var MaxPostingDate: Date; var ReversalEntry: Record "Reversal Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating bank account ledger entries for reversal eligibility.
+    /// </summary>
+    /// <param name="BankAccount">Bank account master record</param>
+    /// <param name="BankAccountLedgerEntry">Bank account ledger entry being validated</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckBankAcc(BankAccount: Record "Bank Account"; BankAccountLedgerEntry: Record "Bank Account Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating G/L account settings for reversal operations.
+    /// </summary>
+    /// <param name="GLAccount">G/L account record being validated</param>
+    /// <param name="GLEntry">G/L entry being checked for reversal</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckGLAcc(var GLAccount: Record "G/L Account"; GLEntry: Record "G/L Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating customer ledger entries for reversal eligibility.
+    /// </summary>
+    /// <param name="Customer">Customer master record</param>
+    /// <param name="CustLedgerEntry">Customer ledger entry being validated</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckCust(Customer: Record Customer; CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating vendor ledger entries for reversal eligibility.
+    /// </summary>
+    /// <param name="Vendor">Vendor master record</param>
+    /// <param name="VendorLedgerEntry">Vendor ledger entry being validated</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckVend(Vendor: Record Vendor; VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating employee ledger entries for reversal eligibility.
+    /// </summary>
+    /// <param name="Employee">Employee master record</param>
+    /// <param name="EmployeeLedgerEntry">Employee ledger entry being validated</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckEmpl(Employee: Record Employee; EmployeeLedgerEntry: Record "Employee Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating fixed asset ledger entries for reversal eligibility.
+    /// </summary>
+    /// <param name="FixedAsset">Fixed asset master record</param>
+    /// <param name="FALedgerEntry">Fixed asset ledger entry being validated</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckFA(FixedAsset: Record "Fixed Asset"; FALedgerEntry: Record "FA Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating maintenance ledger entries for reversal eligibility.
+    /// </summary>
+    /// <param name="FixedAsset">Fixed asset master record</param>
+    /// <param name="MaintenanceLedgerEntry">Maintenance ledger entry being validated</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckMaintenance(FixedAsset: Record "Fixed Asset"; MaintenanceLedgerEntry: Record "Maintenance Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating VAT entries for reversal eligibility.
+    /// </summary>
+    /// <param name="VATEntry">VAT entry being validated</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckVAT(var VATEntry: Record "VAT Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating detailed customer ledger entries for reversal consistency.
+    /// </summary>
+    /// <param name="DetailedCustLedgEntry">Detailed customer ledger entry being validated</param>
+    /// <param name="CustLedgerEntry">Related customer ledger entry</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckDtldCustLedgEntry(DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating detailed vendor ledger entries for reversal consistency.
+    /// </summary>
+    /// <param name="DetailedVendorLedgEntry">Detailed vendor ledger entry being validated</param>
+    /// <param name="VendorLedgerEntry">Related vendor ledger entry</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckDtldVendLedgEntry(DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry"; VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating detailed employee ledger entries for reversal consistency.
+    /// </summary>
+    /// <param name="DetailedEmployeeLedgerEntry">Detailed employee ledger entry being validated</param>
+    /// <param name="EmployeeLedgerEntry">Related employee ledger entry</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckDtldEmplLedgEntry(DetailedEmployeeLedgerEntry: Record "Detailed Employee Ledger Entry"; EmployeeLedgerEntry: Record "Employee Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after copying field values from a bank account ledger entry to a reversal entry.
+    /// </summary>
+    /// <param name="ReversalEntry">Reversal entry record that was populated</param>
+    /// <param name="BankAccLedgEntry">Source bank account ledger entry</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyFromBankAccLedgEntry(var ReversalEntry: Record "Reversal Entry"; BankAccLedgEntry: Record "Bank Account Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after copying field values from a customer ledger entry to a reversal entry.
+    /// </summary>
+    /// <param name="ReversalEntry">Reversal entry record that was populated</param>
+    /// <param name="CustLedgerEntry">Source customer ledger entry</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyFromCustLedgEntry(var ReversalEntry: Record "Reversal Entry"; CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after copying field values from a fixed asset ledger entry to a reversal entry.
+    /// </summary>
+    /// <param name="ReversalEntry">Reversal entry record that was populated</param>
+    /// <param name="FALedgerEntry">Source fixed asset ledger entry</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyFromFALedgEntry(var ReversalEntry: Record "Reversal Entry"; FALedgerEntry: Record "FA Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after copying field values from a G/L entry to a reversal entry.
+    /// </summary>
+    /// <param name="ReversalEntry">Reversal entry record that was populated</param>
+    /// <param name="GLEntry">Source G/L entry</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyFromGLEntry(var ReversalEntry: Record "Reversal Entry"; GLEntry: Record "G/L Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after copying field values from a maintenance ledger entry to a reversal entry.
+    /// </summary>
+    /// <param name="ReversalEntry">Reversal entry record that was populated</param>
+    /// <param name="MaintenanceLedgerEntry">Source maintenance ledger entry</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyFromMaintenanceEntry(var ReversalEntry: Record "Reversal Entry"; MaintenanceLedgerEntry: Record "Maintenance Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after copying field values from a VAT entry to a reversal entry.
+    /// </summary>
+    /// <param name="ReversalEntry">Reversal entry record that was populated</param>
+    /// <param name="VATEntry">Source VAT entry</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyFromVATEntry(var ReversalEntry: Record "Reversal Entry"; VATEntry: Record "VAT Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after copying field values from a vendor ledger entry to a reversal entry.
+    /// </summary>
+    /// <param name="ReversalEntry">Reversal entry record that was populated</param>
+    /// <param name="VendorLedgerEntry">Source vendor ledger entry</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyFromVendLedgEntry(var ReversalEntry: Record "Reversal Entry"; VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after copying field values from an employee ledger entry to a reversal entry.
+    /// </summary>
+    /// <param name="ReversalEntry">Reversal entry record that was populated</param>
+    /// <param name="EmployeeLedgerEntry">Source employee ledger entry</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyFromEmplLedgEntry(var ReversalEntry: Record "Reversal Entry"; EmployeeLedgerEntry: Record "Employee Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting a reversal entry from a bank account ledger entry.
+    /// </summary>
+    /// <param name="TempRevertTransactionNo">Temporary table storing transaction numbers for reversal processing</param>
+    /// <param name="Number">Transaction or register number being reversed</param>
+    /// <param name="RevType">Type of reversal operation - Transaction or Register</param>
+    /// <param name="NextLineNo">Next available line number for reversal entries</param>
+    /// <param name="TempReversalEntry">Temporary reversal entry record being created</param>
+    /// <param name="BankAccLedgEntry">Source bank account ledger entry being reversed</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterInsertFromBankAccLedgEntry(var TempRevertTransactionNo: Record "Integer"; Number: Integer; RevType: Option Transaction,Register; var NextLineNo: Integer; var TempReversalEntry: Record "Reversal Entry" temporary; var BankAccLedgEntry: Record "Bank Account Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting a reversal entry from a customer ledger entry.
+    /// </summary>
+    /// <param name="TempRevertTransactionNo">Temporary table storing transaction numbers for reversal processing</param>
+    /// <param name="Number">Transaction or register number being reversed</param>
+    /// <param name="RevType">Type of reversal operation - Transaction or Register</param>
+    /// <param name="NextLineNo">Next available line number for reversal entries</param>
+    /// <param name="TempReversalEntry">Temporary reversal entry record being created</param>
+    /// <param name="CustLedgEntry">Source customer ledger entry being reversed</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterInsertFromCustLedgEntry(var TempRevertTransactionNo: Record "Integer"; Number: Integer; RevType: Option Transaction,Register; var NextLineNo: Integer; var TempReversalEntry: Record "Reversal Entry" temporary; var CustLedgEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting a reversal entry from an employee ledger entry.
+    /// </summary>
+    /// <param name="TempRevertTransactionNo">Temporary table storing transaction numbers for reversal processing</param>
+    /// <param name="Number">Transaction or register number being reversed</param>
+    /// <param name="RevType">Type of reversal operation - Transaction or Register</param>
+    /// <param name="NextLineNo">Next available line number for reversal entries</param>
+    /// <param name="TempReversalEntry">Temporary reversal entry record being created</param>
+    /// <param name="EmplLedgEntry">Source employee ledger entry being reversed</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterInsertFromEmplLedgEntry(var TempRevertTransactionNo: Record "Integer"; Number: Integer; RevType: Option Transaction,Register; var NextLineNo: Integer; var TempReversalEntry: Record "Reversal Entry" temporary; var EmplLedgEntry: Record "Employee Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting a reversal entry from a fixed asset ledger entry.
+    /// </summary>
+    /// <param name="TempRevertTransactionNo">Temporary table storing transaction numbers for reversal processing</param>
+    /// <param name="Number">Transaction or register number being reversed</param>
+    /// <param name="RevType">Type of reversal operation - Transaction or Register</param>
+    /// <param name="NextLineNo">Next available line number for reversal entries</param>
+    /// <param name="TempReversalEntry">Temporary reversal entry record being created</param>
+    /// <param name="FALedgerEntry">Source fixed asset ledger entry being reversed</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterInsertFromFALedgEntry(var TempRevertTransactionNo: Record "Integer"; Number: Integer; RevType: Option Transaction,Register; var NextLineNo: Integer; var TempReversalEntry: Record "Reversal Entry" temporary; var FALedgerEntry: Record "FA Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting a reversal entry from a general ledger entry.
+    /// </summary>
+    /// <param name="TempRevertTransactionNo">Temporary table storing transaction numbers for reversal processing</param>
+    /// <param name="Number">Transaction or register number being reversed</param>
+    /// <param name="RevType">Type of reversal operation - Transaction or Register</param>
+    /// <param name="NextLineNo">Next available line number for reversal entries</param>
+    /// <param name="TempReversalEntry">Temporary reversal entry record being created</param>
+    /// <param name="GLEntry">Source general ledger entry being reversed</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterInsertFromGLEntry(var TempRevertTransactionNo: Record "Integer"; Number: Integer; RevType: Option Transaction,Register; var NextLineNo: Integer; var TempReversalEntry: Record "Reversal Entry" temporary; var GLEntry: Record "G/L Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting a reversal entry from a maintenance ledger entry.
+    /// </summary>
+    /// <param name="TempRevertTransactionNo">Temporary table storing transaction numbers for reversal processing</param>
+    /// <param name="Number">Transaction or register number being reversed</param>
+    /// <param name="RevType">Type of reversal operation - Transaction or Register</param>
+    /// <param name="NextLineNo">Next available line number for reversal entries</param>
+    /// <param name="TempReversalEntry">Temporary reversal entry record being created</param>
+    /// <param name="MaintenanceLedgEntry">Source maintenance ledger entry being reversed</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterInsertFromMaintenanceLedgEntry(var TempRevertTransactionNo: Record "Integer"; Number: Integer; RevType: Option Transaction,Register; var NextLineNo: Integer; var TempReversalEntry: Record "Reversal Entry" temporary; var MaintenanceLedgEntry: Record "Maintenance Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after completing the insertion of a reversal entry record.
+    /// </summary>
+    /// <param name="TempRevertTransactionNo">Temporary table storing transaction numbers for reversal processing</param>
+    /// <param name="Number">Transaction or register number being reversed</param>
+    /// <param name="RevType">Type of reversal operation - Transaction or Register</param>
+    /// <param name="NextLineNo">Next available line number for reversal entries</param>
+    /// <param name="TempReversalEntry">Temporary reversal entry record that was created</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterInsertReversalEntry(var TempRevertTransactionNo: Record "Integer"; Number: Integer; RevType: Option Transaction,Register; var NextLineNo: Integer; var TempReversalEntry: Record "Reversal Entry" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting a reversal entry from a VAT entry.
+    /// </summary>
+    /// <param name="TempRevertTransactionNo">Temporary table storing transaction numbers for reversal processing</param>
+    /// <param name="Number">Transaction or register number being reversed</param>
+    /// <param name="RevType">Type of reversal operation - Transaction or Register</param>
+    /// <param name="NextLineNo">Next available line number for reversal entries</param>
+    /// <param name="TempReversalEntry">Temporary reversal entry record being created</param>
+    /// <param name="VATEntry">Source VAT entry being reversed</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterInsertFromVATEntry(var TempRevertTransactionNo: Record "Integer"; Number: Integer; RevType: Option Transaction,Register; var NextLineNo: Integer; var TempReversalEntry: Record "Reversal Entry" temporary; var VATEntry: Record "VAT Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting a reversal entry from a vendor ledger entry.
+    /// </summary>
+    /// <param name="TempRevertTransactionNo">Temporary table storing transaction numbers for reversal processing</param>
+    /// <param name="Number">Transaction or register number being reversed</param>
+    /// <param name="RevType">Type of reversal operation - Transaction or Register</param>
+    /// <param name="NextLineNo">Next available line number for reversal entries</param>
+    /// <param name="TempReversalEntry">Temporary reversal entry record being created</param>
+    /// <param name="VendLedgEntry">Source vendor ledger entry being reversed</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterInsertFromVendLedgEntry(var TempRevertTransactionNo: Record "Integer"; Number: Integer; RevType: Option Transaction,Register; var NextLineNo: Integer; var TempReversalEntry: Record "Reversal Entry" temporary; var VendLedgEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after completing the reversal of entries for a transaction or register.
+    /// </summary>
+    /// <param name="Number">Transaction or register number that was reversed</param>
+    /// <param name="RevType">Type of reversal operation that was completed</param>
+    /// <param name="HideDialog">Indicates whether dialog messages were suppressed during reversal</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterReverseEntries(Number: Integer; RevType: Integer; HideDialog: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters for reversal entries based on transaction or register.
+    /// </summary>
+    /// <param name="Number">Transaction or register number used for filtering</param>
+    /// <param name="RevType">Type of reversal operation - Transaction or Register</param>
+    /// <param name="GLRegister">G/L register record used for filtering when reversing by register</param>
+    /// <param name="ReversalEntry">Reversal entry record with applied filters</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetReverseFilter(Number: Integer; RevType: Option Transaction,Register; GLRegister: Record "G/L Register"; var ReversalEntry: Record "Reversal Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before performing entry validation checks for reversal.
+    /// </summary>
+    /// <param name="ReversalEntry">Reversal entry being validated</param>
+    /// <param name="TableID">Table ID of the ledger entry being checked</param>
+    /// <param name="SkipCheck">Set to true to skip standard validation checks</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckEntries(ReversalEntry: Record "Reversal Entry"; TableID: Integer; var SkipCheck: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating employee ledger entries for reversal.
+    /// </summary>
+    /// <param name="EmployeeLedgerEntry">Employee ledger entry being validated for reversal</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckEmpl(var EmployeeLedgerEntry: Record "Employee Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating fixed asset ledger entries for reversal.
+    /// </summary>
+    /// <param name="FALedgerEntry">Fixed asset ledger entry being validated for reversal</param>
+    /// <param name="IsHandled">Set to true to skip standard FA validation logic</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckFA(var FALedgerEntry: Record "FA Ledger Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating fixed asset posting date for reversal.
+    /// </summary>
+    /// <param name="FAPostingDate">FA posting date being validated</param>
+    /// <param name="Caption">Caption for error messages</param>
+    /// <param name="EntryNo">Entry number being validated</param>
+    /// <param name="IsHandled">Set to true to skip standard posting date validation</param>
+    /// <param name="ReversalEntry">Current reversal entry record</param>
+    /// <param name="MaxPostingDate">Maximum allowed posting date</param>
+    /// <param name="AllowPostingFrom">Earliest allowed posting date</param>
+    /// <param name="AllowPostingto">Latest allowed posting date</param>
+    /// <param name="xReversalEntry">Previous reversal entry record state</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckFAPostingDate(FAPostingDate: Date; Caption: Text[50]; EntryNo: Integer; var IsHandled: Boolean; var ReversalEntry: Record "Reversal Entry"; var MaxPostingDate: Date; var AllowPostingFrom: Date; var AllowPostingto: Date; var xReversalEntry: Record "Reversal Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating maintenance ledger entries for reversal.
+    /// </summary>
+    /// <param name="MaintenanceLedgerEntry">Maintenance ledger entry being validated for reversal</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckMaintenance(var MaintenanceLedgerEntry: Record "Maintenance Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating G/L account settings for reversal.
+    /// </summary>
+    /// <param name="GLEntry">G/L entry being validated for reversal</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckGLAcc(var GLEntry: Record "G/L Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating G/L entry for reversal.
+    /// </summary>
+    /// <param name="ReversalEntry">Reversal entry record being validated</param>
+    /// <param name="GLEntry">G/L entry being validated for reversal</param>
+    /// <param name="IsHandled">Set to true to skip standard G/L entry validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckGLEntry(var ReversalEntry: Record "Reversal Entry"; GLEntry: Record "G/L Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating register entries for reversal.
+    /// </summary>
+    /// <param name="RegisterNo">G/L register number being validated</param>
+    /// <param name="IsHandled">Set to true to skip standard register validation</param>
+    /// <param name="ReversalEntry">Reversal entry record being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckRegister(RegisterNo: Integer; var IsHandled: Boolean; var ReversalEntry: Record "Reversal Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting a new reversal entry record.
+    /// </summary>
+    /// <param name="ReversalEntry">Reversal entry record being inserted</param>
+    /// <param name="Number">Transaction or register number for the reversal</param>
+    /// <param name="RevType">Type of reversal operation - Transaction or Register</param>
+    /// <param name="IsHandled">Set to true to skip standard insertion logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertReversalEntry(var ReversalEntry: Record "Reversal Entry"; Number: Integer; RevType: Option Transaction,Register; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before starting the reversal process for entries.
+    /// </summary>
+    /// <param name="Number">Transaction or register number being reversed</param>
+    /// <param name="RevType">Type of reversal operation being performed</param>
+    /// <param name="IsHandled">Set to true to skip standard reversal processing</param>
+    /// <param name="HideDialog">Indicates whether to suppress dialog messages</param>
+    /// <param name="ReversalEntry">Reversal entry record being processed</param>
+    /// <param name="HideWarningDialogs">Indicates whether to suppress warning dialogs</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReverseEntries(Number: Integer; RevType: Integer; var IsHandled: Boolean; HideDialog: Boolean; var ReversalEntry: Record "Reversal Entry"; var HideWarningDialogs: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting temporary reversal entry from customer ledger entry.
+    /// </summary>
+    /// <param name="TempReversalEntry">Temporary reversal entry being inserted</param>
+    /// <param name="CustLedgEntry">Source customer ledger entry</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertFromCustLedgEntryOnBeforeTempReversalEntryInsert(var TempReversalEntry: Record "Reversal Entry" temporary; CustLedgEntry: Record "Cust. Ledger Entry");
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before clearing temporary reversal entry in G/L entry processing.
+    /// </summary>
+    /// <param name="GLEntry">G/L entry being processed for reversal</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertFromGLEntryOnBeforeClearTempReversalEntry(GLEntry: Record "G/L Entry");
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting temporary reversal entry from G/L entry.
+    /// </summary>
+    /// <param name="TempReversalEntry">Temporary reversal entry being inserted</param>
+    /// <param name="GLEntry">Source G/L entry</param>
+    /// <param name="RevType">Type of reversal operation - Transaction or Register</param>
+    /// <param name="TempRevertTransactionNoRecordInteger">Temporary transaction number record</param>
+    /// <param name="ReversalEntry">Current reversal entry context</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertFromGLEntryOnBeforeTempReversalEntryInsert(var TempReversalEntry: Record "Reversal Entry" temporary; GLEntry: Record "G/L Entry"; RevType: Option Transaction,Register; var TempRevertTransactionNoRecordInteger: Record "Integer" temporary; ReversalEntry: Record "Reversal Entry");
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting temporary reversal entry from vendor ledger entry.
+    /// </summary>
+    /// <param name="TempReversalEntry">Temporary reversal entry being inserted</param>
+    /// <param name="VendorLedgerEntry">Source vendor ledger entry</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertFromVendLedgEntryOnBeforeTempReversalEntryInsert(var TempReversalEntry: Record "Reversal Entry" temporary; VendorLedgerEntry: Record "Vendor Ledger Entry");
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before generating caption text for reversal entries.
+    /// </summary>
+    /// <param name="ReversalEntry">Reversal entry record for caption generation</param>
+    /// <param name="Result">Variable to store the generated caption text</param>
+    /// <param name="IsHandled">Set to true to skip standard caption generation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCaption(ReversalEntry: Record "Reversal Entry"; var Result: Text; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating VAT entries for reversal.
+    /// </summary>
+    /// <param name="VATEntry">VAT entry being validated for reversal</param>
+    /// <param name="IsHandled">Set to true to skip standard VAT validation</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckVAT(var VATEntry: Record "VAT Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating bank account ledger entries for reversal.
+    /// </summary>
+    /// <param name="BankAccLedgEntry">Bank account ledger entry being validated for reversal</param>
+    /// <param name="IsHandled">Set to true to skip standard bank account validation</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckBankAcc(var BankAccLedgEntry: Record "Bank Account Ledger Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating vendor ledger entries for reversal.
+    /// </summary>
+    /// <param name="VendLedgEntry">Vendor ledger entry being validated for reversal</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckVend(var VendLedgEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating customer ledger entries for reversal.
+    /// </summary>
+    /// <param name="CustLedgEntry">Customer ledger entry being validated for reversal</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckCust(var CustLedgEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before testing G/L account fields during reversal validation.
+    /// </summary>
+    /// <param name="GLAcc">G/L account being tested</param>
+    /// <param name="GLEntry">G/L entry associated with the account</param>
+    /// <param name="IsHandled">Set to true to skip standard field testing</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckGLAccOnBeforeTestFields(GLAcc: Record "G/L Account"; GLEntry: Record "G/L Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating posting dates for reversal entries.
+    /// </summary>
+    /// <param name="PostingDate">Posting date being validated</param>
+    /// <param name="Caption">Caption for error messages</param>
+    /// <param name="EntryNo">Entry number being validated</param>
+    /// <param name="IsHandled">Set to true to skip standard posting date validation</param>
+    /// <param name="ReversalEntry">Current reversal entry record</param>
+    /// <param name="MaxPostingDate">Maximum allowed posting date</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckPostingDate(PostingDate: Date; Caption: Text[50]; EntryNo: Integer; var IsHandled: Boolean; var ReversalEntry: Record "Reversal Entry"; var MaxPostingDate: Date)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating detailed customer ledger entries for reversal.
+    /// </summary>
+    /// <param name="CustLedgEntry">Customer ledger entry with related detailed entries</param>
+    /// <param name="IsHandled">Set to true to skip standard detailed entry validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckDtldCustLedgEntry(CustLedgEntry: Record "Cust. Ledger Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating detailed vendor ledger entries for reversal.
+    /// </summary>
+    /// <param name="VendLedgEntry">Vendor ledger entry with related detailed entries</param>
+    /// <param name="IsHandled">Set to true to skip standard detailed entry validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCCheckDtldVendLedgEntry(VendLedgEntry: Record "Vendor Ledger Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking same transaction in vendor ledger entry processing.
+    /// </summary>
+    /// <param name="VendLedgEntry">Vendor ledger entry being processed</param>
+    /// <param name="DtldVendLedgEntry">Detailed vendor ledger entry for transaction check</param>
+    /// <param name="IsHandled">Set to true to skip standard same transaction validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertFromVendLedgEntryOnBeforeCheckSameTransaction(VendLedgEntry: Record "Vendor Ledger Entry"; var DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking same transaction in customer ledger entry processing.
+    /// </summary>
+    /// <param name="CustLedgEntry">Customer ledger entry being processed</param>
+    /// <param name="DtldCustLedgEntry">Detailed customer ledger entry for transaction check</param>
+    /// <param name="IsHandled">Set to true to skip standard same transaction validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertFromCustLedgEntryOnBeforeCheckSameTransaction(CustLedgEntry: Record "Cust. Ledger Entry"; var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting reversal entry during reverse entries processing.
+    /// </summary>
+    /// <param name="TempReversalEntry">Temporary reversal entry that was inserted</param>
+    /// <param name="Number">Transaction or register number being reversed</param>
+    /// <param name="RevType">Type of reversal operation - Transaction or Register</param>
     [IntegrationEvent(false, false)]
     local procedure OnReverseEntriesOnAfterInsertReversalEntry(var TempReversalEntry: Record "Reversal Entry" temporary; Number: Integer; RevType: Option Transaction,Register)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before setting filters for reversal processing across all ledger entry types.
+    /// </summary>
+    /// <param name="Number">Transaction or register number for filtering</param>
+    /// <param name="RevType">Type of reversal operation - Transaction or Register</param>
+    /// <param name="GLEntry">G/L entry record for filtering</param>
+    /// <param name="CustLedgerEntry">Customer ledger entry record for filtering</param>
+    /// <param name="VendLedgerEntry">Vendor ledger entry record for filtering</param>
+    /// <param name="EmployeeLedgerEntry">Employee ledger entry record for filtering</param>
+    /// <param name="BankAccountLedgerEntry">Bank account ledger entry record for filtering</param>
+    /// <param name="VATEntry">VAT entry record for filtering</param>
+    /// <param name="FALedgerEntry">Fixed asset ledger entry record for filtering</param>
+    /// <param name="MaintenanceLedgerEntry">Maintenance ledger entry record for filtering</param>
+    /// <param name="GLRegister">G/L register record for filtering</param>
+    /// <param name="ReversalEntry">Reversal entry record for filtering</param>
+    /// <param name="IsHandled">Set to true to skip standard filter setting</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetReverseFilter(Number: Integer; RevType: Option Transaction,Register; var GLEntry: Record "G/L Entry"; var CustLedgerEntry: Record "Cust. Ledger Entry"; var VendLedgerEntry: Record "Vendor Ledger Entry"; var EmployeeLedgerEntry: Record "Employee Ledger Entry"; var BankAccountLedgerEntry: Record "Bank Account Ledger Entry"; var VATEntry: Record "VAT Entry"; var FALedgerEntry: Record "FA Ledger Entry"; var MaintenanceLedgerEntry: Record "Maintenance Ledger Entry"; var GLRegister: Record "G/L Register"; var ReversalEntry: Record "Reversal Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised at the start of bank account ledger entry processing loop.
+    /// </summary>
+    /// <param name="BankAccountLedgerEntry">Bank account ledger entry being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertFromBankAccLedgEntryOnStartRepeatBankAccLedgEntry(var BankAccountLedgerEntry: Record "Bank Account Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting reversal entries from fixed asset ledger entries.
+    /// </summary>
+    /// <param name="TempRevertTransactionNoRecordInteger">Temporary transaction number record</param>
+    /// <param name="Number">Transaction or register number being reversed</param>
+    /// <param name="RevType">Type of reversal operation - Transaction or Register</param>
+    /// <param name="NextLineNo">Next available line number for reversal entries</param>
+    /// <param name="TempReversalEntry">Temporary reversal entry being processed</param>
+    /// <param name="FALedgerEntry">Fixed asset ledger entry being processed</param>
+    /// <param name="IsHandled">Set to true to skip standard FA entry processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertFromFALedgEntry(var TempRevertTransactionNoRecordInteger: Record "Integer"; Number: Integer; RevType: Option Transaction,Register; var NextLineNo: Integer; var TempReversalEntry: Record "Reversal Entry" temporary; var FALedgerEntry: Record "FA Ledger Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting VAT entry range filters during reversal processing.
+    /// </summary>
+    /// <param name="VATEntry">VAT entry with applied filters</param>
+    /// <param name="RevType">Type of reversal operation - Transaction or Register</param>
+    /// <param name="TempRevertTransactionNoRecordInteger">Temporary transaction number record</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertFromVATEntryOnAfterVATEntrySetRange(var VATEntry: Record "VAT Entry"; RevType: Option Transaction,Register; var TempRevertTransactionNoRecordInteger: Record "Integer" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised at the start of VAT entry processing loop during reversal.
+    /// </summary>
+    /// <param name="VATEntry">VAT entry being processed in the loop</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertFromVATEntryOnStartRepeatVATEntry(var VATEntry: Record "VAT Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting temporary reversal entry from VAT entry.
+    /// </summary>
+    /// <param name="TempReversalEntry">Temporary reversal entry being inserted</param>
+    /// <param name="RevType">Type of reversal operation - Transaction or Register</param>
+    /// <param name="TempRevertTransactionNo">Temporary transaction number record</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertFromVATEntryOnBeforeTempReversalEntryInsert(var TempReversalEntry: Record "Reversal Entry" temporary; RevType: Option Transaction,Register; var TempRevertTransactionNo: Record "Integer" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting G/L entry range filters during reversal processing.
+    /// </summary>
+    /// <param name="GLEntry">G/L entry with applied filters</param>
+    /// <param name="RevType">Type of reversal operation - Transaction or Register</param>
+    /// <param name="TempRevertTransactionNoRecordInteger">Temporary transaction number record</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertFromGLEntryOnAfterGLEntrySetRange(var GLEntry: Record "G/L Entry"; RevType: Option Transaction,Register; var TempRevertTransactionNoRecordInteger: Record "Integer" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting customer temporary revert transaction number.
+    /// </summary>
+    /// <param name="TempRevertTransactionNoRecordInteger">Temporary transaction number record being inserted</param>
+    /// <param name="CustLedgEntryNo">Customer ledger entry number for transaction tracking</param>
+    /// <param name="IsHandled">Set to true to skip standard insertion logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertCustTempRevertTransNo(var TempRevertTransactionNoRecordInteger: Record "Integer" temporary; CustLedgEntryNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting vendor temporary revert transaction number.
+    /// </summary>
+    /// <param name="TempRevertTransactionNoRecordInteger">Temporary transaction number record being inserted</param>
+    /// <param name="VendLedgEntryNo">Vendor ledger entry number for transaction tracking</param>
+    /// <param name="IsHandled">Set to true to skip standard insertion logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertVendTempRevertTransNo(var TempRevertTransactionNoRecordInteger: Record "Integer" temporary; VendLedgEntryNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before verifying reversal entries for processing validity.
+    /// </summary>
+    /// <param name="ReversalEntry2">Reversal entry record being verified</param>
+    /// <param name="Number">Transaction or register number being verified</param>
+    /// <param name="RevType">Type of reversal operation - Transaction or Register</param>
+    /// <param name="IsHandled">Set to true to skip standard verification logic</param>
+    /// <param name="Result">Variable to store verification result</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeVerifyReversalEntries(var ReversalEntry2: Record "Reversal Entry"; Number: Integer; RevType: Option Transaction,Register; var IsHandled: Boolean; var Result: Boolean)
     begin

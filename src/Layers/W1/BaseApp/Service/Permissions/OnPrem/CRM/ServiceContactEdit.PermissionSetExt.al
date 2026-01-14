@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.Security.AccessControl;
 
+using Microsoft.Service.Archive;
 using Microsoft.Service.Contract;
 using Microsoft.Service.Document;
-using Microsoft.Service.Archive;
 
 permissionsetextension 6471 "Service Contact - Edit" extends "Contact - Edit"
 {

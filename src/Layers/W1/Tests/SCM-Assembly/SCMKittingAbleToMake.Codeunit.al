@@ -4,17 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
-using Microsoft.Inventory.BOM;
-using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Location;
-using Microsoft.Inventory.BOM.Tree;
 using Microsoft.Assembly.Document;
 using Microsoft.Inventory.Availability;
-using Microsoft.Manufacturing.Document;
+using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.BOM.Tree;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Location;
+using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
-using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.WorkCenter;
 
 codeunit 137107 "SCM Kitting - Able To Make"
 {

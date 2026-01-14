@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+/// <summary>
+/// Displays historical archive of VAT report submissions with status tracking and response details.
+/// Provides read-only view of submitted VAT reports with transmission logs and authority responses.
+/// </summary>
 page 739 "VAT Report Log"
 {
     Caption = 'VAT Report Log';
@@ -119,6 +123,11 @@ page 739 "VAT Report Log"
         DownloadSubmissionControllerStatus: Boolean;
         DownloadResponseControllerStatus: Boolean;
 
+    /// <summary>
+    /// Filters the VAT report log to display entries for a specific VAT report.
+    /// Sets filters based on report number and type for focused log viewing.
+    /// </summary>
+    /// <param name="VATReportHeader">VAT report header record to filter log entries by</param>
     procedure SetReport(VATReportHeader: Record "VAT Report Header")
     begin
         Rec.SetFilter("VAT Report No.", VATReportHeader."No.");

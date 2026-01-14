@@ -4,6 +4,20 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Reconciliation;
 
+/// <summary>
+/// Automated matching report for bank reconciliation statements and ledger entries.
+/// This report processes bank reconciliation records and applies sophisticated matching algorithms
+/// to identify and link bank statement lines with corresponding bank account ledger entries.
+/// Supports configurable date tolerance for flexible matching and provides batch processing
+/// capability for multiple reconciliation statements.
+/// </summary>
+/// <remarks>
+/// The report uses advanced matching logic based on amounts, dates (within tolerance), document numbers,
+/// and text similarity scoring. Designed for batch processing scenarios where multiple reconciliation
+/// statements need automated matching without user interaction. Integrates with the same matching
+/// engine used by interactive reconciliation pages but operates in a processing-only mode.
+/// Used primarily for automated workflows and scheduled processing of bank reconciliation data.
+/// </remarks>
 report 1252 "Match Bank Entries"
 {
     Caption = 'Match Bank Entries';

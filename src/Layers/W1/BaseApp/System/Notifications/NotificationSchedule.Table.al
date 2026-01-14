@@ -1,8 +1,8 @@
 ﻿namespace System.Environment.Configuration;
 
 using System.Azure.Identity;
-using System.Security.User;
 using System.Reflection;
+using System.Security.User;
 using System.Threading;
 
 table 1513 "Notification Schedule"
@@ -440,4 +440,3 @@ table 1513 "Notification Schedule"
         Codeunit.Run(CODEUNIT::"Notification Entry Dispatcher", TempJobQueueEntry);
     end;
 }
-

@@ -6,6 +6,10 @@ namespace Microsoft.Finance.VAT.Registration;
 
 using Microsoft.Foundation.Address;
 
+/// <summary>
+/// Defines validation templates for VAT registration number service with country and account-specific configuration.
+/// Controls validation behavior and detail handling for different business entity types and jurisdictions.
+/// </summary>
 table 226 "VAT Reg. No. Srv. Template"
 {
     Caption = 'VAT Reg. No. Validation Template';
@@ -14,47 +18,74 @@ table 226 "VAT Reg. No. Srv. Template"
 
     fields
     {
+        /// <summary>
+        /// Unique identifier for the VAT registration service validation template.
+        /// </summary>
         field(1; Code; Code[20])
         {
             Caption = 'Code';
             ToolTip = 'Specifies the template code.';
         }
+        /// <summary>
+        /// Country/region code that determines the geographical scope for this validation template.
+        /// </summary>
         field(10; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';
             TableRelation = "Country/Region".Code;
             ToolTip = 'Specifies the country/region code.';
         }
+        /// <summary>
+        /// Account type that determines which business entity type this template applies to.
+        /// </summary>
         field(11; "Account Type"; Enum "VAT Reg. No. Srv. Template Account Type")
         {
             Caption = 'Account Type';
             ToolTip = 'Specifies the account type.';
         }
+        /// <summary>
+        /// Specific account number to limit template application to a particular business entity.
+        /// </summary>
         field(12; "Account No."; Code[20])
         {
             Caption = 'Account No.';
             ToolTip = 'Specifies the account number.';
         }
+        /// <summary>
+        /// Indicates whether to validate entity name against VIES service response.
+        /// </summary>
         field(20; "Validate Name"; Boolean)
         {
             Caption = 'Validate Name';
             ToolTip = 'Specifies if the name value is validated.';
         }
+        /// <summary>
+        /// Indicates whether to validate street address against VIES service response.
+        /// </summary>
         field(21; "Validate Street"; Boolean)
         {
             Caption = 'Validate Street';
             ToolTip = 'Specifies if the street value is validated.';
         }
+        /// <summary>
+        /// Indicates whether to validate city against VIES service response.
+        /// </summary>
         field(22; "Validate City"; Boolean)
         {
             Caption = 'Validate City';
             ToolTip = 'Specifies if the city value is validated.';
         }
+        /// <summary>
+        /// Indicates whether to validate postal code against VIES service response.
+        /// </summary>
         field(23; "Validate Post Code"; Boolean)
         {
             Caption = 'Validate Post Code';
             ToolTip = 'Specifies if the post code value is validated.';
         }
+        /// <summary>
+        /// Controls whether to ignore detailed validation information from VIES service.
+        /// </summary>
         field(24; "Ignore Details"; Boolean)
         {
             Caption = 'Ignore Details';
@@ -73,6 +104,12 @@ table 226 "VAT Reg. No. Srv. Template"
     var
         DefaultTxt: Label 'Default';
 
+    /// <summary>
+    /// Finds the most appropriate validation template for the given VAT registration log entry.
+    /// Uses hierarchical matching based on country, account type, and account number.
+    /// </summary>
+    /// <param name="VATRegistrationLog">VAT registration log entry requiring template selection</param>
+    /// <returns>Template code for the most specific matching template or default template</returns>
     procedure FindTemplate(VATRegistrationLog: Record "VAT Registration Log") Result: Code[20]
     var
         IsHandled: Boolean;
@@ -110,6 +147,10 @@ table 226 "VAT Reg. No. Srv. Template"
         exit(Code);
     end;
 
+    /// <summary>
+    /// Initializes default validation template if none exists and updates service configuration.
+    /// </summary>
+    /// <param name="VATRegNoSrvConfig">VAT registration service configuration to update with default template</param>
     procedure CheckInitDefaultTemplate(var VATRegNoSrvConfig: Record "VAT Reg. No. Srv Config")
     var
         VATRegNoSrvTemplate: Record "VAT Reg. No. Srv. Template";
@@ -140,6 +181,13 @@ table 226 "VAT Reg. No. Srv. Template"
         end;
     end;
 
+    /// <summary>
+    /// Integration event raised before finding validation template to allow custom template selection logic.
+    /// </summary>
+    /// <param name="VATRegistrationLog">VAT registration log entry requiring template</param>
+    /// <param name="IsHandled">Set to true to skip standard template selection</param>
+    /// <param name="Result">Template code to use when custom logic is applied</param>
+    /// <param name="VATRegNoSrvTemplate">Template record for custom processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFindTemplate(VATRegistrationLog: Record "VAT Registration Log"; var IsHandled: Boolean; var Result: Code[20]; var VATRegNoSrvTemplate: Record "VAT Reg. No. Srv. Template")
     begin

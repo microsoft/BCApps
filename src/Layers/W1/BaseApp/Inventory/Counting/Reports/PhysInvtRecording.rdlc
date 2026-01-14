@@ -105,7 +105,7 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value EvaluationMode="Auto">=Fields!Phys__Invt__Recording_Header___Recording_No__.Value</Value>
+                                  <Value EvaluationMode="Auto">=Fields!Phys__Invt__Recording_Header___Order_No__.Value</Value>
                                   <Style>
                                     <FontFamily>Segoe UI</FontFamily>
                                     <FontSize>7pt</FontSize>
@@ -378,7 +378,7 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value EvaluationMode="Auto">=Fields!Phys__Invt__Recording_Header__Description.Value</Value>
+                                  <Value EvaluationMode="Auto">=Fields!Phys__Invt__Recording_Header___Recording_No__.Value</Value>
                                   <Style>
                                     <FontFamily>Segoe UI</FontFamily>
                                     <FontSize>7pt</FontSize>
@@ -654,7 +654,7 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value EvaluationMode="Auto">=Fields!Phys__Invt__Recording_Header___Order_No__.Value</Value>
+                                  <Value EvaluationMode="Auto">=Fields!Phys__Invt__Recording_Header__Description.Value</Value>
                                   <Style>
                                     <FontFamily>Segoe UI</FontFamily>
                                     <FontSize>7pt</FontSize>

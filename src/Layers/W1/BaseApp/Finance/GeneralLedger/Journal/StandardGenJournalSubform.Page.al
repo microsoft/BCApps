@@ -6,6 +6,16 @@ namespace Microsoft.Finance.GeneralLedger.Journal;
 
 using Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Provides line-level entry interface for standard general journal templates as a subform component.
+/// Enables users to define individual journal line configurations within standard journal templates.
+/// </summary>
+/// <remarks>
+/// Subform component for standard journal line management within standard journal templates.
+/// Provides detailed line configuration including account assignments, amounts, dimensions, and posting parameters.
+/// Key features: Line-level template configuration, account and dimension setup, amount and description templates.
+/// Integration: Used as part of standard journal template management, supports line-by-line template definition.
+/// </remarks>
 page 752 "Standard Gen. Journal Subform"
 {
     AutoSplitKey = true;

@@ -60,29 +60,17 @@ table 5380 "Man. Integration Table Mapping"
         {
             Caption = 'Table Config Template Code';
             TableRelation = "Config. Template Header".Code where("Table ID" = field("Table ID"));
-#if not CLEAN25
-            ObsoleteState = Pending;
-            ObsoleteReason = 'Replaced with Table Config Template table';
-            ObsoleteTag = '25.0';
-#else
             ObsoleteState = Removed;
             ObsoleteReason = 'Replaced with Table Config Template table';
             ObsoleteTag = '28.0';
-#endif
         }
         field(9; "Int. Tbl. Config Template Code"; Code[10])
         {
             Caption = 'Int. Tbl. Config Template Code';
             TableRelation = "Config. Template Header".Code where("Table ID" = field("Integration Table ID"));
-#if not CLEAN25
-            ObsoleteState = Pending;
-            ObsoleteReason = 'Replaced with Integration Table Config Template table';
-            ObsoleteTag = '25.0';
-#else
             ObsoleteState = Removed;
             ObsoleteReason = 'Replaced with Integration Table Config Template table';
             ObsoleteTag = '28.0';
-#endif
         }
 #endif
         field(10; "Table Filter"; BLOB)

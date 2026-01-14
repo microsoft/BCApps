@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Account;
 
+/// <summary>
+/// Provides a comprehensive overview of the chart of accounts in a tree structure.
+/// Displays G/L accounts with their hierarchical relationships, balances, and key properties in a read-only format.
+/// </summary>
 page 634 "Chart of Accounts Overview"
 {
     Caption = 'Chart of Accounts Overview';

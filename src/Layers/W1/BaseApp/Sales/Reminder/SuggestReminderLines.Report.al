@@ -24,6 +24,7 @@ report 189 "Suggest Reminder Lines"
             var
                 IsHandled: Boolean;
                 Result: Boolean;
+                NotMakeReminderCode: Boolean;
             begin
                 RecordNo := RecordNo + 1;
                 Clear(ReminderMake);
@@ -36,6 +37,7 @@ report 189 "Suggest Reminder Lines"
                     if not IsHandled then
                         ReminderMake.Code();
                     Mark := false;
+                    EmitMakeReminderTelemetry := true;
                 end else begin
                     NewDateTime := CurrentDateTime;
                     if (NewDateTime - OldDateTime > 100) or (NewDateTime < OldDateTime) then begin
@@ -50,8 +52,12 @@ report 189 "Suggest Reminder Lines"
                     IsHandled := false;
                     OnAfterGetRecordReminderHeaderOnBeforeMarkReminder(
                         "Reminder Header", CustLedgerEntry, OverdueEntriesOnly, IncludeEntriesOnHold, CustLedgEntryLineFeeOn, Result, IsHandled);
-                    if not IsHandled then
-                        Mark := not ReminderMake.Code();
+                    if not IsHandled then begin
+                        NotMakeReminderCode := not ReminderMake.Code();
+                        Mark := NotMakeReminderCode;
+                        if (NotMakeReminderCode = false) then
+                            EmitMakeReminderTelemetry := true;
+                    end
                 end;
             end;
 
@@ -143,6 +149,12 @@ report 189 "Suggest Reminder Lines"
         CustLedgerEntry.Copy(CustLedgEntry2)
     end;
 
+    trigger OnPostReport()
+    begin
+        if EmitMakeReminderTelemetry then
+            ReminderMake.EmitCreateReminderTelemetry();
+    end;
+
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         ReminderMake: Codeunit "Reminder-Make";
@@ -153,6 +165,7 @@ report 189 "Suggest Reminder Lines"
         OldProgress: Integer;
         NewDateTime: DateTime;
         OldDateTime: DateTime;
+        EmitMakeReminderTelemetry: Boolean;
 
 #pragma warning disable AA0074
         Text000: Label 'Suggesting lines...';

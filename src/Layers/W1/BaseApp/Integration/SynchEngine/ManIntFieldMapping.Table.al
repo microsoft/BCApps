@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Integration.SyncEngine;
 
-using System.Reflection;
-using System.IO;
 using Microsoft.Integration.Dataverse;
+using System.IO;
+using System.Reflection;
 
 table 5384 "Man. Int. Field Mapping"
 {

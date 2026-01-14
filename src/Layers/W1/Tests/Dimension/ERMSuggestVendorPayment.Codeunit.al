@@ -11,17 +11,19 @@ codeunit 134076 "ERM Suggest Vendor Payment"
     end;
 
     var
-        LibraryERM: Codeunit "Library - ERM";
-        LibrarySales: Codeunit "Library - Sales";
-        LibraryInventory: Codeunit "Library - Inventory";
-        LibraryPurchase: Codeunit "Library - Purchase";
-        LibraryUtility: Codeunit "Library - Utility";
-        LibraryDimension: Codeunit "Library - Dimension";
-        LibraryJournals: Codeunit "Library - Journals";
         Assert: Codeunit Assert;
+        LibraryDimension: Codeunit "Library - Dimension";
+        LibraryERM: Codeunit "Library - ERM";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryJournals: Codeunit "Library - Journals";
+        LibraryPaymentExport: Codeunit "Library - Payment Export";
+        LibraryPaymentFormat: Codeunit "Library - Payment Format";
+        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
-        LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibrarySales: Codeunit "Library - Sales";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryUtility: Codeunit "Library - Utility";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         isInitialized: Boolean;
         AmountErrorMessageMsg: Label '%1 must be %2 in Gen. Journal Line Template Name=''''%3'''',Journal Batch Name=''''%4'''',Line No.=''''%5''''.';
         SumErrorMessageMsg: Label 'Suggested amount is incorrect.';
@@ -4157,6 +4159,82 @@ codeunit 134076 "ERM Suggest Vendor Payment"
         Assert.AreEqual(DocumentNo, '', SuggestToVendorRefundErr);
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandlerTrue,MessageHandler')]
+    procedure SuggestVendorPaymentAfterVoidExportedPaymentsWithSummarizePerVendor()
+    var
+        BankAccount: Record "Bank Account";
+        DataExchMapping: Record "Data Exch. Mapping";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine, GenJournalLine2 : Record "Gen. Journal Line";
+        PurchaseHeader: array[5] of Record "Purchase Header";
+        Vendor: array[5] of Record Vendor;
+        DocumentNo: Code[20];
+        PostingDate: Date;
+        i: Integer;
+        VendorNoFilter: Text;
+    begin
+        // [SCENARIO 612314] After suggesting vendor payments with Summarize per Vendor, exporting, voiding, and re-suggesting,
+        // all new payment lines should have "Exported to Payment File" = FALSE
+        Initialize();
+
+        // [GIVEN] Create a new Data Exchange Mapping.
+        DefinePaymentExportFormat(DataExchMapping);
+
+        // [GIVEN] Configure the Data Mapping Codeunit's in the Data Exchange Mapping
+        ModifyDataExchMapping(DataExchMapping);
+
+        // [GIVEN] Create a new Bank Account and configure Export/Import Setup.
+        CreateBankAccountWithExportImportSetup(BankAccount, DataExchMapping."Data Exch. Def Code");
+        DocumentNo := DataExchMapping."Data Exch. Def Code";
+        // [GIVEN] Create a Payment Journal Batch with Bank as the Bal. Account Type
+        CreateGenJournalBatchWithBalAccountNo(GenJournalBatch, BankAccount."No.");
+        for i := 1 to 5 do begin
+
+            // [GIVEN] Create a new Vendor with a Vendor Bank Account and Payment Method.
+            CreateVendorWithBankAccountAndPaymentMethod(Vendor[i], BankAccount, DataExchMapping."Data Exch. Line Def Code");
+
+            // [GIVEN] Create and post the Purchase Order
+            LibraryPurchase.CreatePurchaseOrderForVendorNo(PurchaseHeader[i], Vendor[i]."No.");
+            PostingDate := PurchaseHeader[i]."Posting Date";
+            PurchaseHeader[i].Validate("Bal. Account No.", '');
+            PurchaseHeader[i].Modify(true);
+            LibraryPurchase.PostPurchaseDocument(PurchaseHeader[i], true, true);
+        end;
+
+        // [GIVEN] Set the Vendor No. filter for the Suggest Vendor Payments report.
+        VendorNoFilter := Vendor[1]."No." + '|' + Vendor[2]."No." + '|' + Vendor[3]."No." + '|' + Vendor[4]."No." + '|' + Vendor[5]."No.";
+        LibraryVariableStorage.Enqueue(VendorNoFilter);
+
+        // [GIVEN] Execute the Suggest Vendor Payments report for multiple vendors
+        Commit();
+        SuggestVendorPaymentWithMultipleVendor(GenJournalBatch, GenJournalLine, PostingDate, DocumentNo);
+
+        // [WHEN] Export the Payment File.
+        GenJournalLine2.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
+        GenJournalLine2.SetRange("Journal Batch Name", GenJournalBatch.Name);
+        GenJournalLine2.FindFirst();
+        GenJournalLine2.ExportPaymentFile();
+
+        // [THEN] Verify Sucessfully Export.
+        VerifyExportedPaymentFile(GenJournalBatch);
+
+        // [GIVEN] Void the exported payments
+        VoidPaymentFile(GenJournalBatch, BankAccount."No.");
+
+        // [GIVEN] Delete the Gen Journal Lines.
+        DeleteGenJournalLine(GenJournalBatch);
+        LibraryVariableStorage.Enqueue(VendorNoFilter);
+        Commit();
+
+        // [WHEN] Run again the Suggest Vendor Payments report.
+        SuggestVendorPaymentWithMultipleVendor(GenJournalBatch, GenJournalLine, PostingDate, DocumentNo);
+
+        // [THEN] Verify that all Suggest Vendor Payment lines have the "Exported to Payment File" value set to false.
+        VerifyPaymentJournalLine(GenJournalBatch, DocumentNo);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure FindAndPostPaymentJournalLineRefund(GenJournalBatch: Record "Gen. Journal Batch"): Code[20]
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -4296,6 +4374,149 @@ codeunit 134076 "ERM Suggest Vendor Payment"
         GenJournalLine.Init();  // INIT is mandatory for Gen. Journal Line to Set the General Template and General Batch Name.
         GenJournalLine.Validate("Journal Template Name", GenJournalTemplate.Name);
         GenJournalLine.Validate("Journal Batch Name", GenJournalBatch.Name);
+    end;
+
+    local procedure DefinePaymentExportFormat(var DataExchMapping: Record "Data Exch. Mapping")
+    var
+        PaymentExportData: Record "Payment Export Data";
+        DataExchDef: Record "Data Exch. Def";
+        DataExchLineDef: Record "Data Exch. Line Def";
+    begin
+        LibraryPaymentExport.CreateSimpleDataExchDefWithMapping(DataExchMapping,
+          Database::"Payment Export Data", PaymentExportData.FieldNo("Message to Recipient 1"));
+
+        DataExchDef.Get(DataExchMapping."Data Exch. Def Code");
+        DataExchDef.Validate("File Type", DataExchDef."File Type"::"Variable Text");
+        DataExchDef.Validate("Reading/Writing XMLport", XMLPORT::"Export Generic CSV");
+        DataExchDef.Modify(true);
+
+        DataExchLineDef.Get(DataExchMapping."Data Exch. Def Code", DataExchMapping."Data Exch. Line Def Code");
+        DataExchLineDef.Validate("Column Count", 1);
+        DataExchLineDef.Modify(true);
+    end;
+
+    local procedure ModifyDataExchMapping(var DataExchMapping: Record "Data Exch. Mapping")
+    begin
+        DataExchMapping.Validate("Mapping Codeunit", Codeunit::"Exp. Mapping Gen. Jnl.");
+        DataExchMapping.Validate("Pre-Mapping Codeunit", Codeunit::"Exp. Pre-Mapping Gen. Jnl.");
+        DataExchMapping.Validate("Post-Mapping Codeunit", Codeunit::"Exp. Post-Mapping Gen. Jnl.");
+        DataExchMapping.Modify(true);
+    end;
+
+    local procedure CreateBankAccountWithExportImportSetup(var BankAccount: Record "Bank Account"; DataExchDefCode: Code[20])
+    var
+        BankExportImportSetup: Record "Bank Export/Import Setup";
+        DataExchDef: Record "Data Exch. Def";
+    begin
+        LibraryERM.CreateBankAccount(BankAccount);
+        DataExchDef.Get(DataExchDefCode);
+        ModifyDataExchDefMapping(DataExchDef);
+        LibraryPaymentFormat.CreateBankExportImportSetup(BankExportImportSetup, DataExchDef);
+        BankAccount.Validate("Payment Export Format", BankExportImportSetup.Code);
+        BankAccount.Modify(true);
+    end;
+
+    local procedure ModifyDataExchDefMapping(var DataExchDef: Record "Data Exch. Def")
+    begin
+        DataExchDef.Validate("Reading/Writing Codeunit", Codeunit::"Exp. Writing Gen. Jnl.");
+        DataExchDef.Validate("Reading/Writing XMLport", Xmlport::"Export Generic Fixed Width");
+        DataExchDef.Validate("Ext. Data Handling Codeunit", Codeunit::"Exp. External Data Gen. Jnl.");
+        DataExchDef.Validate("Data Handling Codeunit", Codeunit::"Exp. Data Handling Gen. Jnl.");
+        DataExchDef.Validate("Validation Codeunit", Codeunit::"Exp. Validation Gen. Jnl.");
+        DataExchDef.Validate("User Feedback Codeunit", Codeunit::"Exp. User Feedback Gen. Jnl.");
+        DataExchDef.Modify(true);
+    end;
+
+    local procedure CreateGenJournalBatchWithBalAccountNo(var GenJournalBatch: Record "Gen. Journal Batch"; BalAccountNo: Code[20])
+    begin
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, LibraryPaymentExport.SelectPaymentJournalTemplate());
+        GenJournalBatch.Validate("Bal. Account Type", GenJournalBatch."Bal. Account Type"::"Bank Account");
+        GenJournalBatch.Validate("Bal. Account No.", BalAccountNo);
+        GenJournalBatch.Validate("Allow Payment Export", true);
+        GenJournalBatch.Modify(true);
+    end;
+
+    local procedure CreateVendorWithBankAccountAndPaymentMethod(var Vendor: Record Vendor; BankAccount: Record "Bank Account"; DataExchLineDefCode: Code[20]);
+    var
+        VendorBankAccount: Record "Vendor Bank Account";
+        PaymentMethod: Record "Payment Method";
+        BankExportImportSetup: Record "Bank Export/Import Setup";
+    begin
+        LibraryPaymentExport.CreateVendorWithBankAccount(Vendor);
+        VendorBankAccount.Get(Vendor."No.", Vendor."Preferred Bank Account Code");
+        VendorBankAccount.Validate(IBAN, LibraryUtility.GenerateGUID());
+        VendorBankAccount.Modify(true);
+        BankExportImportSetup.Get(BankAccount."Payment Export Format");
+
+        PaymentMethod.Get(Vendor."Payment Method Code");
+        PaymentMethod.Validate("Bal. Account Type", PaymentMethod."Bal. Account Type"::"Bank Account");
+        PaymentMethod.Validate("Bal. Account No.", BankAccount."No.");
+        PaymentMethod.Validate("Pmt. Export Line Definition", DataExchLineDefCode);
+        PaymentMethod.Modify(true);
+    end;
+
+    local procedure SuggestVendorPaymentWithMultipleVendor(GenJnlBatch: Record "Gen. Journal Batch"; var GenJnlLine: Record "Gen. Journal Line"; PostingDate: Date; DocumentNo: Code[20])
+    var
+        Vendor: Record Vendor;
+        SuggestVendorPayments: Report "Suggest Vendor Payments";
+    begin
+        GenJnlLine.Init();  // INIT is mandatory for Gen. Journal Line to Set the General Template and General Batch Name.
+        GenJnlLine.Validate("Journal Template Name", GenJnlBatch."Journal Template Name");
+        GenJnlLine.Validate("Journal Batch Name", GenJnlBatch.Name);
+        SuggestVendorPayments.SetGenJnlLine(GenJnlLine);
+
+        Vendor.SetFilter("No.", LibraryVariableStorage.DequeueText());
+        SuggestVendorPayments.SetTableView(Vendor);
+        SuggestVendorPayments.InitializeRequest(
+            PostingDate, false, 0, false, PostingDate, DocumentNo, true, GenJnlLine."Bal. Account Type"::"Bank Account",
+            GenJnlBatch."Bal. Account No.", GenJnlLine."Bank Payment Type"::"Electronic Payment");
+        SuggestVendorPayments.UseRequestPage(false);
+        SuggestVendorPayments.RunModal();
+        Commit();
+    end;
+
+    local procedure VerifyExportedPaymentFile(GenJournalBatch: Record "Gen. Journal Batch")
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        GenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
+        GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
+        GenJournalLine.SetRange("Exported to Payment File", false);
+        Assert.RecordIsEmpty(GenJournalLine);
+    end;
+
+    local procedure VoidPaymentFile(GenJournalBatch: Record "Gen. Journal Batch"; BankAccountNo: Code[20])
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        VoidTransmitElecPmnts: Report "Void/Transmit Elec. Pmnts";
+    begin
+        GenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
+        GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
+        VoidTransmitElecPmnts.SetTableView(GenJournalLine);
+        VoidTransmitElecPmnts.SetBankAccountNo(BankAccountNo);
+        VoidTransmitElecPmnts.SetUsageType(1); // 1 = Void
+        VoidTransmitElecPmnts.UseRequestPage(false);
+        VoidTransmitElecPmnts.RunModal();
+    end;
+
+    local procedure DeleteGenJournalLine(GenJournalBatch: Record "Gen. Journal Batch")
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        GenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
+        GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
+        GenJournalLine.DeleteAll(true);
+    end;
+
+    local procedure VerifyPaymentJournalLine(GenJournalBatch: Record "Gen. Journal Batch"; DocumentNo: Code[20])
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        GenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
+        GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
+        GenJournalLine.SetRange("Document No.", DocumentNo);
+        GenJournalLine.SetRange("Exported to Payment File", true);
+        Assert.IsTrue(GenJournalLine.IsEmpty(), 'Exported to Payment File should be false after re-suggesting payments');
     end;
 
     [RequestPageHandler]

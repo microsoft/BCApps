@@ -101,9 +101,6 @@ page 343 "Check Credit Limit"
     end;
 
     var
-#if not CLEAN25
-        ServCheckCreditLimit: Page "Serv. Check Credit Limit";
-#endif
 #pragma warning disable AA0074
 #pragma warning disable AA0470
         Text000: Label '%1 Do you still want to record the amount?';
@@ -114,12 +111,6 @@ page 343 "Check Credit Limit"
         CurrExchRate: Record "Currency Exchange Rate";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-#if not CLEAN25
-        [Obsolete('Moved to page ServCheckCreditLimit', '25.0')]
-        ServHeader: Record Microsoft.Service.Document."Service Header";
-        [Obsolete('Moved to page ServCheckCreditLimit', '25.0')]
-        ServLine: Record Microsoft.Service.Document."Service Line";
-#endif
         Cust2: Record Customer;
         SalesSetup: Record "Sales & Receivables Setup";
         CustNo: Code[20];
@@ -294,63 +285,11 @@ page 343 "Check Credit Limit"
         exit(Result);
     end;
 
-#if not CLEAN25
-    [Obsolete('Moved to page ServCheckCreditLimit', '25.0')]
-    [Scope('OnPrem')]
-    procedure ServiceHeaderShowWarning(ServiceHeader: Record Microsoft.Service.Document."Service Header") Result: Boolean
-    begin
-        ServHeader := ServiceHeader;
-        exit(ServCheckCreditLimit.ServiceHeaderShowWarning(ServHeader));
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Moved to page ServCheckCreditLimit', '25.0')]
-    [Scope('OnPrem')]
-    procedure ServiceHeaderShowWarningAndGetCause(ServiceHeader: Record Microsoft.Service.Document."Service Header"; var NotificationContextGuidOut: Guid): Boolean
-    begin
-        ServHeader := ServiceHeader;
-        exit(ServCheckCreditLimit.ServiceHeaderShowWarningAndGetCause(ServiceHeader, NotificationContextGuidOut));
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Moved to page ServCheckCreditLimit', '25.0')]
-    [Scope('OnPrem')]
-    procedure ServiceLineShowWarning(ServiceLine: Record Microsoft.Service.Document."Service Line") Result: Boolean
-    begin
-        ServLine := ServiceLine;
-        exit(ServCheckCreditLimit.ServiceLineShowWarning(ServiceLine));
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Moved to page ServCheckCreditLimit', '25.0')]
-    [Scope('OnPrem')]
-    procedure ServiceLineShowWarningAndGetCause(ServiceLine: Record Microsoft.Service.Document."Service Line"; var NotificationContextGuidOut: Guid): Boolean
-    begin
-        ServLine := ServiceLine;
-        exit(ServCheckCreditLimit.ServiceLineShowWarningAndGetCause(ServiceLine, NotificationContextGuidOut));
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Moved to page ServCheckCreditLimit', '25.0')]
-    [Scope('OnPrem')]
-    procedure ServiceContractHeaderShowWarning(ServiceContractHeader: Record Microsoft.Service.Contract."Service Contract Header") Result: Boolean
-    begin
-        exit(ServCheckCreditLimit.ServiceContractHeaderShowWarning(ServiceContractHeader));
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Moved to page ServCheckCreditLimit', '25.0')]
-    [Scope('OnPrem')]
-    procedure ServiceContractHeaderShowWarningAndGetCause(ServiceContractHeader: Record Microsoft.Service.Contract."Service Contract Header"; var NotificationContextGuidOut: Guid): Boolean
-    begin
-        exit(ServCheckCreditLimit.ServiceContractHeaderShowWarningAndGetCause(ServiceContractHeader, NotificationContextGuidOut));
-    end;
-#endif
 
     local procedure SalesLineAmount(DocType: Enum "Sales Document Type"; DocNo: Code[20]) Result: Decimal
     var
@@ -596,44 +535,8 @@ page 343 "Check Credit Limit"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforeServiceLineShowWarning(var ServLine: Record Microsoft.Service.Document."Service Line"; var Result: Boolean; var IsHandled: Boolean; var Customer: Record Customer; var DeltaAmount: Decimal)
-    begin
-        OnBeforeServiceLineShowWarning(ServLine, Result, IsHandled, Customer, DeltaAmount);
-    end;
 
-    [Obsolete('Moved to page ServCheckCreditLimit', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeServiceLineShowWarning(var ServLine: Record Microsoft.Service.Document."Service Line"; var Result: Boolean; var IsHandled: Boolean; var Customer: Record Customer; var DeltaAmount: Decimal)
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnBeforeServiceHeaderShowWarning(var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var Result: Boolean; var IsHandled: Boolean; var Customer: Record Customer; var DeltaAmount: Decimal)
-    begin
-        OnBeforeServiceHeaderShowWarning(ServiceHeader, Result, IsHandled, Customer, DeltaAmount);
-    end;
-
-    [Obsolete('Moved to page ServCheckCreditLimit', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeServiceHeaderShowWarning(var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var Result: Boolean; var IsHandled: Boolean; var Customer: Record Customer; var DeltaAmount: Decimal)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnBeforeServiceContractHeaderShowWarning(ServiceContractHeader: Record Microsoft.Service.Contract."Service Contract Header"; var Customer: Record Customer; var Result: Boolean; var IsHandled: Boolean)
-    begin
-        OnBeforeServiceContractHeaderShowWarning(ServiceContractHeader, Customer, Result, IsHandled);
-    end;
-
-    [Obsolete('Moved to page ServCheckCreditLimit', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeServiceContractHeaderShowWarning(ServiceContractHeader: Record Microsoft.Service.Contract."Service Contract Header"; var Customer: Record Customer; var Result: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowWarning(var Customer: Record Customer; var NewOrderAmountLCY: Decimal; OldOrderAmountLCY: Decimal; OrderAmountTotalLCY: Decimal; ShippedRetRcdNotIndLCY: Decimal; CustCreditAmountLCY: Decimal; DeltaAmount: Decimal; CheckOverDueBalance: Boolean; var Heading: Text[250]; var Result: Boolean; var IsHandled: Boolean; var NotificationId: Guid; var NewCustNo: Code[20]; NewOrderAmountLCY2: Decimal; OldOrderAmountLCY2: Decimal; OrderAmountThisOrderLCY: Decimal);
@@ -685,4 +588,3 @@ page 343 "Check Credit Limit"
     begin
     end;
 }
-

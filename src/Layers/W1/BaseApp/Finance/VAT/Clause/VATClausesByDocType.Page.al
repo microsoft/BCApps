@@ -4,6 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Clause;
 
+/// <summary>
+/// List page for managing document-type-specific VAT clause descriptions with translation access.
+/// Enables configuration of specialized VAT clause text for different document types.
+/// </summary>
+/// <remarks>
+/// Provides document-type-specific VAT clause management for invoices, credit memos, reminders, and finance charges.
+/// Supports multilingual translations and regulatory compliance for document-specific VAT requirements.
+/// </remarks>
 page 734 "VAT Clauses by Doc. Type"
 {
     Caption = 'VAT Clauses by Document Type';

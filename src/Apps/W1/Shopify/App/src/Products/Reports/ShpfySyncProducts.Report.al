@@ -5,6 +5,8 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using System.Telemetry;
+
 /// <summary>
 /// Report Shpfy Sync Products (ID 30108).
 /// </summary>
@@ -59,4 +61,11 @@ report 30108 "Shpfy Sync Products"
     var
         OnlySyncPrices: Boolean;
         RecordCount: Integer;
+
+    trigger OnPreReport()
+    var
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+    begin
+        FeatureTelemetry.LogUsage('0000QWC', 'Shopify', 'Shopify sync products executed.');
+    end;
 }

@@ -6,6 +6,15 @@ namespace Microsoft.Bank.Statement;
 
 using Microsoft.Foundation.Reporting;
 
+/// <summary>
+/// Displays a list of bank account statements for selection and navigation.
+/// Provides overview of all bank statements with key information like statement numbers, dates, and balances.
+/// </summary>
+/// <remarks>
+/// Source Table: Bank Account Statement (275). List page for bank statement overview and navigation.
+/// Supports filtering by bank account and statement dates for efficient statement location.
+/// Used as lookup and navigation interface for bank statement management workflows.
+/// </remarks>
 page 389 "Bank Account Statement List"
 {
     ApplicationArea = Basic, Suite;

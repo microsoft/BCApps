@@ -11,6 +11,15 @@ using System.Environment;
 using System.Environment.Configuration;
 using System.Utilities;
 
+/// <summary>
+/// Guided setup wizard for importing payroll transactions from external payroll systems.
+/// Provides step-by-step process for file import, account mapping, and journal entry creation.
+/// </summary>
+/// <remarks>
+/// NavigatePage wizard with three steps: file selection, account mapping, and finalization.
+/// Integrates with Service Connection framework for payroll provider discovery.
+/// Extensibility: OnImportPayrollTransactions and OnCreateSampleFile events for custom import logic.
+/// </remarks>
 page 1661 "Payroll Import Transactions"
 {
     Caption = 'Import Payroll Transactions';
@@ -453,6 +462,12 @@ page 1661 "Payroll Import Transactions"
     begin
     end;
 
+    /// <summary>
+    /// Initializes the page with service connection and journal line context.
+    /// Sets up the payroll import wizard with target journal for imported transactions.
+    /// </summary>
+    /// <param name="SetServiceConnection">Service connection record for external payroll service</param>
+    /// <param name="SetGenJournalLine">Target journal line template for imported payroll data</param>
     procedure Set(var SetServiceConnection: Record "Service Connection"; SetGenJournalLine: Record "Gen. Journal Line")
     begin
         TempServiceConnection := SetServiceConnection;

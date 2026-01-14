@@ -7,8 +7,8 @@ namespace Microsoft.Bank.Setup;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using System.Reflection;
 using System.IO;
+using System.Reflection;
 
 /// <summary>
 /// Configures external payment service providers for online payment processing.
@@ -212,6 +212,12 @@ table 1060 "Payment Service Setup"
         until TempPaymentServiceSetup.Next() = 0;
     end;
 
+    /// <summary>
+    /// Retrieves payment services configured to be always included on documents.
+    /// Returns a set ID for enabled payment services that are set to be included by default.
+    /// </summary>
+    /// <param name="SetID">Output parameter containing the set ID for default payment services</param>
+    /// <returns>True if default payment services were found, false otherwise</returns>
     procedure GetDefaultPaymentServices(var SetID: Integer): Boolean
     var
         TempPaymentServiceSetup: Record "Payment Service Setup" temporary;
@@ -233,6 +239,12 @@ table 1060 "Payment Service Setup"
         exit(true);
     end;
 
+    /// <summary>
+    /// Presents payment service selection dialog to user and returns the selected set ID.
+    /// Handles the complete workflow for selecting payment services including setup prompts.
+    /// </summary>
+    /// <param name="SetID">Input/output parameter for the payment service set ID</param>
+    /// <returns>True if user selected payment services, false if cancelled</returns>
     procedure SelectPaymentService(var SetID: Integer): Boolean
     var
         TempPaymentServiceSetup: Record "Payment Service Setup" temporary;
@@ -291,6 +303,12 @@ table 1060 "Payment Service Setup"
         until TempPaymentServiceSetup.Next() = 0;
     end;
 
+    /// <summary>
+    /// Saves a temporary payment service setup collection as a persistent set.
+    /// Converts temporary payment service records into a record set that can be referenced by ID.
+    /// </summary>
+    /// <param name="TempPaymentServiceSetup">Temporary payment service setup records to save as a set</param>
+    /// <returns>Set ID for the saved payment service collection</returns>
     procedure SaveSet(var TempPaymentServiceSetup: Record "Payment Service Setup" temporary): Integer
     var
         TempRecordSetBuffer: Record "Record Set Buffer" temporary;
@@ -300,6 +318,12 @@ table 1060 "Payment Service Setup"
         exit(RecordSetManagement.SaveSet(TempRecordSetBuffer));
     end;
 
+    /// <summary>
+    /// Loads a payment service set into temporary records based on the provided set ID.
+    /// Marks payment services as available based on their inclusion in the specified set.
+    /// </summary>
+    /// <param name="TempPaymentServiceSetup">Temporary payment service setup records to load into</param>
+    /// <param name="SetID">Set ID identifying which payment services to load</param>
     procedure LoadSet(var TempPaymentServiceSetup: Record "Payment Service Setup" temporary; SetID: Integer)
     var
         TempRecordSetBuffer: Record "Record Set Buffer" temporary;
@@ -324,6 +348,12 @@ table 1060 "Payment Service Setup"
         until TempPaymentServiceSetup.Next() = 0;
     end;
 
+    /// <summary>
+    /// Returns a comma-separated text string of selected payment service names.
+    /// Provides user-friendly display of payment services included in a set.
+    /// </summary>
+    /// <param name="SetID">Set ID identifying which payment services to include in text</param>
+    /// <returns>Comma-separated list of payment service names, or 'No payment service is made available' if none selected</returns>
     procedure GetSelectedPaymentsText(SetID: Integer) SelectedPaymentServices: Text
     var
         TempPaymentServiceSetup: Record "Payment Service Setup" temporary;
@@ -348,6 +378,12 @@ table 1060 "Payment Service Setup"
         SelectedPaymentServices := CopyStr(SelectedPaymentServices, 2);
     end;
 
+    /// <summary>
+    /// Determines if payment service configuration can be changed for a given document.
+    /// Validates document status and payment method compatibility for payment service modifications.
+    /// </summary>
+    /// <param name="DocumentVariant">Document record to check for payment service change eligibility</param>
+    /// <returns>True if payment service can be changed, false if document is closed or incompatible</returns>
     procedure CanChangePaymentService(DocumentVariant: Variant) Result: Boolean
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -396,6 +432,11 @@ table 1060 "Payment Service Setup"
         exit(PaymentMethod."Bal. Account No." = '');
     end;
 
+    /// <summary>
+    /// Enables changing payment service configuration for a posted sales invoice.
+    /// Updates the payment service set ID on the posted invoice and provides user feedback.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">Posted sales invoice header to update with new payment service</param>
     procedure ChangePaymentServicePostedInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header")
     var
         PaymentServiceSetup: Record "Payment Service Setup";
@@ -451,6 +492,11 @@ table 1060 "Payment Service Setup"
         exit(false);
     end;
 
+    /// <summary>
+    /// Checks if payment services are available for display in user interfaces.
+    /// Determines visibility of payment service functionality based on registered providers.
+    /// </summary>
+    /// <returns>True if payment service providers are registered and should be visible, false otherwise</returns>
     procedure IsPaymentServiceVisible(): Boolean
     var
         TempPaymentServiceSetup: Record "Payment Service Setup" temporary;
@@ -459,6 +505,11 @@ table 1060 "Payment Service Setup"
         exit(not TempPaymentServiceSetup.IsEmpty);
     end;
 
+    /// <summary>
+    /// Initiates creation of a new payment service through the setup workflow.
+    /// Handles provider selection and setup dialog presentation to the user.
+    /// </summary>
+    /// <returns>True if payment service was successfully created, false if cancelled or failed</returns>
     procedure NewPaymentService(): Boolean
     var
         TempPaymentServiceSetup: Record "Payment Service Setup" temporary;
@@ -485,11 +536,21 @@ table 1060 "Payment Service Setup"
         end;
     end;
 
+    /// <summary>
+    /// Assigns the primary key for a payment service setup record based on its setup record ID.
+    /// Ensures unique identification of payment service configurations.
+    /// </summary>
+    /// <param name="PaymentServiceSetup">Payment service setup record to assign primary key to</param>
     procedure AssignPrimaryKey(var PaymentServiceSetup: Record "Payment Service Setup")
     begin
         PaymentServiceSetup."No." := Format(PaymentServiceSetup."Setup Record ID");
     end;
 
+    /// <summary>
+    /// Deletes the underlying payment service setup record referenced by the Setup Record ID.
+    /// Performs cleanup of related configuration data when removing payment services.
+    /// </summary>
+    /// <param name="RunTrigger">Whether to execute delete triggers on the referenced setup record</param>
     procedure DeletePaymentServiceSetup(RunTrigger: Boolean)
     var
         DataTypeManagement: Codeunit "Data Type Management";
@@ -499,6 +560,10 @@ table 1060 "Payment Service Setup"
         SetupRecordRef.Delete(RunTrigger);
     end;
 
+    /// <summary>
+    /// Opens the Terms of Service URL in the default browser or application.
+    /// Enables users to review payment service provider terms and conditions.
+    /// </summary>
     procedure TermsOfServiceDrillDown()
     begin
         if "Terms of Service" <> '' then

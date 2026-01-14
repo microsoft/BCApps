@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Document;
 
+using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Utilities;
 using System.Security.User;
 using System.Utilities;
-using Microsoft.Finance.ReceivablesPayables;
 
 codeunit 5957 "Serv. Posting Selection Mgt."
 {

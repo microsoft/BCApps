@@ -3516,6 +3516,15 @@
       </DefaultValue>
       <Prompt>CustomerOrderSummary</Prompt>
     </ReportParameter>
+    <ReportParameter Name="CustOrderSummaryLCYPrint">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>CustOrderSummaryLCYPrint</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>CustOrderSummaryLCYPrint</Prompt>
+    </ReportParameter>
     <ReportParameter Name="CustomerOrderSummaryPrint">
       <DataType>String</DataType>
       <DefaultValue>
@@ -3650,6 +3659,33 @@
         </Values>
       </DefaultValue>
       <Prompt>After1Lbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="OutstandingOrdersLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>OutstandingOrdersLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>OutstandingOrdersLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="CustomerNoLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>CustomerNoLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>CustomerNoLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="CustomerNameLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>CustomerNameLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>CustomerNameLbl</Prompt>
     </ReportParameter>
     <ReportParameter Name="Period2StartDateLbl">
       <DataType>String</DataType>
@@ -3808,7 +3844,7 @@
   <ReportParametersLayout>
     <GridLayoutDefinition>
       <NumberOfColumns>1</NumberOfColumns>
-      <NumberOfRows>34</NumberOfRows>
+      <NumberOfRows>38</NumberOfRows>
       <CellDefinitions>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
@@ -3823,161 +3859,181 @@
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>2</RowIndex>
-          <ParameterName>CustomerOrderSummaryPrint</ParameterName>
+          <ParameterName>CustOrderSummaryLCYPrint</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>3</RowIndex>
-          <ParameterName>CustomerOrderSummaryAnalysis</ParameterName>
+          <ParameterName>CustomerOrderSummaryPrint</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>4</RowIndex>
-          <ParameterName>PostingDateFilterLabel</ParameterName>
+          <ParameterName>CustomerOrderSummaryAnalysis</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>5</RowIndex>
-          <ParameterName>AboutTheReportLabel</ParameterName>
+          <ParameterName>PostingDateFilterLabel</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>6</RowIndex>
-          <ParameterName>EnvironmentLabel</ParameterName>
+          <ParameterName>AboutTheReportLabel</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>7</RowIndex>
-          <ParameterName>CompanyLabel</ParameterName>
+          <ParameterName>EnvironmentLabel</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>8</RowIndex>
-          <ParameterName>UserLabel</ParameterName>
+          <ParameterName>CompanyLabel</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>9</RowIndex>
-          <ParameterName>RunOnLabel</ParameterName>
+          <ParameterName>UserLabel</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>10</RowIndex>
-          <ParameterName>ReportNameLabel</ParameterName>
+          <ParameterName>RunOnLabel</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>11</RowIndex>
-          <ParameterName>DocumentationLabel</ParameterName>
+          <ParameterName>ReportNameLabel</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>12</RowIndex>
-          <ParameterName>StartingDateLbl</ParameterName>
+          <ParameterName>DocumentationLabel</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>13</RowIndex>
-          <ParameterName>BeforeLbl</ParameterName>
+          <ParameterName>StartingDateLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>14</RowIndex>
-          <ParameterName>Before1Lbl</ParameterName>
+          <ParameterName>BeforeLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>15</RowIndex>
-          <ParameterName>AfterLbl</ParameterName>
+          <ParameterName>Before1Lbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>16</RowIndex>
-          <ParameterName>After1Lbl</ParameterName>
+          <ParameterName>AfterLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>17</RowIndex>
-          <ParameterName>Period2StartDateLbl</ParameterName>
+          <ParameterName>After1Lbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>18</RowIndex>
-          <ParameterName>Period2EndDateLbl</ParameterName>
+          <ParameterName>OutstandingOrdersLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>19</RowIndex>
-          <ParameterName>Period3StartDateLbl</ParameterName>
+          <ParameterName>CustomerNoLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>20</RowIndex>
-          <ParameterName>Period3EndDateLbl</ParameterName>
+          <ParameterName>CustomerNameLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>21</RowIndex>
-          <ParameterName>Period4StartDateLbl</ParameterName>
+          <ParameterName>Period2StartDateLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>22</RowIndex>
-          <ParameterName>Period4EndDateLbl</ParameterName>
+          <ParameterName>Period2EndDateLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>23</RowIndex>
-          <ParameterName>SalesAmtOnOrderLCY2Lbl</ParameterName>
+          <ParameterName>Period3StartDateLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>24</RowIndex>
-          <ParameterName>SalesAmtOnOrder2Lbl</ParameterName>
+          <ParameterName>Period3EndDateLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>25</RowIndex>
-          <ParameterName>SalesAmtOnOrderLCY3Lbl</ParameterName>
+          <ParameterName>Period4StartDateLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>26</RowIndex>
-          <ParameterName>SalesAmtOnOrder3Lbl</ParameterName>
+          <ParameterName>Period4EndDateLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>27</RowIndex>
-          <ParameterName>SalesAmtOnOrderLCY4Lbl</ParameterName>
+          <ParameterName>SalesAmtOnOrderLCY2Lbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>28</RowIndex>
-          <ParameterName>SalesAmtOnOrder4Lbl</ParameterName>
+          <ParameterName>SalesAmtOnOrder2Lbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>29</RowIndex>
-          <ParameterName>TotalCaptionLbl</ParameterName>
+          <ParameterName>SalesAmtOnOrderLCY3Lbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>30</RowIndex>
-          <ParameterName>TotalLCYCaptionLbl</ParameterName>
+          <ParameterName>SalesAmtOnOrder3Lbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>31</RowIndex>
-          <ParameterName>CurrencyCode_SalesLineCaption</ParameterName>
+          <ParameterName>SalesAmtOnOrderLCY4Lbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>32</RowIndex>
-          <ParameterName>Name_CustCaption</ParameterName>
+          <ParameterName>SalesAmtOnOrder4Lbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>33</RowIndex>
+          <ParameterName>TotalCaptionLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>34</RowIndex>
+          <ParameterName>TotalLCYCaptionLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>35</RowIndex>
+          <ParameterName>CurrencyCode_SalesLineCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>36</RowIndex>
+          <ParameterName>Name_CustCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>37</RowIndex>
           <ParameterName>SalesLineBilltoNo_CustomerCaption</ParameterName>
         </CellDefinition>
       </CellDefinitions>
@@ -4055,15 +4111,6 @@ End Function
         <Field Name="PeriodStartDate41">
           <DataField>PeriodStartDate41</DataField>
         </Field>
-        <Field Name="PeriodRange1">
-          <DataField>PeriodRange1</DataField>
-        </Field>
-        <Field Name="PeriodRange2">
-          <DataField>PeriodRange2</DataField>
-        </Field>
-        <Field Name="PeriodRange3">
-          <DataField>PeriodRange3</DataField>
-        </Field>
         <Field Name="SalesAmtOnOrderLCY1">
           <DataField>SalesAmtOnOrderLCY1</DataField>
         </Field>
@@ -4103,8 +4150,11 @@ End Function
         <Field Name="No_Cust">
           <DataField>No_Cust</DataField>
         </Field>
-        <Field Name="AllamountsareinLCYTxt">
-          <DataField>AllamountsareinLCYTxt</DataField>
+        <Field Name="AllAmountsAreInLCYTxt">
+          <DataField>AllAmountsAreInLCYTxt</DataField>
+        </Field>
+        <Field Name="TotalCaption">
+          <DataField>TotalCaption</DataField>
         </Field>
         <Field Name="CustomerOrderSummaryCaption">
           <DataField>CustomerOrderSummaryCaption</DataField>
@@ -4129,9 +4179,6 @@ End Function
         </Field>
         <Field Name="AfterCaption">
           <DataField>AfterCaption</DataField>
-        </Field>
-        <Field Name="TotalCaption">
-          <DataField>TotalCaption</DataField>
         </Field>
         <Field Name="TotalLCYCaption">
           <DataField>TotalLCYCaption</DataField>
@@ -4232,41 +4279,44 @@ End Function
         <Field Name="SalesLineBuffer_SalesAmtOnOrder5Format">
           <DataField>SalesLineBuffer_SalesAmtOnOrder5Format</DataField>
         </Field>
-        <Field Name="TotalSalesOrderAmount">
-          <DataField>TotalSalesOrderAmount</DataField>
+        <Field Name="Totals_Sales_Order_Amount">
+          <DataField>Totals_Sales_Order_Amount</DataField>
         </Field>
-        <Field Name="TotalSalesOrderAmountFormat">
-          <DataField>TotalSalesOrderAmountFormat</DataField>
+        <Field Name="Totals_Sales_Order_AmountFormat">
+          <DataField>Totals_Sales_Order_AmountFormat</DataField>
         </Field>
-        <Field Name="TotalSalesAmtOnOrder1">
-          <DataField>TotalSalesAmtOnOrder1</DataField>
+        <Field Name="Totals_Sales_Amt_On_Order1">
+          <DataField>Totals_Sales_Amt_On_Order1</DataField>
         </Field>
-        <Field Name="TotalSalesAmtOnOrder1Format">
-          <DataField>TotalSalesAmtOnOrder1Format</DataField>
+        <Field Name="Totals_Sales_Amt_On_Order1Format">
+          <DataField>Totals_Sales_Amt_On_Order1Format</DataField>
         </Field>
-        <Field Name="TotalSalesAmtOnOrder2">
-          <DataField>TotalSalesAmtOnOrder2</DataField>
+        <Field Name="Totals_Sales_Amt_On_Order2">
+          <DataField>Totals_Sales_Amt_On_Order2</DataField>
         </Field>
-        <Field Name="TotalSalesAmtOnOrder2Format">
-          <DataField>TotalSalesAmtOnOrder2Format</DataField>
+        <Field Name="Totals_Sales_Amt_On_Order2Format">
+          <DataField>Totals_Sales_Amt_On_Order2Format</DataField>
         </Field>
-        <Field Name="TotalSalesAmtOnOrder3">
-          <DataField>TotalSalesAmtOnOrder3</DataField>
+        <Field Name="Totals_Sales_Amt_On_Order3">
+          <DataField>Totals_Sales_Amt_On_Order3</DataField>
         </Field>
-        <Field Name="TotalSalesAmtOnOrder3Format">
-          <DataField>TotalSalesAmtOnOrder3Format</DataField>
+        <Field Name="Totals_Sales_Amt_On_Order3Format">
+          <DataField>Totals_Sales_Amt_On_Order3Format</DataField>
         </Field>
-        <Field Name="TotalSalesAmtOnOrder4">
-          <DataField>TotalSalesAmtOnOrder4</DataField>
+        <Field Name="Totals_Sales_Amt_On_Order4">
+          <DataField>Totals_Sales_Amt_On_Order4</DataField>
         </Field>
-        <Field Name="TotalSalesAmtOnOrder4Format">
-          <DataField>TotalSalesAmtOnOrder4Format</DataField>
+        <Field Name="Totals_Sales_Amt_On_Order4Format">
+          <DataField>Totals_Sales_Amt_On_Order4Format</DataField>
         </Field>
-        <Field Name="TotalSalesAmtOnOrder5">
-          <DataField>TotalSalesAmtOnOrder5</DataField>
+        <Field Name="Totals_Sales_Amt_On_Order5">
+          <DataField>Totals_Sales_Amt_On_Order5</DataField>
         </Field>
-        <Field Name="TotalSalesAmtOnOrder5Format">
-          <DataField>TotalSalesAmtOnOrder5Format</DataField>
+        <Field Name="Totals_Sales_Amt_On_Order5Format">
+          <DataField>Totals_Sales_Amt_On_Order5Format</DataField>
+        </Field>
+        <Field Name="Totals_TotalText">
+          <DataField>Totals_TotalText</DataField>
         </Field>
       </Fields>
       <Query>

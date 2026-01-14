@@ -3,6 +3,7 @@
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
@@ -127,6 +128,11 @@ codeunit 1502 "Workflow Setup"
         RequisitionWkshTypeCondnTxt: Label '<?xml version="1.0" encoding="utf-8" standalone="yes"?><ReportParameters><DataItems><DataItem name="Requisition Wksh. Name">%1</DataItem></DataItems></ReportParameters>', Locked = true;
         RequisitionWkshBatchApprWorkflowCodeTxt: Label 'RWBAPW', Locked = true;
         RequisitionWkshBatchApprWorkflowDescTxt: Label 'Requisition Worksheet Batch Approval Workflow';
+        ItemJournalBatchTypeCondnTxt: Label '<?xml version="1.0" encoding="utf-8" standalone="yes"?><ReportParameters><DataItems><DataItem name="Item Journal Batch">%1</DataItem></DataItems></ReportParameters>', Locked = true;
+        ItemJournalBatchApprWorkflowCodeTxt: Label 'IJBAPW', Locked = true;
+        ItemJournalBatchApprWorkflowDescTxt: Label 'Item Journal Batch Approval Workflow';
+        InventoryCategoryTxt: Label 'INV', Locked = true;
+        InventoryCategoryDescTxt: Label 'Inventory';
 
     procedure InitWorkflow()
     var
@@ -189,6 +195,8 @@ codeunit 1502 "Workflow Setup"
         InsertGeneralJournalBatchApprovalWorkflowTemplate();
         InsertGeneralJournalLineApprovalWorkflowTemplate();
 
+        InsertItemJournalBatchApprovalWorkflowTemplate();
+
         InsertRequisitionWkshBatchApprovalWorkflowTemplate();
 
         InsertJobQueueEntryApprovalWorkflowTemplate();
@@ -205,6 +213,7 @@ codeunit 1502 "Workflow Setup"
         InsertWorkflowCategory(SalesDocCategoryTxt, SalesDocCategoryDescTxt);
         InsertWorkflowCategory(AdminCategoryTxt, AdminCategoryDescTxt);
         InsertWorkflowCategory(FinCategoryTxt, FinCategoryDescTxt);
+        InsertWorkflowCategory(InventoryCategoryTxt, InventoryCategoryDescTxt);
 
         OnAddWorkflowCategoriesToLibrary();
     end;
@@ -283,6 +292,8 @@ codeunit 1502 "Workflow Setup"
           DATABASE::"Approval Entry", ApprovalEntry.FieldNo("Record ID to Approve"));
         InsertTableRelation(DATABASE::"Gen. Journal Batch", 0,
           DATABASE::"Approval Entry", ApprovalEntry.FieldNo("Record ID to Approve"));
+        InsertTableRelation(Database::"Item Journal Batch", 0,
+          Database::"Approval Entry", ApprovalEntry.FieldNo("Record ID to Approve"));
         InsertTableRelation(Database::"Requisition Wksh. Name", 0,
           Database::"Approval Entry", ApprovalEntry.FieldNo("Record ID to Approve"));
 
@@ -357,13 +368,13 @@ codeunit 1502 "Workflow Setup"
         DocSuccessEventID :=
           InsertEventStep(
             Workflow, WorkflowEventHandling.RunWorkflowOnAfterCreateDocFromIncomingDocSuccessCode(), CreateDocResponseID);
-        InsertEventArgument(DocSuccessEventID, BuildIncomingDocumentTypeConditions(IncomingDocument.Status::Created));
+        InsertEventArgument(DocSuccessEventID, BuildIncomingDocumentStatusConditions(IncomingDocument.Status::Created));
         InsertResponseStep(Workflow, WorkflowResponseHandling.DoNothingCode(), DocSuccessEventID);
 
         DocErrorEventID :=
           InsertEventStep(
             Workflow, WorkflowEventHandling.RunWorkflowOnAfterCreateDocFromIncomingDocFailCode(), CreateDocResponseID);
-        InsertEventArgument(DocErrorEventID, BuildIncomingDocumentTypeConditions(IncomingDocument.Status::Failed));
+        InsertEventArgument(DocErrorEventID, BuildIncomingDocumentStatusConditions(IncomingDocument.Status::Failed));
         NotifyResponseID := InsertResponseStep(Workflow, WorkflowResponseHandling.CreateNotificationEntryCode(), DocErrorEventID);
 
         InsertNotificationArgument(NotifyResponseID, false, '', PAGE::"Incoming Document", '');
@@ -432,23 +443,23 @@ codeunit 1502 "Workflow Setup"
     begin
         IncDocCreatedEventID :=
           InsertEntryPointEventStep(Workflow, WorkflowEventHandling.RunWorkflowOnAfterReceiveFromDocExchIncomingDocCode());
-        InsertEventArgument(IncDocCreatedEventID, BuildIncomingDocumentTypeConditions(IncomingDocument.Status::New));
+        InsertEventArgument(IncDocCreatedEventID, BuildIncomingDocumentStatusConditions(IncomingDocument.Status::New));
         ReleaseDocResponseID := InsertResponseStep(Workflow, WorkflowResponseHandling.ReleaseDocumentCode(), IncDocCreatedEventID);
 
         DocReleasedEventID :=
           InsertEventStep(Workflow, WorkflowEventHandling.RunWorkflowOnAfterReleaseIncomingDocCode(), ReleaseDocResponseID);
-        InsertEventArgument(DocReleasedEventID, BuildIncomingDocumentTypeConditions(IncomingDocument.Status::Released));
+        InsertEventArgument(DocReleasedEventID, BuildIncomingDocumentStatusConditions(IncomingDocument.Status::Released));
         CreateDocResponseID :=
           InsertResponseStep(Workflow, WorkflowResponseHandling.GetCreateDocFromIncomingDocCode(), DocReleasedEventID);
 
         DocSuccessEventID :=
           InsertEventStep(Workflow, WorkflowEventHandling.RunWorkflowOnAfterCreateDocFromIncomingDocSuccessCode(), CreateDocResponseID);
-        InsertEventArgument(DocSuccessEventID, BuildIncomingDocumentTypeConditions(IncomingDocument.Status::Created));
+        InsertEventArgument(DocSuccessEventID, BuildIncomingDocumentStatusConditions(IncomingDocument.Status::Created));
         InsertResponseStep(Workflow, WorkflowResponseHandling.DoNothingCode(), DocSuccessEventID);
 
         DocErrorEventID :=
           InsertEventStep(Workflow, WorkflowEventHandling.RunWorkflowOnAfterCreateDocFromIncomingDocFailCode(), CreateDocResponseID);
-        InsertEventArgument(DocErrorEventID, BuildIncomingDocumentTypeConditions(IncomingDocument.Status::Failed));
+        InsertEventArgument(DocErrorEventID, BuildIncomingDocumentStatusConditions(IncomingDocument.Status::Failed));
         NotifyResponseID := InsertResponseStep(Workflow, WorkflowResponseHandling.CreateNotificationEntryCode(), DocErrorEventID);
 
         InsertNotificationArgument(NotifyResponseID, false, '', PAGE::"Incoming Document", '');
@@ -523,9 +534,9 @@ codeunit 1502 "Workflow Setup"
 
         InsertDocApprovalWorkflowSteps(
           Workflow,
-          BuildIncomingDocumentTypeConditions(IncomingDocument.Status::New),
+          BuildIncomingDocumentStatusConditions(IncomingDocument.Status::New),
           WorkflowEventHandling.RunWorkflowOnSendIncomingDocForApprovalCode(),
-          BuildIncomingDocumentTypeConditions(IncomingDocument.Status::"Pending Approval"),
+          BuildIncomingDocumentStatusConditions(IncomingDocument.Status::"Pending Approval"),
           WorkflowEventHandling.RunWorkflowOnCancelIncomingDocApprovalRequestCode(),
           WorkflowStepArgument, true);
     end;
@@ -1255,6 +1266,32 @@ codeunit 1502 "Workflow Setup"
           false, false);
     end;
 
+    local procedure InsertItemJournalBatchApprovalWorkflowTemplate()
+    var
+        Workflow: Record Workflow;
+    begin
+        InsertWorkflowTemplate(Workflow, ItemJournalBatchApprWorkflowCodeTxt, ItemJournalBatchApprWorkflowDescTxt, InventoryCategoryTxt);
+        InsertItemJournalBatchApprovalWorkflowDetails(Workflow);
+        MarkWorkflowAsTemplate(Workflow);
+    end;
+
+    local procedure InsertItemJournalBatchApprovalWorkflowDetails(var Workflow: Record Workflow)
+    var
+        WorkflowStepArgument: Record "Workflow Step Argument";
+    begin
+        InitWorkflowStepArgument(
+            WorkflowStepArgument, WorkflowStepArgument."Approver Type"::Approver,
+            WorkflowStepArgument."Approver Limit Type"::"Direct Approver",
+            0, '', BlankDateFormula, true);
+
+        InsertItemJnlBatchApprovalWorkflowSteps(Workflow, BuildItemJournalBatchTypeConditions(),
+            WorkflowEventHandling.RunWorkflowOnSendItemJournalBatchForApprovalCode(),
+            WorkflowResponseHandling.CreateApprovalRequestsCode(),
+            WorkflowResponseHandling.SendApprovalRequestForApprovalCode(),
+            WorkflowEventHandling.RunWorkflowOnCancelItemJournalBatchApprovalRequestCode(),
+            WorkflowStepArgument, true);
+    end;
+
     local procedure InsertRequisitionWkshBatchApprovalWorkflowTemplate()
     var
         Workflow: Record Workflow;
@@ -1429,6 +1466,11 @@ codeunit 1502 "Workflow Setup"
     procedure GeneralJournalLineApprovalWorkflowCode(): Code[17]
     begin
         exit(GeneralJournalLineApprWorkflowCodeTxt);
+    end;
+
+    procedure ItemJournalBatchApprovalWorkflowCode(): Code[17]
+    begin
+        exit(ItemJournalBatchApprWorkflowCodeTxt);
     end;
 
     procedure RequisitionWkshBatchApprovalWorkflowCode(): Code[17]
@@ -1759,6 +1801,72 @@ codeunit 1502 "Workflow Setup"
           WorkflowEventHandling.RunWorkflowOnCancelGeneralJournalLineApprovalRequestCode(),
           WorkflowStepArgument,
           false, false);
+    end;
+
+    procedure InsertItemJnlBatchApprovalWorkflowSteps(Workflow: Record Workflow; ConditionString: Text; RecSendForApprovalEventCode: Code[128]; RecCreateApprovalRequestsCode: Code[128]; RecSendApprovalRequestForApprovalCode: Code[128]; RecCanceledEventCode: Code[128]; WorkflowStepArgument: Record "Workflow Step Argument"; ShowConfirmationMessage: Boolean)
+    var
+        SentForApprovalEventID: Integer;
+        CreateApprovalRequestResponseID: Integer;
+        SendApprovalRequestResponseID: Integer;
+        OnAllRequestsApprovedEventID: Integer;
+        OnRequestApprovedEventID: Integer;
+        SendApprovalRequestResponseID2: Integer;
+        OnRequestRejectedEventID: Integer;
+        RejectAllApprovalsResponseID: Integer;
+        OnRequestCanceledEventID: Integer;
+        CancelAllApprovalsResponseID: Integer;
+        OnRequestDelegatedEventID: Integer;
+        SentApprovalRequestResponseID3: Integer;
+        ShowMessageResponseID: Integer;
+        RestrictUsageResponseID: Integer;
+    begin
+        SentForApprovalEventID := InsertEntryPointEventStep(Workflow, RecSendForApprovalEventCode);
+        InsertEventArgument(SentForApprovalEventID, ConditionString);
+
+        RestrictUsageResponseID := InsertResponseStep(Workflow, WorkflowResponseHandling.RestrictRecordUsageCode(),
+            SentForApprovalEventID);
+        CreateApprovalRequestResponseID := InsertResponseStep(Workflow, RecCreateApprovalRequestsCode,
+            RestrictUsageResponseID);
+        InsertApprovalArgument(CreateApprovalRequestResponseID,
+          WorkflowStepArgument."Approver Type", WorkflowStepArgument."Approver Limit Type",
+          WorkflowStepArgument."Workflow User Group Code", WorkflowStepArgument."Approver User ID",
+          WorkflowStepArgument."Due Date Formula", ShowConfirmationMessage);
+        SendApprovalRequestResponseID := InsertResponseStep(Workflow, RecSendApprovalRequestForApprovalCode,
+            CreateApprovalRequestResponseID);
+        InsertNotificationArgument(SendApprovalRequestResponseID, false, '', 0, '');
+
+        OnAllRequestsApprovedEventID := InsertEventStep(Workflow, WorkflowEventHandling.RunWorkflowOnApproveApprovalRequestCode(),
+            SendApprovalRequestResponseID);
+        InsertEventArgument(OnAllRequestsApprovedEventID, BuildNoPendingApprovalsConditions());
+        InsertResponseStep(Workflow, WorkflowResponseHandling.AllowRecordUsageCode(), OnAllRequestsApprovedEventID);
+
+        OnRequestApprovedEventID := InsertEventStep(Workflow, WorkflowEventHandling.RunWorkflowOnApproveApprovalRequestCode(),
+            SendApprovalRequestResponseID);
+        InsertEventArgument(OnRequestApprovedEventID, BuildPendingApprovalsConditions());
+        SendApprovalRequestResponseID2 := InsertResponseStep(Workflow, WorkflowResponseHandling.SendApprovalRequestForApprovalCode(),
+            OnRequestApprovedEventID);
+
+        SetNextStep(Workflow, SendApprovalRequestResponseID2, SendApprovalRequestResponseID);
+
+        OnRequestRejectedEventID := InsertEventStep(Workflow, WorkflowEventHandling.RunWorkflowOnRejectApprovalRequestCode(),
+            SendApprovalRequestResponseID);
+        RejectAllApprovalsResponseID := InsertResponseStep(Workflow, WorkflowResponseHandling.RejectAllApprovalRequestsCode(),
+            OnRequestRejectedEventID);
+        InsertNotificationArgument(RejectAllApprovalsResponseID, true, '', WorkflowStepArgument."Link Target Page", '');
+
+        OnRequestCanceledEventID := InsertEventStep(Workflow, RecCanceledEventCode, SendApprovalRequestResponseID);
+        CancelAllApprovalsResponseID := InsertResponseStep(Workflow, WorkflowResponseHandling.CancelAllApprovalRequestsCode(),
+            OnRequestCanceledEventID);
+        InsertNotificationArgument(CancelAllApprovalsResponseID, false, '', WorkflowStepArgument."Link Target Page", '');
+        ShowMessageResponseID := InsertResponseStep(Workflow, WorkflowResponseHandling.ShowMessageCode(), CancelAllApprovalsResponseID);
+        InsertMessageArgument(ShowMessageResponseID, ApprovalRequestCanceledMsg);
+
+        OnRequestDelegatedEventID := InsertEventStep(Workflow, WorkflowEventHandling.RunWorkflowOnDelegateApprovalRequestCode(),
+            SendApprovalRequestResponseID);
+        SentApprovalRequestResponseID3 := InsertResponseStep(Workflow, WorkflowResponseHandling.SendApprovalRequestForApprovalCode(),
+            OnRequestDelegatedEventID);
+
+        SetNextStep(Workflow, SentApprovalRequestResponseID3, SendApprovalRequestResponseID);
     end;
 
     procedure InsertRequisitionWkshBatchApprovalWorkflowSteps(Workflow: Record Workflow; ConditionString: Text; RecSendForApprovalEventCode: Code[128]; RecCreateApprovalRequestsCode: Code[128]; RecSendApprovalRequestForApprovalCode: Code[128]; RecCanceledEventCode: Code[128]; WorkflowStepArgument: Record "Workflow Step Argument"; ShowConfirmationMessage: Boolean)
@@ -2333,7 +2441,15 @@ codeunit 1502 "Workflow Setup"
         exit(StrSubstNo(PendingApprovalsCondnTxt, Encode(ApprovalEntry.GetView(false))));
     end;
 
+#if not CLEAN28
+    [Obsolete('Replaced by procedure BuildIncomingDocumentStatusConditions()', '28.0')]
     procedure BuildIncomingDocumentTypeConditions(Status: Option): Text
+    begin
+        exit(BuildIncomingDocumentStatusConditions("Incoming Document Status".FromInteger(Status)));
+    end;
+#endif
+
+    procedure BuildIncomingDocumentStatusConditions(Status: Enum "Incoming Document Status"): Text
     var
         IncomingDocument: Record "Incoming Document";
         IncomingDocumentAttachment: Record "Incoming Document Attachment";
@@ -2411,6 +2527,18 @@ codeunit 1502 "Workflow Setup"
     procedure BuildGeneralJournalLineTypeConditions(var GenJournalLine: Record "Gen. Journal Line"): Text
     begin
         exit(StrSubstNo(GeneralJournalLineTypeCondnTxt, Encode(GenJournalLine.GetView(false))));
+    end;
+
+    local procedure BuildItemJournalBatchTypeConditions(): Text
+    var
+        ItemJournalBatch: Record "Item Journal Batch";
+    begin
+        exit(BuildItemJournalBatchTypeConditionsFromRec(ItemJournalBatch));
+    end;
+
+    procedure BuildItemJournalBatchTypeConditionsFromRec(var ItemJournalBatch: Record "Item Journal Batch"): Text
+    begin
+        exit(StrSubstNo(ItemJournalBatchTypeCondnTxt, Encode(ItemJournalBatch.GetView(false))));
     end;
 
     local procedure BuildRequisitionWkshBatchTypeConditions(): Text

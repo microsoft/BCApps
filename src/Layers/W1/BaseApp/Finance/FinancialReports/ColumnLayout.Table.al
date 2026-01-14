@@ -14,6 +14,15 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.Period;
 
+/// <summary>
+/// Defines column layout structure for account schedule reports and analysis.
+/// Contains period formulas, display options, dimension filters, and calculation parameters for financial reporting columns.
+/// </summary>
+/// <remarks>
+/// Key relationships: Column Layout Name, Account Schedule Line calculations, Analysis Views.
+/// Extensible via table extensions for custom column types and additional filtering dimensions.
+/// Integrates with budget systems, cost accounting, and multi-dimensional analysis reporting.
+/// </remarks>
 table 334 "Column Layout"
 {
     Caption = 'Column Layout';
@@ -21,36 +30,60 @@ table 334 "Column Layout"
 
     fields
     {
+        /// <summary>
+        /// Column layout name that groups related column definitions for account schedule reporting.
+        /// </summary>
         field(1; "Column Layout Name"; Code[10])
         {
             Caption = 'Column Layout Name';
             TableRelation = "Column Layout Name";
         }
+        /// <summary>
+        /// Unique line number identifying column position within the column layout.
+        /// </summary>
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
         }
+        /// <summary>
+        /// Column identifier displayed in account schedule headers and used for formula references.
+        /// </summary>
         field(3; "Column No."; Code[10])
         {
             Caption = 'Column No.';
         }
+        /// <summary>
+        /// Display header text shown at the top of the column in account schedule reports.
+        /// </summary>
         field(4; "Column Header"; Text[30])
         {
             Caption = 'Column Header';
         }
+        /// <summary>
+        /// Column type determining calculation method and data source for the column values.
+        /// </summary>
         field(5; "Column Type"; Enum "Column Layout Type")
         {
             Caption = 'Column Type';
             InitValue = "Net Change";
         }
+        /// <summary>
+        /// Ledger entry type filter constraining calculation to specific entry sources such as G/L or budget entries.
+        /// </summary>
         field(6; "Ledger Entry Type"; Enum "Column Layout Entry Type")
         {
             Caption = 'Ledger Entry Type';
         }
+        /// <summary>
+        /// Amount type specifying whether to use net change, balance, or budget amounts in calculations.
+        /// </summary>
         field(7; "Amount Type"; Enum "Account Schedule Amount Type")
         {
             Caption = 'Amount Type';
         }
+        /// <summary>
+        /// Formula expression for calculating column values using references to other columns and mathematical operations.
+        /// </summary>
         field(8; Formula; Code[80])
         {
             Caption = 'Formula';
@@ -62,6 +95,9 @@ table 334 "Column Layout"
                 TempAccSchedLine.CheckFormula(Formula);
             end;
         }
+        /// <summary>
+        /// Date formula for calculating comparison periods relative to the current date filter in account schedule reporting.
+        /// </summary>
         field(9; "Comparison Date Formula"; DateFormula)
         {
             Caption = 'Comparison Date Formula';
@@ -72,25 +108,40 @@ table 334 "Column Layout"
                     Validate("Comparison Period Formula", '');
             end;
         }
+        /// <summary>
+        /// Reverses the sign of calculated amounts for display purposes in financial reports.
+        /// </summary>
         field(10; "Show Opposite Sign"; Boolean)
         {
             Caption = 'Show Opposite Sign';
         }
+        /// <summary>
+        /// Display option controlling when column values are shown based on positive, negative, or zero values.
+        /// </summary>
         field(11; Show; Enum "Column Layout Show")
         {
             Caption = 'Show';
             InitValue = Always;
         }
+        /// <summary>
+        /// Rounding factor applied to column values for simplified display in financial reports.
+        /// </summary>
         field(12; "Rounding Factor"; Enum "Analysis Rounding Factor")
         {
             Caption = 'Rounding Factor';
         }
+        /// <summary>
+        /// Controls display of indented account schedule lines within the column calculations.
+        /// </summary>
         field(13; "Show Indented Lines"; Option)
         {
             Caption = 'Show Indented Lines';
             OptionCaption = 'All,Indented Only,Non-Indented Only';
             OptionMembers = All,"Indented Only","Non-Indented Only";
         }
+        /// <summary>
+        /// Period formula expression for advanced period calculations with locale-specific formatting support.
+        /// </summary>
         field(14; "Comparison Period Formula"; Code[20])
         {
             Caption = 'Comparison Period Formula';
@@ -105,53 +156,83 @@ table 334 "Column Layout"
                     Clear("Comparison Date Formula");
             end;
         }
+        /// <summary>
+        /// Business unit filter for consolidation reporting and multi-company financial analysis.
+        /// </summary>
         field(15; "Business Unit Totaling"; Text[80])
         {
             Caption = 'Business Unit Totaling';
             TableRelation = "Business Unit";
             ValidateTableRelation = false;
         }
+        /// <summary>
+        /// Dimension 1 filter for detailed financial analysis by primary classification dimension.
+        /// </summary>
         field(16; "Dimension 1 Totaling"; Text[80])
         {
             AccessByPermission = TableData Dimension = R;
             CaptionClass = GetCaptionClass(5);
             Caption = 'Dimension 1 Totaling';
         }
+        /// <summary>
+        /// Dimension 2 filter for detailed financial analysis by secondary classification dimension.
+        /// </summary>
         field(17; "Dimension 2 Totaling"; Text[80])
         {
             AccessByPermission = TableData Dimension = R;
             CaptionClass = GetCaptionClass(6);
             Caption = 'Dimension 2 Totaling';
         }
+        /// <summary>
+        /// Dimension 3 filter for extended dimensional analysis using analysis view configuration.
+        /// </summary>
         field(18; "Dimension 3 Totaling"; Text[80])
         {
             AccessByPermission = TableData "Dimension Combination" = R;
             CaptionClass = GetCaptionClass(7);
             Caption = 'Dimension 3 Totaling';
         }
+        /// <summary>
+        /// Dimension 4 filter for extended dimensional analysis using analysis view configuration.
+        /// </summary>
         field(19; "Dimension 4 Totaling"; Text[80])
         {
             AccessByPermission = TableData "Dimension Combination" = R;
             CaptionClass = GetCaptionClass(8);
             Caption = 'Dimension 4 Totaling';
         }
+        /// <summary>
+        /// Cost center filter for cost accounting analysis and departmental reporting.
+        /// </summary>
         field(20; "Cost Center Totaling"; Text[80])
         {
             Caption = 'Cost Center Totaling';
         }
+        /// <summary>
+        /// Cost object filter for cost accounting analysis and project-based reporting.
+        /// </summary>
         field(21; "Cost Object Totaling"; Text[80])
         {
             Caption = 'Cost Object Totaling';
         }
+        /// <summary>
+        /// Locale identifier for period formula parsing to support international date format requirements.
+        /// </summary>
         field(30; "Comparison Period Formula LCID"; Integer)
         {
             Caption = 'Comparison Period Formula LCID';
         }
+        /// <summary>
+        /// G/L budget name for budget-based column calculations and variance analysis.
+        /// </summary>
         field(35; "Budget Name"; Code[10])
         {
             Caption = 'Budget Name';
             TableRelation = "G/L Budget Name";
         }
+        /// <summary>
+        /// Hides currency symbol display in formula-based columns for simplified numeric presentation.
+        /// </summary>
         field(40; "Hide Currency Symbol"; Boolean)
         {
             Caption = 'Hide Currency Symbol';
@@ -162,11 +243,17 @@ table 334 "Column Layout"
                     TestField("Column Type", "Column Layout Type"::Formula);
             end;
         }
+        /// <summary>
+        /// Controls how date filter ending date is displayed in column headers for period identification.
+        /// </summary>
         field(41; "Include Date In Header"; Enum ColumnHeaderDateType)
         {
             Caption = 'Include Date in Column Header';
             ToolTip = 'Specifies how the ending date of the Date Filter applied to the column is displayed on the Column Header.';
         }
+        /// <summary>
+        /// G/L account filter constraining calculations to specific chart of accounts ranges.
+        /// </summary>
         field(42; "G/L Account Totaling"; Text[250])
         {
             Caption = 'G/L Account Totaling';
@@ -229,6 +316,16 @@ table 334 "Column Layout"
 #pragma warning restore AA0074
 
 #if not CLEAN27
+    /// <summary>
+    /// Parses period formula expression into component values for period calculation processing.
+    /// </summary>
+    /// <param name="FormulaExpression">Period formula code to parse into components</param>
+    /// <param name="Steps">Number of period steps calculated from formula</param>
+    /// <param name="Type">Period type determined from formula expression</param>
+    /// <param name="RangeFromType">Starting range type for period calculation</param>
+    /// <param name="RangeToType">Ending range type for period calculation</param>
+    /// <param name="RangeFromInt">Starting range integer value</param>
+    /// <param name="RangeToInt">Ending range integer value</param>
     [Obsolete('Moved to codeunit Period Formula Parser', '27.0')]
     procedure ParsePeriodFormula(FormulaExpression: Code[20]; var Steps: Integer; var Type: Enum "Period Type"; var RangeFromType: Enum "Period Formula Range"; var RangeToType: Enum "Period Formula Range"; var RangeFromInt: Integer; var RangeToInt: Integer)
     var
@@ -246,6 +343,13 @@ table 334 "Column Layout"
     end;
 #endif
 
+    /// <summary>
+    /// Opens dimension value lookup dialog and returns selected dimension filter expression.
+    /// Handles both standard dimensions and cost accounting dimension mappings.
+    /// </summary>
+    /// <param name="DimNo">Dimension number identifying which dimension to filter (1-4)</param>
+    /// <param name="Text">Dimension filter text updated with selected values</param>
+    /// <returns>True if dimension values were selected, false if lookup was cancelled</returns>
     procedure LookUpDimFilter(DimNo: Integer; var Text: Text[250]) Result: Boolean
     var
         DimVal: Record "Dimension Value";
@@ -285,6 +389,12 @@ table 334 "Column Layout"
         exit(false)
     end;
 
+    /// <summary>
+    /// Retrieves caption class text for dimension field captions based on analysis view configuration.
+    /// Supports dynamic field captioning for dimensions 1-4 in financial reporting interfaces.
+    /// </summary>
+    /// <param name="AnalysisViewDimType">Analysis view dimension type number (1-4) for caption lookup</param>
+    /// <returns>Caption class text for dimension field display formatting</returns>
     procedure GetCaptionClass(AnalysisViewDimType: Integer) Result: Text[250]
     var
         IsHandled: Boolean;
@@ -383,6 +493,10 @@ table 334 "Column Layout"
     end;
 
 #if not CLEAN27
+    /// <summary>
+    /// Retrieves current period name for display purposes in financial reporting.
+    /// </summary>
+    /// <returns>Period name code for current period identification</returns>
     [Obsolete('Moved to codeunit Period Formula Parser', '27.0')]
     procedure GetPeriodName(): Code[10]
     var
@@ -392,11 +506,29 @@ table 334 "Column Layout"
     end;
 #endif
 
+    /// <summary>
+    /// Integration event raised before retrieving caption class for dimension field display.
+    /// </summary>
+    /// <param name="ColumnLayout">Column layout record containing dimension configuration</param>
+    /// <param name="ColumnLayoutName">Column layout name with analysis view settings</param>
+    /// <param name="AnalysisViewDimType">Dimension type number for caption lookup</param>
+    /// <param name="Result">Caption class result to be returned</param>
+    /// <param name="IsHandled">Set to true to override standard caption class logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetCaptionClass(var ColumnLayout: Record "Column Layout"; ColumnLayoutName: Record "Column Layout Name"; AnalysisViewDimType: Integer; var Result: Text[250]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before opening dimension filter lookup dialog.
+    /// </summary>
+    /// <param name="ColumnLayout">Column layout record requesting dimension filter</param>
+    /// <param name="DimNo">Dimension number being filtered</param>
+    /// <param name="Text">Current dimension filter text</param>
+    /// <param name="ColumnLayoutName">Column layout name with analysis view context</param>
+    /// <param name="Result">Lookup result to be returned</param>
+    /// <param name="IsHandled">Set to true to override standard dimension lookup</param>
+    /// <param name="AnalysisView">Analysis view record with dimension configuration</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookUpDimFilter(var ColumnLayout: Record "Column Layout"; DimNo: Integer; var Text: Text[250]; ColumnLayoutName: Record "Column Layout Name"; var Result: Boolean; var IsHandled: Boolean; var AnalysisView: Record "Analysis View")
     begin

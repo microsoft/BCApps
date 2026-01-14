@@ -1,11 +1,11 @@
 #pragma warning disable AS0018, AS0049, AS0072
 namespace System.IO;
 
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Company;
 using Microsoft.Utilities;
 using System.Environment.Configuration;
 using System.Threading;
-using Microsoft.Finance.GeneralLedger.Setup;
 
 codeunit 101950 "Import Config Package Files"
 {

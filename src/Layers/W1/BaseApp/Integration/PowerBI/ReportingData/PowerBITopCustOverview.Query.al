@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Integration.PowerBI;
 
-using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Receivables;
 
 query 59 "Power BI Top Cust. Overview"
 {

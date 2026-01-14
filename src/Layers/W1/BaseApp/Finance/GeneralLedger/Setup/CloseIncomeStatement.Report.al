@@ -17,6 +17,15 @@ using Microsoft.Inventory.Setup;
 using Microsoft.Utilities;
 using System.Globalization;
 
+/// <summary>
+/// Year-end report that closes income statement accounts by transferring balances to retained earnings.
+/// Processes G/L entries, creates closing entries with configurable dimensions, and maintains audit trail.
+/// </summary>
+/// <remarks>
+/// Key features: Closes by business unit and dimensions, validates posting rules, supports test mode.
+/// Integration events available for customizing closing entry creation and dimension handling.
+/// Critical year-end process affecting all financial reporting and compliance requirements.
+/// </remarks>
 report 94 "Close Income Statement"
 {
     AdditionalSearchTerms = 'year closing statement,close accounting period statement,close fiscal year statement';
@@ -564,6 +573,11 @@ report 94 "Close Income Statement"
         ClosePerBusUnit: Boolean;
         PostToRetainedEarningsAcc: Option Balance,Details;
 
+    /// <summary>
+    /// Validates the end date for the fiscal year closing process.
+    /// </summary>
+    /// <param name="RealMode">True for real validation, false for testing scenarios</param>
+    /// <returns>True if validation passes, false otherwise</returns>
     local procedure ValidateEndDate(RealMode: Boolean) Result: Boolean
     var
         OK: Boolean;
@@ -599,6 +613,10 @@ report 94 "Close Income Statement"
         exit(true);
     end;
 
+    /// <summary>
+    /// Validates the journal line and generates a document number if necessary.
+    /// </summary>
+    /// <returns>True if validation passes, false otherwise</returns>
     local procedure ValidateJnl()
     var
         NoSeries: Codeunit "No. Series";
@@ -609,6 +627,12 @@ report 94 "Close Income Statement"
                 DocNo := NoSeries.PeekNextNo(GenJnlBatch."No. Series", EndDateReq);
     end;
 
+    /// <summary>
+    /// Handles the generation and posting of the general journal line.
+    /// </summary>
+    /// <remarks>
+    /// This includes setting up additional currency fields and calling the posting routine.
+    /// </remarks>
     local procedure HandleGenJnlLine()
     var
         NoSeries: Codeunit "No. Series";
@@ -635,6 +659,11 @@ report 94 "Close Income Statement"
                 GenJnlLine.Insert();
     end;
 
+    /// <summary>
+    /// Calculates the sum of amounts in the G/L Entry record based on the current filter.
+    /// </summary>
+    /// <param name="GLEntrySource">Source G/L Entry record</param>
+    /// <param name="Offset">Row offset for the calculation</param>
     local procedure CalcSumsInFilter(var GLEntrySource: Record "G/L Entry"; var Offset: Integer)
     var
         GLEntry: Record "G/L Entry";
@@ -661,6 +690,12 @@ report 94 "Close Income Statement"
         Offset := GLEntry.Count - 1;
     end;
 
+    /// <summary>
+    /// Retrieves and inserts G/L Entry dimensions into the dimension buffer record.
+    /// </summary>
+    /// <param name="EntryNo">Entry number to retrieve dimensions for</param>
+    /// <param name="DimBuf">Dimension buffer record to populate</param>
+    /// <param name="DimensionSetID">Dimension set ID to filter by</param>
     local procedure GetGLEntryDimensions(EntryNo: Integer; var DimBuf: Record "Dimension Buffer"; DimensionSetID: Integer)
     var
         DimSetEntry: Record "Dimension Set Entry";
@@ -676,6 +711,11 @@ report 94 "Close Income Statement"
             until DimSetEntry.Next() = 0;
     end;
 
+    /// <summary>
+    /// Validates selected dimension posting rules and returns an error message when mandatory dimensions are missing.
+    /// </summary>
+    /// <param name="SelectedDim">Selected dimensions to validate</param>
+    /// <returns>Error text to present to the user; empty when validation passes</returns>
     procedure CheckDimPostingRules(var SelectedDim: Record "Selected Dimension"): Text[1024]
     var
         DefaultDim: Record "Default Dimension";
@@ -726,6 +766,13 @@ report 94 "Close Income Statement"
         exit(InvtPeriod.IsInvtPeriodClosed(AccPeriod."Starting Date"));
     end;
 
+    /// <summary>
+    /// Initializes the report for test execution with specified parameters.
+    /// </summary>
+    /// <param name="EndDate">Fiscal year end date for closing</param>
+    /// <param name="GenJournalLine">General journal line template for closing entries</param>
+    /// <param name="GLAccount">Retained earnings G/L account for closing transfers</param>
+    /// <param name="CloseByBU">Whether to close by business unit</param>
     procedure InitializeRequestTest(EndDate: Date; GenJournalLine: Record "Gen. Journal Line"; GLAccount: Record "G/L Account"; CloseByBU: Boolean)
     begin
         EndDateReq := EndDate;
@@ -756,41 +803,89 @@ report 94 "Close Income Statement"
         exit(true);
     end;
 
+    /// <summary>
+    /// Integration event fired before checking dimension posting rules during income statement closing.
+    /// </summary>
+    /// <param name="SelectedDimension">Selected dimensions for validation</param>
+    /// <param name="ErrorText">Error message text to be returned if validation fails</param>
+    /// <param name="Handled">Set to true if custom validation is performed</param>
+    /// <param name="GenJnlLine">General journal line being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckDimPostingRules(var SelectedDimension: Record "Selected Dimension"; var ErrorText: Text[1024]; var Handled: Boolean; GenJnlLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event fired before handling general journal line during closing process.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeHandleGenJnlLine(var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event fired after populating general journal line fields for G/L account closing entries.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being populated</param>
+    /// <param name="RetainedEarningsGLAcc">Retained earnings G/L account used for closing</param>
     [IntegrationEvent(false, false)]
     local procedure OnGLAccountOnOnPostDataItemOnAfterGenJnlLinePopulateFields(var GenJournalLine: Record "Gen. Journal Line"; RetainedEarningsGLAcc: Record "G/L Account")
     begin
     end;
 
+    /// <summary>
+    /// Integration event fired after updating dimensions on general journal line during posting.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line with updated dimensions</param>
+    /// <param name="ClosePerGlobalDim1">Whether closing per global dimension 1</param>
+    /// <param name="ClosePerGlobalDim2">Whether closing per global dimension 2</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostDataItemOnAfterGenJnlLineDimUpdated(var GenJnlLine: Record "Gen. Journal Line"; ClosePerGlobalDim1: Boolean; ClosePerGlobalDim2: Boolean; var TempEntryNoAmountBuffer: Record "Entry No. Amount Buffer" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event fired before checking dimension posting rules in pre-report processing.
+    /// </summary>
+    /// <param name="IsHandled">Set to true if custom handling is performed</param>
+    /// <param name="TempSelectedDim">Temporary selected dimensions table</param>
+    /// <param name="GenJnlLine">General journal line template</param>
     [IntegrationEvent(false, false)]
     local procedure OnPreReportOnBeforeCheckDimPostingRules(var IsHandled: Boolean; var TempSelectedDim: Record "Selected Dimension" temporary; GenJnlLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event fired after processing G/L entry into amount buffer during closing.
+    /// </summary>
+    /// <param name="TempEntryNoAmountBuffer">Temporary entry number amount buffer</param>
+    /// <param name="GEntry">G/L entry being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnGLEntryOnAfterGetRecordOnAfterEntryNoAmountBuf(var TempEntryNoAmountBuffer: Record "Entry No. Amount Buffer" temporary; GEntry: Record "G/L Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event fired after handling general journal line during G/L entry processing.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line being handled</param>
+    /// <param name="TempEntryNoAmountBuf">Temporary entry number amount buffer</param>
     [IntegrationEvent(false, false)]
     local procedure OnGLEntryOnPostDataItemOnAfterHandleGenJnlLine(var GenJnlLine: Record "Gen. Journal Line"; var TempEntryNoAmountBuf: Record "Entry No. Amount Buffer" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event fired before validating the end date for income statement closing.
+    /// </summary>
+    /// <param name="EndDateReq">Requested end date for closing</param>
+    /// <param name="FiscalYearStartDate">Fiscal year start date</param>
+    /// <param name="FiscYearClosingDate">Fiscal year closing date</param>
+    /// <param name="OK">Validation result</param>
+    /// <param name="Result">Overall validation result</param>
+    /// <param name="RealMode">Whether running in real mode vs test mode</param>
+    /// <param name="IsHandled">Set to true if custom validation is performed</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateEndDate(EndDateReq: Date; var FiscalYearStartDate: Date; var FiscYearClosingDate: Date; var OK: Boolean; var Result: Boolean; RealMode: Boolean; var IsHandled: Boolean);
     begin

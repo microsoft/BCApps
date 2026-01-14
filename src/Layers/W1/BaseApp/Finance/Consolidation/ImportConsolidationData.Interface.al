@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Consolidation;
 
+/// <summary>
+/// Interface defining contract for importing consolidation data from various sources.
+/// Provides standardized method for business unit consolidation data retrieval from different providers.
+/// </summary>
+/// <remarks>
+/// Extensibility interface enabling custom consolidation data import providers (database, API, file).
+/// Implemented by consolidation import codeunits to provide unified data import functionality.
+/// Supports multiple consolidation data sources through consistent interface pattern.
+/// </remarks>
 interface "Import Consolidation Data"
 {
     Access = Public;

@@ -1,12 +1,12 @@
 ﻿namespace System.Security.AccessControl;
 
+using System;
 using System.Azure.Identity;
 using System.Environment;
 using System.Environment.Configuration;
 using System.IO;
 using System.Reflection;
 using System.Security.User;
-using System;
 
 codeunit 9852 "Effective Permissions Mgt."
 {
@@ -855,4 +855,3 @@ codeunit 9852 "Effective Permissions Mgt."
     begin
     end;
 }
-

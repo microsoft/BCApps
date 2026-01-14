@@ -427,16 +427,21 @@ page 434 Reminder
                     RunObject = Report "Customer - Detail Trial Bal.";
                     ToolTip = 'View the balance for customers with balances on a specified date. The report can be used at the close of an accounting period, for example, or for an audit.';
                 }
+#if not CLEAN28
                 action("Aged Accounts Receivable")
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Aged Accounts Receivable';
+                    Caption = 'Aged Accounts Receivable (Obsolete)';
                     Image = "Report";
                     //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                     //PromotedCategory = "Report";
                     RunObject = Report "Aged Accounts Receivable";
                     ToolTip = 'View an overview of when customer payments are due or overdue, divided into four periods. You must specify the date you want aging calculated from and the length of the period that each column will contain data for.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the report Aged Accounts Receivable (Excel). This report will be removed in a future release.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
                 action("Customer - Balance to Date")
                 {
                     ApplicationArea = Basic, Suite;

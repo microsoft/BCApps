@@ -11,6 +11,16 @@ using Microsoft.Foundation.Period;
 using System.DataAdministration;
 using System.Utilities;
 
+/// <summary>
+/// Compresses G/L budget entries by aggregating amounts within specified date periods to optimize database performance.
+/// Reduces budget data volume while maintaining analytical integrity through configurable compression rules and dimension retention.
+/// </summary>
+/// <remarks>
+/// Key capabilities: Date-based compression, dimension-aware aggregation, configurable retention rules, and audit trail maintenance.
+/// Use cases: Database optimization, historical data archival, performance improvement, and storage cost reduction.
+/// Safety: Comprehensive backup recommendations, rollback capabilities, and pre-compression validation checks.
+/// Performance: Batch processing with progress tracking and optimized sorting for large budget datasets.
+/// </remarks>
 report 97 "Date Compr. G/L Budget Entries"
 {
     Caption = 'Date Compr. G/L Budget Entries';
@@ -348,6 +358,10 @@ report 97 "Date Compr. G/L Budget Entries"
             DataArchive.SaveRecord(GLBudgetEntry);
     end;
 
+    /// <summary>
+    /// Compresses collected G/L budget entries with matching dimension combinations.
+    /// Processes entries from dimension buffer, summarizes amounts, and creates consolidated entries.
+    /// </summary>
     procedure ComprCollectedEntries()
     var
         GLBudgetEntry: Record "G/L Budget Entry";
@@ -374,6 +388,11 @@ report 97 "Date Compr. G/L Budget Entries"
         DimBufMgt.DeleteAllDimEntryNo();
     end;
 
+    /// <summary>
+    /// Initializes a new G/L budget entry with default values for date compression.
+    /// Sets up entry number, budget name, account, date, and retained dimension codes based on compression settings.
+    /// </summary>
+    /// <param name="NewGLBudgetEntry">G/L budget entry record to initialize with compression values</param>
     procedure InitNewEntry(var NewGLBudgetEntry: Record "G/L Budget Entry")
     begin
         LastEntryNo := LastEntryNo + 1;
@@ -443,11 +462,32 @@ report 97 "Date Compr. G/L Budget Entries"
         RetainDimText := DimSelectionBuf.GetDimSelectionText(3, REPORT::"Date Compr. G/L Budget Entries", '');
     end;
 
+    /// <summary>
+    /// Initializes compression request parameters with default data archive settings.
+    /// Sets up date range, period length, description, and dimension retention options for budget entry compression.
+    /// </summary>
+    /// <param name="StartingDate">First date for compression range</param>
+    /// <param name="EndingDate">Last date for compression range</param>
+    /// <param name="PeriodLength">Compression period length option</param>
+    /// <param name="Description">Description for compressed entries</param>
+    /// <param name="RetainBusinessUnitCode">Whether to retain business unit code during compression</param>
+    /// <param name="RetainDimensionText">Dimension retention configuration text</param>
     procedure InitializeRequest(StartingDate: Date; EndingDate: Date; PeriodLength: Option; Description: Text[100]; RetainBusinessUnitCode: Boolean; RetainDimensionText: Text[250])
     begin
         InitializeRequest(StartingDate, EndingDate, PeriodLength, Description, RetainBusinessUnitCode, RetainDimensionText, true);
     end;
 
+    /// <summary>
+    /// Initializes compression request parameters with configurable data archive settings.
+    /// Sets up date range, period length, description, dimension retention options, and data archive usage for budget entry compression.
+    /// </summary>
+    /// <param name="StartingDate">First date for compression range</param>
+    /// <param name="EndingDate">Last date for compression range</param>
+    /// <param name="PeriodLength">Compression period length option</param>
+    /// <param name="Description">Description for compressed entries</param>
+    /// <param name="RetainBusinessUnitCode">Whether to retain business unit code during compression</param>
+    /// <param name="RetainDimensionText">Dimension retention configuration text</param>
+    /// <param name="DoUseDataArchive">Whether to archive deleted entries during compression</param>
     procedure InitializeRequest(StartingDate: Date; EndingDate: Date; PeriodLength: Option; Description: Text[100]; RetainBusinessUnitCode: Boolean; RetainDimensionText: Text[250]; DoUseDataArchive: Boolean)
     begin
         InitializeParameter();

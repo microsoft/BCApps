@@ -6,6 +6,16 @@ namespace Microsoft.Finance.GeneralLedger.Journal;
 
 using Microsoft.Finance.Currency;
 
+/// <summary>
+/// Provides functionality to insert LCY rounding correction lines in general journals to balance foreign currency transactions.
+/// Calculates and creates rounding adjustment entries when foreign currency amounts don't balance perfectly in local currency.
+/// </summary>
+/// <remarks>
+/// Core functionality for multi-currency journal posting accuracy. Ensures journal batches balance correctly in local currency
+/// when foreign currency transactions create minor rounding differences during currency conversion.
+/// Key features: Automatic rounding detection, correction line creation, currency-specific rounding account assignment.
+/// Integration: Uses currency setup rounding accounts and general ledger posting groups for correction entries.
+/// </remarks>
 codeunit 407 "Adjust Gen. Journal Balance"
 {
     TableNo = "Gen. Journal Line";
@@ -150,16 +160,35 @@ codeunit 407 "Adjust Gen. Journal Balance"
             until TempCurrTotalBuffer.Next() = 0;
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting currency rounding correction lines into the general journal.
+    /// Enables custom modification of correction line data before insertion.
+    /// </summary>
+    /// <param name="NewGenJnlLine">Correction journal line being prepared for insertion</param>
+    /// <param name="GenJnlLine2">Current journal line context</param>
+    /// <param name="PrevGenJnlLine2">Previous journal line used as template</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGenJnlLineInsert(var NewGenJnlLine: Record "Gen. Journal Line"; GenJnlLine2: Record "Gen. Journal Line"; PrevGenJnlLine2: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised in correction line insertion process before the new correction line is inserted.
+    /// Provides final opportunity to modify correction line data based on journal context.
+    /// </summary>
+    /// <param name="GenJnlLine2">Current journal line context for correction</param>
+    /// <param name="PrevGenJnlLine2">Previous journal line used as template</param>
+    /// <param name="NewGenJnlLine">Correction line ready for insertion</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertCorrectionLinesOnBeforeNewGenJnlLineInsert(var GenJnlLine2: Record "Gen. Journal Line"; var PrevGenJnlLine2: Record "Gen. Journal Line"; var NewGenJnlLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised in the main process before finding general journal lines for balance adjustment.
+    /// Enables custom filtering or setup of journal line selection criteria.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line record with filters applied</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforeGenJnlLineFind(var GenJnlLine: Record "Gen. Journal Line")
     begin

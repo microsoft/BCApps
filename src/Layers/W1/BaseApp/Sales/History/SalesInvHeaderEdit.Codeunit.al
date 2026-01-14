@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
-using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Receivables;
 
 codeunit 1409 "Sales Inv. Header - Edit"
 {

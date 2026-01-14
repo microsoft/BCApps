@@ -1,13 +1,13 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Planning;
 
+using Microsoft.Assembly.Document;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
-using Microsoft.Assembly.Document;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
 
@@ -349,24 +349,6 @@ codeunit 99000840 "Plng. Component-Reserve"
         CreateBindingReservation(PlanningComponent, Description, ExpectedDate, ReservQty, ReservQtyBase);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure BindToTracking()', '25.0')]
-    procedure BindToRequisition(PlanningComponent: Record "Planning Component"; RequisitionLine: Record "Requisition Line"; ReservQty: Decimal; ReservQtyBase: Decimal)
-    var
-        TrackingSpecification: Record "Tracking Specification";
-    begin
-        if PlanningComponent."Location Code" <> RequisitionLine."Location Code" then
-            exit;
-
-        SetBinding("Reservation Binding"::"Order-to-Order");
-        TrackingSpecification.InitTrackingSpecification(
-          DATABASE::"Requisition Line", 0,
-          RequisitionLine."Worksheet Template Name", RequisitionLine."Journal Batch Name", 0, RequisitionLine."Line No.",
-          RequisitionLine."Variant Code", RequisitionLine."Location Code", RequisitionLine."Qty. per Unit of Measure");
-        CreateReservationSetFrom(TrackingSpecification);
-        CreateBindingReservation(PlanningComponent, RequisitionLine.Description, RequisitionLine."Ending Date", ReservQty, ReservQtyBase);
-    end;
-#endif
 
     [EventSubscriber(ObjectType::Page, PAGE::Reservation, 'OnGetQtyPerUOMFromSourceRecRef', '', false, false)]
     local procedure OnGetQtyPerUOMFromSourceRecRef(SourceRecRef: RecordRef; var QtyPerUOM: Decimal; var QtyReserved: Decimal; var QtyReservedBase: Decimal; var QtyToReserve: Decimal; var QtyToReserveBase: Decimal)
@@ -615,9 +597,6 @@ codeunit 99000840 "Plng. Component-Reserve"
           PlanningComponent."Net Quantity (Base)", 0, 0);
 
         OnAfterInitFromProdPlanningComp(TrackingSpecification, PlanningComponent);
-#if not CLEAN25
-        TrackingSpecification.RunOnAfterInitFromProdPlanningComp(TrackingSpecification, PlanningComponent);
-#endif
     end;
 
     [IntegrationEvent(false, false)]

@@ -1,3 +1,4 @@
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -17,9 +18,12 @@ report 5607 "Fixed Asset - Projected Value"
     DefaultLayout = RDLC;
     RDLCLayout = './FixedAssets/Reports/FixedAssetProjectedValue.rdlc';
     ApplicationArea = FixedAssets;
-    Caption = 'Fixed Asset Projected Value';
+    Caption = 'Fixed Asset Projected Value (Obsolete)';
     UsageCategory = ReportsAndAnalysis;
     AllowScheduling = false;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'This report has been replaced by the report Fixed Asset Projected Value (Excel). This report will be removed in a future release.';
+    ObsoleteTag = '28.0';
 
     dataset
     {
@@ -479,8 +483,8 @@ report 5607 "Fixed Asset - Projected Value"
     requestpage
     {
         SaveValues = true;
-        AboutTitle = 'About Fixed Asset Projected Value';
-        AboutText = '**Fixed Asset Projected Value** Report is a detailed analysis that forecasts the future value of an organization''s fixed assets over a specified period. This is specially useful where there are multiple depreciation methods and there is need to review the projected values of depreciation.';
+        AboutTitle = 'About Fixed Asset Projected Value (Obsolete)';
+        AboutText = '**Fixed Asset Projected Value** Report is a detailed analysis that forecasts the future value of an organization''s fixed assets over a specified period. This is specially useful where there are multiple depreciation methods and there is need to review the projected values of depreciation.** This report is obsolete and will be removed in a future release.** Please refer to the report documentation for alternative ways to retrieve this information.';
 
         layout
         {
@@ -1163,3 +1167,4 @@ report 5607 "Fixed Asset - Projected Value"
     end;
 }
 
+#endif

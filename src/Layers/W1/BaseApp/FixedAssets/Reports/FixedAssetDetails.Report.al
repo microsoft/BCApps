@@ -1,3 +1,4 @@
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -14,9 +15,12 @@ report 5604 "Fixed Asset - Details"
     DefaultLayout = RDLC;
     RDLCLayout = './FixedAssets/Reports/FixedAssetDetails.rdlc';
     ApplicationArea = FixedAssets;
-    Caption = 'Fixed Asset Details';
+    Caption = 'Fixed Asset Details (Obsolete)';
     UsageCategory = ReportsAndAnalysis;
     WordMergeDataItem = "Fixed Asset";
+    ObsoleteState = Pending;
+    ObsoleteReason = 'This report has been replaced by the report Fixed Asset Details (Excel). This report will be removed in a future release.';
+    ObsoleteTag = '28.0';
 
     dataset
     {
@@ -156,8 +160,8 @@ report 5604 "Fixed Asset - Details"
     requestpage
     {
         SaveValues = true;
-        AboutTitle = 'About Fixed Asset Details';
-        AboutText = 'The **Fixed Asset Details** report provides a comprehensive overview of all relevant information pertaining to each fixed asset owned by an organization. This report serves as a detailed transaction information and reference tool for asset management.';
+        AboutTitle = 'About Fixed Asset Details (Obsolete)';
+        AboutText = 'The **Fixed Asset Details** report provides a comprehensive overview of all relevant information pertaining to each fixed asset owned by an organization. This report serves as a detailed transaction information and reference tool for asset management.** This report is obsolete and will be removed in a future release.** Please refer to the report documentation for alternative ways to retrieve this information.';
 
         layout
         {
@@ -241,3 +245,4 @@ report 5604 "Fixed Asset - Details"
     end;
 }
 
+#endif

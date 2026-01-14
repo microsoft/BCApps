@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,11 +25,13 @@ table 5218 "Human Resources Setup"
         field(2; "Employee Nos."; Code[20])
         {
             Caption = 'Employee Nos.';
+            ToolTip = 'Specifies the number series code to use when assigning numbers to employees.';
             TableRelation = "No. Series";
         }
         field(3; "Base Unit of Measure"; Code[10])
         {
             Caption = 'Base Unit of Measure';
+            ToolTip = 'Specifies the base unit of measure, such as hour or day.';
             TableRelation = "Human Resource Unit of Measure";
 
             trigger OnValidate()
@@ -48,6 +50,7 @@ table 5218 "Human Resources Setup"
         field(4; "Automatically Create Resource"; Boolean)
         {
             Caption = 'Automatically Create Resource';
+            ToolTip = 'Specifies if a resource card is automatically created for an employee that is added to a project, service, or assembly activity.';
             DataClassification = SystemMetadata;
         }
         field(175; "Allow Multiple Posting Groups"; Boolean)

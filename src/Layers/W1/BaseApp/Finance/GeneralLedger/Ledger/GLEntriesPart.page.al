@@ -8,6 +8,15 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Navigate;
 
+/// <summary>
+/// List part page displaying G/L entries with account details and amounts for embedding in other pages.
+/// Provides compact view of G/L entries with key fields and drill-down capabilities.
+/// </summary>
+/// <remarks>
+/// PageType = ListPart. Data source: G/L Entry table sorted by G/L Account No.
+/// Used as embedded part in other pages requiring G/L entry display.
+/// Includes drill-down to G/L Account Card and Navigate functionality.
+/// </remarks>
 page 19 "G/L Entries Part"
 {
     PageType = ListPart;

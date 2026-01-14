@@ -122,6 +122,7 @@ table 30119 "Shpfy Order Line"
         field(18; "Presentment Unit Price"; Decimal)
         {
             Caption = 'Presentment Unit Price';
+            ToolTip = 'Specifies the prices in presentment currency for one unit on the line.';
             DataClassification = SystemMetadata;
             Editable = false;
             AutoFormatType = 1;
@@ -130,6 +131,7 @@ table 30119 "Shpfy Order Line"
         field(19; "Presentment Discount Amount"; Decimal)
         {
             Caption = 'Presentment Discount Amount';
+            ToolTip = 'Specifies the discount amount in presentment currency that is granted for the item on the line.';
             DataClassification = SystemMetadata;
             Editable = false;
             AutoFormatType = 1;
@@ -200,6 +202,9 @@ table 30119 "Shpfy Order Line"
         {
             SumIndexFields = Quantity;
             MaintainSiftIndex = true;
+        }
+        key(Key3; "Line Id")
+        {
         }
     }
 

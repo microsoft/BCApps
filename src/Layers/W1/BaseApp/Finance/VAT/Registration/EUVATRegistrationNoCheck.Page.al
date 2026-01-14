@@ -8,6 +8,10 @@ using Microsoft.Foundation.Address;
 using Microsoft.Sales.Customer;
 using System.Reflection;
 
+/// <summary>
+/// Dialog page for EU VAT registration number validation using VIES service.
+/// Provides manual VAT number verification with country/region selection and validation results display.
+/// </summary>
 page 1339 "EU VAT Registration No Check"
 {
     Caption = 'EU VAT Registration No Check';
@@ -62,11 +66,19 @@ page 1339 "EU VAT Registration No Check"
         Region: Code[10];
         VATRegNo: Text;
 
+    /// <summary>
+    /// Sets the record reference for VAT registration number validation.
+    /// </summary>
+    /// <param name="RecordVariant">Record variant containing VAT registration data</param>
     procedure SetRecordRef(RecordVariant: Variant)
     begin
         DataTypeManagement.GetRecordRef(RecordVariant, GlobalRecordRef);
     end;
 
+    /// <summary>
+    /// Returns the record reference used for VAT registration number validation.
+    /// </summary>
+    /// <param name="RecordRef">Record reference containing validated VAT registration data</param>
     procedure GetRecordRef(var RecordRef: RecordRef)
     begin
         RecordRef := GlobalRecordRef;

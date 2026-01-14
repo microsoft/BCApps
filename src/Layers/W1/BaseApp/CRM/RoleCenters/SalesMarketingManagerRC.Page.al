@@ -21,6 +21,7 @@ using Microsoft.Finance.Deferral;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Integration.D365Sales;
@@ -45,7 +46,6 @@ using Microsoft.Sales.Pricing;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Reports;
 using Microsoft.Sales.Setup;
-using Microsoft.Foundation.Navigate;
 using Microsoft.Utilities;
 
 page 8907 "Sales & Marketing Manager RC"
@@ -269,12 +269,17 @@ page 8907 "Sales & Marketing Manager RC"
                             Caption = 'Customer - Order Detail';
                             RunObject = report "Customer - Order Detail";
                         }
+#if not CLEAN28
                         action("Customer - Top 10 List")
                         {
                             ApplicationArea = Basic, Suite;
-                            Caption = 'Customer Top 10 List';
+                            Caption = 'Customer Top 10 List (Obsolete)';
                             RunObject = report "Customer - Top 10 List";
+                            ObsoleteState = Pending;
+                            ObsoleteReason = 'This report has been replaced by the report Customer - Top List (Excel). This report will be removed in a future release.';
+                            ObsoleteTag = '28.0';
                         }
+#endif
                         action("Customer - Trial Balance")
                         {
                             ApplicationArea = Basic, Suite;

@@ -575,7 +575,13 @@ codeunit 1313 "Correct Posted Purch. Invoice"
     local procedure TestVATPostingSetup(PurchInvLine: Record "Purch. Inv. Line")
     var
         VATPostingSetup: Record "VAT Posting Setup";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeTestVATPostingSetup(PurchInvLine, IsHandled); //due to GST extensions for Indian Version
+        if IsHandled then
+            exit;
+
         VATPostingSetup.Get(PurchInvLine."VAT Bus. Posting Group", PurchInvLine."VAT Prod. Posting Group");
         if VATPostingSetup."VAT Calculation Type" <> VATPostingSetup."VAT Calculation Type"::"Sales Tax" then begin
             VATPostingSetup.TestField("Purchase VAT Account");
@@ -1148,14 +1154,11 @@ codeunit 1313 "Correct Posted Purch. Invoice"
     begin
     end;
 
-#pragma warning disable AS0018
-#if not CLEAN25
-    [Obsolete('OnBeforeTestPurchaseInvoiceHeaderAmount is not supported anymore.', '25.0')]
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeTestPurchaseInvoiceHeaderAmount(var PurchInvHeader: Record "Purch. Inv. Header"; Cancelling: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeTestVATPostingSetup(PurchInvLine: Record "Purch. Inv. Line"; var IsHandled: Boolean)
     begin
     end;
-#endif
+
+#pragma warning disable AS0018
 #pragma warning restore AS0018
 }
-

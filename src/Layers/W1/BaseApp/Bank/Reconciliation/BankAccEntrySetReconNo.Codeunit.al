@@ -7,6 +7,18 @@ namespace Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.Check;
 using Microsoft.Bank.Ledger;
 
+/// <summary>
+/// Manages the application of bank reconciliation lines to bank account and check ledger entries.
+/// Handles the assignment of reconciliation statement numbers to matched entries, supports various
+/// matching relationships (one-to-one, one-to-many, many-to-one), and maintains data integrity
+/// during the reconciliation process. Validates entry states and manages reconciliation buffers.
+/// </summary>
+/// <remarks>
+/// Core functionality includes entry application with relationship validation, reconciliation
+/// number assignment for tracking matched entries, buffer management for complex matching scenarios,
+/// and state validation to ensure data consistency. Supports both automatic and manual matching
+/// workflows with comprehensive error handling and validation checks.
+/// </remarks>
 codeunit 375 "Bank Acc. Entry Set Recon.-No."
 {
     Permissions = TableData "Bank Account Ledger Entry" = rm,
@@ -32,6 +44,16 @@ codeunit 375 "Bank Acc. Entry Set Recon.-No."
         CLEMissmatchErr: Label 'Check Ledger Entry has %1 %2, but Bank Reconciliation Line has %3.', Comment = '%1 - Either "Statement No." or "Statement Line No.", %2 - A number, %3 - a number';
         IgnoreCorruptState: Boolean;
 
+    /// <summary>
+    /// Applies bank reconciliation lines to bank account ledger entries with the specified relationship type.
+    /// Manages the matching process for different reconciliation scenarios including one-to-one, one-to-many,
+    /// and many-to-one relationships. Updates applied amounts, reconciliation numbers, and maintains
+    /// relationship integrity throughout the application process.
+    /// </summary>
+    /// <param name="BankAccReconLine">Bank reconciliation line to apply to ledger entries.</param>
+    /// <param name="BankAccLedgEntry">Bank account ledger entry to match with the reconciliation line.</param>
+    /// <param name="Relation">Type of relationship for the application (One-to-One, One-to-Many, Many-to-One).</param>
+    /// <returns>True if the application was successful; false if constraints prevent the application.</returns>
     procedure ApplyEntries(var BankAccReconLine: Record "Bank Acc. Reconciliation Line"; var BankAccLedgEntry: Record "Bank Account Ledger Entry"; Relation: Option "One-to-One","One-to-Many","Many-to-One"): Boolean
     var
         BankAccRecMatchBuffer: Record "Bank Acc. Rec. Match Buffer";
@@ -123,16 +145,31 @@ codeunit 375 "Bank Acc. Entry Set Recon.-No."
         exit(true);
     end;
 
+    /// <summary>
+    /// Sets the line count for tracking purposes during the reconciliation process.
+    /// Used internally to maintain counters for multi-line reconciliation operations.
+    /// </summary>
+    /// <param name="NewLineCount">The line count value to set for tracking reconciliation operations.</param>
     procedure SetLineCount(NewLineCount: Integer)
     begin
         LineCount := NewLineCount;
     end;
 
+    /// <summary>
+    /// Sets the line number for internal tracking during reconciliation operations.
+    /// Used to maintain state information for complex matching scenarios.
+    /// </summary>
+    /// <param name="NewLineNumber">The line number value to set for tracking purposes.</param>
     internal procedure SetLineNumber(NewLineNumber: Integer)
     begin
         LineNumber := NewLineNumber;
     end;
 
+    /// <summary>
+    /// Sets the applied amount for tracking during reconciliation operations.
+    /// Maintains running totals of amounts applied in multi-entry matching scenarios.
+    /// </summary>
+    /// <param name="NewAppliedAmount">The applied amount value to set for tracking purposes.</param>
     internal procedure SetAppliedAmount(NewAppliedAmount: Integer)
     begin
         AppliedAmount := NewAppliedAmount;
@@ -184,6 +221,17 @@ codeunit 375 "Bank Acc. Entry Set Recon.-No."
         BankAccRecMatchBuffer.DeleteAll();
     end;
 
+    /// <summary>
+    /// Removes applications for bank account ledger entries that participate in many-to-one matching relationships.
+    /// Handles the cleanup of multiple bank reconciliation lines that were matched to a single ledger entry,
+    /// updating applied amounts, entry counts, and removing associated payment matching details.
+    /// </summary>
+    /// <param name="BankAccLedgEntry">Bank account ledger entry to remove from many-to-one matches.</param>
+    /// <remarks>
+    /// This procedure processes all reconciliation lines that reference the specified ledger entry,
+    /// removes their reconciliation numbers, updates their applied amounts and entry counts,
+    /// and deletes associated matching buffers and payment matching details.
+    /// </remarks>
     procedure RemoveApplication(var BankAccLedgEntry: Record "Bank Account Ledger Entry")
     var
         BankAccReconLine: Record "Bank Acc. Reconciliation Line";
@@ -231,6 +279,18 @@ codeunit 375 "Bank Acc. Entry Set Recon.-No."
         BankAccReconciliationLine.Modify();
     end;
 
+    /// <summary>
+    /// Assigns reconciliation statement numbers to bank account and check ledger entries.
+    /// Validates entry states, handles corrupt statement statuses, and updates both bank account
+    /// and associated check ledger entries with statement information for proper reconciliation tracking.
+    /// </summary>
+    /// <param name="BankAccLedgEntry">Bank account ledger entry to assign reconciliation number to.</param>
+    /// <param name="BankAccReconLine">Bank reconciliation line containing statement information to assign.</param>
+    /// <remarks>
+    /// Performs comprehensive validation including open status, empty statement fields, and valid bank account.
+    /// Handles corrupt statement statuses with user confirmation when GUI is available.
+    /// Updates both bank account ledger entries and associated check ledger entries with statement numbers.
+    /// </remarks>
     procedure SetReconNo(var BankAccLedgEntry: Record "Bank Account Ledger Entry"; var BankAccReconLine: Record "Bank Acc. Reconciliation Line")
     var
         CorruptStateStrMenuSelection: Integer;
@@ -289,6 +349,19 @@ codeunit 375 "Bank Acc. Entry Set Recon.-No."
         OnAfterSetReconNo(BankAccLedgEntry);
     end;
 
+    /// <summary>
+    /// Removes reconciliation statement numbers from bank account and check ledger entries.
+    /// Clears statement status, statement numbers, and line numbers from both bank account
+    /// and associated check ledger entries to revert them to an open, unreconciled state.
+    /// </summary>
+    /// <param name="BankAccLedgEntry">Bank account ledger entry to remove reconciliation number from.</param>
+    /// <param name="BankAccReconLine">Bank reconciliation line containing statement information for validation.</param>
+    /// <param name="Test">Whether to perform validation tests on statement numbers and line numbers.</param>
+    /// <remarks>
+    /// When Test is true, validates that entry statement numbers and line numbers match the reconciliation line.
+    /// Handles backward compatibility for reconciliations from version 20.x and earlier.
+    /// Updates both bank account and check ledger entries to reset their reconciliation state.
+    /// </remarks>
     procedure RemoveReconNo(var BankAccLedgEntry: Record "Bank Account Ledger Entry"; var BankAccReconLine: Record "Bank Acc. Reconciliation Line"; Test: Boolean)
     begin
         BankAccLedgEntry.TestField(Open, true);
@@ -327,36 +400,82 @@ codeunit 375 "Bank Acc. Entry Set Recon.-No."
         OnAfterRemoveReconNo(BankAccLedgEntry, Test);
     end;
 
+    /// <summary>
+    /// Integration event raised before applying bank reconciliation entries to ledger entries.
+    /// Allows subscribers to perform custom validation or modifications before the application process begins.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line being applied.</param>
+    /// <param name="BankAccountLedgerEntry">Bank account ledger entry being matched.</param>
+    /// <param name="Relation">Type of relationship for the application (One-to-One, One-to-Many).</param>
+    /// <summary>
+    /// Event raised before applying bank reconciliation entries to ledger entries.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">The bank reconciliation line being applied.</param>
+    /// <param name="BankAccountLedgerEntry">The bank account ledger entry being matched.</param>
+    /// <param name="Relation">The type of relationship being applied.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeApplyEntries(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var BankAccountLedgerEntry: Record "Bank Account Ledger Entry"; var Relation: Option "One-to-One","One-to-Many")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after successfully applying bank reconciliation entries to ledger entries.
+    /// Allows subscribers to perform post-application processing, logging, or additional updates.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line that was applied.</param>
+    /// <param name="BankAccountLedgerEntry">Bank account ledger entry that was matched.</param>
+    /// <param name="Relation">Type of relationship that was applied (One-to-One, One-to-Many).</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterApplyEntries(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var BankAccountLedgerEntry: Record "Bank Account Ledger Entry"; var Relation: Option "One-to-One","One-to-Many")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying a bank reconciliation line.
+    /// Allows subscribers to perform custom validation or field updates before the line is saved.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line about to be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyBankAccReconLine(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before removing an application from a bank account ledger entry.
+    /// Allows subscribers to perform custom validation or pre-processing before application removal.
+    /// </summary>
+    /// <param name="BankAccountLedgerEntry">Bank account ledger entry from which application will be removed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRemoveApplication(var BankAccountLedgerEntry: Record "Bank Account Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after successfully removing an application from a bank account ledger entry.
+    /// Allows subscribers to perform post-removal processing, cleanup, or additional updates.
+    /// </summary>
+    /// <param name="BankAccountLedgerEntry">Bank account ledger entry from which application was removed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterRemoveApplication(var BankAccountLedgerEntry: Record "Bank Account Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after successfully setting a reconciliation number on a bank account ledger entry.
+    /// Allows subscribers to perform post-assignment processing, notifications, or additional updates.
+    /// </summary>
+    /// <param name="BankAccountLedgerEntry">Bank account ledger entry that received the reconciliation number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetReconNo(var BankAccountLedgerEntry: Record "Bank Account Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after successfully removing a reconciliation number from a bank account ledger entry.
+    /// Allows subscribers to perform post-removal processing, auditing, or cleanup operations.
+    /// </summary>
+    /// <param name="BankAccountLedgerEntry">Bank account ledger entry from which reconciliation number was removed.</param>
+    /// <param name="Test">Whether validation tests were performed during the removal process.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterRemoveReconNo(var BankAccountLedgerEntry: Record "Bank Account Ledger Entry"; Test: Boolean)
     begin

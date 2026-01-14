@@ -8,6 +8,10 @@ using Microsoft.HumanResources.Payables;
 using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Receivables;
 
+/// <summary>
+/// Displays related entries for payment reconciliation lines.
+/// Shows linked ledger entries and application relationships for analysis.
+/// </summary>
 page 496 "Payment Rec. Related Entries"
 {
     PageType = NavigatePage;

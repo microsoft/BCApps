@@ -12,6 +12,16 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Period;
 using System.Reflection;
 
+/// <summary>
+/// Updates analysis view entries from G/L entries, cash flow entries, and budget entries.
+/// Provides the core engine for maintaining analysis view data with optimized batch processing.
+/// </summary>
+/// <remarks>
+/// Central processing codeunit for analysis view maintenance. Handles incremental updates from transaction data,
+/// manages dimension aggregation, and maintains analysis view entry records. Supports both manual and automatic
+/// updates triggered by posting routines. Includes progress tracking and error handling for large data volumes.
+/// Extensibility: Multiple integration events for custom processing logic and data validation.
+/// </remarks>
 codeunit 410 "Update Analysis View"
 {
     Permissions = TableData "G/L Entry" = r,
@@ -90,6 +100,11 @@ codeunit 410 "Update Analysis View"
         OnAfterInitLastEntryNo(LastGLEntryNo);
     end;
 
+    /// <summary>
+    /// Updates all analysis views that require updating based on specified entry types.
+    /// </summary>
+    /// <param name="Which">Type of entries to update (Ledger Entries, Budget Entries, or Both)</param>
+    /// <param name="DirectlyFromPosting">Whether the update is triggered directly from posting routines</param>
     procedure UpdateAll(Which: Option "Ledger Entries","Budget Entries",Both; DirectlyFromPosting: Boolean)
     var
         AnalysisView2: Record "Analysis View";
@@ -135,6 +150,12 @@ codeunit 410 "Update Analysis View"
         OnAfterUpdateAll(Which, DirectlyFromPosting);
     end;
 
+    /// <summary>
+    /// Updates a single analysis view with data from the specified entry types.
+    /// </summary>
+    /// <param name="NewAnalysisView">Analysis view record to update</param>
+    /// <param name="Which">Type of entries to update (Ledger Entries, Budget Entries, or Both)</param>
+    /// <param name="ShowWindow">Whether to display progress window during update</param>
     procedure Update(var NewAnalysisView: Record "Analysis View"; Which: Option "Ledger Entries","Budget Entries",Both; ShowWindow: Boolean)
     begin
         InitLastEntryNo();
@@ -400,6 +421,25 @@ codeunit 410 "Update Analysis View"
         FlushAnalysisViewBudgetEntry();
     end;
 
+    /// <summary>
+    /// Updates analysis view entry with individual transaction data from G/L or Cash Flow entries.
+    /// Stages transaction data in buffer for aggregation into final analysis view entries.
+    /// </summary>
+    /// <param name="AccNo">Account number (G/L Account or Cash Flow Account)</param>
+    /// <param name="BusUnitCode">Business unit code for consolidation scenarios</param>
+    /// <param name="CashFlowForecastNo">Cash flow forecast number for cash flow entries</param>
+    /// <param name="DimValue1">Dimension 1 value code from source transaction</param>
+    /// <param name="DimValue2">Dimension 2 value code from source transaction</param>
+    /// <param name="DimValue3">Dimension 3 value code from source transaction</param>
+    /// <param name="DimValue4">Dimension 4 value code from source transaction</param>
+    /// <param name="PostingDate">Posting date from source transaction</param>
+    /// <param name="Amount">Net amount in local currency</param>
+    /// <param name="DebitAmount">Debit amount in local currency</param>
+    /// <param name="CreditAmount">Credit amount in local currency</param>
+    /// <param name="AmountACY">Net amount in additional currency</param>
+    /// <param name="DebitAmountACY">Debit amount in additional currency</param>
+    /// <param name="CreditAmountACY">Credit amount in additional currency</param>
+    /// <param name="EntryNo">Entry number from source transaction for traceability</param>
     procedure UpdateAnalysisViewEntry(AccNo: Code[20]; BusUnitCode: Code[20]; CashFlowForecastNo: Code[20]; DimValue1: Code[20]; DimValue2: Code[20]; DimValue3: Code[20]; DimValue4: Code[20]; PostingDate: Date; Amount: Decimal; DebitAmount: Decimal; CreditAmount: Decimal; AmountACY: Decimal; DebitAmountACY: Decimal; CreditAmountACY: Decimal; EntryNo: Integer)
     var
         UpdAnalysisViewEntryBuffer: Record "Upd Analysis View Entry Buffer";
@@ -424,6 +464,11 @@ codeunit 410 "Update Analysis View"
         UpdateAnalysisViewEntry(UpdAnalysisViewEntryBuffer);
     end;
 
+    /// <summary>
+    /// Updates analysis view entry using buffer record with date compression and aggregation logic.
+    /// Processes buffer data with period start calculation and dimension aggregation rules.
+    /// </summary>
+    /// <param name="UpdAnalysisViewEntryBuffer">Buffer record containing staged transaction data for processing</param>
     procedure UpdateAnalysisViewEntry(UpdAnalysisViewEntryBuffer: Record "Upd Analysis View Entry Buffer")
     var
         DummyUpdAnalysisViewEntryBuffer: Record "Upd Analysis View Entry Buffer";
@@ -512,6 +557,13 @@ codeunit 410 "Update Analysis View"
             FlushAnalysisViewBudgetEntry();
     end;
 
+    /// <summary>
+    /// Calculates the period start date based on the posting date and date compression setting.
+    /// Adjusts the date to align with analysis view period boundaries.
+    /// </summary>
+    /// <param name="PostingDate">Original posting date to calculate period start for</param>
+    /// <param name="DateCompression">Date compression option determining period granularity</param>
+    /// <returns>Calculated period start date aligned with compression settings</returns>
     procedure CalculatePeriodStart(PostingDate: Date; DateCompression: Integer): Date
     var
         AccountingPeriod: Record "Accounting Period";
@@ -546,6 +598,10 @@ codeunit 410 "Update Analysis View"
         exit(PostingDate);
     end;
 
+    /// <summary>
+    /// Flushes accumulated analysis view entries from temporary storage to the database.
+    /// Processes temporary analysis view entries and inserts them as permanent records.
+    /// </summary>
     procedure FlushAnalysisViewEntry()
     begin
         if ShowProgressWindow then
@@ -572,6 +628,10 @@ codeunit 410 "Update Analysis View"
             Window.Update(6, Text010);
     end;
 
+    /// <summary>
+    /// Flushes accumulated analysis view budget entries from temporary storage to the database.
+    /// Processes temporary budget entries and inserts them as permanent records.
+    /// </summary>
     procedure FlushAnalysisViewBudgetEntry()
     begin
         if ShowProgressWindow then
@@ -592,6 +652,13 @@ codeunit 410 "Update Analysis View"
             Window.Update(6, Text010);
     end;
 
+    /// <summary>
+    /// Retrieves dimension value code for a specific dimension from a dimension set.
+    /// Uses temporary caching to optimize repeated dimension value lookups during analysis view updates.
+    /// </summary>
+    /// <param name="DimCode">Dimension code to retrieve value for</param>
+    /// <param name="DimSetID">Dimension set ID containing the dimension values</param>
+    /// <returns>Dimension value code for the specified dimension, empty if not found</returns>
     procedure GetDimVal(DimCode: Code[20]; DimSetID: Integer): Code[20]
     begin
         if TempDimSetEntry.Get(DimSetID, DimCode) then
@@ -618,6 +685,11 @@ codeunit 410 "Update Analysis View"
         Window.Update(6, Text010);
     end;
 
+    /// <summary>
+    /// Updates progress window counter during analysis view update operations.
+    /// Tracks processing progress and updates user interface with percentage completion.
+    /// </summary>
+    /// <param name="EntryNo">Current entry number being processed for progress tracking</param>
     procedure UpdateWindowCounter(EntryNo: Integer)
     begin
         WinUpdateCounter := WinUpdateCounter + 1;
@@ -635,6 +707,12 @@ codeunit 410 "Update Analysis View"
         end;
     end;
 
+    /// <summary>
+    /// Updates progress window header information during analysis view update operations.
+    /// Displays current table being processed and entry numbers for user feedback.
+    /// </summary>
+    /// <param name="TableID">Table ID being processed for display in progress window</param>
+    /// <param name="EntryNo">Entry number being processed for progress tracking</param>
     procedure UpdateWindowHeader(TableID: Integer; EntryNo: Integer)
     var
         AllObj: Record AllObj;
@@ -652,6 +730,11 @@ codeunit 410 "Update Analysis View"
         WinTime2 := WinTime0;
     end;
 
+    /// <summary>
+    /// Sets the last budget entry number processed for analysis view updates.
+    /// Updates the analysis view record with the latest processed budget entry number to track update progress.
+    /// </summary>
+    /// <param name="NewLastBudgetEntryNo">New last budget entry number to set for tracking processed entries</param>
     procedure SetLastBudgetEntryNo(NewLastBudgetEntryNo: Integer)
     var
         AnalysisView2: Record "Analysis View";
@@ -677,6 +760,13 @@ codeunit 410 "Update Analysis View"
         exit(TempDimBuf.FindFirst());
     end;
 
+    /// <summary>
+    /// Determines whether a dimension set ID matches the analysis view's dimension filters.
+    /// Validates that all dimension values in the set comply with analysis view filtering criteria.
+    /// </summary>
+    /// <param name="DimSetID">Dimension set ID to validate against analysis view filters</param>
+    /// <param name="AnalysisView">Analysis view record containing dimension filter criteria</param>
+    /// <returns>True if dimension set matches all analysis view filters, false otherwise</returns>
     procedure DimSetIDInFilter(DimSetID: Integer; var AnalysisView: Record "Analysis View"): Boolean
     var
         InFilters: Boolean;
@@ -712,61 +802,144 @@ codeunit 410 "Update Analysis View"
         exit(InFilters);
     end;
 
+    /// <summary>
+    /// Integration event raised after initializing last entry number for analysis view updates.
+    /// Allows modification of the starting entry number for update processing.
+    /// </summary>
+    /// <param name="LastGLEntryNo">Last G/L entry number that can be modified by subscribers</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitLastEntryNo(var LastGLEntryNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after completing analysis view update operations.
+    /// Enables post-update processing and cleanup activities.
+    /// </summary>
+    /// <param name="Which">Update option indicating which entries were processed</param>
+    /// <param name="DirectlyFromPosting">Indicates whether update was triggered directly from posting</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateAll(Which: Option "Ledger Entries","Budget Entries",Both; DirectlyFromPosting: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before starting analysis view update operations.
+    /// Allows preprocessing and modification of update parameters.
+    /// </summary>
+    /// <param name="Which">Update option indicating which entries to process</param>
+    /// <param name="DirectlyFromPosting">Indicates whether update is triggered directly from posting</param>
+    /// <param name="AnalysisView">Analysis view record being updated</param>
+    /// <param name="InBatchPosting">Set to true to indicate batch posting mode</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateAll(Which: Option "Ledger Entries","Budget Entries",Both; DirectlyFromPosting: Boolean; var AnalysisView: Record "Analysis View"; var InBatchPosting: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating a single analysis view.
+    /// Allows custom handling and preprocessing for individual analysis view updates.
+    /// </summary>
+    /// <param name="NewAnalysisView">Analysis view record to be updated</param>
+    /// <param name="Which">Update option indicating which entries to process</param>
+    /// <param name="ShowWindow">Indicates whether to show progress window during update</param>
+    /// <param name="IsHandled">Set to true to skip standard update processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateOne(var NewAnalysisView: Record "Analysis View"; Which: Option "Ledger Entries","Budget Entries",Both; ShowWindow: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating entries for G/L account analysis views.
+    /// Allows custom entry processing and modification of update parameters.
+    /// </summary>
+    /// <param name="TempAnalysisViewEntry">Temporary analysis view entry records being processed</param>
+    /// <param name="AnalysisView">Analysis view record controlling the update</param>
+    /// <param name="LastGLEntryNo">Last G/L entry number to process</param>
+    /// <param name="NoOfEntries">Number of entries being processed</param>
+    /// <param name="IsHandled">Set to true to skip standard entry processing</param>
+    /// <param name="ShowProgressWindow">Indicates whether to show progress window</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeUpdateEntriesForGLAccount(var TempAnalysisViewEntry: Record "Analysis View Entry" temporary; AnalysisView: Record "Analysis View"; LastGLEntryNo: Integer; var NoOfEntries: Integer; var IsHandled: Boolean; ShowProgressWindow: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting analysis view entries during flush operations.
+    /// Allows modification of analysis view entries before they are permanently stored.
+    /// </summary>
+    /// <param name="AnalysisViewEntry">Analysis view entry record to be inserted</param>
+    /// <param name="TempAnalysisViewEntry">Temporary analysis view entry source data</param>
     [IntegrationEvent(false, false)]
     local procedure OnFlushAnalysisViewEntryOnBeforeAnalysisViewEntryInsert(var AnalysisViewEntry: Record "Analysis View Entry"; TempAnalysisViewEntry: Record "Analysis View Entry" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating analysis view during single view update operations.
+    /// Allows custom processing and modification of analysis view update parameters.
+    /// </summary>
+    /// <param name="AnalysisView">Analysis view record being updated</param>
+    /// <param name="TempAnalysisViewEntry">Temporary analysis view entry records being processed</param>
+    /// <param name="Updated">Indicates whether analysis view was updated</param>
+    /// <param name="ShowProgressWindow">Indicates whether to show progress window</param>
     [IntegrationEvent(true, false)]
     local procedure OnUpdateOneOnBeforeUpdateAnalysisView(var AnalysisView: Record "Analysis View"; var TempAnalysisViewEntry: Record "Analysis View Entry" temporary; var Updated: Boolean; ShowProgressWindow: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking if new analysis view includes budgets during update process.
+    /// Enables custom validation logic for budget inclusion in analysis view updates.
+    /// </summary>
+    /// <param name="NewAnalysisView">New analysis view configuration</param>
+    /// <param name="AnalysisView">Current analysis view being updated</param>
+    /// <param name="Which">Update type indicating whether to update ledger entries, budget entries, or both</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateOneOnBeforeNewAnalysisViewIncludeBudgetsCheck(var NewAnalysisView: Record "Analysis View"; var AnalysisView: Record "Analysis View"; Which: Option "Ledger Entries","Budget Entries",Both)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before starting analysis view entry updates.
+    /// Enables custom logic before analysis view entries are processed and updated.
+    /// </summary>
+    /// <param name="AnalysisView">Analysis view being updated</param>
+    /// <param name="Which">Update type indicating whether to update ledger entries, budget entries, or both</param>
+    /// <param name="LastGLEntryNo">Last G/L entry number processed in the update</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateOneOnBeforeUpdateEntries(var AnalysisView: Record "Analysis View"; Which: Option "Ledger Entries","Budget Entries",Both; LastGLEntryNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters on G/L Budget Entry during budget update process.
+    /// Enables additional filtering logic for budget entries being processed.
+    /// </summary>
+    /// <param name="GLBudgetEntry">G/L Budget Entry record with applied filters</param>
+    /// <param name="AnalysisView">Analysis view configuration being updated</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateBudgetEntriesOnAfterGLBudgetEntrySetFilters(var GLBudgetEntry: Record "G/L Budget Entry"; var AnalysisView: Record "Analysis View")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters on G/L Entry during detailed G/L account update.
+    /// Enables additional filtering logic for detailed G/L entry processing.
+    /// </summary>
+    /// <param name="GLEntry">G/L Entry record with applied filters</param>
+    /// <param name="AnalysisView">Analysis view configuration being updated</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateEntriesForGLAccountDetailedOnAfterGLEntrySetFilters(var GLEntry: Record "G/L Entry"; var AnalysisView: Record "Analysis View")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters on Analysis View Source query during G/L account update.
+    /// Enables custom query filtering for analysis view source data processing.
+    /// </summary>
+    /// <param name="AnalysisViewSourceQry">Analysis View Source query with applied filters</param>
+    /// <param name="AnalysisView">Analysis view configuration being updated</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateEntriesForGLAccountOnAfterAnalysisViewGLQrySetFilters(var AnalysisViewSourceQry: Query "Analysis View Source";
 
@@ -775,31 +948,82 @@ codeunit 410 "Update Analysis View"
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after assigning values to temporary Analysis View Budget Entry during update.
+    /// Enables modification of budget entry data before final processing.
+    /// </summary>
+    /// <param name="TempAnalysisViewBudgetEntry">Temporary Analysis View Budget Entry being updated</param>
+    /// <param name="AnalysisView">Analysis view configuration</param>
+    /// <param name="GLBudgetEntry">Source G/L Budget Entry</param>
+    /// <param name="DimValue1">Dimension 1 value code</param>
+    /// <param name="DimValue2">Dimension 2 value code</param>
+    /// <param name="DimValue3">Dimension 3 value code</param>
+    /// <param name="DimValue4">Dimension 4 value code</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAnalysisViewBudgetEntryOnAfterTempAnalysisViewBudgetEntryAssignment(var TempAnalysisViewBudgetEntry: Record "Analysis View Budget Entry"; var AnalysisView: Record "Analysis View"; var GLBudgetEntry: Record "G/L Budget Entry"; DimValue1: Code[20]; DimValue2: code[20]; DimValue3: Code[20]; DimValue4: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after calculating period start date for analysis view updates.
+    /// Enables custom period calculation logic for different date compression methods.
+    /// </summary>
+    /// <param name="AnalysisView">Analysis view configuration</param>
+    /// <param name="DateCompression">Date compression method being used</param>
+    /// <param name="AccountingPeriod">Accounting period record for calculations</param>
+    /// <param name="PostingDate">Posting date being processed</param>
+    /// <param name="PrevCalculatedPostingDate">Previously calculated posting date</param>
+    /// <param name="PrevPostingDate">Previous posting date</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalculatePeriodStart(var AnalysisView: Record "Analysis View"; DateCompression: Integer; var AccountingPeriod: Record "Accounting Period"; var PostingDate: Date; var PrevCalculatedPostingDate: Date; PrevPostingDate: Date)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating entries during single analysis view update process.
+    /// Enables pre-update validation and custom entry processing logic.
+    /// </summary>
+    /// <param name="NewAnalysisView">New analysis view configuration</param>
+    /// <param name="Which">Update type indicating whether to update ledger entries, budget entries, or both</param>
+    /// <param name="LastReportedEntryNo">Last reported entry number in the update process</param>
+    /// <param name="TableID">Table ID being processed</param>
+    /// <param name="Supproted">Whether the operation is supported</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateOneUpdateEntries(var NewAnalysisView: Record "Analysis View"; Which: Option "Ledger Entries","Budget Entries",Both; var LastReportedEntryNo: Integer; var TableID: Integer; var Supproted: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event for retrieving entries to update in analysis view processing.
+    /// Enables custom entry retrieval logic and filtering for analysis view updates.
+    /// </summary>
+    /// <param name="AnalysisView">Analysis view configuration</param>
+    /// <param name="UpdAnalysisViewEntryBuffer">Update Analysis View Entry Buffer for entry staging</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetEntriesForUpdate(var AnalysisView: Record "Analysis View"; var UpdAnalysisViewEntryBuffer: Record "Upd Analysis View Entry Buffer")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after filtering Analysis View records during update all process.
+    /// Enables additional processing logic after analysis view filtering is complete.
+    /// </summary>
+    /// <param name="AnalysisView">Analysis view record with applied filters</param>
+    /// <param name="DirectlyFromPosting">Whether update is triggered directly from posting</param>
+    /// <param name="LastBudgetEntryNo">Last budget entry number processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAllOnAfterFilterAnalysisView2(var AnalysisView: Record "Analysis View"; DirectlyFromPosting: Boolean; LastBudgetEntryNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after assigning values to temporary Analysis View Entry during update.
+    /// Enables modification of analysis view entry data before final processing.
+    /// </summary>
+    /// <param name="TempAnalysisViewEntry">Temporary Analysis View Entry being updated</param>
+    /// <param name="AnalysisView">Analysis view configuration</param>
+    /// <param name="GLEntry">Source G/L Entry</param>
+    /// <param name="UpdAnalysisViewEntryBuffer">Update Analysis View Entry Buffer for staging</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAnalysisViewEntryOnAfterTempAnalysisViewEntryAssignment(var TempAnalysisViewEntry: Record "Analysis View Entry" temporary; var AnalysisView: Record "Analysis View"; var GLEntry: Record "G/L Entry"; var UpdAnalysisViewEntryBuffer: Record "Upd Analysis View Entry Buffer")
     begin

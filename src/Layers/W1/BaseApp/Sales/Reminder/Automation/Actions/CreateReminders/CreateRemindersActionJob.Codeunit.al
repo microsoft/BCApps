@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
-using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Receivables;
 using System.Telemetry;
 
 codeunit 6759 "Create Reminders Action Job"

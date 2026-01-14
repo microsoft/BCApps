@@ -4,13 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Document;
 
+using Microsoft.Assembly.Document;
+using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
-using Microsoft.Foundation.Company;
 using System.IO;
-using Microsoft.Assembly.Document;
 
 codeunit 99000872 "Sales Availability Mgt."
 {
@@ -392,9 +392,6 @@ codeunit 99000872 "Sales Availability Mgt."
         OrderPromisingLine."Quantity (Base)" := SalesLine."Outstanding Qty. (Base)";
 
         OnAfterTransferToOrderPromisingLine(OrderPromisingLine, SalesLine);
-#if not CLEAN25
-        OrderPromisingLine.RunOnAfterTransferFromSalesLine(OrderPromisingLine, SalesLine);
-#endif
     end;
 
     [IntegrationEvent(false, false)]
@@ -731,9 +728,6 @@ codeunit 99000872 "Sales Availability Mgt."
         end;
 
         OnAfterTransferFromSales(InventoryEventBuffer, SalesLine);
-#if not CLEAN25
-        InventoryEventBuffer.RunOnAfterTransferFromSales(InventoryEventBuffer, SalesLine);
-#endif
     end;
 
     procedure TransferFromSalesBlanketOrder(var InventoryEventBuffer: Record "Inventory Event Buffer"; SalesLine: Record "Sales Line"; UnconsumedQtyBase: Decimal)
@@ -757,9 +751,6 @@ codeunit 99000872 "Sales Availability Mgt."
         InventoryEventBuffer.Positive := not (InventoryEventBuffer."Remaining Quantity (Base)" < 0);
 
         OnAfterTransferFromSalesBlanketOrder(InventoryEventBuffer, SalesLine);
-#if not CLEAN25
-        InventoryEventBuffer.RunOnAfterTransferFromSalesBlanketOrder(InventoryEventBuffer, SalesLine);
-#endif
     end;
 
     procedure TransferFromSalesReturn(var InventoryEventBuffer: Record "Inventory Event Buffer"; SalesLine: Record "Sales Line")
@@ -791,9 +782,6 @@ codeunit 99000872 "Sales Availability Mgt."
         end;
 
         OnAfterTransferFromSalesReturn(InventoryEventBuffer, SalesLine);
-#if not CLEAN25
-        InventoryEventBuffer.RunOnAfterTransferFromSalesReturn(InventoryEventBuffer, SalesLine);
-#endif
     end;
 
     [IntegrationEvent(false, false)]

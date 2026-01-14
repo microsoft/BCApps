@@ -20,6 +20,20 @@ using Microsoft.Sales.Setup;
 using System.Environment.Configuration;
 using System.Telemetry;
 
+/// <summary>
+/// Core engine for automatic matching of bank statement lines to customer, vendor, and general ledger entries.
+/// This codeunit implements sophisticated matching algorithms that analyze transaction amounts, dates, references,
+/// and party names to automatically apply payments and reconcile bank transactions. Supports configurable matching
+/// rules, confidence scoring, and multiple application scenarios including one-to-one, one-to-many, and many-to-one matching.
+/// Integrates with payment discount calculations, tolerance handling, and text-to-account mapping.
+/// </summary>
+/// <remarks>
+/// Key features include automatic payment application with configurable matching rules, text analysis for party identification,
+/// amount and date tolerance matching, payment discount support, multi-currency handling, and comprehensive logging.
+/// The codeunit uses scoring algorithms to rank match quality and applies configurable thresholds to determine
+/// automatic vs. manual application. Integration events enable customization of matching logic and application rules.
+/// Supports both payment reconciliation and bank reconciliation workflows with optimized performance for large volumes.
+/// </remarks>
 #pragma warning disable AA0198
 codeunit 1255 "Match Bank Payments"
 {
@@ -40,6 +54,12 @@ codeunit 1255 "Match Bank Payments"
         OnAfterCode(BankAccReconciliationLine);
     end;
 
+    /// <summary>
+    /// Runs the automatic payment matching process without overwriting manual or accepted matches.
+    /// This procedure preserves user decisions while applying automatic matching to unprocessed lines,
+    /// ensuring that manual interventions and accepted applications are not disturbed by automation.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line record set to process for automatic matching.</param>
     procedure MatchNoOverwriteOfManualOrAccepted(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line")
     var
         BankAccReconciliationLineBackup: Record "Bank Acc. Reconciliation Line";
@@ -128,6 +148,14 @@ codeunit 1255 "Match Bank Payments"
         TotalNoClosingDocumentMatches: Integer;
         HitCountClosingDocumentMatches: Integer;
 
+    /// <summary>
+    /// Determines whether a bank statement line is mapped using text-to-account mapping rules.
+    /// Checks if the line was automatically matched using predefined text patterns and retrieves
+    /// the applicable mapping rules if found. Used to identify and process text-based automatic applications.
+    /// </summary>
+    /// <param name="BankAccReconciliaitonLine">Bank reconciliation line to check for text-to-account mapping.</param>
+    /// <param name="TempTextToAccMapping">Temporary table to receive applicable text-to-account mapping rules.</param>
+    /// <returns>True if the line uses text-to-account mapping; false otherwise.</returns>
     procedure IsTextToAccountMappig(
         BankAccReconciliaitonLine: Record "Bank Acc. Reconciliation Line";
         var TempTextToAccMapping: Record "Text-to-Account Mapping" temporary
@@ -142,6 +170,14 @@ codeunit 1255 "Match Bank Payments"
         exit(IsMapToTextAccount);
     end;
 
+    /// <summary>
+    /// Determines whether a bank statement line was matched automatically based on payment application rules.
+    /// Evaluates match confidence and applied entries count against configured automatic application thresholds,
+    /// retrieving the specific rule that enabled automatic matching for audit and processing purposes.
+    /// </summary>
+    /// <param name="BankAccReconciliaitonLine">Bank reconciliation line to check for automatic matching status.</param>
+    /// <param name="BankPmtApplRule">Returns the payment application rule that enabled automatic matching.</param>
+    /// <returns>True if the line was matched automatically; false if manual intervention was required.</returns>
     procedure IsMatchedAutomatically(
         BankAccReconciliaitonLine: Record "Bank Acc. Reconciliation Line";
         var BankPmtApplRule: Record "Bank Pmt. Appl. Rule"
@@ -164,6 +200,25 @@ codeunit 1255 "Match Bank Payments"
         exit(IsAutoMatch);
     end;
 
+    /// <summary>
+    /// Retrieves comprehensive matching details for payment application analysis and reporting.
+    /// Analyzes the bank statement line and its matching entries to provide detailed information about
+    /// how the automatic payment application was performed, including related party matching, amount
+    /// tolerance analysis, document number matching, and direct debit correlation. Used by UI components
+    /// to display matching confidence details and help users understand application decisions.
+    /// </summary>
+    /// <param name="BankAccReconciliaitonLine">Bank reconciliation line to analyze for matching details.</param>
+    /// <param name="BankPmtApplRule">Payment application rule used for the matching process.</param>
+    /// <param name="MatchedAutomatically">Indicates whether the line was matched automatically or manually.</param>
+    /// <param name="RelatedPartyMatchedText">Returns text describing how related party matching was performed.</param>
+    /// <param name="AmountMatchText">Returns text describing amount matching results and tolerance application.</param>
+    /// <param name="DocumentMatchedText">Returns text describing document number matching results.</param>
+    /// <param name="DirectDebitMatchedText">Returns text describing direct debit matching correlation.</param>
+    /// <param name="DirectDebitMatched">Returns whether direct debit correlation was found.</param>
+    /// <param name="NoOfLedgerEntriesWithinAmountTolerance">Returns count of ledger entries within amount tolerance.</param>
+    /// <param name="NoOfLedgerEntriesOutsideAmountTolerance">Returns count of ledger entries outside amount tolerance.</param>
+    /// <param name="RelatedEntryAdditionalMatchInfo">Returns additional information about related entry matching.</param>
+    /// <param name="DocumentNoAdditionalMatchInfo">Returns additional information about document number matching.</param>
     procedure GetMatchPaymentDetailsInfo(
         BankAccReconciliaitonLine: Record "Bank Acc. Reconciliation Line";
         BankPmtApplRule: Record "Bank Pmt. Appl. Rule";
@@ -249,6 +304,14 @@ codeunit 1255 "Match Bank Payments"
         DirectDebitMatched := ActualBankPmtApplRule."Direct Debit Collect. Matched" = ActualBankPmtApplRule."Direct Debit Collect. Matched"::Yes;
     end;
 
+    /// <summary>
+    /// Executes the complete payment matching process for bank reconciliation lines.
+    /// Maps ledger entries to statement lines using configured matching rules and optionally applies
+    /// the matched entries to create payment applications. Supports selective overwriting based on
+    /// the Overwrite parameter to preserve manual matching decisions.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line record set to process for payment matching.</param>
+    /// <param name="Overwrite">True to overwrite existing matches including manual and accepted; false to preserve them.</param>
     procedure "Code"(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; Overwrite: Boolean)
     begin
         if BankAccReconciliationLine.IsEmpty() then
@@ -262,6 +325,12 @@ codeunit 1255 "Match Bank Payments"
         end;
     end;
 
+    /// <summary>
+    /// Executes the complete payment matching process with default overwrite behavior.
+    /// This overload calls the main Code procedure with Overwrite set to true, allowing
+    /// the matching process to override existing manual and accepted matches.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line record set to process for payment matching.</param>
     procedure "Code"(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line")
     begin
         Code(BankAccReconciliationLine, true);
@@ -369,11 +438,23 @@ codeunit 1255 "Match Bank Payments"
         Page.Run(Page::"Bank Account Card", LocalBankAccount, LocalBankAccount."Pmt. Rec. No. Series");
     end;
 
+    /// <summary>
+    /// Gets the unique identifier for payment reconciliation number series notifications.
+    /// Returns a fixed GUID used to identify notifications related to missing number series
+    /// configuration for payment reconciliation journals.
+    /// </summary>
+    /// <returns>GUID identifier for number series notifications.</returns>
     internal procedure GetNumberSeriesNotificationId(): Guid
     begin
         exit('76d60ad7-20a5-4b64-b160-f059e1c7ab2d');
     end;
 
+    /// <summary>
+    /// Opens the Payment Application Review page for bank reconciliation lines requiring manual review.
+    /// Extracts reconciliation data from the notification and filters lines based on the review score
+    /// criteria to display only lines that need user attention for manual application decisions.
+    /// </summary>
+    /// <param name="ReviewNotification">Notification containing bank account, statement details, and review filter criteria.</param>
     procedure OpenLinesForReviewPage(ReviewNotification: Notification)
     var
         BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line";
@@ -389,6 +470,12 @@ codeunit 1255 "Match Bank Payments"
         Page.Run(Page::"Payment Application Review", BankAccReconciliationLine);
     end;
 
+    /// <summary>
+    /// Opens the Payment Application Review page for bank reconciliation lines with amount differences.
+    /// Extracts reconciliation data from the notification and filters lines to show only those with
+    /// unresolved differences that require user review and manual resolution.
+    /// </summary>
+    /// <param name="ReviewNotification">Notification containing bank account and statement identification details.</param>
     procedure OpenLinesWithDifferencePage(ReviewNotification: Notification)
     var
         BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line";
@@ -404,6 +491,13 @@ codeunit 1255 "Match Bank Payments"
         Page.Run(Page::"Payment Application Review", BankAccReconciliationLine);
     end;
 
+    /// <summary>
+    /// Filters bank reconciliation lines to include only those requiring manual review.
+    /// Applies match quality and confidence filters to identify lines that were automatically
+    /// matched but need user validation based on the specified review score criteria.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line record set to filter for review requirements.</param>
+    /// <param name="ReviewScoreFilter">Filter criteria for match quality scores that require review.</param>
     procedure GetLinesForReview(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; ReviewScoreFilter: Text)
     begin
         if BankAccReconciliationLine.IsEmpty() then
@@ -413,6 +507,12 @@ codeunit 1255 "Match Bank Payments"
         BankAccReconciliationLine.SetFilter("Match Confidence", BankAccReconciliationLine.GetMatchedAutomaticallyFilter());
     end;
 
+    /// <summary>
+    /// Filters bank reconciliation lines to include only those with unresolved amount differences.
+    /// Sets a filter to display lines where the difference field is not zero, indicating that
+    /// the applied amount does not fully match the statement amount and requires attention.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line record set to filter for difference handling.</param>
     procedure GetLinesWithDifference(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line")
     begin
         BankAccReconciliationLine.SetFilter(Difference, '<>0');
@@ -615,6 +715,12 @@ codeunit 1255 "Match Bank Payments"
             until AppliedPaymentEntry.Next() = 0
     end;
 
+    /// <summary>
+    /// Re-executes text-to-account mapping for bank reconciliation lines that haven't been manually accepted.
+    /// This procedure reapplies text mapping rules to identify better automatic matches, particularly useful
+    /// after updating mapping rules or when initial matching was incomplete. Preserves accepted and high-confidence matches.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line record set to reprocess with text mapper.</param>
     procedure RerunTextMapper(BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line")
     var
         AppliedPaymentEntry: Record "Applied Payment Entry";
@@ -648,6 +754,14 @@ codeunit 1255 "Match Bank Payments"
         end;
     end;
 
+    /// <summary>
+    /// Transfers unresolved amount differences to a specified general ledger account.
+    /// Creates a new bank reconciliation line for the difference amount when the statement amount
+    /// exceeds the applied amount, allowing users to account for fees, charges, or other adjustments.
+    /// Splits the original line and applies the difference portion to the designated account.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line with amount difference to transfer.</param>
+    /// <param name="TempGenJournalLine">Temporary journal line containing account and description details for the transfer.</param>
     procedure TransferDiffToAccount(BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var TempGenJournalLine: Record "Gen. Journal Line" temporary)
     var
         BankAccReconciliation: Record "Bank Acc. Reconciliation";
@@ -736,6 +850,16 @@ codeunit 1255 "Match Bank Payments"
         DifferenceTransferred := Page.RunModal(Page::"Transfer Difference to Account", TempGenJnlLine) = Action::LookupOK;
     end;
 
+    /// <summary>
+    /// Performs matching analysis for a single bank reconciliation line against a specific customer ledger entry.
+    /// Evaluates match criteria and calculates tolerance statistics to determine match quality and rule applicability.
+    /// Returns the number of potential matching entries within and outside the configured amount tolerance.
+    /// </summary>
+    /// <param name="BankPmtApplRule">Returns the payment application rule used for matching evaluation.</param>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line to match against customer entries.</param>
+    /// <param name="AppliesToEntryNo">Specific customer ledger entry number to evaluate for matching.</param>
+    /// <param name="NoOfLedgerEntriesWithinTolerance">Returns count of customer entries within amount tolerance.</param>
+    /// <param name="NoOfLedgerEntriesOutsideTolerance">Returns count of customer entries outside amount tolerance.</param>
     procedure MatchSingleLineCustomer(var BankPmtApplRule: Record "Bank Pmt. Appl. Rule"; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; AppliesToEntryNo: Integer; var NoOfLedgerEntriesWithinTolerance: Integer; var NoOfLedgerEntriesOutsideTolerance: Integer)
     var
         MinAmount: Decimal;
@@ -765,6 +889,16 @@ codeunit 1255 "Match Bank Payments"
             MinAmount, MaxAmount, BankAccReconciliationLine."Transaction Date", UsePaymentDiscounts);
     end;
 
+    /// <summary>
+    /// Performs matching analysis for a single bank reconciliation line against a specific vendor ledger entry.
+    /// Evaluates match criteria and calculates tolerance statistics to determine match quality and rule applicability.
+    /// Returns the number of potential matching entries within and outside the configured amount tolerance.
+    /// </summary>
+    /// <param name="BankPmtApplRule">Returns the payment application rule used for matching evaluation.</param>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line to match against vendor entries.</param>
+    /// <param name="AppliesToEntryNo">Specific vendor ledger entry number to evaluate for matching.</param>
+    /// <param name="NoOfLedgerEntriesWithinTolerance">Returns count of vendor entries within amount tolerance.</param>
+    /// <param name="NoOfLedgerEntriesOutsideTolerance">Returns count of vendor entries outside amount tolerance.</param>
     procedure MatchSingleLineVendor(var BankPmtApplRule: Record "Bank Pmt. Appl. Rule"; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; AppliesToEntryNo: Integer; var NoOfLedgerEntriesWithinTolerance: Integer; var NoOfLedgerEntriesOutsideTolerance: Integer)
     var
         MinAmount: Decimal;
@@ -794,6 +928,16 @@ codeunit 1255 "Match Bank Payments"
             MinAmount, MaxAmount, BankAccReconciliationLine."Transaction Date", UsePaymentDiscounts);
     end;
 
+    /// <summary>
+    /// Performs matching analysis for a single bank reconciliation line against a specific employee ledger entry.
+    /// Evaluates match criteria and calculates tolerance statistics to determine match quality and rule applicability.
+    /// Returns the number of potential matching entries within and outside the configured amount tolerance.
+    /// </summary>
+    /// <param name="BankPmtApplRule">Returns the payment application rule used for matching evaluation.</param>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line to match against employee entries.</param>
+    /// <param name="AppliesToEntryNo">Specific employee ledger entry number to evaluate for matching.</param>
+    /// <param name="NoOfLedgerEntriesWithinTolerance">Returns count of employee entries within amount tolerance.</param>
+    /// <param name="NoOfLedgerEntriesOutsideTolerance">Returns count of employee entries outside amount tolerance.</param>
     procedure MatchSingleLineEmployee(var BankPmtApplRule: Record "Bank Pmt. Appl. Rule"; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; AppliesToEntryNo: Integer; var NoOfLedgerEntriesWithinTolerance: Integer; var NoOfLedgerEntriesOutsideTolerance: Integer)
     var
         MinAmount: Decimal;
@@ -823,6 +967,16 @@ codeunit 1255 "Match Bank Payments"
             MinAmount, MaxAmount, BankAccReconciliationLine."Transaction Date", UsePaymentDiscounts);
     end;
 
+    /// <summary>
+    /// Performs matching analysis for a single bank reconciliation line against a specific bank account ledger entry.
+    /// Evaluates match criteria and calculates tolerance statistics to determine match quality and rule applicability.
+    /// Returns the number of potential matching entries within and outside the configured amount tolerance.
+    /// </summary>
+    /// <param name="BankPmtApplRule">Returns the payment application rule used for matching evaluation.</param>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line to match against bank account entries.</param>
+    /// <param name="AppliesToEntryNo">Specific bank account ledger entry number to evaluate for matching.</param>
+    /// <param name="NoOfLedgerEntriesWithinTolerance">Returns count of bank account entries within amount tolerance.</param>
+    /// <param name="NoOfLedgerEntriesOutsideTolerance">Returns count of bank account entries outside amount tolerance.</param>
     procedure MatchSingleLineBankAccountLedgerEntry(var BankPmtApplRule: Record "Bank Pmt. Appl. Rule"; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; AppliesToEntryNo: Integer; var NoOfLedgerEntriesWithinTolerance: Integer; var NoOfLedgerEntriesOutsideTolerance: Integer)
     var
         MinAmount: Decimal;
@@ -962,11 +1116,26 @@ codeunit 1255 "Match Bank Payments"
         RemainingAmount := TempLedgerEntryMatchingBuffer.GetApplicableRemainingAmount(BankAccReconciliationLine, UsePaymentDiscounts);
     end;
 
+    /// <summary>
+    /// Initializes the customer ledger entries matching buffer with default apply entries setting.
+    /// This overload calls the main initialization procedure with ApplyEntries set to false,
+    /// populating the buffer for matching analysis without immediate application.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line context for filtering customer entries.</param>
+    /// <param name="TempLedgerEntryMatchingBuffer">Temporary buffer to populate with customer ledger entry data.</param>
     procedure InitializeCustomerLedgerEntriesMatchingBuffer(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var TempLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary)
     begin
         InitializeCustomerLedgerEntriesMatchingBuffer(BankAccReconciliationLine, TempLedgerEntryMatchingBuffer, false);
     end;
 
+    /// <summary>
+    /// Initializes the customer ledger entries matching buffer with open customer transactions.
+    /// Populates a temporary buffer with customer ledger entries filtered by currency, document types,
+    /// and application status. Configures the buffer for payment matching against bank reconciliation lines.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line context for filtering customer entries.</param>
+    /// <param name="TempLedgerEntryMatchingBuffer">Temporary buffer to populate with customer ledger entry data.</param>
+    /// <param name="ApplyEntries">True to filter out entries already applied in other journals; false to include all entries.</param>
     procedure InitializeCustomerLedgerEntriesMatchingBuffer(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var TempLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; ApplyEntries: Boolean)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
@@ -1008,11 +1177,26 @@ codeunit 1255 "Match Bank Payments"
             until CustLedgerEntry.Next() = 0;
     end;
 
+    /// <summary>
+    /// Initializes the vendor ledger entries matching buffer with default apply entries setting.
+    /// This overload calls the main initialization procedure with ApplyEntries set to false,
+    /// populating the buffer for matching analysis without immediate application.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line context for filtering vendor entries.</param>
+    /// <param name="TempLedgerEntryMatchingBuffer">Temporary buffer to populate with vendor ledger entry data.</param>
     procedure InitializeVendorLedgerEntriesMatchingBuffer(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var TempLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary)
     begin
         InitializeVendorLedgerEntriesMatchingBuffer(BankAccReconciliationLine, TempLedgerEntryMatchingBuffer, false);
     end;
 
+    /// <summary>
+    /// Initializes the vendor ledger entries matching buffer with open vendor transactions.
+    /// Populates a temporary buffer with vendor ledger entries filtered by currency, document types,
+    /// and application status. Configures the buffer for payment matching against bank reconciliation lines.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line context for filtering vendor entries.</param>
+    /// <param name="TempLedgerEntryMatchingBuffer">Temporary buffer to populate with vendor ledger entry data.</param>
+    /// <param name="ApplyEntries">True to filter out entries already applied in other journals; false to include all entries.</param>
     procedure InitializeVendorLedgerEntriesMatchingBuffer(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var TempLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; ApplyEntries: Boolean)
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
@@ -1055,11 +1239,26 @@ codeunit 1255 "Match Bank Payments"
             until VendorLedgerEntry.Next() = 0;
     end;
 
+    /// <summary>
+    /// Initializes the employee ledger entries matching buffer with default apply entries setting.
+    /// This overload calls the main initialization procedure with ApplyEntries set to false,
+    /// populating the buffer for matching analysis without immediate application.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line context for filtering employee entries.</param>
+    /// <param name="TempLedgerEntryMatchingBuffer">Temporary buffer to populate with employee ledger entry data.</param>
     procedure InitializeEmployeeLedgerEntriesMatchingBuffer(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var TempLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary)
     begin
         InitializeEmployeeLedgerEntriesMatchingBuffer(BankAccReconciliationLine, TempLedgerEntryMatchingBuffer, false);
     end;
 
+    /// <summary>
+    /// Initializes the employee ledger entries matching buffer with open employee transactions.
+    /// Populates a temporary buffer with employee ledger entries filtered by currency, document types,
+    /// and application status. Configures the buffer for payment matching against bank reconciliation lines.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line context for filtering employee entries.</param>
+    /// <param name="TempLedgerEntryMatchingBuffer">Temporary buffer to populate with employee ledger entry data.</param>
+    /// <param name="ApplyEntries">True to filter out entries already applied in other journals; false to include all entries.</param>
     procedure InitializeEmployeeLedgerEntriesMatchingBuffer(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var TempLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; ApplyEntries: Boolean)
     var
         EmployeeLedgerEntry: Record "Employee Ledger Entry";
@@ -1087,11 +1286,26 @@ codeunit 1255 "Match Bank Payments"
             until EmployeeLedgerEntry.Next() = 0;
     end;
 
+    /// <summary>
+    /// Initializes the bank account ledger entries matching buffer with default skip reversed setting.
+    /// This overload calls the main initialization procedure with SkipReversed set to false,
+    /// populating the buffer for matching analysis including all bank entries.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line context for filtering bank account entries.</param>
+    /// <param name="TempLedgerEntryMatchingBuffer">Temporary buffer to populate with bank account ledger entry data.</param>
     procedure InitializeBankAccLedgerEntriesMatchingBuffer(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var TempLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary)
     begin
         InitializeBankAccLedgerEntriesMatchingBuffer(BankAccReconciliationLine, TempLedgerEntryMatchingBuffer, false);
     end;
 
+    /// <summary>
+    /// Initializes the bank account ledger entries matching buffer with open bank account transactions.
+    /// Populates a temporary buffer with bank account ledger entries filtered by currency and reversal status.
+    /// Configures the buffer for payment matching against bank reconciliation lines for internal transfers.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line context for filtering bank account entries.</param>
+    /// <param name="TempLedgerEntryMatchingBuffer">Temporary buffer to populate with bank account ledger entry data.</param>
+    /// <param name="SkipReversed">True to exclude reversed entries from matching consideration; false to include all entries.</param>
     procedure InitializeBankAccLedgerEntriesMatchingBuffer(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var TempLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; SkipReversed: Boolean)
     var
         BankAccLedgerEntry: Record "Bank Account Ledger Entry";
@@ -1132,6 +1346,14 @@ codeunit 1255 "Match Bank Payments"
             until DirectDebitCollectionEntry.Next() = 0;
     end;
 
+    /// <summary>
+    /// Finds and returns text-to-account mapping rules applicable to a bank reconciliation line.
+    /// Analyzes the transaction text against configured mapping patterns and populates a temporary
+    /// table with matching rules that can be used for automatic account assignment.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line to analyze for text mapping matches.</param>
+    /// <param name="TempTextToAccMapping">Temporary table to populate with applicable mapping rules.</param>
+    /// <returns>True if applicable text mapping rules were found; false otherwise.</returns>
     procedure FindApplicableTextMappings(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var TempTextToAccMapping: Record "Text-to-Account Mapping" temporary): Boolean
     begin
         exit(FindTextMappings(BankAccReconciliationLine, TempTextToAccMapping, true));
@@ -2454,201 +2676,464 @@ codeunit 1255 "Match Bank Payments"
         BankPmtApplSettingsInitialized := true;
     end;
 
+    /// <summary>
+    /// Event raised after executing the main bank payment matching code.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCode(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line")
     begin
     end;
 
+    /// <summary>
+    /// Event raised before calculating the remaining amount for payment matching.
+    /// </summary>
+    /// <param name="TempLedgerEntryMatchingBuffer">The temporary ledger entry matching buffer record.</param>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line record.</param>
+    /// <param name="UsePaymentDiscounts">Indicates whether to use payment discounts in calculation.</param>
+    /// <param name="RemainingAmount">The calculated remaining amount.</param>
+    /// <param name="IsHandled">Indicates whether the event has been handled.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcRemainingAmount(var TempLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; UsePaymentDiscounts: Boolean; var RemainingAmount: Decimal; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Event raised before checking if customer bank account is matching.
+    /// </summary>
+    /// <param name="ValueFromBankStatement">The value from the bank statement.</param>
+    /// <param name="CustomerNo">The customer number.</param>
+    /// <param name="BankAccountNo">The bank account number.</param>
+    /// <param name="Result">The matching result.</param>
+    /// <param name="IsHandled">Indicates whether the event has been handled.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIsCustomerBankAccountMatching(ValueFromBankStatement: Text; CustomerNo: Code[20]; BankAccountNo: Code[20]; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Event raised before notifying if entries are matched elsewhere.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line record.</param>
+    /// <param name="IsHandled">Indicates whether the event has been handled.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeNotifyIfEntriesMatchedElsewhere(BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Event raised before checking if vendor bank account is matching.
+    /// </summary>
+    /// <param name="ValueFromBankStatement">The value from the bank statement.</param>
+    /// <param name="VendorNo">The vendor number.</param>
+    /// <param name="BankAccountNo">The bank account number.</param>
+    /// <param name="Result">The matching result.</param>
+    /// <param name="IsHandled">Indicates whether the event has been handled.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIsVendorBankAccountMatching(ValueFromBankStatement: Text; VendorNo: Code[20]; BankAccountNo: Code[20]; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Event raised before matching bank ledger entry documents.
+    /// </summary>
+    /// <param name="SearchText">The text to search for in document matching.</param>
+    /// <param name="TempLedgerEntryMatchingBuffer">The temporary ledger entry matching buffer record.</param>
+    /// <param name="BankPmtApplRule">The bank payment application rule record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDocumentMatchingForBankLedgerEntryOnBeforeMatch(SearchText: Text; TempLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; var BankPmtApplRule: Record "Bank Pmt. Appl. Rule")
     begin
     end;
 
+    /// <summary>
+    /// Event raised before document matching when finding matching entries.
+    /// </summary>
+    /// <param name="BankPmtApplRule">The bank payment application rule record.</param>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line record.</param>
+    /// <param name="TempLedgerEntryMatchingBuffer">The temporary ledger entry matching buffer record.</param>
+    /// <param name="IsHandled">Indicates whether the event has been handled.</param>
+    /// <param name="TempBankStatementMatchingBuffer">The temporary bank statement matching buffer record.</param>
+    /// <param name="AccountType">The account type for matching.</param>
+    /// <param name="TotalTimeDocumentNoMatching">The total time for document number matching.</param>
+    /// <param name="TotalTimeDocumentNoMatchingForBankLedgerEntry">The total time for bank ledger entry document matching.</param>
+    /// <param name="DocumentMatchedInfoText">The document matching information text.</param>
+    /// <param name="LogInfoText">Indicates whether to log information text.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFindMatchingEntryOnBeforeDocumentMatching(var BankPmtApplRule: Record "Bank Pmt. Appl. Rule"; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; TempLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; var IsHandled: Boolean; TempBankStatementMatchingBuffer: Record "Bank Statement Matching Buffer"; AccountType: Enum "Gen. Journal Account Type"; var TotalTimeDocumentNoMatching: Duration; var TotalTimeDocumentNoMatchingForBankLedgerEntry: Duration; var DocumentMatchedInfoText: Text; LogInfoText: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Event raised before finding the first matching entries in the matching process.
+    /// </summary>
+    /// <param name="TempBankAccReconciliationLine">The temporary bank account reconciliation line record.</param>
+    /// <param name="TempLedgerEntryMatchingBuffer">The temporary ledger entry matching buffer record.</param>
+    /// <param name="AccountType">The account type for matching.</param>
+    /// <param name="SkipOtherEntries">Indicates whether to skip other entries.</param>
+    /// <param name="ApplyEntries">Indicates whether to apply entries automatically.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFindMatchingEntriesOnBeforeFindFirst(var TempBankAccReconciliationLine: Record "Bank Acc. Reconciliation Line" temporary; var TempLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; AccountType: Enum "Gen. Journal Account Type"; var SkipOtherEntries: Boolean; var ApplyEntries: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Event raised before calculating string nearness when finding text mappings.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line record.</param>
+    /// <param name="TextToAccountMapping">The text-to-account mapping record.</param>
+    /// <param name="Nearness">The calculated nearness value.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFindTextMappingsOnBeforeCalculateStringNearness(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var TextToAccountMapping: Record "Text-to-Account Mapping"; var Nearness: Integer);
     begin
     end;
 
+    /// <summary>
+    /// Event raised when setting filters on bank account ledger entries for matching buffer initialization.
+    /// </summary>
+    /// <param name="BankAccountLedgerEntry">The bank account ledger entry record with filters being set.</param>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitBankAccLedgerEntriesMatchingBufferSetFilter(var BankAccountLedgerEntry: Record "Bank Account Ledger Entry"; var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line")
     begin
     end;
 
+    /// <summary>
+    /// Event raised when setting filters on customer ledger entries for matching buffer initialization.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry record with filters being set.</param>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitCustomerLedgerEntriesMatchingBufferSetFilter(var CustLedgerEntry: Record "Cust. Ledger Entry"; var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line")
     begin
     end;
 
+    /// <summary>
+    /// Event raised before finding customer ledger entries when initializing the matching buffer.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry record before finding entries.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitCustomerLedgerEntriesMatchingBufferOnBeforeCustLedgerEntryFindSet(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Event raised when setting filters on employee ledger entries for matching buffer initialization.
+    /// </summary>
+    /// <param name="EmployeeLedgerEntry">The employee ledger entry record with filters being set.</param>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitEmployeeLedgerEntriesMatchingBufferSetFilter(var EmployeeLedgerEntry: Record "Employee Ledger Entry"; var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line")
     begin
     end;
 
+    /// <summary>
+    /// Event raised when setting filters on vendor ledger entries for matching buffer initialization.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">The vendor ledger entry record with filters being set.</param>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitVendorLedgerEntriesMatchingBufferSetFilter(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line")
     begin
     end;
 
+    /// <summary>
+    /// Event raised after finding employee ledger entries when initializing the matching buffer.
+    /// </summary>
+    /// <param name="EmployeeLedgerEntry">The employee ledger entry record after finding entries.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitEmployeeLedgerEntriesMatchingBufferOnAfterEmployeeLedgerEntryFindSet(var EmployeeLedgerEntry: Record "Employee Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Event raised after finding vendor ledger entries when initializing the matching buffer.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">The vendor ledger entry record after finding entries.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInitVendorLedgerEntriesMatchingBufferOnAfterVendorLedgerEntryFindSet(var VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Event raised after setting the final text when showing match summary.
+    /// </summary>
+    /// <param name="BankAccReconciliation">The bank account reconciliation record.</param>
+    /// <param name="FinalText">The final text to be displayed.</param>
+    /// <param name="IsHandled">Indicates whether the event has been handled.</param>
     [IntegrationEvent(false, false)]
     local procedure OnShowMatchSummaryOnAfterSetFinalText(var BankAccReconciliation: Record "Bank Acc. Reconciliation"; FinalText: Text; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Event raised after setting filters on payment matching details when deleting payment match details.
+    /// </summary>
+    /// <param name="PaymentMatchingDetails">The payment matching details record with filters set.</param>
+    /// <param name="BankAccReconciliation">The bank account reconciliation record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDeletePaymentMatchDetailsOnAfterPaymentMatchingDetailsSetFilters(var PaymentMatchingDetails: Record "Payment Matching Details"; BankAccReconciliation: Record "Bank Acc. Reconciliation")
     begin
     end;
 
+    /// <summary>
+    /// Event raised after setting filters on applied payment entries when deleting applied payment entries.
+    /// </summary>
+    /// <param name="AppliedPaymentEntry">The applied payment entry record with filters set.</param>
+    /// <param name="BankAccReconciliation">The bank account reconciliation record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDeleteAppliedPaymentEntriesOnAfterAppliedPaymentEntrySetFilters(var AppliedPaymentEntry: Record "Applied Payment Entry"; BankAccReconciliation: Record "Bank Acc. Reconciliation")
     begin
     end;
 
+    /// <summary>
+    /// Event raised to control whether bank ledger entries from closing ledger entries should be disabled from matching.
+    /// </summary>
+    /// <param name="Disable">Indicates whether to disable bank ledger entries matching from closing ledger entries.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDisableMatchBankLedgerEntriesFromClosingLedgerEntries(var Disable: boolean)
     begin
     end;
 
+    /// <summary>
+    /// Event raised to control whether string nearness matching should be disabled.
+    /// </summary>
+    /// <param name="Disable">Indicates whether to disable string nearness matching functionality.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDisableStringNearnessMatch(var Disable: boolean)
     begin
     end;
 
+    /// <summary>
+    /// Event raised to control whether customer ledger entries matching should be disabled.
+    /// </summary>
+    /// <param name="Disable">Indicates whether to disable customer ledger entries matching functionality.</param>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDisableCustomerLedgerEntriesMatch(var Disable: boolean; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line")
     begin
     end;
 
+    /// <summary>
+    /// Event raised to control whether vendor ledger entries matching should be disabled.
+    /// </summary>
+    /// <param name="Disable">Indicates whether to disable vendor ledger entries matching functionality.</param>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDisableVendorLedgerEntriesMatch(var Disable: boolean; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line")
     begin
     end;
 
+    /// <summary>
+    /// Event raised to control whether employee ledger entries matching should be disabled.
+    /// </summary>
+    /// <param name="Disable">Indicates whether to disable employee ledger entries matching functionality.</param>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDisableEmployeeLedgerEntriesMatch(var Disable: boolean; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line")
     begin
     end;
 
+    /// <summary>
+    /// Event raised to control whether bank ledger entries matching should be disabled.
+    /// </summary>
+    /// <param name="Disable">Indicates whether to disable bank ledger entries matching functionality.</param>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDisableBankLedgerEntriesMatch(var Disable: boolean; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line")
     begin
     end;
 
+    /// <summary>
+    /// Event raised after calculating total time for document number matching when matching entries.
+    /// </summary>
+    /// <param name="BankPmtApplRule">The bank payment application rule record.</param>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line record.</param>
+    /// <param name="TempLedgerEntryMatchingBuffer">The temporary ledger entry matching buffer record.</param>
+    /// <param name="AccountType">The account type for matching.</param>
+    /// <param name="TempBankStatementMatchingBuffer">The temporary bank statement matching buffer record.</param>
+    /// <param name="TotalTimeRelatedPartyMatching">The total time for related party matching.</param>
+    /// <param name="TotalTimeAmountMatching">The total time for amount matching.</param>
+    /// <param name="RemainingAmount">The remaining amount after matching.</param>
+    /// <param name="RelatedPartyMatchedInfoText">The related party matching information text.</param>
+    /// <param name="LogInfoText">Indicates whether to log information text.</param>
+    /// <param name="TotalTimeStringNearness">The total time for string nearness matching.</param>
+    /// <param name="UsePaymentDiscounts">Indicates whether to use payment discounts.</param>
+    /// <param name="OneToManyTempBankStatementMatchingBuffer">The one-to-many temporary bank statement matching buffer record.</param>
+    /// <param name="TempCustomerLedgerEntryMatchingBuffer">The temporary customer ledger entry matching buffer record.</param>
+    /// <param name="TempVendorLedgerEntryMatchingBuffer">The temporary vendor ledger entry matching buffer record.</param>
+    /// <param name="TempEmployeeLedgerEntryMatchingBuffer">The temporary employee ledger entry matching buffer record.</param>
+    /// <param name="TempBankAccLedgerEntryMatchingBuffer">The temporary bank account ledger entry matching buffer record.</param>
+    /// <param name="IsHandled">Indicates whether the event has been handled.</param>
+    /// <param name="DocumentMatchedInfoText">The document matching information text.</param>
     [IntegrationEvent(false, false)]
     local procedure OnMatchEntriesOnAfterCalcTotalTimeDocumentNoMatching(var BankPmtApplRule: Record "Bank Pmt. Appl. Rule"; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; TempLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; AccountType: Enum "Gen. Journal Account Type"; TempBankStatementMatchingBuffer: Record "Bank Statement Matching Buffer" temporary; var TotalTimeRelatedPartyMatching: Duration; var TotalTimeAmountMatching: Duration; var RemainingAmount: Decimal; var RelatedPartyMatchedInfoText: Text; LogInfoText: Boolean; var TotalTimeStringNearness: Duration; UsePaymentDiscounts: Boolean; OneToManyTempBankStatementMatchingBuffer: Record "Bank Statement Matching Buffer" temporary; var TempCustomerLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; var TempVendorLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; var TempEmployeeLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; var TempBankAccLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; var IsHandled: Boolean; var DocumentMatchedInfoText: Text)
     begin
     end;
 
+    /// <summary>
+    /// Event raised during related party information matching process.
+    /// </summary>
+    /// <param name="BankPmtApplRule">The bank payment application rule record.</param>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line record.</param>
+    /// <param name="Name">The name value for matching.</param>
+    /// <param name="Address">The address value for matching.</param>
+    /// <param name="City">The city value for matching.</param>
+    /// <param name="AccountType">The account type for matching.</param>
+    /// <param name="RelatedPartyMatchedInfoText">The related party matching information text.</param>
+    /// <param name="Handled">Indicates whether the related party matching has been handled.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRelatedPartyInfoMatching(var BankPmtApplRule: Record "Bank Pmt. Appl. Rule"; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; Name: Text[100]; Address: Text[100]; City: Text[30]; AccountType: Enum "Gen. Journal Account Type"; var RelatedPartyMatchedInfoText: Text; var Handled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Event raised when finding bank account ledger entry for text-to-account mapping.
+    /// </summary>
+    /// <param name="Handled">Indicates whether the finding process has been handled.</param>
+    /// <param name="Found">Indicates whether a matching bank account ledger entry was found.</param>
+    /// <param name="BankAccLedgerEntry">The bank account ledger entry record found for mapping.</param>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line record.</param>
+    /// <param name="TextToAccountMapping">The text-to-account mapping record.</param>
+    /// <param name="BalAccountNo">The balance account number.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFindBankAccLedgerEntryForTextToAccountMapping(var Handled: Boolean; var Found: Boolean; var BankAccLedgerEntry: Record "Bank Account Ledger Entry"; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; TextToAccountMapping: Record "Text-to-Account Mapping"; BalAccountNo: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Event raised after setting filters on the second bank account reconciliation line record when updating payment match details.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine2">The second bank account reconciliation line record with filters set.</param>
+    /// <param name="BankAccReconciliationLine">The primary bank account reconciliation line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdatePaymentMatchDetailsOnAfterBankAccReconciliationLine2SetFilters(var BankAccReconciliationLine2: Record "Bank Acc. Reconciliation Line"; var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line")
     begin
     end;
 
+    /// <summary>
+    /// Event raised before finding the temporary bank statement matching buffer when creating applied entries.
+    /// </summary>
+    /// <param name="BankAccReconciliation">The bank account reconciliation record.</param>
+    /// <param name="TempBankStatementMatchingBuffer">The temporary bank statement matching buffer record.</param>
+    /// <param name="TempBankStmtMultipleMatchLine">The temporary bank statement multiple match line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateAppliedEntriesOnBeforeTempBankStatementMatchingBufferFindset(BankAccReconciliation: Record "Bank Acc. Reconciliation"; var TempBankStatementMatchingBuffer: Record "Bank Statement Matching Buffer" temporary; var TempBankStmtMultipleMatchLine: Record "Bank Stmt Multiple Match Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Event raised before checking if entries can match based on specified criteria.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line record.</param>
+    /// <param name="Amount">The amount to match.</param>
+    /// <param name="EntryPostingDate">The entry posting date.</param>
+    /// <param name="ApplyEntries">Indicates whether to apply entries automatically.</param>
+    /// <param name="Result">The result of the matching check.</param>
+    /// <param name="IsHandled">Indicates whether the event has been handled.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCanEntriesMatch(BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; Amount: Decimal; EntryPostingDate: Date; ApplyEntries: Boolean; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Event raised after updating payment match details when applying ledger entries to statement lines.
+    /// </summary>
+    /// <param name="BankAccReconciliation">The bank account reconciliation record.</param>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line record.</param>
+    /// <param name="Overwrite">Indicates whether to overwrite existing match details.</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyLedgerEntriesToStatementLinesOnAfterUpdatePaymentMatchDetails(BankAccReconciliation: Record "Bank Acc. Reconciliation"; var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; Overwrite: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Event raised after calculating total time for text mappings per line when mapping ledger entries to statement lines.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line record.</param>
+    /// <param name="TempBankStatementMatchingBuffer">The temporary bank statement matching buffer record.</param>
+    /// <param name="TotalTimeMatchingCustomerLedgerEntriesPerLine">The total time for matching customer ledger entries per line.</param>
+    /// <param name="TotalTimeMatchingVendorLedgerEntriesPerLine">The total time for matching vendor ledger entries per line.</param>
+    /// <param name="TotalTimeMatchingEmployeeLedgerEntriesPerLine">The total time for matching employee ledger entries per line.</param>
+    /// <param name="TotalTimeMatchingBankLedgerEntriesPerLine">The total time for matching bank ledger entries per line.</param>
+    /// <param name="RelatedPartyMatchedInfoText">The related party matching information text.</param>
+    /// <param name="LogInfoText">Indicates whether to log information text.</param>
+    /// <param name="TotalTimeStringNearness">The total time for string nearness matching.</param>
+    /// <param name="UsePaymentDiscounts">Indicates whether to use payment discounts.</param>
+    /// <param name="OneToManyTempBankStatementMatchingBuffer">The one-to-many temporary bank statement matching buffer record.</param>
+    /// <param name="TempCustomerLedgerEntryMatchingBuffer">The temporary customer ledger entry matching buffer record.</param>
+    /// <param name="TempVendorLedgerEntryMatchingBuffer">The temporary vendor ledger entry matching buffer record.</param>
+    /// <param name="TempEmployeeLedgerEntryMatchingBuffer">The temporary employee ledger entry matching buffer record.</param>
+    /// <param name="TempBankAccLedgerEntryMatchingBuffer">The temporary bank account ledger entry matching buffer record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnMapLedgerEntriesToStatementLinesOnAfterCalcTotalTimeTimeTextMappingsPerLine(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var TempBankStatementMatchingBuffer: Record "Bank Statement Matching Buffer" temporary; var TotalTimeMatchingCustomerLedgerEntriesPerLine: Duration; var TotalTimeMatchingVendorLedgerEntriesPerLine: Duration; var TotalTimeMatchingEmployeeLedgerEntriesPerLine: Duration; var TotalTimeMatchingBankLedgerEntriesPerLine: Duration; var RelatedPartyMatchedInfoText: Text; LogInfoText: Boolean; var TotalTimeStringNearness: Duration; UsePaymentDiscounts: Boolean; OneToManyTempBankStatementMatchingBuffer: Record "Bank Statement Matching Buffer" temporary; var TempCustomerLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; var TempVendorLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; var TempEmployeeLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; var TempBankAccLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Event raised before inserting a bank account reconciliation line when transferring differences to an account.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line record to be inserted.</param>
+    /// <param name="TempGenJournalLine">The temporary general journal line record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnTransferDiffToAccountOnBeforeInsertBankAccReconciliationLine(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; TempGenJournalLine: Record "Gen. Journal Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Event raised after sending trace tag when applying records.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line record.</param>
+    /// <param name="TempBankStatementMatchingBuffer">The temporary bank statement matching buffer record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnApplyRecordsOnAfterSendTraceTag(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var TempBankStatementMatchingBuffer: Record "Bank Statement Matching Buffer" temporary);
     begin
     end;
 
+    /// <summary>
+    /// Event raised after text mapper has matched when finding text mappings.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line record.</param>
+    /// <param name="TextToAccountMapping">The text-to-account mapping record that was matched.</param>
+    /// <param name="TempBankStatementMatchingBuffer">The temporary bank statement matching buffer record.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFindTextMappingsOnAfterTextMapperMatched(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var TextToAccountMapping: Record "Text-to-Account Mapping"; var TempBankStatementMatchingBuffer: Record "Bank Statement Matching Buffer" temporary);
     begin
     end;
 
+    /// <summary>
+    /// Event raised before editing a customer ledger entry when setting customer application data.
+    /// </summary>
+    /// <param name="CustLedgerEntry">The customer ledger entry record to be edited.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSetCustAppicationDataOnBeforeCustEntryEdit(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Event raised when transferring difference amounts to accounts during bank reconciliation.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line record.</param>
+    /// <param name="TempGenJnlLine">The temporary general journal line record for transferring differences.</param>
+    /// <param name="DifferenceTransferred">Indicates whether the difference has been transferred.</param>
     [IntegrationEvent(false, false)]
     local procedure OnTransferDifference(BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var TempGenJnlLine: Record "Gen. Journal Line" temporary; var DifferenceTransferred: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Event raised before editing a vendor ledger entry when setting vendor application data.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">The vendor ledger entry record to be edited.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSetVendAppicationDataOnBeforeVendEntryEdit(var VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Event raised before showing the line split message during bank reconciliation.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">The bank account reconciliation line record.</param>
+    /// <param name="SuppressMessage">Indicates whether to suppress the line split message.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowLineSplitMessage(BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var SuppressMessage: Boolean)
     begin

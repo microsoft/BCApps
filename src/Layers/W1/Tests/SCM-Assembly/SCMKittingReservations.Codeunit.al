@@ -4,23 +4,23 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
-using Microsoft.Assembly.Setup;
 using Microsoft.Assembly.Document;
-using Microsoft.Sales.Document;
+using Microsoft.Assembly.Setup;
+using Microsoft.Inventory.Availability;
+using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Setup;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Inventory.Transfer;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Setup;
+using Microsoft.Sales.Document;
 using System.Environment.Configuration;
 using System.TestLibraries.Utilities;
-using Microsoft.Purchases.Setup;
-using Microsoft.Inventory.Tracking;
-using Microsoft.Inventory.BOM;
-using Microsoft.Inventory.Availability;
-using Microsoft.Inventory.Ledger;
-using Microsoft.Purchases.Document;
-using Microsoft.Manufacturing.Document;
-using Microsoft.Inventory.Location;
-using Microsoft.Inventory.Transfer;
-using Microsoft.Inventory.Journal;
-using Microsoft.Inventory.Setup;
 
 codeunit 137095 "SCM Kitting - Reservations"
 {

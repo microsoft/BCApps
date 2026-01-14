@@ -52,6 +52,7 @@ table 5972 "Contract/Service Discount"
         }
         field(7; "Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Discount %';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;

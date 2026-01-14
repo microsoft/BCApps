@@ -13,6 +13,16 @@ using Microsoft.Intercompany.Inbox;
 using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
 
+/// <summary>
+/// Transfers intercompany outbox transactions to partner company inbox for processing.
+/// Handles the complete transfer workflow including journal lines, sales documents, and purchase documents with their dimensions.
+/// </summary>
+/// <remarks>
+/// Core report for intercompany transaction processing between partner companies.
+/// Manages data migration from outbox to inbox, creation of handled transaction archives, and partner database operations.
+/// Supports both internal and external partner integrations with comprehensive dimension handling.
+/// Extensibility: Multiple integration events for custom transfer logic and validation.
+/// </remarks>
 report 513 "Move IC Trans. to Partner Comp"
 {
     Caption = 'Move IC Trans. to Partner Comp';
@@ -233,6 +243,12 @@ report 513 "Move IC Trans. to Partner Comp"
         TempICDocDim: Record "IC Document Dimension" temporary;
         TempICCommentLine: Record "IC Comment Line" temporary;
 
+    /// <summary>
+    /// Initializes the report with partner code list and temporary transaction records for batch processing.
+    /// </summary>
+    /// <param name="NewICPartnerCodeList">List of IC partner codes to process</param>
+    /// <param name="NewTempAllPartnerICInboxTransaction">Temporary record for collecting inbox transactions</param>
+    /// <param name="NewTempAllPartnerHandledICInboxTrans">Temporary record for collecting handled inbox transactions</param>
     procedure Initialize(var NewICPartnerCodeList: List of [Text]; var NewTempAllPartnerICInboxTransaction: Record "IC Inbox Transaction" temporary; var NewTempAllPartnerHandledICInboxTrans: Record "Handled IC Inbox Trans." temporary)
     begin
         ICPartnerCodeList := NewICPartnerCodeList;
@@ -279,6 +295,10 @@ report 513 "Move IC Trans. to Partner Comp"
         TempICCommentLine.DeleteAll();
     end;
 
+    /// <summary>
+    /// Recreates inbox transactions from outbox transactions for partner processing.
+    /// </summary>
+    /// <param name="OutboxTrans">Outbox transaction to recreate in partner inbox</param>
     procedure RecreateInboxTrans(OutboxTrans: Record "IC Outbox Transaction")
     var
         ICInboxTrans: Record "IC Inbox Transaction";
@@ -420,21 +440,41 @@ report 513 "Move IC Trans. to Partner Comp"
         exit(CurrentPartner.Code);
     end;
 
+    /// <summary>
+    /// Integration event raised before deleting handled IC inbox purchase header during transfer processing.
+    /// Enables custom cleanup logic or data archival for processed purchase documents.
+    /// </summary>
+    /// <param name="HandledICInboxPurchHeader">Handled IC inbox purchase header being deleted</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeHandledICInboxPurchHdrDelete(var HandledICInboxPurchHeader: Record "Handled IC Inbox Purch. Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before deleting handled IC inbox purchase line during transfer processing.
+    /// Enables custom cleanup logic or data archival for processed purchase line details.
+    /// </summary>
+    /// <param name="HandledICInboxPurchLine">Handled IC inbox purchase line being deleted</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeHandledICInboxPurchLineDelete(var HandledICInboxPurchLine: Record "Handled IC Inbox Purch. Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before deleting handled IC inbox sales header during transfer processing.
+    /// Enables custom cleanup logic or data archival for processed sales documents.
+    /// </summary>
+    /// <param name="HandledICInboxSalesHdr">Handled IC inbox sales header being deleted</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeHandledICInboxSalesHdrDelete(var HandledICInboxSalesHdr: Record "Handled IC Inbox Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before deleting handled IC inbox sales line during transfer processing.
+    /// Enables custom cleanup logic or data archival for processed sales line details.
+    /// </summary>
+    /// <param name="HandledICInboxSalesLine">Handled IC inbox sales line being deleted</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeHandledICInboxSalesLineDelete(var HandledICInboxSalesLine: Record "Handled IC Inbox Sales Line")
     begin
@@ -446,11 +486,26 @@ report 513 "Move IC Trans. to Partner Comp"
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after processing IC outbox transaction before determining transfer method.
+    /// Enables custom routing logic and transaction validation during partner company transfer.
+    /// </summary>
+    /// <param name="ICPartnerCode">IC partner code for transaction routing</param>
+    /// <param name="ICOutboxTransaction">Source outbox transaction being transferred</param>
+    /// <param name="TempICInboxTransaction">Temporary inbox transaction for partner company</param>
+    /// <param name="ICSetup">IC setup configuration</param>
+    /// <param name="IsHandled">Set to true to skip standard transfer processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnICOutboxTransactionOnAfterGetRecordOnBeforeCase(var ICPartnerCode: Code[20]; ICOutboxTransaction: Record "IC Outbox Transaction"; var TempICInboxTransaction: Record "IC Inbox Transaction" temporary; ICSetup: Record "IC Setup"; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before transferring transactions to IC partner company.
+    /// Enables custom partner validation and transfer configuration setup.
+    /// </summary>
+    /// <param name="CurrentPartner">IC partner receiving the transactions</param>
+    /// <param name="ICSetup">IC setup configuration for transfer processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTransfertoPartner(var CurrentPartner: Record "IC Partner"; ICSetup: Record "IC Setup");
     begin

@@ -13,6 +13,10 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 
+/// <summary>
+/// Temporary table storing calculated allocation lines for distribution processing and preview.
+/// Contains detailed allocation results including amounts, percentages, and destination account information.
+/// </summary>
 table 2672 "Allocation Line"
 {
     DataClassification = SystemMetadata;
@@ -21,22 +25,34 @@ table 2672 "Allocation Line"
 
     fields
     {
+        /// <summary>
+        /// Allocation account number that generated this allocation line.
+        /// </summary>
         field(1; "Allocation Account No."; Code[20])
         {
             DataClassification = SystemMetadata;
             Caption = 'Allocation Account No.';
             TableRelation = "Allocation Account"."No.";
         }
+        /// <summary>
+        /// Sequential line number for the allocation line.
+        /// </summary>
         field(2; "Line No."; Integer)
         {
             DataClassification = SystemMetadata;
             Caption = 'Primary Key';
         }
+        /// <summary>
+        /// Type of destination account for the allocation (G/L Account, Bank Account, etc.).
+        /// </summary>
         field(3; "Destination Account Type"; Enum "Destination Account Type")
         {
             DataClassification = SystemMetadata;
             Caption = 'Destination Account Type';
         }
+        /// <summary>
+        /// Account number for the allocation destination based on the destination account type.
+        /// </summary>
         field(4; "Destination Account Number"; Code[20])
         {
             DataClassification = SystemMetadata;
@@ -45,11 +61,17 @@ table 2672 "Allocation Line"
             else
             if ("Destination Account Type" = const("Bank Account")) "Bank Account";
         }
+        /// <summary>
+        /// Name of the destination account for display purposes.
+        /// </summary>
         field(5; "Destination Account Name"; Text[2048])
         {
             DataClassification = SystemMetadata;
             Caption = 'Destination Account Name';
         }
+        /// <summary>
+        /// Allocated amount for this destination account.
+        /// </summary>
         field(6; Amount; Decimal)
         {
             AutoFormatExpression = '';
@@ -57,11 +79,17 @@ table 2672 "Allocation Line"
             DataClassification = SystemMetadata;
             Caption = 'Amount';
         }
+        /// <summary>
+        /// Account number used for breakdown calculations in variable allocation methods.
+        /// </summary>
         field(10; "Breakdown Account Number"; Code[20])
         {
             DataClassification = SystemMetadata;
             Caption = 'Breakdown Account Number';
         }
+        /// <summary>
+        /// Balance of the breakdown account used for calculation purposes.
+        /// </summary>
         field(11; "Breakdown Account Balance"; Decimal)
         {
             AutoFormatExpression = '';
@@ -69,17 +97,26 @@ table 2672 "Allocation Line"
             DataClassification = SystemMetadata;
             Caption = 'Breakdown Account Balance';
         }
+        /// <summary>
+        /// Name of the breakdown account for display purposes.
+        /// </summary>
         field(12; "Breakdown Account Name"; Text[2048])
         {
             DataClassification = SystemMetadata;
             Caption = 'Breakdown Account Name';
         }
+        /// <summary>
+        /// Percentage of the total allocation assigned to this destination account.
+        /// </summary>
         field(13; Percentage; Decimal)
         {
             AutoFormatType = 0;
             DataClassification = SystemMetadata;
             Caption = 'Percentage';
         }
+        /// <summary>
+        /// Quantity allocated to this destination account for quantity-based allocations.
+        /// </summary>
         field(20; Quantity; Decimal)
         {
             AutoFormatType = 0;
@@ -87,6 +124,9 @@ table 2672 "Allocation Line"
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
+        /// <summary>
+        /// Global dimension 1 code for the allocation line posting.
+        /// </summary>
         field(37; "Global Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,1,1';
@@ -94,6 +134,9 @@ table 2672 "Allocation Line"
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
         }
+        /// <summary>
+        /// Global dimension 2 code for the allocation line posting.
+        /// </summary>
         field(38; "Global Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,1,2';
@@ -101,6 +144,9 @@ table 2672 "Allocation Line"
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
         }
+        /// <summary>
+        /// Dimension set ID linking to dimension combinations for the allocation line.
+        /// </summary>
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
@@ -257,6 +303,14 @@ table 2672 "Allocation Line"
         exit(0.00001);
     end;
 
+    /// <summary>
+    /// Integration event raised to retrieve or generate allocation lines for processing.
+    /// </summary>
+    /// <param name="ParentTableId">ID of the parent table containing the allocation request</param>
+    /// <param name="ParentSystemId">System ID of the parent record</param>
+    /// <param name="AllocationLine">Allocation line record to populate</param>
+    /// <param name="AmountToAllocate">Amount to be allocated across distribution lines</param>
+    /// <param name="PostingDate">Date to use for allocation calculations</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetOrGenerateAllocationLines(ParentTableId: Integer; ParentSystemId: Guid; var AllocationLine: Record "Allocation Line"; var AmountToAllocate: Decimal; var PostingDate: Date)
     begin

@@ -9,6 +9,7 @@ using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Foundation.Navigate;
+using Microsoft.Foundation.Task;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
@@ -16,7 +17,6 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Reports;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
-using Microsoft.Foundation.Task;
 using System.Threading;
 
 page 9002 "Acc. Payables Coordinator RC"
@@ -76,14 +76,19 @@ page 9002 "Acc. Payables Coordinator RC"
     {
         area(reporting)
         {
+#if not CLEAN28
             action("&Vendor - List")
             {
                 ApplicationArea = Basic, Suite;
-                Caption = '&Vendor - List';
+                Caption = '&Vendor - List (Obsolete)';
                 Image = "Report";
                 RunObject = Report "Vendor - List";
                 ToolTip = 'View the list of your vendors.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report is obsolete and will be removed in a future release. See the documentation for alternative options.';
+                ObsoleteTag = '28.0';
             }
+#endif
             action("Vendor - &Balance to date")
             {
                 ApplicationArea = Basic, Suite;
@@ -92,22 +97,30 @@ page 9002 "Acc. Payables Coordinator RC"
                 RunObject = Report "Vendor - Balance to Date";
                 ToolTip = 'View, print, or save a detail balance to date for selected vendors.';
             }
+#if not CLEAN28
             action("Vendor - &Summary Aging")
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Vendor - &Summary Aging';
+                Caption = 'Vendor - &Summary Aging (Obsolete)';
                 Image = "Report";
                 RunObject = Report "Vendor - Summary Aging";
                 ToolTip = 'View a summary of the payables owed to each vendor, divided into three time periods.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report is obsolete and will be removed in a future release. See the documentation for alternative options.';
+                ObsoleteTag = '28.0';
             }
             action("Aged &Accounts Payable")
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Aged &Accounts Payable';
+                Caption = 'Aged &Accounts Payable (Obsolete)';
                 Image = "Report";
                 RunObject = Report "Aged Accounts Payable";
                 ToolTip = 'View an overview of when your payables to vendors are due or overdue (divided into four periods). You must specify the date you want aging calculated from and the length of the period that each column will contain data for.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report has been replaced by the report Aged Accounts Payable (Excel). This report will be removed in a future release.';
+                ObsoleteTag = '28.0';
             }
+#endif
             action("Vendor - &Purchase List")
             {
                 ApplicationArea = Basic, Suite;
@@ -116,14 +129,19 @@ page 9002 "Acc. Payables Coordinator RC"
                 RunObject = Report "Vendor - Purchase List";
                 ToolTip = 'View a list of your purchases in a period, for example, to report purchase activity to customs and tax authorities.';
             }
+#if not CLEAN28
             action("Pa&yments on Hold")
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Pa&yments on Hold';
+                Caption = 'Pa&yments on Hold (Obsolete)';
                 Image = "Report";
                 RunObject = Report "Payments on Hold";
                 ToolTip = 'View a list of all vendor ledger entries on which the On Hold field is marked.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report is obsolete and will be removed in a future release. See the documentation for alternative options.';
+                ObsoleteTag = '28.0';
             }
+#endif
             action("P&urchase Statistics")
             {
                 ApplicationArea = Suite;
@@ -135,44 +153,6 @@ page 9002 "Acc. Payables Coordinator RC"
             separator(Action63)
             {
             }
-#if not CLEAN25
-            action("Vendor &Document Nos.")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'The action will be deleted.';
-                Image = "Report";
-                RunObject = Report "Vendor - Balance to Date";
-                ToolTip = 'The action will be deleted.';
-                Visible = false;
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The Report Vendor Document Nos. doesn''t exist anymore.';
-                ObsoleteTag = '25.0';
-            }
-            action("Purchase &Invoice Nos.")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'The action will be deleted.';
-                Image = "Report";
-                RunObject = Report "Purchase - Invoice";
-                ToolTip = 'The action will be deleted.';
-                Visible = false;
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The related report doesn''t exist anymore';
-                ObsoleteTag = '25.0';
-            }
-            action("Purchase &Credit Memo Nos.")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'The action will be deleted.';
-                Image = "Report";
-                RunObject = Report "Purchase - Credit Memo";
-                ToolTip = 'The action will be deleted.';
-                Visible = false;
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The related report doesn''t exist anymore.';
-                ObsoleteTag = '25.0';
-            }
-#endif
         }
         area(embedding)
         {
@@ -416,4 +396,3 @@ page 9002 "Acc. Payables Coordinator RC"
         }
     }
 }
-

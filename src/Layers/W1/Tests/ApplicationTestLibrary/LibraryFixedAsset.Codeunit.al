@@ -1,3 +1,6 @@
+/// <summary>
+/// Provides utility functions for creating and managing fixed assets, depreciation books, and FA posting in test scenarios.
+/// </summary>
 codeunit 131330 "Library - Fixed Asset"
 {
     Permissions = tabledata "FA Depreciation Book" = rimd,

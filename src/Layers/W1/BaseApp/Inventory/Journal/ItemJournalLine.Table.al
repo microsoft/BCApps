@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -40,6 +40,7 @@ using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Reports;
 using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Structure;
+using System.Automation;
 using System.Security.User;
 using System.Utilities;
 
@@ -1826,7 +1827,12 @@ table 83 "Item Journal Line"
     }
 
     trigger OnDelete()
+    var
+        ItemJournalBatch: Record "Item Journal Batch";
     begin
+        if ItemJournalBatch.Get(Rec."Journal Template Name", Rec."Journal Batch Name") then
+            ApprovalsMgmt.PreventDeletingRecordWithOpenApprovalEntry(ItemJournalBatch);
+
         ItemJnlLineReserve.DeleteLine(Rec);
 
         CalcFields("Reserved Qty. (Base)");
@@ -1842,6 +1848,8 @@ table 83 "Item Journal Line"
         if Rec."Posting No. Series" = '' then
             Rec."Posting No. Series" := ItemJnlTemplate."Posting No. Series";
 
+        ApprovalsMgmt.PreventInsertRecIfOpenApprovalEntryExist(ItemJnlBatch);
+
         Rec.ValidateShortcutDimCode(1, "Shortcut Dimension 1 Code");
         Rec.ValidateShortcutDimCode(2, "Shortcut Dimension 2 Code");
         Rec.ValidateNewShortcutDimCode(1, "New Shortcut Dimension 1 Code");
@@ -1852,6 +1860,7 @@ table 83 "Item Journal Line"
 
     trigger OnModify()
     begin
+        PreventModifyRecIfOpenApprovalEntryExist();
         OnBeforeVerifyReservedQty(Rec, xRec, 0);
         ItemJnlLineReserve.VerifyChange(Rec, xRec);
         CheckPlanningAssignment();
@@ -1884,6 +1893,7 @@ table 83 "Item Journal Line"
         WhseValidateSourceLine: Codeunit "Whse. Validate Source Line";
         WMSManagement: Codeunit "WMS Management";
         ItemReferenceManagement: Codeunit "Item Reference Management";
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
         GLSetupRead: Boolean;
 #pragma warning disable AA0074
         Text007: Label 'New ';
@@ -1906,6 +1916,7 @@ table 83 "Item Journal Line"
         RenumberDocNoQst: Label 'If you have many documents it can take time to sort them, and %1 might perform slowly during the process. In those cases we suggest that you sort them during non-working hours. Do you want to continue?', Comment = '%1= Business Central';
         IncorrectQtyForSNErr: Label 'Quantity must be -1, 0 or 1 when Serial No. is stated.';
         ItemTrackingExistsErr: Label 'You cannot change %1 because item tracking already exists for this journal line.', Comment = '%1 - Serial, Lot or Package No.';
+        RestrictBatchUsageDetailsTxt: Label 'The restriction was imposed because the journal batch requires approval.';
 
     protected var
         ItemJnlLine: Record "Item Journal Line";
@@ -2354,6 +2365,9 @@ table 83 "Item Journal Line"
         SourceCode: Code[10];
         IsHandled: Boolean;
         OldDimSetID: Integer;
+        TableIds: List of [Integer];
+        TableId: Integer;
+        DimSource: Dictionary of [Integer, Code[20]];
     begin
         IsHandled := false;
         OnBeforeCreateDim(Rec, IsHandled, CurrFieldNo, DefaultDimSource, InheritFromDimSetID, InheritFromTableNo);
@@ -2376,12 +2390,23 @@ table 83 "Item Journal Line"
         DimMgt.UpdateGlobalDimFromDimSetID("Dimension Set ID", "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
 
         if "Entry Type" = "Entry Type"::Transfer then
-            if Rec."New Location Code" <> '' then
-                CreateNewDimFromDefaultDim(Rec.FieldNo("New Location Code"))
-            else begin
-                "New Dimension Set ID" := "Dimension Set ID";
-                "New Shortcut Dimension 1 Code" := "Shortcut Dimension 1 Code";
-                "New Shortcut Dimension 2 Code" := "Shortcut Dimension 2 Code";
+            if DefaultDimSource.Count() > 1 then begin
+                DimSource := DefaultDimSource.Get(1);
+                TableIds := DimSource.Keys;
+                if TableIds.Count > 0 then begin
+                    TableId := TableIds.Get(1);
+                    if TableId <> 0 then
+                        case TableId of
+                            Database::Location:
+                                CreateNewDimFromDefaultDim(Rec.FieldNo("New Location Code"));
+                            Database::Item:
+                                CreateNewDimFromDefaultDim(Rec.FieldNo("Item No."));
+                            Database::"Salesperson/Purchaser":
+                                CreateNewDimFromDefaultDim(Rec.FieldNo("Salespers./Purch. Code"));
+                            else
+                                OnCreateDimOnTransferOtherTableId(Rec, TableId);
+                        end;
+                end;
             end;
     end;
 
@@ -2457,7 +2482,7 @@ table 83 "Item Journal Line"
     procedure LookupShortcutDimCode(FieldNumber: Integer; var ShortcutDimCode: Code[20])
     begin
         DimMgt.LookupDimValueCode(FieldNumber, ShortcutDimCode);
-        DimMgt.ValidateShortcutDimValues(FieldNumber, ShortcutDimCode, "Dimension Set ID");
+        ValidateShortcutDimCode(FieldNumber, ShortcutDimCode);
     end;
 
     /// <summary>
@@ -2476,7 +2501,11 @@ table 83 "Item Journal Line"
     /// <param name="NewShortcutDimCode">Value of the new shortcut dimension.</param>
     procedure ValidateNewShortcutDimCode(FieldNumber: Integer; var NewShortcutDimCode: Code[20])
     begin
+        OnBeforeValidateNewShortcutDimCode(Rec, xRec, FieldNumber, NewShortcutDimCode);
+
         DimMgt.ValidateShortcutDimValues(FieldNumber, NewShortcutDimCode, "New Dimension Set ID");
+
+        OnAfterValidateNewShortcutDimCode(Rec, xRec, FieldNumber, NewShortcutDimCode);
     end;
 
     /// <summary>
@@ -2488,7 +2517,7 @@ table 83 "Item Journal Line"
     procedure LookupNewShortcutDimCode(FieldNumber: Integer; var NewShortcutDimCode: Code[20])
     begin
         DimMgt.LookupDimValueCode(FieldNumber, NewShortcutDimCode);
-        DimMgt.ValidateShortcutDimValues(FieldNumber, NewShortcutDimCode, "New Dimension Set ID");
+        ValidateNewShortcutDimCode(FieldNumber, NewShortcutDimCode);
     end;
 
     /// <summary>
@@ -2705,65 +2734,10 @@ table 83 "Item Journal Line"
         OnAfterCopyItemJnlLineFromPurchLine(Rec, PurchLine);
     end;
 
-#if not CLEAN25
-    [Obsolete('Moved to table Service Header', '25.0')]
-    /// <summary>
-    /// Copies fields from the provided service header record to the current item journal line.
-    /// </summary>
-    /// <param name="ServiceHeader">Service header to copy from.</param>
-    procedure CopyFromServHeader(ServiceHeader: Record Microsoft.Service.Document."Service Header")
-    begin
-        ServiceHeader.CopyToItemJnlLine(Rec);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Moved to table Service Line', '25.0')]
-    /// <summary>
-    /// Copies fields from the provided service line record to the current item journal line.
-    /// </summary>
-    /// <param name="ServiceLine">Service line to copy from.</param>
-    procedure CopyFromServLine(ServiceLine: Record Microsoft.Service.Document."Service Line")
-    begin
-        ServiceLine.CopyToItemJnlLine(Rec);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Moved to table Service Shipment Header', '25.0')]
-    /// <summary>
-    /// Copies fields from the provided service shipment header record to the current item journal line.
-    /// </summary>
-    /// <param name="ServShptHeader">Service shipment header to copy from.</param>
-    procedure CopyFromServShptHeader(ServShptHeader: Record Microsoft.Service.History."Service Shipment Header")
-    begin
-        ServShptHeader.CopyToItemJnlLine(Rec);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Moved to table Service Shipment Line', '25.0')]
-    /// <summary>
-    /// Copies fields from the provided service shipment line record to the current item journal line.
-    /// </summary>
-    /// <param name="ServShptLine">Service shipment line to copy from.</param>
-    procedure CopyFromServShptLine(ServShptLine: Record Microsoft.Service.History."Service Shipment Line")
-    begin
-        ServShptLine.CopyToItemJnlLine(Rec);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Moved to table Service Shipment Line', '25.0')]
-    /// <summary>
-    /// Copies fields from the provided service shipment line record to the current item journal line.
-    /// </summary>
-    /// <param name="ServShptLine">Service shipment line to copy from.</param>
-    procedure CopyFromServShptLineUndo(ServShptLine: Record Microsoft.Service.History."Service Shipment Line")
-    begin
-        ServShptLine.CopyToItemJnlLineUndo(Rec);
-    end;
-#endif
 
     /// <summary>
     /// Copies fields from the provided job journal line record to the current item journal line.
@@ -2893,7 +2867,7 @@ table 83 "Item Journal Line"
         ValueEntry.Reset();
         ValueEntry.SetCurrentKey("Item Ledger Entry No.");
         ValueEntry.SetRange("Item Ledger Entry No.", ItemLedgEntry."Entry No.");
-        if CostCalcMgt.CanIncNonInvCostIntoProductionItem() then begin
+        if CostCalcMgt.CanIncNonInvCostIntoProductionItem() or Item.IsNonInventoriableType() then begin
             ValueEntry.CalcSums("Cost Amount (Expected)", "Cost Amount (Actual)", "Cost Amount (Non-Invtbl.)");
             UnitCost2 := (ValueEntry."Cost Amount (Expected)" + ValueEntry."Cost Amount (Actual)" + ValueEntry."Cost Amount (Non-Invtbl.)") / ItemLedgEntry.Quantity
         end else begin
@@ -3045,6 +3019,32 @@ table 83 "Item Journal Line"
             SourceCodeSetup.Get();
             exit("Source Code" = SourceCodeSetup.Sales);
         end;
+    end;
+
+    internal procedure IsSourceProductionJournal() Result: Boolean
+    var
+        SourceCodeSetup: Record "Source Code Setup";
+    begin
+        if not (Rec."Entry Type" in [Rec."Entry Type"::Consumption, Rec."Entry Type"::Output]) then
+            exit;
+
+        SourceCodeSetup.SetLoadFields("Production Journal");
+        SourceCodeSetup.Get();
+
+        exit("Source Code" = SourceCodeSetup."Production Journal");
+    end;
+
+    internal procedure IsSourceCapacityJournal() Result: Boolean
+    var
+        SourceCodeSetup: Record "Source Code Setup";
+    begin
+        if not (Rec."Entry Type" = Rec."Entry Type"::Output) then
+            exit;
+
+        SourceCodeSetup.SetLoadFields("Capacity Journal");
+        SourceCodeSetup.Get();
+
+        exit("Source Code" = SourceCodeSetup."Capacity Journal");
     end;
 
     /// <summary>
@@ -3707,11 +3707,11 @@ table 83 "Item Journal Line"
     begin
         if not DimMgt.IsDefaultDimDefinedForTable(GetTableValuePair(FieldNo)) then
             exit;
-        InitDefaultDimensionSources(DefaultDimSource, FieldNo);
+        InitDefaultDimensionSources(DefaultDimSource, FieldNo, false);
         CreateDim(DefaultDimSource);
     end;
 
-    local procedure CreateNewDimFromDefaultDim(FieldNo: Integer)
+    procedure CreateNewDimFromDefaultDim(FieldNo: Integer)
     var
         ItemJournalTemplate: Record "Item Journal Template";
         DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
@@ -3719,7 +3719,7 @@ table 83 "Item Journal Line"
     begin
         if not DimMgt.IsDefaultDimDefinedForTable(GetTableValuePair(FieldNo)) then
             exit;
-        InitDefaultDimensionSources(DefaultDimSource, FieldNo);
+        InitDefaultDimensionSources(DefaultDimSource, FieldNo, true);
 
         SourceCode := "Source Code";
         if SourceCode = '' then
@@ -3732,6 +3732,7 @@ table 83 "Item Journal Line"
           DimMgt.GetRecDefaultDimID(
             Rec, CurrFieldNo, DefaultDimSource, SourceCode,
             "New Shortcut Dimension 1 Code", "New Shortcut Dimension 2 Code", 0, 0);
+        OnCreateNewDimOnBeforeUpdateGlobalDimFromDimSetID(Rec);
         DimMgt.UpdateGlobalDimFromDimSetID("New Dimension Set ID", "New Shortcut Dimension 1 Code", "New Shortcut Dimension 2 Code");
     end;
 
@@ -3751,14 +3752,16 @@ table 83 "Item Journal Line"
         OnAfterInitTableValuePair(Rec, TableValuePair, FieldNo);
     end;
 
-    local procedure InitDefaultDimensionSources(var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; FieldNo: Integer)
+    local procedure InitDefaultDimensionSources(var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; FieldNo: Integer; CalledForNewDimension: Boolean)
     begin
         DimMgt.AddDimSource(DefaultDimSource, Database::Item, Rec."Item No.", FieldNo = Rec.FieldNo("Item No."));
         DimMgt.AddDimSource(DefaultDimSource, Database::"Salesperson/Purchaser", Rec."Salespers./Purch. Code", FieldNo = Rec.FieldNo("Salespers./Purch. Code"));
-        DimMgt.AddDimSource(DefaultDimSource, Database::Location, Rec."Location Code", FieldNo = Rec.FieldNo("Location Code"));
-        DimMgt.AddDimSource(DefaultDimSource, Database::Location, Rec."New Location Code", FieldNo = Rec.FieldNo("New Location Code"));
+        if CalledForNewDimension = false then
+            DimMgt.AddDimSource(DefaultDimSource, Database::Location, Rec."Location Code", FieldNo = Rec.FieldNo("Location Code"))
+        else
+            DimMgt.AddDimSource(DefaultDimSource, Database::Location, Rec."New Location Code", FieldNo = Rec.FieldNo("New Location Code"));
 
-        OnAfterInitDefaultDimensionSources(Rec, DefaultDimSource, FieldNo);
+        OnAfterInitDefaultDimensionSources(Rec, DefaultDimSource, FieldNo, CalledForNewDimension);
     end;
 
     /// <summary>
@@ -3873,6 +3876,9 @@ table 83 "Item Journal Line"
                 ItemJnlLine3.Get(ItemJnlLine2."Journal Template Name", ItemJnlLine2."Journal Batch Name", ItemJnlLine2."Line No.");
                 ItemJnlLine3."Document No." := DocNo;
                 ItemJnlLine3.Modify();
+
+                RestrictItemJournalBatch(ItemJnlLine3);
+
                 First := false;
                 LastItemJnlLine := ItemJnlLine2;
             until ItemJnlLine2.Next() = 0;
@@ -4050,6 +4056,27 @@ table 83 "Item Journal Line"
             Error(IncorrectQtyForSNErr);
     end;
 
+    local procedure PreventModifyRecIfOpenApprovalEntryExist()
+    var
+        ItemJournalBatch: Record "Item Journal Batch";
+    begin
+        if ItemJournalBatch.Get("Journal Template Name", "Journal Batch Name") then
+            ApprovalsMgmt.PreventModifyRecIfOpenApprovalEntryExist(ItemJournalBatch);
+    end;
+
+    local procedure RestrictItemJournalBatch(var ItemJournalLine: Record "Item Journal Line")
+    var
+        ItemJournalBatch: Record "Item Journal Batch";
+        RecordRestrictionMgt: Codeunit "Record Restriction Mgt.";
+    begin
+        if ItemJournalLine.IsTemporary then
+            exit;
+
+        if ItemJournalBatch.Get(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name") then
+            if ApprovalsMgmt.IsItemJournalBatchApprovalsWorkflowEnabled(ItemJournalBatch) then
+                RecordRestrictionMgt.RestrictRecordUsage(ItemJournalBatch, RestrictBatchUsageDetailsTxt);
+    end;
+
     /// <summary>
     /// Gets the date required for item journal line calculations.
     /// </summary>
@@ -4068,8 +4095,9 @@ table 83 "Item Journal Line"
     /// <param name="ItemJournalLine">The Item Journal Line record.</param>
     /// <param name="DefaultDimSource">The list of default dimension sources.</param>
     /// <param name="FieldNo">The field number that triggered the validation.</param>
+    /// <param name="CalledForNewDimension">Whether the event was called for a new dimension.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInitDefaultDimensionSources(var ItemJournalLine: Record "Item Journal Line"; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; FieldNo: Integer)
+    local procedure OnAfterInitDefaultDimensionSources(var ItemJournalLine: Record "Item Journal Line"; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; FieldNo: Integer; CalledForNewDimension: Boolean)
     begin
     end;
 
@@ -4187,71 +4215,6 @@ table 83 "Item Journal Line"
     local procedure OnAfterCopyItemJnlLineFromPurchLine(var ItemJnlLine: Record "Item Journal Line"; PurchLine: Record "Purchase Line")
     begin
     end;
-
-#if not CLEAN25
-    internal procedure RunOnAfterCopyItemJnlLineFromServHeader(var ItemJnlLine: Record "Item Journal Line"; ServHeader: Record Microsoft.Service.Document."Service Header")
-    begin
-        OnAfterCopyItemJnlLineFromServHeader(ItemJnlLine, ServHeader);
-    end;
-
-    [Obsolete('Replaced by event OnAfterCopyToItemJnlLine in table Service Header', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterCopyItemJnlLineFromServHeader(var ItemJnlLine: Record "Item Journal Line"; ServHeader: Record Microsoft.Service.Document."Service Header")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnAfterCopyItemJnlLineFromServLine(var ItemJnlLine: Record "Item Journal Line"; ServLine: Record Microsoft.Service.Document."Service Line")
-    begin
-        OnAfterCopyItemJnlLineFromServLine(ItemJnlLine, ServLine);
-    end;
-
-    [Obsolete('Replaced by event OnAfterCopyToItemJnlLine in table Service Line', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterCopyItemJnlLineFromServLine(var ItemJnlLine: Record "Item Journal Line"; ServLine: Record Microsoft.Service.Document."Service Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnAfterCopyItemJnlLineFromServShptHeader(var ItemJnlLine: Record "Item Journal Line"; ServShptHeader: Record Microsoft.Service.History."Service Shipment Header")
-    begin
-        OnAfterCopyItemJnlLineFromServShptHeader(ItemJnlLine, ServShptHeader);
-    end;
-
-    [Obsolete('Replaced by event OnAfterCopyToItemJnlLine in table Service Shipment Header', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterCopyItemJnlLineFromServShptHeader(var ItemJnlLine: Record "Item Journal Line"; ServShptHeader: Record Microsoft.Service.History."Service Shipment Header")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnAfterCopyItemJnlLineFromServShptLine(var ItemJnlLine: Record "Item Journal Line"; ServShptLine: Record Microsoft.Service.History."Service Shipment Line")
-    begin
-        OnAfterCopyItemJnlLineFromServShptLine(ItemJnlLine, ServShptLine);
-    end;
-
-    [Obsolete('Replaced by event OnAfterCopyToItemJnlLine in table Service Shipment Line', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterCopyItemJnlLineFromServShptLine(var ItemJnlLine: Record "Item Journal Line"; ServShptLine: Record Microsoft.Service.History."Service Shipment Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnAfterCopyItemJnlLineFromServShptLineUndo(var ItemJnlLine: Record "Item Journal Line"; ServShptLine: Record Microsoft.Service.History."Service Shipment Line")
-    begin
-        OnAfterCopyItemJnlLineFromServShptLineUndo(ItemJnlLine, ServShptLine);
-    end;
-
-    [Obsolete('Replaced by event OnAfterCopyToItemJnlLineUndo in table Service Shipment Line', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterCopyItemJnlLineFromServShptLineUndo(var ItemJnlLine: Record "Item Journal Line"; ServShptLine: Record Microsoft.Service.History."Service Shipment Line")
-    begin
-    end;
-#endif
 
     /// <summary>
     /// Event triggered after copying data from the "Job Journal Line" to the current record.
@@ -4999,18 +4962,6 @@ table 83 "Item Journal Line"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforeCopyItemJnlLineFromServLine(var ItemJournalLine: Record "Item Journal Line"; ServiceLine: Record Microsoft.Service.Document."Service Line"; var IsHandled: Boolean)
-    begin
-        OnBeforeCopyItemJnlLineFromServLine(ItemJournalLine, ServiceLine, IsHandled);
-    end;
-
-    [Obsolete('Replaced by event OnBeforeCopyToItemJnlLine in table Service Line', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCopyItemJnlLineFromServLine(var ItemJournalLine: Record "Item Journal Line"; ServiceLine: Record Microsoft.Service.Document."Service Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckItemTracking(var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
@@ -5231,6 +5182,26 @@ table 83 "Item Journal Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnValidateEntryTypeBeforeValidateLocationCode(var ItemJnlLine: Record "Item Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeValidateNewShortcutDimCode(var ItemJournalLine: Record "Item Journal Line"; xItemJournalLine: Record "Item Journal Line"; FieldNumber: Integer; var NewShortcutDimCode: Code[20])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterValidateNewShortcutDimCode(var ItemJournalLine: Record "Item Journal Line"; xItemJournalLine: Record "Item Journal Line"; FieldNumber: Integer; var NewShortcutDimCode: Code[20])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCreateDimOnTransferOtherTableId(var ItemJournalLine: Record "Item Journal Line"; TableId: Integer)
+    begin
+    end;
+    
+    [IntegrationEvent(false, false)]
+    local procedure OnCreateNewDimOnBeforeUpdateGlobalDimFromDimSetID(var ItemJournalLine: Record "Item Journal Line")
     begin
     end;
 }

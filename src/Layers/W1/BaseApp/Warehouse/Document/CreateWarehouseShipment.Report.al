@@ -104,6 +104,7 @@ report 5708 "Create Warehouse Shipment"
         if SalesHeader.WhseShipmentConflict(SalesHeader."Document Type", SalesHeader."No.", SalesHeader."Shipping Advice") then
             exit;
 
+        GetSourceDocOutbound.SetCalledFromCreateWarehouseShipmentReport(true);
         if GetSourceDocOutbound.CheckSalesHeader(SalesHeader, false) then
             exit;
 

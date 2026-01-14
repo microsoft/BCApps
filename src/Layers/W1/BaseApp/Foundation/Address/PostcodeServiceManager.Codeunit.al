@@ -151,35 +151,30 @@ codeunit 9090 "Postcode Service Manager"
     end;
 
     [IntegrationEvent(false, false)]
-    [Scope('OnPrem')]
     procedure OnDiscoverPostcodeServices(var TempServiceListNameValueBuffer: Record "Name/Value Buffer" temporary)
     begin
         // Emit broadcast message to find all postcode service
     end;
 
     [IntegrationEvent(false, false)]
-    [Scope('OnPrem')]
     procedure OnRetrieveAddressList(ServiceKey: Text; TempEnteredAutocompleteAddress: Record "Autocomplete Address" temporary; var TempAddressListNameValueBuffer: Record "Name/Value Buffer" temporary; var IsSuccessful: Boolean; var ErrorMsg: Text)
     begin
         // Retrieve the list of possible UK addresses or autocompletetion based on parameters
     end;
 
     [IntegrationEvent(false, false)]
-    [Scope('OnPrem')]
     procedure OnRetrieveAddress(ServiceKey: Text; TempEnteredAutocompleteAddress: Record "Autocomplete Address" temporary; TempSelectedAddressNameValueBuffer: Record "Name/Value Buffer" temporary; var TempAutocompleteAddress: Record "Autocomplete Address" temporary; var IsSuccessful: Boolean; var ErrorMsg: Text)
     begin
         // Retrieve specific address
     end;
 
     [IntegrationEvent(false, false)]
-    [Scope('OnPrem')]
     procedure OnShowConfigurationPage(ServiceKey: Text; var Successful: Boolean)
     begin
         // Notify services to create their configuration records if necessary
     end;
 
     [IntegrationEvent(false, false)]
-    [Scope('OnPrem')]
     procedure OnCheckIsServiceConfigured(ServiceKey: Text; var IsConfigured: Boolean)
     begin
         // Retrieve information from service if it is configured

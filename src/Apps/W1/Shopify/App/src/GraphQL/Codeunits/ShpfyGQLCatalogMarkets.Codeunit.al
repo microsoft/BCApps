@@ -28,6 +28,6 @@ codeunit 30402 "Shpfy GQL Catalog Markets" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(27);
+        exit(6);
     end;
 }

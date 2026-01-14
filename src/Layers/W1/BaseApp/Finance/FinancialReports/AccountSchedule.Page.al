@@ -7,6 +7,15 @@ using System.Environment.Configuration;
 using System.Integration;
 using System.Integration.Excel;
 
+/// <summary>
+/// Account schedule line definition page for creating and managing financial report row structures.
+/// Provides comprehensive account schedule line configuration with totaling, formulas, and dimensional analysis.
+/// </summary>
+/// <remarks>
+/// Primary interface for defining account schedule lines with calculation logic, dimension filters, and display options.
+/// Integrates with column layouts for complete financial reporting matrix. Supports G/L account, cost type, and cash flow totaling.
+/// Extensible via page extensions for custom account schedule functionality and additional calculation types.
+/// </remarks>
 page 104 "Account Schedule"
 {
     AboutTitle = 'About (Financial Report) Row Definition';
@@ -460,6 +469,10 @@ page 104 "Account Schedule"
         TotalingDisplayed: Text[250];
         ExcelFileNameTxt: Label 'Row Definition - ScheduleName %1', Comment = '%1 = Schedule Name';
 
+    /// <summary>
+    /// Sets the current account schedule name for page context and line filtering.
+    /// </summary>
+    /// <param name="NewAccSchedName">Account schedule name to set as current context</param>
     procedure SetAccSchedName(NewAccSchedName: Code[10])
     begin
         CurrentSchedName := NewAccSchedName;
@@ -494,6 +507,11 @@ page 104 "Account Schedule"
             TotalingDisplayed := Rec.Totaling;
     end;
 
+    /// <summary>
+    /// Configures account schedule line with current page context and handles line number assignment.
+    /// Ensures proper line numbering and schedule name association for new and modified lines.
+    /// </summary>
+    /// <param name="AccSchedLine">Account schedule line to configure with page context</param>
     procedure SetupAccSchedLine(var AccSchedLine: Record "Acc. Schedule Line")
     var
         IsHandled: Boolean;
@@ -517,16 +535,32 @@ page 104 "Account Schedule"
         end;
     end;
 
+    /// <summary>
+    /// Retrieves display text for account category totaling when totaling type is account category.
+    /// </summary>
+    /// <returns>Formatted account category totaling text for display purposes</returns>
     procedure GetAccountCategoryTotalingToDisplay(): Text[250]
     begin
         exit(AccSchedManagement.GLAccCategoryText(Rec));
     end;
 
+    /// <summary>
+    /// Returns the current account schedule name set in the page context.
+    /// </summary>
+    /// <returns>Current account schedule name code</returns>
     procedure GetAccSchedName(): Code[10]
     begin
         exit(CurrentSchedName);
     end;
 
+    /// <summary>
+    /// Integration event raised before setting up account schedule line configuration.
+    /// </summary>
+    /// <param name="RecAccScheduleLine">Current account schedule line record</param>
+    /// <param name="xRecAccScheduleLine">Previous version of account schedule line record</param>
+    /// <param name="AccScheduleLine">Account schedule line being configured</param>
+    /// <param name="CurrentSchedName">Current account schedule name context</param>
+    /// <param name="IsHandled">Set to true to override standard setup logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetupAccSchedLine(var RecAccScheduleLine: Record "Acc. Schedule Line"; var xRecAccScheduleLine: Record "Acc. Schedule Line"; var AccScheduleLine: Record "Acc. Schedule Line"; CurrentSchedName: Code[20]; var IsHandled: Boolean)
     begin

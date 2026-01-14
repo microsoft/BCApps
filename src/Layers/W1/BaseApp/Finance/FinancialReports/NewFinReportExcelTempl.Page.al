@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.FinancialReports;
 
+/// <summary>
+/// Dialog page for copying existing financial report Excel templates to create new templates.
+/// Provides template duplication functionality with name modification and validation.
+/// </summary>
+/// <remarks>
+/// Standard dialog enabling users to copy existing Excel templates for financial reports.
+/// Supports template replication scenarios where similar formatting is needed across
+/// multiple financial reports without recreating Excel layouts from scratch.
+/// </remarks>
 page 787 "New Fin. Report Excel Templ."
 {
     Caption = 'Copy Financial Report Excel Layout';

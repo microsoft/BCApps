@@ -220,11 +220,13 @@ table 5970 "Filed Service Contract Header"
         }
         field(40; "Calcd. Annual Amount"; Decimal)
         {
+            AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Calcd. Annual Amount';
         }
         field(42; "Annual Amount"; Decimal)
         {
+            AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Annual Amount';
@@ -232,6 +234,7 @@ table 5970 "Filed Service Contract Header"
         }
         field(43; "Amount per Period"; Decimal)
         {
+            AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Amount per Period';
@@ -281,12 +284,14 @@ table 5970 "Filed Service Contract Header"
         }
         field(53; "Last Price Update %"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Last Price Update %';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
         field(55; "Response Time (Hours)"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Response Time (Hours)';
             DecimalPlaces = 0 : 5;
@@ -378,6 +383,7 @@ table 5970 "Filed Service Contract Header"
         }
         field(83; Probability; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Probability';
             DecimalPlaces = 0 : 5;
             InitValue = 100;

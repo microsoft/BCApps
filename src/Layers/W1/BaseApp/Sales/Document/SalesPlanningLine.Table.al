@@ -48,6 +48,7 @@ table 99000800 "Sales Planning Line"
         }
         field(6; Available; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Available';
             DecimalPlaces = 0 : 5;
         }
@@ -77,6 +78,7 @@ table 99000800 "Sales Planning Line"
         }
         field(12; "Planned Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Planned Quantity';
             DecimalPlaces = 0 : 5;
         }
@@ -102,4 +104,3 @@ table 99000800 "Sales Planning Line"
     {
     }
 }
-

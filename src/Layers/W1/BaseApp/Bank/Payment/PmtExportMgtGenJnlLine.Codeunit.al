@@ -97,6 +97,11 @@ codeunit 1206 "Pmt Export Mgt Gen. Jnl Line"
     /// This procedure creates data exchange entries and credit transfer entries for payment export.
     /// </summary>
     /// <param name="GenJnlLine">General journal lines to process for export.</param>
+    /// <summary>
+    /// Processes general journal lines for payment export and creates credit transfer entries.
+    /// This procedure handles the core export logic for journal-based payment files.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal lines to export for payment processing.</param>
     /// <param name="CreditTransferRegister">Credit transfer register for tracking the export operation.</param>
     [Scope('OnPrem')]
     procedure ExportGenJnlLine(var GenJnlLine: Record "Gen. Journal Line"; var CreditTransferRegister: Record "Credit Transfer Register")

@@ -3,9 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Integration.Dataverse;
+
+using System.Environment;
 using System.Reflection;
 using System.Utilities;
-using System.Environment;
 
 page 5374 "New Synthetic Relation Wiz."
 {

@@ -15,6 +15,15 @@ using Microsoft.Foundation.Period;
 using Microsoft.Utilities;
 using System.IO;
 
+/// <summary>
+/// Exports analysis view data to Excel format with multi-dimensional layout and hierarchical structure.
+/// Provides comprehensive data export capabilities for analysis views with dimension drilling and formatting.
+/// </summary>
+/// <remarks>
+/// Supports export of both G/L account and Cash Flow account analysis data.
+/// Creates Excel workbooks with hierarchical dimension layouts and configurable column structures.
+/// Integrates with analysis view filtering and dimension parameters for targeted data export.
+/// </remarks>
 codeunit 424 "Export Analysis View"
 {
 
@@ -73,6 +82,12 @@ codeunit 424 "Export Analysis View"
         Text031: Label 'Data_';
 #pragma warning restore AA0074
 
+    /// <summary>
+    /// Exports analysis view entry data to Excel format with dimensional breakdown and hierarchical structure.
+    /// Creates comprehensive Excel report with configurable dimensions and account groupings.
+    /// </summary>
+    /// <param name="AnalysisViewEntry">Analysis view entry records to export</param>
+    /// <param name="AnalysisByDimParameters">Parameters controlling export format and filtering options</param>
     procedure ExportData(var AnalysisViewEntry: Record "Analysis View Entry"; AnalysisByDimParameters: Record "Analysis by Dim. Parameters")
     var
         BusUnitFilter: Text;
@@ -957,41 +972,94 @@ codeunit 424 "Export Analysis View"
             until TempDimValue2.Next() = 0;
     end;
 
+    /// <summary>
+    /// Retrieves the server file name for the exported analysis view file.
+    /// Returns the full server path and filename of the generated Excel export file.
+    /// </summary>
+    /// <returns>Server file path and name of the exported analysis view Excel file</returns>
     procedure GetServerFileName(): Text
     begin
         exit(ServerFileName);
     end;
 
+    /// <summary>
+    /// Configures the export process to skip automatic file download after generation.
+    /// Sets the process to generate the Excel file without triggering browser download dialog.
+    /// </summary>
     procedure SetSkipDownload()
     begin
         SkipDownload := true;
     end;
 
+    /// <summary>
+    /// Integration event raised after completing analysis view data export to Excel buffer.
+    /// Enables custom post-processing of Excel data before file generation and download.
+    /// </summary>
+    /// <param name="varTempExcelBuffer">Temporary Excel Buffer record containing exported data</param>
+    /// <param name="AnalysisViewEntry">Analysis View Entry record used for export</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterExportData(var varTempExcelBuffer: Record "Excel Buffer" temporary; var AnalysisViewEntry: Record "Analysis View Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before starting a new row when creating analysis view entry data part.
+    /// Enables custom row formatting and data manipulation during Excel export generation.
+    /// </summary>
+    /// <param name="TempExcelBuffer">Temporary Excel Buffer record for row creation</param>
+    /// <param name="AnalysisViewEntry">Analysis View Entry record being processed</param>
+    /// <param name="AnalysisByDimParameters">Analysis parameters affecting export format</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateAnalysisViewEntryPartOnBeforeStartNewRow(var TempExcelBuffer: Record "Excel Buffer" temporary; var AnalysisViewEntry: Record "Analysis View Entry"; AnalysisByDimParameters: Record "Analysis by Dim. Parameters")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before starting a new row when creating column captions.
+    /// Enables custom header formatting and caption manipulation during Excel export generation.
+    /// </summary>
+    /// <param name="TempExcelBuffer">Temporary Excel Buffer record for row creation</param>
+    /// <param name="AnalysisViewEntry">Analysis View Entry record being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateRowWithColumnsCaptionsOnBeforeStartNewRow(var TempExcelBuffer: Record "Excel Buffer" temporary; var AnalysisViewEntry: Record "Analysis View Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after closing the Excel workbook during data export.
+    /// Enables final workbook customization and post-processing before file completion.
+    /// </summary>
+    /// <param name="TempExcelBuffer">Temporary Excel Buffer record containing completed workbook</param>
+    /// <param name="AnalysisViewEntry">Analysis View Entry record used for export</param>
+    /// <param name="AnalysisByDimParameters">Analysis parameters used in export generation</param>
     [IntegrationEvent(false, false)]
     local procedure OnExportDataOnAfterCloseBook(var TempExcelBuffer: Record "Excel Buffer" temporary; var AnalysisViewEntry: Record "Analysis View Entry"; AnalysisByDimParameters: Record "Analysis by Dim. Parameters")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking combination validity for export settings.
+    /// Enables custom validation logic for analysis view export parameter combinations.
+    /// </summary>
+    /// <param name="GLAccountSource">Boolean indicating G/L Account as data source</param>
+    /// <param name="Show">Show field option for display configuration</param>
+    /// <param name="AmountField">Amount field type for export</param>
+    /// <param name="IsHandled">Set to true to skip standard combination validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckCombination(GLAccountSource: Boolean; Show: Integer; AmountField: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before creating analysis view entry part during export generation.
+    /// Enables custom date filtering and entry selection logic for analysis view export processing.
+    /// </summary>
+    /// <param name="AnalysisViewEntry">Analysis View Entry record being processed</param>
+    /// <param name="AnalysisView">Analysis View record containing configuration</param>
+    /// <param name="StartDate">Start date for analysis period, available for modification</param>
+    /// <param name="EndDate">End date for analysis period, available for modification</param>
+    /// <param name="AnalysisByDimParameters">Analysis parameters affecting export</param>
+    /// <param name="IsHandled">Set to true to skip standard entry part creation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateAnalysisViewEntryPart(var AnalysisViewEntry: Record "Analysis View Entry"; AnalysisView: Record "Analysis View"; var StartDate: Date; var EndDate: Date; AnalysisByDimParameters: Record "Analysis by Dim. Parameters"; var IsHandled: Boolean)
     begin

@@ -6,12 +6,19 @@ namespace Microsoft.Finance.Dimension.Correction;
 
 using Microsoft.Finance.Analysis;
 
+/// <summary>
+/// Stores dimension correction definitions with status tracking and validation results.
+/// Manages correction jobs for updating dimension values in posted general ledger entries.
+/// </summary>
 table 2582 "Dimension Correction"
 {
     DataClassification = CustomerContent;
 
     fields
     {
+        /// <summary>
+        /// Unique identifier for the dimension correction record.
+        /// </summary>
         field(1; "Entry No."; Integer)
         {
             DataClassification = CustomerContent;
@@ -19,6 +26,9 @@ table 2582 "Dimension Correction"
             Editable = false;
         }
 
+        /// <summary>
+        /// Current processing status of the dimension correction.
+        /// </summary>
         field(2; "Status"; Option)
         {
             DataClassification = CustomerContent;
@@ -27,42 +37,63 @@ table 2582 "Dimension Correction"
             Editable = false;
         }
 
+        /// <summary>
+        /// User-defined description for the dimension correction.
+        /// </summary>
         field(3; Description; Text[250])
         {
             DataClassification = CustomerContent;
             NotBlank = true;
         }
 
+        /// <summary>
+        /// Indicates whether target dimension set IDs have been generated for the correction.
+        /// </summary>
         field(6; "Generated Set IDs"; Boolean)
         {
             DataClassification = CustomerContent;
             Editable = false;
         }
 
+        /// <summary>
+        /// Total number of general ledger entries updated by this dimension correction.
+        /// </summary>
         field(7; "Total Updated Ledger Entries"; Integer)
         {
             DataClassification = CustomerContent;
             Editable = false;
         }
 
+        /// <summary>
+        /// Indicates whether the dimension correction has been invalidated due to subsequent changes.
+        /// </summary>
         field(8; Invalidated; Boolean)
         {
             FieldClass = FlowField;
             CalcFormula = exist("Invalidated Dim Correction" where("Invalidated Entry No." = field("Entry No.")));
         }
 
+        /// <summary>
+        /// Total number of ledger entries selected for dimension correction processing.
+        /// </summary>
         field(9; "Total Selected Ledger Entries"; Integer)
         {
             DataClassification = CustomerContent;
             Editable = false;
         }
 
+        /// <summary>
+        /// Last entry number processed during undo operation for tracking progress.
+        /// </summary>
         field(10; "Undo Last Ledger Entry No."; Integer)
         {
             DataClassification = CustomerContent;
             Editable = false;
         }
 
+        /// <summary>
+        /// Error message from the last failed dimension correction operation.
+        /// </summary>
         field(11; "Error Message"; Text[2048])
         {
             DataClassification = CustomerContent;
@@ -70,6 +101,9 @@ table 2582 "Dimension Correction"
             Editable = false;
         }
 
+        /// <summary>
+        /// Indicates whether the dimension correction has been completed at least once.
+        /// </summary>
         field(12; Completed; Boolean)
         {
             DataClassification = CustomerContent;
@@ -77,6 +111,9 @@ table 2582 "Dimension Correction"
             Editable = false;
         }
 
+        /// <summary>
+        /// GUID of the last job queue entry used for processing this dimension correction.
+        /// </summary>
         field(13; "Last Job Queue Entry ID"; Guid)
         {
             DataClassification = CustomerContent;
@@ -84,58 +121,88 @@ table 2582 "Dimension Correction"
             Editable = false;
         }
 
+        /// <summary>
+        /// Indicates whether selected ledger entries have been generated for the correction.
+        /// </summary>
         field(14; "Generated Selected Entries"; Boolean)
         {
             DataClassification = CustomerContent;
             Editable = false;
         }
 
+        /// <summary>
+        /// Indicates whether selected entries have been validated for dimension correction.
+        /// </summary>
         field(15; "Validated Selected Entries"; Boolean)
         {
             DataClassification = CustomerContent;
             Editable = false;
         }
 
+        /// <summary>
+        /// Entry number of the last updated general ledger entry during processing.
+        /// </summary>
         field(16; "Last Updated Entry No."; Integer)
         {
             DataClassification = CustomerContent;
             Editable = false;
         }
 
+        /// <summary>
+        /// Entry number of the last validated general ledger entry during validation process.
+        /// </summary>
         field(17; "Last Validated Entry No."; Integer)
         {
             DataClassification = CustomerContent;
             Editable = false;
         }
 
+        /// <summary>
+        /// Indicates whether the dimension correction processing has been started.
+        /// </summary>
         field(18; "Started Correction"; Boolean)
         {
             DataClassification = CustomerContent;
             Editable = false;
         }
 
+        /// <summary>
+        /// GUID for tracking validation errors in the error register system.
+        /// </summary>
         field(19; "Validation Errors Register ID"; Guid)
         {
             DataClassification = CustomerContent;
             Editable = false;
         }
 
+        /// <summary>
+        /// Date and time when the dimension correction validation was completed.
+        /// </summary>
         field(20; "Validated At"; DateTime)
         {
             DataClassification = CustomerContent;
             Editable = false;
         }
 
+        /// <summary>
+        /// BLOB field containing validation messages and status information.
+        /// </summary>
         field(21; "Validation Message"; Blob)
         {
             DataClassification = CustomerContent;
         }
 
+        /// <summary>
+        /// Indicates whether analysis views should be updated after dimension correction.
+        /// </summary>
         field(30; "Update Analysis Views"; Boolean)
         {
             DataClassification = CustomerContent;
         }
 
+        /// <summary>
+        /// Current status of analysis views update process for this dimension correction.
+        /// </summary>
         field(31; "Update Analysis Views Status"; Option)
         {
             DataClassification = CustomerContent;
@@ -143,17 +210,26 @@ table 2582 "Dimension Correction"
             OptionMembers = "Not Started","In Process",Failed,Completed;
         }
 
+        /// <summary>
+        /// BLOB field containing error messages from failed analysis views update operations.
+        /// </summary>
         field(32; "Update Analysis Views Error"; Blob)
         {
             DataClassification = CustomerContent;
         }
 
+        /// <summary>
+        /// Specifies the type of analysis view update to perform after dimension correction.
+        /// </summary>
         field(33; "Analysis View Update Type"; Option)
         {
             DataClassification = CustomerContent;
             OptionMembers = "Update on posting only","All";
         }
 
+        /// <summary>
+        /// GUID of the job queue entry responsible for updating analysis views.
+        /// </summary>
         field(34; "Update Analysis View Job ID"; Guid)
         {
             DataClassification = SystemMetadata;
@@ -218,6 +294,10 @@ table 2582 "Dimension Correction"
         DimCorrectionEntryLog.DeleteAll(true);
     end;
 
+    /// <summary>
+    /// Sets error message for analysis views update operation.
+    /// </summary>
+    /// <param name="ErrorMessage">Error message text to store</param>
     procedure SetUpdateAnalysisViewErrorMessage(ErrorMessage: Text)
     var
         AnalysisViewErrorMessageOutStream: OutStream;
@@ -226,6 +306,10 @@ table 2582 "Dimension Correction"
         AnalysisViewErrorMessageOutStream.WriteText(ErrorMessage);
     end;
 
+    /// <summary>
+    /// Retrieves error message from analysis views update operation.
+    /// </summary>
+    /// <param name="ErrorMessage">Variable to store retrieved error message</param>
     procedure GetUpdateAnalysisViewErrorMessage(var ErrorMessage: Text)
     var
         AnalysisViewErrorMessageInStream: InStream;
@@ -235,6 +319,10 @@ table 2582 "Dimension Correction"
         AnalysisViewErrorMessageInStream.ReadText(ErrorMessage)
     end;
 
+    /// <summary>
+    /// Sets validation status text message in the validation message BLOB field.
+    /// </summary>
+    /// <param name="StatusText">Status text to store in validation message</param>
     procedure SetValidateDimensionChangesText(StatusText: Text)
     var
         ValidateDimensionChangesOutStream: OutStream;
@@ -243,6 +331,10 @@ table 2582 "Dimension Correction"
         ValidateDimensionChangesOutStream.WriteText(StatusText);
     end;
 
+    /// <summary>
+    /// Retrieves validation status text from the validation message BLOB field.
+    /// </summary>
+    /// <param name="StatusText">Variable to store retrieved validation status text</param>
     procedure GetValidateDimensionChangesText(var StatusText: Text)
     var
         ValidateDimensionChangesInStream: InStream;
@@ -252,6 +344,9 @@ table 2582 "Dimension Correction"
         ValidateDimensionChangesInStream.ReadText(StatusText)
     end;
 
+    /// <summary>
+    /// Reopens a dimension correction by resetting it to draft status and clearing processing data.
+    /// </summary>
     procedure ReopenDraftDimensionCorrection()
     var
         DimCorrectionEntryLog: Record "Dim Correction Entry Log";
@@ -292,6 +387,10 @@ table 2582 "Dimension Correction"
         CannotChangeDimensionCorrectionErr: Label 'You cannot change a dimension correction while it is in %1 state.', Comment = '%1 Name of the state';
         DimensionCorrectionLbl: Label 'Dimension Correction %1', Comment = '%1 Entry No of the dimension correction';
 
+    /// <summary>
+    /// Integration event raised after inserting a new dimension correction record.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction record that was inserted</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterOnInsert(var DimensionCorrection: Record "Dimension Correction")
     begin

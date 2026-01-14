@@ -9,6 +9,10 @@ using Microsoft.Intercompany.GLAccount;
 using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
 
+/// <summary>
+/// Provides setup interface for intercompany dimension synchronization with specific partner companies.
+/// Enables partner selection and initiates dimension synchronization process with data exchange validation.
+/// </summary>
 page 678 "IC Dimensions Setup"
 {
     ApplicationArea = Intercompany;

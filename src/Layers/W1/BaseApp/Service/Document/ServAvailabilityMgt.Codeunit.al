@@ -4,12 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Document;
 
+using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.Item;
-using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Requisition;
-using Microsoft.Service.History;
 using Microsoft.Inventory.Tracking;
+using Microsoft.Service.History;
 
 codeunit 6452 "Serv. Availability Mgt."
 {
@@ -40,6 +40,7 @@ codeunit 6452 "Serv. Availability Mgt."
     var
         ServiceLine: Record "Service Line";
         ServAvailabilityMgt: Codeunit "Serv. Availability Mgt.";
+        IsHandled: Boolean;
     begin
         CaptionText := ServiceOrderTxt;
         OrderPromisingLine.DeleteAll();
@@ -50,11 +51,15 @@ codeunit 6452 "Serv. Availability Mgt."
         OnSetServiceHeaderOnAfterFilterServiceLine(ServiceLine, ServiceHeader);
         if ServiceLine.Find('-') then
             repeat
-                OrderPromisingLine."Entry No." := OrderPromisingLine.GetLastEntryNo() + 10000;
-                ServAvailabilityMgt.TransferToOrderPromisingLine(OrderPromisingLine, ServiceLine);
-                ServiceLine.CalcFields("Reserved Qty. (Base)");
-                AvailabilityManagement.InsertPromisingLine(
-                    OrderPromisingLine, ServiceLine."Outstanding Qty. (Base)" - ServiceLine."Reserved Qty. (Base)");
+                IsHandled := false;
+                OnSetServiceHeaderOnBeforeProcessServiceLine(ServiceLine, OrderPromisingLine, IsHandled);
+                if not IsHandled then begin
+                    OrderPromisingLine."Entry No." := OrderPromisingLine.GetLastEntryNo() + 10000;
+                    ServAvailabilityMgt.TransferToOrderPromisingLine(OrderPromisingLine, ServiceLine);
+                    ServiceLine.CalcFields("Reserved Qty. (Base)");
+                    AvailabilityManagement.InsertPromisingLine(
+                        OrderPromisingLine, ServiceLine."Outstanding Qty. (Base)" - ServiceLine."Reserved Qty. (Base)");
+                end;
             until ServiceLine.Next() = 0;
     end;
 
@@ -484,9 +489,6 @@ codeunit 6452 "Serv. Availability Mgt."
         ItemAvailabilityFormsMgt.FilterItem(Item, ServLine."Location Code", ServLine."Variant Code", ServHeader."Response Date");
 
         OnBeforeShowItemAvailFromServLine(Item, ServLine);
-#if not CLEAN25
-        ItemAvailabilityFormsMgt.RunOnBeforeShowItemAvailFromServLine(Item, ServLine);
-#endif
         case AvailabilityType of
             AvailabilityType::Period:
                 ItemAvailabilityFormsMgt.ShowItemAvailabilityByPeriod(Item, GetFieldCaption(ServHeader.FieldCaption("Response Date")), ServHeader."Response Date", NewDate);
@@ -614,9 +616,6 @@ codeunit 6452 "Serv. Availability Mgt."
         InventoryEventBuffer.Positive := not (InventoryEventBuffer."Remaining Quantity (Base)" < 0);
 
         OnAfterTransferFromServiceNeed(InventoryEventBuffer, ServiceLine);
-#if not CLEAN25
-        InventoryEventBuffer.RunOnAfterTransferFromServiceNeed(InventoryEventBuffer, ServiceLine);
-#endif
     end;
 
     [IntegrationEvent(false, false)]
@@ -639,9 +638,6 @@ codeunit 6452 "Serv. Availability Mgt."
     begin
         IsHandled := false;
         OnBeforeUpdateServOrderAvail(AvailabilityAtDate, Item, IsHandled);
-#if not CLEAN25
-        AvailableToPromise.RunOnBeforeUpdateServOrderAvail(AvailabilityAtDate, Item, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -660,6 +656,11 @@ codeunit 6452 "Serv. Availability Mgt."
 
     [IntegrationEvent(false, false)]
     local procedure OnSetServiceHeaderOnAfterFilterServiceLine(var ServiceLine: Record "Service Line"; var ServiceHeader: Record "Service Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSetServiceHeaderOnBeforeProcessServiceLine(var ServiceLine: Record "Service Line"; var OrderPromisingLine: Record "Order Promising Line"; var IsHandled: Boolean)
     begin
     end;
 

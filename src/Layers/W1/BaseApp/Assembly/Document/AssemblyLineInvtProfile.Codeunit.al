@@ -45,9 +45,6 @@ codeunit 928 "Assembly Line Invt. Profile"
         InventoryProfile."Planning Flexibility" := InventoryProfile."Planning Flexibility"::None;
 
         OnAfterTransferInventoryProrileFromAssemblyLine(InventoryProfile, AssemblyLine);
-#if not CLEAN25
-        InventoryProfile.RunOnAfterTransferFromAsmLine(InventoryProfile, AssemblyLine);
-#endif
     end;
 
     [IntegrationEvent(false, false)]

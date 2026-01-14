@@ -8,6 +8,10 @@ using System.Environment;
 using System.Privacy;
 using System.Telemetry;
 
+/// <summary>
+/// Configuration page for EU VAT registration number validation service setup.
+/// Enables configuration of VIES service endpoint, validation templates, and service enablement options.
+/// </summary>
 page 248 "VAT Registration Config"
 {
     ApplicationArea = Basic, Suite;

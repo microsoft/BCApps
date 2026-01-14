@@ -34,8 +34,13 @@ table 30163 "Shpfy Product Collection"
         }
         field(4; Default; Boolean)
         {
-            Caption = 'Default';
-            ToolTip = 'Specifies if the product collection is the default one. Used for new products publication if no other collection is selected';
+            Caption = 'Assign';
+            ToolTip = 'Specifies if the product collection is assigned to new products.';
+        }
+        field(5; "Item Filter"; Blob)
+        {
+            Caption = 'Item Filter';
+            ToolTip = 'Specifies the filter criteria for the items in the product collection.';
         }
     }
     keys
@@ -45,4 +50,24 @@ table 30163 "Shpfy Product Collection"
             Clustered = true;
         }
     }
+
+    procedure SetItemFilter(ItemFilter: Text)
+    var
+        OutStream: OutStream;
+    begin
+        Clear("Item Filter");
+        "Item Filter".CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.Write(ItemFilter);
+    end;
+
+    procedure GetItemFilter() ItemFilter: Text
+    var
+        InStream: InStream;
+    begin
+        CalcFields("Item Filter");
+        if not "Item Filter".HasValue() then
+            exit('');
+        "Item Filter".CreateInStream(InStream, TextEncoding::UTF8);
+        InStream.Read(ItemFilter);
+    end;
 }

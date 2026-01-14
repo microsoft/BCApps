@@ -17,11 +17,11 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Sales.Document;
 using System;
 using System.Azure.Identity;
+using System.Email;
 using System.Environment;
 using System.Globalization;
 using System.Integration;
 using System.Security.AccessControl;
-using System.Email;
 
 table 5080 "To-do"
 {

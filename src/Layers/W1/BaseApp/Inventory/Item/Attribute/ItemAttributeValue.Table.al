@@ -124,6 +124,7 @@ table 7501 "Item Attribute Value"
     var
         ItemAttrValueTranslation: Record "Item Attr. Value Translation";
         ItemAttributeValueMapping: Record "Item Attribute Value Mapping";
+        ItemVariantAttributeValueMapping: Record "Item Var. Attr. Value Mapping";
     begin
         if HasBeenUsed() then
             if not Confirm(DeleteUsedAttributeValueQst) then
@@ -131,6 +132,10 @@ table 7501 "Item Attribute Value"
         ItemAttributeValueMapping.SetRange("Item Attribute ID", "Attribute ID");
         ItemAttributeValueMapping.SetRange("Item Attribute Value ID", ID);
         ItemAttributeValueMapping.DeleteAll();
+
+        ItemVariantAttributeValueMapping.SetRange("Item Attribute ID", "Attribute ID");
+        ItemVariantAttributeValueMapping.SetRange("Item Attribute Value ID", ID);
+        ItemVariantAttributeValueMapping.DeleteAll();
 
         ItemAttrValueTranslation.SetRange("Attribute ID", "Attribute ID");
         ItemAttrValueTranslation.SetRange(ID, ID);
@@ -142,8 +147,8 @@ table 7501 "Item Attribute Value"
 
         NameAlreadyExistsErr: Label 'The item attribute value with value ''%1'' already exists.', Comment = '%1 - arbitrary name';
         ReuseValueTranslationsQst: Label 'There are translations for item attribute value ''%1''.\\Do you want to reuse these translations for the new value ''%2''?', Comment = '%1 - arbitrary name,%2 - arbitrary name';
-        DeleteUsedAttributeValueQst: Label 'This item attribute value has been assigned to at least one item.\\Are you sure you want to delete it?';
-        RenameUsedAttributeValueQst: Label 'This item attribute value has been assigned to at least one item.\\Are you sure you want to rename it?';
+        DeleteUsedAttributeValueQst: Label 'This item attribute value has been assigned to at least one item or item variant.\\Are you sure you want to delete it?';
+        RenameUsedAttributeValueQst: Label 'This item attribute value has been assigned to at least one item or item variant.\\Are you sure you want to rename it?';
         CategoryStructureNotValidErr: Label 'The item category structure is not valid. The category %1 is a parent of itself or any of its children.', Comment = '%1 - Category Name';
 
     procedure LookupAttributeValue(AttributeID: Integer; var AttributeValueID: Integer)
@@ -266,11 +271,19 @@ table 7501 "Item Attribute Value"
     procedure HasBeenUsed(): Boolean
     var
         ItemAttributeValueMapping: Record "Item Attribute Value Mapping";
+        ItemVariantAttributeValueMapping: Record "Item Var. Attr. Value Mapping";
         AttributeHasBeenUsed: Boolean;
     begin
         ItemAttributeValueMapping.SetRange("Item Attribute ID", "Attribute ID");
         ItemAttributeValueMapping.SetRange("Item Attribute Value ID", ID);
         AttributeHasBeenUsed := not ItemAttributeValueMapping.IsEmpty();
+
+        if not AttributeHasBeenUsed then begin
+            ItemVariantAttributeValueMapping.SetRange("Item Attribute ID", "Attribute ID");
+            ItemVariantAttributeValueMapping.SetRange("Item Attribute Value ID", ID);
+            AttributeHasBeenUsed := not ItemVariantAttributeValueMapping.IsEmpty();
+        end;
+
         OnAfterHasBeenUsed(Rec, AttributeHasBeenUsed);
         exit(AttributeHasBeenUsed);
     end;
@@ -372,6 +385,24 @@ table 7501 "Item Attribute Value"
             else
                 CategoryCode := '';
         until CategoryCode = '';
+    end;
+
+    procedure LoadItemVariantAttributesFactBoxData(ItemNo: Code[20]; VariantCode: Code[10])
+    var
+        ItemVariantAttributeValueMapping: Record "Item Var. Attr. Value Mapping";
+        ItemAttributeValue: Record "Item Attribute Value";
+    begin
+        Reset();
+        DeleteAll();
+        ItemVariantAttributeValueMapping.SetRange("Item No.", ItemNo);
+        ItemVariantAttributeValueMapping.SetRange("Variant Code", VariantCode);
+        if ItemVariantAttributeValueMapping.FindSet() then
+            repeat
+                if ItemAttributeValue.Get(ItemVariantAttributeValueMapping."Item Attribute ID", ItemVariantAttributeValueMapping."Item Attribute Value ID") then begin
+                    TransferFields(ItemAttributeValue);
+                    Insert();
+                end
+            until ItemVariantAttributeValueMapping.Next() = 0;
     end;
 
     procedure AttributeExists(AttributeID: Integer) AttribExist: Boolean

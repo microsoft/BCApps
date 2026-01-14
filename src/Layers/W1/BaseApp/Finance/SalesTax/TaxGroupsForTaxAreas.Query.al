@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.SalesTax;
 
+/// <summary>
+/// Queries tax groups associated with tax areas through jurisdiction mappings.
+/// Provides a cross-reference of available tax group codes for specific tax areas.
+/// </summary>
 query 5502 "Tax Groups For Tax Areas"
 {
     Caption = 'Tax Groups For Tax Areas';

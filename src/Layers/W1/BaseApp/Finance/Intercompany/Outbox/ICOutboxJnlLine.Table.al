@@ -12,6 +12,15 @@ using Microsoft.Intercompany.Partner;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 
+/// <summary>
+/// Stores general journal line details for intercompany outbox transactions pending transmission to partner companies.
+/// Manages journal-specific data including accounts, amounts, payment terms, and transaction details for intercompany journal operations.
+/// </summary>
+/// <remarks>
+/// Journal line table for outbound intercompany general journal transactions. Integrates with IC Outbox Transaction.
+/// Key relationships: IC Outbox Transaction, IC G/L Account, IC Bank Account, Customer, Vendor, Currency.
+/// Extensible via table extensions for custom journal line fields and partner-specific journal requirements.
+/// </remarks>
 table 415 "IC Outbox Jnl. Line"
 {
     Caption = 'IC Outbox Jnl. Line';
@@ -19,28 +28,43 @@ table 415 "IC Outbox Jnl. Line"
 
     fields
     {
+        /// <summary>
+        /// Transaction number linking this journal line to the parent IC outbox transaction.
+        /// </summary>
         field(1; "Transaction No."; Integer)
         {
             Caption = 'Transaction No.';
             Editable = false;
         }
+        /// <summary>
+        /// Intercompany partner code for this outbound journal transaction.
+        /// </summary>
         field(2; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
             Editable = false;
             TableRelation = "IC Partner".Code;
         }
+        /// <summary>
+        /// Line number providing unique identification within the journal transaction.
+        /// </summary>
         field(3; "Line No."; Integer)
         {
             Caption = 'Line No.';
             Editable = false;
         }
+        /// <summary>
+        /// Account type for the journal line transaction.
+        /// </summary>
         field(4; "Account Type"; Option)
         {
             Caption = 'Account Type';
             OptionCaption = 'G/L Account,Customer,Vendor,IC Partner,Bank Account';
             OptionMembers = "G/L Account",Customer,Vendor,"IC Partner","Bank Account";
         }
+        /// <summary>
+        /// Account number for the journal line based on the account type.
+        /// </summary>
         field(5; "Account No."; Code[20])
         {
             Caption = 'Account No.';
@@ -76,6 +100,9 @@ table 415 "IC Outbox Jnl. Line"
                     end;
             end;
         }
+        /// <summary>
+        /// Transaction amount for the journal line.
+        /// </summary>
         field(6; Amount; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -83,10 +110,16 @@ table 415 "IC Outbox Jnl. Line"
             Caption = 'Amount';
             Editable = false;
         }
+        /// <summary>
+        /// Description text for the journal line transaction.
+        /// </summary>
         field(7; Description; Text[100])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// VAT amount calculated for the journal line.
+        /// </summary>
         field(8; "VAT Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -94,16 +127,25 @@ table 415 "IC Outbox Jnl. Line"
             Caption = 'VAT Amount';
             Editable = false;
         }
+        /// <summary>
+        /// Currency code for the journal line amounts.
+        /// </summary>
         field(9; "Currency Code"; Code[10])
         {
             AccessByPermission = TableData Currency = R;
             Caption = 'Currency Code';
             Editable = false;
         }
+        /// <summary>
+        /// Payment due date for the journal line transaction.
+        /// </summary>
         field(11; "Due Date"; Date)
         {
             Caption = 'Due Date';
         }
+        /// <summary>
+        /// Payment discount percentage available for early payment.
+        /// </summary>
         field(12; "Payment Discount %"; Decimal)
         {
             AutoFormatType = 0;
@@ -112,16 +154,25 @@ table 415 "IC Outbox Jnl. Line"
             MaxValue = 100;
             MinValue = 0;
         }
+        /// <summary>
+        /// Date until which payment discount percentage is valid.
+        /// </summary>
         field(13; "Payment Discount Date"; Date)
         {
             Caption = 'Payment Discount Date';
         }
+        /// <summary>
+        /// Quantity associated with the journal line transaction.
+        /// </summary>
         field(14; Quantity; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
             Editable = false;
         }
+        /// <summary>
+        /// Source of the intercompany transaction indicating creation or rejection origin.
+        /// </summary>
         field(15; "Transaction Source"; Option)
         {
             Caption = 'Transaction Source';
@@ -129,6 +180,9 @@ table 415 "IC Outbox Jnl. Line"
             OptionCaption = 'Rejected by Current Company,Created by Current Company';
             OptionMembers = "Rejected by Current Company","Created by Current Company";
         }
+        /// <summary>
+        /// Document number associated with the journal line transaction.
+        /// </summary>
         field(16; "Document No."; Code[20])
         {
             Caption = 'Document No.';

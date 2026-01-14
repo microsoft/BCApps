@@ -9,6 +9,7 @@ using Microsoft.Assembly.History;
 using Microsoft.EServices.EDocument;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.Shipping;
+using Microsoft.Foundation.Task;
 using Microsoft.Inventory.Counting.Document;
 using Microsoft.Inventory.Counting.History;
 using Microsoft.Inventory.Counting.Recording;
@@ -40,7 +41,6 @@ using System.Automation;
 using System.Email;
 using System.Threading;
 using System.Visualization;
-using Microsoft.Foundation.Task;
 
 page 9000 "Whse. WMS Role Center"
 {

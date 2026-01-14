@@ -7,6 +7,10 @@ namespace Microsoft.Intercompany.Dimension;
 using Microsoft.Finance.Dimension;
 using Microsoft.Intercompany.GLAccount;
 
+/// <summary>
+/// Provides comprehensive dimension mapping interface between intercompany and local company dimensions.
+/// Enables bidirectional mapping setup, mapping removal, and navigation to dimension value mapping for intercompany transactions.
+/// </summary>
 page 656 "IC Mapping Dimension"
 {
     PageType = ListPlus;

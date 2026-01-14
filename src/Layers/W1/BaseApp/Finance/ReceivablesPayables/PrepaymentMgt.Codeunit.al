@@ -16,6 +16,16 @@ using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
 using System.Threading;
 
+/// <summary>
+/// Manages prepayment processing and validation for sales and purchase documents.
+/// Handles prepayment amount validation, status management, and automatic order release processing.
+/// </summary>
+/// <remarks>
+/// Core prepayment management engine providing validation and processing workflows for sales and purchase prepayments.
+/// Integrates with job queue for automatic status updates and VAT calculation validation.
+/// Supports multi-currency prepayments with currency-specific rounding and validation logic.
+/// Provides extensibility through prepayment processing events and status change notifications.
+/// </remarks>
 codeunit 441 "Prepayment Mgt."
 {
 
@@ -32,6 +42,14 @@ codeunit 441 "Prepayment Mgt."
         PrepaymentAmountHigherThanTheOrderErr: Label 'The Prepayment account is assigned to a VAT product posting group where the VAT percentage is not equal to zero. This can cause posting errors when invoices have mixed VAT lines. To avoid errors, set the VAT percentage to zero for the account.\\Prepayment amount to be posted is %1. It differs from document amount %2 by %3 in related lines. If the difference is related to rounding, please adjust amounts in lines related to prepayments.', Comment = '%1 - prepayment amount; %2 = document amount; %3 = difference amount';
         PrepaymentInvoicesNotPaidErr: Label 'You cannot get lines until you have posted all related prepayment invoices to mark the prepayment as paid.';
 
+    /// <summary>
+    /// Validates that prepayment amount does not exceed the total document amount including VAT.
+    /// Applies invoice rounding if configured and throws error if prepayment exceeds document total.
+    /// </summary>
+    /// <param name="DocumentTotalInclVAT">Total document amount including VAT</param>
+    /// <param name="PrepmtTotalInclVAT">Total prepayment amount including VAT</param>
+    /// <param name="CurrencyCode">Currency code for rounding calculations</param>
+    /// <param name="InvoiceRoundingSetup">Whether invoice rounding is enabled</param>
     procedure AssertPrepmtAmountNotMoreThanDocAmount(DocumentTotalInclVAT: Decimal; PrepmtTotalInclVAT: Decimal; CurrencyCode: Code[10]; InvoiceRoundingSetup: Boolean)
     var
         CurrencyLcl: Record Currency;
@@ -45,6 +63,12 @@ codeunit 441 "Prepayment Mgt."
             Error(PrepaymentAmountHigherThanTheOrderErr, Abs(PrepmtTotalInclVAT), Abs(DocumentTotalInclVAT), Abs(PrepmtTotalInclVAT) - Abs(DocumentTotalInclVAT));
     end;
 
+    /// <summary>
+    /// Sets prepayment percentage on sales line based on customer and item prepayment configuration.
+    /// Determines appropriate prepayment percentage from customer, item, or G/L account setup.
+    /// </summary>
+    /// <param name="SalesLine">Sales line to update with prepayment percentage</param>
+    /// <param name="Date">Date for determining applicable prepayment setup</param>
     procedure SetSalesPrepaymentPct(var SalesLine: Record "Sales Line"; Date: Date)
     var
         Cust: Record Customer;
@@ -98,6 +122,12 @@ codeunit 441 "Prepayment Mgt."
         end;
     end;
 
+    /// <summary>
+    /// Sets purchase prepayment percentage based on purchase prepayment setup.
+    /// Updates purchase line prepayment percentage from purchase prepayment percentage configuration.
+    /// </summary>
+    /// <param name="PurchLine">Purchase line to update with prepayment percentage</param>
+    /// <param name="Date">Date to use for prepayment percentage lookup</param>
     procedure SetPurchPrepaymentPct(var PurchLine: Record "Purchase Line"; Date: Date)
     var
         PurchPrepaymentPct: Record "Purchase Prepayment %";
@@ -126,6 +156,12 @@ codeunit 441 "Prepayment Mgt."
         end;
     end;
 
+    /// <summary>
+    /// Tests if sales document has prepayment requirements.
+    /// Validates whether sales order contains prepayment percentages that require prepayment invoice processing.
+    /// </summary>
+    /// <param name="SalesHeader">Sales header to test for prepayment requirements</param>
+    /// <returns>True if prepayment is required, false otherwise</returns>
     procedure TestSalesPrepayment(SalesHeader: Record "Sales Header"): Boolean
     var
         SalesLine: Record "Sales Line";
@@ -151,6 +187,12 @@ codeunit 441 "Prepayment Mgt."
             until SalesLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Tests if purchase document has prepayment requirements.
+    /// Validates whether purchase order contains prepayment percentages that require prepayment invoice processing.
+    /// </summary>
+    /// <param name="PurchaseHeader">Purchase header to test for prepayment requirements</param>
+    /// <returns>True if prepayment is required, false otherwise</returns>
     procedure TestPurchasePrepayment(PurchaseHeader: Record "Purchase Header"): Boolean
     var
         PurchaseLine: Record "Purchase Line";
@@ -176,6 +218,11 @@ codeunit 441 "Prepayment Mgt."
             until PurchaseLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Tests sales order line for compatibility with Get Shipment Lines function.
+    /// Validates that sales line can be processed when using Get Shipment Lines with prepayment scenarios.
+    /// </summary>
+    /// <param name="SalesLine">Sales line to test for Get Shipment Lines compatibility</param>
     procedure TestSalesOrderLineForGetShptLines(SalesLine: Record "Sales Line")
     var
         IsHandled: Boolean;
@@ -189,6 +236,11 @@ codeunit 441 "Prepayment Mgt."
             Error(PrepaymentInvoicesNotPaidErr);
     end;
 
+    /// <summary>
+    /// Tests purchase order line for compatibility with Get Receipt Lines function.
+    /// Validates that purchase line can be processed when using Get Receipt Lines with prepayment scenarios.
+    /// </summary>
+    /// <param name="PurchaseLine">Purchase line to test for Get Receipt Lines compatibility</param>
     procedure TestPurchaseOrderLineForGetRcptLines(PurchaseLine: Record "Purchase Line")
     var
         IsHandled: Boolean;
@@ -202,6 +254,11 @@ codeunit 441 "Prepayment Mgt."
             Error(PrepaymentInvoicesNotPaidErr);
     end;
 
+    /// <summary>
+    /// Tests if sales prepayment invoices are paid before posting.
+    /// </summary>
+    /// <param name="SalesHeader">Sales document header to test</param>
+    /// <returns>True if prepayment is paid or check is disabled, false otherwise</returns>
     procedure TestSalesPayment(SalesHeader: Record "Sales Header") Result: Boolean
     var
         SalesSetup: Record "Sales & Receivables Setup";
@@ -236,6 +293,11 @@ codeunit 441 "Prepayment Mgt."
         exit(false);
     end;
 
+    /// <summary>
+    /// Tests if purchase prepayment invoices are paid before posting.
+    /// </summary>
+    /// <param name="PurchaseHeader">Purchase document header to test</param>
+    /// <returns>True if prepayment is paid or check is disabled, false otherwise</returns>
     procedure TestPurchasePayment(PurchaseHeader: Record "Purchase Header") Result: Boolean
     var
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
@@ -270,6 +332,9 @@ codeunit 441 "Prepayment Mgt."
         exit(false);
     end;
 
+    /// <summary>
+    /// Updates pending prepayment status for sales orders.
+    /// </summary>
     procedure UpdatePendingPrepaymentSales()
     var
         SalesHeader: Record "Sales Header";
@@ -287,6 +352,9 @@ codeunit 441 "Prepayment Mgt."
             until SalesHeader.Next() = 0;
     end;
 
+    /// <summary>
+    /// Updates pending prepayment status for purchase orders.
+    /// </summary>
     procedure UpdatePendingPrepaymentPurchase()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -304,18 +372,32 @@ codeunit 441 "Prepayment Mgt."
             until PurchaseHeader.Next() = 0;
     end;
 
+    /// <summary>
+    /// Creates and starts job queue entry for updating pending prepayment sales orders.
+    /// </summary>
+    /// <param name="UpdateFrequency">Frequency of the automatic update</param>
     procedure CreateAndStartJobQueueEntrySales(UpdateFrequency: Option Never,Daily,Weekly)
     begin
         CreateAndStartJobQueueEntry(
           CODEUNIT::"Upd. Pending Prepmt. Sales", UpdateFrequency, UpdateSalesOrderStatusTxt);
     end;
 
+    /// <summary>
+    /// Creates and starts job queue entry for updating pending prepayment purchase orders.
+    /// </summary>
+    /// <param name="UpdateFrequency">Frequency of the automatic update</param>
     procedure CreateAndStartJobQueueEntryPurchase(UpdateFrequency: Option Never,Daily,Weekly)
     begin
         CreateAndStartJobQueueEntry(
           CODEUNIT::"Upd. Pending Prepmt. Purchase", UpdateFrequency, UpdatePurchaseOrderStatusTxt);
     end;
 
+    /// <summary>
+    /// Creates and starts a job queue entry for automatic prepayment processing.
+    /// </summary>
+    /// <param name="CodeunitID">Codeunit ID to run in the job queue</param>
+    /// <param name="UpdateFrequency">Frequency of the automatic update</param>
+    /// <param name="Category">Category description for the job queue entry</param>
     procedure CreateAndStartJobQueueEntry(CodeunitID: Integer; UpdateFrequency: Option Never,Daily,Weekly; Category: Text)
     var
         JobQueueEntry: Record "Job Queue Entry";
@@ -344,46 +426,98 @@ codeunit 441 "Prepayment Mgt."
         end;
     end;
 
+    /// <summary>
+    /// Integration event raised before testing sales prepayment requirements.
+    /// </summary>
+    /// <param name="SalesHeader">Sales document header to test</param>
+    /// <param name="TestResult">Result of the prepayment test</param>
+    /// <param name="IsHandled">Set to true to skip standard testing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestSalesPrepayment(SalesHeader: Record "Sales Header"; var TestResult: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before testing purchase prepayment requirements.
+    /// </summary>
+    /// <param name="PurchHeader">Purchase document header to test</param>
+    /// <param name="TestResult">Result of the prepayment test</param>
+    /// <param name="IsHandled">Set to true to skip standard testing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestPurchPrepayment(PurchHeader: Record "Purchase Header"; var TestResult: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before testing sales payment status.
+    /// </summary>
+    /// <param name="SalesHeader">Sales document header to test</param>
+    /// <param name="Result">Result of the payment test</param>
+    /// <param name="IsHandled">Set to true to skip standard testing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestSalesPayment(var SalesHeader: Record "Sales Header"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before testing purchase payment status.
+    /// </summary>
+    /// <param name="PurchaseHeader">Purchase document header to test</param>
+    /// <param name="Result">Result of the payment test</param>
+    /// <param name="IsHandled">Set to true to skip standard testing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestPurchasePayment(PurchaseHeader: Record "Purchase Header"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before setting customer ledger entry filters in sales payment test.
+    /// </summary>
+    /// <param name="CustLedgerEntry">Customer ledger entry record</param>
+    /// <param name="SalesHeader">Sales document header</param>
+    /// <param name="SalesInvHeader">Sales invoice header</param>
     [IntegrationEvent(false, false)]
     local procedure OnTestSalesPaymentOnBeforeCustLedgerEntrySetFilter(var CustLedgerEntry: Record "Cust. Ledger Entry"; SalesHeader: Record "Sales Header"; SalesInvHeader: Record "Sales Invoice Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before setting vendor ledger entry filters in purchase payment test.
+    /// </summary>
+    /// <param name="VendLedgerEntry">Vendor ledger entry record</param>
+    /// <param name="PurchaseHeader">Purchase document header</param>
+    /// <param name="PurchInvHeader">Purchase invoice header</param>
     [IntegrationEvent(false, false)]
     local procedure OnTestPurchasePaymentOnBeforeVendLedgerEntrySetFilter(var VendLedgerEntry: Record "Vendor Ledger Entry"; PurchaseHeader: Record "Purchase Header"; PurchInvHeader: Record "Purch. Inv. Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before setting sales prepayment percentage.
+    /// </summary>
+    /// <param name="SalesLine">Sales line to set prepayment percentage for</param>
+    /// <param name="Date">Date for prepayment calculation</param>
+    /// <param name="IsHandled">Set to true to skip standard processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetSalesPrepaymentPct(var SalesLine: Record "Sales Line"; Date: Date; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before testing sales order lines for get shipment lines operation.
+    /// </summary>
+    /// <param name="SalesLine">Sales line to test</param>
+    /// <param name="IsHandled">Set to true to skip standard testing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestSalesOrderLineForGetShptLines(SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before testing purchase order lines for get receipt lines operation.
+    /// </summary>
+    /// <param name="PurchaseLine">Purchase line to test</param>
+    /// <param name="IsHandled">Set to true to skip standard testing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestPurchaseOrderLineForGetRcptLines(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin

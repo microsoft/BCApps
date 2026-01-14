@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Setup;
 
+/// <summary>
+/// Interface defining methods for managing document retention periods and deletion policies based on legal requirements.
+/// Provides framework for implementing country-specific document retention compliance rules.
+/// </summary>
+/// <remarks>
+/// Implemented by retention period enums to enforce legal document retention requirements.
+/// Used in posted document deletion processes to ensure compliance with local regulations.
+/// Extensible framework supporting different retention policies for various jurisdictions.
+/// </remarks>
 interface "Documents - Retention Period"
 {
     ///

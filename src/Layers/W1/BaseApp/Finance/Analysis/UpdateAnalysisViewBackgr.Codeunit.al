@@ -4,6 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Analysis;
 
+/// <summary>
+/// Handles background processing of analysis view updates triggered by posting operations.
+/// Automatically updates analysis views configured for real-time posting integration.
+/// </summary>
+/// <remarks>
+/// Called automatically by posting routines when analysis views are configured with "Update on Posting" enabled.
+/// Processes only non-blocked analysis views to maintain data consistency during transaction posting.
+/// </remarks>
 codeunit 406 "Update Analysis View Backgr."
 {
     Permissions = TableData "Analysis View" = r;

@@ -471,16 +471,6 @@ codeunit 452 "Report Distribution Management"
         ElectronicDocumentFormat.ValidateElectronicSalesDocument(SalesHeader, ElectronicDocumentFormat.Code);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by same procedure in codeunit "Serv. Report Distribution Mgt."', '25.0')]
-    procedure RunDefaultCheckServiceElectronicDocument(ServiceHeader: Record Microsoft.Service.Document."Service Header")
-    var
-        ElectronicDocumentFormat: Record "Electronic Document Format";
-    begin
-        GetElectronicDocumentFormat(ElectronicDocumentFormat, ServiceHeader);
-        ElectronicDocumentFormat.ValidateElectronicServiceDocument(ServiceHeader, ElectronicDocumentFormat.Code);
-    end;
-#endif
 
     procedure GetElectronicDocumentFormat(var ElectronicDocumentFormat: Record "Electronic Document Format"; DocumentVariant: Variant)
     var
@@ -582,4 +572,3 @@ codeunit 452 "Report Distribution Management"
     begin
     end;
 }
-

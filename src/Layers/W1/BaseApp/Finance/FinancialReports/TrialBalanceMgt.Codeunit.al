@@ -6,6 +6,15 @@ namespace Microsoft.Finance.FinancialReports;
 
 using Microsoft.Foundation.Enums;
 
+/// <summary>
+/// Manages trial balance data loading, navigation, and drill-down functionality.
+/// Provides management layer for trial balance interface operations and period navigation.
+/// </summary>
+/// <remarks>
+/// Management codeunit for trial balance page functionality. Handles data loading from account
+/// schedules, period navigation controls, and drill-down operations into detailed ledger entries.
+/// Coordinates with account schedule management for calculation and formatting operations.
+/// </remarks>
 codeunit 1318 "Trial Balance Mgt."
 {
 
@@ -25,6 +34,14 @@ codeunit 1318 "Trial Balance Mgt."
         LessRowsThanExpectedErr: Label 'The Trial Balance chart is not set up correctly. There are fewer rows in the account schedules than expected.';
         MoreRowsThanExpectedErr: Label 'The Trial Balance chart is not set up correctly. There are more rows in the account schedules than expected.';
 
+    /// <summary>
+    /// Loads trial balance data into display arrays for interface presentation.
+    /// Initializes period settings and populates arrays with account schedule calculations.
+    /// </summary>
+    /// <param name="DescriptionsArr">Array of account descriptions to populate</param>
+    /// <param name="ValuesArr">Array of account values to populate</param>
+    /// <param name="PeriodCaptionTxt">Array of period captions to populate</param>
+    /// <param name="NoOfColumns">Number of columns to display</param>
     procedure LoadData(var DescriptionsArr: array[9] of Text[100]; var ValuesArr: array[9, 2] of Decimal; var PeriodCaptionTxt: array[2] of Text; NoOfColumns: Integer)
     begin
         PeriodType := PeriodType::"Accounting Period";
@@ -33,6 +50,11 @@ codeunit 1318 "Trial Balance Mgt."
         UpdateArrays(DescriptionsArr, ValuesArr, PeriodCaptionTxt, NoOfColumns);
     end;
 
+    /// <summary>
+    /// Checks whether trial balance setup is properly configured.
+    /// Validates existence of required account schedule and column layout configurations.
+    /// </summary>
+    /// <returns>True if setup is complete, false if configuration is missing</returns>
     procedure SetupIsInPlace(): Boolean
     var
         TrialBalanceSetup: Record "Trial Balance Setup";
@@ -117,6 +139,12 @@ codeunit 1318 "Trial Balance Mgt."
             Error(LessRowsThanExpectedErr);
     end;
 
+    /// <summary>
+    /// Performs drill-down operation on trial balance data for detailed analysis.
+    /// Opens detailed ledger entries for the selected account and period combination.
+    /// </summary>
+    /// <param name="RowNo">Row number in trial balance matrix</param>
+    /// <param name="ColumnNo">Column number in trial balance matrix</param>
     procedure DrillDown(RowNo: Integer; ColumnNo: Integer)
     begin
         TempColumnLayout := ColumnLayoutArr[RowNo, ColumnNo];
@@ -124,11 +152,27 @@ codeunit 1318 "Trial Balance Mgt."
         AccSchedManagement.DrillDown(TempColumnLayout, AccScheduleLine, "Analysis Period Type"::Month.AsInteger());
     end;
 
+    /// <summary>
+    /// Navigates to the next period and updates trial balance data arrays.
+    /// Advances the current period and recalculates all displayed values.
+    /// </summary>
+    /// <param name="DescriptionsArr">Array of account descriptions to update</param>
+    /// <param name="ValuesArr">Array of account values to update</param>
+    /// <param name="PeriodCaptionTxt">Array of period captions to update</param>
+    /// <param name="NoOfColumns">Number of columns to display</param>
     procedure NextPeriod(var DescriptionsArr: array[9] of Text[100]; var ValuesArr: array[9, 2] of Decimal; var PeriodCaptionTxt: array[2] of Text; NoOfColumns: Integer)
     begin
         UpdatePeriod(DescriptionsArr, ValuesArr, PeriodCaptionTxt, '>=', NoOfColumns);
     end;
 
+    /// <summary>
+    /// Navigates to the previous period and updates trial balance data arrays.
+    /// Moves back to the previous period and recalculates all displayed values.
+    /// </summary>
+    /// <param name="DescriptionsArr">Array of account descriptions to update</param>
+    /// <param name="ValuesArr">Array of account values to update</param>
+    /// <param name="PeriodCaptionTxt">Array of period captions to update</param>
+    /// <param name="NoOfColumns">Number of columns to display</param>
     procedure PreviousPeriod(var DescriptionsArr: array[9] of Text[100]; var ValuesArr: array[9, 2] of Decimal; var PeriodCaptionTxt: array[2] of Text; NoOfColumns: Integer)
     begin
         UpdatePeriod(DescriptionsArr, ValuesArr, PeriodCaptionTxt, '<=', NoOfColumns);
@@ -140,11 +184,20 @@ codeunit 1318 "Trial Balance Mgt."
         UpdateArrays(DescriptionsArr, ValuesArr, PeriodCaptionTxt, NoOfColumns);
     end;
 
+    /// <summary>
+    /// Integration event raised before initializing trial balance setup and configuration.
+    /// Allows customization of trial balance initialization process.
+    /// </summary>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeInitialize()
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised during array updates before checking array length validation.
+    /// Allows custom processing during trial balance data array population.
+    /// </summary>
+    /// <param name="Counter">Current array counter position</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateArraysOnBeforeCheckArrayLen(Counter: Integer)
     begin

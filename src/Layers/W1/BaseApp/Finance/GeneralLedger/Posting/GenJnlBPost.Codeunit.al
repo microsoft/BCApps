@@ -8,6 +8,14 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using System.Utilities;
 
+/// <summary>
+/// Handles batch posting of multiple general journal batches with progress tracking and job queue integration.
+/// Processes all journal lines within selected batches and provides error handling for failed postings.
+/// </summary>
+/// <remarks>
+/// Supports both immediate posting and job queue scheduling based on General Ledger Setup configuration.
+/// Integrates with posting validation, error handling, and batch marking for failed journals.
+/// </remarks>
 codeunit 233 "Gen. Jnl.-B.Post"
 {
     TableNo = "Gen. Journal Batch";
@@ -105,11 +113,20 @@ codeunit 233 "Gen. Jnl.-B.Post"
         end;
     end;
 
+    /// <summary>
+    /// Returns whether any journal batch encountered posting errors during the batch posting process.
+    /// </summary>
+    /// <returns>True if one or more journal batches failed to post successfully, false if all posted without errors</returns>
     procedure JournalWithPostingErrors(): Boolean
     begin
         exit(JnlWithErrors);
     end;
 
+    /// <summary>
+    /// Integration event raised before finding journal batches for posting.
+    /// Enables modification of journal batch filters or processing logic before batch operations begin.
+    /// </summary>
+    /// <param name="GenJournalBatch">Journal batch record that will be processed for posting</param>
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnBeforeFindGenJnlBatch(var GenJournalBatch: Record "Gen. Journal Batch")
     begin

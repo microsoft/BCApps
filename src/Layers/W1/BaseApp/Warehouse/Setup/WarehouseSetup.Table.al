@@ -119,13 +119,8 @@ table 5769 "Warehouse Setup"
             Caption = 'Last Whse. Posting Ref. No.';
             Editable = false;
             ObsoleteReason = 'Replaced by Last Whse. Posting Ref. Seq. field.';
-#if CLEAN25
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '19.0';
-#endif
         }
 #endif
         field(18; "Receipt Posting Policy"; Option)
@@ -280,4 +275,3 @@ table 5769 "Warehouse Setup"
         RecordHasBeenRead := true;
     end;
 }
-

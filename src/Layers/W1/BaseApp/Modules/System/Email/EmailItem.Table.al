@@ -75,25 +75,15 @@ table 9500 "Email Item"
         {
             Caption = 'Attachment File Path';
             ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-#if CLEAN25
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '17.2';
-#endif
         }
         field(10; "Attachment Name"; Text[250])
         {
             Caption = 'Attachment Name';
             ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-#if CLEAN25
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '17.2';
-#endif
         }
 #endif
         field(11; "Plaintext Formatted"; Boolean)
@@ -152,145 +142,85 @@ table 9500 "Email Item"
         {
             Caption = 'Attachment File Path 2';
             ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-#if CLEAN25
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '17.2';
-#endif
         }
         field(22; "Attachment Name 2"; Text[50])
         {
             Caption = 'Attachment Name 2';
             ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-#if CLEAN25
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '17.2';
-#endif
         }
         field(23; "Attachment File Path 3"; Text[250])
         {
             Caption = 'Attachment File Path 3';
             ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-#if CLEAN25
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '17.2';
-#endif
         }
         field(24; "Attachment Name 3"; Text[50])
         {
             Caption = 'Attachment Name 3';
             ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-#if CLEAN25
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '17.2';
-#endif
         }
         field(25; "Attachment File Path 4"; Text[250])
         {
             Caption = 'Attachment File Path 4';
             ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-#if CLEAN25
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '17.2';
-#endif
         }
         field(26; "Attachment Name 4"; Text[50])
         {
             Caption = 'Attachment Name 4';
             ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-#if CLEAN25
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '17.2';
-#endif
         }
         field(27; "Attachment File Path 5"; Text[250])
         {
             Caption = 'Attachment File Path 5';
             ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-#if CLEAN25
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '17.2';
-#endif
         }
         field(28; "Attachment Name 5"; Text[50])
         {
             Caption = 'Attachment Name 5';
             ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-#if CLEAN25
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '17.2';
-#endif
         }
         field(29; "Attachment File Path 6"; Text[250])
         {
             Caption = 'Attachment File Path 6';
             ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-#if CLEAN25
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '17.2';
-#endif
         }
         field(30; "Attachment Name 6"; Text[50])
         {
             Caption = 'Attachment Name 6';
             ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-#if CLEAN25
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '17.2';
-#endif
         }
         field(31; "Attachment File Path 7"; Text[250])
         {
             Caption = 'Attachment File Path 7';
             ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-#if CLEAN25
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '17.2';
-#endif
         }
         field(32; "Attachment Name 7"; Text[50])
         {
             Caption = 'Attachment Name 7';
             ObsoleteReason = 'Replaced with method AddAttachment that accepts Streams.';
-#if CLEAN25
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '17.2';
-#endif
         }
 #endif
     }

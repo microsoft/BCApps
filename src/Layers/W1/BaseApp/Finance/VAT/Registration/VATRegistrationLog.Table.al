@@ -14,6 +14,10 @@ using System.IO;
 using System.Reflection;
 using System.Security.AccessControl;
 
+/// <summary>
+/// Maintains audit log of VAT registration number validations performed through external services.
+/// Stores validation results, account details, and response data for compliance and reconciliation tracking.
+/// </summary>
 table 249 "VAT Registration Log"
 {
     Caption = 'VAT Registration Log';
@@ -22,23 +26,35 @@ table 249 "VAT Registration Log"
 
     fields
     {
+        /// <summary>
+        /// Unique identifier for the VAT registration validation log entry.
+        /// </summary>
         field(1; "Entry No."; Integer)
         {
             AutoIncrement = true;
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
+        /// <summary>
+        /// VAT registration number that was submitted for validation.
+        /// </summary>
         field(2; "VAT Registration No."; Text[20])
         {
             Caption = 'VAT Registration No.';
             NotBlank = true;
             ToolTip = 'Specifies the VAT registration number that you entered in the VAT Registration No. field on a customer, vendor, or contact card.';
         }
+        /// <summary>
+        /// Type of account (Customer, Vendor, Contact, Company Information) being validated.
+        /// </summary>
         field(3; "Account Type"; Enum "VAT Registration Log Account Type")
         {
             Caption = 'Account Type';
             ToolTip = 'Specifies the account type of the customer or vendor whose VAT registration number is verified.';
         }
+        /// <summary>
+        /// Account number of the customer, vendor, or contact being validated.
+        /// </summary>
         field(4; "Account No."; Code[20])
         {
             Caption = 'Account No.';
@@ -47,6 +63,9 @@ table 249 "VAT Registration Log"
             if ("Account Type" = const(Vendor)) Vendor;
             ToolTip = 'Specifies the account number of the customer or vendor whose VAT registration number is verified.';
         }
+        /// <summary>
+        /// Country or region code for the VAT registration being validated.
+        /// </summary>
         field(5; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';
@@ -54,6 +73,9 @@ table 249 "VAT Registration Log"
             TableRelation = "Country/Region".Code;
             ToolTip = 'Specifies the country/region of the address.';
         }
+        /// <summary>
+        /// User ID of the person who initiated the VAT registration validation.
+        /// </summary>
         field(6; "User ID"; Code[50])
         {
             Caption = 'User ID';
@@ -61,6 +83,9 @@ table 249 "VAT Registration Log"
             TableRelation = User."User Name";
             ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
         }
+        /// <summary>
+        /// Validation status indicating whether the VAT number is verified, valid, or invalid.
+        /// </summary>
         field(10; Status; Option)
         {
             Caption = 'Status';
@@ -68,46 +93,73 @@ table 249 "VAT Registration Log"
             OptionMembers = "Not Verified",Valid,Invalid;
             ToolTip = 'Specifies the status of the verification action.';
         }
+        /// <summary>
+        /// Company or entity name returned by the VAT registration validation service.
+        /// </summary>
         field(11; "Verified Name"; Text[150])
         {
             Caption = 'Verified Name';
             ToolTip = 'Specifies the name of the customer, vendor, or contact whose VAT registration number was verified.';
         }
+        /// <summary>
+        /// Full address returned by the VAT registration validation service.
+        /// </summary>
         field(12; "Verified Address"; Text[150])
         {
             Caption = 'Verified Address';
             ToolTip = 'Specifies the address of the customer, vendor, or contact whose VAT registration number was verified.';
         }
+        /// <summary>
+        /// Date and time when the VAT registration validation was performed.
+        /// </summary>
         field(13; "Verified Date"; DateTime)
         {
             Caption = 'Verified Date';
             ToolTip = 'Specifies when the VAT registration number was verified.';
         }
+        /// <summary>
+        /// Unique request identifier returned by the VAT registration validation service.
+        /// </summary>
         field(14; "Request Identifier"; Text[200])
         {
             Caption = 'Request Identifier';
             ToolTip = 'Specifies the request identifier of the VAT registration number validation service.';
         }
+        /// <summary>
+        /// Street address component returned by the VAT registration validation service.
+        /// </summary>
         field(15; "Verified Street"; Text[50])
         {
             Caption = 'Verified Street';
             ToolTip = 'Specifies the street of the customer, vendor, or contact whose VAT registration number was verified. ';
         }
+        /// <summary>
+        /// Postal code component returned by the VAT registration validation service.
+        /// </summary>
         field(16; "Verified Postcode"; Text[20])
         {
             Caption = 'Verified Postcode';
             ToolTip = 'Specifies the postcode of the customer, vendor, or contact whose VAT registration number was verified. ';
         }
+        /// <summary>
+        /// City component returned by the VAT registration validation service.
+        /// </summary>
         field(17; "Verified City"; Text[30])
         {
             Caption = 'Verified City';
             ToolTip = 'Specifies the city of the customer, vendor, or contact whose VAT registration number was verified. ';
         }
+        /// <summary>
+        /// Overall status of detailed field-by-field validation results.
+        /// </summary>
         field(18; "Details Status"; Enum "VAT Reg. Log Details Status")
         {
             Caption = 'Details Status';
             ToolTip = 'Specifies the status of the details validation.';
         }
+        /// <summary>
+        /// VAT registration service template used for this validation request.
+        /// </summary>
         field(19; "Template"; Code[20])
         {
             Caption = 'Template';
@@ -150,6 +202,10 @@ table 249 "VAT Registration Log"
         ContactUpdatedMsg: Label 'The contact has been updated.';
         CompInfoUpdatedMsg: Label 'The company information has been updated.';
 
+    /// <summary>
+    /// Retrieves the country/region code for VAT validation, using EU country code when available.
+    /// </summary>
+    /// <returns>Country/region code or EU country code for validation purposes</returns>
     procedure GetCountryCode(): Code[10]
     var
         CompanyInformation: Record "Company Information";
@@ -166,6 +222,10 @@ table 249 "VAT Registration Log"
         exit(CountryRegion."EU Country/Region Code");
     end;
 
+    /// <summary>
+    /// Normalizes and retrieves the VAT registration number by removing country prefix and non-alphanumeric characters.
+    /// </summary>
+    /// <returns>Cleaned VAT registration number without country code prefix</returns>
     procedure GetVATRegNo(): Code[20]
     var
         VatRegNo: Code[20];
@@ -177,6 +237,14 @@ table 249 "VAT Registration Log"
         exit(VatRegNo);
     end;
 
+    /// <summary>
+    /// Initializes a new VAT registration log entry with specified account details and validation parameters.
+    /// </summary>
+    /// <param name="VATRegistrationLog">VAT registration log record to initialize</param>
+    /// <param name="CountryCode">Country/region code for the validation</param>
+    /// <param name="AcountType">Account type (Customer, Vendor, Contact, Company Information)</param>
+    /// <param name="AccountNo">Account number being validated</param>
+    /// <param name="VATRegNo">VAT registration number to validate</param>
     procedure InitVATRegLog(var VATRegistrationLog: Record "VAT Registration Log"; CountryCode: Code[10]; AcountType: Option; AccountNo: Code[20]; VATRegNo: Text[20])
     begin
         VATRegistrationLog.Init();
@@ -187,6 +255,10 @@ table 249 "VAT Registration Log"
         OnAfterInitVATRegLog(VATRegistrationLog, CountryCode, AcountType, AccountNo, VATRegNo);
     end;
 
+    /// <summary>
+    /// Opens the VAT registration details modification interface and applies accepted changes to the source record.
+    /// Handles updates for Customer, Vendor, and Contact records with appropriate integration updates.
+    /// </summary>
     procedure OpenModifyDetails()
     var
         Customer: Record Customer;
@@ -226,6 +298,11 @@ table 249 "VAT Registration Log"
         end;
     end;
 
+    /// <summary>
+    /// Opens VAT registration log details page for the specified record and applies accepted validation changes.
+    /// </summary>
+    /// <param name="RecordRef">Record reference to the account being validated</param>
+    /// <returns>True if changes were applied to the record, false otherwise</returns>
     procedure OpenDetailsForRecRef(var RecordRef: RecordRef): Boolean
     var
         VATRegistrationLogDetails: Record "VAT Registration Log Details";
@@ -303,6 +380,11 @@ table 249 "VAT Registration Log"
             ConfigValidateManagement.EvaluateValueWithValidate(FieldRef, CopyStr(Value, 1, FieldRef.Length()), false);
     end;
 
+    /// <summary>
+    /// Retrieves the record reference for the account associated with this VAT registration log entry.
+    /// </summary>
+    /// <param name="RecordRef">Record reference to be populated with the account record</param>
+    /// <returns>True if the account record was successfully retrieved, false otherwise</returns>
     procedure GetAccountRecordRef(var RecordRef: RecordRef) Result: Boolean
     var
         Customer: Record Customer;
@@ -335,6 +417,13 @@ table 249 "VAT Registration Log"
         exit(RecordRef.Number <> 0);
     end;
 
+    /// <summary>
+    /// Sets account details from the current system record for comparison during validation.
+    /// </summary>
+    /// <param name="Name">Account name from the system record</param>
+    /// <param name="Street">Street address from the system record</param>
+    /// <param name="City">City from the system record</param>
+    /// <param name="PostCode">Postal code from the system record</param>
     procedure SetAccountDetails(Name: Text; Street: Text; City: Text; PostCode: Text)
     begin
         AccountName := Name;
@@ -343,6 +432,14 @@ table 249 "VAT Registration Log"
         AccountPostCode := PostCode;
     end;
 
+    /// <summary>
+    /// Sets response details received from the VAT registration validation service for comparison and storage.
+    /// </summary>
+    /// <param name="Name">Company/entity name returned by the validation service</param>
+    /// <param name="Address">Full address returned by the validation service</param>
+    /// <param name="Street">Street address component returned by the validation service</param>
+    /// <param name="City">City component returned by the validation service</param>
+    /// <param name="PostCode">Postal code component returned by the validation service</param>
     procedure SetResponseDetails(Name: Text; Address: Text; Street: Text; City: Text; PostCode: Text)
     begin
         ResponseName := Name;
@@ -358,6 +455,13 @@ table 249 "VAT Registration Log"
         "Verified Postcode" := CopyStr(ResponsePostCode, 1, MaxStrLen("Verified Postcode"));
     end;
 
+    /// <summary>
+    /// Sets the match results for individual field comparisons between system values and validation service responses.
+    /// </summary>
+    /// <param name="Name">True if company name matches between system and service response</param>
+    /// <param name="Street">True if street address matches between system and service response</param>
+    /// <param name="City">True if city matches between system and service response</param>
+    /// <param name="PostCode">True if postal code matches between system and service response</param>
     procedure SetResponseMatchDetails(Name: Boolean; Street: Boolean; City: Boolean; PostCode: Boolean)
     begin
         NameMatch := Name;
@@ -366,6 +470,10 @@ table 249 "VAT Registration Log"
         PostCodeMatch := PostCode;
     end;
 
+    /// <summary>
+    /// Creates detailed log entries for field-by-field validation results and calculates overall validation status.
+    /// </summary>
+    /// <returns>True if detailed logging was successful, false otherwise</returns>
     procedure LogDetails(): Boolean
     var
         VATRegistrationLogDetails: Record "VAT Registration Log Details";
@@ -444,6 +552,10 @@ table 249 "VAT Registration Log"
         VATRegistrationLogDetails."Current Value" := CopyStr(CurrentValue, 1, MaxStrLen(VATRegistrationLogDetails.Requested));
     end;
 
+    /// <summary>
+    /// Retrieves the appropriate VAT registration service template for validation operations.
+    /// </summary>
+    /// <param name="VATRegNoSrvTemplateLcl">VAT registration service template record to populate</param>
     procedure CheckGetTemplate(var VATRegNoSrvTemplateLcl: Record "VAT Reg. No. Srv. Template")
     begin
         if Template = '' then
@@ -451,26 +563,58 @@ table 249 "VAT Registration Log"
         VATRegNoSrvTemplateLcl := VATRegNoSrvTemplate;
     end;
 
+    /// <summary>
+    /// Integration event raised before validating a field value during detail updates.
+    /// </summary>
+    /// <param name="RecordRef">Record reference being updated</param>
+    /// <param name="FieldName">Name of the field being validated</param>
+    /// <param name="Value">Value being set on the field</param>
+    /// <param name="IsHandled">Set to true to skip standard field validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateField(var RecordRef: RecordRef; FieldName: Text; var Value: Text; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before showing the details updated message to allow custom messaging.
+    /// </summary>
+    /// <param name="TableId">Table ID of the record that was updated</param>
+    /// <param name="IsHandled">Set to true to skip standard message display</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowDetailsUpdatedMessage(TableId: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before opening the modify details interface to allow custom handling.
+    /// </summary>
+    /// <param name="VATRegistrationLog">VAT registration log record being processed</param>
+    /// <param name="IsHandled">Set to true to skip standard details modification process</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOpenModifyDetails(var VATRegistrationLog: Record "VAT Registration Log"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after initializing a VAT registration log entry to allow custom field population.
+    /// </summary>
+    /// <param name="VATRegistrationLog">VAT registration log record that was initialized</param>
+    /// <param name="CountryCode">Country/region code used for initialization</param>
+    /// <param name="AcountType">Account type used for initialization</param>
+    /// <param name="AccountNo">Account number used for initialization</param>
+    /// <param name="VATRegNo">VAT registration number used for initialization</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitVATRegLog(var VATRegistrationLog: Record "VAT Registration Log"; CountryCode: Code[10]; AcountType: Option; AccountNo: Code[20]; VATRegNo: Text[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before retrieving the account record reference to allow custom record retrieval logic.
+    /// </summary>
+    /// <param name="VATRegistrationLog">VAT registration log record being processed</param>
+    /// <param name="RecordRef">Record reference to be populated with the account record</param>
+    /// <param name="IsHandled">Set to true to skip standard record retrieval</param>
+    /// <param name="Result">Set to true if custom record retrieval was successful</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetAccountRecordRef(var VATRegistrationLog: Record "VAT Registration Log"; var RecordRef: RecordRef; var IsHandled: Boolean; var Result: Boolean)
     begin

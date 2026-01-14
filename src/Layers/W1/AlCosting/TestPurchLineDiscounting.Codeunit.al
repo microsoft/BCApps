@@ -31,9 +31,6 @@ codeunit 103529 "Test - Purch. Line Discounting"
         INVTUtil: Codeunit INVTUtil;
         PPUtil: Codeunit PPUtil;
         ReleasePurchDoc: Codeunit "Release Purchase Document";
-#if not CLEAN25
-        CopyFromToPriceListLine: Codeunit CopyFromToPriceListLine;
-#endif
         CurrTest: Text[30];
         ShowScriptResult: Boolean;
 
@@ -168,13 +165,8 @@ codeunit 103529 "Test - Purch. Line Discounting"
     var
         PurchHeader: array[5] of Record "Purchase Header";
         PurchLine: Record "Purchase Line";
-#if not CLEAN25
-        PurchLineDisc: Record "Purchase Line Discount";
-        FromPurchLineDisc: Record "Purchase Line Discount";
-#else
         PriceListLine: Record "Price List Line";
         FromPriceListLine: Record "Price List Line";
-#endif
         PurchInvHeader: Record "Purch. Inv. Header";
         PurchInvLine: Record "Purch. Inv. Line";
         PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
@@ -185,15 +177,6 @@ codeunit 103529 "Test - Purch. Line Discounting"
         FromPurchCrMemoNo: Code[20];
     begin
         CurrTest := 'P.3';
-#if not CLEAN25
-        FromPurchLineDisc.SetRange("Vendor No.", '20000');
-        FromPurchLineDisc.Find('-');
-        repeat
-            PPUtil.InsertPurchLineDisc(
-              '30000', FromPurchLineDisc."Item No.", FromPurchLineDisc."Starting Date", FromPurchLineDisc."Ending Date",
-              FromPurchLineDisc."Minimum Quantity", FromPurchLineDisc."Currency Code", FromPurchLineDisc."Unit of Measure Code", FromPurchLineDisc."Variant Code", FromPurchLineDisc."Line Discount %");
-        until FromPurchLineDisc.Next() = 0;
-#else
         FromPriceListLine.SetRange("Source No.", '20000');
         FromPriceListLine.Find('-');
         repeat
@@ -201,7 +184,6 @@ codeunit 103529 "Test - Purch. Line Discounting"
               '30000', FromPriceListLine."Asset No.", FromPriceListLine."Starting Date", FromPriceListLine."Ending Date",
               FromPriceListLine."Minimum Quantity", FromPriceListLine."Currency Code", FromPriceListLine."Unit of Measure Code", FromPriceListLine."Variant Code", FromPriceListLine."Line Discount %");
         until FromPriceListLine.Next() = 0;
-#endif
 
         for i := 1 to 5 do
             InsertPurchHeader(PurchHeader[i], PurchLine, "Purchase Document Type".FromInteger(i), '30000', '', 20020301D);
@@ -277,22 +259,6 @@ codeunit 103529 "Test - Purch. Line Discounting"
 
         FromPurchInvNo := GLUtil.GetLastDocNo(PurchSetup."Posted Invoice Nos.");
 
-#if not CLEAN25
-        GetPurchLineDisc(PurchLineDisc, '30000', 'A', 0D, 5, '', '', '');
-        UpdatePuchLineDisc(PurchLineDisc, '30000', 'A', 0D, 0D, 3, '', '', '', 2);
-
-        GetPurchLineDisc(PurchLineDisc, '30000', 'A', 0D, 10, '', '', '');
-        UpdatePuchLineDisc(PurchLineDisc, '30000', 'A', 0D, 0D, 10, '', '', '', 4.25);
-
-        PPUtil.InsertPurchLineDisc('30000', 'A', 0D, 0D, 20, '', '', '', 7.5);
-
-        GetPurchLineDisc(PurchLineDisc, '30000', 'D', 0D, 100, '', 'BOX', '');
-        UpdatePuchLineDisc(PurchLineDisc, '30000', 'D', 0D, 0D, 100, '', '', '', 3.75);
-
-        GetPurchLineDisc(PurchLineDisc, '30000', 'D', 20020401D, 5, 'USD', 'BOX', '');
-        PurchLineDisc.Delete(true);
-        CopyAllDiscountsToPriceListLines();
-#else
         GetPurchLineDisc(PriceListLine, '30000', 'A', 0D, 5, '', '', '');
         UpdatePuchLineDisc(PriceListLine, '30000', 'A', 0D, 0D, 3, '', '', '', 2);
 
@@ -308,7 +274,6 @@ codeunit 103529 "Test - Purch. Line Discounting"
         PPUtil.AllowEditingActivePrice(true);
         PriceListLine.Delete(true);
         PPUtil.AllowEditingActivePrice(false);
-#endif
 
         for i := 1 to 5 do begin
             PurchHeader[i].Find();
@@ -365,11 +330,7 @@ codeunit 103529 "Test - Purch. Line Discounting"
     var
         PurchHeader: Record "Purchase Header";
         PurchLine: Record "Purchase Line";
-#if not CLEAN25
-        PurchLineDisc: Record "Purchase Line Discount";
-#else
         PriceListLine: Record "Price List Line";
-#endif
         PurchInvHeader: Record "Purch. Inv. Header";
         PurchInvLine: Record "Purch. Inv. Line";
         FromPurchInvNo: Code[20];
@@ -384,20 +345,11 @@ codeunit 103529 "Test - Purch. Line Discounting"
         InsertAndTestPurchLine(PurchHeader, PurchLine, PurchLine.Type::Item, 'A', 5, '', '', LineDisc[1]);
         InsertAndTestPurchLine(PurchHeader, PurchLine, PurchLine.Type::Item, 'D', 100, 'BOX', '', LineDisc[2]);
 
-#if not CLEAN25
-        GetPurchLineDisc(PurchLineDisc, '20000', 'A', 0D, 5, '', '', '');
-        UpdatePuchLineDisc(PurchLineDisc, '20000', 'A', 0D, 0D, 5, '', '', '', 2.5);
-
-        GetPurchLineDisc(PurchLineDisc, '20000', 'D', 0D, 100, '', 'BOX', '');
-        UpdatePuchLineDisc(PurchLineDisc, '20000', 'D', 0D, 0D, 100, '', 'BOX', '', 3.95);
-        CopyAllDiscountsToPriceListLines();
-#else
         GetPurchLineDisc(PriceListLine, '20000', 'A', 0D, 5, '', '', '');
         UpdatePuchLineDisc(PriceListLine, '20000', 'A', 0D, 0D, 5, '', '', '', 2.5);
 
         GetPurchLineDisc(PriceListLine, '20000', 'D', 0D, 100, '', 'BOX', '');
         UpdatePuchLineDisc(PriceListLine, '20000', 'D', 0D, 0D, 100, '', 'BOX', '', 3.95);
-#endif
 
         PurchLine.SetRange("Document Type", PurchHeader."Document Type");
         PurchLine.SetRange("Document No.", PurchHeader."No.");
@@ -438,11 +390,7 @@ codeunit 103529 "Test - Purch. Line Discounting"
         PurchRcptLine: Record "Purch. Rcpt. Line";
         PurchHeader: Record "Purchase Header";
         PurchLine: Record "Purchase Line";
-#if not CLEAN25
-        PurchLineDisc: Record "Purchase Line Discount";
-#else
         PriceListLine: Record "Price List Line";
-#endif
         GetReceipt: Codeunit "Purch.-Get Receipt";
         LineDisc: array[5] of Decimal;
         i: Integer;
@@ -472,14 +420,8 @@ codeunit 103529 "Test - Purch. Line Discounting"
         PurchLine.Validate("Line Discount %", LineDisc[3]);
         PurchLine.Modify(true);
 
-#if not CLEAN25
-        GetPurchLineDisc(PurchLineDisc, '20000', 'A', 20020401D, 0, '', '', '');
-        UpdatePuchLineDisc(PurchLineDisc, '20000', 'A', 20020401D, 20020401D, 0, '', '', '', 8.5);
-        CopyAllDiscountsToPriceListLines();
-#else
         GetPurchLineDisc(PriceListLine, '20000', 'A', 20020401D, 0, '', '', '');
         UpdatePuchLineDisc(PriceListLine, '20000', 'A', 20020401D, 20020401D, 0, '', '', '', 8.5);
-#endif
 
         PurchHeader.Find();
         PurchRcptLine.SetRange("Document No.", PurchHeader."Last Receiving No.");
@@ -505,39 +447,10 @@ codeunit 103529 "Test - Purch. Line Discounting"
     var
         PurchHeader: Record "Purchase Header";
         PurchLine: Record "Purchase Line";
-#if not CLEAN25
-        PurchLineDisc: Record "Purchase Line Discount";
-#else
         PriceListLine: Record "Price List Line";
-#endif
     begin
         CurrTest := 'P.8';
 
-#if not CLEAN25
-        if GetPurchLineDisc(PurchLineDisc, '20000', 'D', 0D, 1, '', '', 'VAR') then
-            PurchLineDisc.Delete(true);
-        PPUtil.InsertPurchLineDisc('20000', 'D', 0D, 0D, 1, '', '', 'VAR', 20.25);
-
-        if GetPurchLineDisc(PurchLineDisc, '20000', 'D', 0D, 1, '', 'BOX', 'VAR') then
-            PurchLineDisc.Delete(true);
-        PPUtil.InsertPurchLineDisc('20000', 'D', 0D, 0D, 1, '', 'BOX', 'VAR', 20.75);
-
-        if GetPurchLineDisc(PurchLineDisc, '20000', 'A', 0D, 5, '', '', '') then
-            PurchLineDisc.Delete(true);
-        PPUtil.InsertPurchLineDisc('20000', 'A', 0D, 0D, 5, '', '', '', 2.5);
-
-        if GetPurchLineDisc(PurchLineDisc, '20000', 'D', 0D, 0, '', 'BOX', '') then
-            PurchLineDisc.Delete(true);
-        PPUtil.InsertPurchLineDisc('20000', 'D', 0D, 0D, 0, '', 'BOX', '', 1.25);
-
-        if GetPurchLineDisc(PurchLineDisc, '20000', 'D', 0D, 5, '', 'BOX', '') then
-            PurchLineDisc.Delete(true);
-        PPUtil.InsertPurchLineDisc('20000', 'D', 0D, 0D, 5, '', 'BOX', '', 3.8);
-
-        if GetPurchLineDisc(PurchLineDisc, '20000', 'D', 0D, 100, '', 'BOX', '') then
-            PurchLineDisc.Delete(true);
-        PPUtil.InsertPurchLineDisc('20000', 'D', 0D, 0D, 100, '', 'BOX', '', 3.95);
-#else
         PPUtil.AllowEditingActivePrice(true);
         if GetPurchLineDisc(PriceListLine, '20000', 'D', 0D, 1, '', '', 'VAR') then
             PriceListLine.Delete(true);
@@ -563,7 +476,6 @@ codeunit 103529 "Test - Purch. Line Discounting"
             PriceListLine.Delete(true);
         PPUtil.InsertPurchLineDisc('20000', 'D', 0D, 0D, 100, '', 'BOX', '', 3.95);
         PPUtil.AllowEditingActivePrice(false);
-#endif
 
         InsertPurchHeader(PurchHeader, PurchLine, PurchHeader."Document Type"::Order, '20000', '', 20020301D);
         InsertAndTestPurchLine(PurchHeader, PurchLine, PurchLine.Type::Item, 'A', 1, 'PCS', '', 0);
@@ -708,39 +620,6 @@ codeunit 103529 "Test - Purch. Line Discounting"
         PriceListLine.Modify(true);
     end;
 
-#if not CLEAN25
-    [Scope('OnPrem')]
-    procedure GetPurchLineDisc(var PurchLineDisc: Record "Purchase Line Discount"; VendorNo: Code[20]; ItemNo: Code[20]; StartDate: Date; MinQty: Decimal; CurrencyCode: Code[10]; UOMCode: Code[20]; VarCode: Code[20]): Boolean
-    begin
-        exit(
-          PurchLineDisc.Get(
-            ItemNo,
-            VendorNo,
-            StartDate,
-            CurrencyCode,
-            VarCode,
-            UOMCode,
-            MinQty));
-    end;
-
-    [Scope('OnPrem')]
-    procedure UpdatePuchLineDisc(var PurchLineDisc: Record "Purchase Line Discount"; VendorNo: Code[20]; ItemNo: Code[20]; StartDate: Date; EndDate: Date; MinQty: Decimal; CurrencyCode: Code[10]; UOMCode: Code[20]; VarCode: Code[20]; LineDiscPct: Decimal)
-    begin
-        PurchLineDisc.Rename(
-            ItemNo,
-            VendorNo,
-            StartDate,
-            CurrencyCode,
-            VarCode,
-            UOMCode,
-            MinQty);
-        if EndDate <> PurchLineDisc."Ending Date" then
-            PurchLineDisc.Validate("Ending Date", EndDate);
-        if LineDiscPct <> PurchLineDisc."Line Discount %" then
-            PurchLineDisc.Validate("Line Discount %", LineDiscPct);
-        PurchLineDisc.Modify(true)
-    end;
-#endif
 
     local procedure TestNumVal(TextPar1: Variant; TextPar2: Variant; TextPar3: Variant; Value: Decimal; ExpectedValue: Decimal)
     begin
@@ -754,15 +633,4 @@ codeunit 103529 "Test - Purch. Line Discounting"
         ShowScriptResult := NewShowScriptResult;
     end;
 
-#if not CLEAN25
-    local procedure CopyAllDiscountsToPriceListLines()
-    var
-        PriceListLine: Record "Price List Line";
-        PurchaseLineDiscount: Record "Purchase Line Discount";
-    begin
-        PriceListLine.DeleteAll();
-        CopyFromToPriceListLine.CopyFrom(PurchaseLineDiscount, PriceListLine);
-    end;
-#endif
 }
-

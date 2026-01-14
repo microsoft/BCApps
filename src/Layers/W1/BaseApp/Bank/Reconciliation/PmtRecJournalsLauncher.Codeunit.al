@@ -6,6 +6,10 @@ namespace Microsoft.Bank.Reconciliation;
 
 using System.Environment;
 
+/// <summary>
+/// Launcher codeunit for payment reconciliation journals.
+/// Provides navigation logic for opening appropriate reconciliation pages.
+/// </summary>
 codeunit 9022 "Pmt. Rec. Journals Launcher"
 {
 

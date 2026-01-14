@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension.Correction;
 
+/// <summary>
+/// Configuration page for dimension correction settings. Allows administrators to configure dimensions that are blocked from correction operations.
+/// </summary>
 page 2582 "Dim Correction Settings"
 {
     PageType = ListPlus;

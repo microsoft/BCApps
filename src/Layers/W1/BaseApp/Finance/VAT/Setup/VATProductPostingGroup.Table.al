@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Setup;
 
+/// <summary>
+/// Defines VAT product posting groups that categorize items and services by their VAT characteristics.
+/// Used in combination with VAT business posting groups to determine VAT calculation rules and G/L account assignments.
+/// </summary>
+/// <remarks>
+/// Key relationships: Combined with VAT Business Posting Groups in VAT Posting Setup for VAT calculations.
+/// Integration points: Item cards, resource cards, sales/purchase lines, VAT ledger entry creation.
+/// Extensibility: VAT product posting group extensions support additional VAT categorization requirements.
+/// </remarks>
 table 324 "VAT Product Posting Group"
 {
     Caption = 'VAT Product Posting Group';
@@ -14,15 +23,24 @@ table 324 "VAT Product Posting Group"
 
     fields
     {
+        /// <summary>
+        /// Unique identifier code for the VAT product posting group.
+        /// </summary>
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
             NotBlank = true;
         }
+        /// <summary>
+        /// Descriptive name explaining the VAT product posting group's purpose and scope.
+        /// </summary>
         field(2; Description; Text[100])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// Timestamp indicating when this VAT product posting group was last modified.
+        /// </summary>
         field(8005; "Last Modified DateTime"; DateTime)
         {
             Caption = 'Last Modified DateTime';

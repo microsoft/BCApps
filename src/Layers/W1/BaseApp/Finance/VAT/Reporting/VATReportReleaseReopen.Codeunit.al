@@ -6,6 +6,10 @@ namespace Microsoft.Finance.VAT.Reporting;
 
 using System.Utilities;
 
+/// <summary>
+/// Manages VAT report status transitions between open, released, and submitted states.
+/// Provides validation and state change operations for VAT report workflow management.
+/// </summary>
 codeunit 741 "VAT Report Release/Reopen"
 {
 
@@ -13,6 +17,11 @@ codeunit 741 "VAT Report Release/Reopen"
     begin
     end;
 
+    /// <summary>
+    /// Releases VAT report from open to released status with validation.
+    /// Runs configured validation codeunit before changing status.
+    /// </summary>
+    /// <param name="VATReportHeader">VAT report header to release</param>
     procedure Release(var VATReportHeader: Record "VAT Report Header")
     var
         VATReportsConfiguration: Record "VAT Reports Configuration";
@@ -43,6 +52,11 @@ codeunit 741 "VAT Report Release/Reopen"
         VATReportHeader.Modify();
     end;
 
+    /// <summary>
+    /// Reopens released VAT report back to open status for modifications.
+    /// Validates report can be reopened before changing status.
+    /// </summary>
+    /// <param name="VATReportHeader">VAT report header to reopen</param>
     procedure Reopen(var VATReportHeader: Record "VAT Report Header")
     begin
         VATReportHeader.CheckIfCanBeReopened(VATReportHeader);
@@ -51,6 +65,11 @@ codeunit 741 "VAT Report Release/Reopen"
         VATReportHeader.Modify();
     end;
 
+    /// <summary>
+    /// Submits released VAT report to submitted status for tax authority processing.
+    /// Validates report can be submitted before changing status.
+    /// </summary>
+    /// <param name="VATReportHeader">VAT report header to submit</param>
     procedure Submit(var VATReportHeader: Record "VAT Report Header")
     begin
         VATReportHeader.CheckIfCanBeSubmitted();
@@ -59,6 +78,12 @@ codeunit 741 "VAT Report Release/Reopen"
         VATReportHeader.Modify();
     end;
 
+    /// <summary>
+    /// Integration event raised before VAT report validation during release process.
+    /// Allows custom validation logic to be added before standard validation.
+    /// </summary>
+    /// <param name="VATReportHeader">VAT report header being validated</param>
+    /// <param name="IsValidated">Set to true to skip standard validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidate(var VATReportHeader: Record "VAT Report Header"; var IsValidated: Boolean)
     begin

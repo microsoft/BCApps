@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Reconciliation;
 
+/// <summary>
+/// Deletes posted payment reconciliation lines for a specified statement.
+/// Provides cleanup functionality for reconciliation data management.
+/// </summary>
 codeunit 1296 "BankPaymentApplLines-Delete"
 {
     Permissions = TableData "Posted Payment Recon. Line" = d;

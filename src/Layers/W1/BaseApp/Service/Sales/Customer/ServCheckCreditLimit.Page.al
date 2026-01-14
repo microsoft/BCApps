@@ -5,8 +5,8 @@
 namespace Microsoft.Sales.Customer;
 
 using Microsoft.Finance.Currency;
-using Microsoft.Sales.Setup;
 using Microsoft.Sales.Document;
+using Microsoft.Sales.Setup;
 using Microsoft.Service.Contract;
 using Microsoft.Service.Document;
 using Microsoft.Service.Setup;
@@ -108,9 +108,6 @@ page 6489 "Serv. Check Credit Limit"
         ServiceHeader: Record "Service Header";
         ServiceLine: Record "Service Line";
         Cust2: Record Customer;
-#if not CLEAN25
-        CheckCreditLimit: Page "Check Credit Limit";
-#endif
         CustNo: Code[20];
         Heading: Text[250];
         SecondHeading: Text[250];
@@ -139,9 +136,6 @@ page 6489 "Serv. Check Credit Limit"
     begin
         IsHandled := false;
         OnBeforeServiceHeaderShowWarning(ServHeader, Result, IsHandled, Rec, DeltaAmount);
-#if not CLEAN25
-        CheckCreditLimit.RunOnBeforeServiceHeaderShowWarning(ServHeader, Result, IsHandled, Rec, DeltaAmount);
-#endif
         if IsHandled then
             exit;
 
@@ -195,9 +189,6 @@ page 6489 "Serv. Check Credit Limit"
     begin
         IsHandled := false;
         OnBeforeServiceLineShowWarning(ServLine, Result, IsHandled, Rec, DeltaAmount);
-#if not CLEAN25
-        CheckCreditLimit.RunOnBeforeServiceLineShowWarning(ServLine, Result, IsHandled, Rec, DeltaAmount);
-#endif
         if IsHandled then
             exit(Result);
 
@@ -239,9 +230,6 @@ page 6489 "Serv. Check Credit Limit"
     begin
         IsHandled := false;
         OnBeforeServiceContractHeaderShowWarning(ServiceContractHeader, Rec, Result, IsHandled);
-#if not CLEAN25
-        CheckCreditLimit.RunOnBeforeServiceContractHeaderShowWarning(ServiceContractHeader, Rec, Result, IsHandled);
-#endif
         if IsHandled then
             exit(Result);
 
@@ -524,4 +512,3 @@ page 6489 "Serv. Check Credit Limit"
     begin
     end;
 }
-

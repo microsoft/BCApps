@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Utilities;
 
+using Microsoft.Purchases.History;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using Microsoft.Purchases.History;
 using System.Environment.Configuration;
 using System.Security.User;
 

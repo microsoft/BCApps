@@ -211,35 +211,8 @@ codeunit 1620 "PEPPOL Validation"
             until SalesCrMemoLine.Next() = 0;
     end;
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit PEPPOL Service Validation', '25.0')]
-    procedure CheckServiceHeader(ServiceHeader: Record Microsoft.Service.Document."Service Header")
-    var
-        PEPPOLServiceValidation: Codeunit "PEPPOL Service Validation";
-    begin
-        PEPPOLServiceValidation.CheckServiceHeader(ServiceHeader);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit PEPPOL Service Validation', '25.0')]
-    procedure CheckServiceInvoice(ServiceInvoiceHeader: Record Microsoft.Service.History."Service Invoice Header")
-    var
-        PEPPOLServiceValidation: Codeunit "PEPPOL Service Validation";
-    begin
-        PEPPOLServiceValidation.CheckServiceInvoice(ServiceInvoiceHeader);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit PEPPOL Service Validation', '25.0')]
-    procedure CheckServiceCreditMemo(ServiceCrMemoHeader: Record Microsoft.Service.History."Service Cr.Memo Header")
-    var
-        PEPPOLServiceValidation: Codeunit "PEPPOL Service Validation";
-    begin
-        PEPPOLServiceValidation.CheckServiceCreditMemo(ServiceCrMemoHeader);
-    end;
-#endif
 
     local procedure CheckCurrencyCode(CurrencyCode: Code[10])
     var
@@ -384,44 +357,8 @@ codeunit 1620 "PEPPOL Validation"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnCheckServiceHeaderOnBeforeCheckSalesDocumentLine(var SalesLine: Record "Sales Line"; ServiceLine: Record Microsoft.Service.Document."Service Line")
-    begin
-        OnCheckServiceHeaderOnBeforeCheckSalesDocumentLine(SalesLine, ServiceLine);
-    end;
 
-    [Obsolete('Moved to codeunit PEPPOL Service Validation', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnCheckServiceHeaderOnBeforeCheckSalesDocumentLine(var SalesLine: Record "Sales Line"; ServiceLine: Record Microsoft.Service.Document."Service Line")
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnCheckServiceInvoiceOnBeforeCheckSalesDocumentLine(var SalesLine: Record "Sales Line"; ServiceInvoiceLine: Record Microsoft.Service.History."Service Invoice Line")
-    begin
-        OnCheckServiceInvoiceOnBeforeCheckSalesDocumentLine(SalesLine, ServiceInvoiceLine);
-    end;
-
-    [Obsolete('Moved to codeunit PEPPOL Service Validation', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnCheckServiceInvoiceOnBeforeCheckSalesDocumentLine(var SalesLine: Record "Sales Line"; ServiceInvoiceLine: Record Microsoft.Service.History."Service Invoice Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnCheckServiceCreditMemoOnBeforeCheckSalesDocumentLine(var SalesLine: Record "Sales Line"; ServiceCrMemoLine: Record Microsoft.Service.History."Service Cr.Memo Line")
-    begin
-        OnCheckServiceCreditMemoOnBeforeCheckSalesDocumentLine(SalesLine, ServiceCrMemoLine);
-    end;
-
-    [Obsolete('Moved to codeunit PEPPOL Service Validation', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnCheckServiceCreditMemoOnBeforeCheckSalesDocumentLine(var SalesLine: Record "Sales Line"; ServiceCrMemoLine: Record Microsoft.Service.History."Service Cr.Memo Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnCheckSalesDocumentOnBeforeCheckCompanyVATRegNo(SalesHeader: Record "Sales Header"; CompanyInformation: Record "Company Information"; var IsHandled: Boolean)
@@ -438,4 +375,3 @@ codeunit 1620 "PEPPOL Validation"
     begin
     end;
 }
-

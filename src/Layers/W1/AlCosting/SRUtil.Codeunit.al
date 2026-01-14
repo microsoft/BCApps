@@ -12,40 +12,7 @@ codeunit 103023 SRUtil
 
     var
         GLUtil: Codeunit GLUtil;
-#if not CLEAN25
-        CopyFromToPriceListLine: Codeunit CopyFromToPriceListLine;
-#endif
 
-#if not CLEAN25
-    [Scope('OnPrem')]
-    procedure GetSalesLineDisc(var SalesLineDisc: Record "Sales Line Discount"; SalesType: Option "All Customers",Customer,"Customer Disc. Group"; SalesCode: Code[20]; ItemType: Option Item,"Item Disc. Group"; ItemCode: Code[20]; StartDate: Date; MinQty: Decimal; CurrencyCode: Code[10]; UOMCode: Code[20]; VarCode: Code[20]): Boolean
-    begin
-        SalesLineDisc.SetRange("Sales Code", SalesCode);
-        SalesLineDisc.SetRange("Sales Type", SalesType);
-        SalesLineDisc.SetRange(Type, ItemType);
-        SalesLineDisc.SetRange(Code, ItemCode);
-        SalesLineDisc.SetRange("Starting Date", StartDate);
-        SalesLineDisc.SetRange("Currency Code", CurrencyCode);
-        SalesLineDisc.SetRange("Variant Code", VarCode);
-        SalesLineDisc.SetRange("Unit of Measure Code", UOMCode);
-        SalesLineDisc.SetRange("Minimum Quantity", MinQty);
-        exit(SalesLineDisc.Find('-'));
-    end;
-
-    [Scope('OnPrem')]
-    procedure GetSalesPrice(var SalesPrice: Record "Sales Price"; SalesType: Option "All Customers",Customer,"Customer Disc. Group"; SalesCode: Code[20]; ItemNo: Code[20]; StartDate: Date; MinQty: Decimal; CurrencyCode: Code[10]; UOMCode: Code[20]; VarCode: Code[20]): Boolean
-    begin
-        SalesPrice.SetRange("Sales Code", SalesCode);
-        SalesPrice.SetRange("Sales Type", SalesType);
-        SalesPrice.SetRange("Item No.", ItemNo);
-        SalesPrice.SetRange("Starting Date", StartDate);
-        SalesPrice.SetRange("Currency Code", CurrencyCode);
-        SalesPrice.SetRange("Variant Code", VarCode);
-        SalesPrice.SetRange("Unit of Measure Code", UOMCode);
-        SalesPrice.SetRange("Minimum Quantity", MinQty);
-        exit(SalesPrice.Find('-'));
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure InsertCustDiscGrp(GrpCode: Code[10])
@@ -95,31 +62,8 @@ codeunit 103023 SRUtil
     [Scope('OnPrem')]
     procedure InsertSalesLineDisc(SalesType: Option; SalesCode: Code[20]; Type: Enum "Sales Line Discount Type"; "Code": Code[20]; StartDate: Date; EndDate: Date; MinQty: Decimal; CurrencyCode: Code[10]; UOMCode: Code[20]; VarCode: Code[20]; LineDiscPct: Decimal)
     var
-#if not CLEAN25
-        SalesLineDisc: Record "Sales Line Discount";
-#endif
         PriceListLine: Record "Price List Line";
     begin
-#if not CLEAN25
-        SalesLineDisc.Init();
-        SalesLineDisc.Validate("Sales Type", SalesType);
-        SalesLineDisc.Validate("Sales Code", SalesCode);
-        SalesLineDisc.Validate(Type, Type);
-        SalesLineDisc.Validate(Code, Code);
-        SalesLineDisc.Validate("Starting Date", StartDate);
-        SalesLineDisc.Validate("Minimum Quantity", MinQty);
-        SalesLineDisc.Validate("Currency Code", CurrencyCode);
-        if SalesLineDisc.Type = SalesLineDisc.Type::Item then begin
-            SalesLineDisc.Validate("Unit of Measure Code", UOMCode);
-            SalesLineDisc.Validate("Variant Code", VarCode);
-        end;
-        SalesLineDisc.Validate("Ending Date", EndDate);
-        SalesLineDisc.Validate("Line Discount %", LineDiscPct);
-        SalesLineDisc.Insert(true);
-
-        SalesLineDisc.SetRecFilter();
-        CopyFromToPriceListLine.CopyFrom(SalesLineDisc, PriceListLine);
-#else
         PriceListLine.Init();
         PriceListLine.Validate("Asset Type", Type.AsInteger());
         PriceListLine.Validate("Asset No.", Code);
@@ -137,34 +81,13 @@ codeunit 103023 SRUtil
         PriceListLine."Amount Type" := PriceListLine."Amount Type"::Discount;
         PriceListLine.Status := "Price Status"::Active;
         PriceListLine.Insert(true);
-#endif
     end;
 
     [Scope('OnPrem')]
     procedure InsertSalesPrice(SalesType: Enum "Sales Price Type"; SalesCode: Code[20]; ItemNo: Code[20]; StartDate: Date; EndDate: Date; MinQty: Decimal; CurrencyCode: Code[10]; UOMCode: Code[20]; VarCode: Code[20]; UnitPrice: Decimal)
     var
-#if not CLEAN25
-        SalesPrice: Record "Sales Price";
-#endif
         PriceListLine: Record "Price List Line";
     begin
-#if not CLEAN25
-        SalesPrice.Init();
-        SalesPrice.Validate("Sales Type", SalesType);
-        SalesPrice.Validate("Sales Code", SalesCode);
-        SalesPrice.Validate("Item No.", ItemNo);
-        SalesPrice.Validate("Starting Date", StartDate);
-        SalesPrice.Validate("Ending Date", EndDate);
-        SalesPrice.Validate("Minimum Quantity", MinQty);
-        SalesPrice.Validate("Currency Code", CurrencyCode);
-        SalesPrice.Validate("Unit of Measure Code", UOMCode);
-        SalesPrice.Validate("Variant Code", VarCode);
-        SalesPrice.Validate("Unit Price", UnitPrice);
-        SalesPrice.Insert(true);
-
-        SalesPrice.SetRecFilter();
-        CopyFromToPriceListLine.CopyFrom(SalesPrice, PriceListLine);
-#else
         PriceListLine.Init();
         PriceListLine.Validate("Asset Type", "Price Asset Type"::Item);
         PriceListLine.Validate("Asset No.", ItemNo);
@@ -180,7 +103,6 @@ codeunit 103023 SRUtil
         PriceListLine.Status := "Price Status"::Active;
         PriceListLine."Amount Type" := PriceListLine."Amount Type"::Price;
         PriceListLine.Insert(true);
-#endif
     end;
 
     [Scope('OnPrem')]
@@ -341,60 +263,4 @@ codeunit 103023 SRUtil
         PriceListLine.Modify(true)
     end;
 
-#if not CLEAN25
-    [Scope('OnPrem')]
-    procedure UpdateSalesLineDisc(var SalesLineDisc: Record "Sales Line Discount"; SalesType: Option "All Customers",Customer,"Customer Disc. Group"; SalesCode: Code[20]; ItemType: Enum "Sales Line Discount Type"; ItemCode: Code[20]; StartDate: Date; EndDate: Date; MinQty: Decimal; CurrencyCode: Code[10]; UOMCode: Code[20]; VarCode: Code[20]; LineDiscPct: Decimal)
-    begin
-        if ItemType <> SalesLineDisc.Type then
-            SalesLineDisc.Validate(Type, ItemType);
-        if ItemCode <> SalesLineDisc.Code then
-            SalesLineDisc.Validate(Code, ItemCode);
-        if SalesType <> SalesLineDisc."Sales Type" then
-            SalesLineDisc.Validate("Sales Type", SalesType);
-        if SalesCode <> SalesLineDisc."Sales Code" then
-            SalesLineDisc.Validate("Sales Code", SalesCode);
-        if StartDate <> SalesLineDisc."Starting Date" then
-            SalesLineDisc.Validate("Starting Date", StartDate);
-        if CurrencyCode <> SalesLineDisc."Currency Code" then
-            SalesLineDisc.Validate("Currency Code", CurrencyCode);
-        if VarCode <> SalesLineDisc."Variant Code" then
-            SalesLineDisc.Validate("Variant Code", VarCode);
-        if UOMCode <> SalesLineDisc."Unit of Measure Code" then
-            SalesLineDisc.Validate("Unit of Measure Code", UOMCode);
-        if MinQty <> SalesLineDisc."Minimum Quantity" then
-            SalesLineDisc.Validate("Minimum Quantity", MinQty);
-        if EndDate <> SalesLineDisc."Ending Date" then
-            SalesLineDisc.Validate("Ending Date", EndDate);
-        if LineDiscPct <> SalesLineDisc."Line Discount %" then
-            SalesLineDisc.Validate("Line Discount %", LineDiscPct);
-        SalesLineDisc.Modify(true)
-    end;
-
-    [Scope('OnPrem')]
-    procedure UpdateSalesPrice(var SalesPrice: Record "Sales Price"; SalesType: Enum "Sales Price Type"; SalesCode: Code[20]; ItemNo: Code[20]; StartDate: Date; EndDate: Date; MinQty: Decimal; CurrencyCode: Code[10]; UOMCode: Code[20]; VarCode: Code[20]; UnitPrice: Decimal)
-    begin
-        if SalesType <> SalesPrice."Sales Type" then
-            SalesPrice.Validate("Sales Type", SalesType);
-        if SalesCode <> SalesPrice."Sales Code" then
-            SalesPrice.Validate("Sales Code", SalesCode);
-        if ItemNo <> SalesPrice."Item No." then
-            SalesPrice.Validate("Item No.", ItemNo);
-        if StartDate <> SalesPrice."Starting Date" then
-            SalesPrice.Validate("Starting Date", StartDate);
-        if CurrencyCode <> SalesPrice."Currency Code" then
-            SalesPrice.Validate("Currency Code", CurrencyCode);
-        if VarCode <> SalesPrice."Variant Code" then
-            SalesPrice.Validate("Variant Code", VarCode);
-        if UOMCode <> SalesPrice."Unit of Measure Code" then
-            SalesPrice.Validate("Unit of Measure Code", UOMCode);
-        if MinQty <> SalesPrice."Minimum Quantity" then
-            SalesPrice.Validate("Minimum Quantity", MinQty);
-        if EndDate <> SalesPrice."Ending Date" then
-            SalesPrice.Validate("Ending Date", EndDate);
-        if UnitPrice <> SalesPrice."Unit Price" then
-            SalesPrice.Validate("Unit Price", UnitPrice);
-        SalesPrice.Modify(true)
-    end;
-#endif
 }
-

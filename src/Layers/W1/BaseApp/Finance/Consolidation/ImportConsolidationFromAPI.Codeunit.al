@@ -18,6 +18,16 @@ using System.Security.Authentication;
 using System.Telemetry;
 using System.Utilities;
 
+/// <summary>
+/// Implements consolidation data import from external Business Central instances via API endpoints.
+/// Handles authentication, data retrieval, and processing of subsidiary company data through REST API calls.
+/// </summary>
+/// <remarks>
+/// Modern API-based consolidation import supporting OAuth authentication and secure data exchange.
+/// Integrates with Microsoft Entra ID for authentication and supports telemetry and request logging.
+/// Alternative to database-based consolidation for cloud and hybrid scenarios.
+/// Extensibility: Interface implementation allows for custom API import providers.
+/// </remarks>
 codeunit 102 "Import Consolidation from API" implements "Import Consolidation Data"
 {
     Permissions = tabledata "General Ledger Setup" = R,
@@ -399,6 +409,13 @@ codeunit 102 "Import Consolidation from API" implements "Import Consolidation Da
         Error(APITooManyRequestsErr);
     end;
 
+    /// <summary>
+    /// Imports consolidation data for a specific business unit from external Business Central API.
+    /// Handles API connection setup, data retrieval, and consolidation processing initialization.
+    /// </summary>
+    /// <param name="ConsolidationProcess">Consolidation Process record defining import parameters</param>
+    /// <param name="BusinessUnit">Business Unit configured for API data import</param>
+    /// <param name="BusUnitConsolidationData">Business Unit Consolidation Data record for processing context</param>
     procedure ImportConsolidationDataForBusinessUnit(ConsolidationProcess: Record "Consolidation Process"; BusinessUnit: Record "Business Unit"; var BusUnitConsolidationData: Record "Bus. Unit Consolidation Data")
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -534,7 +551,7 @@ codeunit 102 "Import Consolidation from API" implements "Import Consolidation Da
 
         // If the starting date is a closing date then the ending date will be the same closing date
         if StartingDate = ClosingDate(StartingDate) then
-            DateFilter := StrSubstNo(PostingClosingDateFilterTok, FormatDateForAPICall(StartingDate), FormatDateForAPICall(CalcDate('<+1D>',EndingDate)))
+            DateFilter := StrSubstNo(PostingClosingDateFilterTok, FormatDateForAPICall(StartingDate), FormatDateForAPICall(CalcDate('<+1D>', EndingDate)))
         else
             DateFilter := StrSubstNo(PostingDateFilterTok, FormatDateForAPICall(StartingDate), FormatDateForAPICall(EndingDate));
 
@@ -874,36 +891,87 @@ codeunit 102 "Import Consolidation from API" implements "Import Consolidation Da
         exit(ParseDataSingle(HttpGetTextWithStatusHandling(Uri)));
     end;
 
+    /// <summary>
+    /// Integration event raised before retrieving General Ledger Setup from external Business Central API.
+    /// Enables custom G/L setup retrieval or bypassing of standard API calls.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to bypass standard G/L setup API retrieval</param>
+    /// <param name="Response">Custom API response text when IsHandled is true</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetGLSetup(var IsHandled: Boolean; var Response: Text)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before retrieving currency exchange rates from external Business Central API.
+    /// Enables custom exchange rate retrieval or modification of API request parameters.
+    /// </summary>
+    /// <param name="CurrencyFilter">Currency filter applied to exchange rate API request</param>
+    /// <param name="EndingDate">End date for exchange rate retrieval period</param>
+    /// <param name="IsHandled">Set to true to bypass standard exchange rate API retrieval</param>
+    /// <param name="Response">Custom API response text when IsHandled is true</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetCurrencyExchangeRates(CurrencyFilter: Text; EndingDate: Date; var IsHandled: Boolean; var Response: Text)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before retrieving G/L entries from external Business Central API.
+    /// Enables custom G/L entry retrieval or modification of API request filters.
+    /// </summary>
+    /// <param name="DateFilter">Date filter applied to G/L entries API request</param>
+    /// <param name="AccountNoFilter">Account number filter for G/L entries retrieval</param>
+    /// <param name="IsHandled">Set to true to bypass standard G/L entries API retrieval</param>
+    /// <param name="Response">Custom API response text when IsHandled is true</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetGLEntries(DateFilter: Text; AccountNoFilter: Text; var IsHandled: Boolean; var Response: Text)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before retrieving dimensions from external Business Central API.
+    /// Enables custom dimension retrieval or modification of dimension filter parameters.
+    /// </summary>
+    /// <param name="DimensionFilter">Dimension filter applied to dimensions API request</param>
+    /// <param name="IsHandled">Set to true to bypass standard dimensions API retrieval</param>
+    /// <param name="Response">Custom API response text when IsHandled is true</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetDimensions(DimensionFilter: Text; var IsHandled: Boolean; var Response: Text)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before retrieving G/L entries count at specific date from external Business Central API.
+    /// Enables custom entry count retrieval or bypassing of standard API calls for closing date entries.
+    /// </summary>
+    /// <param name="GLAccountNo">G/L Account number to count entries for</param>
+    /// <param name="ClosingDate">Closing date for entry count calculation</param>
+    /// <param name="IsHandled">Set to true to bypass standard G/L entry count API retrieval</param>
+    /// <param name="Response">Custom API response text when IsHandled is true</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetGLEntriesCountAtDate(GLAccountNo: Code[20]; ClosingDate: Date; var IsHandled: Boolean; var Response: Text)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before retrieving accounting periods from external Business Central API.
+    /// Enables custom accounting period retrieval or modification of date range parameters.
+    /// </summary>
+    /// <param name="StartingDate">Starting date for accounting periods retrieval</param>
+    /// <param name="EndingDate">Ending date for accounting periods retrieval</param>
+    /// <param name="IsHandled">Set to true to bypass standard accounting periods API retrieval</param>
+    /// <param name="Response">Custom API response text when IsHandled is true</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetAccountingPeriods(StartingDate: Date; EndingDate: Date; var IsHandled: Boolean; var Response: Text)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before retrieving posting G/L accounts from external Business Central API.
+    /// Enables custom G/L account retrieval for posting account filtering during consolidation.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to bypass standard posting G/L accounts API retrieval</param>
+    /// <param name="Response">Custom API response text when IsHandled is true</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetPostingGLAccounts(var IsHandled: Boolean; var Response: Text)
     begin

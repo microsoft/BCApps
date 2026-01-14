@@ -15,6 +15,15 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Receivables;
 using System.Utilities;
 
+/// <summary>
+/// Generates test report for bank account reconciliation validation before posting.
+/// Validates reconciliation balances, identifies errors, and provides posting verification.
+/// </summary>
+/// <remarks>
+/// Data Sources: Bank Acc. Reconciliation, Bank Acc. Reconciliation Line, Bank Account Ledger Entry. 
+/// Features: Balance validation, error detection, outstanding transaction analysis, posting readiness check.
+/// Usage: Pre-posting validation, reconciliation testing, error identification, audit preparation.
+/// </remarks>
 report 1408 "Bank Acc. Recon. - Test"
 {
     DefaultLayout = RDLC;
@@ -853,16 +862,42 @@ report 1408 "Bank Acc. Recon. - Test"
             HeaderError3 := StrSubstNo(PotentialUnstabilityDueToDirectPostingEntriesLbl, DirectPostingURLLinkLbl);
     end;
 
+    /// <summary>
+    /// Integration event raised after filtering bank account ledger entries for reconciliation line validation.
+    /// Enables custom filtering logic for bank reconciliation testing scenarios.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line being processed</param>
+    /// <param name="BankAccLedgEntry">Bank account ledger entry with applied filters</param>
+    /// <remarks>
+    /// Raised from bank reconciliation line processing after standard ledger entry filtering.
+    /// </remarks>
     [IntegrationEvent(false, false)]
     local procedure OnBankAccReconciliationLineAfterGetRecordOnAfterBankAccLedgEntrySetFilters(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var BankAccLedgEntry: Record "Bank Account Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating applied amounts in bank reconciliation testing.
+    /// Allows custom validation logic for applied amount verification.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line being validated</param>
+    /// <param name="AppliedAmount">Applied amount being checked for accuracy</param>
+    /// <remarks>
+    /// Raised from applied amount validation process before standard amount checking.
+    /// </remarks>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckAppliedAmount(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; AppliedAmount: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before initializing the bank reconciliation test report.
+    /// Allows customization of outstanding bank transaction display behavior.
+    /// </summary>
+    /// <param name="ShouldShowOutstandingBankTransactions">Controls whether outstanding transactions are displayed in the report</param>
+    /// <remarks>
+    /// Raised from report initialization process before determining transaction display options.
+    /// </remarks>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitReport(var ShouldShowOutstandingBankTransactions: Boolean)
     begin

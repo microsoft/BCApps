@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Calculation;
 
-using Microsoft.Service.History;
 using Microsoft.Finance.VAT.Ledger;
+using Microsoft.Service.History;
 
 codeunit 6470 "Serv. VAT Reporting Mgt."
 {

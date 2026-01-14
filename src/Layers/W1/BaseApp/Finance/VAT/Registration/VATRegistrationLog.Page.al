@@ -6,6 +6,10 @@ namespace Microsoft.Finance.VAT.Registration;
 
 using System.Security.User;
 
+/// <summary>
+/// Displays VAT registration validation log entries with detailed verification results and status information.
+/// Provides access to validation actions and detailed field-level comparison results.
+/// </summary>
 page 249 "VAT Registration Log"
 {
     Caption = 'VAT Registration Log';

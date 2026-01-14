@@ -767,13 +767,6 @@ page 5522 "Order Planning"
 
     var
         ReqLine: Record "Requisition Line";
-#if not CLEAN25
-        SalesHeader: Record Microsoft.Sales.Document."Sales Header";
-        ProdOrder: Record Microsoft.Manufacturing.Document."Production Order";
-        AsmHeader: Record Microsoft.Assembly.Document."Assembly Header";
-        ServHeader: Record Microsoft.Service.Document."Service Header";
-        Job: Record Microsoft.Projects.Project.Job.Job;
-#endif
         ReqLineAvailabilityMgt: Codeunit "Req. Line Availability Mgt.";
         UOMMgt: Codeunit "Unit of Measure Management";
         StatusHideValue: Boolean;
@@ -805,25 +798,7 @@ page 5522 "Order Planning"
         ReplenishmentSystemHideValue: Boolean;
         QuantityHideValue: Boolean;
 
-#if not CLEAN25
-    [Obsolete('This procedure is not used.', '25.0')]
-    procedure SetSalesOrder(SalesHeader2: Record Microsoft.Sales.Document."Sales Header")
-    begin
-        SalesHeader := SalesHeader2;
-        DemandOrderFilter := DemandOrderFilter::"Sales Demand";
-        DemandOrderFilterCtrlEnable := false;
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('This procedure replaced by procedure SetProdOrderDemand()', '25.0')]
-    procedure SetProdOrder(ProdOrder2: Record Microsoft.Manufacturing.Document."Production Order")
-    begin
-        ProdOrder := ProdOrder2;
-        DemandOrderFilter := DemandOrderFilter::"Production Demand";
-        DemandOrderFilterCtrlEnable := false;
-    end;
-#endif
 
     procedure SetProdOrderDemand(NewDemandSubtype: Integer; NewDemandOrderNo: Code[20])
     begin
@@ -833,35 +808,8 @@ page 5522 "Order Planning"
         DemandOrderFilterCtrlEnable := false;
     end;
 
-#if not CLEAN25
-    [Obsolete('This procedure is not used.', '25.0')]
-    procedure SetAsmOrder(AsmHeader2: Record Microsoft.Assembly.Document."Assembly Header")
-    begin
-        AsmHeader := AsmHeader2;
-        DemandOrderFilter := DemandOrderFilter::"Assembly Demand";
-        DemandOrderFilterCtrlEnable := false;
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('This procedure is not used.', '25.0')]
-    procedure SetServOrder(ServHeader2: Record Microsoft.Service.Document."Service Header")
-    begin
-        ServHeader := ServHeader2;
-        DemandOrderFilter := DemandOrderFilter::"Service Demand";
-        DemandOrderFilterCtrlEnable := false;
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('This procedure is not used.', '25.0')]
-    procedure SetJobOrder(Job2: Record Microsoft.Projects.Project.Job.Job)
-    begin
-        Job := Job2;
-        DemandOrderFilter := DemandOrderFilter::"Job Demand";
-        DemandOrderFilterCtrlEnable := false;
-    end;
-#endif
 
     local procedure InitTempRec()
     var
@@ -1118,13 +1066,6 @@ page 5522 "Order Planning"
         ActionMsgCarriedOut := MakeSupplyOrdersYesNo.ActionMsgCarriedOut();
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure SetDemandOrderSourceType', '25.0')]
-    procedure SetDemandOrderFilter(NewDemandOrderFilter: Option)
-    begin
-        DemandOrderFilter := "Demand Order Source Type".FromInteger(NewDemandOrderFilter);
-    end;
-#endif
 
     procedure SetDemandOrderSourceType(NewDemandOrderSourceType: Enum "Demand Order Source Type")
     begin
@@ -1176,4 +1117,3 @@ page 5522 "Order Planning"
     begin
     end;
 }
-

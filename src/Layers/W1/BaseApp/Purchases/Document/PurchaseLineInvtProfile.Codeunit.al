@@ -10,10 +10,6 @@ using Microsoft.Inventory.Tracking;
 codeunit 99000864 "Purchase Line Invt. Profile"
 {
     // Inventory Profile
-#if not CLEAN25
-    var
-        InventoryProfileOffsetting: Codeunit "Inventory Profile Offsetting";
-#endif
 
     procedure TransferInventoryProfileFromPurchaseLine(var InventoryProfile: Record "Inventory Profile"; var PurchaseLine: Record "Purchase Line"; var TrackingReservationEntry: Record "Reservation Entry")
     var
@@ -54,9 +50,6 @@ codeunit 99000864 "Purchase Line Invt. Profile"
         InventoryProfile."Special Order" := PurchaseLine."Special Order";
 
         OnAfterTransferInventoryProfileFromPurchaseLine(InventoryProfile, PurchaseLine);
-#if not CLEAN25
-        InventoryProfile.RunOnAfterTransferFromPurchaseLine(InventoryProfile, PurchaseLine);
-#endif
     end;
 
     [IntegrationEvent(false, false)]
@@ -99,9 +92,6 @@ codeunit 99000864 "Purchase Line Invt. Profile"
         PurchLine: Record "Purchase Line";
     begin
         OnBeforeTransPurchLineToProfile(InventoryProfile, Item, ToDate);
-#if not CLEAN25
-        InventoryProfileOffsetting.RunOnBeforeTransPurchLineToProfile(InventoryProfile, Item, ToDate);
-#endif
         if PurchLine.FindLinesWithItemToPlan(Item, PurchLine."Document Type"::Order) then
             repeat
                 CheckInsertPurchLineToProfile(InventoryProfile, PurchLine, ToDate, ReservationEntry, NextLineNo);
@@ -119,9 +109,6 @@ codeunit 99000864 "Purchase Line Invt. Profile"
     begin
         IsHandled := false;
         OnBeforeCheckInsertPurchLineToProfile(InventoryProfile, PurchLine, ToDate, IsHandled);
-#if not CLEAN25
-        InventoryProfileOffsetting.RunOnBeforeCheckInsertPurchLineToProfile(InventoryProfile, PurchLine, ToDate, IsHandled);
-#endif
         if IsHandled then
             exit;
 

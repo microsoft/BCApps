@@ -4,6 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Manages automatic indentation of dimension values based on Begin-Total and End-Total hierarchy structure.
+/// Provides functionality to update dimension value indentation levels and totaling configurations for hierarchical reporting.
+/// </summary>
+/// <remarks>
+/// Used to maintain proper indentation structure in dimension value hierarchies for reports and analysis views.
+/// Updates both indentation levels and totaling fields to ensure correct hierarchical display and calculation.
+/// </remarks>
 codeunit 409 "Dimension Value-Indent"
 {
     TableNo = "Dimension Value";
@@ -43,12 +51,21 @@ codeunit 409 "Dimension Value-Indent"
 #pragma warning restore AA0074
         ArrayExceededErr: Label 'You can only indent %1 levels for dimension values of the type Begin-Total.', Comment = '%1 = A number bigger than 1';
 
+    /// <summary>
+    /// Initiates the indentation process for dimension values within a specified dimension.
+    /// Sets up dimension value filter and calls the main indentation procedure.
+    /// </summary>
+    /// <param name="DimensionCode">Dimension code for which to update dimension value indentation</param>
     procedure RunIndent(DimensionCode: Code[20])
     begin
         DimVal.SetRange("Dimension Code", DimensionCode);
         Indent();
     end;
 
+    /// <summary>
+    /// Performs the actual indentation calculation and update of dimension values.
+    /// Processes Begin-Total and End-Total hierarchies to set proper indentation levels and totaling formulas.
+    /// </summary>
     procedure Indent()
     var
         NoOfDimVals: Integer;

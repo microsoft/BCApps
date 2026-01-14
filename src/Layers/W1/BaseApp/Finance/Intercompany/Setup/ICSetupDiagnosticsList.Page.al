@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.Setup;
 
+/// <summary>
+/// Displays detailed list of intercompany setup diagnostic findings and validation results.
+/// Shows specific configuration issues and validation messages for setup troubleshooting.
+/// </summary>
 page 9097 "IC Setup Diagnostics List"
 {
     PageType = List;
@@ -40,6 +44,11 @@ page 9097 "IC Setup Diagnostics List"
     var
         DiagnosticStyle: Text;
 
+    /// <summary>
+    /// Adds diagnostic record to the page for display in the diagnostic list.
+    /// Transfers diagnostic data from temporary table record to page record.
+    /// </summary>
+    /// <param name="TempIntercompanySetupDiagnostic">Diagnostic record to be inserted into the page</param>
     procedure InsertDiagnostic(var TempIntercompanySetupDiagnostic: Record "Intercompany Setup Diagnostic" temporary)
     begin
         Clear(Rec);

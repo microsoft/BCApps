@@ -1629,7 +1629,13 @@ table 900 "Assembly Header"
     var
         Location: Record Location;
         WMSManagement: Codeunit "WMS Management";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeGetDefaultBin(Rec, IsHandled, xRec);
+        if IsHandled then
+            exit;
+
         if (Quantity * xRec.Quantity > 0) and
            ("Item No." = xRec."Item No.") and
            ("Location Code" = xRec."Location Code") and
@@ -2295,6 +2301,11 @@ table 900 "Assembly Header"
 
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAllLineDimOnBeforeConfirmUpdatedDimension(var AssemblyHeader: Record "Assembly Header"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeGetDefaultBin(var AssemblyHeader: Record "Assembly Header"; var IsHandled: Boolean; xAssemblyHeader: Record "Assembly Header")
     begin
     end;
 

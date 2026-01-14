@@ -1,7 +1,7 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.HumanResources.Setup;
 using Microsoft.HumanResources.Employee;
+using Microsoft.HumanResources.Setup;
 
 permissionset 2521 "Confidential - Edit"
 {

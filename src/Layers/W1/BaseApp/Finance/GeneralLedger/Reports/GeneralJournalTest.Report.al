@@ -36,6 +36,16 @@ using Microsoft.Sales.Setup;
 using System.Security.User;
 using System.Utilities;
 
+/// <summary>
+/// Validates general journal entries for posting accuracy and completeness before final posting.
+/// Performs comprehensive validation checks including account verification, dimension analysis, and balance validation.
+/// </summary>
+/// <remarks>
+/// Data sources: Gen. Journal Batch and Gen. Journal Line tables with extensive validation logic for all account types.
+/// Validates customers, vendors, G/L accounts, bank accounts, fixed assets, employees, and IC partners.
+/// Includes checks for posting dates, VAT setup, dimensions, allocations, and recurring journal configurations.
+/// Critical for ensuring journal entry accuracy before posting and maintaining data integrity.
+/// </remarks>
 report 2 "General Journal - Test"
 {
     DefaultLayout = RDLC;
@@ -1235,6 +1245,11 @@ report 2 "General Journal - Test"
         exit(GenJournalLine2."Balance (LCY)");
     end;
 
+    /// <summary>
+    /// Adds validation error message to the error collection for display in the test report.
+    /// Increments error counter and stores error text for comprehensive validation reporting.
+    /// </summary>
+    /// <param name="Text">Error message text to be added to the validation error list</param>
     procedure AddError(Text: Text[250])
     begin
         ErrorCounter := ErrorCounter + 1;
@@ -1845,6 +1860,10 @@ report 2 "General Journal - Test"
             AddError(StrSubstNo(Text058, GenJnlLine.FieldCaption("Depreciation Book Code")));
     end;
 
+    /// <summary>
+    /// Validates posting type consistency and account type compatibility for journal line entries.
+    /// Performs posting type validation checks to ensure proper account type and posting type combinations.
+    /// </summary>
     procedure TestPostingType()
     begin
         case true of

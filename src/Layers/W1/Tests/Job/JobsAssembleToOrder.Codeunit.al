@@ -1064,6 +1064,65 @@ codeunit 136322 "Jobs - Assemble-to Order"
         LibraryJob.PostJobJournal(JobJournalLine);
     end;
 
+    [Test]
+    procedure ExplodeBOMWithQtyRoundingPrecisionInUOM()
+    var
+        CompItem: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        Job: Record Job;
+        JobPlanningLine: Record "Job Planning Line";
+        JobPlanningLineFilter: Record "Job Planning Line";
+        JobTask: Record "Job Task";
+        ParentItem: Record Item;
+    begin
+        // [SCENARIO 615377] Explode BOM with Quantity Rounding Precision in UOM should not throw error.
+        Initialize();
+
+        // [GIVEN] Create component item.
+        LibraryInventory.CreateItem(CompItem);
+        CompItem.Validate("Replenishment System", CompItem."Replenishment System"::Purchase);
+        CompItem.Validate(Reserve, CompItem.Reserve::Never);
+        CompItem.Modify(true);
+
+        // [GIVEN] Set Quantity Rounding Precision = 1 on the base UOM.
+        ItemUnitOfMeasure.Get(CompItem."No.", CompItem."Base Unit of Measure");
+        ItemUnitOfMeasure.Validate("Qty. Rounding Precision", 1);
+        ItemUnitOfMeasure.Modify(true);
+
+        // [GIVEN] A parent assembly item with the component in BOM with Quantity per = 0.01335.
+        LibraryInventory.CreateItem(ParentItem);
+        ParentItem.Validate("Replenishment System", ParentItem."Replenishment System"::Assembly);
+        ParentItem.Validate("Assembly Policy", Enum::"Assembly Policy"::"Assemble-to-Order");
+        ParentItem.Validate(Reserve, ParentItem.Reserve::Never);
+        ParentItem.Modify(true);
+
+        // [GIVEN] Create BOM Component.
+        CreateBOMComponent(ParentItem."No.", CompItem."No.", 0.01335);
+
+        // [GIVEN] Create Job and Job Task.
+        CreateJobAndJobTask(Job, JobTask);
+
+        // [GIVEN] Create Job Planning Line with Quantity = 400.
+        CreateSimpleJobPlanningLineBillableWithAssemblyItem(JobPlanningLine, JobTask, ParentItem."No.");
+        JobPlanningLine.Validate(Quantity, LibraryRandom.RandIntInRange(300, 500));
+        JobPlanningLine.Modify(true);
+
+        // [WHEN] Explode BOM.
+        Codeunit.Run(Codeunit::"Job-Explode BOM", JobPlanningLine);
+
+        // [THEN] Verify that component line is created without error.
+        SetFilterOnExplodedJobPlanningLine(JobPlanningLine);
+        JobPlanningLineFilter.CopyFilters(JobPlanningLine);
+        JobPlanningLineFilter.SetRange(Type, JobPlanningLineFilter.Type::Item);
+        JobPlanningLineFilter.SetRange("No.", CompItem."No.");
+        Assert.RecordIsNotEmpty(JobPlanningLineFilter);
+
+        // [THEN] Verify the quantity is properly rounded.
+        JobPlanningLineFilter.FindFirst();
+        Assert.AreEqual(5, JobPlanningLineFilter.Quantity,
+            StrSubstNo(FieldValueIsNotCorrect, JobPlanningLineFilter.FieldCaption(Quantity)));
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Jobs - Assemble-to Order");
@@ -1301,6 +1360,34 @@ codeunit 136322 "Jobs - Assemble-to Order"
         WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
         WarehouseActivityLine.SetRange("Assemble to Order", false);
         WarehouseActivityLine.FindFirst();
+    end;
+
+    local procedure CreateBOMComponent(ParentItemNo: Code[20]; ComponentItemNo: Code[20]; QuantityPer: Decimal)
+    var
+        BOMComponent: Record "BOM Component";
+    begin
+        BOMComponent.Init();
+        BOMComponent.Validate("Parent Item No.", ParentItemNo);
+        BOMComponent.Validate("Line No.", 10000);
+        BOMComponent.Validate(Type, BOMComponent.Type::Item);
+        BOMComponent.Validate("No.", ComponentItemNo);
+        BOMComponent.Validate("Quantity per", QuantityPer);
+        BOMComponent.Insert(true);
+        Commit();
+    end;
+
+    local procedure CreateSimpleJobPlanningLineBillableWithAssemblyItem(var JobPlanningLine: Record "Job Planning Line"; JobTask: Record "Job Task"; AssemblyItemNo: Code[20])
+    begin
+        JobPlanningLine.Init();
+        JobPlanningLine.Validate("Job No.", JobTask."Job No.");
+        JobPlanningLine.Validate("Job Task No.", JobTask."Job Task No.");
+        JobPlanningLine.Validate("Line No.", LibraryJob.GetNextLineNo(JobPlanningLine));
+        JobPlanningLine.Validate("Line Type", JobPlanningLine."Line Type"::Billable);
+        JobPlanningLine.Insert(true);
+
+        JobPlanningLine.Validate("Type", JobPlanningLine.Type::Item);
+        JobPlanningLine.Validate("No.", AssemblyItemNo);
+        JobPlanningLine.Modify(true);
     end;
 
     [ModalPageHandler]

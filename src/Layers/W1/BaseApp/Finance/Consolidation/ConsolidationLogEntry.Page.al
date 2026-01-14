@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Consolidation;
 
+/// <summary>
+/// Card page displaying detailed information for individual consolidation log entries.
+/// Provides read-only view of consolidation process log details and execution information.
+/// </summary>
+/// <remarks>
+/// Card page for viewing detailed consolidation log entry information including process details and status.
+/// Read-only interface for examining individual consolidation operation logs and troubleshooting.
+/// Supports consolidation audit trails and process monitoring through detailed log entry examination.
+/// </remarks>
 page 1836 "Consolidation Log Entry"
 {
     Caption = 'Consolidation Log Entry';

@@ -5,12 +5,12 @@
 namespace Microsoft.Inventory.BOM;
 
 using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
-using Microsoft.Inventory.Costing;
+using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
-using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.WorkCenter;
 
 codeunit 99000820 "Mfg. Bom Buffer"

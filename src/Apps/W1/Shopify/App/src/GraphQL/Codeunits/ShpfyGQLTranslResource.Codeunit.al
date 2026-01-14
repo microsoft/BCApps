@@ -15,6 +15,6 @@ codeunit 30340 "Shpfy GQL TranslResource" implements "Shpfy IGraphQL"
 
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(3);
+        exit(2);
     end;
 }

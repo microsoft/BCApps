@@ -4,51 +4,52 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Test;
 
-using Microsoft.Inventory.Location;
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Enums;
+using Microsoft.Foundation.Navigate;
+using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Availability;
+using Microsoft.Inventory.Costing;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Item.Substitution;
 using Microsoft.Inventory.Journal;
-using Microsoft.Warehouse.Journal;
-using System.TestLibraries.Utilities;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Planning;
+using Microsoft.Inventory.Requisition;
+using Microsoft.Inventory.Setup;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
-using Microsoft.Inventory.Item;
-using Microsoft.Warehouse.Structure;
-using Microsoft.Warehouse.Ledger;
-using Microsoft.Sales.Document;
-using Microsoft.Inventory.Requisition;
-using Microsoft.Purchases.Document;
-using Microsoft.Manufacturing.Setup;
-using Microsoft.Sales.Setup;
-using Microsoft.Inventory.Tracking;
-using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Manufacturing.Family;
-using Microsoft.Warehouse.Document;
-using Microsoft.Warehouse.Activity;
-using Microsoft.Warehouse.Activity.History;
 using Microsoft.Manufacturing.Journal;
-using Microsoft.Inventory.Setup;
-using Microsoft.Inventory.Ledger;
-using Microsoft.Manufacturing.Routing;
-using Microsoft.Inventory.Availability;
-using Microsoft.Warehouse.Setup;
-using Microsoft.Inventory.Item.Substitution;
 using Microsoft.Manufacturing.ProductionBOM;
-using Microsoft.Foundation.UOM;
-using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Pricing.PriceList;
-using System.Utilities;
-using Microsoft.Inventory.Costing;
+using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.StandardCost;
+using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Pricing.Asset;
+using Microsoft.Pricing.PriceList;
+using Microsoft.Pricing.Source;
+using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
-using Microsoft.Finance.VAT.Setup;
-using Microsoft.Foundation.Navigate;
-using Microsoft.Inventory.Planning;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.Setup;
+using Microsoft.Warehouse.Activity;
+using Microsoft.Warehouse.Activity.History;
+using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.InventoryDocument;
-using Microsoft.Foundation.Enums;
+using Microsoft.Warehouse.Journal;
+using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Request;
-using Microsoft.Finance.GeneralLedger.Ledger;
-using Microsoft.Pricing.Source;
-using Microsoft.Pricing.Asset;
+using Microsoft.Warehouse.Setup;
+using Microsoft.Warehouse.Structure;
+using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 137079 "SCM Production Order III"
 {
@@ -7695,6 +7696,414 @@ codeunit 137079 "SCM Production Order III"
             StrSubstNo(ValueMustBeEqualErr, CapacityLedgerEntry[1].FieldCaption(Reversed), true, CapacityLedgerEntry[1].TableCaption()));
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandlerWithoutValidation,ProductionJournalPageHandler3')]
+    procedure ReversalProductionConsumptionForNonInventoryItemWithCost()
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ItemLedgerEntries: TestPage "Item Ledger Entries";
+    begin
+        // [SCENARIO 608995] Reversal of production consumption of non-inv item reverses the Non-Inv Cost.
+        Initialize();
+
+        // [GIVEN] Create Production Order With Component.
+        CreateProdOrderAddNewComponentAndCreateConsumption(ProdOrderComponent);
+
+        // [GIVEN] Post Consumption Journal Line for this Component.
+        LibraryInventory.PostItemJournalLine(ConsumptionItemJournalTemplate.Name, ConsumptionItemJournalBatch.Name);
+
+        // [GIVEN] OpenEdit Item Ledger Entries.
+        ItemLedgerEntries.OpenEdit();
+        ItemLedgerEntries.Filter.SetFilter("Document No.", ProdOrderComponent."Prod. Order No.");
+        ItemLedgerEntries.Filter.SetFilter("Entry Type", Format(ItemLedgerEntry."Entry Type"::Consumption));
+
+        // [WHEN] Invoke "Reverse" action.
+        ItemLedgerEntries.Reverse.Invoke();
+
+        // [THEN] Verify Reverse Entry is reversed of Item Ledger Entry with Non-Inventory Cost.
+        ItemLedgerEntry.SetRange("Order Type", "Inventory Order Type"::Production);
+        ItemLedgerEntry.SetRange("Order No.", ProdOrderComponent."Prod. Order No.");
+        ItemLedgerEntry.SetRange("Order Line No.", ProdOrderComponent."Prod. Order Line No.");
+        ItemLedgerEntry.SetRange("Entry Type", "Item Ledger Entry Type"::Consumption);
+        ItemLedgerEntry.SetFilter("Cost Amount (Non-Invtbl.)", '<>0');
+        ItemLedgerEntry.FindLast();
+        Assert.RecordIsNotEmpty(ItemLedgerEntry);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure UndoFirstReceiptInSubcontractingPurchaseOrder()
+    var
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        WorkCenter: Record "Work Center";
+        PostedPurchaseReceipt: TestPage "Posted Purchase Receipt";
+        FirstReceiptQty: Decimal;
+        SecondReceiptQty: Decimal;
+        TotalQuantity: Decimal;
+    begin
+        // [SCENARIO 615586] Undoing first receipt on a subcontracting purchase order should only reverse that receipt
+        Initialize();
+
+        // [GIVEN] Create an Item.
+        CreateItem(Item);
+
+        // [GIVEN] Create Routing and Update Item for Subcontracting.
+        CreateRoutingAndUpdateItemSubc(Item, WorkCenter, true);
+
+        // [GIVEN] Create and Refresh Released Production Order.
+        TotalQuantity := LibraryRandom.RandIntInRange(10, 20);
+        CreateAndRefreshReleasedProductionOrder(ProductionOrder, Item."No.", TotalQuantity, '', '');
+
+        // [GIVEN] Determine quantities for first and second receipts.
+        FirstReceiptQty := LibraryRandom.RandIntInRange(6, 9);
+        SecondReceiptQty := TotalQuantity - FirstReceiptQty;
+
+        // [GIVEN] Calculate Subcontracting and create Purchase Order.
+        CalculateSubcontractOrder(WorkCenter);
+        AcceptActionMessage(RequisitionLine, Item."No.");
+        LibraryPlanning.CarryOutAMSubcontractWksh(RequisitionLine);
+
+        // [GIVEN] Post Purchase Order with first Partial Receipt.
+        FindPurchaseOrderLine(PurchaseLine, Item."No.");
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        PurchaseLine.Validate("Qty. to Receive", FirstReceiptQty);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [GIVEN] Verify Prod. Order Line after first receipt.
+        VerifyReleasedProdOrderLine(Item."No.", TotalQuantity, FirstReceiptQty);
+
+        // [GIVEN] Post Purchase Order with second Partial Receipt.
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine.Validate("Qty. to Receive", SecondReceiptQty);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [GIVEN] Verify Prod. Order Line after second receipt.
+        VerifyReleasedProdOrderLine(Item."No.", TotalQuantity, TotalQuantity);
+
+        // [GIVEN] Find the first Purchase Receipt Line for the Item.
+        PurchRcptLine.SetRange(Type, PurchRcptLine.Type::Item);
+        PurchRcptLine.SetRange("No.", Item."No.");
+        PurchRcptLine.FindFirst();
+
+        // [WHEN] Undo the selected receipt (first or second based on parameter)
+        PostedPurchaseReceipt.OpenEdit();
+        PostedPurchaseReceipt.Filter.SetFilter("No.", PurchRcptLine."Document No.");
+        PostedPurchaseReceipt.PurchReceiptLines.First();
+        PostedPurchaseReceipt.PurchReceiptLines."&Undo Receipt".Invoke();
+
+        // [GIVEN] Find the last Purchase Receipt Line for the Item after undo.
+        PurchRcptLine.SetFilter(Quantity, '>0');
+        PurchRcptLine.FindLast();
+
+        // [GIVEN] Verify Prod. Order Line after undoing the receipt.
+        VerifyReleasedProdOrderLine(Item."No.", TotalQuantity, PurchRcptLine.Quantity);
+
+        // [THEN] Verify that ILE Output Qty. matches expected.
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.CalcSums(Quantity);
+        Assert.AreEqual(
+            PurchRcptLine.Quantity,
+            ItemLedgerEntry.Quantity,
+            StrSubstNo(ValueMustBeEqualErr, ItemLedgerEntry.FieldCaption(Quantity), PurchRcptLine.Quantity, ItemLedgerEntry.TableCaption()));
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,ItemTrackingPageHandlerWithQuantity')]
+    procedure UndoSecondReceiptInSubcontractingPurchaseOrder_WithTracking()
+    var
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        WorkCenter: Record "Work Center";
+        PostedPurchaseReceipt: TestPage "Posted Purchase Receipt";
+        FirstReceiptQty: Decimal;
+        SecondReceiptQty: Decimal;
+        TotalQuantity: Decimal;
+    begin
+        // [SCENARIO 615586] Undoing first receipt on a subcontracting purchase order with item tracking should only reverse that receipt
+        Initialize();
+
+        // [GIVEN] Create an Item with Item Tracking.
+        CreateItemWithItemTrackingCode(Item);
+
+        // [GIVEN] Create Routing and Update Item for Subcontracting.
+        CreateRoutingAndUpdateItemSubc(Item, WorkCenter, true);
+        TotalQuantity := LibraryRandom.RandIntInRange(10, 20);
+
+        // [GIVEN] Create and Refresh Released Production Order.
+        CreateAndRefreshReleasedProductionOrder(ProductionOrder, Item."No.", TotalQuantity, '', '');
+
+        // [GIVEN] Determine quantities for first and second receipts.
+        FirstReceiptQty := LibraryRandom.RandIntInRange(6, 9);
+        SecondReceiptQty := TotalQuantity - FirstReceiptQty;
+
+        // [GIVEN] Assign Tracking on Prod. Order Line before first receipt.
+        LibraryVariableStorage.Enqueue(FirstReceiptQty);
+        AssignTrackingOnProdOrderLine(ProductionOrder."No.");
+
+        // [GIVEN] Calculate Subcontracting and create Purchase Order.
+        CalculateSubcontractOrder(WorkCenter);
+        AcceptActionMessage(RequisitionLine, Item."No.");
+        LibraryPlanning.CarryOutAMSubcontractWksh(RequisitionLine);
+
+        // [GIVEN] Post Purchase Order with first partial receipt.
+        FindPurchaseOrderLine(PurchaseLine, Item."No.");
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        PurchaseLine.Validate("Qty. to Receive", FirstReceiptQty);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [GIVEN] Verify Prod. Order Line after first receipt.
+        VerifyReleasedProdOrderLine(Item."No.", TotalQuantity, FirstReceiptQty);
+
+        // [GIVEN] Assign Tracking on Prod. Order Line before second receipt.
+        LibraryVariableStorage.Enqueue(SecondReceiptQty);
+        AssignTrackingOnProdOrderLine(ProductionOrder."No.");
+
+        // [GIVEN] Post Purchase Order with second partial receipt.
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine.Validate("Qty. to Receive", SecondReceiptQty);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        VerifyReleasedProdOrderLine(Item."No.", TotalQuantity, TotalQuantity);
+
+        // [WHEN] Undo the selected first receipt
+        PurchRcptLine.SetRange(Type, PurchRcptLine.Type::Item);
+        PurchRcptLine.SetRange("No.", Item."No.");
+        PurchRcptLine.FindFirst();
+        PostedPurchaseReceipt.OpenEdit();
+        PostedPurchaseReceipt.Filter.SetFilter("No.", PurchRcptLine."Document No.");
+        PostedPurchaseReceipt.PurchReceiptLines.Last();
+
+        // [GIVEN] Enqueue the Quantity to be used in Item Tracking Page Handler.
+        LibraryVariableStorage.Enqueue(PostedPurchaseReceipt.PurchReceiptLines.Quantity.AsDecimal());
+        PostedPurchaseReceipt.PurchReceiptLines."&Undo Receipt".Invoke();
+
+        // [GIVEN] Find the last Purchase Receipt Line for the Item after undo.
+        PurchRcptLine.SetFilter(Quantity, '>0');
+        PurchRcptLine.FindLast();
+        VerifyReleasedProdOrderLine(Item."No.", TotalQuantity, PurchRcptLine.Quantity);
+
+        // [THEN] Verify that ILE Output Qty. matches expected
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.CalcSums(Quantity);
+        Assert.AreEqual(
+            PurchRcptLine.Quantity,
+            ItemLedgerEntry.Quantity,
+            StrSubstNo(ValueMustBeEqualErr, ItemLedgerEntry.FieldCaption(Quantity), PurchRcptLine.Quantity, ItemLedgerEntry.TableCaption()));
+
+        // [THEN] Verify that the Item Tracking Lines can again be updated in Production level.
+        ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.SetRange("Item No.", Item."No.");
+        ProdOrderLine.FindFirst();
+        ProdOrderLine.OpenItemTrackingLines();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,ItemTrackingPageHandlerWithQuantity')]
+    procedure UndoFirstReceiptInSubcontractingPurchaseOrder_WithTracking()
+    var
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        WorkCenter: Record "Work Center";
+        PostedPurchaseReceipt: TestPage "Posted Purchase Receipt";
+        FirstReceiptQty: Decimal;
+        SecondReceiptQty: Decimal;
+        TotalQuantity: Decimal;
+    begin
+        // [SCENARIO 615586] Undoing first receipt on a subcontracting purchase order with item tracking should only reverse that receipt
+        Initialize();
+
+        // [GIVEN] Create an Item with Item Tracking.
+        CreateItemWithItemTrackingCode(Item);
+
+        // [GIVEN] Create Routing and Update Item for Subcontracting.
+        CreateRoutingAndUpdateItemSubc(Item, WorkCenter, true);
+        TotalQuantity := LibraryRandom.RandIntInRange(10, 20);
+
+        // [GIVEN] Create and Refresh Released Production Order.
+        CreateAndRefreshReleasedProductionOrder(ProductionOrder, Item."No.", TotalQuantity, '', '');
+
+        // [GIVEN] Determine quantities for first and second receipts.
+        FirstReceiptQty := LibraryRandom.RandIntInRange(6, 9);
+        SecondReceiptQty := TotalQuantity - FirstReceiptQty;
+
+        // [GIVEN] Assign Tracking on Prod. Order Line before first receipt.
+        LibraryVariableStorage.Enqueue(FirstReceiptQty);
+        AssignTrackingOnProdOrderLine(ProductionOrder."No.");
+
+        // [GIVEN] Calculate Subcontracting and create Purchase Order.
+        CalculateSubcontractOrder(WorkCenter);
+        AcceptActionMessage(RequisitionLine, Item."No.");
+        LibraryPlanning.CarryOutAMSubcontractWksh(RequisitionLine);
+
+        // [GIVEN] Post Purchase Order with first partial receipt.
+        FindPurchaseOrderLine(PurchaseLine, Item."No.");
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        PurchaseLine.Validate("Qty. to Receive", FirstReceiptQty);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [GIVEN] Verify Prod. Order Line after first receipt.
+        VerifyReleasedProdOrderLine(Item."No.", TotalQuantity, FirstReceiptQty);
+
+        // [GIVEN] Assign Tracking on Prod. Order Line before second receipt.
+        LibraryVariableStorage.Enqueue(SecondReceiptQty);
+        AssignTrackingOnProdOrderLine(ProductionOrder."No.");
+
+        // [GIVEN] Post Purchase Order with second partial receipt.
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine.Validate("Qty. to Receive", SecondReceiptQty);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        VerifyReleasedProdOrderLine(Item."No.", TotalQuantity, TotalQuantity);
+
+        // [WHEN] Undo the selected first receipt
+        PurchRcptLine.SetRange(Type, PurchRcptLine.Type::Item);
+        PurchRcptLine.SetRange("No.", Item."No.");
+        PurchRcptLine.FindFirst();
+        PostedPurchaseReceipt.OpenEdit();
+        PostedPurchaseReceipt.Filter.SetFilter("No.", PurchRcptLine."Document No.");
+        PostedPurchaseReceipt.PurchReceiptLines.First();
+
+        // [GIVEN] Enqueue the Quantity to be used in Item Tracking Page Handler.
+        LibraryVariableStorage.Enqueue(PostedPurchaseReceipt.PurchReceiptLines.Quantity.AsDecimal());
+        PostedPurchaseReceipt.PurchReceiptLines."&Undo Receipt".Invoke();
+
+        // [GIVEN] Find the last Purchase Receipt Line for the Item after undo.
+        PurchRcptLine.SetFilter(Quantity, '>0');
+        PurchRcptLine.FindLast();
+        VerifyReleasedProdOrderLine(Item."No.", TotalQuantity, PurchRcptLine.Quantity);
+
+        // [THEN] Verify that ILE Output Qty. matches expected
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.CalcSums(Quantity);
+        Assert.AreEqual(
+            PurchRcptLine.Quantity,
+            ItemLedgerEntry.Quantity,
+            StrSubstNo(ValueMustBeEqualErr, ItemLedgerEntry.FieldCaption(Quantity), PurchRcptLine.Quantity, ItemLedgerEntry.TableCaption()));
+
+        // [THEN] Verify that the Item Tracking Lines can again be updated in Production level.
+        ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.SetRange("Item No.", Item."No.");
+        ProdOrderLine.FindFirst();
+        ProdOrderLine.OpenItemTrackingLines();
+    end;
+
+    [Test]
+    procedure VerifyACYCalculatedCorrectlyForNonInventoryOutputInProduction()
+    var
+        CompItem: record Item;
+        GeneralPostingSetup: Record "General Posting Setup";
+        NonInvItem: Record Item;
+        OutputItem: Record Item;
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionOrder: Record "Production Order";
+        ProdOrderStatusMgt: Codeunit "Prod. Order Status Management";
+        CompUnitCost: Decimal;
+        ExchangeRate: Decimal;
+        ExpectedACY: Decimal;
+        NonInvUnitCost: Decimal;
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 615807] Verify "Cost Amount (Actual) (ACY)" is calculated correctly for non-inventory output in production
+        // when "Include Non-Inventory Items to Production Items" is enabled and Additional Reporting Currency is set up.
+        Initialize();
+
+        // [GIVEN] Update "Inc. Non. Inv. Cost To Prod" in Manufacturing Setup.
+        LibraryManufacturing.UpdateNonInventoryCostToProductionInManufacturingSetup(true);
+
+        // [GIVEN] Update Automatic Cost Posting, Expected Cost Posting to G/L as true and Automation Cost Adjustment as always in Inventory Setup.
+        LibraryInventory.SetAutomaticCostAdjmtAlways();
+        LibraryInventory.SetAutomaticCostPosting(true);
+        LibraryInventory.SetExpectedCostPosting(true);
+
+        // [GIVEN] Update "Journal Templ. Name Mandatory" in General Ledger Setup.
+        LibraryERMCountryData.UpdateJournalTemplMandatory(false);
+
+        // [GIVEN] Create Currency with exchange rate and set as Additional Reporting Currency.
+        ExchangeRate := LibraryRandom.RandDecInDecimalRange(1.1, 2.0, 2);
+        CreateCurrencyWithExchangeRateAndSetAsACY(ExchangeRate);
+
+        // [GIVEN] Create Production Item, Non-Inventory Item , Component Item with Production BOM.
+        CreateProductionItemWithNonInvItemAndProductionBOM(OutputItem, NonInvItem, CompItem, ProductionBOMHeader);
+
+        // [GIVEN] Save Quantity and Non-Inventory Unit Cost.
+        Quantity := LibraryRandom.RandIntInRange(10, 10);
+        NonInvUnitCost := LibraryRandom.RandIntInRange(10, 10);
+        CompUnitCost := LibraryRandom.RandIntInRange(20, 20);
+
+        // [GIVEN] Create and Post Purchase Document for Non-Inventory item with Unit Cost.
+        CreateAndPostPurchaseDocumentWithNonInvItem(NonInvItem, Quantity, NonInvUnitCost);
+
+        // [GIVEN] Create and Post Purchase Document for Component item with Unit Cost.
+        CreateAndPostPurchaseDocumentWithNonInvItem(CompItem, Quantity, CompUnitCost);
+
+        // [GIVEN] Create and Refresh Released Production Order.
+        CreateAndRefreshReleasedProductionOrder(ProductionOrder, OutputItem."No.", Quantity, '', '');
+
+        // [GIVEN] Update "Direct Cost Non-Inv. App. Acc." in General Posting Setup.
+        GeneralPostingSetup.Get('', OutputItem."Gen. Prod. Posting Group");
+        LibraryERM.UpdateDirectCostNonInventoryAppliedAccountInGeneralPostingSetup(GeneralPostingSetup);
+
+        // [GIVEN] Find Production Order Component.
+        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange("Item No.", NonInvItem."No.");
+        ProdOrderComponent.FindFirst();
+
+        // [GIVEN] Create and Post Consumption Journal.
+        CreateAndPostConsumptionJournal(ProductionOrder, ProdOrderComponent, Quantity);
+
+        // [GIVEN] Find Production Order Component.
+        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange("Item No.", CompItem."No.");
+        ProdOrderComponent.FindFirst();
+
+        // [GIVEN] Create and Post Consumption Journal.
+        CreateAndPostConsumptionJournal(ProductionOrder, ProdOrderComponent, Quantity);
+
+        // [WHEN] Create and Post Output Journal with output quantity.
+        CreateAndPostOutputJournalWithRunTimeAndUnitCost(ProductionOrder."No.", Quantity, 0, 0);
+
+        // [WHEN] Change Prod Order Status from Released to Finished.
+        ProdOrderStatusMgt.ChangeProdOrderStatus(ProductionOrder, ProductionOrder.Status::Finished, WorkDate(), true);
+
+        // [THEN] Verify "Cost Amount (Actual) (ACY)" is calculated from exchange rate, not just reversed.
+        ExpectedACY := NonInvUnitCost * Quantity * ExchangeRate;
+        VerifyCostAmountACYForValueEntry(ProductionOrder, "Item Ledger Entry Type"::Output, "Cost Entry Type"::"Direct Cost - Non Inventory", OutputItem, ExpectedACY);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"SCM Production Order III");
@@ -10531,6 +10940,14 @@ codeunit 137079 "SCM Production Order III"
     end;
 
     [ModalPageHandler]
+    procedure ItemTrackingPageHandlerWithQuantity(var ItemTrackingLines: TestPage "Item Tracking Lines")
+    begin
+        ItemTrackingLines."Assign Lot No.".Invoke();
+        ItemTrackingLines."Quantity (Base)".SetValue(LibraryVariableStorage.DequeueDecimal());
+        ItemTrackingLines.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
     [Scope('OnPrem')]
     procedure ItemTrackingSummaryPageHandler(var ItemTrackingSummary: TestPage "Item Tracking Summary")
     begin
@@ -10630,6 +11047,98 @@ codeunit 137079 "SCM Production Order III"
         ReservationEntry.SetRange("Source Type", SourceType);
         ReservationEntry.SetRange("Reservation Status", ReservationStatus);
         Assert.IsFalse(ReservationEntry.IsEmpty(), StrSubstNo(ReservationEntryMustExistErr, ReservationEntry.TableCaption));
+    end;
+
+    local procedure CreateProdOrderAddNewComponentAndCreateConsumption(var ProdOrderComponent: Record "Prod. Order Component")
+    var
+        Location: Record Location;
+        ProductionOrder: Record "Production Order";
+        Item: Record Item;
+        ChildItem: Record Item;
+        ProdOrderLine: Record "Prod. Order Line";
+        InventoryPostingSetup: Record "Inventory Posting Setup";
+    begin
+        LibraryWarehouse.CreateLocation(Location);
+        CreateNonInventoryItemSetup(Item, ChildItem, LibraryRandom.RandInt(10));
+
+        CreateAndRefreshReleasedProductionOrder(ProductionOrder, Item."No.", LibraryRandom.RandInt(10), Location.Code, '');
+
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.SetRange("Item No.", Item."No.");
+        ProdOrderLine.FindFirst();
+
+        CreateInventoryPostingSetup(InventoryPostingSetup, ProdOrderLine."Location Code", ProdOrderLine."Inventory Posting Group");
+
+        LibraryManufacturing.CreateProductionOrderComponent(
+            ProdOrderComponent,
+            ProdOrderLine.Status,
+            ProdOrderLine."Prod. Order No.",
+            ProdOrderLine."Line No.");
+        ProdOrderComponent.Validate("Item No.", ChildItem."No.");
+        ProdOrderComponent.Validate("Quantity per", LibraryRandom.RandInt(1));
+        ProdOrderComponent.Modify(true);
+
+        LibraryManufacturing.OpenProductionJournal(ProductionOrder, ProdOrderLine."Line No.");
+    end;
+
+    local procedure CreateNonInventoryItemSetup(var Item: Record Item; var Item2: Record Item; QuantityPer: Decimal)
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+    begin
+        // Create Child Item.
+        CreateItem(Item2);
+        Item2.Validate(Type, Item2.Type::"Non-Inventory");
+        Item2.Modify(true);
+
+        // Create Production BOM, Parent Item and attach Production BOM.
+        CreateCertifiedProductionBOM(ProductionBOMHeader, Item2, QuantityPer);
+        CreateProductionItem(Item, ProductionBOMHeader."No.");
+    end;
+
+    local procedure CreateInventoryPostingSetup(var InventoryPostingSetup: Record "Inventory Posting Setup"; LocationCode: Code[10]; InventoryPostingGroupCode: Code[20])
+    var
+        Location: Record Location;
+    begin
+        LibraryInventory.CreateInventoryPostingSetup(InventoryPostingSetup, LocationCode, InventoryPostingGroupCode);
+
+        InventoryPostingSetup."Inventory Account" := LibraryERM.CreateGLAccountNo();
+        InventoryPostingSetup."Inventory Account (Interim)" := LibraryERM.CreateGLAccountNo();
+        InventoryPostingSetup."WIP Account" := LibraryERM.CreateGLAccountNo();
+        InventoryPostingSetup."Material Variance Account" := LibraryERM.CreateGLAccountNo();
+        InventoryPostingSetup."Capacity Variance Account" := LibraryERM.CreateGLAccountNo();
+        InventoryPostingSetup."Mfg. Overhead Variance Account" := LibraryERM.CreateGLAccountNo();
+        InventoryPostingSetup."Cap. Overhead Variance Account" := LibraryERM.CreateGLAccountNo();
+        InventoryPostingSetup."Subcontracted Variance Account" := LibraryERM.CreateGLAccountNo();
+        InventoryPostingSetup."View All Accounts on Lookup" := true;
+        InventoryPostingSetup.Modify();
+        Location.Get(InventoryPostingSetup."Location Code");
+        LibraryInventory.UpdateInventoryPostingSetup(Location);
+    end;
+
+    local procedure CreateCurrencyWithExchangeRateAndSetAsACY(ExchangeRateAmount: Decimal): Code[10]
+    var
+        Currency: Record Currency;
+    begin
+        Currency.Get(LibraryERM.CreateCurrencyWithGLAccountSetup());
+        LibraryERM.CreateExchangeRate(Currency.Code, CalcDate('<CY-2Y+1D>', WorkDate()), ExchangeRateAmount, ExchangeRateAmount);
+        LibraryERM.SetAddReportingCurrency(Currency.Code);
+        exit(Currency.Code);
+    end;
+
+    local procedure VerifyCostAmountACYForValueEntry(ProductionOrder: Record "Production Order"; ItemLedgerEntryType: Enum "Item Ledger Entry Type"; CostEntryType: Enum "Cost Entry Type"; Item: Record Item; ExpectedACY: Decimal)
+    var
+        ValueEntry: Record "Value Entry";
+    begin
+        ValueEntry.SetRange("Document No.", ProductionOrder."No.");
+        ValueEntry.SetRange("Item Ledger Entry Type", ItemLedgerEntryType);
+        ValueEntry.SetRange("Entry Type", CostEntryType);
+        ValueEntry.SetRange("Item No.", Item."No.");
+        ValueEntry.FindFirst();
+        Assert.AreEqual(
+            ExpectedACY,
+            ValueEntry."Cost Amount (Actual) (ACY)",
+            StrSubstNo(EntryMustBeEqualErr, ValueEntry.FieldCaption("Cost Amount (Actual) (ACY)"), ExpectedACY, ValueEntry."Entry No.", ValueEntry.TableCaption()));
     end;
 
     [PageHandler]

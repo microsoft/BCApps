@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Registration;
 
+/// <summary>
+/// Displays validation details for VAT registration numbers with accept/reject functionality.
+/// Provides interface for reviewing and applying VIES validation responses to business entities.
+/// </summary>
 page 247 "VAT Registration Log Details"
 {
     PageType = List;

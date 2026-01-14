@@ -8,6 +8,16 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Sales.History;
 
+/// <summary>
+/// Processes and posts general journal lines for late payment scenarios and document application corrections.
+/// Handles special posting scenarios where journal lines need to be applied to documents after initial posting.
+/// </summary>
+/// <remarks>
+/// Specialized posting functionality for handling late payment applications and document corrections.
+/// Designed to process journal lines that need to be applied to existing posted documents with special handling.
+/// Key features: Late payment processing, document application correction, automated G/L account assignment.
+/// Integration: Works with sales invoice history and general ledger posting for payment application scenarios.
+/// </remarks>
 codeunit 1256 "Post Late Gen. Journal Lines"
 {
 

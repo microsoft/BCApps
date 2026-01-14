@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -6,13 +6,13 @@ namespace Microsoft.Projects.TimeSheet;
 
 using Microsoft.Assembly.Document;
 using Microsoft.Foundation.Period;
+using Microsoft.HumanResources.Absence;
 using Microsoft.HumanResources.Employee;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Project.Journal;
 using Microsoft.Projects.Project.Planning;
 using Microsoft.Projects.Resources.Journal;
 using Microsoft.Projects.Resources.Resource;
-using Microsoft.HumanResources.Absence;
 using Microsoft.Projects.Resources.Setup;
 using System.Security.User;
 using System.Utilities;
@@ -28,9 +28,6 @@ codeunit 950 "Time Sheet Management"
     end;
 
     var
-#if not CLEAN25
-        ServTimeSheetMgt: Codeunit "Serv. Time Sheet Mgt.";
-#endif
 #pragma warning disable AA0074
         Text001: Label 'Mon,Tue,Wed,Thu,Fri,Sat,Sun';
 #pragma warning disable AA0470
@@ -725,7 +722,13 @@ codeunit 950 "Time Sheet Management"
     var
         ToTimeSheetDetail: Record "Time Sheet Detail";
         FromTimeSheetDetailArchive: Record "Time Sheet Detail Archive";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeCopyTimeSheetLineArchiveDetails(FromTimeSheetLineArchive, ToTimeSheetLine, IsHandled);
+        if IsHandled then
+            exit;
+
         FromTimeSheetDetailArchive.SetRange("Time Sheet No.", FromTimeSheetLineArchive."Time Sheet No.");
         FromTimeSheetDetailArchive.SetRange("Time Sheet Line No.", FromTimeSheetLineArchive."Line No.");
         if FromTimeSheetDetailArchive.FindSet() then
@@ -926,39 +929,9 @@ codeunit 950 "Time Sheet Management"
         DateFilter := StrSubstNo('%1..%2', StartingDate, EndingDate);
     end;
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit ServTimeSheetMgt', '25.0')]
-    procedure CreateServDocLinesFromTS(ServiceHeader: Record Microsoft.Service.Document."Service Header")
-    var
-        TimeSheetLine: Record "Time Sheet Line";
-    begin
-        ServTimeSheetMgt.CreateServLinesFromTS(ServiceHeader, TimeSheetLine, false);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit ServTimeSheetMgt', '25.0')]
-    procedure CreateServDocLinesFromTSLine(ServiceHeader: Record Microsoft.Service.Document."Service Header"; var TimeSheetLine: Record "Time Sheet Line")
-    begin
-        ServTimeSheetMgt.CreateServLinesFromTS(ServiceHeader, TimeSheetLine, true);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit ServTimeSheetMgt', '25.0')]
-    procedure CreateTSLineFromServiceLine(ServiceLine: Record Microsoft.Service.Document."Service Line"; DocumentNo: Code[20]; Chargeable: Boolean)
-    begin
-        ServTimeSheetMgt.CreateTSLineFromServiceLine(ServiceLine, DocumentNo, false);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit ServTimeSheetMgt', '25.0')]
-    procedure CreateTSLineFromServiceShptLine(ServiceShipmentLine: Record Microsoft.Service.History."Service Shipment Line")
-    begin
-        ServTimeSheetMgt.CreateTSLineFromServiceShptLine(ServiceShipmentLine);
-    end;
-#endif
 
     procedure CreateTSLineFromDocLine(TableID: Integer; ResourceNo: Code[20]; PostingDate: Date; DocumentNo: Code[20]; OrderNo: Code[20]; OrderLineNo: Integer; WorkTypeCode: Code[10]; Chargbl: Boolean; Desc: Text[100]; Quantity: Decimal)
     var
@@ -1107,13 +1080,6 @@ codeunit 950 "Time Sheet Management"
             JobJnlLine.FieldError(Quantity, StrSubstNo(CannotBeGreaterErr, MaxAvailableQty, JobJnlLine."Unit of Measure Code"));
     end;
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit ServTimeSheetMgt', '25.0')]
-    procedure CheckServiceLine(ServiceLine: Record Microsoft.Service.Document."Service Line")
-    begin
-        ServTimeSheetMgt.CheckServiceLine(ServiceLine);
-    end;
-#endif
 
     procedure CopyFilteredTimeSheetLinesToBuffer(var TimeSheetLineFrom: Record "Time Sheet Line"; var TimeSheetLineTo: Record "Time Sheet Line")
     begin
@@ -1265,31 +1231,7 @@ codeunit 950 "Time Sheet Management"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforeCreateTSLineFromServiceLine(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var IsHandled: Boolean)
-    begin
-        OnBeforeCreateTSLineFromServiceLine(ServiceLine, IsHandled);
-    end;
 
-    [Obsolete('Moved to codeunit ServTimesheetMgt', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateTSLineFromServiceLine(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnBeforeCreateTSLineFromServiceShptLine(var ServiceShipmentLine: Record Microsoft.Service.History."Service Shipment Line"; var IsHandled: Boolean)
-    begin
-        OnBeforeCreateTSLineFromServiceShptLine(ServiceShipmentLine, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit ServTimesheetMgt', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateTSLineFromServiceShptLine(var ServiceShipmentLine: Record Microsoft.Service.History."Service Shipment Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFillJobPlanningBuffer(var JobPlanningLine: Record "Job Planning Line"; var JobPlanningLineBuffer: Record "Job Planning Line"; TimeSheetHeader: Record "Time Sheet Header"; var IsHandled: Boolean);
@@ -1331,29 +1273,6 @@ codeunit 950 "Time Sheet Management"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforeAddServLinesFromTSDetail(ServiceHeader: Record Microsoft.Service.Document."Service Header"; var TimeSheetDetail: Record "Time Sheet Detail"; LineNo: Integer; var IsHandled: Boolean)
-    begin
-        OnBeforeAddServLinesFromTSDetail(ServiceHeader, TimeSheetDetail, LineNo, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit ServTimesheetMgt', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeAddServLinesFromTSDetail(ServiceHeader: Record Microsoft.Service.Document."Service Header"; var TimeSheetDetail: Record "Time Sheet Detail"; LineNo: Integer; var IsHandled: Boolean)
-    begin
-    end;
-
-    internal procedure RunOnAddServLinesFromTSDetailOnBeforeInsertServiceLine(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var LineNo: Integer; ServiceHeader: Record Microsoft.Service.Document."Service Header"; TimeSheetDetail: Record "Time Sheet Detail")
-    begin
-        OnAddServLinesFromTSDetailOnBeforeInsertServiceLine(ServiceLine, LineNo, ServiceHeader, TimeSheetDetail);
-    end;
-
-    [Obsolete('Moved to codeunit ServTimesheetMgt', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAddServLinesFromTSDetailOnBeforeInsertServiceLine(var ServiceLine: Record Microsoft.Service.Document."Service Line"; var LineNo: Integer; ServiceHeader: Record Microsoft.Service.Document."Service Header"; TimeSheetDetail: Record "Time Sheet Detail")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnCalcActSchedFactBoxDataOnAfterSetDateDescription(TimeSheetHeader: Record "Time Sheet Header"; Calendar: Record Date; var DateDescriptionForSpecificDate: Text[30]);
@@ -1419,5 +1338,9 @@ codeunit 950 "Time Sheet Management"
     local procedure OnBeforeCheckAccPeriod(Date: Date; var IsHandled: Boolean)
     begin
     end;
-}
 
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCopyTimeSheetLineArchiveDetails(var FromTimeSheetLineArchive: Record "Time Sheet Line Archive"; var ToTimeSheetLine: Record "Time Sheet Line"; var IsHandled: Boolean)
+    begin
+    end;
+}

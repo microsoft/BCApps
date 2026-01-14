@@ -5,8 +5,8 @@
 namespace Microsoft.System.Threading;
 
 using System.Environment;
-using System.Telemetry;
 using System.Environment.Configuration;
+using System.Telemetry;
 using System.Threading;
 using System.Utilities;
 

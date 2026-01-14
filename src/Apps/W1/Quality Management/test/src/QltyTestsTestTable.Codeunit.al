@@ -19,12 +19,12 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.QualityManagement.Configuration;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
-using Microsoft.QualityManagement.Configuration.Grade;
+using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Field;
+using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup.Setup;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.Sales.Document;
 using Microsoft.Test.QualityManagement.TestLibraries;
@@ -48,14 +48,14 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         LibraryAssert: Codeunit "Library Assert";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
-        QltyTestsUtility: Codeunit "Qlty. Tests - Utility";
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         NotFirstLoop: Boolean;
         AssistEditTemplateValue: Text;
         SourceCustomTok: Label 'Source Custom 1', Locked = true;
         StatusTok: Label 'Status';
         UserTok: Label 'OrigUser';
         TestValueTxt: Label 'test value.';
-        ItemIsTrackingErr: Label 'The item [%1] is %2 tracked. Please define a %2 number before finishing the test. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Lot or serial token';
+        ItemIsTrackingErr: Label 'The item [%1] is %2 tracked. Please define a %2 number before finishing the inspection. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Lot or serial token';
         LotTok: Label 'lot', Locked = true;
         SerialTok: Label 'serial', Locked = true;
         PackageTok: Label 'package', Locked = true;
@@ -66,7 +66,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         OptionsTok: Label 'Option1,Option2,Option3';
         Option1Tok: Label 'Option1';
         NoTok: Label 'No';
-        ExistingTestErr: Label 'The field %1 exists on %2 tests (such as %3 with template %4). The field can not be deleted if it is being used on a Quality Inspection Test.', Comment = '%1=the field, %2=count of tests, %3=one example test, %4=example template.';
+        ExistingInspectiontErr: Label 'The test %1 exists on %2 inspections (such as %3 with template %4). The test can not be deleted if it is being used on a Quality Inspection.', Comment = '%1=the test, %2=count of inspections, %3=one example inspection, %4=example template.';
         DescriptionTxt: Label 'Specific Gravity';
         SuggestedCodeTxtTestValueTxt: Label 'SPECIFICGRAVITY';
         Description2Txt: Label '><{}.@!`~''"|\/?&*()-_$#-=,%%:ELECTRICAL CONDUCTIVITY';
@@ -76,7 +76,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         PassConditionDescExpressionTok: Label '1 to 5';
         WarehouseFromTableFilterTok: Label '= %1|= %2', Comment = '%1=warehouse entry,%2=warehouse journal line';
         DefaultExpressionTok: Label '[No.][Source Item No.]', Locked = true;
-        CalculatedExpressionTok: Label '%1%2%3', Comment = '%1=Test No.,%2=Item No.,%3=Table Name', Locked = true;
+        CalculatedExpressionTok: Label '%1%2%3', Comment = '%1= No.,%2=Item No.,%3=Table Name', Locked = true;
         ConditionFilterOutputTok: Label 'WHERE(Entry Type=FILTER(Output))';
         ConditionFilterProductionTok: Label 'WHERE(Order Type=FILTER(Production))';
         ConditionFilterPurchaseReceiptTok: Label 'WHERE(Document Type=FILTER(Purchase Receipt))';
@@ -91,82 +91,82 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ConditionFilterPostedRcptTok: Label 'WHERE(Reference Document=FILTER(Posted Rcpt.))';
         ConditionFilterInternalPutAwayTok: Label 'WHERE(Whse. Document Type=FILTER(Internal Put-away))';
         ConditionFilterMovementTok: Label 'WHERE(Entry Type=FILTER(Movement))';
-        GradeCode1Tok: Label '><{}.@!`~''';
-        GradeCode2Tok: Label '"|\/?&*()';
-        CannotBeRemovedExistingTestErr: Label 'This grade cannot be removed because it is being used actively on at least one existing Quality Inspection Test. If you no longer want to use this grade consider changing the description, or consider changing the visibility not to be promoted. You can also change the "Copy" setting on the grade.';
+        ResultCode1Tok: Label '><{}.@!`~''';
+        ResultCode2Tok: Label '"|\/?&*()';
+        CannotBeRemovedExistingInspectionErr: Label 'This result cannot be removed because it is being used actively on at least one existing Quality Inspection. If you no longer want to use this result consider changing the description, or consider changing the visibility not to be promoted. You can also change the "Copy" setting on the result.';
         IsInitialized: Boolean;
 
     [Test]
     procedure Table_GetControlCaptionClass()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
     begin
         // [SCENARIO] GetControlCaptionClass returns the correct caption for a custom control field
         Initialize();
 
-        // [GIVEN] A basic template and test instance are created
-        QltyTestsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionTestHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
+        // [GIVEN] A basic template and inspection instance are created
+        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
 
         // [GIVEN] Control information is determined for Source Custom field
-        QltyInspectionTestHeader.DetermineControlInformation(SourceCustomTok);
+        QltyInspectionHeader.DetermineControlInformation(SourceCustomTok);
 
         // [WHEN] GetControlCaptionClass is called for Source Custom field
         // [THEN] The method returns "Status" as the caption
-        LibraryAssert.AreEqual(StatusTok, QltyInspectionTestHeader.GetControlCaptionClass(SourceCustomTok), 'Should have returned "Status".');
+        LibraryAssert.AreEqual(StatusTok, QltyInspectionHeader.GetControlCaptionClass(SourceCustomTok), 'Should have returned "Status".');
 
-        QltyInTestGenerationRule.DeleteAll();
+        QltyInspectionGenRule.DeleteAll();
     end;
 
     [Test]
     procedure Table_GetControlVisibleState()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
     begin
         // [SCENARIO] GetControlVisibleState returns true for a visible custom control field
 
         Initialize();
 
-        // [GIVEN] A basic template and test instance are created
-        QltyTestsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionTestHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
+        // [GIVEN] A basic template and inspection instance are created
+        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
 
         // [GIVEN] Control information is determined for Source Custom field
-        QltyInspectionTestHeader.DetermineControlInformation(SourceCustomTok);
+        QltyInspectionHeader.DetermineControlInformation(SourceCustomTok);
 
         // [WHEN] GetControlVisibleState is called for Source Custom field
         // [THEN] The method returns true indicating the control should be visible
-        LibraryAssert.IsTrue(QltyInspectionTestHeader.GetControlVisibleState(SourceCustomTok), 'Should show Custom 1 (Status).');
+        LibraryAssert.IsTrue(QltyInspectionHeader.GetControlVisibleState(SourceCustomTok), 'Should show Custom 1 (Status).');
 
-        QltyInTestGenerationRule.DeleteAll();
+        QltyInspectionGenRule.DeleteAll();
     end;
 
     [Test]
     procedure Table_GetRelatedItem()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Location: Record Location;
         Item: Record Item;
         FoundItem: Record Item;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryInventory: Codeunit "Library - Inventory";
     begin
-        // [SCENARIO] GetRelatedItem successfully retrieves the item associated with a test
+        // [SCENARIO] GetRelatedItem successfully retrieves the item associated with an inspection
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -177,55 +177,55 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A purchase order with the item is created
         QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, PurchaseHeader, PurchaseLine);
 
-        // [GIVEN] A test is created from the purchase line
-        QltyTestsUtility.CreateTestWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionTestHeader);
+        // [GIVEN] An inspection is created from the purchase line
+        QltyInspectionUtility.CreateInspectionWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
         // [WHEN] GetRelatedItem is called
         // [THEN] The method finds the item and returns the correct item number
-        LibraryAssert.IsTrue(QltyInspectionTestHeader.GetRelatedItem(FoundItem), 'Should find item.');
+        LibraryAssert.IsTrue(QltyInspectionHeader.GetRelatedItem(FoundItem), 'Should find item.');
         LibraryAssert.AreEqual(Item."No.", FoundItem."No.", 'Should be same item.');
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
     end;
 
     [Test]
     procedure Table_ValidateAssignedUserID_AssignFromBlank()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
-        // [SCENARIO] A test with no assigned user can be assigned to the current user
+        // [SCENARIO] An inspection with no assigned user can be assigned to the current user
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase with untracked item
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
+        // [GIVEN] An inspection is created from purchase with untracked item
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
 
-        // [GIVEN] The test has no assigned user
-        LibraryAssert.IsTrue(QltyInspectionTestHeader."Assigned User ID" = '', 'Should not have user assigned.');
+        // [GIVEN] The inspection has no assigned user
+        LibraryAssert.IsTrue(QltyInspectionHeader."Assigned User ID" = '', 'Should not have user assigned.');
 
         // [WHEN] The Assigned User ID is validated with the current user
-        QltyInspectionTestHeader.Validate("Assigned User ID", UserId());
+        QltyInspectionHeader.Validate("Assigned User ID", UserId());
 
-        // [THEN] The user is successfully assigned to the test
-        LibraryAssert.IsTrue(QltyInspectionTestHeader."Assigned User ID" = UserId(), 'User should be assigned.');
+        // [THEN] The user is successfully assigned to the inspection
+        LibraryAssert.IsTrue(QltyInspectionHeader."Assigned User ID" = UserId(), 'User should be assigned.');
     end;
 
     [Test]
@@ -233,142 +233,142 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         User: Record User;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPermissions: Codeunit "Library - Permissions";
     begin
-        // [SCENARIO] A test assigned to another user can be reassigned to the current user using AssignToSelf
+        // [SCENARIO] An inspection assigned to another user can be reassigned to the current user using AssignToSelf
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase with untracked item
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
+        // [GIVEN] An inspection is created from purchase with untracked item
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
 
-        // [GIVEN] A test user is created if it doesn't exist
+        // [GIVEN] An inspection user is created if it doesn't exist
         User.SetRange("User Name", UserTok);
         if not User.FindFirst() then
             LibraryPermissions.CreateUser(User, UserTok, false);
 
-        // [GIVEN] The test is assigned to the test user
-        QltyInspectionTestHeader."Assigned User ID" := User."User Name";
-        QltyInspectionTestHeader.Modify();
+        // [GIVEN] The inspection is assigned to the test user
+        QltyInspectionHeader."Assigned User ID" := User."User Name";
+        QltyInspectionHeader.Modify();
 
         // [WHEN] AssignToSelf is called
-        QltyInspectionTestHeader.AssignToSelf();
+        QltyInspectionHeader.AssignToSelf();
 
-        // [THEN] The test is reassigned to the current user
-        LibraryAssert.IsTrue(QltyInspectionTestHeader."Assigned User ID" = UserId(), 'User should be assigned.');
+        // [THEN] The inspection is reassigned to the current user
+        LibraryAssert.IsTrue(QltyInspectionHeader."Assigned User ID" = UserId(), 'User should be assigned.');
     end;
 
     [Test]
-    procedure Table_ValidateAssignedUserID_CannotChangeTests()
+    procedure Table_ValidateAssignedUserID_CannotChangeInspections()
     var
         User: Record User;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPermissions: Codeunit "Library - Permissions";
     begin
-        // [SCENARIO] A test can be reassigned from one user to another without persisting the change
+        // [SCENARIO] An inspection can be reassigned from one user to another without persisting the change
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase with untracked item
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
+        // [GIVEN] An inspection is created from purchase with untracked item
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
 
-        // [GIVEN] A test user is created if it doesn't exist
+        // [GIVEN] An inspection user is created if it doesn't exist
         User.SetRange("User Name", UserTok);
         if not User.FindFirst() then
             LibraryPermissions.CreateUser(User, UserTok, false);
 
-        // [GIVEN] The test is assigned to the test user (not modified)
-        QltyInspectionTestHeader."Assigned User ID" := User."User Name";
+        // [GIVEN] The inspection is assigned to the test user (not modified)
+        QltyInspectionHeader."Assigned User ID" := User."User Name";
 
         // [WHEN] The Assigned User ID is validated with the current user
-        QltyInspectionTestHeader.Validate("Assigned User ID", UserId());
+        QltyInspectionHeader.Validate("Assigned User ID", UserId());
 
         // [THEN] The user is successfully reassigned
-        LibraryAssert.IsTrue(QltyInspectionTestHeader."Assigned User ID" = UserId(), 'User should be assigned.');
+        LibraryAssert.IsTrue(QltyInspectionHeader."Assigned User ID" = UserId(), 'User should be assigned.');
     end;
 
     [Test]
-    procedure Table_ValidateAssignedUserID_CannotChangeTests_ShouldErr()
+    procedure Table_ValidateAssignedUserID_CannotChangeInspections_ShouldErr()
     var
         User: Record User;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryPermissions: Codeunit "Library - Permissions";
     begin
-        // [SCENARIO] A test assigned to another user can be reassigned to the current user after persisting
+        // [SCENARIO] An inspection assigned to another user can be reassigned to the current user after persisting
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase with untracked item
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
+        // [GIVEN] An inspection is created from purchase with untracked item
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
 
-        // [GIVEN] A test user is created if it doesn't exist
+        // [GIVEN] An inspection user is created if it doesn't exist
         User.SetRange("User Name", UserTok);
         if not User.FindFirst() then
             LibraryPermissions.CreateUser(User, UserTok, false);
 
-        // [GIVEN] The test is assigned to the test user and modified
-        QltyInspectionTestHeader."Assigned User ID" := User."User Name";
-        QltyInspectionTestHeader.Modify();
+        // [GIVEN] The inspection is assigned to the test user and modified
+        QltyInspectionHeader."Assigned User ID" := User."User Name";
+        QltyInspectionHeader.Modify();
 
         // [WHEN] The Assigned User ID is validated with the current user
-        QltyInspectionTestHeader.Validate("Assigned User ID", UserId());
+        QltyInspectionHeader.Validate("Assigned User ID", UserId());
 
         // [THEN] The user is successfully reassigned to the current user
-        LibraryAssert.AreEqual(UserId(), QltyInspectionTestHeader."Assigned User ID", 'smaller test for express.');
+        LibraryAssert.AreEqual(UserId(), QltyInspectionHeader."Assigned User ID", 'smaller test for express.');
     end;
 
     [Test]
@@ -376,11 +376,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_ValidateSampleSize_SampleSizeLargerThanSourceQty()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
@@ -389,48 +389,48 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A template is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase with source quantity of 100
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
+        // [GIVEN] An inspection is created from purchase with source quantity of 100
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         // [WHEN] Sample Size is validated with value 101 (larger than source)
-        QltyInspectionTestHeader.Validate("Sample Size", 101);
+        QltyInspectionHeader.Validate("Sample Size", 101);
 
         // [THEN] Sample size is adjusted to source quantity (100)
-        LibraryAssert.IsTrue(QltyInspectionTestHeader."Sample Size" = 100, 'Sample size should be source quantity.');
+        LibraryAssert.IsTrue(QltyInspectionHeader."Sample Size" = 100, 'Sample size should be source quantity.');
     end;
 
     [Test]
     procedure Table_DefaultSampleSize_FromFixedQuantity()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
-        // [SCENARIO] When template uses Fixed Quantity sample source, test defaults to the fixed amount
+        // [SCENARIO] When template uses Fixed Quantity sample source, inspection defaults to the fixed amount
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A template is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] Template is configured with Fixed Quantity sample source of 5
         ConfigurationToLoadQltyInspectionTemplateHdr."Sample Source" := ConfigurationToLoadQltyInspectionTemplateHdr."Sample Source"::"Fixed Quantity";
@@ -439,27 +439,27 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ConfigurationToLoadQltyInspectionTemplateHdr.Modify(false);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [WHEN] A test is created from purchase with source quantity of 200
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 200, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
+        // [WHEN] An inspection is created from purchase with source quantity of 200
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 200, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         // [THEN] Sample size equals the fixed quantity (5)
-        LibraryAssert.AreEqual(ConfigurationToLoadQltyInspectionTemplateHdr."Sample Fixed Amount", QltyInspectionTestHeader."Sample Size", 'Sample size should be the fixed quantity defined ');
+        LibraryAssert.AreEqual(ConfigurationToLoadQltyInspectionTemplateHdr."Sample Fixed Amount", QltyInspectionHeader."Sample Size", 'Sample size should be the fixed quantity defined ');
     end;
 
     [Test]
     procedure Table_DefaultSampleSize_FromFixedQuantity_MaxesOut()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
@@ -468,10 +468,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A template is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] Template is configured with extremely large fixed quantity (999999)
         ConfigurationToLoadQltyInspectionTemplateHdr."Sample Source" := ConfigurationToLoadQltyInspectionTemplateHdr."Sample Source"::"Fixed Quantity";
@@ -480,39 +480,39 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ConfigurationToLoadQltyInspectionTemplateHdr.Modify(false);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [WHEN] A test is created from purchase with source quantity of 200
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 200, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
+        // [WHEN] An inspection is created from purchase with source quantity of 200
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 200, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         // [THEN] Sample size is capped at source quantity (200)
-        LibraryAssert.AreEqual(200, QltyInspectionTestHeader."Sample Size", 'Sample size should have maxed out to the highest source quantity.');
+        LibraryAssert.AreEqual(200, QltyInspectionHeader."Sample Size", 'Sample size should have maxed out to the highest source quantity.');
     end;
 
     [Test]
     procedure Table_DefaultSampleSize_FromPercentage()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
-        // [SCENARIO] When template uses Percent of Quantity sample source, test defaults to calculated percentage
+        // [SCENARIO] When template uses Percent of Quantity sample source, inspection defaults to calculated percentage
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A template is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] Template is configured with Percent of Quantity sample source at 99%
         ConfigurationToLoadQltyInspectionTemplateHdr."Sample Source" := ConfigurationToLoadQltyInspectionTemplateHdr."Sample Source"::"Percent of Quantity";
@@ -521,55 +521,55 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ConfigurationToLoadQltyInspectionTemplateHdr.Modify(false);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [WHEN] A test is created from purchase with source quantity of 200
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 200, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
+        // [WHEN] An inspection is created from purchase with source quantity of 200
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 200, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         // [THEN] Sample size equals 198 (99% of 200, rounded)
-        LibraryAssert.AreEqual(198, QltyInspectionTestHeader."Sample Size", 'Sample size should be a rounded up discrete amount based on the input size against the percentage defined on the template. ');
+        LibraryAssert.AreEqual(198, QltyInspectionHeader."Sample Size", 'Sample size should be a rounded up discrete amount based on the input size against the percentage defined on the template. ');
     end;
 
     [Test]
-    procedure Table_OnDelete_CanDeleteOpenTest()
+    procedure Table_OnDelete_CanDeleteOpenInspection()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        FoundQltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        FoundQltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
-        // [SCENARIO] An open test can be successfully deleted
+        // [SCENARIO] An open inspection can be successfully deleted
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase with untracked item
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
+        // [GIVEN] An inspection is created from purchase with untracked item
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
 
-        // [WHEN] The test is deleted
-        QltyInspectionTestHeader.Delete(true);
+        // [WHEN] The inspection is deleted
+        QltyInspectionHeader.Delete(true);
 
-        // [THEN] The test no longer exists in the database
-        FoundQltyInspectionTestHeader.SetRange("No.", QltyInspectionTestHeader."No.");
-        LibraryAssert.IsTrue(FoundQltyInspectionTestHeader.IsEmpty(), 'Should not find a test.');
+        // [THEN] The inspection no longer exists in the database
+        FoundQltyInspectionHeader.SetRange("No.", QltyInspectionHeader."No.");
+        LibraryAssert.IsTrue(FoundQltyInspectionHeader.IsEmpty(), 'Should not find an inspection.');
     end;
 
     [Test]
@@ -577,45 +577,45 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_AssistEditTestField()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
-        // [SCENARIO] AssistEditTestField allows editing a test field value through a modal page
+        // [SCENARIO] AssistEditTestField allows editing an inspection test value through a modal page
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] A template with one field is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        // [GIVEN] A template with one test is created
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase with untracked item
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
+        // [GIVEN] An inspection is created from purchase with untracked item
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
-        // [GIVEN] The test line is retrieved
-        QltyInspectionTestLine.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.", 10000);
+        // [GIVEN] The inspection line is retrieved
+        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 10000);
 
-        // [WHEN] AssistEditTestField is called on the field code
-        QltyInspectionTestHeader.AssistEditTestField(QltyInspectionTestLine."Field Code");
+        // [WHEN] AssistEditTest is called on the test code
+        QltyInspectionHeader.AssistEditTest(QltyInspectionLine."Test Code");
 
         // [THEN] The test value is updated through the modal page handler
-        QltyInspectionTestLine.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.", 10000);
-        LibraryAssert.AreEqual(TestValueTxt, QltyInspectionTestLine."Test Value", 'Test value should match.');
+        QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 10000);
+        LibraryAssert.AreEqual(TestValueTxt, QltyInspectionLine."Test Value", 'Test value should match.');
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
     end;
 
     [Test]
@@ -623,7 +623,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_AssistEditLotNo()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         Item: Record Item;
         Vendor: Record Vendor;
@@ -632,35 +632,35 @@ codeunit 139967 "Qlty. Tests - Test Table"
         FirstReservationEntry: Record "Reservation Entry";
         SecondPurchaseLine: Record "Purchase Line";
         SecondReservationEntry: Record "Reservation Entry";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempSpecTrackingSpecification: Record "Tracking Specification" temporary;
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         RecordRef: RecordRef;
-        QltyInspectionTest: TestPage "Qlty. Inspection Test";
+        QltyInspection: TestPage "Qlty. Inspection";
         UnusedVariant1: Variant;
         UnusedVariant2: Variant;
     begin
-        // [SCENARIO] AssistEditLotNo allows changing the lot number on a test through item tracking summary
+        // [SCENARIO] AssistEditLotNo allows changing the lot number on an inspection through item tracking summary
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] A template with one field is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        // [GIVEN] A template with one test is created
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] A lot-tracked item is created
-        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
@@ -672,24 +672,24 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryPurchase.CreatePurchaseLine(SecondPurchaseLine, PurchaseHeader, SecondPurchaseLine.Type::Item, Item."No.", 100);
         QltyPurOrderGenerator.AddTrackingForPurchaseLine(SecondPurchaseLine, Item, SecondReservationEntry);
 
-        // [GIVEN] A test is created from the second purchase line with its lot number
+        // [GIVEN] An inspection is created from the second purchase line with its lot number
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
-        if QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
-            QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+            QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
-        // [GIVEN] The test page is opened
-        QltyInspectionTest.OpenEdit();
-        QltyInspectionTest.GoToRecord(QltyInspectionTestHeader);
+        // [GIVEN] The inspection page is opened
+        QltyInspection.OpenEdit();
+        QltyInspection.GoToRecord(QltyInspectionHeader);
 
         // [WHEN] AssistEdit is invoked on the Lot No. field
-        QltyInspectionTest."Lot No.".AssistEdit();
+        QltyInspection."Lot No.".AssistEdit();
 
         // [THEN] The lot number is changed to the first lot number through modal page handler
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        LibraryAssert.AreEqual(FirstReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Should be other source lot no.');
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual(FirstReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Should be other source lot no.');
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
     end;
 
     [Test]
@@ -697,7 +697,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_AssistEditSerialNo()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         Vendor: Record Vendor;
         ToUseNoSeries: Record "No. Series";
@@ -705,35 +705,35 @@ codeunit 139967 "Qlty. Tests - Test Table"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         ReservationEntry: Record "Reservation Entry";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempSpecTrackingSpecification: Record "Tracking Specification" temporary;
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         RecordRef: RecordRef;
-        QltyInspectionTest: TestPage "Qlty. Inspection Test";
+        QltyInspection: TestPage "Qlty. Inspection";
         UnusedVariant1: Variant;
         UnusedVariant2: Variant;
     begin
-        // [SCENARIO] AssistEditSerialNo allows changing the serial number on a test through item tracking summary
+        // [SCENARIO] AssistEditSerialNo allows changing the serial number on an inspection through item tracking summary
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] A template with one field is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        // [GIVEN] A template with one test is created
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] A serial-tracked item is created
-        QltyTestsUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
@@ -741,24 +741,24 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A purchase order is created with serial tracking
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, Vendor, '', PurchaseHeader, PurchaseLine, ReservationEntry);
 
-        // [GIVEN] A test is created from the purchase line with its serial number
+        // [GIVEN] An inspection is created from the purchase line with its serial number
         RecordRef.GetTable(PurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
-        QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
-        // [GIVEN] The test page is opened
-        QltyInspectionTest.OpenEdit();
-        QltyInspectionTest.GoToRecord(QltyInspectionTestHeader);
+        // [GIVEN] The inspection page is opened
+        QltyInspection.OpenEdit();
+        QltyInspection.GoToRecord(QltyInspectionHeader);
 
         // [WHEN] AssistEdit is invoked on the Serial No. field
-        QltyInspectionTest."Serial No.".AssistEdit();
+        QltyInspection."Serial No.".AssistEdit();
 
         // [THEN] The serial number is changed to a different serial number through modal page handler
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        LibraryAssert.AreNotEqual(ReservationEntry."Serial No.", QltyInspectionTestHeader."Source Serial No.", 'Should be new source serial no.');
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreNotEqual(ReservationEntry."Serial No.", QltyInspectionHeader."Source Serial No.", 'Should be new source serial no.');
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
     end;
 
     [Test]
@@ -766,7 +766,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_AssistEditPackageNo()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         ToUseNoSeries: Record "No. Series";
         Location: Record Location;
         Item: Record Item;
@@ -776,35 +776,35 @@ codeunit 139967 "Qlty. Tests - Test Table"
         FirstReservationEntry: Record "Reservation Entry";
         SecondPurchaseLine: Record "Purchase Line";
         SecondReservationEntry: Record "Reservation Entry";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempSpecTrackingSpecification: Record "Tracking Specification" temporary;
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         RecordRef: RecordRef;
-        QltyInspectionTest: TestPage "Qlty. Inspection Test";
+        QltyInspection: TestPage "Qlty. Inspection";
         UnusedVariant1: Variant;
         UnusedVariant2: Variant;
     begin
-        // [SCENARIO] AssistEditPackageNo allows changing the package number on a test through item tracking summary
+        // [SCENARIO] AssistEditPackageNo allows changing the package number on an inspection through item tracking summary
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] A template with one field is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        // [GIVEN] A template with one test is created
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] A package-tracked item with no series is created
-        QltyTestsUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
@@ -816,24 +816,24 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryPurchase.CreatePurchaseLine(SecondPurchaseLine, PurchaseHeader, SecondPurchaseLine.Type::Item, Item."No.", 10);
         QltyPurOrderGenerator.AddTrackingForPurchaseLine(SecondPurchaseLine, Item, SecondReservationEntry);
 
-        // [GIVEN] A test is created from the second purchase line with its package number
+        // [GIVEN] An inspection is created from the second purchase line with its package number
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
-        QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
-        QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
-        // [GIVEN] The test page is opened
-        QltyInspectionTest.OpenEdit();
-        QltyInspectionTest.GoToRecord(QltyInspectionTestHeader);
+        // [GIVEN] The inspection page is opened
+        QltyInspection.OpenEdit();
+        QltyInspection.GoToRecord(QltyInspectionHeader);
 
         // [WHEN] AssistEdit is invoked on the Source Package No. field
-        QltyInspectionTest."Source Package No.".AssistEdit();
+        QltyInspection."Source Package No.".AssistEdit();
 
         // [THEN] The package number is changed to the first package number through modal page handler
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        LibraryAssert.AreEqual(FirstReservationEntry."Package No.", QltyInspectionTestHeader."Source Package No.", 'Should be other source package no.');
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual(FirstReservationEntry."Package No.", QltyInspectionHeader."Source Package No.", 'Should be other source package no.');
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
     end;
 
     [Test]
@@ -841,7 +841,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_AssistEditLotNo_ChooseSingleDocument()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         Item: Record Item;
         Vendor: Record Vendor;
@@ -850,14 +850,14 @@ codeunit 139967 "Qlty. Tests - Test Table"
         FirstReservationEntry: Record "Reservation Entry";
         SecondPurchaseLine: Record "Purchase Line";
         SecondReservationEntry: Record "Reservation Entry";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempSpecTrackingSpecification: Record "Tracking Specification" temporary;
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         RecordRef: RecordRef;
-        QltyInspectionTest: TestPage "Qlty. Inspection Test";
+        QltyInspection: TestPage "Qlty. Inspection";
         UnusedVariant1: Variant;
         UnusedVariant2: Variant;
     begin
@@ -866,19 +866,19 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] A template with one field is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        // [GIVEN] A template with one test is created
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] A lot-tracked item is created
-        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
@@ -888,24 +888,24 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryPurchase.CreatePurchaseLine(SecondPurchaseLine, PurchaseHeader, SecondPurchaseLine.Type::Item, Item."No.", 100);
         QltyPurOrderGenerator.AddTrackingForPurchaseLine(SecondPurchaseLine, Item, SecondReservationEntry);
 
-        // [GIVEN] A test is created from the second purchase line
+        // [GIVEN] An inspection is created from the second purchase line
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
-        if QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
-            QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+            QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
-        // [GIVEN] The test page is opened
-        QltyInspectionTest.OpenEdit();
-        QltyInspectionTest.GoToRecord(QltyInspectionTestHeader);
+        // [GIVEN] The inspection page is opened
+        QltyInspection.OpenEdit();
+        QltyInspection.GoToRecord(QltyInspectionHeader);
 
         // [WHEN] AssistEdit is invoked on Lot No. field (handler chooses from single document)
-        QltyInspectionTest."Lot No.".AssistEdit();
+        QltyInspection."Lot No.".AssistEdit();
 
         // [THEN] The lot number is changed to first lot number from same document
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        LibraryAssert.AreEqual(FirstReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Should be other source lot no.');
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual(FirstReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Should be other source lot no.');
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
     end;
 
     [Test]
@@ -913,7 +913,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_AssistEditSerialNo_ChooseSingleDocument()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         Vendor: Record Vendor;
         ToUseNoSeries: Record "No. Series";
@@ -921,14 +921,14 @@ codeunit 139967 "Qlty. Tests - Test Table"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         ReservationEntry: Record "Reservation Entry";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempSpecTrackingSpecification: Record "Tracking Specification" temporary;
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         RecordRef: RecordRef;
-        QltyInspectionTest: TestPage "Qlty. Inspection Test";
+        QltyInspection: TestPage "Qlty. Inspection";
         UnusedVariant1: Variant;
         UnusedVariant2: Variant;
     begin
@@ -937,19 +937,19 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A template is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] A serial-tracked item is created
-        QltyTestsUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
@@ -957,24 +957,24 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A purchase order with serial tracking is created
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, Vendor, '', PurchaseHeader, PurchaseLine, ReservationEntry);
 
-        // [GIVEN] A test is created from the purchase line
+        // [GIVEN] An inspection is created from the purchase line
         RecordRef.GetTable(PurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
-        QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
-        // [GIVEN] The test page is opened
-        QltyInspectionTest.OpenEdit();
-        QltyInspectionTest.GoToRecord(QltyInspectionTestHeader);
+        // [GIVEN] The inspection page is opened
+        QltyInspection.OpenEdit();
+        QltyInspection.GoToRecord(QltyInspectionHeader);
 
         // [WHEN] AssistEdit is invoked on Serial No. field (handler chooses from single document)
-        QltyInspectionTest."Serial No.".AssistEdit();
+        QltyInspection."Serial No.".AssistEdit();
 
         // [THEN] The serial number is changed to a different serial number
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        LibraryAssert.AreNotEqual(ReservationEntry."Serial No.", QltyInspectionTestHeader."Source Serial No.", 'Should be new source serial no.');
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreNotEqual(ReservationEntry."Serial No.", QltyInspectionHeader."Source Serial No.", 'Should be new source serial no.');
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
     end;
 
     [Test]
@@ -982,7 +982,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_AssistEditPackageNo_ChooseSingleDocument()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         ToUseNoSeries: Record "No. Series";
         Location: Record Location;
         Item: Record Item;
@@ -992,14 +992,14 @@ codeunit 139967 "Qlty. Tests - Test Table"
         FirstReservationEntry: Record "Reservation Entry";
         SecondPurchaseLine: Record "Purchase Line";
         SecondReservationEntry: Record "Reservation Entry";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempSpecTrackingSpecification: Record "Tracking Specification" temporary;
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         RecordRef: RecordRef;
-        QltyInspectionTest: TestPage "Qlty. Inspection Test";
+        QltyInspection: TestPage "Qlty. Inspection";
         UnusedVariant1: Variant;
         UnusedVariant2: Variant;
     begin
@@ -1008,19 +1008,19 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A template is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] A package-tracked item is created
-        QltyTestsUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
@@ -1030,24 +1030,24 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryPurchase.CreatePurchaseLine(SecondPurchaseLine, PurchaseHeader, SecondPurchaseLine.Type::Item, Item."No.", 10);
         QltyPurOrderGenerator.AddTrackingForPurchaseLine(SecondPurchaseLine, Item, SecondReservationEntry);
 
-        // [GIVEN] A test is created from the second purchase line
+        // [GIVEN] An inspection is created from the second purchase line
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
-        QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
-        QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
-        // [GIVEN] The test page is opened
-        QltyInspectionTest.OpenEdit();
-        QltyInspectionTest.GoToRecord(QltyInspectionTestHeader);
+        // [GIVEN] The inspection page is opened
+        QltyInspection.OpenEdit();
+        QltyInspection.GoToRecord(QltyInspectionHeader);
 
         // [WHEN] AssistEdit is invoked on Source Package No. field (handler chooses from single document)
-        QltyInspectionTest."Source Package No.".AssistEdit();
+        QltyInspection."Source Package No.".AssistEdit();
 
         // [THEN] The package number is changed to first package number from same document
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        LibraryAssert.AreEqual(FirstReservationEntry."Package No.", QltyInspectionTestHeader."Source Package No.", 'Should be other source package no.');
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual(FirstReservationEntry."Package No.", QltyInspectionHeader."Source Package No.", 'Should be other source package no.');
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
     end;
 
     [Test]
@@ -1055,7 +1055,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_AssistEditLotNo_ChooseFromAnyDocument()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         Item: Record Item;
         Vendor: Record Vendor;
@@ -1065,14 +1065,14 @@ codeunit 139967 "Qlty. Tests - Test Table"
         FirstReservationEntry: Record "Reservation Entry";
         SecondPurchaseLine: Record "Purchase Line";
         SecondReservationEntry: Record "Reservation Entry";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempSpecTrackingSpecification: Record "Tracking Specification" temporary;
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         RecordRef: RecordRef;
-        QltyInspectionTest: TestPage "Qlty. Inspection Test";
+        QltyInspection: TestPage "Qlty. Inspection";
         UnusedVariant1: Variant;
         UnusedVariant2: Variant;
     begin
@@ -1081,19 +1081,19 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A template is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] A lot-tracked item is created
-        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
@@ -1102,24 +1102,24 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, Vendor, '', FirstPurchaseHeader, FirstPurchaseLine, FirstReservationEntry);
         QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, Vendor, '', SecondPurchaseHeader, SecondPurchaseLine, SecondReservationEntry);
 
-        // [GIVEN] A test is created from the second purchase order
+        // [GIVEN] An inspection is created from the second purchase order
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
-        if QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
-            QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+            QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
-        // [GIVEN] The test page is opened
-        QltyInspectionTest.OpenEdit();
-        QltyInspectionTest.GoToRecord(QltyInspectionTestHeader);
+        // [GIVEN] The inspection page is opened
+        QltyInspection.OpenEdit();
+        QltyInspection.GoToRecord(QltyInspectionHeader);
 
         // [WHEN] AssistEdit is invoked on Lot No. field (handler chooses from any document)
-        QltyInspectionTest."Lot No.".AssistEdit();
+        QltyInspection."Lot No.".AssistEdit();
 
         // [THEN] The lot number is changed to lot number from different document
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        LibraryAssert.AreEqual(FirstReservationEntry."Lot No.", QltyInspectionTestHeader."Source Lot No.", 'Should be other source lot no.');
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual(FirstReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Should be other source lot no.');
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
     end;
 
     [Test]
@@ -1127,7 +1127,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_AssistEditSerialNo_ChooseFromAnyDocument()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
@@ -1138,14 +1138,14 @@ codeunit 139967 "Qlty. Tests - Test Table"
         FirstReservationEntry: Record "Reservation Entry";
         SecondPurchaseLine: Record "Purchase Line";
         SecondReservationEntry: Record "Reservation Entry";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempSpecTrackingSpecification: Record "Tracking Specification" temporary;
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         RecordRef: RecordRef;
-        QltyInspectionTest: TestPage "Qlty. Inspection Test";
+        QltyInspection: TestPage "Qlty. Inspection";
         UnusedVariant1: Variant;
         UnusedVariant2: Variant;
     begin
@@ -1154,19 +1154,19 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A template is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] A serial-tracked item is created
-        QltyTestsUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
@@ -1175,24 +1175,24 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, Vendor, '', FirstPurchaseHeader, FirstPurchaseLine, FirstReservationEntry);
         QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, Vendor, '', SecondPurchaseHeader, SecondPurchaseLine, SecondReservationEntry);
 
-        // [GIVEN] A test is created from the second purchase order
+        // [GIVEN] An inspection is created from the second purchase order
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
-        if QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
-            QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+            QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
-        // [GIVEN] The test page is opened
-        QltyInspectionTest.OpenEdit();
-        QltyInspectionTest.GoToRecord(QltyInspectionTestHeader);
+        // [GIVEN] The inspection page is opened
+        QltyInspection.OpenEdit();
+        QltyInspection.GoToRecord(QltyInspectionHeader);
 
         // [WHEN] AssistEdit is invoked on Serial No. field (handler chooses from any document)
-        QltyInspectionTest."Serial No.".AssistEdit();
+        QltyInspection."Serial No.".AssistEdit();
 
         // [THEN] The serial number is changed to serial number from different document
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        LibraryAssert.AreEqual(FirstReservationEntry."Serial No.", QltyInspectionTestHeader."Source Serial No.", 'Should be other source serial no.');
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual(FirstReservationEntry."Serial No.", QltyInspectionHeader."Source Serial No.", 'Should be other source serial no.');
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
     end;
 
     [Test]
@@ -1200,7 +1200,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_AssistEditPackageNo_ChooseFromAnyDocument()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
@@ -1211,14 +1211,14 @@ codeunit 139967 "Qlty. Tests - Test Table"
         FirstReservationEntry: Record "Reservation Entry";
         SecondPurchaseLine: Record "Purchase Line";
         SecondReservationEntry: Record "Reservation Entry";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempSpecTrackingSpecification: Record "Tracking Specification" temporary;
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         RecordRef: RecordRef;
-        QltyInspectionTest: TestPage "Qlty. Inspection Test";
+        QltyInspection: TestPage "Qlty. Inspection";
         UnusedVariant1: Variant;
         UnusedVariant2: Variant;
     begin
@@ -1227,19 +1227,19 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] A template with one field is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        // [GIVEN] A template with one test is created
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] A package-tracked item with no series is created
-        QltyTestsUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
@@ -1248,24 +1248,24 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, Vendor, '', FirstPurchaseHeader, FirstPurchaseLine, FirstReservationEntry);
         QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, Vendor, '', SecondPurchaseHeader, SecondPurchaseLine, SecondReservationEntry);
 
-        // [GIVEN] A test is created from the second purchase order
+        // [GIVEN] An inspection is created from the second purchase order
         RecordRef.GetTable(SecondPurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(SecondReservationEntry);
-        if QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
-            QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+            QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
-        // [GIVEN] The test page is opened
-        QltyInspectionTest.OpenEdit();
-        QltyInspectionTest.GoToRecord(QltyInspectionTestHeader);
+        // [GIVEN] The inspection page is opened
+        QltyInspection.OpenEdit();
+        QltyInspection.GoToRecord(QltyInspectionHeader);
 
         // [WHEN] AssistEdit is invoked on Source Package No. field (handler chooses from any document)
-        QltyInspectionTest."Source Package No.".AssistEdit();
+        QltyInspection."Source Package No.".AssistEdit();
 
         // [THEN] The package number is changed to first package number from different document
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        LibraryAssert.AreEqual(FirstReservationEntry."Package No.", QltyInspectionTestHeader."Source Package No.", 'Should be other source package no.');
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual(FirstReservationEntry."Package No.", QltyInspectionHeader."Source Package No.", 'Should be other source package no.');
 
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
     end;
 
     [Test]
@@ -1273,21 +1273,21 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         Item: Record Item;
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
         // [SCENARIO] VerifyTrackingBeforeFinish throws error when lot-tracked item has no lot number
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A lot-tracked item is created
-        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
 
-        // [GIVEN] A test header is initialized with the item but no lot number
-        QltyInspectionTestHeader.Init();
-        QltyInspectionTestHeader."Source Item No." := Item."No.";
+        // [GIVEN] An inspection header is initialized with the item but no lot number
+        QltyInspectionHeader.Init();
+        QltyInspectionHeader."Source Item No." := Item."No.";
 
         // [GIVEN] Quality setup requires non-empty tracking value before finishing
         QltyManagementSetup.Get();
@@ -1296,8 +1296,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [WHEN] VerifyTrackingBeforeFinish is called
         // [THEN] Error is thrown indicating lot number is required
-        asserterror QltyInspectionTestHeader.VerifyTrackingBeforeFinish();
-        LibraryAssert.ExpectedError(StrSubstNo(ItemIsTrackingErr, QltyInspectionTestHeader."Source Item No.", LotTok));
+        asserterror QltyInspectionHeader.VerifyTrackingBeforeFinish();
+        LibraryAssert.ExpectedError(StrSubstNo(ItemIsTrackingErr, QltyInspectionHeader."Source Item No.", LotTok));
     end;
 
     [Test]
@@ -1306,21 +1306,21 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup: Record "Qlty. Management Setup";
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
         // [SCENARIO] Verify error when serial-tracked item has no serial number before finish
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A serial-tracked item is created
-        QltyTestsUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
 
-        // [GIVEN] A test header is initialized without serial number
-        QltyInspectionTestHeader.Init();
-        QltyInspectionTestHeader."Source Item No." := Item."No.";
+        // [GIVEN] An inspection header is initialized without serial number
+        QltyInspectionHeader.Init();
+        QltyInspectionHeader."Source Item No." := Item."No.";
 
         // [GIVEN] Quality setup requires non-empty tracking before finishing
         QltyManagementSetup.Get();
@@ -1328,10 +1328,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [WHEN] VerifyTrackingBeforeFinish is called
-        asserterror QltyInspectionTestHeader.VerifyTrackingBeforeFinish();
+        asserterror QltyInspectionHeader.VerifyTrackingBeforeFinish();
 
         // [THEN] Error is thrown indicating missing serial number
-        LibraryAssert.ExpectedError(StrSubstNo(ItemIsTrackingErr, QltyInspectionTestHeader."Source Item No.", SerialTok));
+        LibraryAssert.ExpectedError(StrSubstNo(ItemIsTrackingErr, QltyInspectionHeader."Source Item No.", SerialTok));
     end;
 
     [Test]
@@ -1340,21 +1340,21 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup: Record "Qlty. Management Setup";
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
         // [SCENARIO] Verify error when package-tracked item has no package number before finish
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A package-tracked item with no series is created
-        QltyTestsUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
-        // [GIVEN] A test header is initialized without package number
-        QltyInspectionTestHeader.Init();
-        QltyInspectionTestHeader."Source Item No." := Item."No.";
+        // [GIVEN] An inspection header is initialized without package number
+        QltyInspectionHeader.Init();
+        QltyInspectionHeader."Source Item No." := Item."No.";
 
         // [GIVEN] Quality setup requires non-empty tracking before finishing
         QltyManagementSetup.Get();
@@ -1362,10 +1362,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [WHEN] VerifyTrackingBeforeFinish is called
-        asserterror QltyInspectionTestHeader.VerifyTrackingBeforeFinish();
+        asserterror QltyInspectionHeader.VerifyTrackingBeforeFinish();
 
         // [THEN] Error is thrown indicating missing package number
-        LibraryAssert.ExpectedError(StrSubstNo(ItemIsTrackingErr, QltyInspectionTestHeader."Source Item No.", PackageTok));
+        LibraryAssert.ExpectedError(StrSubstNo(ItemIsTrackingErr, QltyInspectionHeader."Source Item No.", PackageTok));
     end;
 
     [Test]
@@ -1373,7 +1373,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
@@ -1381,10 +1381,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         ReservationEntry: Record "Reservation Entry";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempSpecTrackingSpecification: Record "Tracking Specification" temporary;
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         RecordRef: RecordRef;
@@ -1396,17 +1396,17 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A template and generation rule are created for purchase lines
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] A lot-tracked item with no series is created
-        QltyTestsUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
@@ -1414,11 +1414,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A purchase order with lot tracking is created
         QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, Vendor, '', PurchaseHeader, PurchaseLine, ReservationEntry);
 
-        // [GIVEN] A test is created from the purchase line with tracking
+        // [GIVEN] An inspection is created from the purchase line with tracking
         RecordRef.GetTable(PurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        if QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
-            QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+            QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Quality setup requires only posted item tracking
         QltyManagementSetup.Get();
@@ -1426,10 +1426,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [WHEN] VerifyTrackingBeforeFinish is called
-        asserterror QltyInspectionTestHeader.VerifyTrackingBeforeFinish();
+        asserterror QltyInspectionHeader.VerifyTrackingBeforeFinish();
 
         // [THEN] Error is thrown indicating insufficient posted lot quantity
-        LibraryAssert.ExpectedError(StrSubstNo(ItemInsufficientPostedErr, QltyInspectionTestHeader."Source Item No.", LotTok, ReservationEntry."Lot No.", 0));
+        LibraryAssert.ExpectedError(StrSubstNo(ItemInsufficientPostedErr, QltyInspectionHeader."Source Item No.", LotTok, ReservationEntry."Lot No.", 0));
     end;
 
     [Test]
@@ -1437,7 +1437,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
@@ -1445,10 +1445,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         ReservationEntry: Record "Reservation Entry";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempSpecTrackingSpecification: Record "Tracking Specification" temporary;
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         RecordRef: RecordRef;
@@ -1460,17 +1460,17 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A template and generation rule are created for purchase lines
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] A serial-tracked item is created
-        QltyTestsUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
@@ -1478,11 +1478,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A purchase order with serial tracking is created
         QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, Vendor, '', PurchaseHeader, PurchaseLine, ReservationEntry);
 
-        // [GIVEN] A test is created from the purchase line with tracking
+        // [GIVEN] An inspection is created from the purchase line with tracking
         RecordRef.GetTable(PurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        if QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
-            QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+            QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Quality setup requires only posted item tracking
         QltyManagementSetup.Get();
@@ -1490,10 +1490,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [WHEN] VerifyTrackingBeforeFinish is called
-        asserterror QltyInspectionTestHeader.VerifyTrackingBeforeFinish();
+        asserterror QltyInspectionHeader.VerifyTrackingBeforeFinish();
 
         // [THEN] Error is thrown indicating insufficient posted serial quantity
-        LibraryAssert.ExpectedError(StrSubstNo(ItemInsufficientPostedErr, QltyInspectionTestHeader."Source Item No.", SerialTok, ReservationEntry."Serial No.", 0));
+        LibraryAssert.ExpectedError(StrSubstNo(ItemInsufficientPostedErr, QltyInspectionHeader."Source Item No.", SerialTok, ReservationEntry."Serial No.", 0));
     end;
 
     [Test]
@@ -1501,7 +1501,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
@@ -1509,10 +1509,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         ReservationEntry: Record "Reservation Entry";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempSpecTrackingSpecification: Record "Tracking Specification" temporary;
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionTestCreate: Codeunit "Qlty. Inspection Test - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         RecordRef: RecordRef;
@@ -1524,17 +1524,17 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A template and generation rule are created for purchase lines
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] A package-tracked item with no series is created
-        QltyTestsUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
@@ -1542,11 +1542,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A purchase order with package tracking is created
         QltyPurOrderGenerator.CreatePurchaseOrder(1, Location, Item, Vendor, '', PurchaseHeader, PurchaseLine, ReservationEntry);
 
-        // [GIVEN] A test is created from the purchase line with tracking
+        // [GIVEN] An inspection is created from the purchase line with tracking
         RecordRef.GetTable(PurchaseLine);
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        if QltyInspectionTestCreate.CreateTestWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
-            QltyInspectionTestCreate.GetCreatedTest(QltyInspectionTestHeader);
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, TempSpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+            QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Quality setup requires only posted item tracking
         QltyManagementSetup.Get();
@@ -1554,10 +1554,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [WHEN] VerifyTrackingBeforeFinish is called
-        asserterror QltyInspectionTestHeader.VerifyTrackingBeforeFinish();
+        asserterror QltyInspectionHeader.VerifyTrackingBeforeFinish();
 
         // [THEN] Error is thrown indicating insufficient posted package quantity
-        LibraryAssert.ExpectedError(StrSubstNo(ItemInsufficientPostedErr, QltyInspectionTestHeader."Source Item No.", PackageTok, ReservationEntry."Package No.", 0));
+        LibraryAssert.ExpectedError(StrSubstNo(ItemInsufficientPostedErr, QltyInspectionHeader."Source Item No.", PackageTok, ReservationEntry."Package No.", 0));
     end;
 
     [Test]
@@ -1566,32 +1566,32 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup: Record "Qlty. Management Setup";
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
         // [SCENARIO] Verify error when lot number is not reserved or posted before finish
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A lot-tracked item with no series is created
-        QltyTestsUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreateLotTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] Quality setup requires reserved or posted item tracking
         QltyManagementSetup.Get();
         QltyManagementSetup."Item Tracking Before Finishing" := QltyManagementSetup."Item Tracking Before Finishing"::"Allow reserved or posted Item Tracking";
         QltyManagementSetup.Modify();
 
-        // [GIVEN] A test header with lot number is initialized without reservation
-        QltyInspectionTestHeader."Source Item No." := Item."No.";
-        QltyInspectionTestHeader."Source Lot No." := LotTok;
+        // [GIVEN] An inspection header with lot number is initialized without reservation
+        QltyInspectionHeader."Source Item No." := Item."No.";
+        QltyInspectionHeader."Source Lot No." := LotTok;
 
         // [WHEN] VerifyTrackingBeforeFinish is called
-        asserterror QltyInspectionTestHeader.VerifyTrackingBeforeFinish();
+        asserterror QltyInspectionHeader.VerifyTrackingBeforeFinish();
 
         // [THEN] Error is thrown indicating insufficient reserved or posted lot quantity
-        LibraryAssert.ExpectedError(StrSubstNo(ItemInsufficientPostedOrUnpostedErr, QltyInspectionTestHeader."Source Item No.", LotTok, QltyInspectionTestHeader."Source Lot No.", 0));
+        LibraryAssert.ExpectedError(StrSubstNo(ItemInsufficientPostedOrUnpostedErr, QltyInspectionHeader."Source Item No.", LotTok, QltyInspectionHeader."Source Lot No.", 0));
     end;
 
     [Test]
@@ -1600,32 +1600,32 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup: Record "Qlty. Management Setup";
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
         // [SCENARIO] Verify error when serial number is not reserved or posted before finish
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A serial-tracked item is created
-        QltyTestsUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreateSerialTrackedItem(Item, ToUseNoSeries);
 
         // [GIVEN] Quality setup requires reserved or posted item tracking
         QltyManagementSetup.Get();
         QltyManagementSetup."Item Tracking Before Finishing" := QltyManagementSetup."Item Tracking Before Finishing"::"Allow reserved or posted Item Tracking";
         QltyManagementSetup.Modify();
 
-        // [GIVEN] A test header with serial number is initialized without reservation
-        QltyInspectionTestHeader."Source Item No." := Item."No.";
-        QltyInspectionTestHeader."Source Serial No." := SerialTok;
+        // [GIVEN] An inspection header with serial number is initialized without reservation
+        QltyInspectionHeader."Source Item No." := Item."No.";
+        QltyInspectionHeader."Source Serial No." := SerialTok;
 
         // [WHEN] VerifyTrackingBeforeFinish is called
-        asserterror QltyInspectionTestHeader.VerifyTrackingBeforeFinish();
+        asserterror QltyInspectionHeader.VerifyTrackingBeforeFinish();
 
         // [THEN] Error is thrown indicating insufficient reserved or posted serial quantity
-        LibraryAssert.ExpectedError(StrSubstNo(ItemInsufficientPostedOrUnpostedErr, QltyInspectionTestHeader."Source Item No.", SerialTok, QltyInspectionTestHeader."Source Serial No.", 0));
+        LibraryAssert.ExpectedError(StrSubstNo(ItemInsufficientPostedOrUnpostedErr, QltyInspectionHeader."Source Item No.", SerialTok, QltyInspectionHeader."Source Serial No.", 0));
     end;
 
     [Test]
@@ -1634,72 +1634,72 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup: Record "Qlty. Management Setup";
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
         // [SCENARIO] Verify error when package number is not reserved or posted before finish
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A package-tracked item with no series is created
-        QltyTestsUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
+        QltyInspectionUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
 
         // [GIVEN] Quality setup requires reserved or posted item tracking
         QltyManagementSetup.Get();
         QltyManagementSetup."Item Tracking Before Finishing" := QltyManagementSetup."Item Tracking Before Finishing"::"Allow reserved or posted Item Tracking";
         QltyManagementSetup.Modify();
 
-        // [GIVEN] A test header with package number is initialized without reservation
-        QltyInspectionTestHeader."Source Item No." := Item."No.";
-        QltyInspectionTestHeader."Source Package No." := PackageTok;
+        // [GIVEN] An inspection header with package number is initialized without reservation
+        QltyInspectionHeader."Source Item No." := Item."No.";
+        QltyInspectionHeader."Source Package No." := PackageTok;
 
         // [WHEN] VerifyTrackingBeforeFinish is called
-        asserterror QltyInspectionTestHeader.VerifyTrackingBeforeFinish();
+        asserterror QltyInspectionHeader.VerifyTrackingBeforeFinish();
 
         // [THEN] Error is thrown indicating insufficient reserved or posted package quantity
-        LibraryAssert.ExpectedError(StrSubstNo(ItemInsufficientPostedOrUnpostedErr, QltyInspectionTestHeader."Source Item No.", PackageTok, QltyInspectionTestHeader."Source Package No.", 0));
+        LibraryAssert.ExpectedError(StrSubstNo(ItemInsufficientPostedOrUnpostedErr, QltyInspectionHeader."Source Item No.", PackageTok, QltyInspectionHeader."Source Package No.", 0));
     end;
 
     [Test]
-    procedure Table_TestAssignSelfOnModify()
+    procedure Table_InspectionAssignSelfOnModify()
     var
         Location: Record Location;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
-        // [SCENARIO] Test is automatically assigned to current user on modification
+        // [SCENARIO] Inspection is automatically assigned to current user on modification
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A generation rule is created for purchase lines
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase with no assigned user
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
+        // [GIVEN] An inspection is created from purchase with no assigned user
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
-        // [GIVEN] Test has no assigned user initially
-        LibraryAssert.AreEqual('', QltyInspectionTestHeader."Assigned User ID", 'Should not have assigned user.');
+        // [GIVEN] Inspection has no assigned user initially
+        LibraryAssert.AreEqual('', QltyInspectionHeader."Assigned User ID", 'Should not have assigned user.');
 
-        // [WHEN] Test is modified by changing source quantity
-        QltyInspectionTestHeader."Source Quantity (Base)" := 99;
-        QltyInspectionTestHeader.Modify(true);
+        // [WHEN] Inspection is modified by changing source quantity
+        QltyInspectionHeader."Source Quantity (Base)" := 99;
+        QltyInspectionHeader.Modify(true);
 
-        // [THEN] Test is automatically assigned to current user
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        LibraryAssert.AreEqual(UserId(), QltyInspectionTestHeader."Assigned User ID", 'Should be assigned to current user.');
+        // [THEN] Inspection is automatically assigned to current user
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual(UserId(), QltyInspectionHeader."Assigned User ID", 'Should be assigned to current user.');
     end;
 
     [Test]
@@ -1707,8 +1707,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         Location: Record Location;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
@@ -1719,20 +1719,20 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A generation rule is created for purchase lines
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from a purchase line
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
+        // [GIVEN] An inspection is created from a purchase line
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         // [WHEN] GetReferenceRecordId is called
         // [THEN] The purchase line's SystemId is returned
-        LibraryAssert.AreEqual(PurchaseLine.SystemId, QltyInspectionTestHeader.GetReferenceRecordId(), 'Should be the same record id.');
+        LibraryAssert.AreEqual(PurchaseLine.SystemId, QltyInspectionHeader.GetReferenceRecordId(), 'Should be the same record id.');
     end;
 
     [Test]
@@ -1740,8 +1740,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         Location: Record Location;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -1754,10 +1754,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A generation rule is created for purchase lines
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location and item are created
         LibraryWarehouse.CreateLocation(Location);
@@ -1766,13 +1766,13 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A purchase order is created
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine);
 
-        // [GIVEN] A test header is initialized with Source RecordId set to purchase line
-        QltyInspectionTestHeader.Init();
-        QltyInspectionTestHeader."Source RecordId" := PurchaseLine.RecordId();
+        // [GIVEN] An inspection header is initialized with Source RecordId set to purchase line
+        QltyInspectionHeader.Init();
+        QltyInspectionHeader."Source RecordId" := PurchaseLine.RecordId();
 
         // [WHEN] GetReferenceRecordId is called
         // [THEN] The purchase line's SystemId is returned
-        LibraryAssert.AreEqual(PurchaseLine.SystemId, QltyInspectionTestHeader.GetReferenceRecordId(), 'Should be the same record id.');
+        LibraryAssert.AreEqual(PurchaseLine.SystemId, QltyInspectionHeader.GetReferenceRecordId(), 'Should be the same record id.');
     end;
 
     [Test]
@@ -1780,8 +1780,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         Location: Record Location;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -1794,10 +1794,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A generation rule is created for purchase lines
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location and item are created
         LibraryWarehouse.CreateLocation(Location);
@@ -1806,13 +1806,13 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A purchase order is created
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine);
 
-        // [GIVEN] A test header is initialized with Source RecordId 2 set to purchase line
-        QltyInspectionTestHeader.Init();
-        QltyInspectionTestHeader."Source RecordId 2" := PurchaseLine.RecordId();
+        // [GIVEN] An inspection header is initialized with Source RecordId 2 set to purchase line
+        QltyInspectionHeader.Init();
+        QltyInspectionHeader."Source RecordId 2" := PurchaseLine.RecordId();
 
         // [WHEN] GetReferenceRecordId is called
         // [THEN] The purchase line's SystemId is returned
-        LibraryAssert.AreEqual(PurchaseLine.SystemId, QltyInspectionTestHeader.GetReferenceRecordId(), 'Should be the same record id.');
+        LibraryAssert.AreEqual(PurchaseLine.SystemId, QltyInspectionHeader.GetReferenceRecordId(), 'Should be the same record id.');
     end;
 
     [Test]
@@ -1820,8 +1820,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         Location: Record Location;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -1834,10 +1834,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A generation rule is created for purchase lines
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location and item are created
         LibraryWarehouse.CreateLocation(Location);
@@ -1846,13 +1846,13 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A purchase order is created
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine);
 
-        // [GIVEN] A test header is initialized with Source RecordId 3 set to purchase line
-        QltyInspectionTestHeader.Init();
-        QltyInspectionTestHeader."Source RecordId 3" := PurchaseLine.RecordId();
+        // [GIVEN] An inspection header is initialized with Source RecordId 3 set to purchase line
+        QltyInspectionHeader.Init();
+        QltyInspectionHeader."Source RecordId 3" := PurchaseLine.RecordId();
 
         // [WHEN] GetReferenceRecordId is called
         // [THEN] The purchase line's SystemId is returned
-        LibraryAssert.AreEqual(PurchaseLine.SystemId, QltyInspectionTestHeader.GetReferenceRecordId(), 'Should be the same record id.');
+        LibraryAssert.AreEqual(PurchaseLine.SystemId, QltyInspectionHeader.GetReferenceRecordId(), 'Should be the same record id.');
     end;
 
     [Test]
@@ -1860,8 +1860,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         Location: Record Location;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -1874,10 +1874,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A generation rule is created for purchase lines
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location and item are created
         LibraryWarehouse.CreateLocation(Location);
@@ -1886,13 +1886,13 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A purchase order is created
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine);
 
-        // [GIVEN] A test header is initialized with Source RecordId 4 set to purchase line
-        QltyInspectionTestHeader.Init();
-        QltyInspectionTestHeader."Source RecordId 4" := PurchaseLine.RecordId();
+        // [GIVEN] An inspection header is initialized with Source RecordId 4 set to purchase line
+        QltyInspectionHeader.Init();
+        QltyInspectionHeader."Source RecordId 4" := PurchaseLine.RecordId();
 
         // [WHEN] GetReferenceRecordId is called
         // [THEN] The purchase line's SystemId is returned
-        LibraryAssert.AreEqual(PurchaseLine.SystemId, QltyInspectionTestHeader.GetReferenceRecordId(), 'Should be the same record id.');
+        LibraryAssert.AreEqual(PurchaseLine.SystemId, QltyInspectionHeader.GetReferenceRecordId(), 'Should be the same record id.');
     end;
 
     [Test]
@@ -1901,10 +1901,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         DocumentAttachment: Record "Document Attachment";
         CameraTestLibrary: Codeunit "Camera Test Library";
-        QltyInspectionTest: TestPage "Qlty. Inspection Test";
+        QltyInspection: TestPage "Qlty. Inspection";
         BeforeCount: Integer;
     begin
         // [SCENARIO] Taking a picture with mock camera creates document attachment
@@ -1912,15 +1912,15 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Picture upload behavior is set to attach document
         QltyManagementSetup.Get();
         QltyManagementSetup."Picture Upload Behavior" := QltyManagementSetup."Picture Upload Behavior"::"Attach document";
         QltyManagementSetup.Modify();
 
-        // [GIVEN] A basic template and test instance are created
-        QltyTestsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionTestHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
+        // [GIVEN] A basic template and inspection instance are created
+        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
 
         // [GIVEN] Current document attachment count is recorded
         BeforeCount := DocumentAttachment.Count();
@@ -1928,37 +1928,37 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Camera test library is subscribed
         BindSubscription(CameraTestLibrary);
 
-        // [GIVEN] Test page is opened and positioned on the test
-        QltyInspectionTest.OpenView();
-        QltyInspectionTest.GoToRecord(QltyInspectionTestHeader);
+        // [GIVEN] Inspection page is opened and positioned on the inspection
+        QltyInspection.OpenView();
+        QltyInspection.GoToRecord(QltyInspectionHeader);
 
         // [WHEN] TakePicture action is invoked
-        QltyInspectionTest.TakePicture.Invoke();
+        QltyInspection.TakePicture.Invoke();
 
         // [GIVEN] Camera test library is unsubscribed
         UnbindSubscription(CameraTestLibrary);
 
-        // [THEN] Test header now has a most recent picture
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        LibraryAssert.IsTrue(QltyInspectionTestHeader."Most Recent Picture".HasValue(), 'Should have added picture.');
+        // [THEN] Inspection header now has a most recent picture
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.IsTrue(QltyInspectionHeader."Most Recent Picture".HasValue(), 'Should have added picture.');
 
         // [THEN] A new document attachment is created
         LibraryAssert.AreEqual(BeforeCount + 1, DocumentAttachment.Count(), 'Should have added document attachment.');
 
-        // [THEN] Document attachment file name contains test number
-        DocumentAttachment.SetRange("Table ID", Database::"Qlty. Inspection Test Header");
+        // [THEN] Document attachment file name contains inspection number
+        DocumentAttachment.SetRange("Table ID", Database::"Qlty. Inspection Header");
         DocumentAttachment.FindLast();
-        LibraryAssert.IsTrue(DocumentAttachment."File Name".Contains(QltyInspectionTestHeader."No."), 'File name should have test no.');
+        LibraryAssert.IsTrue(DocumentAttachment."File Name".Contains(QltyInspectionHeader."No."), 'File name should have inspection no.');
     end;
 
     [Test]
-    procedure Table_SetRecordFiltersToFindTestFor_ItemFilter()
+    procedure Table_SetRecordFiltersToFindInspectionFor_ItemFilter()
     var
         Location: Record Location;
         Item: Record Item;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
@@ -1967,16 +1967,16 @@ codeunit 139967 "Qlty. Tests - Test Table"
         RecordRef: RecordRef;
         Filter: Text;
     begin
-        // [SCENARIO] SetRecordFiltersToFindTestFor applies item number filter
+        // [SCENARIO] SetRecordFiltersToFindInspectionFor applies item number filter
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A template and generation rule are created for purchase lines
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location and item are created
         LibraryWarehouse.CreateLocation(Location);
@@ -1985,23 +1985,23 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A purchase order is created with the item
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine);
 
-        // [WHEN] SetRecordFiltersToFindTestFor is called with purchase line (useItem=true)
-        QltyInspectionTestHeader.SetRecordFiltersToFindTestFor(true, PurchaseLine, true, false, false);
+        // [WHEN] SetRecordFiltersToFindInspectionFor is called with purchase line (useItem=true)
+        QltyInspectionHeader.SetRecordFiltersToFindInspectionFor(true, PurchaseLine, true, false, false);
 
         // [THEN] Filter includes the item number
-        RecordRef.GetTable(QltyInspectionTestHeader);
+        RecordRef.GetTable(QltyInspectionHeader);
         Filter := RecordRef.GetFilters();
         LibraryAssert.IsTrue(Filter.Contains(Item."No."), 'Should have filter for item no.');
     end;
 
     [Test]
-    procedure Table_SetRecordFiltersToFindTestFor_LotTrackingFilter()
+    procedure Table_SetRecordFiltersToFindInspectionFor_LotTrackingFilter()
     var
         Location: Record Location;
         Item: Record Item;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         ReservationEntry: Record "Reservation Entry";
@@ -2011,22 +2011,22 @@ codeunit 139967 "Qlty. Tests - Test Table"
         RecordRef: RecordRef;
         Filter: Text;
     begin
-        // [SCENARIO] SetRecordFiltersToFindTestFor applies lot number filter
+        // [SCENARIO] SetRecordFiltersToFindInspectionFor applies lot number filter
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A template and generation rule are created for purchase lines
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] A lot-tracked item with no series is created
-        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order with lot tracking is created
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
@@ -2034,23 +2034,23 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Tracking specification is created from reservation entry
         TempSpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
 
-        // [WHEN] SetRecordFiltersToFindTestFor is called with tracking (useItemTracking=true)
-        QltyInspectionTestHeader.SetRecordFiltersToFindTestFor(true, TempSpecTrackingSpecification, false, true, false);
+        // [WHEN] SetRecordFiltersToFindInspectionFor is called with tracking (useItemTracking=true)
+        QltyInspectionHeader.SetRecordFiltersToFindInspectionFor(true, TempSpecTrackingSpecification, false, true, false);
 
         // [THEN] Filter includes the lot number
-        RecordRef.GetTable(QltyInspectionTestHeader);
+        RecordRef.GetTable(QltyInspectionHeader);
         Filter := RecordRef.GetFilters();
         LibraryAssert.IsTrue(Filter.Contains(ReservationEntry."Lot No."), 'Should have filter for lot no.');
     end;
 
     [Test]
-    procedure Table_SetRecordFiltersToFindTestFor_SourceDocumentFilter()
+    procedure Table_SetRecordFiltersToFindInspectionFor_SourceDocumentFilter()
     var
         Location: Record Location;
         Item: Record Item;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         ReservationEntry: Record "Reservation Entry";
@@ -2059,665 +2059,664 @@ codeunit 139967 "Qlty. Tests - Test Table"
         RecordRef: RecordRef;
         Filter: Text;
     begin
-        // [SCENARIO] SetRecordFiltersToFindTestFor applies source document number filter
+        // [SCENARIO] SetRecordFiltersToFindInspectionFor applies source document number filter
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A template and generation rule are created for purchase lines
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] A lot-tracked item with no series is created
-        QltyTestsUtility.CreateLotTrackedItem(Item);
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
 
         // [GIVEN] A purchase order is created
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine, ReservationEntry);
 
-        // [WHEN] SetRecordFiltersToFindTestFor is called with purchase line (useSourceDocument=true)
-        QltyInspectionTestHeader.SetRecordFiltersToFindTestFor(true, PurchaseLine, false, false, true);
+        // [WHEN] SetRecordFiltersToFindInspectionFor is called with purchase line (useSourceDocument=true)
+        QltyInspectionHeader.SetRecordFiltersToFindInspectionFor(true, PurchaseLine, false, false, true);
 
         // [THEN] Filter includes the source document number
-        RecordRef.GetTable(QltyInspectionTestHeader);
+        RecordRef.GetTable(QltyInspectionHeader);
         Filter := RecordRef.GetFilters();
         LibraryAssert.IsTrue(Filter.Contains(PurchaseHeader."No."), 'Should have filter for source document no.');
     end;
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure sPage_FinishTest()
+    procedure InspectionPage_FinishInspection()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
-        QltyInspectionTestList: TestPage "Qlty. Inspection Test List";
+        QltyInspectionList: TestPage "Qlty. Inspection List";
     begin
-        // [SCENARIO] Finish action on test page changes test status to Finished
+        // [SCENARIO] Finish action on inspection page changes inspection status to Finished
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A template and generation rule are created for purchase lines
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase with Open status
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 10, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
+        // [GIVEN] An inspection is created from purchase with Open status
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 10, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
-        // [GIVEN] Test list page is opened and positioned on the test
-        QltyInspectionTestList.OpenView();
-        QltyInspectionTestList.GoToRecord(QltyInspectionTestHeader);
+        // [GIVEN] Inspection list page is opened and positioned on the inspection
+        QltyInspectionList.OpenView();
+        QltyInspectionList.GoToRecord(QltyInspectionHeader);
 
         // [WHEN] ChangeStatusFinish action is invoked (ConfirmHandler confirms)
-        QltyInspectionTestList.ChangeStatusFinish.Invoke();
+        QltyInspectionList.ChangeStatusFinish.Invoke();
 
-        // [THEN] Test status is changed to Finished
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        LibraryAssert.IsTrue(QltyInspectionTestHeader.Status = QltyInspectionTestHeader.Status::Finished, 'Test should be finished.');
+        // [THEN] Inspection status is changed to Finished
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.IsTrue(QltyInspectionHeader.Status = QltyInspectionHeader.Status::Finished, 'Inspection should be finished.');
 
         // [GIVEN] Cleanup generation rule
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
     end;
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure sPage_ReopenTest()
+    procedure InspectionPage_ReopenInspection()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
-        QltyInspectionTestList: TestPage "Qlty. Inspection Test List";
+        QltyInspectionList: TestPage "Qlty. Inspection List";
     begin
-        // [SCENARIO] Reopen action on test page changes test status from Finished to Open
+        // [SCENARIO] Reopen action on inspection page changes inspection status from Finished to Open
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A template and generation rule are created for purchase lines
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 10, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
+        // [GIVEN] An inspection is created from purchase
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 10, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
-        // [GIVEN] Test status is set to Finished
-        QltyInspectionTestHeader.Status := QltyInspectionTestHeader.Status::Finished;
-        QltyInspectionTestHeader.Modify();
+        // [GIVEN] Inspection status is set to Finished
+        QltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
+        QltyInspectionHeader.Modify();
 
-        // [GIVEN] Test list page is opened and positioned on the test
-        QltyInspectionTestList.OpenView();
-        QltyInspectionTestList.GoToRecord(QltyInspectionTestHeader);
+        // [GIVEN] Inspection list page is opened and positioned on the inspection
+        QltyInspectionList.OpenView();
+        QltyInspectionList.GoToRecord(QltyInspectionHeader);
 
         // [WHEN] ChangeStatusReopen action is invoked (ConfirmHandler confirms)
-        QltyInspectionTestList.ChangeStatusReopen.Invoke();
+        QltyInspectionList.ChangeStatusReopen.Invoke();
 
-        // [THEN] Test status is changed to Open
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        LibraryAssert.IsTrue(QltyInspectionTestHeader.Status = QltyInspectionTestHeader.Status::Open, 'Test should be open.');
+        // [THEN] Inspection status is changed to Open
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.IsTrue(QltyInspectionHeader.Status = QltyInspectionHeader.Status::Open, 'Inspection should be open.');
 
         // [GIVEN] Cleanup generation rule
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
     end;
 
     [Test]
-    procedure sPage_PickupTest()
+    procedure InspectionPage_PickupInspection()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
-        QltyInspectionTestList: TestPage "Qlty. Inspection Test List";
+        QltyInspectionList: TestPage "Qlty. Inspection List";
     begin
-        // [SCENARIO] AssignToSelf action on test page assigns test to current user
+        // [SCENARIO] AssignToSelf action on inspection page assigns inspection to current user
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A template and generation rule are created for purchase lines
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase with no assigned user
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 10, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
+        // [GIVEN] An inspection is created from purchase with no assigned user
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 10, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
-        // [GIVEN] Test list page is opened and positioned on the test
-        QltyInspectionTestList.OpenView();
-        QltyInspectionTestList.GoToRecord(QltyInspectionTestHeader);
+        // [GIVEN] Inspection list page is opened and positioned on the inspection
+        QltyInspectionList.OpenView();
+        QltyInspectionList.GoToRecord(QltyInspectionHeader);
 
         // [WHEN] AssignToSelf action is invoked
-        QltyInspectionTestList.AssignToSelf.Invoke();
+        QltyInspectionList.AssignToSelf.Invoke();
 
-        // [THEN] Test is assigned to current user
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        LibraryAssert.IsTrue(QltyInspectionTestHeader."Assigned User ID" = UserId(), 'Test should be assigned to user.');
+        // [THEN] Inspection is assigned to current user
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.IsTrue(QltyInspectionHeader."Assigned User ID" = UserId(), 'Inspection should be assigned to user.');
 
         // [GIVEN] Cleanup generation rule
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
     end;
 
     [Test]
-    procedure sPage_UnassignTest()
+    procedure InspectionPage_UnassignInspection()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
-        QltyInspectionTestList: TestPage "Qlty. Inspection Test List";
+        QltyInspectionList: TestPage "Qlty. Inspection List";
     begin
-        // [SCENARIO] Unassign action on test page clears assigned user
+        // [SCENARIO] Unassign action on inspection page clears assigned user
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A template and generation rule are created for purchase lines
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 10, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
+        // [GIVEN] An inspection is created from purchase
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 10, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
-        // [GIVEN] Test is assigned to current user
-        QltyInspectionTestHeader."Assigned User ID" := CopyStr(UserId(), 1, MaxStrLen(QltyInspectionTestHeader."Assigned User ID"));
-        QltyInspectionTestHeader.Modify();
+        // [GIVEN] Inspection is assigned to current user
+        QltyInspectionHeader."Assigned User ID" := CopyStr(UserId(), 1, MaxStrLen(QltyInspectionHeader."Assigned User ID"));
+        QltyInspectionHeader.Modify();
 
-        // [GIVEN] Test list page is opened and positioned on the test
-        QltyInspectionTestList.OpenView();
-        QltyInspectionTestList.GoToRecord(QltyInspectionTestHeader);
+        // [GIVEN] Inspection list page is opened and positioned on the inspection
+        QltyInspectionList.OpenView();
+        QltyInspectionList.GoToRecord(QltyInspectionHeader);
 
         // [WHEN] Unassign action is invoked
-        QltyInspectionTestList.Unassign.Invoke();
+        QltyInspectionList.Unassign.Invoke();
 
-        // [THEN] Test assigned user is cleared
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        LibraryAssert.IsTrue(QltyInspectionTestHeader."Assigned User ID" = '', 'Test should not be assigned to a user.');
+        // [THEN] Inspection assigned user is cleared
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.IsTrue(QltyInspectionHeader."Assigned User ID" = '', 'Inspection should not be assigned to a user.');
 
         // [GIVEN] Cleanup generation rule
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
     end;
 
     [Test]
     procedure LineTable_SetAndGetMeasurementNote()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionLine: Record "Qlty. Inspection Line";
         RecordLink: Record "Record Link";
     begin
-        // [SCENARIO] SetMeasurementNote creates and updates record link note for test line
+        // [SCENARIO] SetMeasurementNote creates and updates record link note for inspection line
 
         Initialize();
 
-        // [GIVEN] A basic template and test instance are created
-        QltyTestsUtility.CreateABasicTemplateAndInstanceOfATest(QltyInspectionTestHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
+        // [GIVEN] A basic template and inspection instance are created
+        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
 
-        // [GIVEN] First test line is retrieved
-        QltyInspectionTestLine.SetRange("Test No.", QltyInspectionTestHeader."No.");
-        QltyInspectionTestLine.SetRange("Retest No.", QltyInspectionTestHeader."Retest No.");
-        QltyInspectionTestLine.FindFirst();
+        // [GIVEN] First inspection line is retrieved
+        QltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
+        QltyInspectionLine.FindFirst();
 
         // [WHEN] Measurement note is set
-        QltyInspectionTestLine.SetMeasurementNote(MeasurementNoteTxt);
+        QltyInspectionLine.SetMeasurementNote(MeasurementNoteTxt);
 
         // [THEN] A record link note is created
         RecordLink.Reset();
         RecordLink.SetRange(Type, RecordLink.Type::Note);
-        RecordLink.SetRange("Record ID", QltyInspectionTestLine.RecordId());
+        RecordLink.SetRange("Record ID", QltyInspectionLine.RecordId());
         LibraryAssert.IsTrue(RecordLink.Count() = 1, 'There should be a link added.');
 
         // [THEN] GetMeasurementNote returns the correct message
-        LibraryAssert.AreEqual(MeasurementNoteTxt, QltyInspectionTestLine.GetMeasurementNote(), 'Should be the correct message.');
+        LibraryAssert.AreEqual(MeasurementNoteTxt, QltyInspectionLine.GetMeasurementNote(), 'Should be the correct message.');
 
         // [WHEN] Measurement note is updated
-        QltyInspectionTestLine.SetMeasurementNote(UpdatedMeasurementNoteTxt);
+        QltyInspectionLine.SetMeasurementNote(UpdatedMeasurementNoteTxt);
 
         // [THEN] GetMeasurementNote returns the updated message
-        LibraryAssert.AreEqual(UpdatedMeasurementNoteTxt, QltyInspectionTestLine.GetMeasurementNote(), 'Should be the correct message.');
+        LibraryAssert.AreEqual(UpdatedMeasurementNoteTxt, QltyInspectionLine.GetMeasurementNote(), 'Should be the correct message.');
     end;
 
     [Test]
     [HandlerFunctions('StrMenuPageHandler')]
-    procedure FieldTable_AssistEditDefaultValue_Option()
+    procedure TestTable_AssistEditDefaultValue_Option()
     var
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
     begin
-        // [SCENARIO] AssistEditDefaultValue for Option field type opens option menu
+        // [SCENARIO] AssistEditDefaultValue for Option test value type opens option menu
 
         Initialize();
 
-        // [GIVEN] A field record is initialized
-        ToLoadQltyField.Init();
+        // [GIVEN] A test record is initialized
+        ToLoadQltyTest.Init();
 
-        // [GIVEN] Field type is set to Option
-        ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Option");
+        // [GIVEN] Test value type is set to Option
+        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Option");
 
         // [GIVEN] Allowable values are set
-        ToLoadQltyField.Validate("Allowable Values", OptionsTok);
+        ToLoadQltyTest.Validate("Allowable Values", OptionsTok);
 
         // [WHEN] AssistEditDefaultValue is called (StrMenuPageHandler selects first option)
-        ToLoadQltyField.AssistEditDefaultValue();
+        ToLoadQltyTest.AssistEditDefaultValue();
 
         // [THEN] Default value is set to selected option
-        LibraryAssert.AreEqual(Option1Tok, ToLoadQltyField."Default Value", 'Should be selected option.');
+        LibraryAssert.AreEqual(Option1Tok, ToLoadQltyTest."Default Value", 'Should be selected option.');
     end;
 
     [Test]
     [HandlerFunctions('StrMenuPageHandler')]
-    procedure FieldTable_AssistEditDefaultValue_Boolean()
+    procedure TestTable_AssistEditDefaultValue_Boolean()
     var
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
     begin
-        // [SCENARIO] AssistEditDefaultValue for Boolean field type opens Yes/No menu
+        // [SCENARIO] AssistEditDefaultValue for Boolean test value type opens Yes/No menu
 
         Initialize();
 
-        // [GIVEN] A field record is initialized
-        ToLoadQltyField.Init();
+        // [GIVEN] A test record is initialized
+        ToLoadQltyTest.Init();
 
-        // [GIVEN] Field type is set to Boolean
-        ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Boolean");
+        // [GIVEN] Test value type is set to Boolean
+        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Boolean");
 
         // [WHEN] AssistEditDefaultValue is called (StrMenuPageHandler selects first option: No)
-        ToLoadQltyField.AssistEditDefaultValue();
+        ToLoadQltyTest.AssistEditDefaultValue();
 
         // [THEN] Default value is set to No
-        LibraryAssert.AreEqual(NoTok, ToLoadQltyField."Default Value", 'Should be no.')
+        LibraryAssert.AreEqual(NoTok, ToLoadQltyTest."Default Value", 'Should be no.')
     end;
 
     [Test]
     [HandlerFunctions('EditLargeTextModalPageHandler')]
-    procedure FieldTable_AssistEditDefaultValue_Text()
+    procedure TestTable_AssistEditDefaultValue_Text()
     var
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
     begin
-        // [SCENARIO] AssistEditDefaultValue for Text field type opens text editor modal
+        // [SCENARIO] AssistEditDefaultValue for Text test value type opens text editor modal
 
         Initialize();
 
-        // [GIVEN] A field record is initialized
-        ToLoadQltyField.Init();
+        // [GIVEN] A test record is initialized
+        ToLoadQltyTest.Init();
 
-        // [GIVEN] Field type is set to Text
-        ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Text");
+        // [GIVEN] Test value type is set to Text
+        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Text");
 
         // [WHEN] AssistEditDefaultValue is called (EditLargeTextModalPageHandler enters TestValueTxt)
-        ToLoadQltyField.AssistEditDefaultValue();
+        ToLoadQltyTest.AssistEditDefaultValue();
 
         // [THEN] Default value is set to entered text
-        LibraryAssert.AreEqual(TestValueTxt, ToLoadQltyField."Default Value", 'Should be same text.')
+        LibraryAssert.AreEqual(TestValueTxt, ToLoadQltyTest."Default Value", 'Should be same text.')
     end;
 
     [Test]
-    procedure FieldTable_OnDelete_ShouldError()
+    procedure TestTable_OnDelete_ShouldError()
     var
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
     begin
-        // [SCENARIO] Deleting field used in template lines should error
+        // [SCENARIO] Deleting test used in template lines should error
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] A template with 2 fields is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
+        // [GIVEN] A template with 2 tests is created
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
 
         // [GIVEN] First template line is retrieved
         ConfigurationToLoadQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
         ConfigurationToLoadQltyInspectionTemplateLine.FindFirst();
 
-        // [GIVEN] Field from template line is retrieved
-        ToLoadQltyField.Get(ConfigurationToLoadQltyInspectionTemplateLine."Field Code");
+        // [GIVEN] Test from template line is retrieved
+        ToLoadQltyTest.Get(ConfigurationToLoadQltyInspectionTemplateLine."Test Code");
 
-        // [GIVEN] Sanity checks: field exists and template has two lines
-        LibraryAssert.IsTrue(ToLoadQltyField.Get(ConfigurationToLoadQltyInspectionTemplateLine."Field Code"), 'Sanity check, the field should exist before deleting.');
+        // [GIVEN] Sanity checks: test exists and template has two lines
+        LibraryAssert.IsTrue(ToLoadQltyTest.Get(ConfigurationToLoadQltyInspectionTemplateLine."Test Code"), 'Sanity check, the test should exist before deleting.');
         LibraryAssert.AreEqual(2, ConfigurationToLoadQltyInspectionTemplateLine.Count(), 'Sanity check, should be starting with two lines.');
 
         // [GIVEN] Changes are committed
         Commit();
 
-        // [WHEN] Delete is attempted on field
-        asserterror ToLoadQltyField.Delete(true);
+        // [WHEN] Delete is attempted on test
+        asserterror ToLoadQltyTest.Delete(true);
 
-        // [THEN] Field still exists after failed delete attempt
-        LibraryAssert.IsTrue(ToLoadQltyField.Get(ConfigurationToLoadQltyInspectionTemplateLine."Field Code"), 'The field should still exist after a delete attempt, which should have failed.');
-
+        // [THEN] Test still exists after failed delete attempt
+        LibraryAssert.IsTrue(ToLoadQltyTest.Get(ConfigurationToLoadQltyInspectionTemplateLine."Test Code"), 'The test should still exist after a delete attempt, which should have failed.');
         // [THEN] Template lines are retained
         ConfigurationToLoadQltyInspectionTemplateLine.Reset();
         ConfigurationToLoadQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
         LibraryAssert.AreEqual(2, ConfigurationToLoadQltyInspectionTemplateLine.Count(), 'Should have retained the template line.');
 
-        // [THEN] Field record is retained
-        ToLoadQltyField.SetRecFilter();
-        LibraryAssert.AreEqual(1, ToLoadQltyField.Count(), 'Should have retained the field.');
+        // [THEN] Test record is retained
+        ToLoadQltyTest.SetRecFilter();
+        LibraryAssert.AreEqual(1, ToLoadQltyTest.Count(), 'Should have retained the test.');
     end;
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure FieldTable_EnsureCanBeDeleted_ShouldConfirmAndDelete()
+    procedure TestTable_EnsureCanBeDeleted_ShouldConfirmAndDelete()
     var
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
     begin
-        // [SCENARIO] EnsureCanBeDeleted with confirm removes template lines but not the field
+        // [SCENARIO] EnsureCanBeDeleted with confirm removes template lines but not the test
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] A template with 2 fields is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
+        // [GIVEN] A template with 2 tests is created
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 2);
 
         // [GIVEN] First template line is retrieved
         ConfigurationToLoadQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
         ConfigurationToLoadQltyInspectionTemplateLine.FindFirst();
 
-        // [GIVEN] Field from template line is retrieved
-        ToLoadQltyField.Get(ConfigurationToLoadQltyInspectionTemplateLine."Field Code");
+        // [GIVEN] Test from template line is retrieved
+        ToLoadQltyTest.Get(ConfigurationToLoadQltyInspectionTemplateLine."Test Code");
 
         // [WHEN] EnsureCanBeDeleted is called with confirm=true (ConfirmHandler confirms)
-        ToLoadQltyField.EnsureCanBeDeleted(true);
+        ToLoadQltyTest.EnsureCanBeDeleted(true);
 
-        // [GIVEN] Field record filter is set
-        ToLoadQltyField.SetRecFilter();
+        // [GIVEN] Test record filter is set
+        ToLoadQltyTest.SetRecFilter();
 
         // [THEN] Template line is deleted
         Clear(ConfigurationToLoadQltyInspectionTemplateLine);
         ConfigurationToLoadQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
         LibraryAssert.AreEqual(1, ConfigurationToLoadQltyInspectionTemplateLine.Count(), 'Should have deleted template line.');
 
-        // [THEN] Field still exists (EnsureCanBeDeleted only removes dependencies)
-        LibraryAssert.AreEqual(1, ToLoadQltyField.Count(), 'Should have not deleted the field with just EnsureCanBeDeleted(true).');
+        // [THEN] Test still exists (EnsureCanBeDeleted only removes dependencies)
+        LibraryAssert.AreEqual(1, ToLoadQltyTest.Count(), 'Should have not deleted the test with just EnsureCanBeDeleted(true).');
     end;
 
     [Test]
-    procedure FieldTable_OnDelete_HasExistingTests_ShouldError()
+    procedure TestTable_OnDelete_HasExistingInspections_ShouldError()
     var
-        ToLoadQltyField: Record "Qlty. Field";
+        ToLoadQltyTest: Record "Qlty. Test";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionLine: Record "Qlty. Inspection Line";
     begin
-        // [SCENARIO] Deleting field with existing test lines should error with specific message
+        // [SCENARIO] Deleting test with existing inspection lines should error with specific message
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] A template with 1 field is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        // [GIVEN] A template with 1 test is created
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] Template line is retrieved
         ConfigurationToLoadQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
         ConfigurationToLoadQltyInspectionTemplateLine.FindFirst();
 
-        // [GIVEN] A test header is created from the template
-        QltyInspectionTestHeader.Init();
-        QltyInspectionTestHeader.Validate("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
-        QltyInspectionTestHeader.Insert(true);
+        // [GIVEN] An inspection header is created from the template
+        QltyInspectionHeader.Init();
+        QltyInspectionHeader.Validate("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
+        QltyInspectionHeader.Insert(true);
 
-        // [GIVEN] Field from template line is retrieved
-        ToLoadQltyField.Get(ConfigurationToLoadQltyInspectionTemplateLine."Field Code");
+        // [GIVEN] Test from template line is retrieved
+        ToLoadQltyTest.Get(ConfigurationToLoadQltyInspectionTemplateLine."Test Code");
 
-        // [GIVEN] A test line using the field is created
-        QltyInspectionTestLine.Init();
-        QltyInspectionTestLine.Validate("Test No.", QltyInspectionTestHeader."No.");
-        QltyInspectionTestLine.Validate("Retest No.", QltyInspectionTestHeader."Retest No.");
-        QltyInspectionTestLine."Line No." := ConfigurationToLoadQltyInspectionTemplateLine."Line No.";
-        QltyInspectionTestLine."Template Code" := ConfigurationToLoadQltyInspectionTemplateLine."Template Code";
-        QltyInspectionTestLine."Template Line No." := ConfigurationToLoadQltyInspectionTemplateLine."Line No.";
-        QltyInspectionTestLine.Validate("Field Code", ToLoadQltyField.Code);
-        QltyInspectionTestLine.Insert();
+        // [GIVEN] An inspection line using the test is created
+        QltyInspectionLine.Init();
+        QltyInspectionLine.Validate("Inspection No.", QltyInspectionHeader."No.");
+        QltyInspectionLine.Validate("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
+        QltyInspectionLine."Line No." := ConfigurationToLoadQltyInspectionTemplateLine."Line No.";
+        QltyInspectionLine."Template Code" := ConfigurationToLoadQltyInspectionTemplateLine."Template Code";
+        QltyInspectionLine."Template Line No." := ConfigurationToLoadQltyInspectionTemplateLine."Line No.";
+        QltyInspectionLine.Validate("Test Code", ToLoadQltyTest.Code);
+        QltyInspectionLine.Insert();
 
-        // [WHEN] Delete is attempted on field
-        asserterror ToLoadQltyField.Delete(true);
+        // [WHEN] Delete is attempted on test
+        asserterror ToLoadQltyTest.Delete(true);
 
-        // [THEN] Specific error message is shown with test details
+        // [THEN] Specific error message is shown with inspection details
         LibraryAssert.ExpectedError(StrSubstNo(
-            ExistingTestErr,
-            QltyInspectionTestLine."Field Code",
+            ExistingInspectiontErr,
+            QltyInspectionLine."Test Code",
             1,
-            QltyInspectionTestHeader."No.",
-            QltyInspectionTestHeader."Template Code"));
+            QltyInspectionHeader."No.",
+            QltyInspectionHeader."Template Code"));
     end;
 
     [Test]
-    procedure FieldTable_SuggestFieldCodeFromDescription()
+    procedure TestTable_SuggestTestCodeFromDescription()
     var
-        ToLoadQltyField: Record "Qlty. Field";
-        FieldCode: Code[20];
+        ToLoadQltyTest: Record "Qlty. Test";
+        TestCode: Code[20];
     begin
-        // [SCENARIO] SuggestUnusedFieldCodeFromDescription generates code from description
+        // [SCENARIO] SuggestUnusedTestCodeFromDescription generates code from description
 
         Initialize();
 
-        // [GIVEN] Existing fields with description are deleted
-        ToLoadQltyField.SetRange(Description, DescriptionTxt);
-        if not ToLoadQltyField.IsEmpty() then
-            ToLoadQltyField.DeleteAll();
+        // [GIVEN] Existing tests with description are deleted
+        ToLoadQltyTest.SetRange(Description, DescriptionTxt);
+        if not ToLoadQltyTest.IsEmpty() then
+            ToLoadQltyTest.DeleteAll();
 
-        // [WHEN] SuggestUnusedFieldCodeFromDescription is called with description
-        ToLoadQltyField.SuggestUnusedFieldCodeFromDescription(DescriptionTxt, FieldCode);
+        // [WHEN] SuggestUnusedTestCodeFromDescription is called with description
+        ToLoadQltyTest.SuggestUnusedTestCodeFromDescription(DescriptionTxt, TestCode);
 
         // [THEN] Suggested code matches expected value
-        LibraryAssert.AreEqual(SuggestedCodeTxtTestValueTxt, FieldCode, 'Suggested code should match');
+        LibraryAssert.AreEqual(SuggestedCodeTxtTestValueTxt, TestCode, 'Suggested code should match');
     end;
 
     [Test]
-    procedure FieldTable_SuggestFieldCodeFromDescription_NoSpecialChar()
+    procedure TestTable_SuggestTestCodeFromDescription_NoSpecialChar()
     var
-        ToLoadQltyField: Record "Qlty. Field";
-        FieldCode: Code[20];
+        ToLoadQltyTest: Record "Qlty. Test";
+        TestCode: Code[20];
     begin
-        // [SCENARIO] SuggestUnusedFieldCodeFromDescription handles description with no special characters
+        // [SCENARIO] SuggestUnusedTestCodeFromDescription handles description with no special characters
 
         Initialize();
 
-        // [GIVEN] Existing fields with description are deleted
-        ToLoadQltyField.SetRange(Description, DescriptionTxt);
-        if not ToLoadQltyField.IsEmpty() then
-            ToLoadQltyField.DeleteAll();
+        // [GIVEN] Existing tests with description are deleted
+        ToLoadQltyTest.SetRange(Description, DescriptionTxt);
+        if not ToLoadQltyTest.IsEmpty() then
+            ToLoadQltyTest.DeleteAll();
 
-        // [WHEN] SuggestUnusedFieldCodeFromDescription is called with description
-        ToLoadQltyField.SuggestUnusedFieldCodeFromDescription(DescriptionTxt, FieldCode);
+        // [WHEN] SuggestUnusedTestCodeFromDescription is called with description
+        ToLoadQltyTest.SuggestUnusedTestCodeFromDescription(DescriptionTxt, TestCode);
 
         // [THEN] Suggested code matches expected value
-        LibraryAssert.AreEqual(SuggestedCodeTxtTestValueTxt, FieldCode, 'Suggested code should match');
+        LibraryAssert.AreEqual(SuggestedCodeTxtTestValueTxt, TestCode, 'Suggested code should match');
     end;
 
     [Test]
-    procedure FieldTable_SuggestFieldCodeFromDescription_LongWithSpecialChar()
+    procedure TestTable_SuggestTestCodeFromDescription_LongWithSpecialChar()
     var
-        ToLoadQltyField: Record "Qlty. Field";
-        FieldCode: Code[20];
+        ToLoadQltyTest: Record "Qlty. Test";
+        TestCode: Code[20];
     begin
-        // [SCENARIO] SuggestUnusedFieldCodeFromDescription handles long description with special characters
+        // [SCENARIO] SuggestUnusedTestCodeFromDescription handles long description with special characters
 
         Initialize();
 
-        // [GIVEN] Existing fields with description are deleted
-        ToLoadQltyField.SetRange(Description, Description2Txt);
-        if not ToLoadQltyField.IsEmpty() then
-            ToLoadQltyField.DeleteAll();
+        // [GIVEN] Existing tests with description are deleted
+        ToLoadQltyTest.SetRange(Description, Description2Txt);
+        if not ToLoadQltyTest.IsEmpty() then
+            ToLoadQltyTest.DeleteAll();
 
-        // [WHEN] SuggestUnusedFieldCodeFromDescription is called with long description with special characters
-        ToLoadQltyField.SuggestUnusedFieldCodeFromDescription(Description2Txt, FieldCode);
+        // [WHEN] SuggestUnusedTestCodeFromDescription is called with long description with special characters
+        ToLoadQltyTest.SuggestUnusedTestCodeFromDescription(Description2Txt, TestCode);
 
         // [THEN] Suggested code matches expected value (truncated and sanitized)
-        LibraryAssert.AreEqual(SuggestedCodeTxtTestValue2Txt, FieldCode, 'Suggested code should match');
+        LibraryAssert.AreEqual(SuggestedCodeTxtTestValue2Txt, TestCode, 'Suggested code should match');
     end;
 
     [Test]
-    procedure FieldTable_SuggestFieldCodeFromDescription_PreexistingField()
+    procedure TestTable_SuggestTestCodeFromDescription_PreexistingTest()
     var
-        ToLoadQltyField: Record "Qlty. Field";
-        FieldCode: Code[20];
+        ToLoadQltyTest: Record "Qlty. Test";
+        TestCode: Code[20];
     begin
-        // [SCENARIO] SuggestUnusedFieldCodeFromDescription increments code when field already exists
+        // [SCENARIO] SuggestUnusedTestCodeFromDescription increments code when test already exists
 
         Initialize();
 
-        // [GIVEN] Existing fields with description are cleaned up to have only one
-        ToLoadQltyField.SetRange(Description, DescriptionTxt);
-        if ToLoadQltyField.Count() > 1 then
-            ToLoadQltyField.DeleteAll();
+        // [GIVEN] Existing tests with description are cleaned up to have only one
+        ToLoadQltyTest.SetRange(Description, DescriptionTxt);
+        if ToLoadQltyTest.Count() > 1 then
+            ToLoadQltyTest.DeleteAll();
 
-        // [GIVEN] A field with the suggested code already exists
-        if ToLoadQltyField.IsEmpty() then begin
-            ToLoadQltyField.Init();
-            ToLoadQltyField.Validate(Code, SuggestedCodeTxtTestValueTxt);
-            ToLoadQltyField.Validate(Description, DescriptionTxt);
-            ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Decimal");
-            ToLoadQltyField.Insert();
+        // [GIVEN] A test with the suggested code already exists
+        if ToLoadQltyTest.IsEmpty() then begin
+            ToLoadQltyTest.Init();
+            ToLoadQltyTest.Validate(Code, SuggestedCodeTxtTestValueTxt);
+            ToLoadQltyTest.Validate(Description, DescriptionTxt);
+            ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Decimal");
+            ToLoadQltyTest.Insert();
 
-            // [WHEN] SuggestUnusedFieldCodeFromDescription is called
-            ToLoadQltyField.SuggestUnusedFieldCodeFromDescription(DescriptionTxt, FieldCode);
+            // [WHEN] SuggestUnusedTestCodeFromDescription is called
+            ToLoadQltyTest.SuggestUnusedTestCodeFromDescription(DescriptionTxt, TestCode);
 
             // [THEN] Suggested code is incremented with suffix
-            LibraryAssert.AreEqual(SuggestedCodeTxtTestValueTxt + '0002', FieldCode, 'Suggested code should match');
+            LibraryAssert.AreEqual(SuggestedCodeTxtTestValueTxt + '0002', TestCode, 'Suggested code should match');
         end;
     end;
 
     [Test]
     [HandlerFunctions('AssistEditTemplatePageHandler')]
-    procedure FieldTable_AssistEditAllowableValues()
+    procedure TestTable_AssistEditAllowableValues()
     var
-        ToLoadQltyField: Record "Qlty. Field";
-        FieldCodeTxt: Text;
+        ToLoadQltyTest: Record "Qlty. Test";
+        TestCodeTxt: Text;
     begin
         // [SCENARIO] AssistEditAllowableValues opens modal to edit allowable values
 
         Initialize();
 
-        // [GIVEN] A random field code is generated
-        QltyTestsUtility.GenerateRandomCharacters(20, FieldCodeTxt);
+        // [GIVEN] A random test code is generated
+        QltyInspectionUtility.GenerateRandomCharacters(20, TestCodeTxt);
 
-        // [GIVEN] A field is created
-        ToLoadQltyField.Init();
-        ToLoadQltyField.Validate(Code, CopyStr(FieldCodeTxt, 1, MaxStrLen(ToLoadQltyField.Code)));
-        ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Decimal");
-        ToLoadQltyField.Insert();
+        // [GIVEN] A test is created
+        ToLoadQltyTest.Init();
+        ToLoadQltyTest.Validate(Code, CopyStr(TestCodeTxt, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Decimal");
+        ToLoadQltyTest.Insert();
 
         // [GIVEN] Handler will enter allowable values expression
         AssistEditTemplateValue := AllowableValuesExpressionTok;
 
         // [WHEN] AssistEditAllowableValues is called (handler enters value)
-        ToLoadQltyField.AssistEditAllowableValues();
+        ToLoadQltyTest.AssistEditAllowableValues();
 
         // [THEN] Allowable values are updated
-        LibraryAssert.AreEqual(AllowableValuesExpressionTok, ToLoadQltyField."Allowable Values", 'Allowable values should match');
+        LibraryAssert.AreEqual(AllowableValuesExpressionTok, ToLoadQltyTest."Allowable Values", 'Allowable values should match');
     end;
 
     [Test]
     [HandlerFunctions('AssistEditTemplatePageHandler')]
-    procedure FieldCardPage_UpdatePassConditionAndDescription()
+    procedure TestCardPage_UpdatePassConditionAndDescription()
     var
-        ToLoadQltyField: Record "Qlty. Field";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
-        ToLoadQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        ToLoadQltyTest: Record "Qlty. Test";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
+        ToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
-        QltyFieldCard: TestPage "Qlty. Field Card";
-        FieldCodeTxt: Text;
+        QltyTestCard: TestPage "Qlty. Test Card";
+        TestCodeTxt: Text;
     begin
-        // [SCENARIO] Field card page updates pass condition and description via AssistEdit
+        // [SCENARIO] Test card page updates pass condition and description via AssistEdit
 
         Initialize();
 
-        // [GIVEN] Existing grades are deleted
-        if not ToLoadQltyInspectionGrade.IsEmpty() then
-            ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] Existing results are deleted
+        if not ToLoadQltyInspectionResult.IsEmpty() then
+            ToLoadQltyInspectionResult.DeleteAll();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] A random field code is generated
-        QltyTestsUtility.GenerateRandomCharacters(20, FieldCodeTxt);
+        // [GIVEN] A random test code is generated
+        QltyInspectionUtility.GenerateRandomCharacters(20, TestCodeTxt);
 
-        // [GIVEN] A field is created
-        ToLoadQltyField.Init();
-        ToLoadQltyField.Validate(Code, CopyStr(FieldCodeTxt, 1, MaxStrLen(ToLoadQltyField.Code)));
-        ToLoadQltyField.Validate("Field Type", ToLoadQltyField."Field Type"::"Field Type Decimal");
-        ToLoadQltyField.Insert();
+        // [GIVEN] A test is created
+        ToLoadQltyTest.Init();
+        ToLoadQltyTest.Validate(Code, CopyStr(TestCodeTxt, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Decimal");
+        ToLoadQltyTest.Insert();
 
-        // [GIVEN] Field card page is opened for the field
-        QltyFieldCard.OpenEdit();
-        QltyFieldCard.GoToRecord(ToLoadQltyField);
+        // [GIVEN] Test card page is opened for the test
+        QltyTestCard.OpenEdit();
+        QltyTestCard.GoToRecord(ToLoadQltyTest);
 
         // [GIVEN] Handler will enter pass condition expression
         AssistEditTemplateValue := PassConditionExpressionTok;
 
         // [WHEN] Pass condition AssistEdit is invoked
-        QltyFieldCard.Field1.AssistEdit();
+        QltyTestCard.Field1.AssistEdit();
 
         // [GIVEN] Handler will enter pass condition description
         AssistEditTemplateValue := PassConditionDescExpressionTok;
 
         // [WHEN] Pass condition description AssistEdit is invoked
-        QltyFieldCard.Field1_Desc.AssistEdit();
+        QltyTestCard.Field1_Desc.AssistEdit();
 
-        // [GIVEN] Default pass grade is retrieved
-        ToLoadQltyInspectionGrade.Get(QltyAutoConfigure.GetDefaultPassGrade());
+        // [GIVEN] Default pass result is retrieved
+        ToLoadQltyInspectionResult.Get(QltyAutoConfigure.GetDefaultPassResult());
 
-        // [GIVEN] Grade condition configuration for field is retrieved
-        ToLoadQltyIGradeConditionConf.SetRange("Field Code", ToLoadQltyField.Code);
-        ToLoadQltyIGradeConditionConf.SetRange("Target Code", ToLoadQltyField.Code);
-        ToLoadQltyIGradeConditionConf.SetRange("Grade Code", ToLoadQltyInspectionGrade.Code);
-        ToLoadQltyIGradeConditionConf.SetRange("Condition Type", ToLoadQltyIGradeConditionConf."Condition Type"::Field);
-        ToLoadQltyIGradeConditionConf.FindFirst();
+        // [GIVEN] Result condition configuration for test is retrieved
+        ToLoadQltyIResultConditConf.SetRange("Test Code", ToLoadQltyTest.Code);
+        ToLoadQltyIResultConditConf.SetRange("Target Code", ToLoadQltyTest.Code);
+        ToLoadQltyIResultConditConf.SetRange("Result Code", ToLoadQltyInspectionResult.Code);
+        ToLoadQltyIResultConditConf.SetRange("Condition Type", ToLoadQltyIResultConditConf."Condition Type"::Test);
+        ToLoadQltyIResultConditConf.FindFirst();
 
         // [THEN] Condition is updated
-        LibraryAssert.AreEqual(PassConditionExpressionTok, ToLoadQltyIGradeConditionConf.Condition, 'Should be same condition.');
+        LibraryAssert.AreEqual(PassConditionExpressionTok, ToLoadQltyIResultConditConf.Condition, 'Should be same condition.');
 
         // [THEN] Condition description is updated
-        LibraryAssert.AreEqual(PassConditionDescExpressionTok, ToLoadQltyIGradeConditionConf."Condition Description", 'Should be same description.')
+        LibraryAssert.AreEqual(PassConditionDescExpressionTok, ToLoadQltyIResultConditConf."Condition Description", 'Should be same description.')
     end;
 
     [Test]
@@ -2726,28 +2725,28 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
         // [SCENARIO] ValidateProductionTrigger updates existing production rules when setup trigger changes
 
         Initialize();
 
         // [GIVEN] All existing generation rules are deleted
-        if not QltyInTestGenerationRule.IsEmpty() then
-            QltyInTestGenerationRule.DeleteAll();
+        if not QltyInspectionGenRule.IsEmpty() then
+            QltyInspectionGenRule.DeleteAll();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Three production-related rules are created
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Line");
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Production Order");
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Line");
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Production Order");
 
         // [GIVEN] Production rules with OnProductionOrderRelease trigger are filtered
-        QltyInTestGenerationRule.SetRange(Intent, QltyInTestGenerationRule.Intent::Production);
-        QltyInTestGenerationRule.SetRange("Production Trigger", QltyInTestGenerationRule."Production Trigger"::OnProductionOrderRelease);
-        LibraryAssert.IsTrue(QltyInTestGenerationRule.IsEmpty(), 'Should be no rules with trigger.');
+        QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Production);
+        QltyInspectionGenRule.SetRange("Production Trigger", QltyInspectionGenRule."Production Trigger"::OnProductionOrderRelease);
+        LibraryAssert.IsTrue(QltyInspectionGenRule.IsEmpty(), 'Should be no rules with trigger.');
 
         // [GIVEN] Setup is updated to OnProductionOrderRelease trigger
         QltyManagementSetup.Get();
@@ -2755,26 +2754,26 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [GIVEN] Rules with OnProductionOrderRelease trigger are verified as still empty
-        QltyInTestGenerationRule.SetRange("Production Trigger", QltyInTestGenerationRule."Production Trigger"::OnProductionOrderRelease);
-        LibraryAssert.IsTrue(QltyInTestGenerationRule.IsEmpty(), 'Should be no rules with trigger.');
+        QltyInspectionGenRule.SetRange("Production Trigger", QltyInspectionGenRule."Production Trigger"::OnProductionOrderRelease);
+        LibraryAssert.IsTrue(QltyInspectionGenRule.IsEmpty(), 'Should be no rules with trigger.');
 
         // [GIVEN] A new production rule is created
-        Clear(QltyInTestGenerationRule);
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInTestGenerationRule);
+        Clear(QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
 
         // [GIVEN] Source table is changed to Prod. Order Line
-        QltyInTestGenerationRule.Validate("Source Table No.", Database::"Prod. Order Line");
-        QltyInTestGenerationRule.Modify();
-        LibraryAssert.IsTrue(QltyInTestGenerationRule."Production Trigger" = QltyInTestGenerationRule."Production Trigger"::OnProductionOrderRelease, 'Should have default trigger.');
+        QltyInspectionGenRule.Validate("Source Table No.", Database::"Prod. Order Line");
+        QltyInspectionGenRule.Modify();
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Production Trigger" = QltyInspectionGenRule."Production Trigger"::OnProductionOrderRelease, 'Should have default trigger.');
 
         // [WHEN] Setup production trigger is changed to OnProductionOutputPost
         QltyManagementSetup.Validate("Production Trigger", QltyManagementSetup."Production Trigger"::OnProductionOutputPost);
         QltyManagementSetup.Modify();
 
         // [THEN] Existing production rule is updated to new trigger
-        QltyInTestGenerationRule.Reset();
-        QltyInTestGenerationRule.SetRange("Production Trigger", QltyInTestGenerationRule."Production Trigger"::OnProductionOutputPost);
-        LibraryAssert.AreEqual(1, QltyInTestGenerationRule.Count(), 'Production rule should have new production trigger.');
+        QltyInspectionGenRule.Reset();
+        QltyInspectionGenRule.SetRange("Production Trigger", QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost);
+        LibraryAssert.AreEqual(1, QltyInspectionGenRule.Count(), 'Production rule should have new production trigger.');
     end;
 
     [Test]
@@ -2788,7 +2787,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Existing warehouse source configurations are deleted
         SpecificQltyInspectSourceConfig.SetFilter("From Table No.", StrSubstNo(WarehouseFromTableFilterTok, Database::"Warehouse Entry", Database::"Warehouse Journal Line"));
@@ -2812,7 +2811,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure SetupTable_ValidateWarehouseTrigger_AddTrigger()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
     begin
         // [SCENARIO] ValidateWarehouseTrigger adds trigger to new warehouse rules when setup trigger is configured
@@ -2820,7 +2819,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Management setup warehouse trigger is set to OnWhseMovementRegister
         QltyManagementSetup.Get();
@@ -2828,14 +2827,14 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [GIVEN] A warehouse journal line rule is created
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Journal Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Journal Line", QltyInspectionGenRule);
 
         // [WHEN] Source table is changed to Warehouse Entry
-        QltyInTestGenerationRule.Validate("Source Table No.", Database::"Warehouse Entry");
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionGenRule.Validate("Source Table No.", Database::"Warehouse Entry");
+        QltyInspectionGenRule.Modify();
 
         // [THEN] Warehouse Movement Trigger defaults to OnWhseMovementRegister
-        LibraryAssert.IsTrue(QltyInTestGenerationRule."Warehouse Movement Trigger" = QltyInTestGenerationRule."Warehouse Movement Trigger"::OnWhseMovementRegister, 'Should have default trigger value.');
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Warehouse Movement Trigger" = QltyInspectionGenRule."Warehouse Movement Trigger"::OnWhseMovementRegister, 'Should have default trigger value.');
     end;
 
     [Test]
@@ -2844,7 +2843,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         QltyManagementSetupPage: TestPage "Qlty. Management Setup";
     begin
         // [SCENARIO] ValidateWarehouseTrigger removes trigger from existing warehouse rules when trigger is set to NoTrigger
@@ -2852,7 +2851,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Management setup warehouse trigger is set to OnWhseMovementRegister
         QltyManagementSetup.Get();
@@ -2860,9 +2859,9 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [GIVEN] A warehouse rule is created with trigger
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Journal Line", QltyInTestGenerationRule);
-        QltyInTestGenerationRule.Validate("Source Table No.", Database::"Warehouse Entry");
-        QltyInTestGenerationRule.Modify();
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Journal Line", QltyInspectionGenRule);
+        QltyInspectionGenRule.Validate("Source Table No.", Database::"Warehouse Entry");
+        QltyInspectionGenRule.Modify();
 
         // [GIVEN] Setup page is opened
         QltyManagementSetupPage.OpenEdit();
@@ -2872,8 +2871,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetupPage.Close();
 
         // [THEN] Existing warehouse rule has trigger removed
-        QltyInTestGenerationRule.Get(QltyInTestGenerationRule."Entry No.");
-        LibraryAssert.IsTrue(QltyInTestGenerationRule."Warehouse Movement Trigger" = QltyInTestGenerationRule."Warehouse Movement Trigger"::NoTrigger, 'Should not have trigger.');
+        QltyInspectionGenRule.Get(QltyInspectionGenRule."Entry No.");
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Warehouse Movement Trigger" = QltyInspectionGenRule."Warehouse Movement Trigger"::NoTrigger, 'Should not have trigger.');
     end;
 
     [Test]
@@ -2891,7 +2890,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Existing item reclass journal templates are deleted
         ItemJournalTemplate.SetRange("Page ID", Page::"Item Reclass. Journal");
@@ -2946,7 +2945,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A full WMS location is created
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
@@ -3005,7 +3004,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A full WMS location is created
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
@@ -3018,7 +3017,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         WhseWorksheetTemplate.Init();
 
         // [GIVEN] A random template name is generated
-        QltyTestsUtility.GenerateRandomCharacters(10, TemplateName);
+        QltyInspectionUtility.GenerateRandomCharacters(10, TemplateName);
         WhseWorksheetTemplate.Name := CopyStr(TemplateName, 1, MaxStrLen(WhseWorksheetTemplate.Name));
 
         // [GIVEN] Template is configured for Movement type
@@ -3069,7 +3068,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Existing item journal templates are deleted
         ItemJournalTemplate.SetRange("Page ID", Page::"Item Journal");
@@ -3124,7 +3123,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A full WMS location is created
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
@@ -3172,22 +3171,22 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
         // [SCENARIO] ValidateWarehouseReceiveTrigger updates warehouse receive rules when setup trigger changes
 
         Initialize();
 
         // [GIVEN] All existing generation rules are deleted
-        if not QltyInTestGenerationRule.IsEmpty() then
-            QltyInTestGenerationRule.DeleteAll();
+        if not QltyInspectionGenRule.IsEmpty() then
+            QltyInspectionGenRule.DeleteAll();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A warehouse receipt line rule is created
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Receipt Line", QltyInTestGenerationRule);
-        LibraryAssert.IsTrue(QltyInTestGenerationRule."Warehouse Receive Trigger" = QltyInTestGenerationRule."Warehouse Receive Trigger"::NoTrigger, 'Should not have trigger.');
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Receipt Line", QltyInspectionGenRule);
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Warehouse Receive Trigger" = QltyInspectionGenRule."Warehouse Receive Trigger"::NoTrigger, 'Should not have trigger.');
 
         // [GIVEN] Setup is updated to OnWarehouseReceiptCreate trigger
         QltyManagementSetup.Get();
@@ -3195,30 +3194,30 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [GIVEN] Existing rule is retrieved and still has NoTrigger
-        QltyInTestGenerationRule.Get(QltyInTestGenerationRule."Entry No.");
-        LibraryAssert.IsTrue(QltyInTestGenerationRule."Warehouse Receive Trigger" = QltyInTestGenerationRule."Warehouse Receive Trigger"::NoTrigger, 'Should not have trigger.');
+        QltyInspectionGenRule.Get(QltyInspectionGenRule."Entry No.");
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Warehouse Receive Trigger" = QltyInspectionGenRule."Warehouse Receive Trigger"::NoTrigger, 'Should not have trigger.');
 
         // [GIVEN] A new rule is created for different source table
-        Clear(QltyInTestGenerationRule);
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInTestGenerationRule);
+        Clear(QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
 
         // [GIVEN] Source table is changed to Warehouse Receipt Line
-        QltyInTestGenerationRule.Validate("Source Table No.", Database::"Warehouse Receipt Line");
-        QltyInTestGenerationRule.Modify();
-        LibraryAssert.IsTrue(QltyInTestGenerationRule."Warehouse Receive Trigger" = QltyInTestGenerationRule."Warehouse Receive Trigger"::OnWarehouseReceiptCreate, 'Should have default trigger.');
+        QltyInspectionGenRule.Validate("Source Table No.", Database::"Warehouse Receipt Line");
+        QltyInspectionGenRule.Modify();
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Warehouse Receive Trigger" = QltyInspectionGenRule."Warehouse Receive Trigger"::OnWarehouseReceiptCreate, 'Should have default trigger.');
 
         // [WHEN] Setup trigger is changed to OnWarehouseReceiptPost
         QltyManagementSetup.Validate("Warehouse Receive Trigger", QltyManagementSetup."Warehouse Receive Trigger"::OnWarehouseReceiptPost);
         QltyManagementSetup.Modify();
 
         // [THEN] Existing warehouse receipt rule is updated to new trigger
-        QltyInTestGenerationRule.Reset();
-        QltyInTestGenerationRule.SetRange("Warehouse Receive Trigger", QltyInTestGenerationRule."Warehouse Receive Trigger"::OnWarehouseReceiptPost);
-        LibraryAssert.AreEqual(1, QltyInTestGenerationRule.Count(), 'Production rule should have new production trigger value.');
+        QltyInspectionGenRule.Reset();
+        QltyInspectionGenRule.SetRange("Warehouse Receive Trigger", QltyInspectionGenRule."Warehouse Receive Trigger"::OnWarehouseReceiptPost);
+        LibraryAssert.AreEqual(1, QltyInspectionGenRule.Count(), 'Production rule should have new production trigger value.');
 
         // [GIVEN] All generation rules are cleaned up
-        QltyInTestGenerationRule.Reset();
-        QltyInTestGenerationRule.DeleteAll();
+        QltyInspectionGenRule.Reset();
+        QltyInspectionGenRule.DeleteAll();
     end;
 
     [Test]
@@ -3227,22 +3226,22 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
         // [SCENARIO] ValidatePurchaseTrigger updates purchase rules when setup trigger changes
 
         Initialize();
 
         // [GIVEN] All existing generation rules are deleted
-        if not QltyInTestGenerationRule.IsEmpty() then
-            QltyInTestGenerationRule.DeleteAll();
+        if not QltyInspectionGenRule.IsEmpty() then
+            QltyInspectionGenRule.DeleteAll();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A purchase line rule is created with no trigger
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
-        LibraryAssert.IsTrue(QltyInTestGenerationRule."Purchase Trigger" = QltyInTestGenerationRule."Purchase Trigger"::NoTrigger, 'Should not have trigger.');
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Purchase Trigger" = QltyInspectionGenRule."Purchase Trigger"::NoTrigger, 'Should not have trigger.');
 
         // [GIVEN] Setup purchase trigger is set to OnPurchaseOrderPostReceive
         QltyManagementSetup.Get();
@@ -3250,30 +3249,30 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [GIVEN] Existing rule still has NoTrigger
-        QltyInTestGenerationRule.Get(QltyInTestGenerationRule."Entry No.");
-        LibraryAssert.IsTrue(QltyInTestGenerationRule."Purchase Trigger" = QltyInTestGenerationRule."Purchase Trigger"::NoTrigger, 'Should not have trigger.');
+        QltyInspectionGenRule.Get(QltyInspectionGenRule."Entry No.");
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Purchase Trigger" = QltyInspectionGenRule."Purchase Trigger"::NoTrigger, 'Should not have trigger.');
 
         // [GIVEN] A new rule is created for different source table
-        Clear(QltyInTestGenerationRule);
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInTestGenerationRule);
+        Clear(QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
 
         // [GIVEN] Source table is changed to Purchase Line
-        QltyInTestGenerationRule.Validate("Source Table No.", Database::"Purchase Line");
-        QltyInTestGenerationRule.Modify();
-        LibraryAssert.IsTrue(QltyInTestGenerationRule."Purchase Trigger" = QltyInTestGenerationRule."Purchase Trigger"::OnPurchaseOrderPostReceive, 'Should have default trigger.');
+        QltyInspectionGenRule.Validate("Source Table No.", Database::"Purchase Line");
+        QltyInspectionGenRule.Modify();
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Purchase Trigger" = QltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderPostReceive, 'Should have default trigger.');
 
         // [WHEN] Setup trigger is changed to NoTrigger
         QltyManagementSetup.Validate("Purchase Trigger", QltyManagementSetup."Purchase Trigger"::NoTrigger);
         QltyManagementSetup.Modify();
 
         // [THEN] All purchase rules have trigger removed
-        QltyInTestGenerationRule.Reset();
-        QltyInTestGenerationRule.SetRange("Purchase Trigger", QltyInTestGenerationRule."Purchase Trigger"::NoTrigger);
-        LibraryAssert.AreEqual(2, QltyInTestGenerationRule.Count(), 'Purchase rule should have new purchase trigger value.');
+        QltyInspectionGenRule.Reset();
+        QltyInspectionGenRule.SetRange("Purchase Trigger", QltyInspectionGenRule."Purchase Trigger"::NoTrigger);
+        LibraryAssert.AreEqual(2, QltyInspectionGenRule.Count(), 'Purchase rule should have new purchase trigger value.');
 
         // [GIVEN] All generation rules are cleaned up
-        QltyInTestGenerationRule.Reset();
-        QltyInTestGenerationRule.DeleteAll();
+        QltyInspectionGenRule.Reset();
+        QltyInspectionGenRule.DeleteAll();
     end;
 
     [Test]
@@ -3282,22 +3281,22 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
         // [SCENARIO] ValidateSalesReturnTrigger updates sales return rules when setup trigger changes
 
         Initialize();
 
         // [GIVEN] All existing generation rules are deleted
-        if not QltyInTestGenerationRule.IsEmpty() then
-            QltyInTestGenerationRule.DeleteAll();
+        if not QltyInspectionGenRule.IsEmpty() then
+            QltyInspectionGenRule.DeleteAll();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A sales line rule is created with no trigger
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Sales Line", QltyInTestGenerationRule);
-        LibraryAssert.IsTrue(QltyInTestGenerationRule."Sales Return Trigger" = QltyInTestGenerationRule."Sales Return Trigger"::NoTrigger, 'Should not have trigger.');
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Sales Line", QltyInspectionGenRule);
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Sales Return Trigger" = QltyInspectionGenRule."Sales Return Trigger"::NoTrigger, 'Should not have trigger.');
 
         // [GIVEN] Setup sales return trigger is set to OnSalesReturnOrderPostReceive
         QltyManagementSetup.Get();
@@ -3305,30 +3304,30 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [GIVEN] Existing rule still has NoTrigger
-        QltyInTestGenerationRule.Get(QltyInTestGenerationRule."Entry No.");
-        LibraryAssert.IsTrue(QltyInTestGenerationRule."Sales Return Trigger" = QltyInTestGenerationRule."Sales Return Trigger"::NoTrigger, 'Should not have trigger.');
+        QltyInspectionGenRule.Get(QltyInspectionGenRule."Entry No.");
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Sales Return Trigger" = QltyInspectionGenRule."Sales Return Trigger"::NoTrigger, 'Should not have trigger.');
 
         // [GIVEN] A new rule is created for different source table
-        Clear(QltyInTestGenerationRule);
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInTestGenerationRule);
+        Clear(QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
 
         // [GIVEN] Source table is changed to Sales Line
-        QltyInTestGenerationRule.Validate("Source Table No.", Database::"Sales Line");
-        QltyInTestGenerationRule.Modify();
-        LibraryAssert.IsTrue(QltyInTestGenerationRule."Sales Return Trigger" = QltyInTestGenerationRule."Sales Return Trigger"::OnSalesReturnOrderPostReceive, 'Should have default trigger.');
+        QltyInspectionGenRule.Validate("Source Table No.", Database::"Sales Line");
+        QltyInspectionGenRule.Modify();
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Sales Return Trigger" = QltyInspectionGenRule."Sales Return Trigger"::OnSalesReturnOrderPostReceive, 'Should have default trigger.');
 
         // [WHEN] Setup trigger is changed to NoTrigger
         QltyManagementSetup.Validate("Sales Return Trigger", QltyManagementSetup."Sales Return Trigger"::NoTrigger);
         QltyManagementSetup.Modify();
 
         // [THEN] All sales return rules have trigger removed
-        QltyInTestGenerationRule.Reset();
-        QltyInTestGenerationRule.SetRange("Sales Return Trigger", QltyInTestGenerationRule."Sales Return Trigger"::NoTrigger);
-        LibraryAssert.AreEqual(2, QltyInTestGenerationRule.Count(), 'Sales Return rule should have new sales return trigger value.');
+        QltyInspectionGenRule.Reset();
+        QltyInspectionGenRule.SetRange("Sales Return Trigger", QltyInspectionGenRule."Sales Return Trigger"::NoTrigger);
+        LibraryAssert.AreEqual(2, QltyInspectionGenRule.Count(), 'Sales Return rule should have new sales return trigger value.');
 
         // [GIVEN] All generation rules are cleaned up
-        QltyInTestGenerationRule.Reset();
-        QltyInTestGenerationRule.DeleteAll();
+        QltyInspectionGenRule.Reset();
+        QltyInspectionGenRule.DeleteAll();
     end;
 
     [Test]
@@ -3337,22 +3336,22 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
         // [SCENARIO] ValidateTransferTrigger updates transfer rules when setup trigger changes
 
         Initialize();
 
         // [GIVEN] All existing generation rules are deleted
-        if not QltyInTestGenerationRule.IsEmpty() then
-            QltyInTestGenerationRule.DeleteAll();
+        if not QltyInspectionGenRule.IsEmpty() then
+            QltyInspectionGenRule.DeleteAll();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A transfer line rule is created with no trigger
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Transfer Line", QltyInTestGenerationRule);
-        LibraryAssert.IsTrue(QltyInTestGenerationRule."Transfer Trigger" = QltyInTestGenerationRule."Transfer Trigger"::NoTrigger, 'Should not have trigger.');
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Transfer Line", QltyInspectionGenRule);
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Transfer Trigger" = QltyInspectionGenRule."Transfer Trigger"::NoTrigger, 'Should not have trigger.');
 
         // [GIVEN] Setup transfer trigger is set to OnTransferOrderPostReceive
         QltyManagementSetup.Get();
@@ -3360,30 +3359,30 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [GIVEN] Existing rule still has NoTrigger
-        QltyInTestGenerationRule.Get(QltyInTestGenerationRule."Entry No.");
-        LibraryAssert.IsTrue(QltyInTestGenerationRule."Transfer Trigger" = QltyInTestGenerationRule."Transfer Trigger"::NoTrigger, 'Should not have trigger.');
+        QltyInspectionGenRule.Get(QltyInspectionGenRule."Entry No.");
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Transfer Trigger" = QltyInspectionGenRule."Transfer Trigger"::NoTrigger, 'Should not have trigger.');
 
         // [GIVEN] A new rule is created for different source table
-        Clear(QltyInTestGenerationRule);
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInTestGenerationRule);
+        Clear(QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
 
         // [GIVEN] Source table is changed to Transfer Line
-        QltyInTestGenerationRule.Validate("Source Table No.", Database::"Transfer Line");
-        QltyInTestGenerationRule.Modify();
-        LibraryAssert.IsTrue(QltyInTestGenerationRule."Transfer Trigger" = QltyInTestGenerationRule."Transfer Trigger"::OnTransferOrderPostReceive, 'Should have default trigger.');
+        QltyInspectionGenRule.Validate("Source Table No.", Database::"Transfer Line");
+        QltyInspectionGenRule.Modify();
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Transfer Trigger" = QltyInspectionGenRule."Transfer Trigger"::OnTransferOrderPostReceive, 'Should have default trigger.');
 
         // [WHEN] Setup trigger is changed to NoTrigger
         QltyManagementSetup.Validate("Transfer Trigger", QltyManagementSetup."Transfer Trigger"::NoTrigger);
         QltyManagementSetup.Modify();
 
         // [THEN] All transfer rules have trigger removed
-        QltyInTestGenerationRule.Reset();
-        QltyInTestGenerationRule.SetRange("Transfer Trigger", QltyInTestGenerationRule."Transfer Trigger"::NoTrigger);
-        LibraryAssert.AreEqual(2, QltyInTestGenerationRule.Count(), 'Transfer rule should have new transfer trigger value.');
+        QltyInspectionGenRule.Reset();
+        QltyInspectionGenRule.SetRange("Transfer Trigger", QltyInspectionGenRule."Transfer Trigger"::NoTrigger);
+        LibraryAssert.AreEqual(2, QltyInspectionGenRule.Count(), 'Transfer rule should have new transfer trigger value.');
 
         // [GIVEN] All generation rules are cleaned up
-        QltyInTestGenerationRule.Reset();
-        QltyInTestGenerationRule.DeleteAll();
+        QltyInspectionGenRule.Reset();
+        QltyInspectionGenRule.DeleteAll();
     end;
 
     [Test]
@@ -3392,22 +3391,22 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
         // [SCENARIO] ValidateAssemblyTrigger updates assembly rules when setup trigger changes
 
         Initialize();
 
         // [GIVEN] All existing generation rules are deleted
-        if not QltyInTestGenerationRule.IsEmpty() then
-            QltyInTestGenerationRule.DeleteAll();
+        if not QltyInspectionGenRule.IsEmpty() then
+            QltyInspectionGenRule.DeleteAll();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A posted assembly header rule is created with no trigger
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Posted Assembly Header", QltyInTestGenerationRule);
-        LibraryAssert.IsTrue(QltyInTestGenerationRule."Assembly Trigger" = QltyInTestGenerationRule."Assembly Trigger"::NoTrigger, 'Should not have trigger.');
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Posted Assembly Header", QltyInspectionGenRule);
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Assembly Trigger" = QltyInspectionGenRule."Assembly Trigger"::NoTrigger, 'Should not have trigger.');
 
         // [GIVEN] Setup assembly trigger is set to OnAssemblyOutputPost
         QltyManagementSetup.Get();
@@ -3415,30 +3414,30 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [GIVEN] Existing rule still has NoTrigger
-        QltyInTestGenerationRule.Get(QltyInTestGenerationRule."Entry No.");
-        LibraryAssert.IsTrue(QltyInTestGenerationRule."Assembly Trigger" = QltyInTestGenerationRule."Assembly Trigger"::NoTrigger, 'Should not have trigger.');
+        QltyInspectionGenRule.Get(QltyInspectionGenRule."Entry No.");
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Assembly Trigger" = QltyInspectionGenRule."Assembly Trigger"::NoTrigger, 'Should not have trigger.');
 
         // [GIVEN] A new rule is created for different source table
-        Clear(QltyInTestGenerationRule);
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInTestGenerationRule);
+        Clear(QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
 
         // [GIVEN] Source table is changed to Posted Assembly Header
-        QltyInTestGenerationRule.Validate("Source Table No.", Database::"Posted Assembly Header");
-        QltyInTestGenerationRule.Modify();
-        LibraryAssert.IsTrue(QltyInTestGenerationRule."Assembly Trigger" = QltyInTestGenerationRule."Assembly Trigger"::OnAssemblyOutputPost, 'Should have default trigger.');
+        QltyInspectionGenRule.Validate("Source Table No.", Database::"Posted Assembly Header");
+        QltyInspectionGenRule.Modify();
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Assembly Trigger" = QltyInspectionGenRule."Assembly Trigger"::OnAssemblyOutputPost, 'Should have default trigger.');
 
         // [WHEN] Setup trigger is changed to NoTrigger
         QltyManagementSetup.Validate("Assembly Trigger", QltyManagementSetup."Assembly Trigger"::NoTrigger);
         QltyManagementSetup.Modify();
 
         // [THEN] All assembly rules have trigger removed
-        QltyInTestGenerationRule.Reset();
-        QltyInTestGenerationRule.SetRange("Assembly Trigger", QltyInTestGenerationRule."Assembly Trigger"::NoTrigger);
-        LibraryAssert.AreEqual(2, QltyInTestGenerationRule.Count(), 'Assembly rule should have new assembly trigger value.');
+        QltyInspectionGenRule.Reset();
+        QltyInspectionGenRule.SetRange("Assembly Trigger", QltyInspectionGenRule."Assembly Trigger"::NoTrigger);
+        LibraryAssert.AreEqual(2, QltyInspectionGenRule.Count(), 'Assembly rule should have new assembly trigger value.');
 
         // [GIVEN] All generation rules are cleaned up
-        QltyInTestGenerationRule.Reset();
-        QltyInTestGenerationRule.DeleteAll();
+        QltyInspectionGenRule.Reset();
+        QltyInspectionGenRule.DeleteAll();
     end;
 
     [Test]
@@ -3447,11 +3446,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         QltyManagementSetupPage: TestPage "Qlty. Management Setup";
@@ -3461,10 +3460,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A prioritized rule is created
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] Handler will provide default expression
         AssistEditTemplateValue := DefaultExpressionTok;
@@ -3483,46 +3482,46 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
+        // [GIVEN] An inspection is created from purchase
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
-        // [THEN] Test brick field is calculated using expression
-        LibraryAssert.AreEqual(QltyInspectionTestHeader."Brick Top Left", StrSubstNo(CalculatedExpressionTok, QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Source Item No.", QltyInspectionTestHeader."Table Name"), 'Expressions should match.');
+        // [THEN] Inspection brick field is calculated using expression
+        LibraryAssert.AreEqual(QltyInspectionHeader."Brick Top Left", StrSubstNo(CalculatedExpressionTok, QltyInspectionHeader."No.", QltyInspectionHeader."Source Item No.", QltyInspectionHeader."Table Name"), 'Expressions should match.');
 
         // [GIVEN] Generation rule is cleaned up
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
     end;
 
     [Test]
     [HandlerFunctions('AssistEditTemplatePageHandler,MessageHandler')]
-    procedure SetupTable_UpdateBrickFieldsOnAllExistingTests()
+    procedure SetupTable_UpdateBrickFieldsOnAllExistingInspection()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         QltyManagementSetupPage: TestPage "Qlty. Management Setup";
     begin
-        // [SCENARIO] UpdateBrickFieldsOnAllExistingTests recalculates brick fields on all existing tests
+        // [SCENARIO] UpdateBrickFieldsOnAllExistingInspections recalculates brick fields on all existing inspections
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A prioritized rule is created
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
 
-        // [GIVEN] A test is created from purchase before expression is set
-        QltyPurOrderGenerator.CreateTestFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionTestHeader);
+        // [GIVEN] An inspection is created from purchase before expression is set
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         // [GIVEN] Handler will provide default expression
         AssistEditTemplateValue := DefaultExpressionTok;
@@ -3544,23 +3543,23 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Setup page is reopened
         QltyManagementSetupPage.OpenEdit();
 
-        // [WHEN] ChooseBrickUpdateExistingTests drilldown is invoked
-        QltyManagementSetupPage.ChooseBrickUpdateExistingTests.Drilldown();
+        // [WHEN] ChooseBrickUpdateExistingInspection drilldown is invoked
+        QltyManagementSetupPage.ChooseBrickUpdateExistingInspection.Drilldown();
         QltyManagementSetupPage.Close();
 
-        // [THEN] Existing test has brick field recalculated
-        QltyInspectionTestHeader.Get(QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Retest No.");
-        LibraryAssert.AreEqual(QltyInspectionTestHeader."Brick Top Left", StrSubstNo(CalculatedExpressionTok, QltyInspectionTestHeader."No.", QltyInspectionTestHeader."Source Item No.", QltyInspectionTestHeader."Table Name"), 'Expressions should match.');
+        // [THEN] Existing inspection has brick field recalculated
+        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        LibraryAssert.AreEqual(QltyInspectionHeader."Brick Top Left", StrSubstNo(CalculatedExpressionTok, QltyInspectionHeader."No.", QltyInspectionHeader."Source Item No.", QltyInspectionHeader."Table Name"), 'Expressions should match.');
 
         // [GIVEN] Generation rule is cleaned up
-        QltyInTestGenerationRule.Delete();
+        QltyInspectionGenRule.Delete();
     end;
 
     [Test]
     procedure SetupTable_GetVersion()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        ppIstlledppNAVAppInstalledApp: Record "NAV App Installed App";
+        NAVAppInstalledApp: Record "NAV App Installed App";
         ReturnedVersion: Text;
     begin
         // [SCENARIO] GetVersion returns the installed app version information
@@ -3568,18 +3567,18 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
 
         // [WHEN] GetVersion is called and installed app record exists
-        if ppIstlledppNAVAppInstalledApp.Get(QltyManagementSetup.GetAppGuid()) then begin
+        if NAVAppInstalledApp.Get(QltyManagementSetup.GetAppGuid()) then begin
             ReturnedVersion := QltyManagementSetup.GetVersion();
 
             // [THEN] Returned version contains major version number
-            LibraryAssert.IsTrue(ReturnedVersion.Contains(Format(ppIstlledppNAVAppInstalledApp."Version Major")), 'Returned version should have major version');
+            LibraryAssert.IsTrue(ReturnedVersion.Contains(Format(NAVAppInstalledApp."Version Major")), 'Returned version should have major version');
 
             // [THEN] Returned version contains minor version number
-            LibraryAssert.IsTrue(ReturnedVersion.Contains(Format(ppIstlledppNAVAppInstalledApp."Version Minor")), 'Returned version should have minor version');
+            LibraryAssert.IsTrue(ReturnedVersion.Contains(Format(NAVAppInstalledApp."Version Minor")), 'Returned version should have minor version');
         end;
     end;
 
@@ -3587,74 +3586,74 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure GenerationRuleTable_ValidateTemplateCode()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
         // [SCENARIO] ValidateTemplateCode successfully validates and sets the template code
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] A template with one field is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        // [GIVEN] A template with one test is created
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A generation rule is initialized
-        QltyInTestGenerationRule.Init();
+        QltyInspectionGenRule.Init();
 
         // [WHEN] Template Code is validated with template code
-        QltyInTestGenerationRule.Validate("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
+        QltyInspectionGenRule.Validate("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
 
         // [THEN] Template code is set correctly
-        LibraryAssert.AreEqual(ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInTestGenerationRule."Template Code", 'Should be same template.');
+        LibraryAssert.AreEqual(ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionGenRule."Template Code", 'Should be same template.');
     end;
 
     [Test]
     procedure GenerationRuleTable_UpdateSortOrder()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        LastQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        LastQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
         // [SCENARIO] UpdateSortOrder automatically assigns incremental sort order values to new rules
 
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A template is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A first generation rule is initialized and inserted
-        QltyInTestGenerationRule.Init();
-        QltyInTestGenerationRule.Validate("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
-        QltyInTestGenerationRule."Source Table No." := Database::"Purchase Line";
-        QltyInTestGenerationRule.Insert(true);
+        QltyInspectionGenRule.Init();
+        QltyInspectionGenRule.Validate("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
+        QltyInspectionGenRule."Source Table No." := Database::"Purchase Line";
+        QltyInspectionGenRule.Insert(true);
 
         // [GIVEN] The last rule by sort order is found
-        LastQltyInTestGenerationRule.SetCurrentKey("Sort Order");
-        LastQltyInTestGenerationRule.Ascending(false);
-        LastQltyInTestGenerationRule.FindFirst();
+        LastQltyInspectionGenRule.SetCurrentKey("Sort Order");
+        LastQltyInspectionGenRule.Ascending(false);
+        LastQltyInspectionGenRule.FindFirst();
 
         // [GIVEN] A second generation rule is initialized
-        Clear(QltyInTestGenerationRule);
-        QltyInTestGenerationRule.Init();
-        QltyInTestGenerationRule.Validate("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
-        QltyInTestGenerationRule."Source Table No." := Database::"Purchase Line";
+        Clear(QltyInspectionGenRule);
+        QltyInspectionGenRule.Init();
+        QltyInspectionGenRule.Validate("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
+        QltyInspectionGenRule."Source Table No." := Database::"Purchase Line";
 
         // [WHEN] The second rule is inserted with auto-numbering
-        QltyInTestGenerationRule.Insert(true);
+        QltyInspectionGenRule.Insert(true);
 
         // [THEN] Sort order is 10 higher than previous rule
-        LibraryAssert.AreEqual(LastQltyInTestGenerationRule."Sort Order" + 10, QltyInTestGenerationRule."Sort Order", 'Should have next available sort order.');
+        LibraryAssert.AreEqual(LastQltyInspectionGenRule."Sort Order" + 10, QltyInspectionGenRule."Sort Order", 'Should have next available sort order.');
     end;
 
     [Test]
     procedure GenerationRuleTable_GetTemplateCodeFromRecordOrFilter_Record()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         TemplateCode: Code[20];
     begin
         // [SCENARIO] GetTemplateCodeFromRecordOrFilter returns template code from current record
@@ -3662,16 +3661,16 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A template is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for the template
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [WHEN] GetTemplateCodeFromRecordOrFilter is called with record mode (false)
-        TemplateCode := QltyInTestGenerationRule.GetTemplateCodeFromRecordOrFilter(false);
+        TemplateCode := QltyInspectionGenRule.GetTemplateCodeFromRecordOrFilter(false);
 
         // [THEN] Returned template code matches template
         LibraryAssert.AreEqual(ConfigurationToLoadQltyInspectionTemplateHdr.Code, TemplateCode, 'Should be same template code.');
@@ -3681,8 +3680,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure GenerationRuleTable_GetTemplateCodeFromRecordOrFilter_Filter()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        FilterQltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        FilterQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         TemplateCode: Code[20];
     begin
         // [SCENARIO] GetTemplateCodeFromRecordOrFilter returns template code from filter
@@ -3690,19 +3689,19 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A template is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for the template
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A filter is set for the template code
-        FilterQltyInTestGenerationRule.SetRange("Template Code", QltyInTestGenerationRule."Template Code");
+        FilterQltyInspectionGenRule.SetRange("Template Code", QltyInspectionGenRule."Template Code");
 
         // [WHEN] GetTemplateCodeFromRecordOrFilter is called with filter mode (true)
-        TemplateCode := FilterQltyInTestGenerationRule.GetTemplateCodeFromRecordOrFilter(true);
+        TemplateCode := FilterQltyInspectionGenRule.GetTemplateCodeFromRecordOrFilter(true);
 
         // [THEN] Returned template code matches template
         LibraryAssert.AreEqual(ConfigurationToLoadQltyInspectionTemplateHdr.Code, TemplateCode, 'Should be same template code.');
@@ -3711,7 +3710,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_Certain()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3720,78 +3719,78 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [WHEN] Source table is Warehouse Receipt Line
-        QltyInTestGenerationRule."Source Table No." := Database::"Warehouse Receipt Line";
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule."Source Table No." := Database::"Warehouse Receipt Line";
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Intent is inferred as Warehouse Receipt
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::"Warehouse Receipt", 'Should return Warehouse Receipt intent.');
 
         // [WHEN] Source table is Warehouse Entry
-        QltyInTestGenerationRule."Source Table No." := Database::"Warehouse Entry";
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule."Source Table No." := Database::"Warehouse Entry";
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Intent is inferred as Warehouse Movement
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::"Warehouse Movement", 'Should return Warehouse Movement intent.');
 
         // [WHEN] Source table is Purchase Line
-        QltyInTestGenerationRule."Source Table No." := Database::"Purchase Line";
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule."Source Table No." := Database::"Purchase Line";
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Intent is inferred as Purchase
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Purchase, 'Should return Purchase intent.');
 
         // [WHEN] Source table is Sales Line
-        QltyInTestGenerationRule."Source Table No." := Database::"Sales Line";
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule."Source Table No." := Database::"Sales Line";
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Intent is inferred as Sales Return
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::"Sales Return", 'Should return Sales Return intent.');
 
         // [WHEN] Source table is Transfer Line
-        QltyInTestGenerationRule."Source Table No." := Database::"Transfer Line";
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule."Source Table No." := Database::"Transfer Line";
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Intent is inferred as Transfer
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Transfer, 'Should return Transfer intent.');
 
         // [WHEN] Source table is Transfer Receipt Line
-        QltyInTestGenerationRule."Source Table No." := Database::"Transfer Receipt Line";
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule."Source Table No." := Database::"Transfer Receipt Line";
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Intent is inferred as Transfer
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Transfer, 'Should return Transfer intent.');
 
         // [WHEN] Source table is Prod. Order Routing Line
-        QltyInTestGenerationRule."Source Table No." := Database::"Prod. Order Routing Line";
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule."Source Table No." := Database::"Prod. Order Routing Line";
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Intent is inferred as Production
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Production, 'Should return Production intent.');
 
         // [WHEN] Source table is Prod. Order Line
-        QltyInTestGenerationRule."Source Table No." := Database::"Prod. Order Line";
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule."Source Table No." := Database::"Prod. Order Line";
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Intent is inferred as Production
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Production, 'Should return Production intent.');
 
         // [WHEN] Source table is Production Order
-        QltyInTestGenerationRule."Source Table No." := Database::"Production Order";
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule."Source Table No." := Database::"Production Order";
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Intent is inferred as Production
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Production, 'Should return "Production Order intent.');
 
         // [WHEN] Source table is Posted Assembly Header
-        QltyInTestGenerationRule."Source Table No." := Database::"Posted Assembly Header";
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule."Source Table No." := Database::"Posted Assembly Header";
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Intent is inferred as Assembly
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Assembly, 'Should return Assembly intent.');
 
         // [WHEN] Source table is Assembly Line
-        QltyInTestGenerationRule."Source Table No." := Database::"Assembly Line";
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule."Source Table No." := Database::"Assembly Line";
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Intent is inferred as Assembly
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Assembly, 'Should return Assembly intent.');
@@ -3800,7 +3799,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemJournalLine_EntryTypeFilter_Production()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3809,11 +3808,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Item Journal Line with Entry Type filter for Output
-        QltyInTestGenerationRule."Source Table No." := Database::"Item Journal Line";
-        QltyInTestGenerationRule."Condition Filter" := ConditionFilterOutputTok;
+        QltyInspectionGenRule."Source Table No." := Database::"Item Journal Line";
+        QltyInspectionGenRule."Condition Filter" := ConditionFilterOutputTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Production
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Production, 'Should return Production intent.');
@@ -3822,7 +3821,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemJournalLine_OrderTypeFilter_Production()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3831,11 +3830,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Item Journal Line with Order Type filter for Production
-        QltyInTestGenerationRule."Source Table No." := Database::"Item Journal Line";
-        QltyInTestGenerationRule."Condition Filter" := ConditionFilterProductionTok;
+        QltyInspectionGenRule."Source Table No." := Database::"Item Journal Line";
+        QltyInspectionGenRule."Condition Filter" := ConditionFilterProductionTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Production
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Production, 'Should return Production intent.');
@@ -3844,7 +3843,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemJournalLine_DocumentTypeFilter_Purchase()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3853,11 +3852,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Item Journal Line with Document Type filter for Purchase Receipt
-        QltyInTestGenerationRule."Source Table No." := Database::"Item Journal Line";
-        QltyInTestGenerationRule."Condition Filter" := ConditionFilterPurchaseReceiptTok;
+        QltyInspectionGenRule."Source Table No." := Database::"Item Journal Line";
+        QltyInspectionGenRule."Condition Filter" := ConditionFilterPurchaseReceiptTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Purchase
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Purchase, 'Should return Purchase intent.');
@@ -3866,7 +3865,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemJournalLine_DocumentTypeFilter_SalesReturn()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3875,11 +3874,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Item Journal Line with Document Type filter for Sales Return Receipt
-        QltyInTestGenerationRule."Source Table No." := Database::"Item Journal Line";
-        QltyInTestGenerationRule."Condition Filter" := ConditionFilterSalesReturnReceiptTok;
+        QltyInspectionGenRule."Source Table No." := Database::"Item Journal Line";
+        QltyInspectionGenRule."Condition Filter" := ConditionFilterSalesReturnReceiptTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Sales Return
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::"Sales Return", 'Should return Sales Return intent.');
@@ -3888,7 +3887,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemJournalLine_DocumentTypeFilter_TransferReceipt()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3897,11 +3896,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Item Journal Line with Document Type filter for Transfer Receipt
-        QltyInTestGenerationRule."Source Table No." := Database::"Item Journal Line";
-        QltyInTestGenerationRule."Condition Filter" := ConditionFilterTransferReceiptTok;
+        QltyInspectionGenRule."Source Table No." := Database::"Item Journal Line";
+        QltyInspectionGenRule."Condition Filter" := ConditionFilterTransferReceiptTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Transfer
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Transfer, 'Should return Transfer intent.');
@@ -3910,7 +3909,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemJournalLine_DocumentTypeFilter_DirectTransfer()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3919,11 +3918,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Item Journal Line with Document Type filter for Direct Transfer
-        QltyInTestGenerationRule."Source Table No." := Database::"Item Journal Line";
-        QltyInTestGenerationRule."Condition Filter" := ConditionFilterDirectTransferTok;
+        QltyInspectionGenRule."Source Table No." := Database::"Item Journal Line";
+        QltyInspectionGenRule."Condition Filter" := ConditionFilterDirectTransferTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Transfer
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Transfer, 'Should return Transfer intent.');
@@ -3932,7 +3931,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemLedgerEntry_EntryTypeFilter_Production()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3940,11 +3939,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Item Ledger Entry with Entry Type filter for Output
-        QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInTestGenerationRule."Condition Filter" := ConditionFilterOutputTok;
+        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectionGenRule."Condition Filter" := ConditionFilterOutputTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Production
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Production, 'Should return Production intent.');
@@ -3953,7 +3952,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemLedgerEntry_OrderTypeFilter_Production()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3961,11 +3960,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Item Ledger Entry with Order Type filter for Production
-        QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInTestGenerationRule."Condition Filter" := ConditionFilterProductionTok;
+        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectionGenRule."Condition Filter" := ConditionFilterProductionTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Production
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Production, 'Should return Production intent.');
@@ -3974,7 +3973,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemLegerEntry_EntryTypeFilter_Purchase()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3982,11 +3981,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Item Ledger Entry with Entry Type filter for Purchase
-        QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInTestGenerationRule."Condition Filter" := ConditionFilterPurchaseTok;
+        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectionGenRule."Condition Filter" := ConditionFilterPurchaseTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Purchase
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Purchase, 'Should return Purchase intent.');
@@ -3995,7 +3994,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemLegerEntry_DocumentTypeFilter_SalesReturn()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -4003,11 +4002,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Item Ledger Entry with Entry Type filter for Sale
-        QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInTestGenerationRule."Condition Filter" := ConditionFilterSaleTok;
+        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectionGenRule."Condition Filter" := ConditionFilterSaleTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Sales Return
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::"Sales Return", 'Should return Sales Return intent.');
@@ -4016,7 +4015,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemLegerEntry_EntryTypeFilter_TransferReceipt()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -4024,11 +4023,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Item Ledger Entry with Entry Type filter for Transfer
-        QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInTestGenerationRule."Condition Filter" := ConditionFilterTransferTok;
+        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectionGenRule."Condition Filter" := ConditionFilterTransferTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Transfer
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Transfer, 'Should return Transfer intent.');
@@ -4037,7 +4036,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemLegerEntry_DocumentTypeFilter_Assembly()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -4045,11 +4044,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Item Ledger Entry with Entry Type filter for Assembly Output
-        QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInTestGenerationRule."Condition Filter" := ConditionFilterAssemblyOutputTok;
+        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectionGenRule."Condition Filter" := ConditionFilterAssemblyOutputTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Assembly
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Assembly, 'Should return Assembly intent.');
@@ -4058,7 +4057,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_WarehouseJournalLine_WhseDocumentFilter_Receive()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -4066,11 +4065,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Warehouse Journal Line with Warehouse Document Type filter for Receipt
-        QltyInTestGenerationRule."Source Table No." := Database::"Warehouse Journal Line";
-        QltyInTestGenerationRule."Condition Filter" := ConditionFilterWhseReceiptTok;
+        QltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
+        QltyInspectionGenRule."Condition Filter" := ConditionFilterWhseReceiptTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Warehouse Receipt
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::"Warehouse Receipt", 'Should return Warehouse Receive intent.');
@@ -4079,7 +4078,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_WarehouseJournalLine_ReferenceDocumentFilter_Receive()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -4087,11 +4086,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Warehouse Journal Line with Reference Document filter for Posted Receipt
-        QltyInTestGenerationRule."Source Table No." := Database::"Warehouse Journal Line";
-        QltyInTestGenerationRule."Condition Filter" := ConditionFilterPostedRcptTok;
+        QltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
+        QltyInspectionGenRule."Condition Filter" := ConditionFilterPostedRcptTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Warehouse Receipt
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::"Warehouse Receipt", 'Should return Warehouse Receive intent.');
@@ -4100,7 +4099,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_WarehouseJournalLine_WhseDocumentTypeFilter_Move()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -4108,11 +4107,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Warehouse Journal Line with Warehouse Document Type filter for Internal Put-away
-        QltyInTestGenerationRule."Source Table No." := Database::"Warehouse Journal Line";
-        QltyInTestGenerationRule."Condition Filter" := ConditionFilterInternalPutAwayTok;
+        QltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
+        QltyInspectionGenRule."Condition Filter" := ConditionFilterInternalPutAwayTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Warehouse Movement
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::"Warehouse Movement", 'Should return Warehouse Movement intent.');
@@ -4121,29 +4120,29 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_WarehouseJournalLine_EntryTypeFilter_Move()
     var
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
-        GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyGenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
         // [SCENARIO] Infer generation rule intent from Warehouse Journal Line with Entry Type filter for Movement
         Initialize();
 
         // [GIVEN] A generation rule for Warehouse Journal Line with Entry Type filter for Movement
-        QltyInTestGenerationRule."Source Table No." := Database::"Warehouse Journal Line";
-        QltyInTestGenerationRule."Condition Filter" := ConditionFilterMovementTok;
+        QltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
+        QltyInspectionGenRule."Condition Filter" := ConditionFilterMovementTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule.InferGenerationRuleIntent(QltyGenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Warehouse Movement
-        LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::"Warehouse Movement", 'Should return Warehouse Movement intent.');
+        LibraryAssert.IsTrue(QltyGenRuleIntent = QltyGenRuleIntent::"Warehouse Movement", 'Should return Warehouse Movement intent.');
     end;
 
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemJournalLine_OnlyTriggerInSetup_Production()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -4151,19 +4150,19 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A generation rule for Item Journal Line with no condition filter
-        QltyInTestGenerationRule."Source Table No." := Database::"Item Journal Line";
+        QltyInspectionGenRule."Source Table No." := Database::"Item Journal Line";
 
         // [GIVEN] Setup with only Production trigger enabled
         QltyManagementSetup.Get();
-        QltyTestsUtility.ClearSetupTriggerDefaults(QltyManagementSetup);
+        QltyInspectionUtility.ClearSetupTriggerDefaults(QltyManagementSetup);
         QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::OnProductionOrderRelease;
         QltyManagementSetup.Modify();
 
         // [WHEN] Inferring the generation rule intent
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is Production with Maybe certainty
         LibraryAssert.AreEqual(GenRuleIntent::Production, GenRuleIntent, 'Should return Production intent.');
@@ -4178,7 +4177,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemLedgerEntry_OnlyTriggerInSetup_Production()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -4186,19 +4185,19 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A generation rule for Item Ledger Entry with no condition filter
-        QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
 
         // [GIVEN] Setup with only Production trigger enabled
         QltyManagementSetup.Get();
-        QltyTestsUtility.ClearSetupTriggerDefaults(QltyManagementSetup);
+        QltyInspectionUtility.ClearSetupTriggerDefaults(QltyManagementSetup);
         QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::OnProductionOrderRelease;
         QltyManagementSetup.Modify();
 
         // [WHEN] Inferring the generation rule intent
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Production
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Production, 'Should return Production intent.');
@@ -4212,7 +4211,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure GenerationRuleTable_MultipleRangeValues()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -4220,47 +4219,47 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A generation rule for Item Ledger Entry
-        QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInTestGenerationRule."Condition Filter" := 'WHERE(Entry Type=FILTER(Output|Positive Adjmt.))';
+        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectionGenRule."Condition Filter" := 'WHERE(Entry Type=FILTER(Output|Positive Adjmt.))';
 
         // [GIVEN] Setup with Production trigger enabled
         QltyManagementSetup.Get();
-        QltyTestsUtility.ClearSetupTriggerDefaults(QltyManagementSetup);
+        QltyInspectionUtility.ClearSetupTriggerDefaults(QltyManagementSetup);
         QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::OnProductionOrderRelease;
         QltyManagementSetup.Modify();
 
         // [WHEN] Inferring intent with Output first in filter
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Production intent is returned (Output recognized)
         LibraryAssert.AreEqual(GenRuleIntent::Production, GenRuleIntent, 'Should return Production intent (first)');
 
         // [WHEN] Inferring intent with Output last in filter
-        QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInTestGenerationRule."Condition Filter" := 'WHERE(Entry Type=FILTER(Positive Adjmt.|Output))';
+        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectionGenRule."Condition Filter" := 'WHERE(Entry Type=FILTER(Positive Adjmt.|Output))';
 
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Production intent is returned (Output recognized at end)
         LibraryAssert.AreEqual(GenRuleIntent::Production, GenRuleIntent, 'Should return Production intent (last).');
 
         // [WHEN] Inferring intent without Output in filter
-        QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInTestGenerationRule."Condition Filter" := 'WHERE(Entry Type=FILTER(Positive Adjmt.|Purchase|Sale))';
+        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectionGenRule."Condition Filter" := 'WHERE(Entry Type=FILTER(Positive Adjmt.|Purchase|Sale))';
 
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Production intent is not returned
         LibraryAssert.AreNotEqual(GenRuleIntent::Production, GenRuleIntent, 'Should not be a Production intent.');
 
         // [WHEN] Inferring intent with Output in middle of filter
-        QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInTestGenerationRule."Condition Filter" := 'WHERE(Entry Type=FILTER(Positive Adjmt.|Output|Purchase|Sale))';
+        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectionGenRule."Condition Filter" := 'WHERE(Entry Type=FILTER(Positive Adjmt.|Output|Purchase|Sale))';
 
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Production intent is returned (Output recognized in middle)
         LibraryAssert.AreEqual(GenRuleIntent::Production, GenRuleIntent, 'Should be a Production intent (output is in the middle.)');
@@ -4274,7 +4273,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemLedgerEntry_NotOnlyTriggerInSetup_Unknown()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -4282,10 +4281,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A generation rule for Item Ledger Entry with no condition filter
-        QltyInTestGenerationRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
 
         // [GIVEN] Setup with all triggers enabled
         QltyManagementSetup.Get();
@@ -4299,7 +4298,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [WHEN] Inferring the generation rule intent
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is Unknown (ambiguous due to multiple triggers)
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Unknown, 'Should return unknown intent.');
@@ -4313,7 +4312,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure GenerationRuleTable_InferGenerationRuleIntent_WarehouseJournalLine_OnlyTriggerInSetup_WarehouseReceive()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -4321,19 +4320,19 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        QltyTestsUtility.EnsureSetup();
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A generation rule for Warehouse Journal Line with no condition filter
-        QltyInTestGenerationRule."Source Table No." := Database::"Warehouse Journal Line";
+        QltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
 
         // [GIVEN] Setup with only Warehouse Receive trigger enabled
         QltyManagementSetup.Get();
-        QltyTestsUtility.ClearSetupTriggerDefaults(QltyManagementSetup);
+        QltyInspectionUtility.ClearSetupTriggerDefaults(QltyManagementSetup);
         QltyManagementSetup."Warehouse Receive Trigger" := QltyManagementSetup."Warehouse Receive Trigger"::OnWarehouseReceiptCreate;
         QltyManagementSetup.Modify();
 
         // [WHEN] Inferring the generation rule intent
-        QltyInTestGenerationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Warehouse Receipt
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::"Warehouse Receipt", 'Should return Warehouse Receive intent.');
@@ -4344,336 +4343,336 @@ codeunit 139967 "Qlty. Tests - Test Table"
     end;
 
     [Test]
-    procedure GradeTable_TestValidateGradeCode()
+    procedure ResultTable_TestValidateResultCode()
     var
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
     begin
-        // [SCENARIO] Validate grade code by removing special characters
+        // [SCENARIO] Validate result code by removing special characters
         Initialize();
 
-        // [WHEN] Validating grade code with special characters (GradeCode1Tok)
-        ToLoadQltyInspectionGrade.Validate(Code, 'GRADE' + GradeCode1Tok);
+        // [WHEN] Validating result code with special characters (ResultCode1Tok)
+        ToLoadQltyInspectionResult.Validate(Code, 'RESULT' + ResultCode1Tok);
 
         // [THEN] Special characters are removed from code
-        LibraryAssert.AreEqual(ToLoadQltyInspectionGrade.Code, 'GRADE', 'Should remove special characters in grade code');
+        LibraryAssert.AreEqual(ToLoadQltyInspectionResult.Code, 'RESULT', 'Should remove special characters in result code');
 
-        // [WHEN] Validating grade code with different special characters (GradeCode2Tok)
-        ToLoadQltyInspectionGrade.Validate(Code, 'GRADE' + GradeCode2Tok);
+        // [WHEN] Validating result code with different special characters (ResultCode2Tok)
+        ToLoadQltyInspectionResult.Validate(Code, 'RESULT' + ResultCode2Tok);
 
         // [THEN] Special characters are removed from code
-        LibraryAssert.AreEqual(ToLoadQltyInspectionGrade.Code, 'GRADE', 'Should remove special characters in grade code');
+        LibraryAssert.AreEqual(ToLoadQltyInspectionResult.Code, 'RESULT', 'Should remove special characters in result code');
     end;
 
     [Test]
-    procedure GradeTable_TestOnDelete_ExistingTestLines_ShouldError()
+    procedure ResultTable_TestOnDelete_ExistingTestLines_ShouldError()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
-        GradeCode: Text;
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionLine: Record "Qlty. Inspection Line";
+        ResultCode: Text;
     begin
-        // [SCENARIO] Cannot delete grade when it is referenced by existing test lines
+        // [SCENARIO] Cannot delete result when it is referenced by existing inspection lines
         Initialize();
 
-        // [GIVEN] All existing grades are deleted
-        ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] All existing results are deleted
+        ToLoadQltyInspectionResult.DeleteAll();
 
-        // [GIVEN] A new grade is created
-        QltyTestsUtility.GenerateRandomCharacters(20, GradeCode);
-        ToLoadQltyInspectionGrade.Code := CopyStr(GradeCode, 1, MaxStrLen(ToLoadQltyInspectionGrade.Code));
-        ToLoadQltyInspectionGrade."Grade Category" := ToLoadQltyInspectionGrade."Grade Category"::Acceptable;
-        ToLoadQltyInspectionGrade.Insert();
+        // [GIVEN] A new result is created
+        QltyInspectionUtility.GenerateRandomCharacters(20, ResultCode);
+        ToLoadQltyInspectionResult.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyInspectionResult.Code));
+        ToLoadQltyInspectionResult."Result Category" := ToLoadQltyInspectionResult."Result Category"::Acceptable;
+        ToLoadQltyInspectionResult.Insert();
 
         // [GIVEN] A template is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
-        // [GIVEN] A test header is created
-        QltyInspectionTestHeader."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
-        QltyInspectionTestHeader.Insert();
+        // [GIVEN] An inspection header is created
+        QltyInspectionHeader."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
+        QltyInspectionHeader.Insert();
 
-        // [GIVEN] A test line is created with the grade code
-        QltyInspectionTestLine."Test No." := QltyInspectionTestHeader."No.";
-        QltyInspectionTestLine."Retest No." := QltyInspectionTestHeader."Retest No.";
-        QltyInspectionTestLine."Line No." := 10000;
-        QltyInspectionTestLine."Grade Code" := ToLoadQltyInspectionGrade.Code;
-        QltyInspectionTestLine.Insert();
+        // [GIVEN] An inspection line is created with the result code
+        QltyInspectionLine."Inspection No." := QltyInspectionHeader."No.";
+        QltyInspectionLine."Re-inspection No." := QltyInspectionHeader."Re-inspection No.";
+        QltyInspectionLine."Line No." := 10000;
+        QltyInspectionLine."Result Code" := ToLoadQltyInspectionResult.Code;
+        QltyInspectionLine.Insert();
 
-        // [WHEN] Attempting to delete the grade
-        asserterror ToLoadQltyInspectionGrade.Delete(true);
+        // [WHEN] Attempting to delete the result
+        asserterror ToLoadQltyInspectionResult.Delete(true);
 
         // [THEN] An error is thrown preventing deletion
-        LibraryAssert.ExpectedError(CannotBeRemovedExistingTestErr);
+        LibraryAssert.ExpectedError(CannotBeRemovedExistingInspectionErr);
     end;
 
     [Test]
-    procedure GradeTable_TestOnDelete_ExistingTests_ShouldError()
+    procedure ResultTable_TestOnDelete_ExistingInspection_ShouldError()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        GradeCode: Text;
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        ResultCode: Text;
     begin
-        // [SCENARIO] Cannot delete grade when it is referenced by existing test headers
+        // [SCENARIO] Cannot delete result when it is referenced by existing inspection headers
         Initialize();
 
-        // [GIVEN] All existing grades are deleted
-        ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] All existing results are deleted
+        ToLoadQltyInspectionResult.DeleteAll();
 
-        // [GIVEN] A new grade is created
-        QltyTestsUtility.GenerateRandomCharacters(20, GradeCode);
-        ToLoadQltyInspectionGrade.Code := CopyStr(GradeCode, 1, MaxStrLen(ToLoadQltyInspectionGrade.Code));
-        ToLoadQltyInspectionGrade."Grade Category" := ToLoadQltyInspectionGrade."Grade Category"::Acceptable;
-        ToLoadQltyInspectionGrade.Insert();
+        // [GIVEN] A new result is created
+        QltyInspectionUtility.GenerateRandomCharacters(20, ResultCode);
+        ToLoadQltyInspectionResult.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyInspectionResult.Code));
+        ToLoadQltyInspectionResult."Result Category" := ToLoadQltyInspectionResult."Result Category"::Acceptable;
+        ToLoadQltyInspectionResult.Insert();
 
         // [GIVEN] A template is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
-        // [GIVEN] A test header is created with the grade code
-        QltyInspectionTestHeader."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
-        QltyInspectionTestHeader."Grade Code" := ToLoadQltyInspectionGrade.Code;
-        QltyInspectionTestHeader.Insert();
+        // [GIVEN] An inspection header is created with the result code
+        QltyInspectionHeader."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
+        QltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
+        QltyInspectionHeader.Insert();
 
-        // [WHEN] Attempting to delete the grade
-        asserterror ToLoadQltyInspectionGrade.Delete(true);
+        // [WHEN] Attempting to delete the result
+        asserterror ToLoadQltyInspectionResult.Delete(true);
 
         // [THEN] An error is thrown preventing deletion
-        LibraryAssert.ExpectedError(CannotBeRemovedExistingTestErr);
+        LibraryAssert.ExpectedError(CannotBeRemovedExistingInspectionErr);
     end;
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure GradeTable_TestOnDelete_ExistingTestGradeConditions()
+    procedure ResultTable_TestOnDelete_ExistingInspectionResultConditions()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
-        ToLoadQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
-        QltyInspectionTestHeader: Record "Qlty. Inspection Test Header";
-        QltyInspectionTestLine: Record "Qlty. Inspection Test Line";
-        GradeCode: Text;
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
+        ToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionLine: Record "Qlty. Inspection Line";
+        ResultCode: Text;
     begin
-        // [SCENARIO] Delete grade with existing test grade conditions after confirmation
+        // [SCENARIO] Delete result with existing inspection result conditions after confirmation
         Initialize();
 
-        // [GIVEN] All existing grades are deleted
-        ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] All existing results are deleted
+        ToLoadQltyInspectionResult.DeleteAll();
 
-        // [GIVEN] A new grade is created
-        QltyTestsUtility.GenerateRandomCharacters(20, GradeCode);
-        ToLoadQltyInspectionGrade.Code := CopyStr(GradeCode, 1, MaxStrLen(ToLoadQltyInspectionGrade.Code));
-        ToLoadQltyInspectionGrade."Grade Category" := ToLoadQltyInspectionGrade."Grade Category"::Acceptable;
-        ToLoadQltyInspectionGrade.Insert();
+        // [GIVEN] A new result is created
+        QltyInspectionUtility.GenerateRandomCharacters(20, ResultCode);
+        ToLoadQltyInspectionResult.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyInspectionResult.Code));
+        ToLoadQltyInspectionResult."Result Category" := ToLoadQltyInspectionResult."Result Category"::Acceptable;
+        ToLoadQltyInspectionResult.Insert();
 
-        // [GIVEN] A template with one field is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        QltyInspectionTestHeader."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
-        QltyInspectionTestHeader.Insert();
+        // [GIVEN] A template with one test is created
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionHeader."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
+        QltyInspectionHeader.Insert();
 
         // [GIVEN] Template line is retrieved
         ConfigurationToLoadQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
         ConfigurationToLoadQltyInspectionTemplateLine.FindFirst();
 
-        // [GIVEN] A test line is created
-        QltyInspectionTestLine."Test No." := QltyInspectionTestHeader."No.";
-        QltyInspectionTestLine."Retest No." := QltyInspectionTestHeader."Retest No.";
-        QltyInspectionTestLine."Line No." := 10000;
-        QltyInspectionTestLine."Field Code" := ConfigurationToLoadQltyInspectionTemplateLine."Field Code";
-        QltyInspectionTestLine."Grade Code" := ToLoadQltyInspectionGrade.Code;
-        QltyInspectionTestLine.Insert();
+        // [GIVEN] An inspection line is created
+        QltyInspectionLine."Inspection No." := QltyInspectionHeader."No.";
+        QltyInspectionLine."Re-inspection No." := QltyInspectionHeader."Re-inspection No.";
+        QltyInspectionLine."Line No." := 10000;
+        QltyInspectionLine."Test Code" := ConfigurationToLoadQltyInspectionTemplateLine."Test Code";
+        QltyInspectionLine."Result Code" := ToLoadQltyInspectionResult.Code;
+        QltyInspectionLine.Insert();
 
-        // [GIVEN] A grade condition is created for the test
-        ToLoadQltyIGradeConditionConf."Condition Type" := ToLoadQltyIGradeConditionConf."Condition Type"::Test;
-        ToLoadQltyIGradeConditionConf."Target Code" := QltyInspectionTestHeader."No.";
-        ToLoadQltyIGradeConditionConf."Target Retest No." := QltyInspectionTestHeader."Retest No.";
-        ToLoadQltyIGradeConditionConf."Target Line No." := QltyInspectionTestLine."Line No.";
-        ToLoadQltyIGradeConditionConf."Field Code" := QltyInspectionTestLine."Field Code";
-        ToLoadQltyIGradeConditionConf."Grade Code" := ToLoadQltyInspectionGrade.Code;
-        ToLoadQltyIGradeConditionConf.Insert();
+        // [GIVEN] A result condition is created for the inspection
+        ToLoadQltyIResultConditConf."Condition Type" := ToLoadQltyIResultConditConf."Condition Type"::Inspection;
+        ToLoadQltyIResultConditConf."Target Code" := QltyInspectionHeader."No.";
+        ToLoadQltyIResultConditConf."Target Re-inspection No." := QltyInspectionHeader."Re-inspection No.";
+        ToLoadQltyIResultConditConf."Target Line No." := QltyInspectionLine."Line No.";
+        ToLoadQltyIResultConditConf."Test Code" := QltyInspectionLine."Test Code";
+        ToLoadQltyIResultConditConf."Result Code" := ToLoadQltyInspectionResult.Code;
+        ToLoadQltyIResultConditConf.Insert();
 
-        // [GIVEN] Test line and header are deleted
-        QltyInspectionTestLine.Delete();
-        QltyInspectionTestHeader.Delete();
+        // [GIVEN] Inspection line and header are deleted
+        QltyInspectionLine.Delete();
+        QltyInspectionHeader.Delete();
 
-        // [WHEN] Deleting the grade with confirmation
-        ToLoadQltyInspectionGrade.Delete(true);
+        // [WHEN] Deleting the result with confirmation
+        ToLoadQltyInspectionResult.Delete(true);
 
-        // [THEN] Grade is successfully deleted
-        ToLoadQltyInspectionGrade.SetRange(Code, ToLoadQltyInspectionGrade.Code);
-        LibraryAssert.IsTrue(ToLoadQltyInspectionGrade.IsEmpty(), 'Should have deleted grade.');
+        // [THEN] Result is successfully deleted
+        ToLoadQltyInspectionResult.SetRange(Code, ToLoadQltyInspectionResult.Code);
+        LibraryAssert.IsTrue(ToLoadQltyInspectionResult.IsEmpty(), 'Should have deleted result.');
     end;
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure GradeTable_TestOnDelete_ExistingFieldGradeConditions()
+    procedure ResultTable_TestOnDelete_ExistingTestResultConditions()
     var
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
-        ToLoadQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
-        ToLoadQltyField: Record "Qlty. Field";
-        GradeCode: Text;
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
+        ToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
+        ToLoadQltyTest: Record "Qlty. Test";
+        ResultCode: Text;
     begin
-        // [SCENARIO] Delete grade with existing field grade conditions after confirmation
+        // [SCENARIO] Delete result with existing test result conditions after confirmation
         Initialize();
 
-        // [GIVEN] All existing grades are deleted
-        ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] All existing results are deleted
+        ToLoadQltyInspectionResult.DeleteAll();
 
-        // [GIVEN] A new grade is created
-        QltyTestsUtility.GenerateRandomCharacters(20, GradeCode);
-        ToLoadQltyInspectionGrade.Code := CopyStr(GradeCode, 1, MaxStrLen(ToLoadQltyInspectionGrade.Code));
-        ToLoadQltyInspectionGrade."Grade Category" := ToLoadQltyInspectionGrade."Grade Category"::Acceptable;
-        ToLoadQltyInspectionGrade.Insert();
+        // [GIVEN] A new result is created
+        QltyInspectionUtility.GenerateRandomCharacters(20, ResultCode);
+        ToLoadQltyInspectionResult.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyInspectionResult.Code));
+        ToLoadQltyInspectionResult."Result Category" := ToLoadQltyInspectionResult."Result Category"::Acceptable;
+        ToLoadQltyInspectionResult.Insert();
 
-        // [GIVEN] A field is created
-        ToLoadQltyField.Code := CopyStr(GradeCode, 1, MaxStrLen(ToLoadQltyField.Code));
-        ToLoadQltyField."Field Type" := ToLoadQltyField."Field Type"::"Field Type Integer";
-        ToLoadQltyField.Insert();
+        // [GIVEN] A test is created
+        ToLoadQltyTest.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyTest.Code));
+        ToLoadQltyTest."Test Value Type" := ToLoadQltyTest."Test Value Type"::"Value Type Integer";
+        ToLoadQltyTest.Insert();
 
-        // [GIVEN] A grade condition is created for the field
-        ToLoadQltyIGradeConditionConf."Condition Type" := ToLoadQltyIGradeConditionConf."Condition Type"::Field;
-        ToLoadQltyIGradeConditionConf."Target Code" := ToLoadQltyField.Code;
-        ToLoadQltyIGradeConditionConf."Field Code" := ToLoadQltyField.Code;
-        ToLoadQltyIGradeConditionConf."Grade Code" := ToLoadQltyInspectionGrade.Code;
-        ToLoadQltyIGradeConditionConf.Insert();
+        // [GIVEN] A result condition is created for the test
+        ToLoadQltyIResultConditConf."Condition Type" := ToLoadQltyIResultConditConf."Condition Type"::Test;
+        ToLoadQltyIResultConditConf."Target Code" := ToLoadQltyTest.Code;
+        ToLoadQltyIResultConditConf."Test Code" := ToLoadQltyTest.Code;
+        ToLoadQltyIResultConditConf."Result Code" := ToLoadQltyInspectionResult.Code;
+        ToLoadQltyIResultConditConf.Insert();
 
-        // [WHEN] Deleting the grade with confirmation
-        ToLoadQltyInspectionGrade.Delete(true);
+        // [WHEN] Deleting the result with confirmation
+        ToLoadQltyInspectionResult.Delete(true);
 
-        // [THEN] Grade is successfully deleted
-        ToLoadQltyInspectionGrade.SetRange(Code, ToLoadQltyInspectionGrade.Code);
-        LibraryAssert.IsTrue(ToLoadQltyInspectionGrade.IsEmpty(), 'Should have deleted grade.')
+        // [THEN] Result is successfully deleted
+        ToLoadQltyInspectionResult.SetRange(Code, ToLoadQltyInspectionResult.Code);
+        LibraryAssert.IsTrue(ToLoadQltyInspectionResult.IsEmpty(), 'Should have deleted result.')
     end;
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure GradeTable_TestOnDelete_ExistingTemplateGradeConditions()
+    procedure ResultTable_TestOnDelete_ExistingTemplateResultConditions()
     var
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
-        ToLoadQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
+        ToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        GradeCode: Text;
+        ResultCode: Text;
     begin
-        // [SCENARIO] Delete grade with existing template grade conditions after confirmation
+        // [SCENARIO] Delete result with existing template result conditions after confirmation
         Initialize();
 
-        // [GIVEN] All existing grades are deleted
-        ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] All existing results are deleted
+        ToLoadQltyInspectionResult.DeleteAll();
 
-        // [GIVEN] A new grade is created
-        QltyTestsUtility.GenerateRandomCharacters(20, GradeCode);
-        ToLoadQltyInspectionGrade.Code := CopyStr(GradeCode, 1, MaxStrLen(ToLoadQltyInspectionGrade.Code));
-        ToLoadQltyInspectionGrade."Grade Category" := ToLoadQltyInspectionGrade."Grade Category"::Acceptable;
-        ToLoadQltyInspectionGrade.Insert();
+        // [GIVEN] A new result is created
+        QltyInspectionUtility.GenerateRandomCharacters(20, ResultCode);
+        ToLoadQltyInspectionResult.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyInspectionResult.Code));
+        ToLoadQltyInspectionResult."Result Category" := ToLoadQltyInspectionResult."Result Category"::Acceptable;
+        ToLoadQltyInspectionResult.Insert();
 
-        // [GIVEN] A template with one field is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        // [GIVEN] A template with one test is created
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
         ConfigurationToLoadQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
         ConfigurationToLoadQltyInspectionTemplateLine.FindFirst();
 
-        // [GIVEN] A grade condition is created for the template
-        ToLoadQltyIGradeConditionConf."Condition Type" := ToLoadQltyIGradeConditionConf."Condition Type"::Template;
-        ToLoadQltyIGradeConditionConf."Target Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
-        ToLoadQltyIGradeConditionConf."Target Line No." := ConfigurationToLoadQltyInspectionTemplateLine."Line No.";
-        ToLoadQltyIGradeConditionConf."Field Code" := ConfigurationToLoadQltyInspectionTemplateLine."Field Code";
-        ToLoadQltyIGradeConditionConf."Grade Code" := ToLoadQltyInspectionGrade.Code;
-        ToLoadQltyIGradeConditionConf.Insert();
+        // [GIVEN] A result condition is created for the template
+        ToLoadQltyIResultConditConf."Condition Type" := ToLoadQltyIResultConditConf."Condition Type"::Template;
+        ToLoadQltyIResultConditConf."Target Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
+        ToLoadQltyIResultConditConf."Target Line No." := ConfigurationToLoadQltyInspectionTemplateLine."Line No.";
+        ToLoadQltyIResultConditConf."Test Code" := ConfigurationToLoadQltyInspectionTemplateLine."Test Code";
+        ToLoadQltyIResultConditConf."Result Code" := ToLoadQltyInspectionResult.Code;
+        ToLoadQltyIResultConditConf.Insert();
 
-        // [WHEN] Deleting the grade with confirmation
-        ToLoadQltyInspectionGrade.Delete(true);
+        // [WHEN] Deleting the result with confirmation
+        ToLoadQltyInspectionResult.Delete(true);
 
-        // [THEN] Grade is successfully deleted
-        ToLoadQltyInspectionGrade.SetRange(Code, ToLoadQltyInspectionGrade.Code);
-        LibraryAssert.IsTrue(ToLoadQltyInspectionGrade.IsEmpty(), 'Should have deleted grade.')
+        // [THEN] Result is successfully deleted
+        ToLoadQltyInspectionResult.SetRange(Code, ToLoadQltyInspectionResult.Code);
+        LibraryAssert.IsTrue(ToLoadQltyInspectionResult.IsEmpty(), 'Should have deleted result.')
     end;
 
     [Test]
     [HandlerFunctions('StrMenuPageHandler')]
-    procedure GradeTable_AssistEditGradeStyle()
+    procedure ResultTable_AssistEditResultStyle()
     var
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
-        QltyInspectionGradeList: TestPage "Qlty. Inspection Grade List";
-        GradeCode: Text;
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
+        QltyInspectionResultList: TestPage "Qlty. Inspection Result List";
+        ResultCode: Text;
     begin
-        // [SCENARIO] Use AssistEdit to configure grade style on grade list page
+        // [SCENARIO] Use AssistEdit to configure result style on result list page
         Initialize();
 
-        // [GIVEN] All existing grades are deleted
-        if not ToLoadQltyInspectionGrade.IsEmpty() then
-            ToLoadQltyInspectionGrade.DeleteAll();
-        ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] All existing results are deleted
+        if not ToLoadQltyInspectionResult.IsEmpty() then
+            ToLoadQltyInspectionResult.DeleteAll();
+        ToLoadQltyInspectionResult.DeleteAll();
 
-        // [GIVEN] A new grade is created with StrongAccent style
-        QltyTestsUtility.GenerateRandomCharacters(20, GradeCode);
-        ToLoadQltyInspectionGrade.Code := CopyStr(GradeCode, 1, MaxStrLen(ToLoadQltyInspectionGrade.Code));
-        ToLoadQltyInspectionGrade."Grade Category" := ToLoadQltyInspectionGrade."Grade Category"::Acceptable;
-        ToLoadQltyInspectionGrade."Override Style" := 'StrongAccent';
-        ToLoadQltyInspectionGrade.Insert();
+        // [GIVEN] A new result is created with StrongAccent style
+        QltyInspectionUtility.GenerateRandomCharacters(20, ResultCode);
+        ToLoadQltyInspectionResult.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyInspectionResult.Code));
+        ToLoadQltyInspectionResult."Result Category" := ToLoadQltyInspectionResult."Result Category"::Acceptable;
+        ToLoadQltyInspectionResult."Override Style" := 'StrongAccent';
+        ToLoadQltyInspectionResult.Insert();
 
-        // [GIVEN] Grade list page is opened and navigated to the grade
-        QltyInspectionGradeList.OpenEdit();
-        QltyInspectionGradeList.GoToRecord(ToLoadQltyInspectionGrade);
+        // [GIVEN] Result list page is opened and navigated to the result
+        QltyInspectionResultList.OpenEdit();
+        QltyInspectionResultList.GoToRecord(ToLoadQltyInspectionResult);
 
         // [WHEN] AssistEdit is invoked on Override Style field
-        QltyInspectionGradeList."Override Style".AssistEdit();
-        QltyInspectionGradeList.Close();
+        QltyInspectionResultList."Override Style".AssistEdit();
+        QltyInspectionResultList.Close();
 
         // [THEN] Override style is updated to None
-        ToLoadQltyInspectionGrade.Get(ToLoadQltyInspectionGrade.Code);
-        LibraryAssert.AreEqual('None', ToLoadQltyInspectionGrade."Override Style", 'Override style should be updated.');
+        ToLoadQltyInspectionResult.Get(ToLoadQltyInspectionResult.Code);
+        LibraryAssert.AreEqual('None', ToLoadQltyInspectionResult."Override Style", 'Override style should be updated.');
     end;
 
     [Test]
-    procedure GradeTable_GetGradeStyle()
+    procedure ResultTable_GetResultStyle()
     var
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
-        GradeStyle: Text;
-        GradeCode: Text;
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
+        ResultStyle: Text;
+        ResultCode: Text;
     begin
-        // [SCENARIO] Get appropriate grade style based on category and override style
+        // [SCENARIO] Get appropriate result style based on category and override style
         Initialize();
 
-        // [GIVEN] All existing grades are deleted
-        ToLoadQltyInspectionGrade.DeleteAll();
+        // [GIVEN] All existing results are deleted
+        ToLoadQltyInspectionResult.DeleteAll();
 
-        // [GIVEN] A new grade with Acceptable category is created
-        QltyTestsUtility.GenerateRandomCharacters(20, GradeCode);
-        ToLoadQltyInspectionGrade.Code := CopyStr(GradeCode, 1, MaxStrLen(ToLoadQltyInspectionGrade.Code));
-        ToLoadQltyInspectionGrade."Grade Category" := ToLoadQltyInspectionGrade."Grade Category"::Acceptable;
-        ToLoadQltyInspectionGrade.Insert();
+        // [GIVEN] A new result with Acceptable category is created
+        QltyInspectionUtility.GenerateRandomCharacters(20, ResultCode);
+        ToLoadQltyInspectionResult.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyInspectionResult.Code));
+        ToLoadQltyInspectionResult."Result Category" := ToLoadQltyInspectionResult."Result Category"::Acceptable;
+        ToLoadQltyInspectionResult.Insert();
 
-        // [WHEN] Getting grade style for Acceptable category
-        GradeStyle := ToLoadQltyInspectionGrade.GetGradeStyle();
+        // [WHEN] Getting result style for Acceptable category
+        ResultStyle := ToLoadQltyInspectionResult.GetResultStyle();
 
         // [THEN] Style is Favorable
-        LibraryAssert.AreEqual('Favorable', GradeStyle, 'Should have favorable style.');
+        LibraryAssert.AreEqual('Favorable', ResultStyle, 'Should have favorable style.');
 
         // [WHEN] Changing category to Not acceptable
-        ToLoadQltyInspectionGrade."Grade Category" := ToLoadQltyInspectionGrade."Grade Category"::"Not acceptable";
-        ToLoadQltyInspectionGrade.Modify();
+        ToLoadQltyInspectionResult."Result Category" := ToLoadQltyInspectionResult."Result Category"::"Not acceptable";
+        ToLoadQltyInspectionResult.Modify();
 
-        GradeStyle := ToLoadQltyInspectionGrade.GetGradeStyle();
+        ResultStyle := ToLoadQltyInspectionResult.GetResultStyle();
 
         // [THEN] Style is Unfavorable
-        LibraryAssert.AreEqual('Unfavorable', GradeStyle, 'Should have unfavorable style.');
+        LibraryAssert.AreEqual('Unfavorable', ResultStyle, 'Should have unfavorable style.');
 
         // [WHEN] Changing category to Uncategorized
-        ToLoadQltyInspectionGrade."Grade Category" := ToLoadQltyInspectionGrade."Grade Category"::Uncategorized;
-        ToLoadQltyInspectionGrade.Modify();
+        ToLoadQltyInspectionResult."Result Category" := ToLoadQltyInspectionResult."Result Category"::Uncategorized;
+        ToLoadQltyInspectionResult.Modify();
 
-        GradeStyle := ToLoadQltyInspectionGrade.GetGradeStyle();
+        ResultStyle := ToLoadQltyInspectionResult.GetResultStyle();
 
         // [THEN] Style is None
-        LibraryAssert.AreEqual('None', GradeStyle, 'Should have no style.');
+        LibraryAssert.AreEqual('None', ResultStyle, 'Should have no style.');
 
         // [WHEN] Setting override style to Attention
-        ToLoadQltyInspectionGrade."Override Style" := 'Attention';
-        ToLoadQltyInspectionGrade.Modify();
+        ToLoadQltyInspectionResult."Override Style" := 'Attention';
+        ToLoadQltyInspectionResult.Modify();
 
-        GradeStyle := ToLoadQltyInspectionGrade.GetGradeStyle();
+        ResultStyle := ToLoadQltyInspectionResult.GetResultStyle();
 
         // [THEN] Override style takes precedence
-        LibraryAssert.AreEqual('Attention', GradeStyle, 'Should have override style.');
+        LibraryAssert.AreEqual('Attention', ResultStyle, 'Should have override style.');
     end;
 
     [Test]
@@ -4681,17 +4680,17 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        QltyInTestGenerationRule: Record "Qlty. In. Test Generation Rule";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
         // [SCENARIO] Template deletion cascades to template lines and generation rules
         Initialize();
 
-        // [GIVEN] A template with one field is created
-        QltyTestsUtility.EnsureSetup();
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        // [GIVEN] A template with one test is created
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for the template
-        QltyTestsUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInTestGenerationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] Template line is verified to exist
         ConfigurationToLoadQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
@@ -4709,61 +4708,61 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryAssert.IsTrue(ConfigurationToLoadQltyInspectionTemplateLine.IsEmpty(), 'Template line should have been deleted.');
 
         // [THEN] Associated generation rule is deleted
-        QltyInTestGenerationRule.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
-        LibraryAssert.IsTrue(QltyInTestGenerationRule.IsEmpty(), 'Generation rule should have been deleted.');
+        QltyInspectionGenRule.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
+        LibraryAssert.IsTrue(QltyInspectionGenRule.IsEmpty(), 'Generation rule should have been deleted.');
     end;
 
     [Test]
-    procedure TemplateTable_AddFieldToTemplate()
+    procedure TemplateTable_AddTestToTemplate()
     var
-        ToLoadQltyInspectionGrade: Record "Qlty. Inspection Grade";
+        ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        FieldToLoadQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
-        DurationTemplateToLoadQltyIGradeConditionConf: Record "Qlty. I. Grade Condition Conf.";
-        ToLoadQltyField: Record "Qlty. Field";
-        GradeCode: Text;
+        TestToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
+        DurationTemplateToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
+        ToLoadQltyTest: Record "Qlty. Test";
+        ResultCode: Text;
     begin
-        // [SCENARIO] Add field to template creates template line and copies grade conditions
+        // [SCENARIO] Add test to template creates template line and copies result conditions
         Initialize();
 
-        // [GIVEN] A grade is created
-        QltyTestsUtility.GenerateRandomCharacters(20, GradeCode);
-        ToLoadQltyInspectionGrade.Code := CopyStr(GradeCode, 1, MaxStrLen(ToLoadQltyInspectionGrade.Code));
-        ToLoadQltyInspectionGrade."Grade Category" := ToLoadQltyInspectionGrade."Grade Category"::Acceptable;
-        ToLoadQltyInspectionGrade.Insert();
+        // [GIVEN] A result is created
+        QltyInspectionUtility.GenerateRandomCharacters(20, ResultCode);
+        ToLoadQltyInspectionResult.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyInspectionResult.Code));
+        ToLoadQltyInspectionResult."Result Category" := ToLoadQltyInspectionResult."Result Category"::Acceptable;
+        ToLoadQltyInspectionResult.Insert();
 
-        // [GIVEN] A field is created
-        ToLoadQltyField.Code := CopyStr(GradeCode, 1, MaxStrLen(ToLoadQltyField.Code));
-        ToLoadQltyField."Field Type" := ToLoadQltyField."Field Type"::"Field Type Integer";
-        ToLoadQltyField.Insert();
+        // [GIVEN] A test is created
+        ToLoadQltyTest.Code := CopyStr(ResultCode, 1, MaxStrLen(ToLoadQltyTest.Code));
+        ToLoadQltyTest."Test Value Type" := ToLoadQltyTest."Test Value Type"::"Value Type Integer";
+        ToLoadQltyTest.Insert();
 
-        // [GIVEN] A grade condition is created for the field
-        FieldToLoadQltyIGradeConditionConf."Condition Type" := FieldToLoadQltyIGradeConditionConf."Condition Type"::Field;
-        FieldToLoadQltyIGradeConditionConf."Target Code" := ToLoadQltyField.Code;
-        FieldToLoadQltyIGradeConditionConf."Field Code" := ToLoadQltyField.Code;
-        FieldToLoadQltyIGradeConditionConf."Grade Code" := ToLoadQltyInspectionGrade.Code;
-        FieldToLoadQltyIGradeConditionConf.Insert();
+        // [GIVEN] A result condition is created for the test
+        TestToLoadQltyIResultConditConf."Condition Type" := TestToLoadQltyIResultConditConf."Condition Type"::Test;
+        TestToLoadQltyIResultConditConf."Target Code" := ToLoadQltyTest.Code;
+        TestToLoadQltyIResultConditConf."Test Code" := ToLoadQltyTest.Code;
+        TestToLoadQltyIResultConditConf."Result Code" := ToLoadQltyInspectionResult.Code;
+        TestToLoadQltyIResultConditConf.Insert();
 
         // [GIVEN] An empty template is created
-        QltyTestsUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
 
-        // [WHEN] Adding field to template
-        LibraryAssert.IsTrue(ConfigurationToLoadQltyInspectionTemplateHdr.AddFieldToTemplate(ToLoadQltyField.Code), 'Should add template line for field');
+        // [WHEN] Adding test to template
+        LibraryAssert.IsTrue(ConfigurationToLoadQltyInspectionTemplateHdr.AddTestToTemplate(ToLoadQltyTest.Code), 'Should add template line for test');
 
-        // [THEN] Template line is created with correct field code
+        // [THEN] Template line is created with correct test code
         ConfigurationToLoadQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
         ConfigurationToLoadQltyInspectionTemplateLine.FindFirst();
-        LibraryAssert.AreEqual(ToLoadQltyField.Code, ConfigurationToLoadQltyInspectionTemplateLine."Field Code", 'Should be correct field code.');
+        LibraryAssert.AreEqual(ToLoadQltyTest.Code, ConfigurationToLoadQltyInspectionTemplateLine."Test Code", 'Should be correct test code.');
 
-        // [THEN] Grade condition is copied to template
-        DurationTemplateToLoadQltyIGradeConditionConf.SetRange("Condition Type", DurationTemplateToLoadQltyIGradeConditionConf."Condition Type"::Template);
-        DurationTemplateToLoadQltyIGradeConditionConf.SetRange("Target Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
-        DurationTemplateToLoadQltyIGradeConditionConf.FindFirst();
+        // [THEN] Result condition is copied to template
+        DurationTemplateToLoadQltyIResultConditConf.SetRange("Condition Type", DurationTemplateToLoadQltyIResultConditConf."Condition Type"::Template);
+        DurationTemplateToLoadQltyIResultConditConf.SetRange("Target Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
+        DurationTemplateToLoadQltyIResultConditConf.FindFirst();
 
-        // [THEN] Template grade condition has correct field and grade codes
-        LibraryAssert.AreEqual(ToLoadQltyField.Code, DurationTemplateToLoadQltyIGradeConditionConf."Field Code", 'Should be correct field code.');
-        LibraryAssert.AreEqual(ToLoadQltyInspectionGrade.Code, DurationTemplateToLoadQltyIGradeConditionConf."Grade Code", 'Should be correct grade code.');
+        // [THEN] Template result condition has correct test and result codes
+        LibraryAssert.AreEqual(ToLoadQltyTest.Code, DurationTemplateToLoadQltyIResultConditConf."Test Code", 'Should be correct test code.');
+        LibraryAssert.AreEqual(ToLoadQltyInspectionResult.Code, DurationTemplateToLoadQltyIResultConditConf."Result Code", 'Should be correct result code.');
     end;
 
     local procedure Initialize()

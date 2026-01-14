@@ -8,6 +8,10 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Intercompany.GLAccount;
 using System.Telemetry;
 
+/// <summary>
+/// Page for selecting dimensions to be synchronized in intercompany transactions.
+/// Provides interface for enabling and configuring dimension mapping between intercompany partners.
+/// </summary>
 page 705 "IC Dimensions Selector"
 {
     Caption = 'Intercompany Dimensions Selector';
@@ -177,6 +181,11 @@ page 705 "IC Dimensions Selector"
 
     end;
 
+    /// <summary>
+    /// Integration event raised before selecting dimensions for intercompany synchronization.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip standard dimension selection processing</param>
+    /// <param name="Dimension">Dimension record being selected</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSelectingDimensions(var IsHandled: Boolean; var Dimension: Record Dimension)
     begin

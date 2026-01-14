@@ -13,14 +13,23 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Sales.Setup;
+using Microsoft.Utilities;
 using System.Automation;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Integration;
 using System.Privacy;
 using System.Threading;
-using Microsoft.Utilities;
 
+/// <summary>
+/// Provides cash receipt journal functionality for recording customer payments and cash transactions.
+/// Supports payment application, dimension management, and approval workflows with comprehensive validation.
+/// </summary>
+/// <remarks>
+/// Primary data source: Gen. Journal Line table. Integrates with customer ledger entries, bank accounts, and general ledger posting.
+/// Key workflows: Payment entry, customer payment application, dimension assignment, approval processing.
+/// Extensibility: Multiple integration events for custom validation and processing logic throughout the payment workflow.
+/// </remarks>
 page 255 "Cash Receipt Journal"
 {
     AdditionalSearchTerms = 'customer payment';
@@ -1428,6 +1437,10 @@ page 255 "Cash Receipt Journal"
         exit(GenJournalLine.FindSet());
     end;
 
+    /// <summary>
+    /// Configures control visibility and validation settings based on the current journal batch configuration.
+    /// Updates approval workflow states and background error checking capabilities.
+    /// </summary>
     protected procedure SetControlAppearanceFromBatch()
     begin
         SetApprovalStateForBatch();
@@ -1530,21 +1543,55 @@ page 255 "Cash Receipt Journal"
         JobQueuesUsed := GeneralLedgerSetup.JobQueueActive();
     end;
 
+    /// <summary>
+    /// Integration event raised after validating shortcut dimension codes on journal lines.
+    /// Enables custom processing of dimension validation results.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line with validated dimension code</param>
+    /// <param name="ShortcutDimCode">Array of shortcut dimension codes being validated</param>
+    /// <param name="DimIndex">Index of the dimension code being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateShortcutDimCode(var GenJournalLine: Record "Gen. Journal Line"; var ShortcutDimCode: array[8] of Code[20]; DimIndex: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after balance calculation update on cash receipt journal lines.
+    /// Enables custom balance processing and validation logic.
+    /// </summary>
+    /// <param name="GenJnlLine">Current journal line after balance update</param>
+    /// <param name="xGenJnlLine">Previous version of journal line for comparison</param>
+    /// <param name="Balance">Current calculated balance amount</param>
+    /// <param name="TotalBalance">Total balance across all journal lines</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterUpdateBalance(var GenJnlLine: Record "Gen. Journal Line"; var xGenJnlLine: Record "Gen. Journal Line"; var Balance: Decimal; var TotalBalance: Decimal)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised during page opening before journal template selection processing.
+    /// Enables custom template selection logic and batch initialization.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line context for template selection</param>
+    /// <param name="JnlSelected">Indicates whether journal template has been selected</param>
+    /// <param name="CurrentJnlBatchName">Current journal batch name being processed</param>
+    /// <param name="IsHandled">Set to true to skip standard template selection logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnOnOpenPageOnBeforeTemplateSelection(var GenJournalLine: Record "Gen. Journal Line"; var JnlSelected: Boolean; CurrentJnlBatchName: Code[10]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before balance calculation update on cash receipt journal lines.
+    /// Enables custom balance calculation override and validation logic.
+    /// </summary>
+    /// <param name="GenJournalLine">Current journal line for balance calculation</param>
+    /// <param name="xGenJournalLine">Previous version of journal line for comparison</param>
+    /// <param name="Balance">Balance amount for modification</param>
+    /// <param name="TotalBalance">Total balance for modification</param>
+    /// <param name="ShowBalance">Controls balance display visibility</param>
+    /// <param name="ShowTotalBalance">Controls total balance display visibility</param>
+    /// <param name="IsHandled">Set to true to skip standard balance calculation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateBalance(var GenJournalLine: Record "Gen. Journal Line"; var xGenJournalLine: Record "Gen. Journal Line"; var Balance: Decimal; var TotalBalance: Decimal; var ShowBalance: Boolean; var ShowTotalBalance: Boolean; var IsHandled: Boolean)
     begin

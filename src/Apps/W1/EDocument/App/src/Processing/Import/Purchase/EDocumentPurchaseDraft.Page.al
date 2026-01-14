@@ -8,7 +8,9 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Vendor;
+using System.Feedback;
 using System.Telemetry;
+using System.Text;
 using System.Utilities;
 
 page 6181 "E-Document Purchase Draft"
@@ -327,6 +329,18 @@ page 6181 "E-Document Purchase Draft"
                     EDocImport.ViewExtractedData(Rec);
                 end;
             }
+            action(GetFeedback)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Provide feedback';
+                ToolTip = 'Provide feedback on the Payables Agent experience.';
+                Image = Help;
+
+                trigger OnAction()
+                begin
+                    ProvideFeedback();
+                end;
+            }
         }
         area(Navigation)
         {
@@ -385,6 +399,9 @@ page 6181 "E-Document Purchase Draft"
                 {
                 }
                 actionref(Promoted_ViewFile; ViewFile)
+                {
+                }
+                actionref(Promoted_GetFeedback; GetFeedback)
                 {
                 }
             }
@@ -519,6 +536,9 @@ page 6181 "E-Document Purchase Draft"
         ErrorMessage: Record "Error Message";
         EDocImportParameters: Record "E-Doc. Import Parameters";
         EDocImport: Codeunit "E-Doc. Import";
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
+        Telemetry: Codeunit Telemetry;
+        CustomDimensions: Dictionary of [Text, Text];
     begin
         Session.LogMessage('0000PCO', FinalizeDraftInvokedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EDocumentPurchaseHeader.FeatureName());
 
@@ -540,7 +560,9 @@ page 6181 "E-Document Purchase Draft"
         CurrPage.Lines.Page.Update();
         CurrPage.Update();
         if Rec.Status = Rec.Status::Processed then begin
-            Session.LogMessage('0000PCP', FinalizeDraftPerformedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EDocumentPurchaseHeader.FeatureName());
+            CustomDimensions.Set('Category', EDocumentPurchaseHeader.FeatureName());
+            CustomDimensions.Set('SystemId', EDocImpSessionTelemetry.CreateSystemIdText(Rec.SystemId));
+            Telemetry.LogMessage('0000PCP', FinalizeDraftPerformedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
             FeatureTelemetry.LogUsage('0000PCU', EDocumentPurchaseHeader.FeatureName(), 'Finalize draft');
             Rec.ShowRecord();
         end;
@@ -611,6 +633,26 @@ page 6181 "E-Document Purchase Draft"
         Rec.Get(Rec."Entry No");
         if GuiAllowed() then
             Progress.Close();
+    end;
+
+    local procedure ProvideFeedback()
+    var
+        EDocumentDataStorage: Record "E-Doc. Data Storage";
+        MicrosoftUserFeedback: Codeunit "Microsoft User Feedback";
+        Base64Convert: Codeunit "Base64 Convert";
+        EDocDraftFeedback: Page "E-Doc. Draft Feedback";
+        Base64Data: Text;
+        InStream: InStream;
+        ContextFiles, ContextProperties : Dictionary of [Text, Text];
+    begin
+        if EDocDraftFeedback.RunModal() = Action::Yes then begin
+            if EDocumentDataStorage.Get(Rec."Unstructured Data Entry No.") then begin
+                EDocumentDataStorage.GetTempBlob().CreateInStream(InStream);
+                Base64Data := Base64Convert.ToBase64(InStream);
+                ContextFiles.Add(EDocumentDataStorage.Name, Base64Data);
+            end;
+            MicrosoftUserFeedback.SetIsAIFeedback(true).RequestFeedback('Payables Agent Draft', 'PayablesAgent', 'Payables Agent', ContextFiles, ContextProperties);
+        end;
     end;
 
     var

@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
-using System.Threading;
 using System.Telemetry;
+using System.Threading;
 
 page 6752 "Reminder Automation Card"
 {

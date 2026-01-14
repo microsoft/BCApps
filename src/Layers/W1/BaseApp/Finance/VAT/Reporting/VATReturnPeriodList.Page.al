@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+/// <summary>
+/// Lists VAT return periods with status tracking and VAT return management capabilities.
+/// Provides overview of period deadlines, statuses, and actions for VAT return creation and processing.
+/// </summary>
 page 737 "VAT Return Period List"
 {
     ApplicationArea = VAT;

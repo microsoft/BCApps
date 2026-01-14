@@ -196,9 +196,6 @@ codeunit 134451 "ERM Fixed Assets"
         CreatePurchLine(PurchLine2, PurchHeader, FixedAsset."No.", DepreciationBook2.Code);
 
         // 2.Exercise: Post Purchase Invoice.
-        LibraryLowerPermissions.SetPurchDocsPost();
-        LibraryLowerPermissions.AddJournalsPost();
-        LibraryLowerPermissions.AddO365FAEdit();
         LibraryPurchase.PostPurchaseDocument(PurchHeader, true, true);
 
         // 3.Verify: Verify FA Ledger Entry.

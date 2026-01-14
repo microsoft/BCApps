@@ -248,14 +248,6 @@ codeunit 99000815 "Reservation-Check Date Confl."
         ReservMgt.AutoTrack(TransferLine."Outstanding Qty. (Base)");
     end;
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit ServiceLineReserve', '25.0')]
-    procedure ServiceInvLineCheck(ServiceLine: Record Microsoft.Service.Document."Service Line"; ForceRequest: Boolean)
-        ServiceLineReserve: Codeunit Microsoft.Service.Document."Service Line-Reserve";
-    begin
-        ServiceLineReserve.ServiceInvLineCheck(ServiceLine, ForceRequest)
-    end;
-#endif
 
     procedure JobPlanningLineCheck(JobPlanningLine: Record "Job Planning Line"; ForceRequest: Boolean)
     var
@@ -640,4 +632,3 @@ codeunit 99000815 "Reservation-Check Date Confl."
     begin
     end;
 }
-

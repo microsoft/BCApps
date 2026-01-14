@@ -26,6 +26,14 @@ using System.Environment.Configuration;
 using System.Reflection;
 using System.Utilities;
 
+/// <summary>
+/// Core posting engine for general journal batches with comprehensive validation and posting functionality.
+/// Handles journal line processing, balance validation, recurring journals, allocations, and intercompany transactions.
+/// </summary>
+/// <remarks>
+/// Supports recurring journals, allocation processing, balance validation, and intercompany posting.
+/// Integrates with G/L posting, dimension processing, and posting preview functionality.
+/// </remarks>
 codeunit 13 "Gen. Jnl.-Post Batch"
 {
     Permissions =
@@ -1152,6 +1160,12 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         exit(GenJnlLine4."Account Type");
     end;
 
+    /// <summary>
+    /// Updates the posting progress dialog with current posting state and progress information.
+    /// </summary>
+    /// <param name="PostingState">Current posting operation state identifier</param>
+    /// <param name="LineNo">Current journal line number being processed</param>
+    /// <param name="TotalLinesQty">Total number of journal lines to be posted</param>
     procedure UpdateDialog(PostingState: Integer; LineNo: Integer; TotalLinesQty: Integer)
     begin
         if GuiAllowed() then begin
@@ -1160,6 +1174,12 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         end;
     end;
 
+    /// <summary>
+    /// Updates the posting progress dialog specifically for balance lines update operations.
+    /// </summary>
+    /// <param name="PostingSubState">Sub-state within the balance lines update process</param>
+    /// <param name="LineNo">Current journal line number being processed</param>
+    /// <param name="TotalLinesQty">Total number of journal lines to be processed</param>
     procedure UpdateDialogUpdateBalLines(PostingSubState: Integer; LineNo: Integer; TotalLinesQty: Integer)
     begin
         if GuiAllowed() then begin
@@ -1281,6 +1301,13 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         MarkedGenJnlLine := GenJournalLine;
     end;
 
+    /// <summary>
+    /// Confirms posting of journal lines that require unvoidable validation checks.
+    /// Specifically validates manual check transactions without balancing accounts and prompts for user confirmation.
+    /// </summary>
+    /// <param name="JournalBatchName">Name of the journal batch to validate</param>
+    /// <param name="JournalTemplateName">Name of the journal template to validate</param>
+    /// <returns>True if user confirms posting despite potential check voiding issues, false to cancel posting</returns>
     procedure ConfirmPostingUnvoidableChecks(JournalBatchName: Code[20]; JournalTemplateName: Code[20]): Boolean
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -1326,6 +1353,11 @@ codeunit 13 "Gen. Jnl.-Post Batch"
             exit(true);
     end;
 
+    /// <summary>
+    /// Sets the posting batch to preview mode to prevent actual database commits during posting operations.
+    /// Used for posting preview functionality to analyze posting impacts without permanent changes.
+    /// </summary>
+    /// <param name="NewPreviewMode">True to enable preview mode, false for normal posting with commits</param>
     procedure SetPreviewMode(NewPreviewMode: Boolean)
     begin
         PreviewMode := NewPreviewMode;
@@ -1581,6 +1613,11 @@ codeunit 13 "Gen. Jnl.-Post Batch"
             GenJnlLine.Modify();
     end;
 
+    /// <summary>
+    /// Controls whether database commits are suppressed during posting operations.
+    /// Used for testing scenarios or batch operations where commits should be managed externally.
+    /// </summary>
+    /// <param name="NewSuppressCommit">True to suppress automatic commits, false to allow normal commit behavior</param>
     procedure SetSuppressCommit(NewSuppressCommit: Boolean)
     begin
         SuppressCommit := NewSuppressCommit;
@@ -1612,6 +1649,11 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         end;
     end;
 
+    /// <summary>
+    /// Creates posted general journal line records from successfully posted journal lines.
+    /// Archives journal line data for audit trail and historical reference if batch is configured for copying.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record that was successfully posted</param>
     procedure InsertPostedGenJnlLine(GenJournalLine: Record "Gen. Journal Line")
     var
         PostedGenJournalBatch: Record "Posted Gen. Journal Batch";
@@ -1909,81 +1951,204 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         exit(not GenJournalLine.IsEmpty());
     end;
 
+    /// <summary>
+    /// Integration event raised after validating document numbers for journal lines.
+    /// Enables custom processing or additional validation after document number checks are complete.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record with validated document number</param>
+    /// <param name="LastDocNo">Last document number processed during validation</param>
+    /// <param name="LastPostedDocNo">Last posted document number for comparison</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckDocumentNo(var GenJournalLine: Record "Gen. Journal Line"; LastDocNo: code[20]; LastPostedDocNo: code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after completing all posting batch operations.
+    /// Enables cleanup, logging, or additional processing after journal batch posting is finished.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record that was processed</param>
+    /// <param name="PreviewMode">Indicates whether posting was executed in preview mode</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCode(var GenJournalLine: Record "Gen. Journal Line"; PreviewMode: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after copying balancing account data between journal lines.
+    /// Enables modification or validation of copied balancing information.
+    /// </summary>
+    /// <param name="GenJnlLineTo">Target journal line receiving balancing data</param>
+    /// <param name="GenJnlLineFrom">Source journal line providing balancing data</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyGenJnlLineBalancingData(var GenJnlLineTo: Record "Gen. Journal Line"; GenJnlLineFrom: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after determining the posting state message text.
+    /// Enables customization of progress messages shown during posting operations.
+    /// </summary>
+    /// <param name="PostingState">Current posting state identifier</param>
+    /// <param name="Result">Posting state message text that can be modified</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetPostingStateMsg(PostingState: Integer; var Result: Text)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after posting an individual general journal line.
+    /// Enables post-processing, logging, or additional operations after line posting completion.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record that was posted</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed</param>
+    /// <param name="GenJnlPostLine">Reference to the posting codeunit instance</param>
+    /// <param name="IsPosted">Indicates whether the line was successfully posted</param>
+    /// <param name="PostingGenJournalLine">Copy of the journal line used during posting</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostGenJnlLine(var GenJournalLine: Record "Gen. Journal Line"; CommitIsSuppressed: Boolean; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; IsPosted: Boolean; var PostingGenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after posting a general journal line with result status.
+    /// Enables result processing and validation after individual line posting operations.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record that was posted</param>
+    /// <param name="Result">Boolean result indicating posting success or failure</param>
+    /// <param name="GenJnlPostLine">Reference to the posting codeunit instance</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; var Result: Boolean; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after completing batch processing of general journal lines.
+    /// Enables custom post-processing logic and finalization tasks after batch posting operations.
+    /// </summary>
+    /// <param name="TempGenJournalLine">Temporary record containing processed journal lines</param>
+    /// <param name="GenJournalLine">Source general journal line record</param>
+    /// <param name="SuppressCommit">Indicates whether database commits are suppressed</param>
+    /// <param name="PreviewMode">Indicates whether operation runs in preview mode</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterProcessLines(var TempGenJournalLine: Record "Gen. Journal Line" temporary; var GenJournalLine: Record "Gen. Journal Line"; SuppressCommit: Boolean; PreviewMode: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after determining whether to set document number to last posted value.
+    /// Enables custom logic for document number assignment and sequential numbering validation.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being processed</param>
+    /// <param name="LastDocNo">Last posted document number for reference</param>
+    /// <param name="Result">Result indicating whether to use last posted document number</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterShouldSetDocNoToLastPosted(var GenJournalLine: Record "Gen. Journal Line"; LastDocNo: Code[20]; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before performing balance validation for journal batch processing.
+    /// Enables custom balance checking logic and validation rule customization for posting operations.
+    /// </summary>
+    /// <param name="GenJnlTemplate">General journal template containing posting rules</param>
+    /// <param name="GenJnlLine">General journal line being validated</param>
+    /// <param name="CurrentBalance">Current balance amount for validation</param>
+    /// <param name="CurrentBalanceReverse">Current reverse balance amount</param>
+    /// <param name="CurrencyBalance">Currency-specific balance amount</param>
+    /// <param name="StartLineNo">Starting line number for balance calculation</param>
+    /// <param name="StartLineNoReverse">Starting line number for reverse balance</param>
+    /// <param name="LastDocType">Last processed document type</param>
+    /// <param name="LastDocNo">Last processed document number</param>
+    /// <param name="LastDate">Last processed posting date</param>
+    /// <param name="LastCurrencyCode">Last processed currency code</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckBalance(GenJnlTemplate: Record "Gen. Journal Template"; GenJnlLine: Record "Gen. Journal Line"; CurrentBalance: Decimal; CurrentBalanceReverse: Decimal; CurrencyBalance: Decimal; StartLineNo: Integer; StartLineNoReverse: Integer; LastDocType: Option; LastDocNo: Code[20]; LastDate: Date; LastCurrencyCode: Code[10]; CommitIsSuppressed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before performing correction validation for journal line processing.
+    /// Enables custom correction logic and validation rule customization for document correction scenarios.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being validated for correction</param>
+    /// <param name="IsHandled">Set to true to skip standard correction validation</param>
+    /// <param name="GenJnlTemplate">General journal template containing correction rules</param>
+    /// <param name="LastDate">Last processed posting date for correction validation</param>
+    /// <param name="LastDocType">Last processed document type for correction validation</param>
+    /// <param name="LastDocNo">Last processed document number for correction validation</param>
+    /// <param name="DocCorrection">Indicates whether document correction is being performed</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckCorrection(GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean; GenJnlTemplate: Record "Gen. Journal Template"; var LastDate: Date; var LastDocType: Enum "Gen. Journal Document Type"; var LastDocNo: Code[20]; var DocCorrection: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating general posting type for journal line processing.
+    /// Enables custom posting type validation and account type-specific business rule enforcement.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line being validated</param>
+    /// <param name="AccountType">Account type for posting type validation</param>
+    /// <param name="IsHandled">Set to true to skip standard posting type validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckGenPostingType(GenJnlLine: Record "Gen. Journal Line"; AccountType: Enum "Gen. Journal Account Type"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before clearing data exchange entries for journal line processing.
+    /// Enables custom data exchange cleanup logic and integration with external data sources.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line with data exchange entries to clear</param>
+    /// <param name="IsHandled">Set to true to skip standard data exchange entry clearing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeClearDataExchEntries(var GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before starting batch posting processing for general journal lines.
+    /// Enables custom initialization logic and preprocessing workflows before posting operations begin.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being processed</param>
+    /// <param name="PreviewMode">Indicates whether operation runs in preview mode</param>
+    /// <param name="CommitIsSuppressed">Indicates whether database commits are suppressed</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCode(var GenJournalLine: Record "Gen. Journal Line"; PreviewMode: Boolean; CommitIsSuppressed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before counting general journal lines for batch processing.
+    /// Enables custom line counting logic and filtering for batch operation scope determination.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line record for counting operation</param>
+    /// <param name="GenJournalLineCount">Count of journal lines to be processed</param>
+    /// <param name="IsHandled">Set to true to skip standard line counting</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCountGenJournalLines(var GenJournalLine: Record "Gen. Journal Line"; var GenJournalLineCount: Integer; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before committing database transactions during batch posting.
+    /// Enables custom commit logic and transaction management for posting operations.
+    /// </summary>
+    /// <param name="GLRegNo">General ledger register number for transaction tracking</param>
+    /// <param name="GenJournalLine">General journal line being committed</param>
+    /// <param name="GenJnlPostLine">Posting codeunit handling the commit operation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCommit(GLRegNo: Integer; var GenJournalLine: Record "Gen. Journal Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before copying fields during journal line processing.
+    /// Enables custom field copying logic and data transformation workflows.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line for field copying operation</param>
+    /// <param name="IsHandled">Set to true to skip standard field copying</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCopyFields(var GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin

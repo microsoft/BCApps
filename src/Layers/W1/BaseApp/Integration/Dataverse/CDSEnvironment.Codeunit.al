@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Integration.Dataverse;
 
-using System.Security.Authentication;
 using System.Environment;
+using System.Security.Authentication;
 using System.Utilities;
 
 codeunit 7203 "CDS Environment"
@@ -76,15 +76,6 @@ codeunit 7203 "CDS Environment"
         exit(false);
     end;
 
-#if not CLEAN25
-    [Scope('OnPrem')]
-    [NonDebuggable]
-    [Obsolete('Replaced by GetGlobalDiscoverabilityOnBehalfTokenAsSecretText', '25.0')]
-    procedure GetGlobalDiscoverabilityOnBehalfToken(): Text
-    begin
-        exit(GetGlobalDiscoverabilityOnBehalfTokenAsSecretText().Unwrap());
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure GetGlobalDiscoverabilityOnBehalfTokenAsSecretText(): SecretText

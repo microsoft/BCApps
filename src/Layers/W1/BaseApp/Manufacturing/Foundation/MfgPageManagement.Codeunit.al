@@ -4,7 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Utilities;
 
+using Microsoft.Inventory.Journal;
+using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Journal;
 
 codeunit 99000791 "Mfg. Page Management"
 {
@@ -14,6 +17,21 @@ codeunit 99000791 "Mfg. Page Management"
         case RecordRef.Number of
             Database::"Production Order":
                 CardPageID := GetProductionOrderPageID(RecordRef);
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Page Management", 'OnGetItemJournalTemplatePageID', '', false, false)]
+    local procedure OnGetItemJournalTemplatePageID(ItemJournalTemplate: Record "Item Journal Template"; RecordRef: RecordRef; var CardPageID: Integer);
+    begin
+        case ItemJournalTemplate.Type of
+            ItemJournalTemplate.Type::Capacity:
+                CardPageID := Page::"Capacity Journal";
+            ItemJournalTemplate.Type::Consumption:
+                CardPageID := Page::"Consumption Journal";
+            ItemJournalTemplate.Type::Output:
+                CardPageID := Page::"Output Journal";
+            ItemJournalTemplate.Type::"Prod. Order":
+                CardPageID := Page::"Production Journal";
         end;
     end;
 

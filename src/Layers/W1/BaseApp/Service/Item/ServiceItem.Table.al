@@ -9,6 +9,7 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
+using Microsoft.Integration.Dataverse;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Projects.Resources.Resource;
@@ -25,7 +26,6 @@ using Microsoft.Service.Resources;
 using Microsoft.Service.Setup;
 using Microsoft.Utilities;
 using System.Utilities;
-using Microsoft.Integration.Dataverse;
 
 table 5940 "Service Item"
 {
@@ -345,6 +345,7 @@ table 5940 "Service Item"
         }
         field(13; "Sales Unit Price"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 2;
             BlankZero = true;
             Caption = 'Sales Unit Price';
@@ -364,6 +365,7 @@ table 5940 "Service Item"
         }
         field(14; "Sales Unit Cost"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 2;
             BlankZero = true;
             Caption = 'Sales Unit Cost';
@@ -536,6 +538,7 @@ table 5940 "Service Item"
         }
         field(21; "Response Time (Hours)"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Response Time (Hours)';
             DecimalPlaces = 0 : 5;
@@ -571,6 +574,7 @@ table 5940 "Service Item"
         }
         field(26; "Default Contract Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Default Contract Discount %';
             DecimalPlaces = 0 : 5;
@@ -770,6 +774,7 @@ table 5940 "Service Item"
         }
         field(66; "Total Quantity"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = sum("Service Ledger Entry".Quantity where("Entry Type" = const(Usage),
                                                                      "Service Item No. (Serviced)" = field("No."),
                                                                      "Service Contract No." = field("Contract Filter"),
@@ -783,6 +788,7 @@ table 5940 "Service Item"
         }
         field(67; "Total Qty. Invoiced"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = - sum("Service Ledger Entry"."Charged Qty." where("Entry Type" = const(Sale),
                                                                             "Service Item No. (Serviced)" = field("No."),
                                                                             "Service Contract No." = field("Contract Filter"),
@@ -912,6 +918,8 @@ table 5940 "Service Item"
         }
         field(79; "Contract Cost"; Decimal)
         {
+            AutoFormatExpression = '';
+            AutoFormatType = 1;
             CalcFormula = - sum("Service Ledger Entry"."Cost Amount" where("Entry Type" = const(Sale),
                                                                            "Service Item No. (Serviced)" = field("No."),
                                                                            "Service Contract No." = field("Contract Filter"),
@@ -958,6 +966,7 @@ table 5940 "Service Item"
         }
         field(86; "Default Contract Cost"; Decimal)
         {
+            AutoFormatExpression = '';
             AutoFormatType = 2;
             BlankZero = true;
             Caption = 'Default Contract Cost';
@@ -991,6 +1000,7 @@ table 5940 "Service Item"
         }
         field(90; "Total Qty. Consumed"; Decimal)
         {
+            AutoFormatType = 0;
             CalcFormula = - sum("Service Ledger Entry".Quantity where("Entry Type" = const(Consume),
                                                                       "Service Item No. (Serviced)" = field("No."),
                                                                       "Service Contract No." = field("Contract Filter"),
@@ -1059,13 +1069,8 @@ table 5940 "Service Item"
             Editable = false;
             CalcFormula = exist("CRM Integration Record" where("Integration ID" = field(SystemId), "Table ID" = const(Database::"Service Item")));
             ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-#if not CLEAN25
-            ObsoleteState = Pending;
-            ObsoleteTag = '25.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#endif
         }
 #endif
     }

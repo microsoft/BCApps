@@ -139,6 +139,16 @@ codeunit 827 "Service Post Invoice Events"
     begin
     end;
 
+    internal procedure RunOnPrepareLineOnAfterGetGenPostingSetup(ServiceLine: Record "Service Line"; ServiceLineACY: Record "Service Line"; var GenPostingSetup: Record "General Posting Setup")
+    begin
+        OnPrepareLineOnAfterGetGenPostingSetup(ServiceLine, ServiceLineACY, GenPostingSetup);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPrepareLineOnAfterGetGenPostingSetup(ServiceLine: Record "Service Line"; ServiceLineACY: Record "Service Line"; var GenPostingSetup: Record "General Posting Setup")
+    begin
+    end;
+
     procedure RunOnPrepareLineOnBeforeSetAmounts(ServiceLine: Record "Service Line"; ServiceLineACY: Record "Service Line"; var InvoicePostingBuffer: Record "Invoice Posting Buffer"; var TotalVAT: Decimal; var TotalVATACY: Decimal; var TotalAmount: Decimal; var TotalAmountACY: Decimal; var TotalVATBase: Decimal; var TotalVATBaseACY: Decimal; var IsHandled: Boolean)
     begin
         OnPrepareLineOnBeforeSetAmounts(ServiceLine, ServiceLineACY, InvoicePostingBuffer, TotalVAT, TotalVATACY, TotalAmount, TotalAmountACY, TotalVATBase, TotalVATBaseACY, IsHandled);

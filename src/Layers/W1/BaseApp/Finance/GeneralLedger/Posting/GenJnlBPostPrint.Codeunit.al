@@ -9,6 +9,14 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.BatchProcessing;
 using System.Utilities;
 
+/// <summary>
+/// Handles batch posting of multiple general journal batches with integrated document printing capabilities.
+/// Combines posting functionality with automatic printing of posted documents using configured report templates.
+/// </summary>
+/// <remarks>
+/// Extends standard batch posting with print functionality for receipts and posted documents.
+/// Supports both immediate posting with printing and job queue scheduling with print flags.
+/// </remarks>
 codeunit 234 "Gen. Jnl.-B.Post+Print"
 {
     TableNo = "Gen. Journal Batch";
@@ -114,16 +122,31 @@ codeunit 234 "Gen. Jnl.-B.Post+Print"
         end;
     end;
 
+    /// <summary>
+    /// Returns whether any journal batch encountered posting errors during the batch posting and printing process.
+    /// </summary>
+    /// <returns>True if one or more journal batches failed to post successfully, false if all posted without errors</returns>
     procedure JournalWithPostingErrors(): Boolean
     begin
         exit(JnlWithErrors);
     end;
 
+    /// <summary>
+    /// Integration event raised after successfully posting a journal batch, before printing operations begin.
+    /// Enables custom processing or validation after posting but before document printing.
+    /// </summary>
+    /// <param name="GenJournalBatch">Journal batch record that was successfully posted</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostJournalBatch(var GenJournalBatch: Record "Gen. Journal Batch");
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before starting journal batch posting operations.
+    /// Enables custom validation, preprocessing, or dialog suppression before posting begins.
+    /// </summary>
+    /// <param name="GenJournalBatch">Journal batch record that will be posted</param>
+    /// <param name="HideDialog">Set to true to suppress confirmation dialogs during posting</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostJournalBatch(var GenJournalBatch: Record "Gen. Journal Batch"; var HideDialog: Boolean)
     begin

@@ -1,6 +1,8 @@
+/// <summary>
+/// Provides utility functions for creating and managing dimensions, dimension values, and dimension sets in test scenarios.
+/// </summary>
 codeunit 131001 "Library - Dimension"
 {
-    // Contains all utility functions related to Dimensions.
 
     EventSubscriberInstance = Manual;
 

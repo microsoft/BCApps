@@ -354,13 +354,6 @@ report 5756 "Create Warehouse Location"
         HideValidationDialog := NewHideValidationDialog;
     end;
 
-#if not CLEAN25
-    [Obsolete('This event is obsolete and will be removed in a future version.', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnCreateWhseJnlLineOnBeforeCheck(var WarehouseJournalLine: Record "Warehouse Journal Line"; ItemLedgerEntry: Record "Item Ledger Entry")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnPostReportOnBeforeLocationModify(var Location: Record Location)
@@ -372,4 +365,3 @@ report 5756 "Create Warehouse Location"
     begin
     end;
 }
-

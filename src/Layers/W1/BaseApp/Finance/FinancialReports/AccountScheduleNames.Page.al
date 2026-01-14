@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.FinancialReports;
 
+/// <summary>
+/// Provides management interface for financial report row definitions (formerly account schedules).
+/// Enables creation, editing, copying, import/export, and where-used analysis of row definition templates.
+/// </summary>
+/// <remarks>
+/// Primary functionality: Row definition management, copy operations, RapidStart import/export integration.
+/// Navigation: Links to Account Schedule page for detailed row editing and Financial Report usage tracking.
+/// Extensibility: Standard page extension patterns for additional fields and actions.
+/// </remarks>
 page 103 "Account Schedule Names"
 {
     AboutTitle = 'About (Financial Report) Row Definitions';

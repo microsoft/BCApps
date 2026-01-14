@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+/// <summary>
+/// Setup interface for VAT reporting configuration and parameters.
+/// Controls report modification permissions, VAT base reporting options, and period management settings.
+/// </summary>
 page 743 "VAT Report Setup"
 {
     ApplicationArea = VAT;

@@ -25,7 +25,7 @@ page 346 "Item Picture"
         {
             field(Picture; Rec.Picture)
             {
-                ApplicationArea = Invoicing, Basic, Suite;
+                ApplicationArea = Basic, Suite;
                 ShowCaption = false;
                 ToolTip = 'Specifies the picture that has been inserted for the item.';
             }
@@ -229,4 +229,3 @@ page 346 "Item Picture"
     begin
     end;
 }
-

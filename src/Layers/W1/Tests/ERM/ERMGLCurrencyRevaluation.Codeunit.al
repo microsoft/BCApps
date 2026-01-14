@@ -22,6 +22,7 @@ codeunit 134887 "ERM G/L Currency Revaluation"
         LinesExistErr: Label 'There are already entries in the G/L journal %1. Please post or delete them before you proceed.', Comment = '%1 - batch name';
         CorrectionInsertedMsg: Label 'currency revaluation lines have been created in the general journal';
         CurrUpdateBalAccErr: Label 'In order to change the currency code, the balance of the account must be zero.';
+        JournalErr: label '%1 does not set correctly.';
 
     local procedure Initialize()
     var
@@ -60,6 +61,7 @@ codeunit 134887 "ERM G/L Currency Revaluation"
         // Exercise.
         Commit();
         LibraryVariableStorage.Enqueue(CurrencyExchangeRate."Starting Date");
+        LibraryVariableStorage.Enqueue(GenJournalBatch."Journal Template Name");
         RunRevaluation(GLAccount, true);
 
         // Verify.
@@ -86,6 +88,7 @@ codeunit 134887 "ERM G/L Currency Revaluation"
         // Exercise.
         Commit();
         LibraryVariableStorage.Enqueue(CurrencyExchangeRate."Starting Date");
+        LibraryVariableStorage.Enqueue(GenJournalBatch."Journal Template Name");
         RunRevaluation(GLAccount, false);
 
         // Verify.
@@ -115,6 +118,7 @@ codeunit 134887 "ERM G/L Currency Revaluation"
         // Exercise.
         Commit();
         LibraryVariableStorage.Enqueue(CurrencyExchangeRate."Starting Date");
+        LibraryVariableStorage.Enqueue(GenJournalBatch."Journal Template Name");
         RunRevaluation(GLAccount, true);
 
         // Verify.
@@ -141,6 +145,7 @@ codeunit 134887 "ERM G/L Currency Revaluation"
         // Exercise.
         Commit();
         LibraryVariableStorage.Enqueue(CurrencyExchangeRate."Starting Date");
+        LibraryVariableStorage.Enqueue(GenJournalBatch."Journal Template Name");
         RunRevaluation(GLAccount, true);
 
         // Verify.
@@ -169,6 +174,7 @@ codeunit 134887 "ERM G/L Currency Revaluation"
         // Exercise.
         Commit();
         LibraryVariableStorage.Enqueue(CurrencyExchangeRate."Starting Date");
+        LibraryVariableStorage.Enqueue(GenJournalBatch."Journal Template Name");
         RunRevaluation(GLAccount, true);
 
         // Verify.
@@ -194,6 +200,7 @@ codeunit 134887 "ERM G/L Currency Revaluation"
         GetCorrectionBatch(GenJournalBatch);
         Commit();
         LibraryVariableStorage.Enqueue(CurrencyExchangeRate."Starting Date");
+        LibraryVariableStorage.Enqueue(GenJournalBatch."Journal Template Name");
         RunRevaluation(GLAccount, true);
         VerifyCorrectionlLinesData(GLAccount, GenJournalBatch, CurrencyExchangeRate);
 
@@ -204,6 +211,7 @@ codeunit 134887 "ERM G/L Currency Revaluation"
 
         // Exercise.
         LibraryVariableStorage.Enqueue(CurrencyExchangeRate."Starting Date");
+        LibraryVariableStorage.Enqueue(GenJournalBatch."Journal Template Name");
         RunRevaluation(GLAccount, true);
 
         // Verify.
@@ -215,6 +223,7 @@ codeunit 134887 "ERM G/L Currency Revaluation"
     [Scope('OnPrem')]
     procedure AdjustExchRatesNoKeyDate()
     var
+        GenJournalBatch: Record "Gen. Journal Batch";
         GLAccount: Record "G/L Account";
         CurrencyExchangeRate: Record "Currency Exchange Rate";
     begin
@@ -224,10 +233,12 @@ codeunit 134887 "ERM G/L Currency Revaluation"
         CreateAccountWithSameSourceCurrencySetup(GLAccount);
         AddDifferentExchangeRate(CurrencyExchangeRate, GLAccount, 1);
         CreateFCYBalance(GLAccount);
+        GetCorrectionBatch(GenJournalBatch);
 
         // Exercise.
         Commit();
         LibraryVariableStorage.Enqueue(0D);
+        LibraryVariableStorage.Enqueue(GenJournalBatch."Journal Template Name");
         asserterror REPORT.Run(REPORT::"G/L Currency Revaluation", true, false, GLAccount);
 
         // Verify.
@@ -257,6 +268,7 @@ codeunit 134887 "ERM G/L Currency Revaluation"
         // Exercise.
         Commit();
         LibraryVariableStorage.Enqueue(CurrencyExchangeRate."Starting Date");
+        LibraryVariableStorage.Enqueue(GenJournalBatch."Journal Template Name");
         asserterror REPORT.Run(REPORT::"G/L Currency Revaluation", true, false, GLAccount);
 
         // Verify.
@@ -518,6 +530,35 @@ codeunit 134887 "ERM G/L Currency Revaluation"
         asserterror LibraryERM.PostGeneralJnlLine(GenJournalLine);
     end;
 
+    [Test]
+    [HandlerFunctions('SelectJournalTemplateReqPageHandler')]
+    procedure SelectJournalTemplateOnGLCurrencyRevaluation()
+    var
+        GLAccount: Record "G/L Account";
+        GenJournalTemplate1: Record "Gen. Journal Template";
+        GenJournalTemplate2: Record "Gen. Journal Template";
+        GenJournalBatch1: Record "Gen. Journal Batch";
+        GenJournalBatch2: Record "Gen. Journal Batch";
+    begin
+        // [SCENARIO 612272] User can select a specific journal template for G/L Currency Revaluation.
+        Initialize();
+
+        // [GIVEN] Two General Journal Templates with batches: "AA" and "ZZ"
+        CreateGeneralJournalTemplateWithBatch(GenJournalTemplate1, GenJournalBatch1, 'AA');
+        CreateGeneralJournalTemplateWithBatch(GenJournalTemplate2, GenJournalBatch2, 'ZZ');
+
+        // [GIVEN] Create G/L Account with source currency setup and FCY balance
+        CreateAccountWithSameSourceCurrencySetup(GLAccount);
+
+        // [WHEN] Run G/L Currency Revaluation selecting template "ZZ" (not the first alphabetically)
+        Commit();
+        LibraryVariableStorage.Enqueue(GenJournalTemplate2.Name);
+        LibraryVariableStorage.Enqueue(GenJournalBatch2.Name);
+        RunRevaluation(GLAccount, true);
+
+        // [THEN] Verify selection of Journal Template Name and Journal Batch Name.
+    end;
+
     local procedure AddDifferentExchangeRate(var CurrencyExchangeRate: Record "Currency Exchange Rate"; GLAccount: Record "G/L Account"; GainsLossesFactor: Integer)
     begin
         CurrencyExchangeRate.SetRange("Currency Code", GLAccount."Source Currency Code");
@@ -750,13 +791,27 @@ codeunit 134887 "ERM G/L Currency Revaluation"
         GenJournalLine.TestField("Bal. Account No.", BalAccountNo);
     end;
 
+    local procedure CreateGeneralJournalTemplateWithBatch(var GenJournalTemplate: Record "Gen. Journal Template"; var GenJournalBatch: Record "Gen. Journal Batch"; TemplateName: Code[10])
+    begin
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        GenJournalTemplate.Rename(TemplateName);
+        GenJournalTemplate.Validate(Type, GenJournalTemplate.Type::General);
+        GenJournalTemplate.Validate(Recurring, false);
+        GenJournalTemplate.Modify(true);
+
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+    end;
+
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure AdjExchRatesReqPageHandler(var GLCurrencyRevaluation: TestRequestPage "G/L Currency Revaluation")
     var
+        TemplateName: Text;
         PostingDate: Variant;
     begin
         LibraryVariableStorage.Dequeue(PostingDate);
+        TemplateName := LibraryVariableStorage.DequeueText();
+        GLCurrencyRevaluation.JournalTemplateName.SetValue(TemplateName);
         GLCurrencyRevaluation.JournalBatchName.Lookup();
         GLCurrencyRevaluation.PostingDate.SetValue(PostingDate); // Posting Date.
         GLCurrencyRevaluation.OK().Invoke();
@@ -768,6 +823,25 @@ codeunit 134887 "ERM G/L Currency Revaluation"
     begin
         GLCurrencyRevaluation.JournalBatchName.SetValue(LibraryVariableStorage.DequeueText());
         GLCurrencyRevaluation.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    [Scope('OnPrem')]
+    procedure SelectJournalTemplateReqPageHandler(var GLCurrencyRevaluation: TestRequestPage "G/L Currency Revaluation")
+    var
+        TemplateName: Text;
+        BatchName: Text;
+    begin
+        TemplateName := LibraryVariableStorage.DequeueText();
+        BatchName := LibraryVariableStorage.DequeueText();
+        GLCurrencyRevaluation.JournalTemplateName.SetValue(TemplateName);
+        GLCurrencyRevaluation.JournalBatchName.SetValue(BatchName);
+
+        // Verify selection of Journal Template Name and Journal Batch Name.
+        Assert.AreEqual(TemplateName, GLCurrencyRevaluation.JournalTemplateName.Value, StrSubstNo(JournalErr, GLCurrencyRevaluation.JournalTemplateName.Caption));
+        Assert.AreEqual(BatchName, GLCurrencyRevaluation.JournalBatchName.Value, StrSubstNo(JournalErr, GLCurrencyRevaluation.JournalBatchName.Caption));
+
+        GLCurrencyRevaluation.Cancel().Invoke();
     end;
 
     [MessageHandler]

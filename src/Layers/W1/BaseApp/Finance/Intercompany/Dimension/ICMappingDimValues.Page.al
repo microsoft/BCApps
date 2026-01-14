@@ -7,6 +7,10 @@ namespace Microsoft.Intercompany.Dimension;
 using Microsoft.Finance.Dimension;
 using Microsoft.Intercompany.GLAccount;
 
+/// <summary>
+/// Provides mapping interface for intercompany dimension values to local dimension values.
+/// Enables bidirectional mapping configuration between partner company dimensions and local dimensions.
+/// </summary>
 page 668 "IC Mapping Dim Values"
 {
     PageType = ListPlus;
@@ -145,6 +149,11 @@ page 668 "IC Mapping Dim Values"
         MapDimensionValuesInstructionQst: Label 'For which of the following tables do you wish to perform the mapping?';
         RemoveMappingInstructionQst: Label 'For which of the following tables do you wish to remove the mapping?';
 
+    /// <summary>
+    /// Registers selected intercompany dimension and local dimension for mapping operations.
+    /// </summary>
+    /// <param name="SelectedICDimension">Selected intercompany dimension record</param>
+    /// <param name="SelectedDimension">Selected local dimension record</param>
     procedure RegisterUserSelections(SelectedICDimension: Record "IC Dimension"; SelectedDimension: Record Dimension)
     begin
         ICDimensionFilter := SelectedICDimension;

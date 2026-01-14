@@ -4,6 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Temporary buffer table for dimension set entry processing and manipulation during dimension operations.
+/// Stores dimension set entry data with extended information for dimension processing workflows.
+/// </summary>
+/// <remarks>
+/// Used for dimension set modifications, consolidation processing, and API operations.
+/// Includes both legacy ID fields and modern GUID identifiers for system integration.
+/// </remarks>
 table 5489 "Dimension Set Entry Buffer"
 {
     Caption = 'Dimension Set Entry Buffer';
@@ -13,11 +21,17 @@ table 5489 "Dimension Set Entry Buffer"
 
     fields
     {
+        /// <summary>
+        /// Identifier of the dimension set containing this dimension entry.
+        /// </summary>
         field(1; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Code of the dimension associated with this dimension set entry.
+        /// </summary>
         field(2; "Dimension Code"; Code[20])
         {
             Caption = 'Dimension Code';
@@ -25,6 +39,9 @@ table 5489 "Dimension Set Entry Buffer"
             NotBlank = true;
             TableRelation = Dimension;
         }
+        /// <summary>
+        /// Code of the dimension value for this dimension set entry.
+        /// </summary>
         field(3; "Dimension Value Code"; Code[20])
         {
             Caption = 'Dimension Value Code';
@@ -32,11 +49,17 @@ table 5489 "Dimension Set Entry Buffer"
             NotBlank = true;
             TableRelation = "Dimension Value".Code where("Dimension Code" = field("Dimension Code"));
         }
+        /// <summary>
+        /// Internal identifier of the dimension value for system references.
+        /// </summary>
         field(4; "Dimension Value ID"; Integer)
         {
             Caption = 'Dimension Value ID';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Display name of the dimension for user interface presentation.
+        /// </summary>
         field(5; "Dimension Name"; Text[30])
         {
             CalcFormula = lookup(Dimension.Name where(Code = field("Dimension Code")));
@@ -44,6 +67,9 @@ table 5489 "Dimension Set Entry Buffer"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Display name of the dimension value for user interface presentation.
+        /// </summary>
         field(6; "Dimension Value Name"; Text[50])
         {
             CalcFormula = lookup("Dimension Value".Name where("Dimension Code" = field("Dimension Code"),
@@ -52,11 +78,17 @@ table 5489 "Dimension Set Entry Buffer"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// Type of parent entity for API and integration scenarios.
+        /// </summary>
         field(7; "Parent Type"; Enum "Dimension Set Entry Buffer Parent Type")
         {
             Caption = 'Parent Type';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// Consolidation code from the dimension master for consolidation reporting.
+        /// </summary>
         field(8; "Dimension Consolidation Code"; Code[20])
         {
             Caption = 'Dimension Consolidation Code';
@@ -64,6 +96,9 @@ table 5489 "Dimension Set Entry Buffer"
             Editable = false;
             CalcFormula = lookup(Dimension."Consolidation Code" where(Code = field("Dimension Code")));
         }
+        /// <summary>
+        /// Consolidation code from the dimension value for consolidation reporting.
+        /// </summary>
         field(9; "Dim. Val. Consolidation Code"; Code[20])
         {
             Caption = 'Dimension Value Consolidation Code';
@@ -71,16 +106,25 @@ table 5489 "Dimension Set Entry Buffer"
             Editable = false;
             CalcFormula = lookup("Dimension Value"."Consolidation Code" where("Dimension Code" = field("Dimension Code"), Code = field("Dimension Value Code")));
         }
+        /// <summary>
+        /// GUID identifier of the dimension for API and modern integration scenarios.
+        /// </summary>
         field(8000; "Dimension Id"; Guid)
         {
             Caption = 'Dimension Id';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// GUID identifier of the dimension value for API and modern integration scenarios.
+        /// </summary>
         field(8001; "Value Id"; Guid)
         {
             Caption = 'Value Id';
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// GUID identifier of the parent entity for API and modern integration scenarios.
+        /// </summary>
         field(8002; "Parent Id"; Guid)
         {
             Caption = 'Parent Id';

@@ -7,6 +7,15 @@ namespace Microsoft.Finance.GeneralLedger.Budget;
 using Microsoft.Finance.Analysis;
 using Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Defines budget templates with configurable dimension structures for creating multi-dimensional budget scenarios.
+/// Master table that controls budget entry validation rules and dimensional analysis capabilities.
+/// </summary>
+/// <remarks>
+/// Key relationships: G/L Budget Entry (details), Dimension Values (structure).
+/// Integration: Budget analysis workflows and Excel import/export dimension validation.
+/// Extensibility: OnValidate events for custom dimension validation and budget structure rules.
+/// </remarks>
 table 95 "G/L Budget Name"
 {
     Caption = 'G/L Budget Name';
@@ -15,19 +24,31 @@ table 95 "G/L Budget Name"
 
     fields
     {
+        /// <summary>
+        /// Unique identifier for the budget name that serves as the primary key and reference for budget entries.
+        /// </summary>
         field(1; Name; Code[10])
         {
             Caption = 'Name';
             NotBlank = true;
         }
+        /// <summary>
+        /// Descriptive text explaining the purpose and scope of the budget for user identification.
+        /// </summary>
         field(2; Description; Text[80])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// Indicates whether the budget is blocked from further modifications or new entry creation.
+        /// </summary>
         field(3; Blocked; Boolean)
         {
             Caption = 'Blocked';
         }
+        /// <summary>
+        /// First custom dimension code that can be used for budget-specific analysis beyond global dimensions.
+        /// </summary>
         field(4; "Budget Dimension 1 Code"; Code[20])
         {
             Caption = 'Budget Dimension 1 Code';
@@ -40,6 +61,9 @@ table 95 "G/L Budget Name"
                         Error(Text000, Dim.GetCheckDimErr());
             end;
         }
+        /// <summary>
+        /// Second custom dimension code that can be used for budget-specific analysis beyond global dimensions.
+        /// </summary>
         field(5; "Budget Dimension 2 Code"; Code[20])
         {
             Caption = 'Budget Dimension 2 Code';
@@ -52,6 +76,9 @@ table 95 "G/L Budget Name"
                         Error(Text000, Dim.GetCheckDimErr());
             end;
         }
+        /// <summary>
+        /// Third custom dimension code that can be used for budget-specific analysis beyond global dimensions.
+        /// </summary>
         field(6; "Budget Dimension 3 Code"; Code[20])
         {
             Caption = 'Budget Dimension 3 Code';
@@ -64,6 +91,9 @@ table 95 "G/L Budget Name"
                         Error(Text000, Dim.GetCheckDimErr());
             end;
         }
+        /// <summary>
+        /// Fourth custom dimension code that can be used for budget-specific analysis beyond global dimensions.
+        /// </summary>
         field(7; "Budget Dimension 4 Code"; Code[20])
         {
             Caption = 'Budget Dimension 4 Code';
@@ -180,11 +210,19 @@ table 95 "G/L Budget Name"
         exit(TempDimSetEntry."Dimension Value Code")
     end;
 
+    /// <summary>
+    /// Integration event raised during modify to determine if dimensions should be updated.
+    /// Allows subscribers to customize the logic for when budget entry dimensions need updating.
+    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnOnModifyOnAfterCalcShouldUpdateDimensions(var GLBudgetName: Record "G/L Budget Name"; xGLBudgetName: Record "G/L Budget Name"; var ShouldUpdateDimensions: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying G/L Budget Entry dimensions during budget name updates.
+    /// Allows subscribers to perform additional processing before budget entry dimension changes.
+    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateGLBudgetEntryDimOnBeforeModify(var GLBudgetName: Record "G/L Budget Name"; var GLBudgetEntry: Record "G/L Budget Entry")
     begin

@@ -171,6 +171,7 @@ table 5950 "Service Order Allocation"
         }
         field(8; "Allocated Hours"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Allocated Hours';
             DecimalPlaces = 0 : 5;
 
@@ -620,4 +621,3 @@ table 5950 "Service Order Allocation"
     begin
     end;
 }
-

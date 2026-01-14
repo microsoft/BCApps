@@ -382,10 +382,7 @@ report 99000791 "Production Order Statistics"
         MfgCostCalcMgt: Codeunit "Mfg. Cost Calculation Mgt.";
         ProdOrderFilter: Text;
         ShareOfTotalCapCost: Decimal;
-        ExpCost: array[6] of Decimal;
-        ActCost: array[6] of Decimal;
         StdCost: array[6] of Decimal;
-        VarPct: array[6] of Decimal;
         ExpCostTotal: array[6] of Decimal;
         ActCostTotal: array[6] of Decimal;
         VarPctTotal: array[6] of Decimal;
@@ -403,6 +400,11 @@ report 99000791 "Production Order Statistics"
         ActualCaptionLbl: Label 'Actual';
         DeviationCaptionLbl: Label 'Deviation %';
         TotalCaptionLbl: Label 'Total';
+
+    protected var
+        ExpCost: array[6] of Decimal;
+        ActCost: array[6] of Decimal;
+        VarPct: array[6] of Decimal;
 
     local procedure CalcTotal(Operand: array[6] of Decimal; var Total: Decimal)
     var

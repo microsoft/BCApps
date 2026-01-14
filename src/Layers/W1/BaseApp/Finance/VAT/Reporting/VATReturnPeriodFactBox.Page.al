@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+/// <summary>
+/// Displays additional information and warnings for VAT return periods.
+/// Shows warning messages for open or overdue obligations in a fact box format.
+/// </summary>
 page 736 "VAT Return Period FactBox"
 {
     Caption = 'Additional Information';

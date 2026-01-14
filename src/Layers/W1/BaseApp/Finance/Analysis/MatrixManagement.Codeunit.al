@@ -11,6 +11,15 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.Period;
 using System.Utilities;
 
+/// <summary>
+/// Provides matrix data generation and formatting functionality for analysis and reporting features.
+/// Handles period-based and dimension-based matrix column creation with various formatting options.
+/// </summary>
+/// <remarks>
+/// Core utility codeunit for matrix reports and analysis pages. Supports period matrix generation,
+/// dimension matrix creation, and amount formatting with rounding factors. Used extensively by analysis views,
+/// account schedules, and financial reporting features.
+/// </remarks>
 codeunit 9200 "Matrix Management"
 {
 
@@ -30,6 +39,15 @@ codeunit 9200 "Matrix Management"
         RoundingFormatTxt: Label '<Precision,%1><Standard Format,0>%2', Locked = true;
         NegativeInParenthesesFormatTxt: Label ';(#,##0.00)', Locked = true;
 
+    /// <summary>
+    /// Sets up period-based column set for matrix reports with date filters and navigation.
+    /// </summary>
+    /// <param name="DateFilter">Date filter expression for period selection</param>
+    /// <param name="PeriodType">Type of period (day, week, month, quarter, year)</param>
+    /// <param name="Direction">Direction for period navigation (backward or forward)</param>
+    /// <param name="FirstColumn">Returns the first date in the column set</param>
+    /// <param name="LastColumn">Returns the last date in the column set</param>
+    /// <param name="NoOfColumns">Number of columns to generate in the matrix</param>
     procedure SetPeriodColumnSet(DateFilter: Text; PeriodType: Enum "Analysis Period Type"; Direction: Option Backward,Forward; var FirstColumn: Date; var LastColumn: Date; NoOfColumns: Integer)
     var
         Period: Record Date;
@@ -84,6 +102,16 @@ codeunit 9200 "Matrix Management"
         end;
     end;
 
+    /// <summary>
+    /// Sets up dimension-based column set for matrix reports with dimension value navigation.
+    /// </summary>
+    /// <param name="DimensionCode">Dimension code to create columns for</param>
+    /// <param name="DimFilter">Filter expression for dimension values</param>
+    /// <param name="SetWanted">Navigation direction (Initial, Same, Next, Previous, NextColumn, PreviousColumn)</param>
+    /// <param name="RecordPosition">Current record position for navigation</param>
+    /// <param name="FirstColumn">Returns the first dimension value code in the column set</param>
+    /// <param name="LastColumn">Returns the last dimension value code in the column set</param>
+    /// <param name="NoOfColumns">Number of columns to generate in the matrix</param>
     procedure SetDimColumnSet(DimensionCode: Code[20]; DimFilter: Text; SetWanted: Option; var RecordPosition: Text; var FirstColumn: Text; var LastColumn: Text; NoOfColumns: Integer)
     var
         DimVal: Record "Dimension Value";
@@ -186,6 +214,18 @@ codeunit 9200 "Matrix Management"
             NoOfColumns := Abs(TmpSteps);
     end;
 
+    /// <summary>
+    /// Generates matrix data for dimension captions and records within a specified range.
+    /// </summary>
+    /// <param name="CaptionSet">Array to store column captions</param>
+    /// <param name="MatrixRecords">Array to store dimension code buffer records</param>
+    /// <param name="DimensionCode">Dimension code to generate data for</param>
+    /// <param name="FirstColumn">First dimension value in the range</param>
+    /// <param name="LastColumn">Last dimension value in the range</param>
+    /// <param name="NumberOfColumns">Returns the number of columns generated</param>
+    /// <param name="ShowColumnName">Whether to show dimension value names instead of codes</param>
+    /// <param name="CaptionRange">Returns the caption range text</param>
+    /// <param name="DimensionValueFilter">Filter for dimension values</param>
     procedure DimToCaptions(var CaptionSet: array[32] of Text[80]; var MatrixRecords: array[32] of Record "Dimension Code Buffer"; DimensionCode: Code[20]; FirstColumn: Text; LastColumn: Text; var NumberOfColumns: Integer; ShowColumnName: Boolean; var CaptionRange: Text; DimensionValueFilter: Text)
     var
         DimensionValue: Record "Dimension Value";
@@ -219,12 +259,35 @@ codeunit 9200 "Matrix Management"
             CaptionRange := CaptionSet[1];
     end;
 
+    /// <summary>
+    /// Generates matrix data with standard caption length limit for record navigation.
+    /// </summary>
+    /// <param name="RecRef">Record reference to generate matrix data from</param>
+    /// <param name="SetWanted">Navigation direction for matrix data</param>
+    /// <param name="MaximumSetLength">Maximum number of records to include</param>
+    /// <param name="CaptionFieldNo">Field number to use for captions</param>
+    /// <param name="RecordPosition">Current record position for navigation</param>
+    /// <param name="CaptionSet">Array to store column captions</param>
+    /// <param name="CaptionRange">Returns the caption range text</param>
+    /// <param name="CurrSetLength">Returns the current set length</param>
     procedure GenerateMatrixData(var RecRef: RecordRef; SetWanted: Option; MaximumSetLength: Integer; CaptionFieldNo: Integer; var RecordPosition: Text; var CaptionSet: array[32] of Text[80]; var CaptionRange: Text; var CurrSetLength: Integer)
     begin
         GenerateMatrixDataExtended(
           RecRef, SetWanted, MaximumSetLength, CaptionFieldNo, RecordPosition, CaptionSet, CaptionRange, CurrSetLength, 80);
     end;
 
+    /// <summary>
+    /// Generates matrix data with extended caption length support for record navigation.
+    /// </summary>
+    /// <param name="RecRef">Record reference to generate matrix data from</param>
+    /// <param name="SetWanted">Navigation direction for matrix data</param>
+    /// <param name="MaximumSetLength">Maximum number of records to include</param>
+    /// <param name="CaptionFieldNo">Field number to use for captions</param>
+    /// <param name="RecordPosition">Current record position for navigation</param>
+    /// <param name="CaptionSet">Array to store column captions</param>
+    /// <param name="CaptionRange">Returns the caption range text</param>
+    /// <param name="CurrSetLength">Returns the current set length</param>
+    /// <param name="MaxCaptionLength">Maximum length for caption text</param>
     procedure GenerateMatrixDataExtended(var RecRef: RecordRef; SetWanted: Option; MaximumSetLength: Integer; CaptionFieldNo: Integer; var RecordPosition: Text; var CaptionSet: array[32] of Text; var CaptionRange: Text; var CurrSetLength: Integer; MaxCaptionLength: Integer)
     var
         Steps: Integer;
@@ -312,6 +375,20 @@ codeunit 9200 "Matrix Management"
         OnAfterGetCaption(RecRef, CaptionFieldNo, Caption);
     end;
 
+    /// <summary>
+    /// Generates period-based matrix data for analysis views and reports with time-based columns.
+    /// Creates column captions, date ranges, and period records for matrix displays.
+    /// </summary>
+    /// <param name="SetWanted">Navigation option (Previous, Same, Next) for matrix column set</param>
+    /// <param name="MaximumSetLength">Maximum number of columns to generate for matrix display</param>
+    /// <param name="UseNameForCaption">Whether to use period name or period start for column captions</param>
+    /// <param name="PeriodType">Analysis period type (Day, Week, Month, Quarter, Year)</param>
+    /// <param name="DateFilter">Date filter expression for period selection and boundaries</param>
+    /// <param name="RecordPosition">Current position in record set for navigation tracking</param>
+    /// <param name="CaptionSet">Array of column captions generated for matrix headers</param>
+    /// <param name="CaptionRange">Text range description for matrix column span</param>
+    /// <param name="CurrSetLength">Current number of columns generated in the matrix set</param>
+    /// <param name="PeriodRecords">Array of period records corresponding to matrix columns</param>
     procedure GeneratePeriodMatrixData(SetWanted: Option; MaximumSetLength: Integer; UseNameForCaption: Boolean; PeriodType: Enum "Analysis Period Type"; DateFilter: Text; var RecordPosition: Text; var CaptionSet: array[32] of Text[80]; var CaptionRange: Text; var CurrSetLength: Integer; var PeriodRecords: array[32] of Record Date temporary)
     var
         Calendar: Record Date;
@@ -433,6 +510,12 @@ codeunit 9200 "Matrix Management"
         exit(Found);
     end;
 
+    /// <summary>
+    /// Adds indentation spaces to a text string for hierarchical display formatting.
+    /// Used to create visual hierarchy in matrix displays and analysis reports.
+    /// </summary>
+    /// <param name="TextString">Text string to indent</param>
+    /// <param name="Indentation">Indentation level (multiplied by 2 for spacing)</param>
     procedure SetIndentation(var TextString: Text[1024]; Indentation: Integer)
     var
         Substr: Text[1024];
@@ -441,6 +524,15 @@ codeunit 9200 "Matrix Management"
         TextString := Substr + TextString;
     end;
 
+    /// <summary>
+    /// Gets the primary key range for matrix column generation based on record position and set length.
+    /// Calculates the key range for matrix navigation and column boundary determination.
+    /// </summary>
+    /// <param name="RecRef">Record reference for matrix data source table</param>
+    /// <param name="KeyFieldNo">Field number of the primary key field for range calculation</param>
+    /// <param name="RecordPosition">Current record position in the matrix navigation</param>
+    /// <param name="CurrSetLength">Current matrix column set length for range span</param>
+    /// <returns>Primary key range string for matrix column boundaries</returns>
     procedure GetPKRange(var RecRef: RecordRef; KeyFieldNo: Integer; RecordPosition: Text; CurrSetLength: Integer) PKRange: Text[100]
     var
         FieldRef: FieldRef;
@@ -466,6 +558,21 @@ codeunit 9200 "Matrix Management"
         exit('');
     end;
 
+    /// <summary>
+    /// Generates dimension column captions for matrix display based on dimension values and filters.
+    /// Creates header text and populates dimension code buffers for matrix column generation.
+    /// </summary>
+    /// <param name="DimensionCode">Dimension code to generate columns for</param>
+    /// <param name="DimFilter">Dimension value filter to restrict column generation</param>
+    /// <param name="SetWanted">Navigation direction (First, Previous, Next, Last)</param>
+    /// <param name="RecordPosition">Current record position for navigation</param>
+    /// <param name="FirstColumn">First column identifier in the set</param>
+    /// <param name="LastColumn">Last column identifier in the set</param>
+    /// <param name="CaptionSet">Array to store generated column captions</param>
+    /// <param name="DimensionCodeBuffer">Array to store dimension code buffer records</param>
+    /// <param name="NumberOfColumns">Number of columns generated</param>
+    /// <param name="ShowColumnName">Whether to show column names in captions</param>
+    /// <param name="CaptionRange">Range text for caption display</param>
     procedure GenerateDimColumnCaption(DimensionCode: Code[20]; DimFilter: Text; SetWanted: Option; var RecordPosition: Text; FirstColumn: Text; LastColumn: Text; var CaptionSet: array[32] of Text[80]; var DimensionCodeBuffer: array[32] of Record "Dimension Code Buffer"; var NumberOfColumns: Integer; ShowColumnName: Boolean; var CaptionRange: Text)
     begin
         SetDimColumnSet(
@@ -490,6 +597,13 @@ codeunit 9200 "Matrix Management"
         end;
     end;
 
+    /// <summary>
+    /// Rounds amounts according to the specified analysis rounding factor for display purposes.
+    /// Provides consistent amount rounding for analysis reports and matrix displays.
+    /// </summary>
+    /// <param name="Amount">Decimal amount to be rounded for analysis display</param>
+    /// <param name="RoundingFactor">Analysis rounding factor enum (1, 1000, 1000000, etc.)</param>
+    /// <returns>Rounded amount according to the specified rounding factor</returns>
     procedure RoundAmount(Amount: Decimal; RoundingFactor: Enum "Analysis Rounding Factor"): Decimal
     begin
         if Amount = 0 then
@@ -509,6 +623,14 @@ codeunit 9200 "Matrix Management"
         exit(Amount);
     end;
 
+    /// <summary>
+    /// Formats decimal amount values with specified rounding and currency formatting.
+    /// Applies rounding factor and formats the result for display in matrix cells.
+    /// </summary>
+    /// <param name="Value">Decimal value to format</param>
+    /// <param name="RoundingFactor">Rounding factor to apply (1, 1000, 1000000)</param>
+    /// <param name="AddCurrency">Whether to include currency formatting</param>
+    /// <returns>Formatted amount as text string with appropriate rounding and currency format</returns>
     procedure FormatAmount(Value: Decimal; RoundingFactor: Enum "Analysis Rounding Factor"; AddCurrency: Boolean): Text[30]
     begin
         Value := RoundAmount(Value, RoundingFactor);
@@ -536,11 +658,26 @@ codeunit 9200 "Matrix Management"
         exit(GeneralLedgerSetup."Amount Decimal Places");
     end;
 
+    /// <summary>
+    /// Generates formatting string for rounding factor display with currency support.
+    /// Returns format pattern for decimal formatting with appropriate currency symbols.
+    /// </summary>
+    /// <param name="RoundingFactor">Rounding factor to format for</param>
+    /// <param name="AddCurrency">Whether to include currency formatting</param>
+    /// <returns>Format string for decimal formatting with rounding factor and currency</returns>
     procedure FormatRoundingFactor(RoundingFactor: Enum "Analysis Rounding Factor"; AddCurrency: Boolean): Text
     begin
         exit(FormatRoundingFactor(RoundingFactor, AddCurrency, Enum::"Analysis Negative Format"::"Minus Sign"));
     end;
 
+    /// <summary>
+    /// Generates formatting string for rounding factor display with currency and negative format support.
+    /// Returns format pattern for decimal formatting with specified rounding, currency, and negative formatting.
+    /// </summary>
+    /// <param name="RoundingFactor">Rounding factor to format for</param>
+    /// <param name="AddCurrency">Whether to include currency formatting</param>
+    /// <param name="NegativeAmountFormat">Format for negative amounts (minus sign, parentheses, etc.)</param>
+    /// <returns>Complete format string for decimal formatting with all specified options</returns>
     procedure FormatRoundingFactor(RoundingFactor: Enum "Analysis Rounding Factor"; AddCurrency: Boolean; NegativeAmountFormat: Enum "Analysis Negative Format") Result: Text
     var
         AmountDecimal: Text;
@@ -565,51 +702,124 @@ codeunit 9200 "Matrix Management"
         end;
     end;
 
+    /// <summary>
+    /// Integration event raised after retrieving caption text for record display.
+    /// Enables customization of caption formatting for matrix columns and rows.
+    /// </summary>
+    /// <param name="RecRef">Record reference for caption generation</param>
+    /// <param name="CaptionFieldNo">Field number used for caption generation</param>
+    /// <param name="Caption">Caption text that can be modified by subscribers</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetCaption(var RecRef: RecordRef; CaptionFieldNo: Integer; var Caption: Text)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before generating period-based matrix columns and captions.
+    /// Enables custom period generation logic and caption formatting for time-based analysis.
+    /// </summary>
+    /// <param name="PeriodType">Type of periods to generate (Day, Week, Month, Quarter, Year)</param>
+    /// <param name="Calendar">Date record for period calculations</param>
+    /// <param name="IsHandled">Set to true to skip standard period generation</param>
+    /// <param name="UseNameForCaption">Whether to use period names instead of dates in captions</param>
+    /// <param name="CurrSetLength">Current set length for period arrays</param>
+    /// <param name="CaptionSet">Array of caption texts for period columns</param>
+    /// <param name="PeriodRecords">Array of period date records</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGeneratePeriodAndCaption(PeriodType: Enum "Analysis Period Type"; Calendar: Record Date; var IsHandled: Boolean; UseNameForCaption: Boolean; var CurrSetLength: Integer; var CaptionSet: array[32] of Text[80]; var PeriodRecords: array[32] of Record Date temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after applying dimension value filters in column set generation.
+    /// Enables additional filtering logic for dimension-based matrix columns.
+    /// </summary>
+    /// <param name="DimensionCode">Dimension code being processed</param>
+    /// <param name="DimFilter">Applied dimension filter text</param>
+    /// <param name="DimensionValue">Dimension value record with applied filters</param>
     [IntegrationEvent(false, false)]
     local procedure OnSetDimColumnSetOnAfterDimValSetFilters(DimensionCode: Code[20]; DimFilter: Text; var DimensionValue: Record "Dimension Value")
     begin
     end;
 
+    /// <summary>
+    /// Integration event for custom rounding factor formatting when standard cases don't apply.
+    /// Enables extending rounding factor formatting with custom logic.
+    /// </summary>
+    /// <param name="AmountDecimal">Amount decimal format text to customize</param>
+    /// <param name="RoundingFactor">Rounding factor requiring custom formatting</param>
     [IntegrationEvent(false, false)]
     local procedure OnFormatRoundingFactorOnElse(var AmountDecimal: Text; RoundingFactor: Enum "Analysis Rounding Factor")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when handling negative format options for rounding factor formatting.
+    /// Allows custom formatting logic for negative amounts that don't match standard formats.
+    /// </summary>
+    /// <param name="AmountDecimal">Decimal amount converted to text for formatting</param>
+    /// <param name="NegativeAmountFormat">Negative format option being processed</param>
+    /// <param name="Result">Formatted result text that can be modified by subscribers</param>
     [IntegrationEvent(false, false)]
     local procedure OnFormatRoundingFactorNegativeFormatOnElse(AmountDecimal: Text; NegativeAmountFormat: Enum "Analysis Negative Format"; var Result: Text)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when rounding amounts with custom rounding factors.
+    /// Allows custom rounding logic for rounding factors not handled by standard processing.
+    /// </summary>
+    /// <param name="Amount">Amount to be rounded</param>
+    /// <param name="RoundingFactor">Rounding factor option being applied</param>
     [IntegrationEvent(false, false)]
     local procedure OnRoundAmountOnElse(var Amount: Decimal; RoundingFactor: Enum "Analysis Rounding Factor")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating previous step in matrix data generation.
+    /// Allows custom validation logic for matrix navigation and step processing.
+    /// </summary>
+    /// <param name="Steps">Number of steps being validated</param>
+    /// <param name="MaximumSetLength">Maximum allowed set length for matrix</param>
+    /// <param name="IsHandled">Set to true to skip standard validation processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnGenerateMatrixDataExtendedOnBeforeValidatePreviousStep(Steps: Integer; MaximumSetLength: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before adjusting period records with date filter in matrix data generation.
+    /// Allows custom period adjustment logic for date-filtered matrix generation.
+    /// </summary>
+    /// <param name="DateFilter">Date filter being applied to period records</param>
+    /// <param name="TempPeriodRecords">Array of temporary period records being adjusted</param>
+    /// <param name="CurrSetLength">Current set length of period records</param>
+    /// <param name="IsHandled">Set to true to skip standard adjustment processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnGeneratePeriodMatrixDataOnBeforeAdjustPeriodWithDateFilter(DateFilter: Text; var TempPeriodRecords: array[32] of Record Date temporary; var CurrSetLength: Integer; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before finding date based on step type in period matrix data generation.
+    /// Allows custom date finding logic for different step types in period-based matrices.
+    /// </summary>
+    /// <param name="SetWanted">Set option indicating which set is being processed</param>
+    /// <param name="CalendarDate">Calendar date record used for date calculations</param>
+    /// <param name="PeriodType">Period type controlling date calculations</param>
     [IntegrationEvent(false, false)]
     local procedure OnGeneratePeriodMatrixDataOnBeforeFindDateBasedOnStepType(SetWanted: Option; var CalendarDate: Record Date; PeriodType: Enum "Analysis Period Type")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised when handling matrix page step type in extended matrix data generation.
+    /// Allows custom step processing logic for matrix navigation in extended scenarios.
+    /// </summary>
+    /// <param name="SetWanted">Set option indicating which set is being processed</param>
+    /// <param name="MaximumSetLength">Maximum allowed set length for matrix</param>
+    /// <param name="RecRef">Record reference for matrix data source</param>
     [IntegrationEvent(false, false)]
     local procedure OnMatrixPageStepTypeInGenerateMatrixDataExtended(SetWanted: Option; MaximumSetLength: Integer; var RecRef: RecordRef)
     begin

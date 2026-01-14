@@ -7,8 +7,8 @@ namespace System.Environment;
 using Microsoft.Foundation.Company;
 using Microsoft.Upgrade;
 using System.Integration;
-using System.Text;
 using System.Security.AccessControl;
+using System.Text;
 using System.Upgrade;
 
 codeunit 6060 "Hybrid Deployment"

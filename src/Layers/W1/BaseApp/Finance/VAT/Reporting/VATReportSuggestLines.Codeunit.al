@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+/// <summary>
+/// Provides line suggestion functionality for VAT reports through request page interface.
+/// Launches the VAT report request page for configuring and generating VAT statement lines.
+/// </summary>
 codeunit 745 "VAT Report Suggest Lines"
 {
     TableNo = "VAT Report Header";

@@ -11,8 +11,8 @@ using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
-using System.Security.User;
 using System.Globalization;
+using System.Security.User;
 
 page 5802 "Value Entries"
 {

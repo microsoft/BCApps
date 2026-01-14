@@ -1,3 +1,6 @@
+/// <summary>
+/// Provides utility functions for saving and restoring setup table data in test scenarios to ensure test isolation.
+/// </summary>
 codeunit 131009 "Library - Setup Storage"
 {
     Permissions = TableData "General Ledger Setup" = rimd;

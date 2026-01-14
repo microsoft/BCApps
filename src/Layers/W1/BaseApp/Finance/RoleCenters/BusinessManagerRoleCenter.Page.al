@@ -401,47 +401,6 @@ page 9022 "Business Manager Role Center"
                         ObsoleteState = Pending;
                         ObsoleteTag = '26.0';
                     }
-#if not CLEAN25
-                    action(ExcelTemplateTrialBalance)
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Trial Balance';
-                        Image = "Report";
-                        RunObject = Codeunit "Run Template Trial Balance";
-                        ToolTip = 'Open a spreadsheet that shows a summary trial balance by account. This report is deprecated and will be removed in a future release.';
-#pragma warning disable AS0072
-                        ObsoleteReason = 'Functionality replaced by "EXR Trial Balance Excel". Extend this report object with Excel layout instead.';
-                        ObsoleteState = Pending;
-                        ObsoleteTag = '25.0';
-#pragma warning restore AS0072
-                    }
-                    action(ExcelTemplateAgedAccPay)
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Aged Accounts Payable';
-                        Image = "Report";
-                        RunObject = Codeunit "Run Template Aged Acc. Pay.";
-                        ToolTip = 'Open a spreadsheet that shows a list of aged remaining balances for each vendor by period. This report is deprecated and will be removed in a future release.';
-#pragma warning disable AS0072
-                        ObsoleteReason = 'Functionality replaced by "EXR Aged Acc Payable Excel". Extend this report object with Excel layout instead.';
-                        ObsoleteState = Pending;
-                        ObsoleteTag = '25.0';
-#pragma warning restore AS0072
-                    }
-                    action(ExcelTemplateAgedAccRec)
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Aged Accounts Receivable';
-                        Image = "Report";
-                        RunObject = Codeunit "Run Template Aged Acc. Rec.";
-                        ToolTip = 'Open a spreadsheet that shows when customer payments are due or overdue by period. This report is deprecated and will be removed in a future release.';
-#pragma warning disable AS0072
-                        ObsoleteReason = 'Functionality replaced by "EXR Aged Accounts Rec Excel". Extend this report object with Excel layout instead.';
-                        ObsoleteState = Pending;
-                        ObsoleteTag = '25.0';
-#pragma warning restore AS0072
-                    }
-#endif
                 }
 #endif
             }

@@ -1,8 +1,8 @@
 namespace System.Security.AccessControl;
 
 using Microsoft.Manufacturing.Document;
-using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Forecast;
+using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 
 permissionsetextension 99000771 "Mfg. Inventory - Edit" extends "Inventory - Edit"

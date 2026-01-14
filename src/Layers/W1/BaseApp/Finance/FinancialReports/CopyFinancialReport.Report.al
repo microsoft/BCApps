@@ -5,6 +5,10 @@
 namespace Microsoft.Finance.FinancialReports;
 using System.Telemetry;
 
+/// <summary>
+/// Creates copy of existing financial report with same configuration and filters.
+/// Enables duplication of complete financial report setup for new reporting scenarios.
+/// </summary>
 report 39 "Copy Financial Report"
 {
     Caption = 'Copy Financial Report';

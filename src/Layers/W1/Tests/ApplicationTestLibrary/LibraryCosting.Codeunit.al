@@ -1,9 +1,8 @@
+/// <summary>
+/// Provides utility functions for inventory costing operations in test scenarios, including cost adjustment, posting, and validation.
+/// </summary>
 codeunit 132200 "Library - Costing"
 {
-    // Unsupported version tags:
-    // 
-    // Contains all utility functions related to Costing.
-
 
     trigger OnRun()
     begin

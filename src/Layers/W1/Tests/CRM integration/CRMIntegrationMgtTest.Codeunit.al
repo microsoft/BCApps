@@ -1038,46 +1038,6 @@ codeunit 139162 "CRM Integration Mgt Test"
           'VERSION(1) SORTING(Field1) WHERE(Field38=1(0))', ExpectedIntTableFilter, true);
     end;
 
-#if not CLEAN25
-    [Test]
-    [Scope('OnPrem')]
-    procedure DefaultTableMappingCustPriceGroup()
-    var
-        IntegrationTableMapping: Record "Integration Table Mapping";
-        CDSCompany: Record "CDS Company";
-        ExpectedIntTableFilter: Text;
-    begin
-        // [FEATURE] [Table Mapping] [Price List] [Direction]
-        Initialize();
-        ResetDefaultCRMSetupConfiguration(false);
-        // [WHEN] Find Integration Table Mapping for "Customer Price Group"
-        // [THEN] Mapped to "CRM Pricelevel", Direction is "To Integration Table",
-        // [THEN] no "Table Filter", no "Integration Table Filter", "Synch. Only Coupled Records" is Yes
-        CDSIntegrationMgt.GetCDSCompany(CDSCompany);
-        ExpectedIntTableFilter := StrSubstNo('VERSION(1) SORTING(Field1) WHERE(Field31=1(%1|{00000000-0000-0000-0000-000000000000}))', Format(CDSCompany.CompanyId));
-        VerifyTableMapping(
-          DATABASE::"Customer Price Group", DATABASE::"CRM Pricelevel", IntegrationTableMapping.Direction::ToIntegrationTable,
-          '', ExpectedIntTableFilter, true);
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure DefaultTableMappingSalesPrice()
-    var
-        IntegrationTableMapping: Record "Integration Table Mapping";
-    begin
-        // [FEATURE] [Table Mapping] [Price List] [Direction]
-        Initialize();
-        ResetDefaultCRMSetupConfiguration(false);
-        // [WHEN] Find Integration Table Mapping for "Sales Price"
-        // [THEN] Mapped to "CRM Productpricelevel", Direction is "To Integration Table",
-        // [THEN] "Table Filter" is ("Sales Type"=Customer Price Group,"Sales Code"<>''),
-        // [THEN] no "Integration Table Filter", "Synch. Only Coupled Records" is 'No'
-        VerifyTableMapping(
-          DATABASE::"Sales Price", DATABASE::"CRM Productpricelevel", IntegrationTableMapping.Direction::ToIntegrationTable,
-          'VERSION(1) SORTING(Field1,Field13,Field2,Field4,Field3,Field5700,Field5400,Field14) WHERE(Field13=1(1),Field2=1(<>''''))', '', false);
-    end;
-#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -2297,12 +2257,6 @@ codeunit 139162 "CRM Integration Mgt Test"
           ' SALESPEOPLE - Dataverse synchronization job.');
         VerifyJobQueueEntriesInactivityTimeoutPeriod(30, 1440,
           ' ITEM-PRODUCT - Dynamics 365 Sales synchronization job.');
-#if not CLEAN25
-        VerifyJobQueueEntriesInactivityTimeoutPeriod(30, 1440,
-          ' CUSTPRCGRP-PRICE - Dynamics 365 Sales synchronization job.');
-        VerifyJobQueueEntriesInactivityTimeoutPeriod(30, 1440,
-          ' SALESPRC-PRODPRICE - Dynamics 365 Sales synchronization job.');
-#endif
         VerifyJobQueueEntriesInactivityTimeoutPeriod(30, 1440,
           ' POSTEDSALESINV-INV - Dynamics 365 Sales synchronization job.');
     end;

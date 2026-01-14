@@ -1093,6 +1093,41 @@ codeunit 137023 "SCM Reservation Worksheet"
         VerifySalesLineQuantityIsReserved(SalesHeader);
     end;
 
+    [Test]
+    [HandlerFunctions('GetDemandToReserveRequestPageHandler,CarryOutReservationRequestPageHandler')]
+    procedure MakingReservationForDifferentLotCombinationsNoError()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        LotNo: array[4] of Code[50];
+    begin
+        // [SCENARIO 603402] Making reservation from reservation worksheet should work for different lot combinations without "Cannot Match Item Tracking" error
+        Initialize();
+
+        // [GIVEN] Lot-tracked Item
+        LibraryItemTracking.CreateLotItem(Item);
+
+        // [GIVEN] Location with Inventory Posting Setup
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+
+        // [GIVEN] Inventory with lots: LOT1=6, LOT2=7, LOT3=3, LOT4=4
+        PrepareInventory(LotNo, Item."No.", Location.Code);
+
+        // [GIVEN] Sales Order with item tracking assignments that previously caused "Cannot Match Item Tracking" error:
+        // Line 1: 10 qty with specific lot tracking - LOT1=4, LOT2=3, LOT3=3 (not following ILE order)
+        // Line 2: 3 qty with no specific tracking  
+        // Line 3: 2 qty with specific lot tracking - LOT1=2
+        CreateSalesOrderWithDifferentLotCombinations(SalesHeader, SalesLine, Item, Location.Code, LotNo);
+
+        // [WHEN] Make reservation from reservation worksheet
+        MakeReservationOnReservationWorkSheet(SalesHeader."No.", Item."No.");
+
+        // [THEN] Verify each Sales Line have reservation (should complete without error)
+        VerifySalesLineQuantityIsReserved(SalesHeader);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"SCM Reservation Worksheet");
@@ -1228,7 +1263,7 @@ codeunit 137023 "SCM Reservation Worksheet"
         SalesLine.Modify();
     end;
 
-    local procedure PrepareInventory(LotNo: array[4] of Code[50]; ItemNo: Code[20]; LocationCode: Code[10])
+    local procedure PrepareInventory(var LotNo: array[4] of Code[50]; ItemNo: Code[20]; LocationCode: Code[10])
     var
         ItemJournalLine: Record "Item Journal Line";
         ReservationEntry: Record "Reservation Entry";
@@ -1432,6 +1467,27 @@ codeunit 137023 "SCM Reservation Worksheet"
     begin
         WarehouseShipmentHeader.SetRange("Location Code", LocationCode);
         WarehouseShipmentHeader.FindFirst();
+    end;
+
+    local procedure CreateSalesOrderWithDifferentLotCombinations(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; Item: Record Item; LocationCode: Code[10]; LotNo: array[4] of Code[50])
+    var
+        ReservEntry: Record "Reservation Entry";
+    begin
+        // Create sales order line 1: 10 qty with specific lot tracking - LOT1=4, LOT2=3, LOT3=3 (different from ILE order)
+        LibrarySales.CreateSalesOrder(SalesHeader, SalesLine, Item, LocationCode, '', 10, WorkDate(), LibraryRandom.RandIntInRange(100, 200));
+        LibraryItemTracking.CreateSalesOrderItemTracking(ReservEntry, SalesLine, '', LotNo[1], 4);
+        LibraryItemTracking.CreateSalesOrderItemTracking(ReservEntry, SalesLine, '', LotNo[2], 3);
+        LibraryItemTracking.CreateSalesOrderItemTracking(ReservEntry, SalesLine, '', LotNo[3], 3);
+
+        // Line 2: 3 qty with no specific tracking
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 3);
+        SalesLine.Validate("Location Code", LocationCode);
+        SalesLine.Modify();
+
+        // Line 3: 2 qty with specific lot tracking - LOT1=2 (requires remaining from LOT1)
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 2);
+        SalesLine.Validate("Location Code", LocationCode);
+        SalesLine.Modify();
     end;
 
     [RequestPageHandler]

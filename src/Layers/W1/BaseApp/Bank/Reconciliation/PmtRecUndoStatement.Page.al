@@ -6,6 +6,10 @@ namespace Microsoft.Bank.Reconciliation;
 
 using Microsoft.Bank.Statement;
 
+/// <summary>
+/// Dialog page for undoing payment reconciliation statements.
+/// Provides interface for reversing posted reconciliation transactions.
+/// </summary>
 page 1300 "Pmt. Rec. Undo Statement"
 {
     Caption = 'Reverse Payment Reconciliation Journal';

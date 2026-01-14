@@ -5,13 +5,14 @@
 namespace Microsoft.Projects.Project.Job;
 
 using Microsoft.Bank.BankAccount;
-using Microsoft.CRM.Contact;
 using Microsoft.CRM.BusinessRelation;
+using Microsoft.CRM.Contact;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
+using Microsoft.Integration.Dataverse;
 using Microsoft.Inventory.Location;
 using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
@@ -27,7 +28,6 @@ using Microsoft.Utilities;
 using Microsoft.Warehouse.Structure;
 using System.Globalization;
 using System.Utilities;
-using Microsoft.Integration.Dataverse;
 
 table 1001 "Job Task"
 {
@@ -916,13 +916,8 @@ table 1001 "Job Task"
             Editable = false;
             CalcFormula = exist("CRM Integration Record" where("Integration ID" = field(SystemId), "Table ID" = const(Database::"Job Task")));
             ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-#if not CLEAN25
-            ObsoleteState = Pending;
-            ObsoleteTag = '25.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#endif
         }
 #endif
     }
@@ -1924,4 +1919,3 @@ table 1001 "Job Task"
     begin
     end;
 }
-

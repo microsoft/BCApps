@@ -1,11 +1,11 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.CRM.Task;
-using Microsoft.CRM.Opportunity;
+using Microsoft.CRM.Analysis;
+using Microsoft.CRM.Comment;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Interaction;
-using Microsoft.CRM.Comment;
-using Microsoft.CRM.Analysis;
+using Microsoft.CRM.Opportunity;
+using Microsoft.CRM.Task;
 using Microsoft.CRM.Team;
 
 permissionset 950 "Opportunity - Edit"

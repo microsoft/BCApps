@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -244,86 +244,14 @@ page 500 "Available - Requisition Lines"
         CaptionText := ReservMgt.FilterReservFor(SourceRecRef, ReservEntry, Direction);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure SetSource()', '25.0')]
-    procedure SetSalesLine(var CurrentSalesLine: Record Microsoft.Sales.Document."Sales Line"; CurrentReservEntry: Record "Reservation Entry")
-    begin
-        SourceRecRef.GetTable(CurrentSalesLine);
-        SetSource(SourceRecRef, CurrentReservEntry);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure SetSource()', '25.0')]
-    procedure SetReqLine(var CurrentReqLine: Record "Requisition Line"; CurrentReservEntry: Record "Reservation Entry")
-    begin
-        SourceRecRef.GetTable(CurrentReqLine);
-        SetSource(SourceRecRef, CurrentReservEntry);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure SetSource()', '25.0')]
-    procedure SetPurchLine(var CurrentPurchLine: Record Microsoft.Purchases.Document."Purchase Line"; CurrentReservEntry: Record "Reservation Entry")
-    begin
-        SourceRecRef.GetTable(CurrentPurchLine);
-        SetSource(SourceRecRef, CurrentReservEntry);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure SetSource()', '25.0')]
-    procedure SetProdOrderLine(var CurrentProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; CurrentReservEntry: Record "Reservation Entry")
-    begin
-        SourceRecRef.GetTable(CurrentProdOrderLine);
-        SetSource(SourceRecRef, CurrentReservEntry);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure SetSource()', '25.0')]
-    procedure SetProdOrderComponent(var CurrentProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; CurrentReservEntry: Record "Reservation Entry")
-    begin
-        SourceRecRef.GetTable(CurrentProdOrderComp);
-        SetSource(SourceRecRef, CurrentReservEntry);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure SetSource()', '25.0')]
-    procedure SetPlanningComponent(var CurrentPlanningComponent: Record Microsoft.Inventory.Planning."Planning Component"; CurrentReservEntry: Record "Reservation Entry")
-    begin
-        SourceRecRef.GetTable(CurrentPlanningComponent);
-        SetSource(SourceRecRef, CurrentReservEntry);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure SetSource()', '25.0')]
-    procedure SetTransferLine(var CurrentTransLine: Record Microsoft.Inventory.Transfer."Transfer Line"; CurrentReservEntry: Record "Reservation Entry"; Direction: Enum "Transfer Direction")
-    begin
-        SourceRecRef.GetTable(CurrentTransLine);
-        SetSource(SourceRecRef, CurrentReservEntry, Direction);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure SetSource()', '25.0')]
-    procedure SetServiceInvLine(var CurrentServiceLine: Record Microsoft.Service.Document."Service Line"; CurrentReservEntry: Record "Reservation Entry")
-    begin
-        SourceRecRef.GetTable(CurrentServiceLine);
-        SetSource(SourceRecRef, CurrentReservEntry);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure SetSource()', '25.0')]
-    procedure SetJobPlanningLine(var CurrentJobPlanningLine: Record Microsoft.Projects.Project.Planning."Job Planning Line"; CurrentReservEntry: Record "Reservation Entry")
-    begin
-        SourceRecRef.GetTable(CurrentJobPlanningLine);
-        SetSource(SourceRecRef, CurrentReservEntry);
-    end;
-#endif
 
     local procedure CreateReservation(ReserveQuantity: Decimal; ReserveQuantityBase: Decimal)
     var
@@ -369,23 +297,7 @@ page 500 "Available - Requisition Lines"
         exit(ReservMgt.MarkReservConnection(ReservEntry2, ReservEntry));
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure SetSource()', '25.0')]
-    procedure SetAssemblyLine(var CurrentAssemblyLine: Record Microsoft.Assembly.Document."Assembly Line"; CurrentReservEntry: Record "Reservation Entry")
-    begin
-        SourceRecRef.GetTable(CurrentAssemblyLine);
-        SetSource(SourceRecRef, CurrentReservEntry);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure SetSource()', '25.0')]
-    procedure SetAssemblyHeader(var CurrentAssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header"; CurrentReservEntry: Record "Reservation Entry")
-    begin
-        SourceRecRef.GetTable(CurrentAssemblyHeader);
-        SetSource(SourceRecRef, CurrentReservEntry);
-    end;
-#endif
 
     local procedure SetFilters()
     begin
@@ -419,4 +331,3 @@ page 500 "Available - Requisition Lines"
     begin
     end;
 }
-

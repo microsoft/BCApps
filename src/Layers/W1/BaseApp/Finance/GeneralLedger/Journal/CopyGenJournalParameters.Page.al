@@ -4,6 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Journal;
 
+/// <summary>
+/// Provides user interface for configuring parameters when copying general journal lines between batches.
+/// Enables users to specify source batch, target batch, and transformation options for the copying operation.
+/// </summary>
+/// <remarks>
+/// Parameter configuration dialog for journal copying functionality. Supports batch-to-batch line copying with optional
+/// field transformations including posting date replacement, document number updates, and amount sign reversal.
+/// Key features: Source and target batch selection, optional date and document number replacement, amount sign reversal option.
+/// Integration: Used by copy journal management processes and provides parameter validation before copying operations.
+/// </remarks>
 page 184 "Copy Gen. Journal Parameters"
 {
     Caption = 'Copy Gen. Journal Parameters';
@@ -22,12 +32,14 @@ page 184 "Copy Gen. Journal Parameters"
                 Caption = 'General';
                 field(SourceJnlTemplateName; SourceJnlTemplateName)
                 {
+                    ApplicationArea = Basic, Suite;
                     Caption = 'Source Journal Template';
                     ToolTip = 'Specifies original journal template.';
                     Editable = false;
                 }
                 field(SourceJnlBatchName; SourceJnlBatchName)
                 {
+                    ApplicationArea = Basic, Suite;
                     Caption = 'Source Journal Batch';
                     ToolTip = 'Specifies original journal batch.';
                     Editable = false;
@@ -85,11 +97,22 @@ page 184 "Copy Gen. Journal Parameters"
         end;
     end;
 
+    /// <summary>
+    /// Retrieves the configured copy parameters from the page for use in copying operations.
+    /// Returns user-configured settings for journal line copying process.
+    /// </summary>
+    /// <param name="CopyGenJournalParameters">Parameter record that will be populated with current page settings.</param>
     procedure GetCopyParameters(var CopyGenJournalParameters: Record "Copy Gen. Journal Parameters")
     begin
         CopyGenJournalParameters := Rec;
     end;
 
+    /// <summary>
+    /// Initializes the page with existing copy parameters and source batch information.
+    /// Sets up the page with predefined values and source journal batch context.
+    /// </summary>
+    /// <param name="CopyGenJournalParameters">Parameter record containing initial copy settings.</param>
+    /// <param name="TempGenJournalBatch">Temporary journal batch record providing source context information.</param>
     procedure SetCopyParameters(CopyGenJournalParameters: Record "Copy Gen. Journal Parameters"; TempGenJournalBatch: Record "Gen. Journal Batch" temporary)
     begin
         InsertRecord();

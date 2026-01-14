@@ -741,15 +741,6 @@ codeunit 6500 "Item Tracking Management"
         until ItemEntryRelation.Next() = 0;
     end;
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit Serv. Item Tracking Mgt.', '25.0')]
-    procedure CopyHandledItemTrkgToServLine(FromServLine: Record Microsoft.Service.Document."Service Line"; ToServLine: Record Microsoft.Service.Document."Service Line")
-    var
-        ServItemTrackingMgt: Codeunit "Serv. Item Tracking Mgt.";
-    begin
-        ServitemTrackingMgt.CopyHandledItemTrkgToServLine(FromServLine, ToServLine);
-    end;
-#endif
 
     procedure CollectItemEntryRelation(var TempItemLedgEntry: Record "Item Ledger Entry" temporary; SourceType: Integer; SourceSubtype: Integer; SourceID: Code[20]; SourceBatchName: Code[10]; SourceProdOrderLine: Integer; SourceRefNo: Integer; TotalQty: Decimal) Result: Boolean
     var
@@ -1439,8 +1430,9 @@ codeunit 6500 "Item Tracking Management"
             if ItemTrackingCode."Package Specific Tracking" then
                 SourceReservEntry.SetRange("Package No.", WhseItemTrkgLine."Package No.");
             if SourceReservEntry.FindFirst() then
-                if Abs(SourceReservEntry."Quantity (Base)") > WhseItemTrkgLine."Quantity Handled (Base)" then
-                    WhseItemTrkgLine.Validate("Quantity (Base)", Abs(SourceReservEntry."Quantity (Base)"));
+                if not Registering then
+                    if Abs(SourceReservEntry."Quantity (Base)") > WhseItemTrkgLine."Quantity Handled (Base)" then
+                        WhseItemTrkgLine.Validate("Quantity (Base)", Abs(SourceReservEntry."Quantity (Base)"));
         end;
 
         if WhseItemTrkgLine."Quantity (Base)" >= WhseItemTrkgLine."Quantity Handled (Base)" then

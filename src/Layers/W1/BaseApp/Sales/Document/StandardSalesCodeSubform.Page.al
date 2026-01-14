@@ -307,7 +307,7 @@ page 171 "Standard Sales Code Subform"
         Clear(ShortcutDimCode);
     end;
 
-    local procedure UpdateTypeText()
+    procedure UpdateTypeText()
     var
         RecRef: RecordRef;
     begin

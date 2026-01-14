@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Reconciliation;
 
+/// <summary>
+/// Finalization page for payment reconciliation reversal process.
+/// Completes the reversal workflow and confirms transaction rollback.
+/// </summary>
 page 531 "Pmt. Rec. Reversal Finalize"
 {
     PageType = NavigatePage;

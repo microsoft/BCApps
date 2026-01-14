@@ -9,6 +9,15 @@ using System.Environment;
 using System.IO;
 using System.Telemetry;
 
+/// <summary>
+/// Defines named column layout configurations for account schedule financial reporting.
+/// Contains metadata and analysis view associations for column layout definitions used in financial reports.
+/// </summary>
+/// <remarks>
+/// Key relationships: Column Layout lines, Analysis Views for dimensional reporting.
+/// Extensible via table extensions for additional column layout metadata and configuration options.
+/// Supports XML import/export functionality for column layout template exchange.
+/// </remarks>
 table 333 "Column Layout Name"
 {
     Caption = 'Financial Report Column Definition';
@@ -18,23 +27,35 @@ table 333 "Column Layout Name"
 
     fields
     {
+        /// <summary>
+        /// Unique identifier for the column layout definition used in account schedule reporting.
+        /// </summary>
         field(1; Name; Code[10])
         {
             Caption = 'Name';
             NotBlank = true;
             ToolTip = 'Specifies the unique name (code) of the financial report column definition. You can use up to 10 characters.';
         }
+        /// <summary>
+        /// Descriptive text explaining the purpose and content of the column layout definition.
+        /// </summary>
         field(2; Description; Text[80])
         {
             Caption = 'Description';
             ToolTip = 'Specifies a description of the financial report columns definition. The description is not shown on the final report but is used to provide more context when using the definition.';
         }
+        /// <summary>
+        /// Analysis view name for dimensional analysis and extended reporting capabilities.
+        /// </summary>
         field(4; "Analysis View Name"; Code[10])
         {
             Caption = 'Analysis View Name';
             TableRelation = "Analysis View";
             ToolTip = 'Specifies the name of the analysis view you want the column definition to use. This field is optional.';
         }
+        /// <summary>
+        /// Extended internal description for additional context and documentation of column layout usage.
+        /// </summary>
         field(5; "Internal Description"; Text[250])
         {
             Caption = 'Internal Description';
@@ -68,6 +89,10 @@ table 333 "Column Layout Name"
         PackageImportErr: Label 'The imported package is not valid.';
         TelemetryEventTxt: Label 'Financial Report Column Definition %1: %2', Comment = '%1 = event type, %2 = column definition', Locked = true;
 
+    /// <summary>
+    /// Exports column layout definition and related columns to XML format for template sharing and backup.
+    /// Creates configuration package containing column layout name and all associated column layout lines.
+    /// </summary>
     procedure XMLExchangeExport()
     var
         ConfigPackage: Record "Config. Package";
@@ -80,6 +105,10 @@ table 333 "Column Layout Name"
         LogImportExportTelemetry(Name, 'exported');
     end;
 
+    /// <summary>
+    /// Imports column layout definition from XML file and applies configuration to create new column layouts.
+    /// Validates imported package structure and creates column layout name with associated column lines.
+    /// </summary>
     procedure XMLExchangeImport()
     var
         ConfigXMLExchange: Codeunit "Config. XML Exchange";

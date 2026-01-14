@@ -16,6 +16,8 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Setup;
 using Microsoft.Service.Comment;
@@ -27,8 +29,6 @@ using Microsoft.Service.Ledger;
 using Microsoft.Service.Maintenance;
 using Microsoft.Service.Resources;
 using Microsoft.Service.Setup;
-using Microsoft.Sales.Customer;
-using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 using System.TestLibraries.Utilities;
 

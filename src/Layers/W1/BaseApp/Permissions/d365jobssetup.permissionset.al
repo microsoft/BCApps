@@ -1,8 +1,8 @@
 namespace System.Security.AccessControl;
 
+using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Project.Journal;
 using Microsoft.Projects.Project.Posting;
-using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Project.Setup;
 
 permissionset 6408 "D365 JOBS, SETUP"

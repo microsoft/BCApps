@@ -6,8 +6,8 @@ namespace Microsoft.Finance.VAT;
 
 using Microsoft.Finance.VAT.RateChange;
 using Microsoft.Manufacturing.Document;
-using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.WorkCenter;
 
 codeunit 99000775 "Mfg. VAT Rate Change Mgt."
 {

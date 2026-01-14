@@ -8,7 +8,6 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Check;
 using Microsoft.Bank.Ledger;
 using Microsoft.CostAccounting.Ledger;
-using Microsoft.Utilities;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
@@ -38,6 +37,7 @@ using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Reminder;
+using Microsoft.Utilities;
 using System.IO;
 using System.Text;
 
@@ -510,12 +510,6 @@ page 344 Navigate
         Cust: Record Customer;
         [SecurityFiltering(SecurityFilter::Filtered)]
         Vend: Record Vendor;
-#if not CLEAN25
-        [SecurityFiltering(SecurityFilter::Filtered)]
-        ServInvHeader: Record Microsoft.Service.History."Service Invoice Header";
-        [SecurityFiltering(SecurityFilter::Filtered)]
-        ServCrMemoHeader: Record Microsoft.Service.History."Service Cr.Memo Header";
-#endif
         [SecurityFiltering(SecurityFilter::Filtered)]
         IssuedReminderHeader: Record "Issued Reminder Header";
         [SecurityFiltering(SecurityFilter::Filtered)]
@@ -570,10 +564,6 @@ page 344 Navigate
         InsuranceCovLedgEntry: Record "Ins. Coverage Ledger Entry";
         [SecurityFiltering(SecurityFilter::Filtered)]
         CapacityLedgEntry: Record Microsoft.Manufacturing.Capacity."Capacity Ledger Entry";
-#if not CLEAN25
-        [SecurityFiltering(SecurityFilter::Filtered)]
-        WarrantyLedgerEntry: Record Microsoft.Service.Ledger."Warranty Ledger Entry";
-#endif
         TempRecordBuffer: Record "Record Buffer" temporary;
         [SecurityFiltering(SecurityFilter::Filtered)]
         CostEntry: Record "Cost Entry";
@@ -676,17 +666,6 @@ page 344 Navigate
         PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
         [SecurityFiltering(SecurityFilter::Filtered)]
         GenJnlLine: Record "Gen. Journal Line";
-#if not CLEAN25
-        [Obsolete('Moved to codeunit Serv. Navigate Mgt.', '25.0')]
-        [SecurityFiltering(SecurityFilter::Filtered)]
-        SOServHeader: Record Microsoft.Service.Document."Service Header";
-        [Obsolete('Moved to codeunit Serv. Navigate Mgt.', '25.0')]
-        [SecurityFiltering(SecurityFilter::Filtered)]
-        SIServHeader: Record Microsoft.Service.Document."Service Header";
-        [Obsolete('Moved to codeunit Serv. Navigate Mgt.', '25.0')]
-        [SecurityFiltering(SecurityFilter::Filtered)]
-        SCMServHeader: Record Microsoft.Service.Document."Service Header";
-#endif
         PstdPhysInvtOrderHdr: Record "Pstd. Phys. Invt. Order Hdr";
         ContactNo: Code[250];
         ContactType: Enum "Navigate Contact Type";
@@ -755,17 +734,6 @@ page 344 Navigate
 
                     OnFindExtRecordsForCustomer(Rec, ContactNo, ExtDocNo);
 
-#if not CLEAN25
-                    SOServHeader.Reset();
-                    SOServHeader.Setrange("Customer No.", ContactNo);
-                    SOServHeader.SetRange("Document Type", SOServHeader."Document Type"::Order);
-                    SIServHeader.Reset();
-                    SIServHeader.Setrange("Customer No.", ContactNo);
-                    SIServHeader.SetRange("Document Type", SOServHeader."Document Type"::Invoice);
-                    SCMServHeader.Reset();
-                    SCMServHeader.Setrange("Customer No.", ContactNo);
-                    SCMServHeader.SetRange("Document Type", SOServHeader."Document Type"::"Credit Memo");
-#endif
                     FindUnpostedSalesDocs(SOSalesHeader."Document Type"::Quote, SalesQuoteTxt, SQSalesHeader);
                     FindUnpostedSalesDocs(SOSalesHeader."Document Type"::Order, SalesOrderTxt, SOSalesHeader);
                     FindUnpostedSalesDocs(SISalesHeader."Document Type"::Invoice, SalesInvoiceTxt, SISalesHeader);
@@ -1408,29 +1376,8 @@ page 344 Navigate
         CurrPage.Update(false);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure InsertIntoDocEntry() in table Document Entry', '25.0')]
-    procedure InsertIntoDocEntry(DocTableID: Integer; DocTableName: Text; DocNoOfRecords: Integer)
-    begin
-        Rec.InsertIntoDocEntry(DocTableID, Enum::"Document Entry Document Type"::" ", DocTableName, DocNoOfRecords);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure InsertIntoDocEntry() in table Document Entry', '25.0')]
-    procedure InsertIntoDocEntry(var TempDocumentEntry: Record "Document Entry" temporary; DocTableID: Integer; DocTableName: Text; DocNoOfRecords: Integer)
-    begin
-        InsertIntoDocEntry(TempDocumentEntry, DocTableID, Enum::"Document Entry Document Type"::" ", DocTableName, DocNoOfRecords);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure InsertIntoDocEntry() in table Document Entry', '25.0')]
-    procedure InsertIntoDocEntry(var TempDocumentEntry: Record "Document Entry" temporary; DocTableID: Integer; DocEntryType: Enum "Document Entry Document Type"; DocTableName: Text; DocNoOfRecords: Integer)
-    begin
-        TempDocumentEntry.InsertIntoDocEntry(DocTableID, DocEntryType, DocTableName, DocNoOfRecords);
-    end;
-#endif
 
     protected procedure NoOfRecords(TableID: Integer): Integer
     begin
@@ -1594,25 +1541,6 @@ page 344 Navigate
         IsHandled: Boolean;
     begin
         IsHandled := false;
-#if not CLEAN25
-        // Set filters to simulate previous event behavior
-        ServInvHeader.Reset();
-        ServInvHeader.SetFilter("No.", DocNoFilter);
-        ServInvHeader.SetFilter("Posting Date", PostingDateFilter);
-        ServCrMemoHeader.Reset();
-        ServCrMemoHeader.SetFilter("No.", DocNoFilter);
-        ServCrMemoHeader.SetFilter("Posting Date", PostingDateFilter);
-        WarrantyLedgerEntry.Reset();
-        WarrantyLedgerEntry.SetCurrentKey("Document No.", "Posting Date");
-        WarrantyLedgerEntry.SetFilter("Document No.", DocNoFilter);
-        WarrantyLedgerEntry.SetFilter("Posting Date", PostingDateFilter);
-
-        OnBeforeNavigateShowRecords(
-          Rec."Table ID", DocNoFilter, PostingDateFilter, ItemTrackingSearch(), Rec, IsHandled,
-          SalesInvHeader, SalesCrMemoHeader, PurchInvHeader, PurchCrMemoHeader, ServInvHeader, ServCrMemoHeader,
-          SOSalesHeader, SISalesHeader, SCMSalesHeader, SROSalesHeader, GLEntry, VATEntry, VendLedgEntry, WarrantyLedgerEntry, NewSourceRecVar,
-          SalesShptHeader, ReturnRcptHeader, ReturnShptHeader, PurchRcptHeader, CustLedgEntry, DtldCustLedgEntry);
-#endif
         OnBeforeShowRecords(Rec, DocNoFilter, PostingDateFilter, ItemTrackingSearch(), ContactNo, ExtDocNo, IsHandled);
         if IsHandled then
             exit;
@@ -1751,12 +1679,6 @@ page 344 Navigate
                         PAGE.Run(0, PostedInvtShptHeader);
             end;
 
-#if not CLEAN25
-        OnAfterNavigateShowRecords(
-          Rec."Table ID", DocNoFilter, PostingDateFilter, ItemTrackingSearch(), Rec,
-          SalesInvHeader, SalesCrMemoHeader, PurchInvHeader, PurchCrMemoHeader, ServInvHeader, ServCrMemoHeader,
-          ContactType, ContactNo, ExtDocNo);
-#endif
         OnAfterShowRecords(Rec, DocNoFilter, PostingDateFilter, ItemTrackingSearch(), ContactType, ContactNo, ExtDocNo);
     end;
 
@@ -2217,13 +2139,6 @@ page 344 Navigate
     begin
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by event OnAfterShowRecords()', '25.0')]
-    [IntegrationEvent(true, false)]
-    local procedure OnAfterNavigateShowRecords(TableID: Integer; DocNoFilter: Text; PostingDateFilter: Text; ItemTrackingSearch: Boolean; var TempDocumentEntry: Record "Document Entry" temporary; SalesInvoiceHeader: Record "Sales Invoice Header"; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; PurchInvHeader: Record "Purch. Inv. Header"; PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; ServiceInvoiceHeader: Record Microsoft.Service.History."Service Invoice Header"; ServiceCrMemoHeader: Record Microsoft.Service.History."Service Cr.Memo Header"; ContactType: Enum "Navigate Contact Type"; ContactNo: Code[250]; ExtDocNo: Code[250])
-    begin
-    end;
-#endif
 
     [IntegrationEvent(true, false)]
     local procedure OnAfterShowRecords(var DocumentEntry: Record "Document Entry"; DocNoFilter: Text; PostingDateFilter: Text; ItemTrackingSearch: Boolean; ContactType: Enum "Navigate Contact Type"; ContactNo: Code[250]; ExtDocNo: Code[250])
@@ -2255,13 +2170,6 @@ page 344 Navigate
     begin
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by event OnBeforeShowRecords()', '25.0')]
-    [IntegrationEvent(true, false)]
-    local procedure OnBeforeNavigateShowRecords(TableID: Integer; DocNoFilter: Text; PostingDateFilter: Text; ItemTrackingSearch: Boolean; var TempDocumentEntry: Record "Document Entry" temporary; var IsHandled: Boolean; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var ServiceInvoiceHeader: Record Microsoft.Service.History."Service Invoice Header"; var ServiceCrMemoHeader: Record Microsoft.Service.History."Service Cr.Memo Header"; var SOSalesHeader: Record "Sales Header"; var SISalesHeader: Record "Sales Header"; var SCMSalesHeader: Record "Sales Header"; var SROSalesHeader: Record "Sales Header"; var GLEntry: Record "G/L Entry"; var VATEntry: Record "VAT Entry"; var VendLedgEntry: Record "Vendor Ledger Entry"; var WarrantyLedgerEntry: Record Microsoft.Service.Ledger."Warranty Ledger Entry"; var NewSourceRecVar: Variant; var SalesShipmentHeader: Record "Sales Shipment Header"; var ReturnReceiptHeader: Record "Return Receipt Header"; var ReturnShipmentHeader: Record "Return Shipment Header"; var PurchRcptHeader: Record "Purch. Rcpt. Header"; var CustLedgerEntry: Record "Cust. Ledger Entry"; var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(true, false)]
     local procedure OnBeforeShowRecords(var TempDocumentEntry: Record "Document Entry" temporary; DocNoFilter: Text; PostingDateFilter: Text; ItemTrackingSearch: Boolean; ContactNo: Code[250]; ExtDocNo: Code[250]; var IsHandled: Boolean);

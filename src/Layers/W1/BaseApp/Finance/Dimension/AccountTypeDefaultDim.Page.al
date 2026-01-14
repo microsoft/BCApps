@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Page for configuring default dimensions that apply to entire account types.
+/// Enables setup of default dimension values and posting rules for account type categories rather than individual accounts.
+/// </summary>
+/// <remarks>
+/// Used for setting up default dimensions that should apply to all accounts of a specific type.
+/// Includes validation tools to check for conflicts between account-level and account-type-level dimension rules.
+/// Integrates with dimension management and value posting validation processes.
+/// </remarks>
 page 541 "Account Type Default Dim."
 {
     Caption = 'Account Type Default Dim.';

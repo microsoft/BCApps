@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Setup;
 
+/// <summary>
+/// VAT business posting group part page component used within the VAT Setup Wizard for group selection.
+/// Displays VAT business posting groups with selection checkboxes allowing users to choose which groups to create.
+/// </summary>
+/// <remarks>
+/// Page type: ListPart component integrated into VAT Setup Wizard workflow.
+/// Data source: VAT Assisted Setup Bus. Grp. table containing temporary wizard selections.
+/// User interaction: Select/deselect VAT business posting groups for creation during wizard completion.
+/// </remarks>
 page 1878 "VAT Bus. Post. Grp Part"
 {
     Caption = 'VAT Bus. Post. Grp Part';
@@ -95,6 +104,10 @@ page 1878 "VAT Bus. Post. Grp Part"
         VATBusGrpNotification.Send();
     end;
 
+    /// <summary>
+    /// Hides any displayed notifications related to VAT business posting group validation or warnings.
+    /// Clears notification messages from the user interface during wizard navigation.
+    /// </summary>
     procedure HideNotification()
     var
         DummyGuid: Guid;

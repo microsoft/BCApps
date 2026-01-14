@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.AllocationAccount;
 
+/// <summary>
+/// Preview interface for allocation line calculations showing detailed distribution results.
+/// Provides read-only view of how allocation amounts will be distributed across destination accounts.
+/// </summary>
 page 2674 "Allocation Account Preview"
 {
     PageType = Worksheet;

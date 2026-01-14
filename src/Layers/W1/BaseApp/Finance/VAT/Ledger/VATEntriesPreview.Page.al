@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Ledger;
 
+/// <summary>
+/// Display page for previewing VAT entries during posting preview operations.
+/// Shows comprehensive VAT entry information including posting groups, amounts, and document details.
+/// </summary>
+/// <remarks>
+/// Used by posting preview infrastructure to display VAT entries that would be created during posting.
+/// Operates on temporary VAT Entry records populated by preview processes.
+/// Provides read-only view with comprehensive field visibility including non-deductible VAT fields.
+/// </remarks>
 page 123 "VAT Entries Preview"
 {
     Caption = 'VAT Entries Preview';
@@ -179,6 +188,10 @@ page 123 "VAT Entries Preview"
     {
     }
 
+    /// <summary>
+    /// Populates the page with VAT entries from a temporary VAT Entry record set.
+    /// </summary>
+    /// <param name="TempVATEntry">Temporary VAT Entry record containing preview data to display</param>
     procedure Set(var TempVATEntry: Record "VAT Entry" temporary)
     begin
         if TempVATEntry.FindSet() then

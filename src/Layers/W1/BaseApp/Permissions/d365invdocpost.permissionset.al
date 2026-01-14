@@ -1,11 +1,11 @@
 namespace System.Security.AccessControl;
 
+using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Ledger;
-using System.Environment.Configuration;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Document;
-using Microsoft.Inventory.Costing;
+using System.Environment.Configuration;
 
 permissionset 5267 "D365 INV DOC, POST"
 {

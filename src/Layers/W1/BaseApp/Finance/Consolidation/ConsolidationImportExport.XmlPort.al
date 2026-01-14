@@ -9,6 +9,15 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
 
+/// <summary>
+/// XML port for importing and exporting consolidation data between Business Central companies and external systems.
+/// Handles structured XML data exchange for multi-company consolidation scenarios.
+/// </summary>
+/// <remarks>
+/// Core XML processing for consolidation data exchange supporting G/L accounts, entries, dimensions, and exchange rates.
+/// Enables subsidiarity data import/export for consolidation workflows with data validation and transformation.
+/// Integrates with consolidation import/export processes for seamless multi-company data exchange.
+/// </remarks>
 xmlport 1 "Consolidation Import/Export"
 {
     Caption = 'Consolidation Import/Export';
@@ -231,6 +240,17 @@ xmlport 1 "Consolidation Import/Export"
 #pragma warning restore AA0074
         NextGLEntryNo: Integer;
 
+    /// <summary>
+    /// Sets global consolidation parameters for XML import/export processing.
+    /// Configures company, currency, and date range parameters for consolidation data exchange.
+    /// </summary>
+    /// <param name="NewCompanyName">Company name for consolidation context</param>
+    /// <param name="NewCurrencyLCY">Local Currency Code for consolidation</param>
+    /// <param name="NewCurrencyACY">Additional Currency Code for reporting</param>
+    /// <param name="NewCurrencyPCY">Previous Currency Code for comparison</param>
+    /// <param name="NewCheckSum">Checksum for data validation</param>
+    /// <param name="NewStartingDate">Starting date for consolidation period</param>
+    /// <param name="NewEndingDate">Ending date for consolidation period</param>
     procedure SetGlobals(NewCompanyName: Text[30]; NewCurrencyLCY: Code[10]; NewCurrencyACY: Code[10]; NewCurrencyPCY: Code[10]; NewCheckSum: Decimal; NewStartingDate: Date; NewEndingDate: Date)
     begin
         product := CurrentProduct;
@@ -257,6 +277,19 @@ xmlport 1 "Consolidation Import/Export"
             endingDateIsClosing := '1';
     end;
 
+    /// <summary>
+    /// Retrieves global consolidation parameters from imported XML data.
+    /// Returns company, currency, and date range information from XML consolidation file.
+    /// </summary>
+    /// <param name="ImpProductVersion">Returns product version from imported data</param>
+    /// <param name="ImpFormatVersion">Returns format version from imported data</param>
+    /// <param name="ImpCompanyName">Returns company name from imported data</param>
+    /// <param name="ImpCurrencyLCY">Returns Local Currency Code from imported data</param>
+    /// <param name="ImpCurrencyACY">Returns Additional Currency Code from imported data</param>
+    /// <param name="ImpCurrencyPCY">Returns Previous Currency Code from imported data</param>
+    /// <param name="ImpCheckSum">Returns checksum from imported data for validation</param>
+    /// <param name="ImpStartingDate">Returns starting date from imported consolidation period</param>
+    /// <param name="ImpEndingDate">Returns ending date from imported consolidation period</param>
     procedure GetGlobals(var ImpProductVersion: Code[10]; var ImpFormatVersion: Code[10]; var ImpCompanyName: Text[30]; var ImpCurrencyLCY: Code[10]; var ImpCurrencyACY: Code[10]; var ImpCurrencyPCY: Code[10]; var ImpCheckSum: Decimal; var ImpStartingDate: Date; var ImpEndingDate: Date)
     begin
         ImpProductVersion := productVersion;
@@ -276,6 +309,11 @@ xmlport 1 "Consolidation Import/Export"
             ImpEndingDate := ClosingDate(ImpEndingDate);
     end;
 
+    /// <summary>
+    /// Sets G/L Account data for XML export processing.
+    /// Transfers temporary G/L account records to XML port data structure for consolidation export.
+    /// </summary>
+    /// <param name="TempGLAccount">Temporary G/L Account records containing export data</param>
     procedure SetGLAccount(var TempGLAccount: Record "G/L Account")
     begin
         "G/L Account".Reset();
@@ -287,6 +325,11 @@ xmlport 1 "Consolidation Import/Export"
             until TempGLAccount.Next() = 0;
     end;
 
+    /// <summary>
+    /// Retrieves G/L Account data from imported XML for consolidation processing.
+    /// Transfers G/L account data from XML port structure to temporary records for import processing.
+    /// </summary>
+    /// <param name="TempGLAccount">Temporary G/L Account records to receive imported data</param>
     procedure GetGLAccount(var TempGLAccount: Record "G/L Account")
     begin
         TempGLAccount.Reset();
@@ -299,6 +342,11 @@ xmlport 1 "Consolidation Import/Export"
             until "G/L Account".Next() = 0;
     end;
 
+    /// <summary>
+    /// Sets G/L Entry data for XML export processing.
+    /// Transfers temporary G/L entry records to XML port data structure for consolidation export.
+    /// </summary>
+    /// <param name="TempGLEntry">Temporary G/L Entry records containing export data</param>
     procedure SetGLEntry(var TempGLEntry: Record "G/L Entry")
     begin
         "G/L Entry".Reset();
@@ -310,6 +358,11 @@ xmlport 1 "Consolidation Import/Export"
             until TempGLEntry.Next() = 0;
     end;
 
+    /// <summary>
+    /// Retrieves G/L Entry data from imported XML for consolidation processing.
+    /// Transfers G/L entry data from XML port structure to temporary records for import processing.
+    /// </summary>
+    /// <param name="TempGLEntry">Temporary G/L Entry records to receive imported data</param>
     procedure GetGLEntry(var TempGLEntry: Record "G/L Entry")
     begin
         TempGLEntry.Reset();
@@ -322,6 +375,11 @@ xmlport 1 "Consolidation Import/Export"
             until "G/L Entry".Next() = 0;
     end;
 
+    /// <summary>
+    /// Sets dimension buffer data for XML export processing.
+    /// Transfers temporary dimension buffer records to XML port data structure for consolidation export.
+    /// </summary>
+    /// <param name="TempDimBuf">Temporary dimension buffer records containing export data</param>
     procedure SetEntryDim(var TempDimBuf: Record "Dimension Buffer" temporary)
     begin
         "Dimension Buffer".Reset();
@@ -333,6 +391,11 @@ xmlport 1 "Consolidation Import/Export"
             until TempDimBuf.Next() = 0;
     end;
 
+    /// <summary>
+    /// Retrieves dimension buffer data from imported XML for consolidation processing.
+    /// Transfers dimension data from XML port structure to temporary records for import processing.
+    /// </summary>
+    /// <param name="TempDimBuf">Temporary dimension buffer records to receive imported data</param>
     procedure GetEntryDim(var TempDimBuf: Record "Dimension Buffer" temporary)
     begin
         TempDimBuf.Reset();
@@ -345,6 +408,11 @@ xmlport 1 "Consolidation Import/Export"
             until "Dimension Buffer".Next() = 0;
     end;
 
+    /// <summary>
+    /// Sets currency exchange rate data for XML export processing.
+    /// Transfers temporary exchange rate records to XML port data structure for consolidation export.
+    /// </summary>
+    /// <param name="TempExchRate">Temporary currency exchange rate records containing export data</param>
     procedure SetExchRate(var TempExchRate: Record "Currency Exchange Rate")
     begin
         "Currency Exchange Rate".Reset();
@@ -356,6 +424,11 @@ xmlport 1 "Consolidation Import/Export"
             until TempExchRate.Next() = 0;
     end;
 
+    /// <summary>
+    /// Retrieves currency exchange rate data from imported XML for consolidation processing.
+    /// Transfers exchange rate data from XML port structure to temporary records for import processing.
+    /// </summary>
+    /// <param name="TempExchRate">Temporary currency exchange rate records to receive imported data</param>
     procedure GetExchRate(var TempExchRate: Record "Currency Exchange Rate")
     begin
         TempExchRate.Reset();

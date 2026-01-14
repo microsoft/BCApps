@@ -24,6 +24,6 @@ codeunit 30235 "Shpfy GQL OpenFulfillmOrdLines" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(103);
+        exit(27);
     end;
 }

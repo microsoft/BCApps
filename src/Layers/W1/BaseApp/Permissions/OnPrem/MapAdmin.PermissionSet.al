@@ -1,7 +1,7 @@
 namespace System.Security.AccessControl;
 
-using System.Security.User;
 using Microsoft.EServices.OnlineMap;
+using System.Security.User;
 
 permissionset 2406 "Map - Admin"
 {

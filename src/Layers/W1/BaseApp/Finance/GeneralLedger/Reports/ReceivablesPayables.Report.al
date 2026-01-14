@@ -7,6 +7,15 @@ namespace Microsoft.Finance.GeneralLedger.Reports;
 using Microsoft.Finance.GeneralLedger.Setup;
 using System.Utilities;
 
+/// <summary>
+/// Generates receivables and payables summary report with aging analysis across multiple periods.
+/// Provides overview of customer and vendor balances due with period-based aging breakdown for cash flow analysis.
+/// </summary>
+/// <remarks>
+/// Data source: General Ledger Setup table with receivables and payables balance calculations.
+/// Displays aging periods based on configurable start date, number of periods, and period length.
+/// Used for cash flow management, working capital analysis, and accounts receivable/payable monitoring.
+/// </remarks>
 report 5 "Receivables-Payables"
 {
     DefaultLayout = RDLC;
@@ -207,6 +216,13 @@ report 5 "Receivables-Payables"
         NetBalancesDueLCY := NetBalancesDueLCY + GLSetup."Cust. Balances Due" - GLSetup."Vendor Balances Due";
     end;
 
+    /// <summary>
+    /// Initializes report parameters for programmatic execution with aging period configuration.
+    /// Sets starting date, number of periods, and period length for automated receivables-payables analysis.
+    /// </summary>
+    /// <param name="NewStartDate">Starting date for aging period analysis</param>
+    /// <param name="NewNoOfPeriods">Number of aging periods to display</param>
+    /// <param name="NewPeriodLength">Length of each aging period (DateFormula format)</param>
     procedure InitializeRequest(NewStartDate: Date; NewNoOfPeriods: Integer; NewPeriodLength: DateFormula)
     begin
         StartDate := NewStartDate;

@@ -1219,6 +1219,8 @@
     var
         Item: Record Item;
         ItemJournalLine: Record "Item Journal Line";
+        ItemJournalTemplatePhysInvt: Record "Item Journal Template";
+        ItemJournalBatchPhysInvt: Record "Item Journal Batch";
     begin
         // [FEATURE] [Calculate Inventory] [Blocked]
         // [SCENARIO 316985] Calculate Inventory report doesn't try to create lines for Blocked Items
@@ -1237,6 +1239,12 @@
         Item.Validate(Blocked, true);
         Item.Modify(true);
         Item.SetFilter("No.", '%1|%2', Item."No.", ItemJournalLine."Item No.");
+
+        // [GIVEN] Item Journal Template and Batch for Physical Inventory was selected
+        LibraryInventory.SelectItemJournalTemplateName(ItemJournalTemplatePhysInvt, ItemJournalTemplatePhysInvt.Type::"Phys. Inventory");
+        LibraryInventory.SelectItemJournalBatchName(ItemJournalBatchPhysInvt, ItemJournalTemplatePhysInvt.Type::"Phys. Inventory", ItemJournalTemplatePhysInvt.Name);
+        ItemJournalLine."Journal Template Name" := ItemJournalTemplatePhysInvt.Name;
+        ItemJournalLine."Journal Batch Name" := ItemJournalBatchPhysInvt.Name;
 
         // [WHEN] Run report Calculate Inventory for both Items
         LibraryInventory.CalculateInventory(ItemJournalLine, Item, WorkDate(), false, false);
@@ -1258,6 +1266,8 @@
         Item: Record Item;
         ItemVariant: Record "Item Variant";
         ItemJournalLine: Record "Item Journal Line";
+        ItemJournalTemplatePhysInvt: Record "Item Journal Template";
+        ItemJournalBatchPhysInvt: Record "Item Journal Batch";
     begin
         // [FEATURE] [Calculate Inventory] [Blocked]
         // [SCENARIO] Calculate Inventory report doesn't try to create lines for Blocked Item Variants
@@ -1278,6 +1288,12 @@
         ItemVariant.Validate(Blocked, true);
         ItemVariant.Modify(true);
         Item.SetFilter("No.", '%1|%2', Item."No.", ItemJournalLine."Item No.");
+
+        // [GIVEN] Item Journal Template and Batch for Physical Inventory was selected
+        LibraryInventory.SelectItemJournalTemplateName(ItemJournalTemplatePhysInvt, ItemJournalTemplatePhysInvt.Type::"Phys. Inventory");
+        LibraryInventory.SelectItemJournalBatchName(ItemJournalBatchPhysInvt, ItemJournalTemplatePhysInvt.Type::"Phys. Inventory", ItemJournalTemplatePhysInvt.Name);
+        ItemJournalLine."Journal Template Name" := ItemJournalTemplatePhysInvt.Name;
+        ItemJournalLine."Journal Batch Name" := ItemJournalBatchPhysInvt.Name;
 
         // [WHEN] Run report Calculate Inventory for both Items
         LibraryInventory.CalculateInventory(ItemJournalLine, Item, WorkDate(), false, false);

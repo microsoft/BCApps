@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Planning;
 
-using Microsoft.Manufacturing.Document;
 using Microsoft.Inventory.Item;
+using Microsoft.Manufacturing.Document;
 
 codeunit 99000821 "Mfg. CalcItemPlanPlanWksh"
 {

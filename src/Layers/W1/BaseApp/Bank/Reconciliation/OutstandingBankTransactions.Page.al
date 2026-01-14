@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Reconciliation;
 
+/// <summary>
+/// Displays outstanding bank transactions that require reconciliation.
+/// Shows unmatched bank entries and provides interface for manual matching.
+/// </summary>
 page 1284 "Outstanding Bank Transactions"
 {
     Caption = 'Outstanding Bank Transactions';

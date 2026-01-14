@@ -27,7 +27,7 @@ codeunit 30137 "Shpfy GQL NextFulfillmentLines" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(33);
+        exit(11);
     end;
 
 }

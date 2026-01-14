@@ -6,18 +6,14 @@ namespace Microsoft.Warehouse.Posting;
 
 using Microsoft.Foundation.Navigate;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Posting;
+using Microsoft.Purchases.Setup;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Setup;
-using Microsoft.Purchases.Setup;
-using Microsoft.Purchases.Posting;
-using Microsoft.Purchases.History;
 
 codeunit 5747 "Purch. Whse. Post Shipment"
 {
-#if not CLEAN25
-    var
-        WhsePostShipment: Codeunit "Whse.-Post Shipment";
-#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Shipment", 'OnGetSourceDocumentOnElseCase', '', false, false)]
     local procedure OnGetSourceDocument(var SourceHeader: Variant; var WhseShptLine: Record "Warehouse Shipment Line"; var GenJnlTemplateName: Code[10])
@@ -50,17 +46,11 @@ codeunit 5747 "Purch. Whse. Post Shipment"
                     PurchHeader.Get(PurchHeader."Document Type", PurchHeader."No.");
                     IsHandled := false;
                     OnInitSourceDocumentHeaderOnBeforePurchaseHeaderUpdatePostingDate(PurchHeader, WhseShptHeader, WhseShptLine, ValidatePostingDate, ModifyHeader, IsHandled);
-#if not CLEAN25
-                    WhsePostShipment.RunOnInitSourceDocumentHeaderOnBeforePurchaseHeaderUpdatePostingDate(PurchHeader, WhseShptHeader, WhseShptLine, ValidatePostingDate, ModifyHeader, IsHandled);
-#endif
                     if not IsHandled then
                         if (PurchHeader."Posting Date" = 0D) or
                            (PurchHeader."Posting Date" <> WhseShptHeader."Posting Date")
                         then begin
                             OnInitSourceDocumentHeaderOnBeforeReopenPurchHeader(WhseShptLine, PurchHeader);
-#if not CLEAN25
-                            WhsePostShipment.RunOnInitSourceDocumentHeaderOnBeforeReopenPurchHeader(WhseShptLine, PurchHeader);
-#endif
                             PurchRelease.SetSkipWhseRequestOperations(true);
                             PurchRelease.Reopen(PurchHeader);
                             PurchRelease.SetSkipCheckReleaseRestrictions();
@@ -87,9 +77,6 @@ codeunit 5747 "Purch. Whse. Post Shipment"
                         ModifyHeader := true;
                     end;
                     OnInitSourceDocumentHeaderOnBeforePurchHeaderModify(PurchHeader, WhseShptHeader, ModifyHeader);
-#if not CLEAN25
-                    WhsePostShipment.RunOnInitSourceDocumentHeaderOnBeforePurchHeaderModify(PurchHeader, WhseShptHeader, ModifyHeader);
-#endif
                     if ModifyHeader then
                         PurchHeader.Modify();
                 end;
@@ -120,9 +107,6 @@ codeunit 5747 "Purch. Whse. Post Shipment"
     begin
         IsHandled := false;
         OnBeforeHandlePurchaseLine(WhseShptLine, PurchLine, WhseShptHeader, ModifyLine, IsHandled, WhsePostParameters);
-#if not CLEAN25
-        WhsePostShipment.RunOnBeforeHandlePurchaseLine(WhseShptLine, PurchLine, WhseShptHeader, ModifyLine, IsHandled, WhsePostParameters);
-#endif
         if IsHandled then
             exit;
 
@@ -133,17 +117,11 @@ codeunit 5747 "Purch. Whse. Post Shipment"
                 WhseShptLine.SetRange(WhseShptLine."Source Line No.", PurchLine."Line No.");
                 if WhseShptLine.Find('-') then begin
                     OnAfterFindWhseShptLineForPurchLine(WhseShptLine, PurchLine);
-#if not CLEAN25
-                    WhsePostShipment.RunOnAfterFindWhseShptLineForPurchLine(WhseShptLine, PurchLine);
-#endif
                     if WhseShptLine."Source Document" = WhseShptLine."Source Document"::"Purchase Order" then begin
                         ModifyLine := PurchLine."Qty. to Receive" <> -WhseShptLine."Qty. to Ship";
                         if ModifyLine then begin
                             PurchLine.Validate("Qty. to Receive", -WhseShptLine."Qty. to Ship");
                             OnHandlePurchaseLineOnAfterValidateQtytoReceive(PurchLine, WhseShptLine);
-#if not CLEAN25
-                            WhsePostShipment.RunOnHandlePurchaseLineOnAfterValidateQtytoReceive(PurchLine, WhseShptLine);
-#endif
                             if WhsePostParameters."Post Invoice" then
                                 PurchLine.Validate(
                                   "Qty. to Invoice",
@@ -155,9 +133,6 @@ codeunit 5747 "Purch. Whse. Post Shipment"
                         if ModifyLine then begin
                             PurchLine.Validate("Return Qty. to Ship", WhseShptLine."Qty. to Ship");
                             OnHandlePurchaseLineOnAfterValidateRetQtytoShip(PurchLine, WhseShptLine);
-#if not CLEAN25
-                            WhsePostShipment.RunOnHandlePurchaseLineOnAfterValidateRetQtytoShip(PurchLine, WhseShptLine);
-#endif
                             if WhsePostParameters."Post Invoice" then
                                 PurchLine.Validate(
                                   "Qty. to Invoice",
@@ -170,9 +145,6 @@ codeunit 5747 "Purch. Whse. Post Shipment"
                       (PurchLine."Expected Receipt Date" <> WhseShptHeader."Shipment Date") and
                       (WhseShptLine."Qty. to Ship" = WhseShptLine."Qty. Outstanding");
                     OnHandlePurchLineOnAfterCalcShouldModifyExpectedReceiptDate(WhseShptHeader, WhseShptLine, PurchLine, ShouldModifyExpectedReceiptDate);
-#if not CLEAN25
-                    WhsePostShipment.RunOnHandlePurchLineOnAfterCalcShouldModifyExpectedReceiptDate(WhseShptHeader, WhseShptLine, PurchLine, ShouldModifyExpectedReceiptDate);
-#endif
                     if ShouldModifyExpectedReceiptDate then begin
                         PurchLine."Expected Receipt Date" := WhseShptHeader."Shipment Date";
                         ModifyLine := true;
@@ -187,17 +159,11 @@ codeunit 5747 "Purch. Whse. Post Shipment"
                         if not UpdateAttachedLine(PurchLine, WhseShptLine, ModifyLine) then
                             ClearPurchLineQtyToShipReceive(PurchLine, WhseShptLine, ModifyLine);
                 OnBeforePurchLineModify(PurchLine, WhseShptLine, ModifyLine, WhsePostParameters);
-#if not CLEAN25
-                WhsePostShipment.RunOnBeforePurchLineModify(PurchLine, WhseShptLine, ModifyLine, WhsePostParameters);
-#endif
                 if ModifyLine then
                     PurchLine.Modify();
             until PurchLine.Next() = 0;
 
         OnAfterHandlePurchaseLine(WhseShptLine, PurchHeader, WhsePostParameters);
-#if not CLEAN25
-        WhsePostShipment.RunOnAfterHandlePurchaseLine(WhseShptLine, PurchHeader, WhsePostParameters);
-#endif
     end;
 
     local procedure ClearPurchLineQtyToShipReceive(var PurchLine: Record "Purchase Line"; WarehouseShipmentLine: Record "Warehouse Shipment Line"; var ModifyLine: Boolean)
@@ -207,9 +173,6 @@ codeunit 5747 "Purch. Whse. Post Shipment"
             (PurchLine."Return Qty. to Ship" <> 0) or
             (PurchLine."Qty. to Invoice" <> 0);
         OnHandlePurchLineOnNonWhseLineOnAfterCalcModifyLine(PurchLine, ModifyLine);
-#if not CLEAN25
-        WhsePostShipment.RunOnHandlePurchLineOnNonWhseLineOnAfterCalcModifyLine(PurchLine, ModifyLine);
-#endif
 
         if ModifyLine then begin
             if WarehouseShipmentLine."Source Document" = WarehouseShipmentLine."Source Document"::"Purchase Order" then
@@ -319,10 +282,6 @@ codeunit 5747 "Purch. Whse. Post Shipment"
                     PurchPost.SetCalledBy(Codeunit::"Whse.-Post Shipment");
                     IsHandled := false;
                     OnPostSourceDocumentOnBeforePostPurchHeader(PurchPost, PurchHeader, WhsePostParameters, WhseShptHeader, CounterDocOK, IsHandled);
-#if not CLEAN25
-                    WhsePostShipment.RunOnPostSourceDocumentOnBeforePostPurchHeader(PurchPost, PurchHeader, WhsePostParameters, WhseShptHeader, CounterDocOK, IsHandled);
-
-#endif
                     if not IsHandled then
                         if WhsePostParameters."Preview Posting" then
                             PostSourcePurchDocument(PurchHeader, PurchPost, CounterDocOK)
@@ -340,18 +299,12 @@ codeunit 5747 "Purch. Whse. Post Shipment"
                         if WhseShptLine."Source Document" = WhseShptLine."Source Document"::"Purchase Return Order" then begin
                             IsHandled := false;
                             OnPostSourceDocumentOnBeforePrintPurchReturnShipment(PurchHeader, IsHandled);
-#if not CLEAN25
-                            WhsePostShipment.RunOnPostSourceDocumentOnBeforePrintPurchReturnShipment(PurchHeader, IsHandled);
-#endif
                             if not IsHandled then
                                 InsertDocumentEntryToPrint(
                                     DocumentEntryToPrint, Database::"Return Shipment Header", PurchHeader."Last Return Shipment No.");
                             if WhsePostParameters."Post Invoice" then begin
                                 IsHandled := false;
                                 OnPostSourceDocumentOnBeforePrintPurchCreditMemo(PurchHeader, IsHandled);
-#if not CLEAN25
-                                WhsePostShipment.RunOnPostSourceDocumentOnBeforePrintPurchCreditMemo(PurchHeader, IsHandled);
-#endif
                                 if not IsHandled then
                                     InsertDocumentEntryToPrint(
                                         DocumentEntryToPrint, Database::"Purch. Cr. Memo Hdr.", PurchHeader."Last Posting No.");
@@ -359,9 +312,6 @@ codeunit 5747 "Purch. Whse. Post Shipment"
                         end;
 
                     OnAfterPurchPost(WhseShptLine, PurchHeader, WhsePostParameters, WhseShptHeader);
-#if not CLEAN25
-                    WhsePostShipment.RunOnAfterPurchPost(WhseShptLine, PurchHeader, WhsePostParameters, WhseShptHeader);
-#endif
                     Clear(PurchPost);
                 end;
         end;
@@ -383,9 +333,6 @@ codeunit 5747 "Purch. Whse. Post Shipment"
     begin
         IsHandled := false;
         OnBeforeTryPostSourcePurchDocument(PurchPost, PurchHeader, IsHandled);
-#if not CLEAN25
-        WhsePostShipment.RunOnBeforeTryPostSourcePurchDocument(PurchPost, PurchHeader, IsHandled);
-#endif
         if not IsHandled then
             if PurchPost.Run(PurchHeader) then begin
                 CounterSourceDocOK := CounterSourceDocOK + 1;
@@ -393,17 +340,11 @@ codeunit 5747 "Purch. Whse. Post Shipment"
             end;
 
         OnAfterTryPostSourcePurchDocument(CounterSourceDocOK, PurchPost, PurchHeader, Result);
-#if not CLEAN25
-        WhsePostShipment.RunOnAfterTryPostSourcePurchDocument(CounterSourceDocOK, PurchPost, PurchHeader, Result);
-#endif
     end;
 
     local procedure PostSourcePurchDocument(var PurchHeader: Record "Purchase Header"; var PurchPost: Codeunit "Purch.-Post"; var CounterSourceDocOK: Integer)
     begin
         OnBeforePostSourcePurchDocument(PurchPost, PurchHeader);
-#if not CLEAN25
-        WhsePostShipment.RunOnBeforePostSourcePurchDocument(PurchPost, PurchHeader);
-#endif
 
         PurchPost.RunWithCheck(PurchHeader);
         CounterSourceDocOK := CounterSourceDocOK + 1;

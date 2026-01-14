@@ -5,8 +5,8 @@
 namespace Microsoft.Manufacturing.Document;
 
 using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Tracking;
 using System.Text;
 
 report 99000769 "Output Item Label"

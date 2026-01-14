@@ -1,3 +1,6 @@
+/// <summary>
+/// Provides utility functions for creating and managing cash flow forecasts and related test scenarios.
+/// </summary>
 codeunit 131331 "Library - Cash Flow"
 {
 

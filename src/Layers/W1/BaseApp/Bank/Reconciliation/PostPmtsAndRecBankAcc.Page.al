@@ -6,6 +6,10 @@ namespace Microsoft.Bank.Reconciliation;
 
 using Microsoft.Bank.BankAccount;
 
+/// <summary>
+/// Action page for posting payments and reconciling bank accounts.
+/// Provides combined workflow for payment posting and reconciliation processing.
+/// </summary>
 page 417 "Post Pmts and Rec. Bank Acc."
 {
     PageType = StandardDialog;

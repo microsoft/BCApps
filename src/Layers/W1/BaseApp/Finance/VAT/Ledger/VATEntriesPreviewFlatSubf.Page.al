@@ -7,6 +7,15 @@ namespace Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Finance.VAT.Calculation;
 
+/// <summary>
+/// Flat list subform page for displaying VAT entries during posting preview operations.
+/// Shows VAT entries in a simple list format without hierarchical grouping.
+/// </summary>
+/// <remarks>
+/// Alternative to hierarchical VAT entries preview providing flat list view of all VAT entries.
+/// Includes conditional visibility for non-deductible VAT fields based on feature enablement.
+/// Used within posting preview infrastructure for simplified VAT entry analysis.
+/// </remarks>
 page 1575 "VAT Entries Preview Flat Subf."
 {
     PageType = ListPart;
@@ -160,6 +169,10 @@ page 1575 "VAT Entries Preview Flat Subf."
         }
     }
 
+    /// <summary>
+    /// Populates the subform with VAT entries from posting preview event handler in flat list format.
+    /// </summary>
+    /// <param name="PostingPreviewEventHandler">Event handler containing VAT entry preview data</param>
     procedure Set(PostingPreviewEventHandler: Codeunit "Posting Preview Event Handler")
     var
         RecRef: RecordRef;

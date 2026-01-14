@@ -346,22 +346,6 @@ page 450 "Issued Finance Charge Memo"
         }
         area(reporting)
         {
-#if not CLEAN25
-            action("Finance Charge Memo Nos.")
-            {
-                ApplicationArea = Suite;
-                Caption = 'The action will be obsoleted.';
-                Image = "Report";
-                //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
-                //PromotedCategory = "Report";
-                RunObject = Report "Issue Finance Charge Memos";
-                ToolTip = 'View or edit the finance charge memo numbers that are set up. ';
-                Visible = false;
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The report doesn''t exist anymore';
-                ObsoleteTag = '25.0';
-            }
-#endif
             action("Finance Charge Memo")
             {
                 ApplicationArea = Basic, Suite;
@@ -469,4 +453,3 @@ page 450 "Issued Finance Charge Memo"
         ChangeExchangeRate: Page "Change Exchange Rate";
         VATDateEnabled: Boolean;
 }
-

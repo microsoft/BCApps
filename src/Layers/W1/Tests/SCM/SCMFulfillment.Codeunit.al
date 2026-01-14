@@ -1864,7 +1864,7 @@ codeunit 137014 "SCM Fulfillment"
         JobJournalLine.FindFirst();
         JobJournalLine.TestField(Quantity, 10);
     end;
-    
+
     [Test]
     procedure ReservedQtyFromInventoryAndNonInventoryItemForServiceOrder()
     var
@@ -1916,7 +1916,53 @@ codeunit 137014 "SCM Fulfillment"
                 ReservationFromStock::Full,
                 ServiceHeader.TableCaption()));
     end;
-    
+
+    [Test]
+    procedure CreateWarehouseShipmentReportWithShippingAdviceCompleteAndInsufficientInventory()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        Location: Record Location;
+        SalesHeader: array[3] of Record "Sales Header";
+        WarehouseShipmentLine: Record "Warehouse Shipment Line";
+        SourceNoFilter: Text;
+        TotalQuantity: Decimal;
+    begin
+        // [SCENARIO 610788] Create Warehouse Shipment report should not create shipment when Shipping Advice is Complete and inventory is insufficient, but should continue processing other orders
+        Initialize();
+        TotalQuantity := LibraryRandom.RandIntInRange(100, 200);
+
+        // [GIVEN] Create Location with require shipment.
+        CreateWMSLocation(Location, false, false, false, false, true);
+
+        // [GIVEN] Create a customer with the Shipping Advice value set to Full.
+        CreateCustomerWithShippingAdviceFull(Customer);
+
+        // [GIVEN] Create a new Item with Inventory.
+        LibraryInventory.CreateItemWithUnitPriceAndUnitCost(
+            Item, LibraryRandom.RandIntInRange(100, 200), LibraryRandom.RandIntInRange(100, 200));
+        PostItemToInventory(Item."No.", Location.Code, '', TotalQuantity);
+
+        // [GIVEN] Create multiple sales orders with different quantities and Released.
+        CreateSalesOrder(SalesHeader[1], Customer."No.", Item."No.", Location.Code, TotalQuantity);
+        CreateSalesOrder(SalesHeader[2], Customer."No.", Item."No.", Location.Code, TotalQuantity + LibraryRandom.RandIntInRange(10, 20));
+        CreateSalesOrder(SalesHeader[3], Customer."No.", Item."No.", Location.Code, TotalQuantity - LibraryRandom.RandIntInRange(10, 20));
+
+        // [WHEN] Run Create Warehouse Shipment Report For SalesOrder.
+        SourceNoFilter := SalesHeader[1]."No." + '|' + SalesHeader[2]."No." + '|' + SalesHeader[3]."No.";
+        RunCreateWarehouseShipmentReportForSalesOrder(SourceNoFilter, "Reservation From Stock"::" ");
+
+        // [THEN] Warehouse shipments are created for the first and third orders, as they have sufficient inventory. 
+        FindWhseShipment(
+            WarehouseShipmentLine, Database::"Sales Line", SalesHeader[1]."Document Type".AsInteger(), SalesHeader[1]."No.", Location.Code);
+        FindWhseShipment(
+            WarehouseShipmentLine, Database::"Sales Line", SalesHeader[3]."Document Type".AsInteger(), SalesHeader[3]."No.", Location.Code);
+
+        // [THEN] Warehouse shipments is not created for the second orders, as they have insufficient inventory.
+        asserterror FindWhseShipment(
+            WarehouseShipmentLine, Database::"Sales Line", SalesHeader[2]."Document Type".AsInteger(), SalesHeader[2]."No.", Location.Code);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"SCM Fulfillment");
@@ -2082,6 +2128,22 @@ codeunit 137014 "SCM Fulfillment"
         CreateWarehouseShipment.SetTableView(WarehouseRequest);
         CreateWarehouseShipment.UseRequestPage(false);
         CreateWarehouseShipment.RunModal();
+    end;
+
+    local procedure CreateCustomerWithShippingAdviceFull(var Customer: Record Customer)
+    begin
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Shipping Advice", Customer."Shipping Advice"::Complete);
+        Customer.Modify(true);
+    end;
+
+    local procedure CreateSalesOrder(var SalesHeader: Record "Sales Header"; CustomerNo: Code[20]; ItemNo: Code[20]; LocationCode: Code[10]; Quantity: Decimal)
+    var
+        SalesLine: Record "Sales Line";
+    begin
+        LibrarySales.CreateSalesDocumentWithItem(
+            SalesHeader, SalesLine, SalesHeader."Document Type"::Order, CustomerNo, ItemNo, Quantity, LocationCode, WorkDate());
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
     end;
 
     [RequestPageHandler]

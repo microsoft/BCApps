@@ -5,11 +5,11 @@
 namespace Microsoft.Warehouse.Activity;
 
 using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Ledger;
-using Microsoft.Warehouse.Worksheet;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Warehouse.Structure;
+using Microsoft.Warehouse.Worksheet;
 
 table 5774 "Warehouse Pick Summary"
 {

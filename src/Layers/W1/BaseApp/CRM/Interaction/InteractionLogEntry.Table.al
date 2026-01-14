@@ -5,7 +5,6 @@
 namespace Microsoft.CRM.Interaction;
 
 using Microsoft.CRM.Campaign;
-using Microsoft.Utilities;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Opportunity;
 using Microsoft.CRM.Segment;
@@ -20,6 +19,7 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Reminder;
+using Microsoft.Utilities;
 using System.Globalization;
 using System.Integration;
 using System.Security.AccessControl;

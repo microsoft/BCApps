@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.AllocationAccount;
 
+/// <summary>
+/// Configuration interface for variable allocation distribution rules with dynamic calculation capabilities.
+/// Provides setup for breakdown accounts, calculation periods, and dimension filters for variable allocation methods.
+/// </summary>
 page 2671 "Variable Account Distribution"
 {
     PageType = ListPart;

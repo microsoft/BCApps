@@ -10,20 +10,20 @@ using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.UOM;
-using Microsoft.Foundation.Attachment;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using System.Text;
-using System.Utilities;
 using System.IO;
 using System.Telemetry;
+using System.Text;
+using System.Utilities;
 
 codeunit 1605 "PEPPOL Management"
 {
@@ -36,6 +36,7 @@ codeunit 1605 "PEPPOL Management"
         ProcessedDocType: Enum "PEPPOL Processing Type";
         SalespersonTxt: Label 'Salesperson';
         InvoiceDisAmtTxt: Label 'Invoice Discount Amount';
+        PaymentDisAmtTxt: Label 'Payment Discount Amount';
         LineDisAmtTxt: Label 'Line Discount Amount';
         GLNTxt: Label 'GLN', Locked = true;
         VATTxt: Label 'VAT', Locked = true;
@@ -44,6 +45,7 @@ codeunit 1605 "PEPPOL Management"
         LocalPaymentSchemeIDTxt: Label 'LOCAL', Locked = true;
         BICTxt: Label 'BIC', Locked = true;
         AllowanceChargeReasonCodeTxt: Label '104', Locked = true;
+        AllowanceChargePaymentDiscountReasonCodeTxt: Label '95', Locked = true;
         PaymentMeansFundsTransferCodeTxt: Label '31', Locked = true;
         GTINTxt: Label '0160', Locked = true;
         UoMforPieceINUNECERec20ListIDTxt: Label 'EA', Locked = true;
@@ -640,24 +642,6 @@ codeunit 1605 "PEPPOL Management"
         OnAfterGetPaymentMeansPayeeFinancialAccBIS(SalesHeader, PayeeFinancialAccountID, FinancialInstitutionBranchID);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by GetPaymentMeansPayeeFinancialAccBIS with SalesHeader parameter.', '25.0')]
-    procedure GetPaymentMeansPayeeFinancialAccBIS(var PayeeFinancialAccountID: Text; var FinancialInstitutionBranchID: Text)
-    var
-        CompanyInfo: Record "Company Information";
-        SalesHeader: Record "Sales Header";
-    begin
-        CompanyInfo.Get();
-        if CompanyInfo.IBAN <> '' then
-            PayeeFinancialAccountID := DelChr(CompanyInfo.IBAN, '=', ' ')
-        else
-            if CompanyInfo."Bank Account No." <> '' then
-                PayeeFinancialAccountID := CompanyInfo."Bank Account No.";
-        FinancialInstitutionBranchID := CompanyInfo."Bank Branch No.";
-
-        OnAfterGetPaymentMeansPayeeFinancialAccBIS(SalesHeader, PayeeFinancialAccountID, FinancialInstitutionBranchID);
-    end;
-#endif
 
     procedure GetPaymentMeansFinancialInstitutionAddr(var FinancialInstitutionStreetName: Text; var AdditionalStreetName: Text; var FinancialInstitutionCityName: Text; var FinancialInstitutionPostalZone: Text; var FinancialInstCountrySubentity: Text; var FinancialInstCountryIdCode: Text; var FinancialInstCountryListID: Text)
     begin
@@ -696,6 +680,25 @@ codeunit 1605 "PEPPOL Management"
         AllowanceChargeListID := GetUNCL4465ListID();
         AllowanceChargeReason := InvoiceDisAmtTxt;
         Amount := Format(VATAmtLine."Invoice Discount Amount", 0, 9);
+        AllowanceChargeCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
+        TaxCategoryID := VATAmtLine."Tax Category";
+        TaxCategorySchemeID := '';
+        Percent := Format(VATAmtLine."VAT %", 0, 9);
+        AllowanceChargeTaxSchemeID := VATTxt;
+    end;
+
+    procedure GetAllowanceChargeInfoPaymentDiscount(VATAmtLine: Record "VAT Amount Line"; SalesHeader: Record "Sales Header"; var ChargeIndicator: Text; var AllowanceChargeReasonCode: Text; var AllowanceChargeListID: Text; var AllowanceChargeReason: Text; var Amount: Text; var AllowanceChargeCurrencyID: Text; var TaxCategoryID: Text; var TaxCategorySchemeID: Text; var Percent: Text; var AllowanceChargeTaxSchemeID: Text)
+    begin
+        if VATAmtLine."Pmt. Discount Amount" = 0 then begin
+            ChargeIndicator := '';
+            exit;
+        end;
+
+        ChargeIndicator := 'false';
+        AllowanceChargeReasonCode := AllowanceChargePaymentDiscountReasonCodeTxt;
+        AllowanceChargeListID := GetUNCL4465ListID();
+        AllowanceChargeReason := PaymentDisAmtTxt;
+        Amount := Format(VATAmtLine."Pmt. Discount Amount", 0, 9);
         AllowanceChargeCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
         TaxCategoryID := VATAmtLine."Tax Category";
         TaxCategorySchemeID := '';
@@ -742,7 +745,7 @@ codeunit 1605 "PEPPOL Management"
     var
         GLSetup: Record "General Ledger Setup";
     begin
-        TaxableAmount := Format(VATAmtLine."VAT Base", 0, 9);
+        TaxableAmount := Format(VATAmtLine."VAT Base" - VATAmtLine."Pmt. Discount Amount", 0, 9);
         TaxAmountCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
         SubtotalTaxAmount := Format(VATAmtLine."VAT Amount", 0, 9);
         TaxSubtotalCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
@@ -810,13 +813,13 @@ codeunit 1605 "PEPPOL Management"
               Format(VATAmtLine."Amount Including VAT" - Round(VATAmtLine."Amount Including VAT", 0.01), 0, 9);
             PayableRndingAmountCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
 
-            PayableAmount := Format(Round(VATAmtLine."Amount Including VAT", 0.01), 0, 9);
+            PayableAmount := Format(Round(VATAmtLine."Amount Including VAT" - VATAmtLine."Pmt. Discount Amount", 0.01), 0, 9);
             PayableAmountCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
         end else begin
             PayableRoundingAmount := Format(TempSalesLine."Amount Including VAT", 0, 9);
             PayableRndingAmountCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
 
-            PayableAmount := Format(Round(VATAmtLine."Amount Including VAT" + TempSalesLine."Amount Including VAT", 0.01), 0, 9);
+            PayableAmount := Format(Round(VATAmtLine."Amount Including VAT" + TempSalesLine."Amount Including VAT" - VATAmtLine."Pmt. Discount Amount", 0.01), 0, 9);
             PayableAmountCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
         end;
 
@@ -831,13 +834,13 @@ codeunit 1605 "PEPPOL Management"
         LineExtensionAmount := Format(Round(VATAmtLine."VAT Base", 0.01) + Round(VATAmtLine."Invoice Discount Amount", 0.01), 0, 9);
         LegalMonetaryTotalCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
 
-        TaxExclusiveAmount := Format(Round(VATAmtLine."VAT Base", 0.01), 0, 9);
+        TaxExclusiveAmount := Format(Round(VATAmtLine."VAT Base" - VATAmtLine."Pmt. Discount Amount", 0.01), 0, 9);
         TaxExclusiveAmountCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
 
-        TaxInclusiveAmount := Format(Round(VATAmtLine."Amount Including VAT", 0.01, '>'), 0, 9); // Should be two decimal places
+        TaxInclusiveAmount := Format(Round(VATAmtLine."Amount Including VAT" - VATAmtLine."Pmt. Discount Amount", 0.01, '>'), 0, 9); // Should be two decimal places
         TaxInclusiveAmountCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
 
-        AllowanceTotalAmount := Format(Round(VATAmtLine."Invoice Discount Amount", 0.01), 0, 9);
+        AllowanceTotalAmount := Format(Round(VATAmtLine."Invoice Discount Amount" + VATAmtLine."Pmt. Discount Amount", 0.01), 0, 9);
         AllowanceTotalAmountCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
         TaxInclusiveAmountCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
 
@@ -846,11 +849,14 @@ codeunit 1605 "PEPPOL Management"
     end;
 
     procedure GetLineGeneralInfo(SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; var InvoiceLineID: Text; var InvoiceLineNote: Text; var InvoicedQuantity: Text; var InvoiceLineExtensionAmount: Text; var LineExtensionAmountCurrencyID: Text; var InvoiceLineAccountingCost: Text)
+    var
+        SalesLineLineAmount: Decimal;
     begin
         InvoiceLineID := Format(SalesLine."Line No.", 0, 9);
         InvoiceLineNote := DelChr(Format(SalesLine.Type), '<>');
         InvoicedQuantity := Format(SalesLine.Quantity, 0, 9);
-        InvoiceLineExtensionAmount := Format(SalesLine."VAT Base Amount" + SalesLine."Inv. Discount Amount", 0, 9);
+        SalesLineLineAmount := SalesLine."Line Amount";
+        InvoiceLineExtensionAmount := Format(SalesLineLineAmount, 0, 9);
         LineExtensionAmountCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
         InvoiceLineAccountingCost := '';
 
@@ -1103,6 +1109,7 @@ codeunit 1605 "PEPPOL Management"
         if SalesLine."Allow Invoice Disc." then
             VATAmtLine."Inv. Disc. Base Amount" := SalesLine."Line Amount";
         VATAmtLine."Invoice Discount Amount" := SalesLine."Inv. Discount Amount";
+        VATAmtLine."Pmt. Discount Amount" += SalesLine."Pmt. Discount Amount";
 
         IsHandled := false;
         OnGetTotalsOnBeforeInsertVATAmtLine(SalesLine, VATAmtLine, VATPostingSetup, IsHandled);
@@ -1383,25 +1390,7 @@ codeunit 1605 "PEPPOL Management"
         exit(false);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by same procedure in codeunit ServPEPPOLManagement', '25.0')]
-    procedure MapServiceLineTypeToSalesLineType(ServiceLineType: Enum Microsoft.Service.Document."Service Line Type"): Integer
-    var
-        ServPEPPOLManagement: Codeunit "Serv. PEPPOL Management";
-    begin
-        exit(ServPEPPOLManagement.MapServiceLineTypeToSalesLineType(ServiceLineType).AsInteger());
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by same procedure in codeunit ServPEPPOLManagement', '25.0')]
-    procedure MapServiceLineTypeToSalesLineTypeEnum(ServiceLineType: Enum Microsoft.Service.Document."Service Line Type"): Enum "Sales Line Type"
-    var
-        ServPEPPOLManagement: Codeunit "Serv. PEPPOL Management";
-    begin
-        exit(ServPEPPOLManagement.MapServiceLineTypeToSalesLineType(ServiceLineType));
-    end;
-#endif
 
     procedure TransferHeaderToSalesHeader(FromRecord: Variant; var ToSalesHeader: Record "Sales Header")
     var
@@ -1461,23 +1450,6 @@ codeunit 1605 "PEPPOL Management"
         ToFieldRef.Value := FromFieldRef.Value();
     end;
 
-#if not CLEAN25
-    [Obsolete('Service documents separated to codeunit ServPEPPOLManagement', '25.0')]
-    procedure FindNextInvoiceRec(var SalesInvoiceHeader: Record "Sales Invoice Header"; var ServiceInvoiceHeader: Record Microsoft.Service.History."Service Invoice Header"; var SalesHeader: Record "Sales Header"; ProcessedDocType: Option Sale,Service; Position: Integer) Found: Boolean
-    var
-        ServPEPPOLManagement: Codeunit "Serv. PEPPOL Management";
-    begin
-        case ProcessedDocType of
-            ProcessedDocType::Sale:
-                Found := FindNextSalesInvoiceRec(SalesInvoiceHeader, SalesHeader, Position);
-            ProcessedDocType::Service:
-                Found := ServPEPPOLManagement.FindNextServiceInvoiceRec(ServiceInvoiceHeader, SalesHeader, Position);
-        end;
-        SalesHeader."Document Type" := SalesHeader."Document Type"::Invoice;
-
-        OnAfterFindNextInvoiceRec(SalesInvoiceHeader, ServiceInvoiceHeader, SalesHeader, ProcessedDocType, Position, Found);
-    end;
-#endif
 
     procedure FindNextSalesInvoiceRec(var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesHeader: Record "Sales Header"; Position: Integer) Found: Boolean
     begin
@@ -1492,22 +1464,6 @@ codeunit 1605 "PEPPOL Management"
         OnAfterFindNextSalesInvoiceRec(SalesInvoiceHeader, SalesHeader, Position, Found);
     end;
 
-#if not CLEAN25
-    [Obsolete('Service documents separated to codeunit ServPEPPOLManagement', '25.0')]
-    procedure FindNextInvoiceLineRec(var SalesInvoiceLine: Record "Sales Invoice Line"; var ServiceInvoiceLine: Record Microsoft.Service.History."Service Invoice Line"; var SalesLine: Record "Sales Line"; ProcessedDocType: Option Sale,Service; Position: Integer) Found: Boolean
-    var
-        ServPEPPOLManagement: Codeunit "Serv. PEPPOL Management";
-    begin
-        case ProcessedDocType of
-            ProcessedDocType::Sale:
-                exit(FindNextSalesInvoiceLineRec(SalesInvoiceLine, SalesLine, Position));
-            ProcessedDocType::Service:
-                exit(ServPEPPOLManagement.FindNextServiceInvoiceLineRec(ServiceInvoiceLine, SalesLine, Position));
-        end;
-
-        OnAfterFindNextInvoiceLineRec(SalesInvoiceLine, ServiceInvoiceLine, SalesLine, ProcessedDocType, Found);
-    end;
-#endif
 
     procedure FindNextSalesInvoiceLineRec(var SalesInvoiceLine: Record "Sales Invoice Line"; var SalesLine: Record "Sales Line"; Position: Integer): Boolean
     var
@@ -1524,23 +1480,6 @@ codeunit 1605 "PEPPOL Management"
         exit(Found);
     end;
 
-#if not CLEAN25
-    [Obsolete('Service documents separated to codeunit ServPEPPOLManagement', '25.0')]
-    procedure FindNextCreditMemoRec(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var ServiceCrMemoHeader: Record Microsoft.Service.History."Service Cr.Memo Header"; var SalesHeader: Record "Sales Header"; ProcessedDocType: Option Sale,Service; Position: Integer) Found: Boolean
-    var
-        ServPEPPOLManagement: Codeunit "Serv. PEPPOL Management";
-    begin
-        case ProcessedDocType of
-            ProcessedDocType::Sale:
-                exit(FindNextSalesCreditMemoRec(SalesCrMemoHeader, SalesHeader, Position));
-            ProcessedDocType::Service:
-                exit(ServPEPPOLManagement.FindNextServiceCreditMemoRec(ServiceCrMemoHeader, SalesHeader, Position));
-        end;
-        SalesHeader."Document Type" := SalesHeader."Document Type"::"Credit Memo";
-
-        OnAfterFindNextCreditMemoRec(SalesCrMemoHeader, ServiceCrMemoHeader, SalesHeader, ProcessedDocType, Position, Found);
-    end;
-#endif
 
     procedure FindNextSalesCreditMemoRec(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesHeader: Record "Sales Header"; Position: Integer) Found: Boolean
     begin
@@ -1556,36 +1495,6 @@ codeunit 1605 "PEPPOL Management"
         OnAfterFindNextSalesCreditMemoRec(SalesCrMemoHeader, SalesHeader, Position, Found);
     end;
 
-#if not CLEAN25
-    [Obsolete('Service documents separated to codeunit ServPEPPOLManagement', '25.0')]
-    procedure FindNextCreditMemoLineRec(var SalesCrMemoLine: Record "Sales Cr.Memo Line"; var ServiceCrMemoLine: Record Microsoft.Service.History."Service Cr.Memo Line"; var SalesLine: Record "Sales Line"; ProcessedDocType: Option Sale,Service; Position: Integer) Found: Boolean
-    begin
-        case ProcessedDocType of
-            ProcessedDocType::Sale:
-                begin
-                    if Position = 1 then
-                        Found := SalesCrMemoLine.Find('-')
-                    else
-                        Found := SalesCrMemoLine.Next() <> 0;
-                    if Found then
-                        SalesLine.TransferFields(SalesCrMemoLine);
-                end;
-            ProcessedDocType::Service:
-                begin
-                    if Position = 1 then
-                        Found := ServiceCrMemoLine.Find('-')
-                    else
-                        Found := ServiceCrMemoLine.Next() <> 0;
-                    if Found then begin
-                        TransferLineToSalesLine(ServiceCrMemoLine, SalesLine);
-                        SalesLine.Type := MapServiceLineTypeToSalesLineTypeEnum(ServiceCrMemoLine.Type);
-                    end;
-                end;
-        end;
-
-        OnAfterFindNextCreditMemoLineRec(SalesCrMemoLine, ServiceCrMemoLine, SalesLine, ProcessedDocType, Position, Found);
-    end;
-#endif
 
     procedure FindNextSalesCreditMemoLineRec(var SalesCrMemoLine: Record "Sales Cr.Memo Line"; var SalesLine: Record "Sales Line"; Position: Integer) Found: Boolean
     begin
@@ -1599,52 +1508,24 @@ codeunit 1605 "PEPPOL Management"
         OnAfterFindNextSalesCrMemoLineRec(SalesCrMemoLine, SalesLine, Position, Found);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by event OnAfterFindNextSalesInvoiceLineRec', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterFindNextInvoiceLineRec(var SalesInvoiceLine: Record "Sales Invoice Line"; var ServiceInvoiceLine: Record Microsoft.Service.History."Service Invoice Line"; var SalesLine: Record "Sales Line"; ProcessedDocType: Option Sale,Service; var Found: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterFindNextSalesInvoiceLineRec(var SalesInvoiceLine: Record "Sales Invoice Line"; var SalesLine: Record "Sales Line"; var Found: Boolean)
     begin
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by event OnAfterFindNextSalesInvoiceRec', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterFindNextInvoiceRec(var SalesInvoiceHeader: Record "Sales Invoice Header"; var ServiceInvoiceHeader: Record Microsoft.Service.History."Service Invoice Header"; var SalesHeader: Record "Sales Header"; ProcessedDocType: Option Sale,Service; Position: Integer; var Found: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterFindNextSalesInvoiceRec(var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesHeader: Record "Sales Header"; Position: Integer; var Found: Boolean)
     begin
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by event OnAfterFindNextSalesCreditMemoRec', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterFindNextCreditMemoRec(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var ServiceCrMemoHeader: Record Microsoft.Service.History."Service Cr.Memo Header"; var SalesHeader: Record "Sales Header"; ProcessedDocType: Option Sale,Service; Position: Integer; var Found: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterFindNextSalesCreditMemoRec(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesHeader: Record "Sales Header"; Position: Integer; var Found: Boolean)
     begin
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by event OnAfterFindNextSalesCreditMemoLineRec', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterFindNextCreditMemoLineRec(var SalesCrMemoLine: Record "Sales Cr.Memo Line"; var ServiceCrMemoLine: Record Microsoft.Service.History."Service Cr.Memo Line"; var SalesLine: Record "Sales Line"; ProcessedDocType: Option Sale,Service; Position: Integer; var Found: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterFindNextSalesCrMemoLineRec(var SalesCrMemoLine: Record "Sales Cr.Memo Line"; var SalesLine: Record "Sales Line"; Position: Integer; var Found: Boolean)
@@ -1796,4 +1677,3 @@ codeunit 1605 "PEPPOL Management"
     begin
     end;
 }
-

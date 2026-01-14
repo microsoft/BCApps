@@ -6,30 +6,45 @@ namespace Microsoft.Finance.Dimension.Correction;
 
 using Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Defines dimension value changes for dimension correction operations. Stores original and new dimension values with change type classification.
+/// </summary>
 table 2581 "Dim Correction Change"
 {
     DataClassification = CustomerContent;
 
     fields
     {
+        /// <summary>
+        /// Reference to the parent dimension correction entry.
+        /// </summary>
         field(1; "Dimension Correction Entry No."; Integer)
         {
             DataClassification = CustomerContent;
             TableRelation = "Dimension Correction"."Entry No.";
         }
 
+        /// <summary>
+        /// Code of the dimension being changed in the correction.
+        /// </summary>
         field(2; "Dimension Code"; Code[20])
         {
             DataClassification = CustomerContent;
             TableRelation = Dimension.Code;
         }
 
+        /// <summary>
+        /// Original dimension value that will be replaced in the correction.
+        /// </summary>
         field(3; "Dimension Value"; Text[100])
         {
             DataClassification = CustomerContent;
             TableRelation = "Dimension Value".Name where("Dimension Code" = field("Dimension Code"));
         }
 
+        /// <summary>
+        /// New dimension value to replace the original value in the correction.
+        /// </summary>
         field(4; "New Value"; Text[100])
         {
             DataClassification = CustomerContent;
@@ -64,11 +79,17 @@ table 2581 "Dim Correction Change"
             end;
         }
 
+        /// <summary>
+        /// Internal ID of the new dimension value for efficient processing.
+        /// </summary>
         field(5; "New Value ID"; Integer)
         {
             DataClassification = CustomerContent;
         }
 
+        /// <summary>
+        /// Type of change operation to perform on the dimension value.
+        /// </summary>
         field(6; "Change Type"; Option)
         {
             DataClassification = CustomerContent;
@@ -87,11 +108,17 @@ table 2581 "Dim Correction Change"
             end;
         }
 
+        /// <summary>
+        /// BLOB field containing serialized dimension values for bulk operations.
+        /// </summary>
         field(10; "Dimension Values"; Blob)
         {
             DataClassification = CustomerContent;
         }
 
+        /// <summary>
+        /// Count of dimension values stored in the dimension values BLOB field.
+        /// </summary>
         field(11; "Dimension Value Count"; Integer)
         {
             DataClassification = CustomerContent;
@@ -106,6 +133,10 @@ table 2581 "Dim Correction Change"
         }
     }
 
+    /// <summary>
+    /// Sets dimension value IDs in the BLOB field for bulk processing operations.
+    /// </summary>
+    /// <param name="DimensionValues">List of dimension value IDs to store</param>
     procedure SetDimensionValues(DimensionValues: List of [Integer])
     var
         DimValuesOutStream: OutStream;
@@ -127,6 +158,10 @@ table 2581 "Dim Correction Change"
         DimValuesOutStream.WriteText(DimSetValueFilter);
     end;
 
+    /// <summary>
+    /// Retrieves dimension value IDs from the BLOB field as a formatted text string.
+    /// </summary>
+    /// <returns>Formatted text string containing dimension value IDs</returns>
     procedure GetDimensionValues(): Text
     var
         DimValuesInStream: InStream;

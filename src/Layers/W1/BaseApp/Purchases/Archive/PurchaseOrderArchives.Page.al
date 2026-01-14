@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Archive;
 
+using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Dimension;
 using System.Security.User;
-using Microsoft.EServices.EDocument;
 
 page 9347 "Purchase Order Archives"
 {

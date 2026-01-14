@@ -3600,7 +3600,7 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Sum(Fields!Cust__Ledger_Entry___Sales__LCY__.Value)</Value>
+                                  <Value>=Sum(Fields!Cust__Ledger_Entry__Sales__LCY__.Value)</Value>
                                   <Style>
                                     <FontSize>7pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
@@ -3631,7 +3631,7 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Sum(Fields!Cust__Ledger_Entry___Profit__LCY__.Value)</Value>
+                                  <Value>=Sum(Fields!Cust__Ledger_Entry__Profit__LCY__.Value)</Value>
                                   <Style>
                                     <FontSize>7pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
@@ -3662,7 +3662,7 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Sum(Fields!AdjProfit.Value)</Value>
+                                  <Value>=Sum(Fields!AdjProfit_Control39.Value)</Value>
                                   <Style>
                                     <FontSize>7pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
@@ -3693,7 +3693,7 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Sum(Fields!SalesCommissionAmt.Value)</Value>
+                                  <Value>=Sum(Fields!SalesCommissionAmt_Control32.Value)</Value>
                                   <Style>
                                     <FontSize>7pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
@@ -3724,7 +3724,7 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Sum(Fields!ProfitCommissionAmt.Value)</Value>
+                                  <Value>=Sum(Fields!ProfitCommissionAmt_Control33.Value)</Value>
                                   <Style>
                                     <FontSize>7pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
@@ -3755,7 +3755,7 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Sum(Fields!AdjProfitCommissionAmt.Value)</Value>
+                                  <Value>=Sum(Fields!AdjProfitCommissionAmt_Control45.Value)</Value>
                                   <Style>
                                     <FontSize>7pt</FontSize>
                                     <FontWeight>Bold</FontWeight>

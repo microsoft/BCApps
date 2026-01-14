@@ -897,6 +897,7 @@ table 5870 "BOM Buffer"
     begin
         SetFilter("Location Code", ItemFilter.GetFilter("Location Filter"));
         SetFilter("Variant Code", ItemFilter.GetFilter("Variant Filter"));
+        OnAfterSetLocationVariantFiltersFrom(Rec, ItemFilter);
     end;
 
     procedure SetItemWarningLog(var BOMWarningLog: Record "BOM Warning Log"; var Item: Record Item; WarningText: Text)
@@ -1021,6 +1022,11 @@ table 5870 "BOM Buffer"
 
     [IntegrationEvent(false, false)]
     local procedure OnInitFromItemOnAfterSetReplenishmentSystem(var BOMBuffer: Record "BOM Buffer"; Item: Record Item; StockkeepingUnit: Record "Stockkeeping Unit")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSetLocationVariantFiltersFrom(var BOMBuffer: Record "BOM Buffer"; var ItemFilter: Record Item)
     begin
     end;
 }

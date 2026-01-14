@@ -6,6 +6,15 @@ namespace Microsoft.Bank.Reports;
 
 using Microsoft.Bank.Reconciliation;
 
+/// <summary>
+/// Generates report of completed payment reconciliation transactions with applied amounts.
+/// Displays posted payment reconciliation headers and lines with transaction details and amounts.
+/// </summary>
+/// <remarks>
+/// Data Sources: Posted Payment Recon. Hdr, Posted Payment Recon. Line. 
+/// Features: Applied amount tracking, transaction date reporting, document reference display.
+/// Usage: Payment reconciliation audit, transaction verification, compliance reporting, historical analysis.
+/// </remarks>
 report 1409 "Posted Payment Reconciliation"
 {
     DefaultLayout = RDLC;

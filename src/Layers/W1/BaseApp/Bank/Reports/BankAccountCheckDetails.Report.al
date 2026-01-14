@@ -8,6 +8,15 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Check;
 using System.Utilities;
 
+/// <summary>
+/// Generates detailed check information report for bank accounts with check ledger entry details.
+/// Displays check transaction history, amounts, status changes, and voided check information.
+/// </summary>
+/// <remarks>
+/// Data Sources: Bank Account, Check Ledger Entry. 
+/// Features: Check status tracking, amount calculations, void detection, entry status reporting.
+/// Usage: Check audit trails, bank reconciliation support, check history analysis, compliance reporting.
+/// </remarks>
 report 1406 "Bank Account - Check Details"
 {
     DefaultLayout = RDLC;
@@ -259,6 +268,11 @@ report 1406 "Bank Account - Check Details"
         AmountVoided_Control69CaptionLbl: Label 'Voided Amount';
         AmountPrinted_Control67CaptionLbl: Label 'Printed Amount';
 
+    /// <summary>
+    /// Initializes report printing options for page layout and output formatting.
+    /// Configures whether to print each bank account on a separate page.
+    /// </summary>
+    /// <param name="NewPrintOnlyOnePerPage">Controls single bank account per page printing behavior</param>
     procedure InitializeRequest(NewPrintOnlyOnePerPage: Boolean)
     begin
         PrintOnlyOnePerPage := NewPrintOnlyOnePerPage;

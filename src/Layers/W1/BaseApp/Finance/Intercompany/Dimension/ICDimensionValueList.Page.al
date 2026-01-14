@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.Dimension;
 
+/// <summary>
+/// Provides a read-only list view of intercompany dimension values with hierarchical indentation.
+/// Displays dimension value codes and names with appropriate formatting for Begin-Total and End-Total entries.
+/// </summary>
 page 603 "IC Dimension Value List"
 {
     Caption = 'Intercompany Dimension Value List';

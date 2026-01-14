@@ -6,6 +6,10 @@ namespace Microsoft.Bank.Reconciliation;
 
 using Microsoft.Finance.GeneralLedger.Journal;
 
+/// <summary>
+/// Dialog page for transferring reconciliation differences to accounts.
+/// Provides interface for posting discrepancies to appropriate GL accounts.
+/// </summary>
 page 1297 "Transfer Difference to Account"
 {
     Caption = 'Transfer Difference to Account';

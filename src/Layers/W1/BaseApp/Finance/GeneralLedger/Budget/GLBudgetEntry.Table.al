@@ -12,6 +12,15 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Utilities;
 using System.Security.AccessControl;
 
+/// <summary>
+/// Stores individual budget entries with multi-dimensional analysis capabilities for financial planning and forecasting.
+/// Primary transaction table for budget data with full dimension support and Analysis View integration.
+/// </summary>
+/// <remarks>
+/// Key relationships: G/L Budget Name (header), G/L Account (master data), Dimension Values (analysis).
+/// Integration: Analysis View Budget Entry for performance reporting and G/L Account budgeting workflows.
+/// Extensibility: OnValidate triggers for custom business rules and dimension validation hooks.
+/// </remarks>
 table 96 "G/L Budget Entry"
 {
     Caption = 'G/L Budget Entry';
@@ -22,15 +31,24 @@ table 96 "G/L Budget Entry"
 
     fields
     {
+        /// <summary>
+        /// Unique identifier for the budget entry record within the G/L Budget Entry table.
+        /// </summary>
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
         }
+        /// <summary>
+        /// Reference to the budget name that groups related budget entries and defines dimension structure.
+        /// </summary>
         field(2; "Budget Name"; Code[10])
         {
             Caption = 'Budget Name';
             TableRelation = "G/L Budget Name";
         }
+        /// <summary>
+        /// G/L Account for which the budget amount is defined, linking to the chart of accounts structure.
+        /// </summary>
         field(3; "G/L Account No."; Code[20])
         {
             Caption = 'G/L Account No.';
@@ -42,6 +60,9 @@ table 96 "G/L Budget Entry"
                     VerifyNoRelatedAnalysisViewBudgetEntries(xRec);
             end;
         }
+        /// <summary>
+        /// Budget period date that determines when the budget amount applies for period-based analysis.
+        /// </summary>
         field(4; Date; Date)
         {
             Caption = 'Date';
@@ -53,6 +74,9 @@ table 96 "G/L Budget Entry"
                     VerifyNoRelatedAnalysisViewBudgetEntries(xRec);
             end;
         }
+        /// <summary>
+        /// First global dimension code for company-wide analysis and reporting requirements.
+        /// </summary>
         field(5; "Global Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,1,1';
@@ -68,6 +92,9 @@ table 96 "G/L Budget Entry"
                 UpdateDimensionSetId(GLSetup."Global Dimension 1 Code", "Global Dimension 1 Code");
             end;
         }
+        /// <summary>
+        /// Second global dimension code for company-wide analysis and reporting requirements.
+        /// </summary>
         field(6; "Global Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,1,2';
@@ -83,6 +110,9 @@ table 96 "G/L Budget Entry"
                 UpdateDimensionSetId(GLSetup."Global Dimension 2 Code", "Global Dimension 2 Code");
             end;
         }
+        /// <summary>
+        /// Budget amount in local currency for the specified G/L account and dimension combination.
+        /// </summary>
         field(7; Amount; Decimal)
         {
             AutoFormatExpression = '';
@@ -95,15 +125,24 @@ table 96 "G/L Budget Entry"
                     VerifyNoRelatedAnalysisViewBudgetEntries(xRec);
             end;
         }
+        /// <summary>
+        /// Descriptive text providing additional context or explanation for the budget entry.
+        /// </summary>
         field(9; Description; Text[100])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// Business unit code for consolidation and multi-company budget analysis scenarios.
+        /// </summary>
         field(10; "Business Unit Code"; Code[20])
         {
             Caption = 'Business Unit Code';
             TableRelation = "Business Unit";
         }
+        /// <summary>
+        /// User identifier who created or last modified the budget entry for audit trail purposes.
+        /// </summary>
         field(11; "User ID"; Code[50])
         {
             Caption = 'User ID';
@@ -111,6 +150,9 @@ table 96 "G/L Budget Entry"
             Editable = false;
             TableRelation = User."User Name";
         }
+        /// <summary>
+        /// First budget-specific dimension code as configured in the associated G/L Budget Name.
+        /// </summary>
         field(12; "Budget Dimension 1 Code"; Code[20])
         {
             AccessByPermission = TableData Dimension = R;
@@ -134,6 +176,9 @@ table 96 "G/L Budget Entry"
                 UpdateDimensionSetId(GLBudgetName."Budget Dimension 1 Code", "Budget Dimension 1 Code");
             end;
         }
+        /// <summary>
+        /// Second budget-specific dimension code as configured in the associated G/L Budget Name.
+        /// </summary>
         field(13; "Budget Dimension 2 Code"; Code[20])
         {
             AccessByPermission = TableData Dimension = R;
@@ -157,6 +202,9 @@ table 96 "G/L Budget Entry"
                 UpdateDimensionSetId(GLBudgetName."Budget Dimension 2 Code", "Budget Dimension 2 Code");
             end;
         }
+        /// <summary>
+        /// Third budget-specific dimension code as configured in the associated G/L Budget Name.
+        /// </summary>
         field(14; "Budget Dimension 3 Code"; Code[20])
         {
             AccessByPermission = TableData "Dimension Combination" = R;
@@ -180,6 +228,9 @@ table 96 "G/L Budget Entry"
                 UpdateDimensionSetId(GLBudgetName."Budget Dimension 3 Code", "Budget Dimension 3 Code");
             end;
         }
+        /// <summary>
+        /// Fourth budget-specific dimension code as configured in the associated G/L Budget Name.
+        /// </summary>
         field(15; "Budget Dimension 4 Code"; Code[20])
         {
             AccessByPermission = TableData "Dimension Combination" = R;
@@ -203,11 +254,17 @@ table 96 "G/L Budget Entry"
                 UpdateDimensionSetId(GLBudgetName."Budget Dimension 4 Code", "Budget Dimension 4 Code");
             end;
         }
+        /// <summary>
+        /// Date when the budget entry was last modified for tracking changes and version control.
+        /// </summary>
         field(16; "Last Date Modified"; Date)
         {
             Caption = 'Last Date Modified';
             Editable = false;
         }
+        /// <summary>
+        /// Dimension Set ID that combines all dimension values into a single reference for optimized querying.
+        /// </summary>
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
@@ -311,6 +368,10 @@ table 96 "G/L Budget Entry"
 #pragma warning restore AA0074
         AnalysisViewBudgetEntryExistsErr: Label 'You cannot change the amount on this G/L budget entry because one or more related analysis view budget entries exist.\\You must make the change on the related entry in the G/L Budget window.';
 
+    /// <summary>
+    /// Retrieves the highest entry number in the G/L Budget Entry table for generating new unique identifiers.
+    /// </summary>
+    /// <returns>The last used entry number in the table.</returns>
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Budget Entry", 'r')]
     procedure GetLastEntryNo(): Integer;
     var
@@ -319,6 +380,9 @@ table 96 "G/L Budget Entry"
         exit(FindRecordManagement.GetLastEntryIntFieldValue(Rec, FieldNo("Entry No.")))
     end;
 
+    /// <summary>
+    /// Validates that the associated budget name is not blocked before allowing entry modifications.
+    /// </summary>
     procedure CheckIfBlocked()
     var
         IsHandled: Boolean;
@@ -385,6 +449,11 @@ table 96 "G/L Budget Entry"
         exit(DefaultValue);
     end;
 
+    /// <summary>
+    /// Generates dynamic captions for budget dimension fields based on the dimension configuration in the budget name.
+    /// </summary>
+    /// <param name="BudgetDimType">The budget dimension type number (1-4) for caption generation.</param>
+    /// <returns>Formatted caption text for the specified budget dimension field.</returns>
     procedure GetCaptionClass(BudgetDimType: Integer): Text[250]
     begin
         if GetFilter("Budget Name") <> '' then begin
@@ -424,6 +493,9 @@ table 96 "G/L Budget Entry"
         end;
     end;
 
+    /// <summary>
+    /// Opens the dimension management page for viewing and editing the entry's dimension set values.
+    /// </summary>
     procedure ShowDimensions()
     var
         DimSetEntry: Record "Dimension Set Entry";
@@ -463,6 +535,13 @@ table 96 "G/L Budget Entry"
         OnAfterShowDimensions(Rec);
     end;
 
+    /// <summary>
+    /// Updates a temporary dimension set entry record with the specified dimension code and value.
+    /// Used for building dimension sets during budget entry processing and validation.
+    /// </summary>
+    /// <param name="TempDimSetEntry">Temporary dimension set entry record to update.</param>
+    /// <param name="DimCode">Dimension code to set in the entry.</param>
+    /// <param name="DimValueCode">Dimension value code to set in the entry.</param>
     procedure UpdateDimSet(var TempDimSetEntry: Record "Dimension Set Entry" temporary; DimCode: Code[20]; DimValueCode: Code[20])
     begin
         if DimCode = '' then
@@ -518,31 +597,55 @@ table 96 "G/L Budget Entry"
             Error(AnalysisViewBudgetEntryExistsErr);
     end;
 
+    /// <summary>
+    /// Integration event raised after showing dimensions for a budget entry.
+    /// Allows subscribers to perform additional processing after dimension dialog is displayed.
+    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnAfterShowDimensions(var GLBudgetEntry: Record "G/L Budget Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after updating dimension set entries for a budget entry.
+    /// Allows subscribers to perform additional dimension processing or validation.
+    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateDimSet(GLBudgetEntry: Record "G/L Budget Entry"; var TempDimensionSetEntry: Record "Dimension Set Entry" temporary; DimCode: Code[20]; DimValueCode: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after updating the dimension set ID for a budget entry.
+    /// Allows subscribers to perform additional processing after dimension set ID changes.
+    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateDimensionSetId(var TempDimensionSetEntry: Record "Dimension Set Entry" temporary; var GLBudgetEntry: Record "G/L Budget Entry"; xGLBudgetEntry: Record "G/L Budget Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking if a budget name is blocked.
+    /// Allows subscribers to implement custom blocking logic or skip the standard check.
+    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckIfBlocked(var GLBudgetEntry: Record "G/L Budget Entry"; xGLBudgetEntry: Record "G/L Budget Entry"; GLBudgetName: Record "G/L Budget Name"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised during insert after updating dimension sets.
+    /// Allows subscribers to perform additional processing after dimension sets are updated during budget entry insertion.
+    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnInsertOnAfterUpdateDimSets(var TempDimensionSetEntry: Record "Dimension Set Entry" temporary; var GLBudgetEntry: Record "G/L Budget Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before verifying no related Analysis View Budget Entries exist.
+    /// Allows subscribers to implement custom verification logic or skip the standard verification.
+    /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeVerifyNoRelatedAnalysisViewBudgetEntries(var GLBudgetEntry: Record "G/L Budget Entry"; xGLBudgetEntry: Record "G/L Budget Entry"; var IsHandled: Boolean)
     begin

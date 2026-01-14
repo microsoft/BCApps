@@ -6,8 +6,8 @@ using System.Environment.Configuration;
 using System.Privacy;
 using System.Security.AccessControl;
 using System.Security.User;
-using System.Utilities;
 using System.Telemetry;
+using System.Utilities;
 
 page 1368 "Monitor Field Setup Wizard"
 {

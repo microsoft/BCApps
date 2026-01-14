@@ -32,6 +32,16 @@ using Microsoft.Sales.History;
 using System.Telemetry;
 using System.Utilities;
 
+/// <summary>
+/// Core management codeunit for intercompany inbox and outbox operations.
+/// Handles creation, conversion, and processing of intercompany transactions between related companies.
+/// </summary>
+/// <remarks>
+/// Central hub for intercompany transaction management including journal lines, sales documents, and purchase documents.
+/// Provides translation services between company-specific and intercompany data formats.
+/// Supports both file-based and direct database transaction exchange between IC partners.
+/// Key workflows: transaction creation, document conversion, partner data mapping, and handled transaction management.
+/// </remarks>
 codeunit 427 ICInboxOutboxMgt
 {
     Permissions = TableData "General Ledger Setup" = rm;
@@ -61,7 +71,12 @@ codeunit 427 ICInboxOutboxMgt
         DuplicateICDocumentMsg: Label 'An %1 with no. %2 has been previously received through intercompany. You have an order and an invoice for the same document which can lead to duplicating information. You can remove one of these documents or use Reject IC Document.', Comment = '%1 - either "order", "invoice", or "posted invoice", %2 - a code';
         PermissionToAutoAcceptICDocsErr: Label 'Auto-accepting intercompany documents requires scheduling permissions which you do not have assigned, delegated administrators can not schedule tasks.';
 
-
+    /// <summary>
+    /// Creates an outbox journal transaction for sending general journal lines to intercompany partners.
+    /// </summary>
+    /// <param name="TempGenJnlLine">Temporary general journal line record containing IC transaction data</param>
+    /// <param name="Rejection">Indicates whether this transaction is a rejection response</param>
+    /// <returns>Transaction number of the created outbox transaction, or 0 if no transfer needed</returns>
     procedure CreateOutboxJnlTransaction(TempGenJnlLine: Record "Gen. Journal Line" temporary; Rejection: Boolean): Integer
     var
         ICPartner: Record "IC Partner";
@@ -106,6 +121,11 @@ codeunit 427 ICInboxOutboxMgt
         exit(ICTransactionNo);
     end;
 
+    /// <summary>
+    /// Sends a sales document to the appropriate intercompany partner for processing.
+    /// </summary>
+    /// <param name="SalesHeader">Sales document header to send to IC partner</param>
+    /// <param name="Post">Indicates whether the document is being posted during send operation</param>
     procedure SendSalesDoc(var SalesHeader: Record "Sales Header"; Post: Boolean)
     var
         ICPartner: Record "IC Partner";
@@ -147,6 +167,11 @@ codeunit 427 ICInboxOutboxMgt
         OnAfterSendSalesDoc(SalesHeader, Post);
     end;
 
+    /// <summary>
+    /// Sends a purchase document to the appropriate intercompany partner for processing.
+    /// </summary>
+    /// <param name="PurchHeader">Purchase document header to send to IC partner</param>
+    /// <param name="Post">Indicates whether the document is being posted during send operation</param>
     procedure SendPurchDoc(var PurchHeader: Record "Purchase Header"; Post: Boolean)
     var
         ICPartner: Record "IC Partner";
@@ -181,6 +206,12 @@ codeunit 427 ICInboxOutboxMgt
         OnAfterSendPurchDoc(PurchHeader, Post);
     end;
 
+    /// <summary>
+    /// Creates an outbox sales document transaction for transferring sales data to intercompany partner.
+    /// </summary>
+    /// <param name="SalesHeader">Sales document header to create outbox transaction for</param>
+    /// <param name="Rejection">Indicates whether this transaction is a rejection response</param>
+    /// <param name="Post">Indicates whether the document is being posted during transaction creation</param>
     procedure CreateOutboxSalesDocTrans(SalesHeader: Record "Sales Header"; Rejection: Boolean; Post: Boolean)
     var
         OutboxTransaction: Record "IC Outbox Transaction";
@@ -292,6 +323,10 @@ codeunit 427 ICInboxOutboxMgt
         OnInsertICOutboxSalesDocTransaction(OutboxTransaction);
     end;
 
+    /// <summary>
+    /// Creates an outbox sales invoice transaction for posted sales invoice to send to intercompany partner.
+    /// </summary>
+    /// <param name="SalesInvHdr">Posted sales invoice header to create outbox transaction for</param>
     procedure CreateOutboxSalesInvTrans(SalesInvHdr: Record "Sales Invoice Header")
     var
         OutboxTransaction: Record "IC Outbox Transaction";
@@ -420,6 +455,10 @@ codeunit 427 ICInboxOutboxMgt
         OnInsertICOutboxSalesInvTransaction(OutboxTransaction);
     end;
 
+    /// <summary>
+    /// Creates an outbox sales credit memo transaction for posted sales credit memo to send to intercompany partner.
+    /// </summary>
+    /// <param name="SalesCrMemoHdr">Posted sales credit memo header to create outbox transaction for</param>
     procedure CreateOutboxSalesCrMemoTrans(SalesCrMemoHdr: Record "Sales Cr.Memo Header")
     var
         OutboxTransaction: Record "IC Outbox Transaction";
@@ -515,6 +554,12 @@ codeunit 427 ICInboxOutboxMgt
         OnInsertICOutboxSalesCrMemoTransaction(OutboxTransaction);
     end;
 
+    /// <summary>
+    /// Creates an outbox purchase document transaction for transferring purchase data to intercompany partner.
+    /// </summary>
+    /// <param name="PurchHeader">Purchase document header to create outbox transaction for</param>
+    /// <param name="Rejection">Indicates whether this transaction is a rejection response</param>
+    /// <param name="Post">Indicates whether the document is being posted during transaction creation</param>
     procedure CreateOutboxPurchDocTrans(PurchHeader: Record "Purchase Header"; Rejection: Boolean; Post: Boolean)
     var
         OutboxTransaction: Record "IC Outbox Transaction";
@@ -621,6 +666,12 @@ codeunit 427 ICInboxOutboxMgt
         OnInsertICOutboxPurchDocTransaction(OutboxTransaction);
     end;
 
+    /// <summary>
+    /// Creates outbox journal lines for intercompany journal transactions.
+    /// </summary>
+    /// <param name="TransactionNo">Transaction number for the outbox journal line</param>
+    /// <param name="TransactionSource">Source of the transaction (rejected or created by current company)</param>
+    /// <param name="TempGenJnlLine">Temporary general journal line containing transaction data</param>
     procedure CreateOutboxJnlLine(TransactionNo: Integer; TransactionSource: Option "Rejected by Current Company"," Created by Current Company"; TempGenJnlLine: Record "Gen. Journal Line" temporary)
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -700,6 +751,11 @@ codeunit 427 ICInboxOutboxMgt
         OnInsertICOutboxJnlLine(ICOutboxJnlLine, TempGenJnlLine);
     end;
 
+    /// <summary>
+    /// Translates intercompany G/L account number to local G/L account number.
+    /// </summary>
+    /// <param name="ICAccNo">Intercompany G/L account number to translate</param>
+    /// <returns>Local G/L account number mapped to the IC account</returns>
     procedure TranslateICGLAccount(ICAccNo: Code[30]): Code[20]
     var
         ICGLAcc: Record "IC G/L Account";
@@ -708,6 +764,11 @@ codeunit 427 ICInboxOutboxMgt
         exit(ICGLAcc."Map-to G/L Acc. No.");
     end;
 
+    /// <summary>
+    /// Translates intercompany partner code to local vendor number.
+    /// </summary>
+    /// <param name="ICPartnerCode">Intercompany partner code to translate</param>
+    /// <returns>Local vendor number linked to the IC partner</returns>
     procedure TranslateICPartnerToVendor(ICPartnerCode: Code[20]): Code[20]
     var
         ICPartner: Record "IC Partner";
@@ -716,6 +777,11 @@ codeunit 427 ICInboxOutboxMgt
         exit(ICPartner."Vendor No.");
     end;
 
+    /// <summary>
+    /// Translates intercompany partner code to local customer number.
+    /// </summary>
+    /// <param name="ICPartnerCode">Intercompany partner code to translate</param>
+    /// <returns>Local customer number linked to the IC partner</returns>
     procedure TranslateICPartnerToCustomer(ICPartnerCode: Code[20]): Code[20]
     var
         ICPartner: Record "IC Partner";
@@ -732,6 +798,13 @@ codeunit 427 ICInboxOutboxMgt
         exit(BankAccount."No.");
     end;
 
+    /// <summary>
+    /// Creates general journal lines from intercompany inbox journal lines for local posting.
+    /// </summary>
+    /// <param name="InboxTransaction">IC inbox transaction record containing transaction header</param>
+    /// <param name="InboxJnlLine">IC inbox journal line to convert to general journal line</param>
+    /// <param name="TempGenJnlLine">Temporary general journal line record to populate</param>
+    /// <param name="GenJnlTemplate">General journal template for the created lines</param>
     procedure CreateJournalLines(InboxTransaction: Record "IC Inbox Transaction"; InboxJnlLine: Record "IC Inbox Jnl. Line"; var TempGenJnlLine: Record "Gen. Journal Line" temporary; GenJnlTemplate: Record "Gen. Journal Template")
     var
         GenJnlLine2: Record "Gen. Journal Line";
@@ -833,6 +906,12 @@ codeunit 427 ICInboxOutboxMgt
         OnAfterCreateJournalLines(GenJnlLine2);
     end;
 
+    /// <summary>
+    /// Creates a local sales document from intercompany inbox sales header and lines.
+    /// </summary>
+    /// <param name="ICInboxSalesHeader">IC inbox sales header to convert to local sales document</param>
+    /// <param name="ReplacePostingDate">Indicates whether to replace the posting date</param>
+    /// <param name="PostingDate">New posting date to use if replacing</param>
     procedure CreateSalesDocument(ICInboxSalesHeader: Record "IC Inbox Sales Header"; ReplacePostingDate: Boolean; PostingDate: Date)
     var
         ICInboxSalesLine: Record "IC Inbox Sales Line";
@@ -948,6 +1027,12 @@ codeunit 427 ICInboxOutboxMgt
         end;
     end;
 
+    /// <summary>
+    /// Creates sales lines from IC inbox data during sales document conversion.
+    /// Transfers item information, quantities, prices, and dimensions from inbox to sales lines.
+    /// </summary>
+    /// <param name="SalesHeader">Sales header record to attach lines to</param>
+    /// <param name="ICInboxSalesLine">IC inbox sales line containing source data</param>
     procedure CreateSalesLines(SalesHeader: Record "Sales Header"; ICInboxSalesLine: Record "IC Inbox Sales Line")
     var
         SalesLine: Record "Sales Line";
@@ -1093,6 +1178,12 @@ codeunit 427 ICInboxOutboxMgt
         SalesLine.Validate("Promised Delivery Date", ICInboxSalesLine."Promised Delivery Date");
     end;
 
+    /// <summary>
+    /// Creates a local purchase document from intercompany inbox purchase header and lines.
+    /// </summary>
+    /// <param name="ICInboxPurchHeader">IC inbox purchase header to convert to local purchase document</param>
+    /// <param name="ReplacePostingDate">Indicates whether to replace the posting date</param>
+    /// <param name="PostingDate">New posting date to use if replacing</param>
     procedure CreatePurchDocument(ICInboxPurchHeader: Record "IC Inbox Purchase Header"; ReplacePostingDate: Boolean; PostingDate: Date)
     var
         ICInboxPurchLine: Record "IC Inbox Purchase Line";
@@ -1214,6 +1305,12 @@ codeunit 427 ICInboxOutboxMgt
         end;
     end;
 
+    /// <summary>
+    /// Creates purchase lines from IC inbox data during purchase document conversion.
+    /// Transfers item information, quantities, prices, and dimensions from inbox to purchase lines.
+    /// </summary>
+    /// <param name="PurchHeader">Purchase header record to attach lines to</param>
+    /// <param name="ICInboxPurchLine">IC inbox purchase line containing source data</param>
     procedure CreatePurchLines(PurchHeader: Record "Purchase Header"; ICInboxPurchLine: Record "IC Inbox Purchase Line")
     var
         PurchLine: Record "Purchase Line";
@@ -1305,7 +1402,7 @@ codeunit 427 ICInboxOutboxMgt
                 PurchLine.Description := ICInboxPurchLine.Description;
                 PurchLine."Description 2" := ICInboxPurchLine."Description 2";
                 IsHandled := false;
-                OnCreatePurchLinesOnBeforeCalcPriceAndAmounts(PurchHeader, PurchLine, IsHandled);
+                OnCreatePurchLinesOnBeforeCalcPriceAndAmounts(PurchHeader, PurchLine, IsHandled, ICInboxPurchLine);
                 if not IsHandled then begin
                     PurchLine.Validate("Direct Unit Cost", ICInboxPurchLine."Direct Unit Cost");
                     PurchLine."Amount Including VAT" := ICInboxPurchLine."Amount Including VAT";
@@ -1352,6 +1449,10 @@ codeunit 427 ICInboxOutboxMgt
         OnAfterCreatePurchLines(ICInboxPurchLine, PurchLine);
     end;
 
+    /// <summary>
+    /// Creates handled inbox transaction record by moving completed inbox transaction to archive.
+    /// </summary>
+    /// <param name="InboxTransaction">IC inbox transaction to move to handled inbox for archival</param>
     procedure CreateHandledInbox(InboxTransaction: Record "IC Inbox Transaction")
     var
         HandledInboxTransaction: Record "Handled IC Inbox Trans.";
@@ -1384,6 +1485,12 @@ codeunit 427 ICInboxOutboxMgt
         HandledInboxTransaction.Insert();
     end;
 
+    /// <summary>
+    /// Determines if a sales header originated from an incoming intercompany transaction.
+    /// Checks IC direction and partner code to identify IC-generated sales documents.
+    /// </summary>
+    /// <param name="SalesHeader">Sales header record to examine</param>
+    /// <returns>True if sales header was created from incoming IC transaction</returns>
     procedure IsSalesHeaderFromIncomingIC(var SalesHeader: Record "Sales Header"): Boolean
     begin
         exit(
@@ -1393,6 +1500,12 @@ codeunit 427 ICInboxOutboxMgt
         );
     end;
 
+    /// <summary>
+    /// Determines if a purchase header originated from an incoming intercompany transaction.
+    /// Checks IC direction and partner code to identify IC-generated purchase documents.
+    /// </summary>
+    /// <param name="PurchaseHeader">Purchase header record to examine</param>
+    /// <returns>True if purchase header was created from incoming IC transaction</returns>
     procedure IsPurchaseHeaderFromIncomingIC(var PurchaseHeader: Record "Purchase Header"): Boolean
     begin
         exit(
@@ -1402,11 +1515,22 @@ codeunit 427 ICInboxOutboxMgt
         );
     end;
 
+    /// <summary>
+    /// Displays warning message for duplicate IC document detection.
+    /// Shows default warning message about potential document duplication.
+    /// </summary>
+    /// <param name="PurchaseHeader">Purchase header record that may be duplicated</param>
     procedure ShowDuplicateICDocumentWarning(var PurchaseHeader: Record "Purchase Header")
     begin
         ShowDuplicateICDocumentWarning(PurchaseHeader, DuplicateICDocumentMsg);
     end;
 
+    /// <summary>
+    /// Displays custom warning message for duplicate IC document detection.
+    /// Shows specified warning message about potential document duplication.
+    /// </summary>
+    /// <param name="PurchaseHeader">Purchase header record that may be duplicated</param>
+    /// <param name="WarningMsg">Custom warning message to display</param>
     procedure ShowDuplicateICDocumentWarning(var PurchaseHeader: Record "Purchase Header"; WarningMsg: Text)
     var
         Notification: Notification;
@@ -1424,6 +1548,11 @@ codeunit 427 ICInboxOutboxMgt
         Notification.Send();
     end;
 
+    /// <summary>
+    /// Reverts an accepted purchase header back to IC inbox for reprocessing.
+    /// Removes IC direction and partner information to enable re-acceptance.
+    /// </summary>
+    /// <param name="PurchaseHeader">Purchase header record to reject back to IC inbox</param>
     [CommitBehavior(CommitBehavior::Ignore)]
     procedure RejectAcceptedPurchaseHeader(var PurchaseHeader: Record "Purchase Header")
     var
@@ -1435,6 +1564,11 @@ codeunit 427 ICInboxOutboxMgt
         RecreateInboxTransactionAndReturn(HandledICInboxTrans);
     end;
 
+    /// <summary>
+    /// Reverts an accepted sales header back to IC inbox for reprocessing.
+    /// Removes IC direction and partner information to enable re-acceptance.
+    /// </summary>
+    /// <param name="SalesHeader">Sales header record to reject back to IC inbox</param>
     [CommitBehavior(CommitBehavior::Ignore)]
     procedure RejectAcceptedSalesHeader(var SalesHeader: Record "Sales Header")
     var
@@ -1557,11 +1691,22 @@ codeunit 427 ICInboxOutboxMgt
     end;
 
 
+    /// <summary>
+    /// Recreates IC inbox transaction from handled transaction for reprocessing.
+    /// Moves handled transaction back to active inbox with default line action.
+    /// </summary>
+    /// <param name="HandledInboxTransaction">Handled IC inbox transaction to recreate</param>
     procedure RecreateInboxTransaction(var HandledInboxTransaction: Record "Handled IC Inbox Trans.")
     begin
         RecreateInboxTransaction(HandledInboxTransaction, true);
     end;
 
+    /// <summary>
+    /// Recreates IC inbox transaction from handled transaction with confirmation option.
+    /// Moves handled transaction back to active inbox for reprocessing with user confirmation.
+    /// </summary>
+    /// <param name="HandledInboxTransaction">Handled IC inbox transaction to recreate</param>
+    /// <param name="Confirm">Whether to show confirmation dialog to user</param>
     procedure RecreateInboxTransaction(var HandledInboxTransaction: Record "Handled IC Inbox Trans."; Confirm: Boolean)
     var
         HandledInboxTransaction2: Record "Handled IC Inbox Trans.";
@@ -1724,6 +1869,11 @@ codeunit 427 ICInboxOutboxMgt
         end;
     end;
 
+    /// <summary>
+    /// Recreates IC outbox transaction from handled transaction for resending.
+    /// Moves handled transaction back to active outbox for reprocessing and resending to partners.
+    /// </summary>
+    /// <param name="HandledOutboxTransaction">Handled IC outbox transaction to recreate</param>
     procedure RecreateOutboxTransaction(var HandledOutboxTransaction: Record "Handled IC Outbox Trans.")
     var
         HandledOutboxTransaction2: Record "Handled IC Outbox Trans.";
@@ -1880,6 +2030,11 @@ codeunit 427 ICInboxOutboxMgt
         end
     end;
 
+    /// <summary>
+    /// Forwards IC inbox transaction to outbox for resending to other partners.
+    /// Converts rejected or returned transactions back to outbox for redistribution.
+    /// </summary>
+    /// <param name="InboxTransaction">IC inbox transaction to forward to outbox</param>
     procedure ForwardToOutBox(InboxTransaction: Record "IC Inbox Transaction")
     var
         OutboxTransaction: Record "IC Outbox Transaction";
@@ -2053,6 +2208,10 @@ codeunit 427 ICInboxOutboxMgt
             until ICCommentLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Retrieves and caches company information for IC transactions.
+    /// Loads company details used in intercompany document creation and validation.
+    /// </summary>
     procedure GetCompanyInfo()
     begin
         if not CompanyInfoFound then
@@ -2060,6 +2219,10 @@ codeunit 427 ICInboxOutboxMgt
         CompanyInfoFound := true;
     end;
 
+    /// <summary>
+    /// Retrieves and caches general ledger setup for IC transactions.
+    /// Loads G/L configuration used in intercompany posting and validation.
+    /// </summary>
     procedure GetGLSetup()
     begin
         if not GLSetupFound then
@@ -2067,6 +2230,11 @@ codeunit 427 ICInboxOutboxMgt
         GLSetupFound := true;
     end;
 
+    /// <summary>
+    /// Retrieves and validates currency code for IC transactions.
+    /// Sets currency to local currency (LCY) if provided code is invalid or empty.
+    /// </summary>
+    /// <param name="CurrencyCode">Currency code to validate and potentially modify</param>
     procedure GetCurrency(var CurrencyCode: Code[20])
     begin
         GetGLSetup();
@@ -2074,6 +2242,12 @@ codeunit 427 ICInboxOutboxMgt
             CurrencyCode := '';
     end;
 
+    /// <summary>
+    /// Converts common item number to local item number using IC item mappings.
+    /// Resolves intercompany item references to local item numbers.
+    /// </summary>
+    /// <param name="CommonItemNo">Common item number from IC transaction</param>
+    /// <returns>Local item number if mapping exists, otherwise original number</returns>
     procedure GetItemFromCommonItem(CommonItemNo: Code[20]): Code[20]
     var
         Item: Record Item;
@@ -2086,6 +2260,15 @@ codeunit 427 ICInboxOutboxMgt
     end;
 
 
+    /// <summary>
+    /// Resolves item number using item reference system for IC transactions.
+    /// Finds local item number based on reference number, type, and customer/vendor information.
+    /// </summary>
+    /// <param name="RefNo">Item reference number</param>
+    /// <param name="RefType">Type of item reference (Customer, Vendor, etc.)</param>
+    /// <param name="RefTypeNo">Reference type number (customer/vendor number)</param>
+    /// <param name="ToDate">Date for reference validity</param>
+    /// <returns>Local item number if reference found, otherwise original reference number</returns>
     procedure GetItemFromItemRef(RefNo: Code[50]; RefType: Enum "Item Reference Type"; RefTypeNo: Code[20]; ToDate: Date): Code[20]
     var
         Item: Record Item;
@@ -2126,6 +2309,15 @@ codeunit 427 ICInboxOutboxMgt
         exit(CustomerPostingGroup."Invoice Rounding Account");
     end;
 
+    /// <summary>
+    /// Moves IC comment lines between transaction tables during status changes.
+    /// Transfers comments from one IC table to another while updating table references.
+    /// </summary>
+    /// <param name="TableName">Source table identifier for comments</param>
+    /// <param name="NewTableName">Target table identifier for comments</param>
+    /// <param name="TransactionNo">Transaction number for comment filtering</param>
+    /// <param name="ICPartner">IC partner code for comment filtering</param>
+    /// <param name="TransactionSource">Transaction source for updated comments</param>
     procedure HandleICComments(TableName: Option; NewTableName: Option; TransactionNo: Integer; ICPartner: Code[20]; TransactionSource: Option)
     var
         ICCommentLine: Record "IC Comment Line";
@@ -2150,6 +2342,13 @@ codeunit 427 ICInboxOutboxMgt
         end;
     end;
 
+    /// <summary>
+    /// Converts IC outbox transaction to inbox transaction for receiving partner.
+    /// Creates inbox transaction record from outbox data for partner processing.
+    /// </summary>
+    /// <param name="ICOutboxTrans">Source IC outbox transaction to convert</param>
+    /// <param name="ICInboxTrans">Target IC inbox transaction to create</param>
+    /// <param name="FromICPartnerCode">Code of partner sending the transaction</param>
     procedure OutboxTransToInbox(var ICOutboxTrans: Record "IC Outbox Transaction"; var ICInboxTrans: Record "IC Inbox Transaction"; FromICPartnerCode: Code[20])
     var
         TempAllPartnerICInboxTransaction: Record "IC Inbox Transaction" temporary;
@@ -2159,6 +2358,16 @@ codeunit 427 ICInboxOutboxMgt
         OutboxTransToInboxOptimized(ICOutboxTrans, ICInboxTrans, FromICPartnerCode, ICPartnerCodeList, TempAllPartnerICInboxTransaction, TempAllPartnerHandledICInboxTrans);
     end;
 
+    /// <summary>
+    /// Optimized conversion of IC outbox transaction to inbox with partner list management.
+    /// Efficiently processes multiple partners with shared temporary tables for performance.
+    /// </summary>
+    /// <param name="ICOutboxTrans">Source IC outbox transaction to convert</param>
+    /// <param name="ICInboxTrans">Target IC inbox transaction to create</param>
+    /// <param name="FromICPartnerCode">Code of partner sending the transaction</param>
+    /// <param name="ICPartnerCodeList">List of partner codes being processed</param>
+    /// <param name="TempAllPartnerICInboxTransaction">Shared temporary table for inbox transactions</param>
+    /// <param name="TempAllPartnerHandledICInboxTrans">Shared temporary table for handled transactions</param>
     procedure OutboxTransToInboxOptimized(var ICOutboxTrans: Record "IC Outbox Transaction"; var ICInboxTrans: Record "IC Inbox Transaction"; FromICPartnerCode: Code[20]; var ICPartnerCodeList: List of [Text]; var TempAllPartnerICInboxTransaction: Record "IC Inbox Transaction" temporary; var TempAllPartnerHandledICInboxTrans: Record "Handled IC Inbox Trans." temporary)
     var
         TempPartnerICInboxTransaction: Record "IC Inbox Transaction" temporary;
@@ -2242,6 +2451,13 @@ codeunit 427 ICInboxOutboxMgt
         OnAfterICInboxTransInsert(ICInboxTrans, ICOutboxTrans);
     end;
 
+    /// <summary>
+    /// Converts IC outbox journal line to inbox journal line for partner processing.
+    /// Transfers journal data from outbox to inbox with account mapping and validation.
+    /// </summary>
+    /// <param name="ICInboxTrans">Target IC inbox transaction</param>
+    /// <param name="ICOutboxJnlLine">Source IC outbox journal line</param>
+    /// <param name="ICInboxJnlLine">Target IC inbox journal line to create</param>
     procedure OutboxJnlLineToInbox(var ICInboxTrans: Record "IC Inbox Transaction"; var ICOutboxJnlLine: Record "IC Outbox Jnl. Line"; var ICInboxJnlLine: Record "IC Inbox Jnl. Line")
     var
         ICSetup: Record "IC Setup";
@@ -2323,6 +2539,13 @@ codeunit 427 ICInboxOutboxMgt
         ICInboxJnlLine.Insert();
     end;
 
+    /// <summary>
+    /// Converts IC outbox sales header to inbox purchase header for receiving partner.
+    /// Transforms sales document data to purchase format with field mapping and partner-specific adjustments.
+    /// </summary>
+    /// <param name="ICInboxTrans">Target IC inbox transaction</param>
+    /// <param name="ICOutboxSalesHeader">Source IC outbox sales header</param>
+    /// <param name="ICInboxPurchHeader">Target IC inbox purchase header to create</param>
     procedure OutboxSalesHdrToInbox(var ICInboxTrans: Record "IC Inbox Transaction"; var ICOutboxSalesHeader: Record "IC Outbox Sales Header"; var ICInboxPurchHeader: Record "IC Inbox Purchase Header")
     var
         ICSetup: Record "IC Setup";
@@ -2392,6 +2615,13 @@ codeunit 427 ICInboxOutboxMgt
         OnAfterICInboxPurchHeaderInsert(ICInboxPurchHeader, ICOutboxSalesHeader);
     end;
 
+    /// <summary>
+    /// Converts IC outbox sales line to inbox purchase line for receiving partner.
+    /// Transforms sales line data to purchase format with quantity, price, and dimension mapping.
+    /// </summary>
+    /// <param name="ICInboxTrans">Target IC inbox transaction</param>
+    /// <param name="ICOutboxSalesLine">Source IC outbox sales line</param>
+    /// <param name="ICInboxPurchLine">Target IC inbox purchase line to create</param>
     procedure OutboxSalesLineToInbox(var ICInboxTrans: Record "IC Inbox Transaction"; var ICOutboxSalesLine: Record "IC Outbox Sales Line"; var ICInboxPurchLine: Record "IC Inbox Purchase Line")
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -2435,6 +2665,13 @@ codeunit 427 ICInboxOutboxMgt
         OnAfterICInboxPurchLineInsert(ICInboxPurchLine, ICOutboxSalesLine);
     end;
 
+    /// <summary>
+    /// Copies IC comment lines from outbox to inbox during transaction conversion.
+    /// Transfers comment data between transaction tables with proper table references.
+    /// </summary>
+    /// <param name="ICInboxTransaction">Target IC inbox transaction (temporary)</param>
+    /// <param name="OutgoingICCommentLine">Source IC comment line from outbox</param>
+    /// <param name="NewICCommentLine">Target IC comment line for inbox</param>
     procedure OutboxICCommentLineToInbox(var ICInboxTransaction: Record "IC Inbox Transaction" temporary; OutgoingICCommentLine: Record "IC Comment Line"; var NewICCommentLine: Record "IC Comment Line" temporary)
     begin
         NewICCommentLine.TransferFields(OutgoingICCommentLine, true);
@@ -2443,6 +2680,13 @@ codeunit 427 ICInboxOutboxMgt
         NewICCommentLine.Insert();
     end;
 
+    /// <summary>
+    /// Converts IC outbox purchase header to inbox sales header for receiving partner.
+    /// Transforms purchase document data to sales format with field mapping and partner-specific adjustments.
+    /// </summary>
+    /// <param name="ICInboxTrans">Target IC inbox transaction</param>
+    /// <param name="ICOutboxPurchHeader">Source IC outbox purchase header</param>
+    /// <param name="ICInboxSalesHeader">Target IC inbox sales header to create</param>
     procedure OutboxPurchHdrToInbox(var ICInboxTrans: Record "IC Inbox Transaction"; var ICOutboxPurchHeader: Record "IC Outbox Purchase Header"; var ICInboxSalesHeader: Record "IC Inbox Sales Header")
     var
         ICSetup: Record "IC Setup";
@@ -2503,6 +2747,13 @@ codeunit 427 ICInboxOutboxMgt
         OnAfterICInboxSalesHeaderInsert(ICInboxSalesHeader, ICOutboxPurchHeader);
     end;
 
+    /// <summary>
+    /// Converts IC outbox purchase line to inbox sales line for receiving partner.
+    /// Transforms purchase line data to sales format with quantity, price, and dimension mapping.
+    /// </summary>
+    /// <param name="ICInboxTrans">Target IC inbox transaction</param>
+    /// <param name="ICOutboxPurchLine">Source IC outbox purchase line</param>
+    /// <param name="ICInboxSalesLine">Target IC inbox sales line to create</param>
     procedure OutboxPurchLineToInbox(var ICInboxTrans: Record "IC Inbox Transaction"; var ICOutboxPurchLine: Record "IC Outbox Purchase Line"; var ICInboxSalesLine: Record "IC Inbox Sales Line")
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -2847,6 +3098,13 @@ codeunit 427 ICInboxOutboxMgt
         exit(false);
     end;
 
+    /// <summary>
+    /// Finds return shipment line matching purchase line for IC transaction processing.
+    /// Locates corresponding return shipment records for purchase document validation.
+    /// </summary>
+    /// <param name="ReturnShptLine">Return shipment line record to populate</param>
+    /// <param name="PurchaseLineSource">Source purchase line for matching</param>
+    /// <returns>True if matching return shipment line found</returns>
     procedure FindShipmentLine(var ReturnShptLine: Record "Return Shipment Line"; PurchaseLineSource: Record "Purchase Line"): Boolean
     var
         PurchaseHeader: Record "Purchase Header";
@@ -3213,6 +3471,11 @@ codeunit 427 ICInboxOutboxMgt
                 Error('');
     end;
 
+    /// <summary>
+    /// Validates permissions and setup required to send IC transactions.
+    /// Checks IC partner configuration, customer setup, and document send permissions.
+    /// </summary>
+    /// <param name="SalesHeader">Sales header to validate for IC sending</param>
     procedure CheckPermissionToSendICTransaction(var SalesHeader: Record "Sales Header")
     var
         ICSetup: Record "IC Setup";
@@ -3249,652 +3512,1362 @@ codeunit 427 ICInboxOutboxMgt
         if not TaskScheduler.CanCreateTask() then
             Error(PermissionToAutoAcceptICDocsErr)
     end;
-
+    /// <summary>
+    /// Integration event raised after inserting an IC outbox transaction for journal lines.
+    /// </summary>
+    /// <param name="ICOutboxTransaction">IC outbox transaction record that was inserted</param>
+    /// <param name="TempGenJnlLine">Temporary general journal line containing transaction data</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertICOutboxTransaction(var ICOutboxTransaction: Record "IC Outbox Transaction"; var TempGenJnlLine: Record "Gen. Journal Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting an IC outbox transaction for sales documents.
+    /// </summary>
+    /// <param name="ICOutboxTransaction">IC outbox transaction record that was inserted</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertICOutboxSalesDocTransaction(var ICOutboxTransaction: Record "IC Outbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting an IC outbox transaction for sales invoices.
+    /// </summary>
+    /// <param name="ICOutboxTransaction">IC outbox transaction record that was inserted</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertICOutboxSalesInvTransaction(var ICOutboxTransaction: Record "IC Outbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting an IC outbox transaction for sales credit memos.
+    /// Enables custom processing and automation for outgoing credit memo transactions.
+    /// </summary>
+    /// <param name="ICOutboxTransaction">IC outbox transaction record that was inserted</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertICOutboxSalesCrMemoTransaction(var ICOutboxTransaction: Record "IC Outbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting an IC outbox transaction for purchase documents.
+    /// Enables custom processing and automation for outgoing purchase document transactions.
+    /// </summary>
+    /// <param name="ICOutboxTransaction">IC outbox transaction record that was inserted</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertICOutboxPurchDocTransaction(var ICOutboxTransaction: Record "IC Outbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting an IC outbox journal line.
+    /// Enables custom processing of journal line data during outbox creation.
+    /// </summary>
+    /// <param name="ICOutboxJnlLine">IC outbox journal line that was inserted</param>
+    /// <param name="TempGenJournalLine">Source general journal line data</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertICOutboxJnlLine(var ICOutboxJnlLine: Record "IC Outbox Jnl. Line"; TempGenJournalLine: Record "Gen. Journal Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting IC outbox journal line during journal line creation.
+    /// </summary>
+    /// <param name="ICOutboxJnlLine">IC outbox journal line being inserted</param>
+    /// <param name="TempGenJournalLine">Source general journal line data</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertOutboxJnlLineOnBeforeICOutboxJnlLineInsert(var ICOutboxJnlLine: Record "IC Outbox Jnl. Line"; TempGenJournalLine: Record "Gen. Journal Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after creating sales document from IC inbox transaction.
+    /// </summary>
+    /// <param name="SalesHeader">Created sales document header</param>
+    /// <param name="ICInboxSalesHeader">Source IC inbox sales header</param>
+    /// <param name="HandledICInboxSalesHeader">Handled IC inbox sales header for reference</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateSalesDocument(var SalesHeader: Record "Sales Header"; ICInboxSalesHeader: Record "IC Inbox Sales Header"; HandledICInboxSalesHeader: Record "Handled IC Inbox Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after creating sales lines from IC inbox transaction.
+    /// </summary>
+    /// <param name="ICInboxSalesLine">Source IC inbox sales line</param>
+    /// <param name="SalesLine">Created sales line</param>
+    /// <param name="SalesHeader">Parent sales header</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateSalesLines(ICInboxSalesLine: Record "IC Inbox Sales Line"; var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after creating purchase document from IC inbox transaction.
+    /// </summary>
+    /// <param name="PurchaseHeader">Created purchase document header</param>
+    /// <param name="ICInboxPurchaseHeader">Source IC inbox purchase header</param>
+    /// <param name="HandledICInboxPurchHeader">Handled IC inbox purchase header for reference</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreatePurchDocument(var PurchaseHeader: Record "Purchase Header"; ICInboxPurchaseHeader: Record "IC Inbox Purchase Header"; HandledICInboxPurchHeader: Record "Handled IC Inbox Purch. Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after creating purchase lines from IC inbox transaction.
+    /// </summary>
+    /// <param name="ICInboxPurchLine">Source IC inbox purchase line</param>
+    /// <param name="PurchLine">Created purchase line</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreatePurchLines(ICInboxPurchLine: Record "IC Inbox Purchase Line"; var PurchLine: Record "Purchase Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after creating journal lines from IC inbox transaction.
+    /// </summary>
+    /// <param name="GenJnlLine2">Created general journal line</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateJournalLines(var GenJnlLine2: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after forwarding sales document to IC outbox.
+    /// </summary>
+    /// <param name="ICInboxTransaction">Source inbox transaction</param>
+    /// <param name="ICOutboxTransaction">Created outbox transaction</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterForwardToOutBoxSalesDoc(var ICInboxTransaction: Record "IC Inbox Transaction"; var ICOutboxTransaction: Record "IC Outbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after forwarding purchase document to IC outbox.
+    /// </summary>
+    /// <param name="ICInboxTransaction">Source inbox transaction</param>
+    /// <param name="ICOutboxTransaction">Created outbox transaction</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterForwardToOutBoxPurchDoc(var ICInboxTransaction: Record "IC Inbox Transaction"; var ICOutboxTransaction: Record "IC Outbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting handled IC outbox sales header.
+    /// </summary>
+    /// <param name="HandledICOutboxSalesHeader">Handled outbox sales header being inserted</param>
+    /// <param name="ICOutboxSalesHeader">Source outbox sales header</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterHandledICOutboxSalesHdrInsert(var HandledICOutboxSalesHeader: Record "Handled IC Outbox Sales Header"; var ICOutboxSalesHeader: Record "IC Outbox Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting handled IC outbox purchase header.
+    /// </summary>
+    /// <param name="HandledICOutboxPurchHdr">Handled outbox purchase header being inserted</param>
+    /// <param name="ICOutboxPurchaseHeader">Source outbox purchase header</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterHandledICOutboxPurchHdrInsert(var HandledICOutboxPurchHdr: Record "Handled IC Outbox Purch. Hdr"; var ICOutboxPurchaseHeader: Record "IC Outbox Purchase Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting IC inbox purchase header from outbox sales.
+    /// </summary>
+    /// <param name="ICInboxPurchaseHeader">Created inbox purchase header</param>
+    /// <param name="ICOutboxSalesHeader">Source outbox sales header</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterICInboxPurchHeaderInsert(var ICInboxPurchaseHeader: Record "IC Inbox Purchase Header"; ICOutboxSalesHeader: Record "IC Outbox Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting IC inbox purchase line from outbox sales.
+    /// </summary>
+    /// <param name="ICInboxPurchaseLine">Created inbox purchase line</param>
+    /// <param name="ICOutboxSalesLine">Source outbox sales line</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterICInboxPurchLineInsert(var ICInboxPurchaseLine: Record "IC Inbox Purchase Line"; ICOutboxSalesLine: Record "IC Outbox Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting IC inbox sales header from outbox purchase.
+    /// </summary>
+    /// <param name="ICInboxSalesHeader">Created inbox sales header</param>
+    /// <param name="ICOutboxPurchaseHeader">Source outbox purchase header</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterICInboxSalesHeaderInsert(var ICInboxSalesHeader: Record "IC Inbox Sales Header"; ICOutboxPurchaseHeader: Record "IC Outbox Purchase Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting IC inbox sales line from outbox purchase.
+    /// </summary>
+    /// <param name="ICInboxSalesLine">Created inbox sales line</param>
+    /// <param name="ICOutboxPurchaseLine">Source outbox purchase line</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterICInboxSalesLineInsert(var ICInboxSalesLine: Record "IC Inbox Sales Line"; ICOutboxPurchaseLine: Record "IC Outbox Purchase Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting IC inbox transaction from outbox.
+    /// </summary>
+    /// <param name="ICInboxTransaction">Created inbox transaction</param>
+    /// <param name="ICOutboxTransaction">Source outbox transaction</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterICInboxTransInsert(var ICInboxTransaction: Record "IC Inbox Transaction"; ICOutboxTransaction: Record "IC Outbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after processing exchange account in GL journal line.
+    /// </summary>
+    /// <param name="TempGenJnlLine">Processed general journal line</param>
+    /// <param name="TransactionNo">IC transaction number</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterRunExchangeAccGLJournalLine(var TempGenJnlLine: Record "Gen. Journal Line" temporary; TransactionNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after transferring fields from purchase header to IC outbox.
+    /// </summary>
+    /// <param name="ICOutboxPurchHeader">IC outbox purchase header being created</param>
+    /// <param name="PurchHeader">Source purchase header</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateOutboxPurchDocTransOnAfterTransferFieldsFromPurchHeader(var ICOutboxPurchHeader: Record "IC Outbox Purchase Header"; PurchHeader: Record "Purchase Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting IC outbox sales header for credit memo transaction.
+    /// </summary>
+    /// <param name="ICOutboxSalesHeader">Created IC outbox sales header</param>
+    /// <param name="SalesCrMemoHeader">Source sales credit memo header</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateOutboxSalesCrMemoTransOnAfterICOutBoxSalesHeaderInsert(var ICOutboxSalesHeader: Record "IC Outbox Sales Header"; SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting purchase line filters for outbox transaction creation.
+    /// </summary>
+    /// <param name="PurchHeader">Purchase header being processed</param>
+    /// <param name="PurchLine">Purchase line with applied filters</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateOutboxPurchDocTransOnAfterPurchLineSetFilters(var PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting IC outbox sales header for invoice transaction.
+    /// </summary>
+    /// <param name="ICOutboxSalesHeader">Created IC outbox sales header</param>
+    /// <param name="SalesInvoiceHeader">Source sales invoice header</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateOutboxSalesInvTransOnAfterICOutBoxSalesHeaderInsert(var ICOutboxSalesHeader: Record "IC Outbox Sales Header"; SalesInvoiceHeader: Record "Sales Invoice Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying general journal line during IC creation process.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being modified</param>
+    /// <param name="ICInboxJnlLine">Source IC inbox journal line</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateJournalLinesOnBeforeModify(var GenJournalLine: Record "Gen. Journal Line"; ICInboxJnlLine: Record "IC Inbox Jnl. Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking if IC purchase document was already sent.
+    /// </summary>
+    /// <param name="PurchaseHeader">Purchase header to check</param>
+    /// <param name="IsHandled">Set to true to skip default validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckICPurchaseDocumentAlreadySent(PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking if IC sales document was already sent.
+    /// </summary>
+    /// <param name="SalesHeader">Sales header to check</param>
+    /// <param name="IsHandled">Set to true to skip default validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckICSalesDocumentAlreadySent(SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before creating outbox purchase document transaction.
+    /// </summary>
+    /// <param name="PurchaseHeader">Purchase header being processed</param>
+    /// <param name="Rejection">Whether this is a rejection transaction</param>
+    /// <param name="Post">Whether the document should be posted</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateOutboxPurchDocTrans(PurchaseHeader: Record "Purchase Header"; Rejection: Boolean; Post: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before creating outbox sales credit memo transaction.
+    /// </summary>
+    /// <param name="SalesCrMemoHeader">Sales credit memo header being processed</param>
+    /// <param name="IsHandled">Set to true to skip default processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateOutboxSalesCrMemoTrans(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before creating journal lines from IC inbox transaction.
+    /// </summary>
+    /// <param name="InboxTransaction">IC inbox transaction being processed</param>
+    /// <param name="InboxJnlLine">IC inbox journal line</param>
+    /// <param name="TempGenJnlLine">Temporary general journal line being created</param>
+    /// <param name="GenJnlTemplate">General journal template</param>
+    /// <param name="IsHandled">Set to true to skip default processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateJournalLines(InboxTransaction: Record "IC Inbox Transaction"; InboxJnlLine: Record "IC Inbox Jnl. Line"; var TempGenJnlLine: Record "Gen. Journal Line" temporary; GenJnlTemplate: Record "Gen. Journal Template"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before finding purchase receipt line for IC processing.
+    /// </summary>
+    /// <param name="PurchRcptLine">Purchase receipt line being searched</param>
+    /// <param name="PurchaseLineSource">Source purchase line for matching</param>
+    /// <param name="Found">Set to true if receipt line is found</param>
+    /// <param name="IsHandled">Set to true to skip default search logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFindReceiptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; PurchaseLineSource: Record "Purchase Line"; var Found: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting general journal line from IC processing.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line being inserted</param>
+    /// <param name="ICInboxJnlLine">Source IC inbox journal line</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertGenJnlLine(var GenJnlLine: Record "Gen. Journal Line"; ICInboxJnlLine: Record "IC Inbox Jnl. Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting IC inbox purchase header from outbox sales.
+    /// </summary>
+    /// <param name="ICInboxPurchaseHeader">IC inbox purchase header being inserted</param>
+    /// <param name="ICOutboxSalesHeader">Source IC outbox sales header</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeICInboxPurchHeaderInsert(var ICInboxPurchaseHeader: Record "IC Inbox Purchase Header"; ICOutboxSalesHeader: Record "IC Outbox Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting IC inbox purchase line from outbox sales.
+    /// </summary>
+    /// <param name="ICInboxPurchaseLine">IC inbox purchase line being inserted</param>
+    /// <param name="ICOutboxSalesLine">Source IC outbox sales line</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeICInboxPurchLineInsert(var ICInboxPurchaseLine: Record "IC Inbox Purchase Line"; ICOutboxSalesLine: Record "IC Outbox Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting IC inbox sales header from outbox purchase.
+    /// </summary>
+    /// <param name="ICInboxSalesHeader">IC inbox sales header being inserted</param>
+    /// <param name="ICOutboxPurchaseHeader">Source IC outbox purchase header</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeICInboxSalesHeaderInsert(var ICInboxSalesHeader: Record "IC Inbox Sales Header"; ICOutboxPurchaseHeader: Record "IC Outbox Purchase Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting IC inbox sales line from outbox purchase.
+    /// </summary>
+    /// <param name="ICInboxSalesLine">IC inbox sales line being inserted</param>
+    /// <param name="ICOutboxPurchaseLine">Source IC outbox purchase line</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeICInboxSalesLineInsert(var ICInboxSalesLine: Record "IC Inbox Sales Line"; ICOutboxPurchaseLine: Record "IC Outbox Purchase Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting IC inbox transaction from outbox.
+    /// </summary>
+    /// <param name="ICInboxTransaction">IC inbox transaction being inserted</param>
+    /// <param name="ICOutboxTransaction">Source IC outbox transaction</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeICInboxTransInsert(var ICInboxTransaction: Record "IC Inbox Transaction"; ICOutboxTransaction: Record "IC Outbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before sending purchase document to IC partner.
+    /// </summary>
+    /// <param name="PurchHeader">Purchase header being sent</param>
+    /// <param name="Post">Whether to post the document</param>
+    /// <param name="IsHandled">Set to true to skip default processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSendPurchDoc(var PurchHeader: Record "Purchase Header"; var Post: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before sending sales document to IC partner.
+    /// </summary>
+    /// <param name="SalesHeader">Sales header being sent</param>
+    /// <param name="Post">Whether to post the document</param>
+    /// <param name="IsHandled">Set to true to skip default processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSendSalesDoc(var SalesHeader: Record "Sales Header"; var Post: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating IC outbox sales line receipt/shipment information.
+    /// </summary>
+    /// <param name="ICOutboxSalesLine">IC outbox sales line being updated</param>
+    /// <param name="ICOutboxSalesHeader">Parent IC outbox sales header</param>
+    /// <param name="IsHandled">Set to true to skip default processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateICOutboxSalesLineReceiptShipment(var ICOutboxSalesLine: Record "IC Outbox Sales Line"; ICOutboxSalesHeader: Record "IC Outbox Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating sales line delivery dates from IC inbox.
+    /// </summary>
+    /// <param name="SalesLine">Sales line being validated</param>
+    /// <param name="ICInboxSalesLine">Source IC inbox sales line</param>
+    /// <param name="IsHandled">Set to true to skip default validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateSalesLineDeliveryDates(var SalesLine: Record "Sales Line"; ICInboxSalesLine: Record "IC Inbox Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating quantity from IC inbox sales line.
+    /// </summary>
+    /// <param name="SalesLine">Sales line being validated</param>
+    /// <param name="ICInboxSalesLine">Source IC inbox sales line</param>
+    /// <param name="IsHandled">Set to true to skip default validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateQuantityFromICInboxSalesLine(var SalesLine: Record "Sales Line"; ICInboxSalesLine: Record "IC Inbox Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after transferring fields from sales invoice header to IC outbox.
+    /// </summary>
+    /// <param name="ICOutboxSalesHeader">IC outbox sales header being created</param>
+    /// <param name="SalesInvHdr">Source sales invoice header</param>
+    /// <param name="ICOutboxTransaction">Parent IC outbox transaction</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateOutboxSalesInvTransOnAfterTransferFieldsFromSalesInvHeader(var ICOutboxSalesHeader: Record "IC Outbox Sales Header"; SalesInvHdr: Record "Sales Invoice Header"; ICOutboxTransaction: Record "IC Outbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting outbox transaction for sales invoice.
+    /// </summary>
+    /// <param name="OutboxTransaction">IC outbox transaction being inserted</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateOutboxSalesInvTransOnBeforeOutboxTransactionInsert(var OutboxTransaction: Record "IC Outbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after transferring fields from sales credit memo header to IC outbox.
+    /// </summary>
+    /// <param name="ICOutboxSalesHeader">IC outbox sales header being created</param>
+    /// <param name="SalesCrMemoHdr">Source sales credit memo header</param>
+    /// <param name="ICOutboxTransaction">Parent IC outbox transaction</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateOutboxSalesCrMemoTransOnAfterTransferFieldsFromSalesCrMemoHeader(var ICOutboxSalesHeader: Record "IC Outbox Sales Header"; SalesCrMemoHdr: Record "Sales Cr.Memo Header"; ICOutboxTransaction: Record "IC Outbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting outbox transaction for sales credit memo.
+    /// </summary>
+    /// <param name="OutboxTransaction">IC outbox transaction being inserted</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateOutboxSalesCrMemoTransOnBeforeOutboxTransactionInsert(var OutboxTransaction: Record "IC Outbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before completing IC outbox transaction creation for sales document.
+    /// </summary>
+    /// <param name="SalesHeader">Sales header being processed</param>
+    /// <param name="SalesLine">Sales line being processed</param>
+    /// <param name="ICOutboxSalesHeader">Created IC outbox sales header</param>
+    /// <param name="ICOutboxTransaction">Created IC outbox transaction</param>
+    /// <param name="LinesCreated">Whether lines were created successfully</param>
+    /// <param name="Post">Whether the document should be posted</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeICOutboxTransactionCreatedSalesDocTrans(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var ICOutboxSalesHeader: Record "IC Outbox Sales Header"; var ICOutboxTransaction: Record "IC Outbox Transaction"; LinesCreated: Boolean; Post: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before completing IC outbox transaction creation for sales invoice.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">Sales invoice header being processed</param>
+    /// <param name="SalesInvoiceLine">Sales invoice line being processed</param>
+    /// <param name="ICOutboxSalesHeader">Created IC outbox sales header</param>
+    /// <param name="ICOutboxTransaction">Created IC outbox transaction</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeICOutboxTransactionCreatedSalesInvTrans(var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceLine: Record "Sales Invoice Line"; var ICOutboxSalesHeader: Record "IC Outbox Sales Header"; var ICOutboxTransaction: Record "IC Outbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before completing IC outbox transaction creation for sales credit memo.
+    /// </summary>
+    /// <param name="SalesCrMemoHeader">Sales credit memo header being processed</param>
+    /// <param name="SalesCrMemoLine">Sales credit memo line being processed</param>
+    /// <param name="ICOutboxSalesHeader">Created IC outbox sales header</param>
+    /// <param name="ICOutboxTransaction">Created IC outbox transaction</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeICOutboxTransactionCreatedSalesCrMemoTrans(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesCrMemoLine: Record "Sales Cr.Memo Line"; var ICOutboxSalesHeader: Record "IC Outbox Sales Header"; var ICOutboxTransaction: Record "IC Outbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before completing IC outbox transaction creation for purchase document.
+    /// </summary>
+    /// <param name="PurchaseHeader">Purchase header being processed</param>
+    /// <param name="PurchaseLine">Purchase line being processed</param>
+    /// <param name="ICOutboxPurchaseHeader">Created IC outbox purchase header</param>
+    /// <param name="ICOutboxTransaction">Created IC outbox transaction</param>
+    /// <param name="LinesCreated">Whether lines were created successfully</param>
+    /// <param name="Post">Whether the document should be posted</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeICOutboxTransactionCreatedPurchDocTrans(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var ICOutboxPurchaseHeader: Record "IC Outbox Purchase Header"; var ICOutboxTransaction: Record "IC Outbox Transaction"; LinesCreated: Boolean; Post: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting handled IC outbox sales line.
+    /// </summary>
+    /// <param name="HandledICOutboxSalesLine">Handled IC outbox sales line being inserted</param>
+    /// <param name="ICOutboxSalesLine">Source IC outbox sales line</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeHandledICOutboxSalesLineInsert(var HandledICOutboxSalesLine: Record "Handled IC Outbox Sales Line"; ICOutboxSalesLine: Record "IC Outbox Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting handled IC outbox purchase line.
+    /// </summary>
+    /// <param name="HandledICOutboxPurchLine">Handled IC outbox purchase line being inserted</param>
+    /// <param name="ICOutboxPurchLine">Source IC outbox purchase line</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeHandledICOutboxPurchLineInsert(var HandledICOutboxPurchLine: Record "Handled IC Outbox Purch. Line"; ICOutboxPurchLine: Record "IC Outbox Purchase Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting IC inbox sales line during recreation process.
+    /// </summary>
+    /// <param name="ICInboxSalesLine">IC inbox sales line being inserted</param>
+    /// <param name="HandledICInboxSalesLine">Source handled IC inbox sales line</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInboxSalesLineInsert(var ICInboxSalesLine: Record "IC Inbox Sales Line"; HandledICInboxSalesLine: Record "Handled IC Inbox Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting IC outbox transaction for sales document.
+    /// </summary>
+    /// <param name="ICOutboxTransaction">IC outbox transaction being inserted</param>
+    /// <param name="SalesHeader">Source sales header</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOutBoxTransactionInsert(var ICOutboxTransaction: Record "IC Outbox Transaction"; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating purchase line IC partner reference.
+    /// </summary>
+    /// <param name="PurchaseLine">Purchase line being updated</param>
+    /// <param name="PurchaseHeader">Parent purchase header</param>
+    /// <param name="ICInboxPurchLine">Source IC inbox purchase line</param>
+    /// <param name="IsHandled">Set to true to skip default processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePurchLineICPartnerReference(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; ICInboxPurchLine: Record "IC Inbox Purchase Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting IC outbox journal transaction.
+    /// </summary>
+    /// <param name="OutboxJnlTransaction">IC outbox transaction being inserted</param>
+    /// <param name="TempGenJnlLine">Source general journal line data</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateOutboxJnlTransactionOnBeforeOutboxJnlTransactionInsert(var OutboxJnlTransaction: Record "IC Outbox Transaction"; var TempGenJnlLine: Record "Gen. Journal Line" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting IC outbox purchase line for purchase document transaction.
+    /// </summary>
+    /// <param name="ICOutboxPurchaseLine">Created IC outbox purchase line</param>
+    /// <param name="PurchaseLine">Source purchase line</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateOutboxPurchDocTransOnAfterICOutBoxPurchLineInsert(var ICOutboxPurchaseLine: Record "IC Outbox Purchase Line"; PurchaseLine: Record "Purchase Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting IC outbox sales line for credit memo transaction.
+    /// </summary>
+    /// <param name="ICOutboxSalesLine">IC outbox sales line being inserted</param>
+    /// <param name="SalesCrMemoLine">Source sales credit memo line</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateOutboxSalesCrMemoTransOnBeforeICOutBoxSalesLineInsert(var ICOutboxSalesLine: Record "IC Outbox Sales Line"; SalesCrMemoLine: Record "Sales Cr.Memo Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting IC outbox sales line for sales document transaction.
+    /// </summary>
+    /// <param name="ICOutboxSalesLine">Created IC outbox sales line</param>
+    /// <param name="SalesLine">Source sales line</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateOutboxSalesDocTransOnAfterICOutBoxSalesLineInsert(var ICOutboxSalesLine: Record "IC Outbox Sales Line"; SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting IC outbox sales line for invoice transaction.
+    /// </summary>
+    /// <param name="ICOutboxSalesLine">IC outbox sales line being inserted</param>
+    /// <param name="SalesInvLine">Source sales invoice line</param>
+    /// <param name="ICOutBoxSalesHeader">Parent IC outbox sales header</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateOutboxSalesInvTransOnBeforeICOutBoxSalesLineInsert(var ICOutboxSalesLine: Record "IC Outbox Sales Line"; SalesInvLine: Record "Sales Invoice Line"; ICOutBoxSalesHeader: Record "IC Outbox Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting handled IC inbox purchase line during document creation.
+    /// </summary>
+    /// <param name="ICInboxPurchLine">Source IC inbox purchase line</param>
+    /// <param name="HandledICInboxPurchLine">Handled IC inbox purchase line being inserted</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePurchDocumentOnBeforeHandledICInboxPurchLineInsert(ICInboxPurchLine: Record "IC Inbox Purchase Line"; var HandledICInboxPurchLine: Record "Handled IC Inbox Purch. Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting purchase header during IC document creation.
+    /// </summary>
+    /// <param name="PurchaseHeader">Purchase header being inserted</param>
+    /// <param name="ICInboxPurchaseHeader">Source IC inbox purchase header</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePurchDocumentOnBeforePurchHeaderInsert(var PurchaseHeader: Record "Purchase Header"; ICInboxPurchaseHeader: Record "IC Inbox Purchase Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after first modification of sales header during IC document creation.
+    /// </summary>
+    /// <param name="SalesHeader">Sales header that was modified</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateSalesDocumentOnAfterSalesHeaderFirstModify(var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before setting IC document dimension filters during sales document creation.
+    /// </summary>
+    /// <param name="SalesHeader">Sales header being processed</param>
+    /// <param name="ICInboxSalesHeader">Source IC inbox sales header</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateSalesDocumentOnBeforeSetICDocDimFilters(var SalesHeader: Record "Sales Header"; var ICInboxSalesHeader: Record "IC Inbox Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting sales header during IC document creation.
+    /// </summary>
+    /// <param name="SalesHeader">Sales header being inserted</param>
+    /// <param name="ICInboxSalesHeader">Source IC inbox sales header</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateSalesDocumentOnBeforeSalesHeaderInsert(var SalesHeader: Record "Sales Header"; ICInboxSalesHeader: Record "IC Inbox Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating number field during sales line creation.
+    /// </summary>
+    /// <param name="SalesLine">Sales line being created</param>
+    /// <param name="SalesHeader">Parent sales header</param>
+    /// <param name="ICInboxSalesLine">Source IC inbox sales line</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateSalesLinesOnAfterValidateNo(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; ICInboxSalesLine: Record "IC Inbox Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating number field during purchase line creation.
+    /// </summary>
+    /// <param name="PurchaseLine">Purchase line being created</param>
+    /// <param name="PurchaseHeader">Parent purchase header</param>
+    /// <param name="ICInboxPurchaseLine">Source IC inbox purchase line</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePurchLinesOnAfterValidateNo(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; ICInboxPurchaseLine: Record "IC Inbox Purchase Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting handled IC inbox purchase line during forward operation.
+    /// </summary>
+    /// <param name="HandledICInboxPurchLine">Handled IC inbox purchase line being inserted</param>
+    /// <param name="ICInboxPurchLine">Source IC inbox purchase line</param>
     [IntegrationEvent(false, false)]
     local procedure OnForwardToOutBoxOnBeforeHndlInboxPurchLineInsert(var HandledICInboxPurchLine: Record "Handled IC Inbox Purch. Line"; ICInboxPurchLine: Record "IC Inbox Purchase Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting handled IC inbox sales line during forward operation.
+    /// </summary>
+    /// <param name="HandledICInboxSalesLine">Handled IC inbox sales line being inserted</param>
+    /// <param name="ICInboxSalesLine">Source IC inbox sales line</param>
     [IntegrationEvent(false, false)]
     local procedure OnForwardToOutBoxOnBeforeHndlInboxSalesLineInsert(var HandledICInboxSalesLine: Record "Handled IC Inbox Sales Line"; ICInboxSalesLine: Record "IC Inbox Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting IC outbox transaction during forward operation.
+    /// </summary>
+    /// <param name="ICOutboxTransaction">IC outbox transaction being inserted</param>
+    /// <param name="ICInboxTransaction">Source IC inbox transaction</param>
     [IntegrationEvent(false, false)]
     local procedure OnForwardToOutBoxOnBeforeOutboxTransactionInsert(var ICOutboxTransaction: Record "IC Outbox Transaction"; ICInboxTransaction: Record "IC Inbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before deleting sales header during inbox transaction recreation.
+    /// </summary>
+    /// <param name="HandledICInboxSalesHeader">Handled IC inbox sales header to be deleted</param>
+    /// <param name="HandledICInboxTrans">Parent handled IC inbox transaction</param>
     [IntegrationEvent(false, false)]
     local procedure OnRecreateInboxTransactionOnBeforeDeleteSalesHeader(HandledICInboxSalesHeader: Record "Handled IC Inbox Sales Header"; var HandledICInboxTrans: Record "Handled IC Inbox Trans.")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before deleting purchase header during inbox transaction recreation.
+    /// </summary>
+    /// <param name="HandledICInboxPurchHeader">Handled IC inbox purchase header to be deleted</param>
+    /// <param name="HandledICInboxTrans">Parent handled IC inbox transaction</param>
     [IntegrationEvent(false, false)]
     local procedure OnRecreateInboxTransactionOnBeforeDeletePurchHeader(HandledICInboxPurchHeader: Record "Handled IC Inbox Purch. Header"; var HandledICInboxTrans: Record "Handled IC Inbox Trans.")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting IC inbox purchase header during transaction recreation.
+    /// </summary>
+    /// <param name="ICInboxPurchaseHeader">IC inbox purchase header being inserted</param>
+    /// <param name="HandledICInboxPurchHeader">Source handled IC inbox purchase header</param>
     [IntegrationEvent(false, false)]
     local procedure OnRecreateInboxTransactionOnBeforeInboxPurchHdrInsert(var ICInboxPurchaseHeader: Record "IC Inbox Purchase Header"; HandledICInboxPurchHeader: Record "Handled IC Inbox Purch. Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting IC inbox purchase line during transaction recreation.
+    /// </summary>
+    /// <param name="ICInboxPurchaseLine">IC inbox purchase line being inserted</param>
+    /// <param name="HandledICInboxPurchLine">Source handled IC inbox purchase line</param>
     [IntegrationEvent(false, false)]
     local procedure OnRecreateInboxTransactionOnBeforeInboxPurchLineInsert(var ICInboxPurchaseLine: Record "IC Inbox Purchase Line"; HandledICInboxPurchLine: Record "Handled IC Inbox Purch. Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting IC inbox sales header during transaction recreation.
+    /// </summary>
+    /// <param name="ICInboxSalesHeader">IC inbox sales header being inserted</param>
+    /// <param name="HandledICInboxSalesHeader">Source handled IC inbox sales header</param>
     [IntegrationEvent(false, false)]
     local procedure OnRecreateInboxTransactionOnBeforeInboxSalesHdrInsert(var ICInboxSalesHeader: Record "IC Inbox Sales Header"; HandledICInboxSalesHeader: Record "Handled IC Inbox Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting IC inbox transaction during recreation process.
+    /// </summary>
+    /// <param name="ICInboxTransaction">IC inbox transaction being inserted</param>
+    /// <param name="HandledICInboxTrans">Source handled IC inbox transaction</param>
+    /// <param name="HandledInboxTransaction">Additional handled transaction context</param>
     [IntegrationEvent(false, false)]
     local procedure OnRecreateInboxTransactionOnBeforeInboxTransactionInsert(var ICInboxTransaction: Record "IC Inbox Transaction"; HandledICInboxTrans: Record "Handled IC Inbox Trans."; var HandledInboxTransaction: Record "Handled IC Inbox Trans.")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before deleting sales header during outbox transaction recreation.
+    /// </summary>
+    /// <param name="HandledICOutboxSalesHeader">Handled IC outbox sales header to be deleted</param>
+    /// <param name="HandledICOutboxTrans">Parent handled IC outbox transaction</param>
     [IntegrationEvent(false, false)]
     local procedure OnRecreateOutboxTransactionOnBeforeDeleteSalesHeader(HandledICOutboxSalesHeader: Record "Handled IC Outbox Sales Header"; var HandledICOutboxTrans: Record "Handled IC Outbox Trans.")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before deleting purchase header during outbox transaction recreation.
+    /// </summary>
+    /// <param name="HandledICOutboxPurchHdr">Handled IC outbox purchase header to be deleted</param>
+    /// <param name="HandledICOutboxTrans">Parent handled IC outbox transaction</param>
     [IntegrationEvent(false, false)]
     local procedure OnRecreateOutboxTransactionOnBeforeDeletePurchHeader(HandledICOutboxPurchHdr: Record "Handled IC Outbox Purch. Hdr"; var HandledICOutboxTrans: Record "Handled IC Outbox Trans.")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting IC outbox purchase header during transaction recreation.
+    /// </summary>
+    /// <param name="ICOutboxPurchaseHeader">IC outbox purchase header being inserted</param>
+    /// <param name="HandledICOutboxPurchHdr">Source handled IC outbox purchase header</param>
     [IntegrationEvent(false, false)]
     local procedure OnRecreateOutboxTransactionOnBeforeOutboxPurchHdrInsert(var ICOutboxPurchaseHeader: Record "IC Outbox Purchase Header"; HandledICOutboxPurchHdr: Record "Handled IC Outbox Purch. Hdr")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting IC outbox purchase line during transaction recreation.
+    /// </summary>
+    /// <param name="ICOutboxPurchaseLine">IC outbox purchase line being inserted</param>
+    /// <param name="HandledICOutboxPurchLine">Source handled IC outbox purchase line</param>
     [IntegrationEvent(false, false)]
     local procedure OnRecreateOutboxTransactionOnBeforeOutboxPurchLineInsert(var ICOutboxPurchaseLine: Record "IC Outbox Purchase Line"; HandledICOutboxPurchLine: Record "Handled IC Outbox Purch. Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting IC outbox sales line during transaction recreation.
+    /// </summary>
+    /// <param name="ICOutboxSalesLine">IC outbox sales line being inserted</param>
+    /// <param name="HandledICOutboxSalesLine">Source handled IC outbox sales line</param>
     [IntegrationEvent(false, false)]
     local procedure OnRecreateOutboxTransactionOnBeforeOutboxSalesLineInsert(var ICOutboxSalesLine: Record "IC Outbox Sales Line"; HandledICOutboxSalesLine: Record "Handled IC Outbox Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting IC outbox transaction during recreation process.
+    /// </summary>
+    /// <param name="ICOutboxTransaction">IC outbox transaction being inserted</param>
+    /// <param name="HandledICOutboxTrans">Source handled IC outbox transaction</param>
+    /// <param name="HandledOutboxTransaction">Additional handled transaction context</param>
     [IntegrationEvent(false, false)]
     local procedure OnRecreateOutboxTransactionOnBeforeOutboxTransactionInsert(var ICOutboxTransaction: Record "IC Outbox Transaction"; HandledICOutboxTrans: Record "Handled IC Outbox Trans."; var HandledOutboxTransaction: Record "Handled IC Outbox Trans.")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after inserting IC outbox sales line linked to sales line.
+    /// </summary>
+    /// <param name="SalesLine">Related sales line</param>
+    /// <param name="ICOutboxSalesLine">Created IC outbox sales line</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterICOutBoxSalesLineInsert(var SalesLine: Record "Sales Line"; var ICOutboxSalesLine: Record "IC Outbox Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after transferring fields from sales header to IC outbox sales header.
+    /// </summary>
+    /// <param name="ICOutboxSalesHeader">IC outbox sales header with transferred fields</param>
+    /// <param name="SalesHeader">Source sales header</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterICOutBoxSalesHeaderTransferFields(var ICOutboxSalesHeader: Record "IC Outbox Sales Header"; SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before creating purchase document from IC inbox data.
+    /// </summary>
+    /// <param name="ICInboxPurchaseHeader">Source IC inbox purchase header</param>
+    /// <param name="ReplacePostingDate">Whether to replace posting date</param>
+    /// <param name="PostingDate">New posting date to use</param>
+    /// <param name="IsHandled">Set to true to skip default processing</param>
+    /// <param name="PurchaseHeader">Purchase header being created</param>
+    /// <param name="HandledICInboxPurchHeader">Handled IC inbox purchase header</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreatePurchDocument(ICInboxPurchaseHeader: Record "IC Inbox Purchase Header"; ReplacePostingDate: Boolean; PostingDate: Date; var IsHandled: Boolean; var PurchaseHeader: Record "Purchase Header"; var HandledICInboxPurchHeader: Record "Handled IC Inbox Purch. Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before creating sales document from IC inbox data.
+    /// </summary>
+    /// <param name="ICInboxSalesHeader">Source IC inbox sales header</param>
+    /// <param name="ReplacePostingDate">Whether to replace posting date</param>
+    /// <param name="PostingDate">New posting date to use</param>
+    /// <param name="IsHandled">Set to true to skip default processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateSalesDocument(ICInboxSalesHeader: Record "IC Inbox Sales Header"; ReplacePostingDate: Boolean; PostingDate: Date; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before creating outbox sales document transaction.
+    /// </summary>
+    /// <param name="SalesHeader">Sales header being processed</param>
+    /// <param name="IsHandled">Set to true to skip default processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateOutboxSalesDocTrans(SalesHeader: Record "Sales Header"; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before creating outbox sales invoice transaction.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">Sales invoice header being processed</param>
+    /// <param name="IsHandled">Set to true to skip default processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateOutboxSalesInvTrans(SalesInvoiceHeader: Record "Sales Invoice Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting handled IC inbox sales line.
+    /// </summary>
+    /// <param name="HandledICInboxSalesLine">Handled IC inbox sales line being inserted</param>
+    /// <param name="ICInboxSalesLine">Source IC inbox sales line</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeHandledICInboxSalesLineInsert(var HandledICInboxSalesLine: Record "Handled IC Inbox Sales Line"; ICInboxSalesLine: Record "IC Inbox Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting handled IC inbox transaction.
+    /// </summary>
+    /// <param name="HandledICInboxTrans">Handled IC inbox transaction being inserted</param>
+    /// <param name="ICInboxTransaction">Source IC inbox transaction</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeHandledInboxTransactionInsert(var HandledICInboxTrans: Record "Handled IC Inbox Trans."; ICInboxTransaction: Record "IC Inbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before processing outbox purchase header to inbox procedure.
+    /// </summary>
+    /// <param name="ICInboxTrans">IC inbox transaction being processed</param>
+    /// <param name="ICOutboxPurchHeader">Source IC outbox purchase header</param>
+    /// <param name="ICInboxSalesHeader">Target IC inbox sales header</param>
+    /// <param name="ICSetup">IC setup configuration</param>
+    /// <param name="IsHandled">Set to true to skip default processing</param>
+    /// <param name="ICPartner">IC partner record</param>
+    /// <param name="TempPartnerICPartner">Temporary IC partner data</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOutboxPurchHdrToInboxProcedure(var ICInboxTrans: Record "IC Inbox Transaction"; var ICOutboxPurchHeader: Record "IC Outbox Purchase Header"; var ICInboxSalesHeader: Record "IC Inbox Sales Header"; ICSetup: Record "IC Setup"; var IsHandled: Boolean; var ICPartner: Record "IC Partner"; var TempPartnerICPartner: Record "IC Partner" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before processing outbox sales header to inbox.
+    /// </summary>
+    /// <param name="ICInboxTrans">IC inbox transaction being processed</param>
+    /// <param name="ICOutboxSalesHeader">Source IC outbox sales header</param>
+    /// <param name="ICInboxPurchHeader">Target IC inbox purchase header</param>
+    /// <param name="ICPartner">IC partner record</param>
+    /// <param name="IsHandled">Set to true to skip default processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOutboxSalesHdrToInbox(var ICInboxTrans: Record "IC Inbox Transaction"; var ICOutboxSalesHeader: Record "IC Outbox Sales Header"; var ICInboxPurchHeader: Record "IC Inbox Purchase Header"; var ICPartner: Record "IC Partner"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying sales header during IC document creation.
+    /// </summary>
+    /// <param name="SalesHeader">Sales header being modified</param>
+    /// <param name="ICInboxSalesHeader">Source IC inbox sales header</param>
+    /// <param name="ICDocDim">IC document dimension data</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateSalesDocumentOnBeforeSalesHeaderModify(var SalesHeader: Record "Sales Header"; ICInboxSalesHeader: Record "IC Inbox Sales Header"; var ICDocDim: Record "IC Document Dimension")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before setting IC document dimension filters during purchase document creation.
+    /// </summary>
+    /// <param name="PurchHeader">Purchase header being processed</param>
+    /// <param name="ICInboxPurchHeader">Source IC inbox purchase header</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePurchDocumentOnBeforeSetICDocDimFilters(var PurchHeader: Record "Purchase Header"; var ICInboxPurchHeader: Record "IC Inbox Purchase Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying purchase header during IC document creation.
+    /// </summary>
+    /// <param name="PurchHeader">Purchase header being modified</param>
+    /// <param name="ICInboxPurchHeader">Source IC inbox purchase header</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePurchDocumentOnBeforePurchHeaderModify(var PurchHeader: Record "Purchase Header"; ICInboxPurchHeader: Record "IC Inbox Purchase Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before assigning type and number during sales line creation.
+    /// </summary>
+    /// <param name="SalesLine">Sales line being processed</param>
+    /// <param name="ICInboxSalesLine">Source IC inbox sales line</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateSalesLinesOnBeforefterAssignTypeAndNo(var SalesLine: Record "Sales Line"; ICInboxSalesLine: Record "IC Inbox Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before assigning type and number during purchase line creation.
+    /// </summary>
+    /// <param name="PurchaseLine">Purchase line being processed</param>
+    /// <param name="ICInboxPurchLine">Source IC inbox purchase line</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePurchLinesOnBeforeAssignTypeAndNo(var PurchaseLine: Record "Purchase Line"; ICInboxPurchLine: Record "IC Inbox Purchase Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after transferring fields during purchase line creation.
+    /// </summary>
+    /// <param name="PurchaseLine">Purchase line with transferred fields</param>
+    /// <param name="ICInboxPurchLine">Source IC inbox purchase line</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePurchLinesOnAfterTransferFields(var PurchaseLine: Record "Purchase Line"; ICInboxPurchLine: Record "IC Inbox Purchase Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after assigning purchase line fields during line creation.
+    /// </summary>
+    /// <param name="PurchaseLine">Purchase line with assigned fields</param>
+    /// <param name="ICInboxPurchLine">Source IC inbox purchase line</param>
+    /// <param name="PurchHeader">Parent purchase header</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePurchLinesOnAfterAssignPurchLineFields(var PurchaseLine: Record "Purchase Line"; ICInboxPurchLine: Record "IC Inbox Purchase Line"; var PurchHeader: Record "Purchase Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after modifying purchase line during line creation.
+    /// </summary>
+    /// <param name="PurchaseLine">Modified purchase line</param>
+    /// <param name="ICInboxPurchLine">Source IC inbox purchase line</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePurchLinesOnAfterModify(var PurchaseLine: Record "Purchase Line"; ICInboxPurchLine: Record "IC Inbox Purchase Line");
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying purchase line during line creation.
+    /// </summary>
+    /// <param name="PurchaseLine">Purchase line being modified</param>
+    /// <param name="ICInboxPurchLine">Source IC inbox purchase line</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePurchLinesOnBeforeModify(var PurchaseLine: Record "Purchase Line"; ICInboxPurchLine: Record "IC Inbox Purchase Line");
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised for custom purchase line processing when IC partner reference type matches none of the standard cases.
+    /// </summary>
+    /// <param name="PurchaseLine">Purchase line for custom processing</param>
+    /// <param name="PurchHeader">Parent purchase header</param>
+    /// <param name="ICInboxPurchLine">Source IC inbox purchase line</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePurchLinesOnICPartnerRefTypeCaseElse(var PurchaseLine: Record "Purchase Line"; PurchHeader: Record "Purchase Header"; ICInboxPurchLine: Record "IC Inbox Purchase Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised for custom sales line processing when IC partner reference type matches none of the standard cases.
+    /// </summary>
+    /// <param name="SalesLine">Sales line for custom processing</param>
+    /// <param name="SalesHeader">Parent sales header</param>
+    /// <param name="ICInboxSalesLine">Source IC inbox sales line</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateSalesLinesOnICPartnerRefTypeCaseElse(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; ICInboxSalesLine: Record "IC Inbox Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after transferring fields from outbox transaction to handled outbox transaction during archive operation.
+    /// </summary>
+    /// <param name="HandledICOutboxTrans">Handled outbox transaction with transferred fields</param>
+    /// <param name="ICOutboxTrans">Source outbox transaction</param>
     [IntegrationEvent(false, false)]
     local procedure OnMoveOutboxTransToHandledOutboxOnAfterHandledICOutboxTransTransferFields(var HandledICOutboxTrans: Record "Handled IC Outbox Trans."; var ICOutboxTrans: Record "IC Outbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting outbox transaction during purchase document transaction creation.
+    /// </summary>
+    /// <param name="OutboxTransaction">Outbox transaction being inserted</param>
+    /// <param name="PurchaseHeader">Source purchase header</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateOutboxPurchDocTransOnBeforeOutboxTransactionInsert(var OutboxTransaction: Record "IC Outbox Transaction"; PurchaseHeader: Record "Purchase Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before transferring fields from outbox transaction to handled outbox transaction during archive operation.
+    /// </summary>
+    /// <param name="HandledICOutboxTrans">Handled outbox transaction receiving fields</param>
+    /// <param name="ICOutboxTrans">Source outbox transaction</param>
     [IntegrationEvent(false, false)]
     local procedure OnMoveOutboxTransToHandledOutboxOnBeforeHandledICOutboxTransTransferFields(var HandledICOutboxTrans: Record "Handled IC Outbox Trans."; var ICOutboxTrans: Record "IC Outbox Transaction")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before deleting outbox purchase line during archive operation.
+    /// </summary>
+    /// <param name="ICOutboxPurchLine">Outbox purchase line being deleted</param>
+    /// <param name="HandledICOutboxPurchLine">Corresponding handled outbox purchase line</param>
     [IntegrationEvent(false, false)]
     local procedure OnMoveOutboxTransToHandledOutboxOnBeforeICOutboxPurchLineDelete(ICOutboxPurchLine: Record "IC Outbox Purchase Line"; HandledICOutboxPurchLine: Record "Handled IC Outbox Purch. Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before deleting outbox sales line during archive operation.
+    /// </summary>
+    /// <param name="ICOutboxSalesLine">Outbox sales line being deleted</param>
+    /// <param name="HandledICOutboxSalesLine">Corresponding handled outbox sales line</param>
     [IntegrationEvent(false, false)]
     local procedure OnMoveOutboxTransToHandledOutboxOnBeforeICOutboxSalesLineDelete(ICOutboxSalesLine: Record "IC Outbox Sales Line"; HandledICOutboxSalesLine: Record "Handled IC Outbox Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before inserting inbox journal line during outbox to inbox transfer.
+    /// </summary>
+    /// <param name="ICInboxJnlLine">Inbox journal line being inserted</param>
+    /// <param name="ICOutboxJnlLine">Source outbox journal line</param>
     [IntegrationEvent(false, false)]
     local procedure OnOutboxJnlLineToInboxOnBeforeICInboxJnlLineInsert(var ICInboxJnlLine: Record "IC Inbox Jnl. Line"; var ICOutboxJnlLine: Record "IC Outbox Jnl. Line");
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before releasing purchase document during send operation.
+    /// </summary>
+    /// <param name="PurchaseHeader">Purchase header being released</param>
+    /// <param name="Post">Whether to post the document after release</param>
     [IntegrationEvent(false, false)]
     local procedure OnSendPurchDocOnBeforeReleasePurchDocument(var PurchaseHeader: Record "Purchase Header"; var Post: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before releasing sales document during send operation.
+    /// </summary>
+    /// <param name="SalesHeader">Sales header being released</param>
+    /// <param name="Post">Whether to post the document after release</param>
     [IntegrationEvent(false, false)]
     local procedure OnSendSalesDocOnBeforeReleaseSalesDocument(var SalesHeader: Record "Sales Header"; var Post: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before testing IC document sending capabilities for sales documents.
+    /// </summary>
+    /// <param name="SalesHeader">Sales header being tested for IC sending</param>
+    /// <param name="IsHandled">Set to true to skip standard testing logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnSendSalesDocOnbeforeTestSendICDocument(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean);
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before calculating price and amounts for sales lines during line creation.
+    /// </summary>
+    /// <param name="SalesHeader">Sales header for price calculation context</param>
+    /// <param name="SalesLine">Sales line for price and amount calculation</param>
+    /// <param name="IsHandled">Set to true to skip standard price calculation</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateSalesLinesOnBeforeCalcPriceAndAmounts(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before calculating price and amounts for purchase lines during line creation.
+    /// </summary>
+    /// <param name="PurchaseHeader">Purchase header for price calculation context</param>
+    /// <param name="PurchaseLine">Purchase line for price and amount calculation</param>
+    /// <param name="IsHandled">Set to true to skip standard price calculation</param>
     [IntegrationEvent(false, false)]
-    local procedure OnCreatePurchLinesOnBeforeCalcPriceAndAmounts(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
+    local procedure OnCreatePurchLinesOnBeforeCalcPriceAndAmounts(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean; var ICInboxPurchLine: Record "IC Inbox Purchase Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating unit of measure code on sales lines during line creation.
+    /// </summary>
+    /// <param name="SalesLine">Sales line for unit of measure validation</param>
+    /// <param name="ICInboxSalesLine">Source IC inbox sales line</param>
+    /// <param name="IsHandled">Set to true to skip standard validation</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateSalesLinesOnBeforeValidateUnitOfMeasureCode(var SalesLine: Record "Sales Line"; ICInboxSalesLine: Record "IC Inbox Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating sales header during IC document processing.
+    /// </summary>
+    /// <param name="SalesHeader">Sales header being updated</param>
+    /// <param name="ICInboxSalesHeader">Source IC inbox sales header</param>
+    /// <param name="ICDocDim">IC document dimensions</param>
+    /// <param name="ReplacePostingDate">Whether to replace the posting date</param>
+    /// <param name="PostingDate">New posting date if replacement is enabled</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateSalesHeader(var SalesHeader: Record "Sales Header"; ICInboxSalesHeader: Record "IC Inbox Sales Header"; var ICDocDim: Record "IC Document Dimension"; ReplacePostingDate: Boolean; PostingDate: Date)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating purchase header during IC document processing.
+    /// </summary>
+    /// <param name="PurchHeader">Purchase header being updated</param>
+    /// <param name="ICInboxPurchHeader">Source IC inbox purchase header</param>
+    /// <param name="ICDocDim">IC document dimensions</param>
+    /// <param name="ReplacePostingDate">Whether to replace the posting date</param>
+    /// <param name="PostingDate">New posting date if replacement is enabled</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePurchaseHeader(var PurchHeader: Record "Purchase Header"; ICInboxPurchHeader: Record "IC Inbox Purchase Header"; var ICDocDim: Record "IC Document Dimension"; ReplacePostingDate: Boolean; PostingDate: Date)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters on IC inbox sales lines during sales document creation.
+    /// </summary>
+    /// <param name="ICInboxSalesLine">IC inbox sales line with applied filters</param>
+    /// <param name="ICInboxSalesHeader">Parent IC inbox sales header</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateSalesDocumentOnAfterICInboxSalesLineSetFilters(var ICInboxSalesLine: Record "IC Inbox Sales Line"; ICInboxSalesHeader: Record "IC Inbox Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters on IC inbox purchase lines during purchase document creation.
+    /// </summary>
+    /// <param name="ICInboxPurchLine">IC inbox purchase line with applied filters</param>
+    /// <param name="ICInboxPurchHeader">Parent IC inbox purchase header</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePurchDocumentOnAfterICInboxPurchLineSetFilters(var ICInboxPurchLine: Record "IC Inbox Purchase Line"; ICInboxPurchHeader: Record "IC Inbox Purchase Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before creating sales lines during sales document creation.
+    /// </summary>
+    /// <param name="SalesHeader">Sales header for which lines are being created</param>
+    /// <param name="ICInboxSalesLine">IC inbox sales lines to be processed</param>
+    /// <param name="IsHandled">Set to true to skip standard line creation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateSalesLines(SalesHeader: Record "Sales Header"; var ICInboxSalesLine: Record "IC Inbox Sales Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before creating purchase lines during purchase document creation.
+    /// </summary>
+    /// <param name="PurchHeader">Purchase header for which lines are being created</param>
+    /// <param name="ICInboxPurchLine">IC inbox purchase lines to be processed</param>
+    /// <param name="IsHandled">Set to true to skip standard line creation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreatePurchLines(PurchHeader: Record "Purchase Header"; var ICInboxPurchLine: Record "IC Inbox Purchase Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before copying handled item tracking to purchase line during receipt/shipment update.
+    /// </summary>
+    /// <param name="PurchaseLine">Purchase line for item tracking update</param>
+    /// <param name="IsHandled">Set to true to skip standard item tracking copy</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdatePurchLineReceiptShipmentOnBeforeCopyHandledItemTrkgToPurchLine(var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before copying handled item tracking to invoice line during receipt/shipment update.
+    /// </summary>
+    /// <param name="PurchaseLine">Purchase line for item tracking update</param>
+    /// <param name="IsHandled">Set to true to skip standard item tracking copy</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdatePurchLineReceiptShipmentOnBeforeCopyHandledItemTrkgToInvLine(var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after sending purchase document through IC workflow.
+    /// </summary>
+    /// <param name="PurchaseHeader">Purchase document that was sent</param>
+    /// <param name="Post">Whether the document was posted during send operation</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSendPurchDoc(var PurchaseHeader: Record "Purchase Header"; var Post: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after sending sales document through IC workflow.
+    /// </summary>
+    /// <param name="SalesHeader">Sales document that was sent</param>
+    /// <param name="Post">Whether the document was posted during send operation</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSendSalesDoc(var SalesHeader: Record "Sales Header"; var Post: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before rejecting an accepted sales header during IC transaction reversal.
+    /// </summary>
+    /// <param name="SalesHeader">Sales header being rejected</param>
+    /// <param name="IsHandled">Set to true to skip standard rejection logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRejectAcceptedSalesHeader(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before transferring outbox journal line to inbox during IC journal transfer.
+    /// </summary>
+    /// <param name="ICInboxTransaction">Target inbox transaction</param>
+    /// <param name="ICOutboxJnlLine">Source outbox journal line</param>
+    /// <param name="ICInboxJnlLine">Target inbox journal line</param>
+    /// <param name="ICPartner">IC partner for the transfer</param>
+    /// <param name="IsHandled">Set to true to skip standard transfer logic</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOutboxJnlLineToInbox(var ICInboxTransaction: Record "IC Inbox Transaction"; var ICOutboxJnlLine: Record "IC Outbox Jnl. Line"; var ICInboxJnlLine: Record "IC Inbox Jnl. Line"; var ICPartner: Record "IC Partner"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before processing sales lines loop during outbox sales document transaction creation.
+    /// </summary>
+    /// <param name="SalesLine">Sales line record for loop processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateOutboxSalesDocTransOnBeforeLoop(var SalesLine: Record "Sales Line")
     begin

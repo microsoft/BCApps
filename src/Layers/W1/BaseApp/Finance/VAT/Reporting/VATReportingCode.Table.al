@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+/// <summary>
+/// Defines reporting codes used for categorizing and classifying VAT transactions in reports.
+/// Provides standardized codes for VAT reporting requirements and transaction classification.
+/// </summary>
 table 344 "VAT Reporting Code"
 {
     Caption = 'VAT Reporting Code';
@@ -12,9 +16,15 @@ table 344 "VAT Reporting Code"
 
     fields
     {
+        /// <summary>
+        /// Unique code identifier for the VAT reporting classification.
+        /// </summary>
         field(1; Code; Code[20])
         {
         }
+        /// <summary>
+        /// Description of the VAT reporting code purpose and usage.
+        /// </summary>
         field(2; Description; Text[250])
         {
         }

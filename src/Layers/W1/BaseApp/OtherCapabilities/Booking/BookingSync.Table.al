@@ -1,9 +1,9 @@
 namespace Microsoft.Booking;
 
 using Microsoft.Sales.Customer;
-using System.Security.AccessControl;
-using System.IO;
 using System.Environment;
+using System.IO;
+using System.Security.AccessControl;
 
 table 6702 "Booking Sync"
 {

@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.SalesTax;
 
+/// <summary>
+/// Configuration page for sales tax system setup including default accounts and automation settings.
+/// Provides centralized management of tax calculation parameters and G/L account assignments.
+/// </summary>
 page 485 "Tax Setup"
 {
     ApplicationArea = SalesTax;

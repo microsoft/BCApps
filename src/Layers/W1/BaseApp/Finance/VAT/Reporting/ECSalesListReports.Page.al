@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+/// <summary>
+/// Displays list view of all EC Sales List reports with status tracking and submission management.
+/// Provides read-only access to ECSL report headers with filtering by EC Sales List configuration.
+/// </summary>
 page 323 "EC Sales List Reports"
 {
     ApplicationArea = BasicEU;

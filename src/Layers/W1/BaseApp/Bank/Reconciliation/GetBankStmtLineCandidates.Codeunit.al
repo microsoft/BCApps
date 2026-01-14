@@ -7,6 +7,10 @@ namespace Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.BankAccount;
 using System.Environment.Configuration;
 
+/// <summary>
+/// Retrieves and processes bank statement line matching candidates.
+/// Identifies potential matches for automatic payment application processing.
+/// </summary>
 codeunit 1295 "Get Bank Stmt. Line Candidates"
 {
     TableNo = "Payment Application Proposal";
@@ -71,6 +75,10 @@ codeunit 1295 "Get Bank Stmt. Line Candidates"
     end;
 
 
+    /// <summary>
+    /// Shows notification to disable automatic payment application suggestions.
+    /// Provides user option to turn off automatic matching functionality.
+    /// </summary>
     procedure ShowDisableAutomaticSuggestionsNotification()
     var
         MyNotifications: Record "My Notifications";
@@ -87,6 +95,11 @@ codeunit 1295 "Get Bank Stmt. Line Candidates"
         DisableAutomaticSuggestionsNotification.Send();
     end;
 
+    /// <summary>
+    /// Handles notification action to disable automatic payment suggestions.
+    /// Updates bank payment application settings to disable suggestions.
+    /// </summary>
+    /// <param name="DisableAutomaticSuggestionsNotification">The notification being processed.</param>
     procedure DisableAutomaticNotificationAction(DisableAutomaticSuggestionsNotification: Notification)
     var
         BankPmtApplSettings: Record "Bank Pmt. Appl. Settings";
@@ -96,6 +109,10 @@ codeunit 1295 "Get Bank Stmt. Line Candidates"
         BankPmtApplSettings.Modify();
     end;
 
+    /// <summary>
+    /// Disables the notification about automatic suggestions permanently for the user.
+    /// Prevents the notification from appearing again.
+    /// </summary>
     procedure DontShowAgainDisableAutomaticNotificationAction()
     var
         MyNotifications: Record "My Notifications";
@@ -143,6 +160,11 @@ codeunit 1295 "Get Bank Stmt. Line Candidates"
             until TempBankStmtMatchingBuffer.Next() = 0;
     end;
 
+    /// <summary>
+    /// Sets whether to suggest payment application entries.
+    /// Controls automatic suggestion behavior for payment applications.
+    /// </summary>
+    /// <param name="SuggestEntries">Whether to force suggestion of entries.</param>
     procedure SetSuggestEntries(SuggestEntries: boolean)
     begin
         ForceSuggestEntries := SuggestEntries;

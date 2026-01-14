@@ -28,6 +28,16 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.Utilities;
 
+/// <summary>
+/// Table storing detailed line information for standard general journal templates enabling reusable journal entry patterns.
+/// Contains complete journal line configurations including accounts, amounts, dimensions, and posting details for template-based journal creation.
+/// </summary>
+/// <remarks>
+/// Detailed line storage for standard journal templates with complete transaction configuration.
+/// Stores all journal line fields including account details, amounts, dimensions, VAT settings, and posting parameters.
+/// Key features: Template line configurations, reusable transaction patterns, complete field coverage for journal creation.
+/// Integration: Links to Standard General Journal header table, supports mass journal line creation via standard templates.
+/// </remarks>
 table 751 "Standard General Journal Line"
 {
     Caption = 'Standard General Journal Line';
@@ -35,6 +45,9 @@ table 751 "Standard General Journal Line"
 
     fields
     {
+        /// <summary>
+        /// References the journal template for the standard journal line configuration.
+        /// </summary>
         field(1; "Journal Template Name"; Code[10])
         {
             Caption = 'Journal Template Name';
@@ -42,12 +55,18 @@ table 751 "Standard General Journal Line"
             NotBlank = true;
             TableRelation = "Gen. Journal Template";
         }
+        /// <summary>
+        /// Sequential line number within the standard journal template for ordering standard lines.
+        /// </summary>
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
             Editable = false;
             NotBlank = true;
         }
+        /// <summary>
+        /// Specifies the account type for the standard journal line template.
+        /// </summary>
         field(3; "Account Type"; Enum "Gen. Journal Account Type")
         {
             Caption = 'Account Type';
@@ -86,6 +105,9 @@ table 751 "Standard General Journal Line"
                 end;
             end;
         }
+        /// <summary>
+        /// Account number for the standard journal line based on the account type selection.
+        /// </summary>
         field(4; "Account No."; Code[20])
         {
             Caption = 'Account No.';
@@ -148,6 +170,9 @@ table 751 "Standard General Journal Line"
                     Validate("IC Account No.", GetDefaultICPartnerGLAccNo());
             end;
         }
+        /// <summary>
+        /// Document type for the standard journal line defining transaction characteristics and posting behavior.
+        /// </summary>
         field(6; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';
@@ -161,10 +186,16 @@ table 751 "Standard General Journal Line"
                     CheckAccount("Bal. Account Type", "Bal. Account No.");
             end;
         }
+        /// <summary>
+        /// Text description of the standard journal line for identification and transaction explanation.
+        /// </summary>
         field(8; Description; Text[100])
         {
             Caption = 'Description';
         }
+        /// <summary>
+        /// VAT percentage rate applied to the transaction amount for standard journal line tax calculation.
+        /// </summary>
         field(10; "VAT %"; Decimal)
         {
             AutoFormatType = 0;
@@ -210,6 +241,9 @@ table 751 "Standard General Journal Line"
                 "VAT Difference" := 0;
             end;
         }
+        /// <summary>
+        /// Balancing account number for the standard journal line to complete double-entry accounting.
+        /// </summary>
         field(11; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
@@ -274,6 +308,9 @@ table 751 "Standard General Journal Line"
                     Validate("IC Account No.", GetDefaultICPartnerGLAccNo());
             end;
         }
+        /// <summary>
+        /// Currency code for the standard journal line transaction amount, empty for local currency.
+        /// </summary>
         field(12; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
@@ -303,6 +340,9 @@ table 751 "Standard General Journal Line"
                 Validate("Currency Factor");
             end;
         }
+        /// <summary>
+        /// Transaction amount for the standard journal line in the specified currency.
+        /// </summary>
         field(13; Amount; Decimal)
         {
             AutoFormatType = 1;
@@ -326,6 +366,9 @@ table 751 "Standard General Journal Line"
                 UpdateLineBalance();
             end;
         }
+        /// <summary>
+        /// Debit amount for the standard journal line when using debit/credit entry method.
+        /// </summary>
         field(14; "Debit Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -342,6 +385,9 @@ table 751 "Standard General Journal Line"
                 Validate(Amount);
             end;
         }
+        /// <summary>
+        /// Credit amount for the standard journal line when using debit/credit entry method.
+        /// </summary>
         field(15; "Credit Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -358,6 +404,9 @@ table 751 "Standard General Journal Line"
                 Validate(Amount);
             end;
         }
+        /// <summary>
+        /// Transaction amount converted to local currency for standard journal line.
+        /// </summary>
         field(16; "Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
@@ -371,12 +420,18 @@ table 751 "Standard General Journal Line"
                 end
             end;
         }
+        /// <summary>
+        /// Running balance in local currency after posting the standard journal line.
+        /// </summary>
         field(17; "Balance (LCY)"; Decimal)
         {
             AutoFormatType = 1;
             Caption = 'Balance (LCY)';
             Editable = false;
         }
+        /// <summary>
+        /// Currency exchange rate factor for converting foreign currency amounts to local currency.
+        /// </summary>
         field(18; "Currency Factor"; Decimal)
         {
             AutoFormatType = 0;
@@ -392,21 +447,33 @@ table 751 "Standard General Journal Line"
                 Validate(Amount);
             end;
         }
+        /// <summary>
+        /// Sales or purchase amount in local currency for standard journal line statistical tracking.
+        /// </summary>
         field(19; "Sales/Purch. (LCY)"; Decimal)
         {
             AutoFormatType = 1;
             Caption = 'Sales/Purch. (LCY)';
         }
+        /// <summary>
+        /// Profit amount in local currency calculated for the standard journal line.
+        /// </summary>
         field(20; "Profit (LCY)"; Decimal)
         {
             AutoFormatType = 1;
             Caption = 'Profit (LCY)';
         }
+        /// <summary>
+        /// Invoice discount amount in local currency applied to the standard journal line.
+        /// </summary>
         field(21; "Inv. Discount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
             Caption = 'Inv. Discount (LCY)';
         }
+        /// <summary>
+        /// Bill-to customer or pay-to vendor number for the standard journal line transaction.
+        /// </summary>
         field(22; "Bill-to/Pay-to No."; Code[20])
         {
             Caption = 'Bill-to/Pay-to No.';
@@ -424,6 +491,9 @@ table 751 "Standard General Journal Line"
                     "Ship-to/Order Address Code" := '';
             end;
         }
+        /// <summary>
+        /// Posting group for determining posting accounts and setup for the standard journal line.
+        /// </summary>
         field(23; "Posting Group"; Code[20])
         {
             Caption = 'Posting Group';
@@ -434,6 +504,9 @@ table 751 "Standard General Journal Line"
             else
             if ("Account Type" = const("Fixed Asset")) "FA Posting Group";
         }
+        /// <summary>
+        /// Shortcut dimension 1 code for the standard journal line analytical tracking and reporting.
+        /// </summary>
         field(24; "Shortcut Dimension 1 Code"; Code[20])
         {
             CaptionClass = '1,2,1';
@@ -446,6 +519,9 @@ table 751 "Standard General Journal Line"
                 Rec.ValidateShortcutDimCode(1, "Shortcut Dimension 1 Code");
             end;
         }
+        /// <summary>
+        /// Shortcut dimension 2 code for the standard journal line analytical tracking and reporting.
+        /// </summary>
         field(25; "Shortcut Dimension 2 Code"; Code[20])
         {
             CaptionClass = '1,2,2';
@@ -458,6 +534,9 @@ table 751 "Standard General Journal Line"
                 Rec.ValidateShortcutDimCode(2, "Shortcut Dimension 2 Code");
             end;
         }
+        /// <summary>
+        /// Salesperson or purchaser code assigned to the standard journal line for tracking responsibilities.
+        /// </summary>
         field(26; "Salespers./Purch. Code"; Code[20])
         {
             Caption = 'Salespers./Purch. Code';
@@ -468,20 +547,32 @@ table 751 "Standard General Journal Line"
                 CreateDimFromDefaultDim(FieldNo("Salespers./Purch. Code"));
             end;
         }
+        /// <summary>
+        /// Source code identifying the journal template origin for the standard journal line.
+        /// </summary>
         field(29; "Source Code"; Code[10])
         {
             Caption = 'Source Code';
             Editable = false;
             TableRelation = "Source Code";
         }
+        /// <summary>
+        /// Hold code preventing processing of the standard journal line until manually released.
+        /// </summary>
         field(34; "On Hold"; Code[3])
         {
             Caption = 'On Hold';
         }
+        /// <summary>
+        /// Document type of the target document for application when posting the standard journal line.
+        /// </summary>
         field(35; "Applies-to Doc. Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Applies-to Doc. Type';
         }
+        /// <summary>
+        /// Payment discount percentage rate applicable to the standard journal line transaction.
+        /// </summary>
         field(40; "Payment Discount %"; Decimal)
         {
             AutoFormatType = 0;
@@ -490,6 +581,9 @@ table 751 "Standard General Journal Line"
             MaxValue = 100;
             MinValue = 0;
         }
+        /// <summary>
+        /// Job number for project-related transactions in the standard journal line.
+        /// </summary>
         field(42; "Job No."; Code[20])
         {
             Caption = 'Project No.';
@@ -501,6 +595,9 @@ table 751 "Standard General Journal Line"
                 CreateDimFromDefaultDim(FieldNo("Job No."));
             end;
         }
+        /// <summary>
+        /// Quantity associated with the standard journal line transaction for unit-based calculations.
+        /// </summary>
         field(43; Quantity; Decimal)
         {
             AutoFormatType = 0;
@@ -512,6 +609,9 @@ table 751 "Standard General Journal Line"
                 Validate(Amount);
             end;
         }
+        /// <summary>
+        /// VAT amount calculated for the standard journal line based on VAT percentage and base amount.
+        /// </summary>
         field(44; "VAT Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -551,6 +651,9 @@ table 751 "Standard General Journal Line"
                     Error(Text013, FieldCaption("VAT Difference"), Currency."Max. VAT Difference Allowed");
             end;
         }
+        /// <summary>
+        /// Payment terms code defining payment conditions for the standard journal line transaction.
+        /// </summary>
         field(47; "Payment Terms Code"; Code[10])
         {
             Caption = 'Payment Terms Code';
@@ -579,21 +682,33 @@ table 751 "Standard General Journal Line"
                     end;
             end;
         }
+        /// <summary>
+        /// Business unit code for organizational segmentation of the standard journal line.
+        /// </summary>
         field(50; "Business Unit Code"; Code[20])
         {
             Caption = 'Business Unit Code';
             TableRelation = "Business Unit";
         }
+        /// <summary>
+        /// Standard journal code identifying the parent template for this standard journal line.
+        /// </summary>
         field(51; "Standard Journal Code"; Code[10])
         {
             Caption = 'Standard Journal Code';
             TableRelation = "Standard General Journal".Code;
         }
+        /// <summary>
+        /// Reason code explaining the purpose or cause of the standard journal line transaction.
+        /// </summary>
         field(52; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
             TableRelation = "Reason Code";
         }
+        /// <summary>
+        /// General posting type indicating whether the standard journal line is for purchase, sale, or settlement.
+        /// </summary>
         field(57; "Gen. Posting Type"; Enum "General Posting Type")
         {
             Caption = 'Gen. Posting Type';
@@ -608,6 +723,9 @@ table 751 "Standard General Journal Line"
                     Validate("VAT Prod. Posting Group");
             end;
         }
+        /// <summary>
+        /// General business posting group for determining posting accounts for the standard journal line.
+        /// </summary>
         field(58; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
@@ -624,6 +742,9 @@ table 751 "Standard General Journal Line"
                         Validate("VAT Bus. Posting Group", GenBusPostingGrp."Def. VAT Bus. Posting Group");
             end;
         }
+        /// <summary>
+        /// General product posting group for determining posting accounts for the standard journal line.
+        /// </summary>
         field(59; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
@@ -640,11 +761,17 @@ table 751 "Standard General Journal Line"
                         Validate("VAT Prod. Posting Group", GenProdPostingGrp."Def. VAT Prod. Posting Group");
             end;
         }
+        /// <summary>
+        /// VAT calculation type determining how VAT is calculated for the standard journal line.
+        /// </summary>
         field(60; "VAT Calculation Type"; Enum "Tax Calculation Type")
         {
             Caption = 'VAT Calculation Type';
             Editable = false;
         }
+        /// <summary>
+        /// Balancing account type for the standard journal line to complete double-entry accounting.
+        /// </summary>
         field(63; "Bal. Account Type"; Enum "Gen. Journal Account Type")
         {
             Caption = 'Bal. Account Type';
@@ -689,6 +816,9 @@ table 751 "Standard General Journal Line"
                     Validate("Payment Terms Code", '');
             end;
         }
+        /// <summary>
+        /// General posting type for the balancing account in the standard journal line.
+        /// </summary>
         field(64; "Bal. Gen. Posting Type"; Enum "General Posting Type")
         {
             Caption = 'Bal. Gen. Posting Type';
@@ -703,6 +833,9 @@ table 751 "Standard General Journal Line"
                     Validate("Bal. VAT Prod. Posting Group");
             end;
         }
+        /// <summary>
+        /// General business posting group for the balancing account in the standard journal line.
+        /// </summary>
         field(65; "Bal. Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Bal. Gen. Bus. Posting Group';
@@ -719,6 +852,9 @@ table 751 "Standard General Journal Line"
                         Validate("Bal. VAT Bus. Posting Group", GenBusPostingGrp."Def. VAT Bus. Posting Group");
             end;
         }
+        /// <summary>
+        /// General product posting group for the balancing account in the standard journal line.
+        /// </summary>
         field(66; "Bal. Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Bal. Gen. Prod. Posting Group';
@@ -735,11 +871,17 @@ table 751 "Standard General Journal Line"
                         Validate("Bal. VAT Prod. Posting Group", GenProdPostingGrp."Def. VAT Prod. Posting Group");
             end;
         }
+        /// <summary>
+        /// VAT calculation type for the balancing account in the standard journal line.
+        /// </summary>
         field(67; "Bal. VAT Calculation Type"; Enum "Tax Calculation Type")
         {
             Caption = 'Bal. VAT Calculation Type';
             Editable = false;
         }
+        /// <summary>
+        /// VAT percentage rate for the balancing account in the standard journal line.
+        /// </summary>
         field(68; "Bal. VAT %"; Decimal)
         {
             AutoFormatType = 0;
@@ -785,6 +927,9 @@ table 751 "Standard General Journal Line"
                 "Bal. VAT Difference" := 0;
             end;
         }
+        /// <summary>
+        /// VAT amount calculated for the balancing account in the standard journal line.
+        /// </summary>
         field(69; "Bal. VAT Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -826,6 +971,9 @@ table 751 "Standard General Journal Line"
                       Text013, FieldCaption("Bal. VAT Difference"), Currency."Max. VAT Difference Allowed");
             end;
         }
+        /// <summary>
+        /// Bank payment type specifying the method of payment for the standard journal line.
+        /// </summary>
         field(70; "Bank Payment Type"; Enum "Bank Payment Type")
         {
             Caption = 'Bank Payment Type';
@@ -845,6 +993,9 @@ table 751 "Standard General Journal Line"
                     FieldError("Account Type");
             end;
         }
+        /// <summary>
+        /// VAT base amount for calculating VAT on the standard journal line transaction.
+        /// </summary>
         field(71; "VAT Base Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -893,6 +1044,9 @@ table 751 "Standard General Journal Line"
                 Validate(Amount);
             end;
         }
+        /// <summary>
+        /// VAT base amount for the balancing account in the standard journal line.
+        /// </summary>
         field(72; "Bal. VAT Base Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -941,6 +1095,9 @@ table 751 "Standard General Journal Line"
                 Validate(Amount);
             end;
         }
+        /// <summary>
+        /// Indicates whether the standard journal line is a correction entry reversing a previous transaction.
+        /// </summary>
         field(73; Correction; Boolean)
         {
             Caption = 'Correction';
@@ -950,10 +1107,16 @@ table 751 "Standard General Journal Line"
                 Validate(Amount);
             end;
         }
+        /// <summary>
+        /// External document number from the source document for the standard journal line.
+        /// </summary>
         field(77; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
         }
+        /// <summary>
+        /// Source type indicating the entity type that originated the standard journal line transaction.
+        /// </summary>
         field(78; "Source Type"; Option)
         {
             Caption = 'Source Type';
@@ -970,6 +1133,9 @@ table 751 "Standard General Journal Line"
                     "Source No." := '';
             end;
         }
+        /// <summary>
+        /// Source number identifying the specific entity that originated the standard journal line.
+        /// </summary>
         field(79; "Source No."; Code[20])
         {
             Caption = 'Source No.';
@@ -989,11 +1155,17 @@ table 751 "Standard General Journal Line"
                     UpdateSource();
             end;
         }
+        /// <summary>
+        /// Number series code for generating posting document numbers when posting the standard journal line.
+        /// </summary>
         field(80; "Posting No. Series"; Code[20])
         {
             Caption = 'Posting No. Series';
             TableRelation = "No. Series";
         }
+        /// <summary>
+        /// Tax area code determining tax jurisdiction and rates for the standard journal line transaction.
+        /// </summary>
         field(82; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
@@ -1004,10 +1176,16 @@ table 751 "Standard General Journal Line"
                 Validate("VAT %");
             end;
         }
+        /// <summary>
+        /// Indicates whether the transaction is subject to tax liability for the standard journal line.
+        /// </summary>
         field(83; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
         }
+        /// <summary>
+        /// Tax group code determining applicable tax rates and calculation rules for the standard journal line.
+        /// </summary>
         field(84; "Tax Group Code"; Code[20])
         {
             Caption = 'Tax Group Code';
@@ -1018,10 +1196,16 @@ table 751 "Standard General Journal Line"
                 Validate("VAT %");
             end;
         }
+        /// <summary>
+        /// Indicates whether use tax applies to the standard journal line for purchase transactions.
+        /// </summary>
         field(85; "Use Tax"; Boolean)
         {
             Caption = 'Use Tax';
         }
+        /// <summary>
+        /// Tax area code for the balancing account determining tax jurisdiction and rates.
+        /// </summary>
         field(86; "Bal. Tax Area Code"; Code[20])
         {
             Caption = 'Bal. Tax Area Code';
@@ -1032,6 +1216,9 @@ table 751 "Standard General Journal Line"
                 Validate("VAT %");
             end;
         }
+        /// <summary>
+        /// Indicates whether the balancing account is subject to tax liability for the standard journal line.
+        /// </summary>
         field(87; "Bal. Tax Liable"; Boolean)
         {
             Caption = 'Bal. Tax Liable';
@@ -1041,6 +1228,9 @@ table 751 "Standard General Journal Line"
                 Validate("VAT %");
             end;
         }
+        /// <summary>
+        /// Tax group code for the balancing account determining applicable tax rates and calculation rules.
+        /// </summary>
         field(88; "Bal. Tax Group Code"; Code[20])
         {
             Caption = 'Bal. Tax Group Code';
@@ -1051,6 +1241,9 @@ table 751 "Standard General Journal Line"
                 Validate("VAT %");
             end;
         }
+        /// <summary>
+        /// Indicates whether use tax applies to the balancing account for purchase transactions in the standard journal line.
+        /// </summary>
         field(89; "Bal. Use Tax"; Boolean)
         {
             Caption = 'Bal. Use Tax';
@@ -1061,6 +1254,9 @@ table 751 "Standard General Journal Line"
                 Validate("Bal. VAT %");
             end;
         }
+        /// <summary>
+        /// VAT business posting group determining VAT calculation setup for the standard journal line account.
+        /// </summary>
         field(90; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
@@ -1074,6 +1270,9 @@ table 751 "Standard General Journal Line"
                 Validate("VAT Prod. Posting Group");
             end;
         }
+        /// <summary>
+        /// VAT product posting group determining VAT rates and calculation method for the standard journal line account.
+        /// </summary>
         field(91; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
@@ -1110,6 +1309,9 @@ table 751 "Standard General Journal Line"
                 Validate("VAT %");
             end;
         }
+        /// <summary>
+        /// VAT business posting group for the balancing account determining VAT calculation setup.
+        /// </summary>
         field(92; "Bal. VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'Bal. VAT Bus. Posting Group';
@@ -1125,6 +1327,9 @@ table 751 "Standard General Journal Line"
                 Validate("Bal. VAT Prod. Posting Group");
             end;
         }
+        /// <summary>
+        /// VAT product posting group for the balancing account determining VAT rates and calculation method.
+        /// </summary>
         field(93; "Bal. VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'Bal. VAT Prod. Posting Group';
@@ -1163,6 +1368,9 @@ table 751 "Standard General Journal Line"
                 Validate("Bal. VAT %");
             end;
         }
+        /// <summary>
+        /// Ship-to address code for customers or order address code for vendors in the standard journal line.
+        /// </summary>
         field(110; "Ship-to/Order Address Code"; Code[10])
         {
             Caption = 'Ship-to/Order Address Code';
@@ -1174,6 +1382,9 @@ table 751 "Standard General Journal Line"
             else
             if ("Bal. Account Type" = const(Vendor)) "Order Address".Code where("Vendor No." = field("Bill-to/Pay-to No."));
         }
+        /// <summary>
+        /// Calculated difference between expected and actual VAT amount for the standard journal line.
+        /// </summary>
         field(111; "VAT Difference"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -1181,6 +1392,9 @@ table 751 "Standard General Journal Line"
             Caption = 'VAT Difference';
             Editable = false;
         }
+        /// <summary>
+        /// Calculated difference between expected and actual VAT amount for the balancing account in the standard journal line.
+        /// </summary>
         field(112; "Bal. VAT Difference"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -1188,6 +1402,9 @@ table 751 "Standard General Journal Line"
             Caption = 'Bal. VAT Difference';
             Editable = false;
         }
+        /// <summary>
+        /// Intercompany partner code for IC transactions in the standard journal line.
+        /// </summary>
         field(113; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
@@ -1195,6 +1412,9 @@ table 751 "Standard General Journal Line"
             TableRelation = "IC Partner";
         }
 #if not CLEANSCHEMA25
+        /// <summary>
+        /// Obsolete field replaced by IC Account No. for intercompany G/L account references.
+        /// </summary>
         field(116; "IC Partner G/L Acc. No."; Code[20])
         {
             Caption = 'IC Partner G/L Acc. No.';
@@ -1204,6 +1424,9 @@ table 751 "Standard General Journal Line"
             ObsoleteTag = '25.0';
         }
 #endif
+        /// <summary>
+        /// Sell-to customer or buy-from vendor number for document reference in the standard journal line.
+        /// </summary>
         field(118; "Sell-to/Buy-from No."; Code[20])
         {
             Caption = 'Sell-to/Buy-from No.';
@@ -1215,10 +1438,16 @@ table 751 "Standard General Journal Line"
             else
             if ("Bal. Account Type" = const(Vendor)) Vendor;
         }
+        /// <summary>
+        /// Intercompany account type specifying G/L account or bank account for IC transactions in the standard journal line.
+        /// </summary>
         field(130; "IC Account Type"; Enum "IC Journal Account Type")
         {
             Caption = 'IC Account Type';
         }
+        /// <summary>
+        /// Intercompany account number for IC G/L account or IC bank account transactions in the standard journal line.
+        /// </summary>
         field(131; "IC Account No."; Code[20])
         {
             Caption = 'IC Account No.';
@@ -1237,6 +1466,9 @@ table 751 "Standard General Journal Line"
             else
             if ("Bal. Account Type" = const("IC Partner"), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("Bal. Account No."), Blocked = const(false));
         }
+        /// <summary>
+        /// Dimension set ID linking to dimension combinations for analytical tracking of the standard journal line.
+        /// </summary>
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
@@ -1253,6 +1485,9 @@ table 751 "Standard General Journal Line"
                 DimMgt.UpdateGlobalDimFromDimSetID("Dimension Set ID", "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
             end;
         }
+        /// <summary>
+        /// Campaign number for marketing campaign tracking associated with the standard journal line.
+        /// </summary>
         field(5050; "Campaign No."; Code[20])
         {
             Caption = 'Campaign No.';
@@ -1263,6 +1498,9 @@ table 751 "Standard General Journal Line"
                 CreateDimFromDefaultDim(FieldNo("Campaign No."));
             end;
         }
+        /// <summary>
+        /// Indicates whether the transaction creates an index entry for cost accounting purposes in the standard journal line.
+        /// </summary>
         field(5616; "Index Entry"; Boolean)
         {
             Caption = 'Index Entry';
@@ -1325,6 +1563,11 @@ table 751 "Standard General Journal Line"
             "Amount (LCY)" := Amount;
     end;
 
+    /// <summary>
+    /// Validates shortcut dimension code for the specified dimension field number.
+    /// </summary>
+    /// <param name="FieldNumber">The dimension field number to validate (1-8).</param>
+    /// <param name="ShortcutDimCode">The dimension value code to validate.</param>
     procedure ValidateShortcutDimCode(FieldNumber: Integer; var ShortcutDimCode: Code[20])
     begin
         OnBeforeValidateShortcutDimCode(Rec, xRec, FieldNumber, ShortcutDimCode);
@@ -1334,6 +1577,11 @@ table 751 "Standard General Journal Line"
         OnAfterValidateShortcutDimCode(Rec, xRec, FieldNumber, ShortcutDimCode);
     end;
 
+    /// <summary>
+    /// Opens lookup for shortcut dimension code for the specified dimension field number.
+    /// </summary>
+    /// <param name="FieldNumber">The dimension field number to lookup (1-8).</param>
+    /// <param name="ShortcutDimCode">The dimension value code to lookup and modify.</param>
     procedure LookupShortcutDimCode(FieldNumber: Integer; var ShortcutDimCode: Code[20])
     var
         IsHandled: Boolean;
@@ -1347,11 +1595,18 @@ table 751 "Standard General Journal Line"
         DimMgt.ValidateShortcutDimValues(FieldNumber, ShortcutDimCode, "Dimension Set ID");
     end;
 
+    /// <summary>
+    /// Retrieves all shortcut dimension codes for the standard journal line.
+    /// </summary>
+    /// <param name="ShortcutDimCode">Array to populate with dimension codes for dimensions 1-8.</param>
     procedure ShowShortcutDimCode(var ShortcutDimCode: array[8] of Code[20])
     begin
         DimMgt.GetShortcutDimensions(Rec."Dimension Set ID", ShortcutDimCode);
     end;
 
+    /// <summary>
+    /// Opens the dimensions page for editing dimension set of the standard journal line.
+    /// </summary>
     procedure ShowDimensions()
     begin
         OnBeforeShowDimensions(Rec, xRec);
@@ -1489,6 +1744,10 @@ table 751 "Standard General Journal Line"
         end;
     end;
 
+    /// <summary>
+    /// Creates dimensions from default dimension sources for the standard journal line.
+    /// </summary>
+    /// <param name="DefaultDimSource">List of dictionaries containing dimension source data.</param>
     procedure CreateDim(DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
     var
         IsHandled: Boolean;
@@ -1855,6 +2114,10 @@ table 751 "Standard General Journal Line"
         "IC Partner Code" := "Bal. Account No.";
     end;
 
+    /// <summary>
+    /// Creates dimensions from default dimension setup based on the specified field number.
+    /// </summary>
+    /// <param name="FromFieldNo">The field number from which to create default dimensions.</param>
     procedure CreateDimFromDefaultDim(FromFieldNo: Integer)
     var
         DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
@@ -1874,61 +2137,146 @@ table 751 "Standard General Journal Line"
         OnAfterInitDefaultDimensionSources(Rec, DefaultDimSource, FromFieldNo);
     end;
 
+    /// <summary>
+    /// Integration event raised after initializing default dimension sources for standard journal line.
+    /// Enables custom dimension source configuration and additional dimension setup logic.
+    /// </summary>
+    /// <param name="StandardGenJournalLine">Standard journal line with dimension sources initialized</param>
+    /// <param name="DefaultDimSource">Collection of dimension sources for modification</param>
+    /// <param name="FromFieldNo">Field number that triggered dimension source initialization</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitDefaultDimensionSources(var StandardGenJournalLine: Record "Standard General Journal Line"; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; FromFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after retrieving G/L account for standard journal line processing.
+    /// Enables custom G/L account validation and additional account-specific configuration.
+    /// </summary>
+    /// <param name="StandardGenJournalLine">Standard journal line with G/L account context</param>
+    /// <param name="GLAcc">G/L account record retrieved for processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetGLAccount(var StandardGenJournalLine: Record "Standard General Journal Line"; GLAcc: Record "G/L Account")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating shortcut dimension code on standard journal line.
+    /// Enables custom dimension validation logic and post-validation processing.
+    /// </summary>
+    /// <param name="StandardGenJournalLine">Standard journal line with validated dimension</param>
+    /// <param name="xStandardGenJournalLine">Previous version for comparison</param>
+    /// <param name="FieldNumber">Field number of dimension being validated</param>
+    /// <param name="ShortcutDimCode">Dimension code that was validated</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateShortcutDimCode(var StandardGenJournalLine: Record "Standard General Journal Line"; var xStandardGenJournalLine: Record "Standard General Journal Line"; FieldNumber: Integer; var ShortcutDimCode: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after creating dimension set for standard journal line.
+    /// Enables custom dimension processing and validation after dimension creation.
+    /// </summary>
+    /// <param name="StandardGenJournalLine">Standard journal line with created dimensions</param>
+    /// <param name="CallingFieldNo">Field that triggered dimension creation</param>
+    /// <param name="xStandardGeneralJournalLine">Previous version for comparison</param>
+    /// <param name="OldDimSetID">Previous dimension set ID for reference</param>
+    /// <param name="DefaultDimSource">Dimension sources used for creation</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateDim(var StandardGenJournalLine: Record "Standard General Journal Line"; CallingFieldNo: Integer; xStandardGeneralJournalLine: Record "Standard General Journal Line"; OldDimSetID: Integer; DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]);
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before creating dimension set for standard journal line.
+    /// Enables custom dimension setup logic and validation before standard creation.
+    /// </summary>
+    /// <param name="StandardGenJournalLine">Standard journal line for dimension creation</param>
+    /// <param name="IsHandled">Set to true to skip standard dimension creation logic</param>
+    /// <param name="CurrentFieldNo">Field number triggering dimension creation</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateDim(var StandardGenJournalLine: Record "Standard General Journal Line"; var IsHandled: Boolean; CurrentFieldNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after displaying dimension information for standard journal line.
+    /// Enables custom processing after dimension display operations complete.
+    /// </summary>
+    /// <param name="StandardGenJnlLine">Standard journal line with displayed dimensions</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterShowDimensions(var StandardGenJnlLine: Record "Standard General Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before looking up shortcut dimension code on standard journal line.
+    /// Enables custom dimension lookup logic and validation before standard lookup processing.
+    /// </summary>
+    /// <param name="StandardGenJnlLine">Standard journal line for dimension lookup</param>
+    /// <param name="xStandardGenJnlLine">Previous version for comparison</param>
+    /// <param name="FieldNumber">Field number triggering dimension lookup</param>
+    /// <param name="ShortcutDimCode">Dimension code for lookup</param>
+    /// <param name="IsHandled">Set to true to skip standard lookup processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupShortcutDimCode(var StandardGenJnlLine: Record "Standard General Journal Line"; xStandardGenJnlLine: Record "Standard General Journal Line"; FieldNumber: Integer; var ShortcutDimCode: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before displaying dimension information for standard journal line.
+    /// Enables custom dimension display logic and validation before showing dimensions.
+    /// </summary>
+    /// <param name="StandardGeneralJournalLine">Standard journal line for dimension display</param>
+    /// <param name="xStandardGeneralJournalLine">Previous version for comparison</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowDimensions(var StandardGeneralJournalLine: Record "Standard General Journal Line"; xStandardGeneralJournalLine: Record "Standard General Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before validating shortcut dimension code on standard journal line.
+    /// Enables custom dimension validation logic before standard validation processing.
+    /// </summary>
+    /// <param name="StandardGenJournalLine">Standard journal line for dimension validation</param>
+    /// <param name="xStandardGenJournalLine">Previous version for comparison</param>
+    /// <param name="FieldNumber">Field number being validated</param>
+    /// <param name="ShortcutDimCode">Dimension code being validated</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateShortcutDimCode(var StandardGenJournalLine: Record "Standard General Journal Line"; var xStandardGenJournalLine: Record "Standard General Journal Line"; FieldNumber: Integer; var ShortcutDimCode: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before VAT calculation check when validating VAT product posting group.
+    /// Enables custom VAT validation logic and prevents standard VAT calculation checks.
+    /// </summary>
+    /// <param name="StandardGeneralJournalLine">Standard journal line with VAT product posting group</param>
+    /// <param name="VATPostingSetup">VAT posting setup for validation</param>
+    /// <param name="IsHandled">Set to true to skip standard VAT calculation check</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateVATProdPostingGroupOnBeforeVATCalculationCheck(var StandardGeneralJournalLine: Record "Standard General Journal Line"; var VATPostingSetup: Record "VAT Posting Setup"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before balance VAT calculation check when validating balance VAT product posting group.
+    /// Enables custom balance VAT validation logic and prevents standard balance VAT calculation checks.
+    /// </summary>
+    /// <param name="StandardGeneralJournalLine">Standard journal line with balance VAT product posting group</param>
+    /// <param name="VATPostingSetup">VAT posting setup for balance validation</param>
+    /// <param name="IsHandled">Set to true to skip standard balance VAT calculation check</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateBalVATProdPostingGroupOnBeforeBalVATCalculationCheck(var StandardGeneralJournalLine: Record "Standard General Journal Line"; var VATPostingSetup: Record "VAT Posting Setup"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after checking G/L account validation on standard journal line.
+    /// Enables custom G/L account validation logic and post-validation processing.
+    /// </summary>
+    /// <param name="StandardGeneralJournalLine">Standard journal line with validated G/L account</param>
+    /// <param name="GLAccount">G/L account that was checked</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckGLAcc(var StandardGeneralJournalLine: Record "Standard General Journal Line"; GLAccount: Record "G/L Account")
     begin

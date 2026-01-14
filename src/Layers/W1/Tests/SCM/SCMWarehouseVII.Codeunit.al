@@ -2819,6 +2819,86 @@ codeunit 137159 "SCM Warehouse VII"
         Assert.IsFalse(RegisteredInvtMovementHdr.IsEmpty(), RegInvtMovementHdrDoesNotExistErr);
     end;
 
+    [Test]
+    [HandlerFunctions('ProductionJournalModalPage,DummyMessageHandler,ConfirmHandlerTrue')]
+    procedure ConsumptionIsProportionalForHighPrecisionQtyPer()
+    var
+        Item: array[2] of Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        RoutingHeader: Record "Routing Header";
+        RoutingLink: Record "Routing Link";
+        WorkCenter: Record "Work Center";
+        QtyPer: Decimal;
+        RoundingPrecision: Decimal;
+        OutputQty: Decimal;
+        ProductionQty: Decimal;
+        InventoryQty: Decimal;
+        ExpectedConsumptionQty: Decimal;
+    begin
+        // [SCENARIO 611334] Validate consumption when Double Posting of Output in Released Production Order with Routing Link Setup
+        Initialize();
+
+        // [GIVEN] Define variables.
+        QtyPer := LibraryRandom.RandDec(1, 5);
+        RoundingPrecision := 0.00001;
+        InventoryQty := LibraryRandom.RandDec(500, 3);
+        ProductionQty := Round(InventoryQty / QtyPer, 2);
+        OutputQty := ProductionQty / 2;
+
+        // [GIVEN] Create Item [1] and Validate "Replenishment System", "Rounding Precision"  and "Flushing Method".
+        LibraryInventory.CreateItem(Item[1]);
+        Item[1].Validate("Replenishment System", Item[1]."Replenishment System"::Purchase);
+        Item[1].Validate("Rounding Precision", RoundingPrecision);
+        Item[1].Validate("Flushing Method", Item[1]."Flushing Method"::Backward);
+        Item[1].Modify(true);
+
+        // [GIVEN] Create a Work Center with Calendar.
+        CreateWorkCenterWithCalendar(WorkCenter);
+
+        // [GIVEN] Create a Routing Link.
+        LibraryManufacturing.CreateRoutingLink(RoutingLink);
+
+        // [GIVEN] Create a Routing with Work Center and Routing Link.
+        CreateRoutingWithWorkCenterAndRoutingLink(RoutingHeader, WorkCenter."No.", RoutingLink.Code, 14, 0);
+
+        // [GIVEN] Create a Production BOM.
+        CreateProductionBOM(ProductionBOMHeader, Item[1], RoutingLink.Code, QtyPer, 0);
+
+        // [GIVEN] Create Item [2] and Validate "Replenishment System", "Routing No." and "Production BOM No.".
+        LibraryInventory.CreateItem(Item[2]);
+        Item[2].Validate("Replenishment System", Item[2]."Replenishment System"::"Prod. Order");
+        Item[2].Validate("Routing No.", RoutingHeader."No.");
+        Item[2].Validate("Production BOM No.", ProductionBOMHeader."No.");
+        Item[1].Validate("Rounding Precision", RoundingPrecision);
+        Item[2].Modify(true);
+
+        // [GIVEN] Post an Item Journal Line.
+        PostItemJournalLine(Item[1]."No.", '', InventoryQty, LibraryRandom.RandIntInRange(10, 10), WorkDate(), 0);
+
+        // [GIVEN] Create a Production Order for Item [2].
+        CreateProdOrderForParentItem(ProductionOrder, '', Item[2]."No.", ProductionQty);
+
+        // [GIVEN] Find Prod. Order Line.
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+
+        // [GIVEN] Open Production Journal.
+        LibraryVariableStorage.Enqueue(OutputQty);
+        LibraryManufacturing.OpenProductionJournal(ProductionOrder, ProdOrderLine."Line No.");
+
+        // [WHEN] Find Item Ledger Entry.
+        ExpectedConsumptionQty := GetQuantityFromILE(Item[1]."No.", ItemLedgerEntry."Entry Type"::Consumption);
+
+        // [THEN] Only one Consumption Item Ledger Entry is found.
+        Assert.AreEqual(
+            ExpectedConsumptionQty,
+            OutputQty * QtyPer,
+           QuantityMustBeSame);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -4824,8 +4904,8 @@ codeunit 137159 "SCM Warehouse VII"
     local procedure RegisterWarehouseActivity(
         var WarehouseActivityLine: Record "Warehouse Activity Line";
         SourceDocument: Enum "Warehouse Activity Source Document";
-        SourceNo: Code[20];
-        ActivityType: Enum "Warehouse Activity Type")
+                            SourceNo: Code[20];
+                            ActivityType: Enum "Warehouse Activity Type")
     var
         WarehouseActivityHeader: Record "Warehouse Activity Header";
     begin
@@ -4837,7 +4917,7 @@ codeunit 137159 "SCM Warehouse VII"
     local procedure FindWarehouseShipmentLine(
         var WarehouseShipmentLine: Record "Warehouse Shipment Line";
         SourceDocument: Enum "Warehouse Activity Source Document";
-        SourceNo: Code[20])
+                            SourceNo: Code[20])
     begin
         WarehouseShipmentLine.SetRange("Source Document", SourceDocument);
         WarehouseShipmentLine.SetRange("Source No.", SourceNo);
@@ -5165,6 +5245,48 @@ codeunit 137159 "SCM Warehouse VII"
         BomComponent.Insert(true);
     end;
 
+    local procedure CreateRoutingWithWorkCenterAndRoutingLink(var RoutingHeader: Record "Routing Header"; WorkCenterNo: Code[20]; RoutingLinkCode: Code[10]; WaitTime: Decimal; FixedScrapQuantity: Decimal): Code[20]
+    var
+        RoutingLine: Record "Routing Line";
+    begin
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+
+        LibraryManufacturing.CreateRoutingLine(
+            RoutingHeader, RoutingLine, '', Format(LibraryRandom.RandInt(100)), RoutingLine.Type::"Work Center", WorkCenterNo);
+        RoutingLine.Validate("Wait Time", WaitTime);
+        RoutingLine.Validate("Fixed Scrap Quantity", FixedScrapQuantity);
+        RoutingLine.Validate("Routing Link Code", RoutingLinkCode);
+        RoutingLine.Modify(true);
+
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+        exit(RoutingHeader."No.");
+    end;
+
+    local procedure CreateProductionBOM(var ProductionBOMHeader: Record "Production BOM Header"; Item: Record Item; RoutinglinkCode: Code[10]; QtyPer: Decimal; ScrapPercent: Decimal)
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+    begin
+        LibraryManufacturing.CreateProductionBOMHeader(ProductionBOMHeader, Item."Base Unit of Measure");
+        LibraryManufacturing.CreateProductionBOMLine(
+            ProductionBOMHeader, ProductionBOMLine, '', ProductionBOMLine.Type::Item, Item."No.", QtyPer);
+        if ScrapPercent <> 0 then
+            ProductionBOMLine.Validate("Scrap %", ScrapPercent);
+        ProductionBOMLine.Validate("Routing Link Code", RoutinglinkCode);
+        ProductionBOMLine.Modify(true);
+
+        LibraryManufacturing.UpdateProductionBOMStatus(ProductionBOMHeader, ProductionBOMHeader.Status::Certified);
+    end;
+
+    local procedure GetQuantityFromILE(ItemNo: Code[20]; EntryType: Enum "Item Ledger Entry Type"): Decimal
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.SetRange("Entry Type", EntryType);
+        ItemLedgerEntry.CalcSums("Quantity");
+        exit(Abs(ItemLedgerEntry."Quantity"));
+    end;
 
     [ModalPageHandler]
     [Scope('OnPrem')]
@@ -5409,6 +5531,21 @@ codeunit 137159 "SCM Warehouse VII"
     begin
         ProductionJournal.FlushingFilter.SetValue("Flushing Method Filter"::Manual);
         ProductionJournal.Filter.SetFilter("Entry Type", Format("Item Ledger Entry Type"::Output));
+        ProductionJournal.Post.Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure ProductionJournalModalPage(var ProductionJournal: TestPage "Production Journal")
+    var
+        OutputQtyVariant: Variant;
+        OutputQty: Decimal;
+    begin
+        LibraryVariableStorage.Dequeue(OutputQtyVariant);
+        OutputQty := OutputQtyVariant;
+
+        ProductionJournal.FlushingFilter.SetValue("Flushing Method Filter"::Manual);
+        ProductionJournal.Filter.SetFilter("Entry Type", Format("Item Ledger Entry Type"::Output));
+        ProductionJournal."Output Quantity".SetValue(OutputQty);
         ProductionJournal.Post.Invoke();
     end;
 

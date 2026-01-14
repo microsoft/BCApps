@@ -1,54 +1,26 @@
 namespace System.Security.AccessControl;
 
+using Microsoft;
 using Microsoft.AccountantPortal;
-using Microsoft.Booking;
-using Microsoft.Sales.Archive;
-using Microsoft.CRM.Team;
-using Microsoft.Projects.Project.Job;
-using Microsoft.Inventory.Location;
-using Microsoft.Projects.TimeSheet;
-using Microsoft.CostAccounting.Setup;
-using Microsoft.Bank.Payment;
-using Microsoft.Foundation.Reporting;
-using Microsoft.EServices.EDocument;
-using Microsoft.Foundation.Attachment;
-using Microsoft.Foundation.Navigate;
-using Microsoft.Finance.VAT.Reporting;
-using Microsoft.Finance.VAT.Ledger;
-using Microsoft.eServices.OnlineMap;
-using Microsoft.Finance.Payroll;
-using Microsoft.Inventory.Reconciliation;
-using Microsoft.Projects.Project.Journal;
-using Microsoft.Projects.Project.Pricing;
-using Microsoft.Projects.Project.Ledger;
-using Microsoft.Projects.Project.Planning;
-using Microsoft.Projects.Project.Posting;
-using Microsoft.Projects.Project.WIP;
-using Microsoft.Projects.Project.Setup;
-using System.Globalization;
-using Microsoft.Foundation.AuditCodes;
-using Microsoft.Foundation.Shipping;
-using Microsoft.Foundation.UOM;
-using Microsoft.Foundation.Task;
-using Microsoft.Finance.VAT.Calculation;
-using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.VAT.Clause;
-using Microsoft.Finance.VAT.RateChange;
-using Microsoft.Finance.VAT.Registration;
+using Microsoft.API;
+using Microsoft.API.Upgrade;
 using Microsoft.Assembly.Setup;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Check;
 using Microsoft.Bank.DirectDebit;
 using Microsoft.Bank.Ledger;
+using Microsoft.Bank.Payment;
 using Microsoft.Bank.PositivePay;
 using Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.Setup;
 using Microsoft.Bank.Statement;
+using Microsoft.Booking;
 using Microsoft.CashFlow.Account;
 using Microsoft.CashFlow.Comment;
 using Microsoft.CashFlow.Forecast;
 using Microsoft.CashFlow.Setup;
 using Microsoft.CashFlow.Worksheet;
+using Microsoft.CostAccounting.Setup;
 using Microsoft.CRM.BusinessRelation;
 using Microsoft.CRM.Comment;
 using Microsoft.CRM.Contact;
@@ -61,6 +33,9 @@ using Microsoft.CRM.RoleCenters;
 using Microsoft.CRM.Segment;
 using Microsoft.CRM.Setup;
 using Microsoft.CRM.Task;
+using Microsoft.CRM.Team;
+using Microsoft.EServices.EDocument;
+using Microsoft.eServices.OnlineMap;
 using Microsoft.Finance.AllocationAccount;
 using Microsoft.Finance.Analysis;
 using Microsoft.Finance.Consolidation;
@@ -75,9 +50,17 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Reports;
 using Microsoft.Finance.GeneralLedger.Reversal;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.Payroll;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.RoleCenters;
 using Microsoft.Finance.SalesTax;
+using Microsoft.Finance.VAT.Calculation;
+using Microsoft.Finance.VAT.Clause;
+using Microsoft.Finance.VAT.Ledger;
+using Microsoft.Finance.VAT.RateChange;
+using Microsoft.Finance.VAT.Registration;
+using Microsoft.Finance.VAT.Reporting;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Insurance;
@@ -87,11 +70,21 @@ using Microsoft.FixedAssets.Maintenance;
 using Microsoft.FixedAssets.Posting;
 using Microsoft.FixedAssets.Setup;
 using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Attachment;
+using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.BatchProcessing;
 using Microsoft.Foundation.Comment;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.ExtendedText;
+using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Foundation.Period;
+using Microsoft.Foundation.Reporting;
+using Microsoft.Foundation.Shipping;
+using Microsoft.Foundation.Task;
+using Microsoft.Foundation.UOM;
+using Microsoft.HumanResources.Absence;
 using Microsoft.HumanResources.Comment;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Payables;
@@ -100,27 +93,38 @@ using Microsoft.Integration.D365Sales;
 using Microsoft.Integration.Dataverse;
 using Microsoft.Integration.Entity;
 using Microsoft.Integration.Graph;
-using Microsoft.Integration.SyncEngine;
 using Microsoft.Integration.PowerBI;
+using Microsoft.Integration.SyncEngine;
 using Microsoft.Intercompany.Setup;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Availability;
-using Microsoft.Inventory.BOM.Tree;
 using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.BOM.Tree;
 using Microsoft.Inventory.Comment;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Counting.Journal;
+using Microsoft.Inventory.Intrastat;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Item.Substitution;
-using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
+using Microsoft.Inventory.Reconciliation;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
+using Microsoft.Projects.Project.Job;
+using Microsoft.Projects.Project.Journal;
+using Microsoft.Projects.Project.Ledger;
+using Microsoft.Projects.Project.Planning;
+using Microsoft.Projects.Project.Posting;
+using Microsoft.Projects.Project.Pricing;
+using Microsoft.Projects.Project.Setup;
+using Microsoft.Projects.Project.WIP;
 using Microsoft.Projects.Resources.Analysis;
 using Microsoft.Projects.Resources.Journal;
 using Microsoft.Projects.Resources.Ledger;
@@ -128,6 +132,7 @@ using Microsoft.Projects.Resources.Pricing;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Projects.Resources.Setup;
 using Microsoft.Projects.RoleCenters;
+using Microsoft.Projects.TimeSheet;
 using Microsoft.Purchases.Analysis;
 using Microsoft.Purchases.Archive;
 using Microsoft.Purchases.Comment;
@@ -138,7 +143,9 @@ using Microsoft.Purchases.Pricing;
 using Microsoft.Purchases.RoleCenters;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
+using Microsoft.RoleCenters;
 using Microsoft.Sales.Analysis;
+using Microsoft.Sales.Archive;
 using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -149,6 +156,7 @@ using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Reminder;
 using Microsoft.Sales.RoleCenters;
 using Microsoft.Sales.Setup;
+using Microsoft.Utilities;
 using Microsoft.Warehouse.Setup;
 using System.AI;
 using System.Apps;
@@ -160,8 +168,9 @@ using System.Diagnostics;
 using System.Email;
 using System.Environment;
 using System.Environment.Configuration;
-using System.Integration.PowerBI;
+using System.Globalization;
 using System.Integration;
+using System.Integration.PowerBI;
 using System.IO;
 using System.Privacy;
 using System.Reflection;
@@ -169,19 +178,10 @@ using System.Security.User;
 using System.TestTools;
 using System.Text;
 using System.Threading;
+using System.Upgrade;
 using System.Utilities;
 using System.Visualization;
 using System.Xml;
-using System.Upgrade;
-using Microsoft.Foundation.Period;
-using Microsoft.RoleCenters;
-using Microsoft.Utilities;
-using Microsoft.Inventory.Intrastat;
-using Microsoft.Foundation.BatchProcessing;
-using Microsoft.HumanResources.Absence;
-using Microsoft.API.Upgrade;
-using Microsoft.API;
-using Microsoft;
 
 permissionset 732 "D365 BASIC ISV"
 {
@@ -494,11 +494,15 @@ permissionset 732 "D365 BASIC ISV"
                   tabledata "Excel Template Storage" = RIMD,
                   tabledata "Exch. Rate Adjmt. Reg." = Rimd,
                   tabledata "Exch. Rate Adjmt. Ledg. Entry" = Rimd,
+#if not CLEAN28
                   tabledata "Exchange Contact" = RIMD,
+#endif
                   tabledata "Exchange Folder" = RIMD,
                   tabledata "Exchange Object" = RIMD,
                   tabledata "Exchange Service Setup" = RIMD,
+#if not CLEAN28
                   tabledata "Exchange Sync" = RIMD,
+#endif
                   tabledata "Experience Tier Buffer" = RIMD,
                   tabledata "Experience Tier Setup" = RIMD,
                   tabledata "Extended Text Header" = RIMD,
@@ -636,6 +640,7 @@ permissionset 732 "D365 BASIC ISV"
                   tabledata "Item Attribute Translation" = RIMD,
                   tabledata "Item Attribute Value" = RIMD,
                   tabledata "Item Attribute Value Mapping" = RIMD,
+                  tabledata "Item Var. Attr. Value Mapping" = RIMD,
                   tabledata "Item Attribute Value Selection" = RIMD,
                   tabledata "Item Availability Buffer" = RIMD,
                   tabledata "Item Availability by Date" = RIMD,

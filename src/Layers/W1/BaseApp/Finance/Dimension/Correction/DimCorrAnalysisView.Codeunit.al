@@ -7,6 +7,9 @@ namespace Microsoft.Finance.Dimension.Correction;
 using Microsoft.Finance.Analysis;
 using System.Threading;
 
+/// <summary>
+/// Manages analysis view updates after dimension correction operations.
+/// </summary>
 codeunit 2584 "Dim Corr Analysis View"
 {
     TableNo = "Job Queue Entry";
@@ -21,6 +24,10 @@ codeunit 2584 "Dim Corr Analysis View"
         UpdateAnalysisViews(DimensionCorrection);
     end;
 
+    /// <summary>
+    /// Updates analysis views affected by dimension correction operations.
+    /// </summary>
+    /// <param name="DimensionCorrection">Dimension correction record containing the corrected dimensions</param>
     procedure UpdateAnalysisViews(var DimensionCorrection: Record "Dimension Correction")
     begin
         Session.LogMessage('0000EK8', StrSubstNo(StartingUpdateAnalysisViewsLbl, DimensionCorrection."Entry No."), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', DimensionCorrectionTok);
@@ -98,11 +105,21 @@ codeunit 2584 "Dim Corr Analysis View"
         CompletedUpdateAnalysisViewsLbl: Label 'Completed Update Analysis Views, Dimension Correction - %1', Locked = true, Comment = '%1 - Number of Dimension Correction';
         DimensionCorrectionTok: Label 'DimensionCorrection', Locked = true;
 
+    /// <summary>
+    /// Integration event raised after determining whether an analysis view should be updated following dimension correction.
+    /// </summary>
+    /// <param name="AnalysisView">Analysis view being evaluated for update</param>
+    /// <param name="DimensionCorrection">Dimension correction record that triggered the evaluation</param>
+    /// <param name="Result">Boolean result indicating whether the analysis view should be updated</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterShouldUpdateAnalysisView(var AnalysisView: Record "Analysis View"; var DimensionCorrection: Record "Dimension Correction"; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after applying filters to analysis views for update processing.
+    /// </summary>
+    /// <param name="AnalysisView">Analysis view record with applied filters</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateSelectedAnalysisViewsOnAfterSetFilter(var AnalysisView: Record "Analysis View");
     begin

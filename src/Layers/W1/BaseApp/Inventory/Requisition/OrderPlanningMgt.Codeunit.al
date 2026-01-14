@@ -311,45 +311,10 @@ codeunit 5522 "Order Planning Mgt."
         DemandType := NewDemandType;
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure SetDemandType()', '25.0')]
-    procedure SetSalesOrder()
-    begin
-        DemandType := DemandType::Sales;
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure SetDemandType()', '25.0')]
-    procedure SetProdOrder()
-    begin
-        DemandType := DemandType::Production;
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure SetDemandType()', '25.0')]
-    procedure SetServOrder()
-    begin
-        DemandType := DemandType::Service;
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure SetDemandType()', '25.0')]
-    procedure SetJobOrder()
-    begin
-        DemandType := DemandType::Job;
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure SetDemandType()', '25.0')]
-    procedure SetAsmOrder()
-    begin
-        DemandType := DemandType::Assembly;
-    end;
-#endif
 
     procedure InsertAltSupplySubstitution(var ReqLine: Record "Requisition Line")
     var
@@ -633,4 +598,3 @@ codeunit 5522 "Order Planning Mgt."
     begin
     end;
 }
-

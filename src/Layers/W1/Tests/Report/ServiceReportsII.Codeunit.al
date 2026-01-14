@@ -721,8 +721,9 @@ codeunit 136905 "Service Reports - II"
         DocumentPrint.PrintProformaSalesInvoice(SalesHeader);
 
         // [THEN] Verify the TotalVATAmount value in report 1302
+
         LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists('TotalVATAmount', Format((SalesLine."Amount Including VAT" - SalesLine.Amount), 0, AutoFormat.ResolveAutoFormat(AutoFormatType::AmountFormat, GeneralLedgerSetup."LCY Code")));
+        LibraryReportDataset.AssertElementWithValueExists('TotalVATAmount', Format((SalesLine.Amount * SalesLine."VAT %" / 100 * SalesLine."Qty. to Invoice" / SalesLine.Quantity), 0, AutoFormat.ResolveAutoFormat(AutoFormatType::AmountFormat, GeneralLedgerSetup."LCY Code")));
     end;
 
     local procedure NavigateForServiceShipment(WarrantyStartingDate: Date; WarrantyEndingDate: Date): Code[20]

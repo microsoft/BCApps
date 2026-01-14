@@ -4,16 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument;
 
-using Microsoft.Foundation.Company;
 using Microsoft.CRM.BusinessRelation;
 using Microsoft.CRM.Contact;
+using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Integration.Entity;
 using Microsoft.Integration.Graph;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
-using Microsoft.Sales.Document;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using System.EMail;
 using System.Utilities;

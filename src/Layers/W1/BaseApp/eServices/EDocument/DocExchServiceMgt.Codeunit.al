@@ -10,12 +10,12 @@ using Microsoft.Utilities;
 using System;
 using System.Azure.KeyVault;
 using System.Environment;
-using System.IO;
-using System.Utilities;
-using System.Xml;
 using System.Integration;
+using System.IO;
 using System.Security.Authentication;
 using System.Telemetry;
+using System.Utilities;
+using System.Xml;
 
 codeunit 1410 "Doc. Exch. Service Mgt."
 {
@@ -700,16 +700,6 @@ codeunit 1410 "Doc. Exch. Service Mgt."
 
         exit(ClientId);
     end;
-#if not CLEAN25
-
-    [Scope('OnPrem')]
-    [Obsolete('Replaced by GetClientSecretAsSecretText', '25.0')]
-    [NonDebuggable]
-    procedure GetClientSecret(Sandbox: Boolean): Text
-    begin
-        exit(GetClientSecretAsSecretText(Sandbox).Unwrap());
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure GetClientSecretAsSecretText(Sandbox: Boolean): SecretText
@@ -1755,4 +1745,3 @@ codeunit 1410 "Doc. Exch. Service Mgt."
     begin
     end;
 }
-

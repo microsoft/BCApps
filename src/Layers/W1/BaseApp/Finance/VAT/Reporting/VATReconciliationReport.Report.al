@@ -9,6 +9,10 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Foundation.Enums;
 
+/// <summary>
+/// Generates reconciliation analysis between G/L entries and VAT entries for audit and compliance purposes.
+/// Compares posted amounts across G/L and VAT ledgers to identify discrepancies and ensure data integrity.
+/// </summary>
 report 743 "VAT Reconciliation Report"
 {
     DefaultLayout = RDLC;
@@ -79,32 +83,20 @@ report 743 "VAT Reconciliation Report"
 
             trigger OnAfterGetRecord()
             var
-                VATEntry: Record "VAT Entry";
+                GLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link";
             begin
                 ResetGlobalVariables();
 
                 if (not ShowIndividualTransaction) and ((GLEntry."VAT Amount" = 0) and (not ShowTransactionWithoutVAT)) then
                     CurrReport.Skip();
 
-                VATEntry.SetCurrentKey("Transaction No.");
-                VATEntry.SetLoadFields(
-                    Amount, "VAT Calculation Type", Base, "Transaction No.", "Non-Deductible VAT Base", "Non-Deductible VAT Amount");
-                VATEntry.SetRange("Transaction No.", GLEntry."Transaction No.");
-                VATEntry.SetRange(Amount, GLEntry."VAT Amount" - GLEntry."Non-Deductible VAT Amount");
-                if GLEntry."Document Type" = GLEntry."Document Type"::" " then
-                    VATEntry.SetRange(Base, GLEntry.Amount);
-                if VATEntry.FindFirst() then
-                    if VATEntry."VAT Calculation Type" = Enum::"Tax Calculation Type"::"Reverse Charge VAT" then begin
-                        BaseAmountRevCharges := VATEntry.Base + VATEntry."Non-Deductible VAT Base";
-                        SalesVATRevCharges := VATEntry.Amount + VATEntry."Non-Deductible VAT Amount";
-                    end else
-                        if GLEntry."Gen. Posting Type" = Enum::"General Posting Type"::Sale then begin
-                            BaseAmountSalesVAT := -VATEntry.Base;
-                            SalesVAT := -VATEntry.Amount;
-                        end else begin
-                            BaseAmountPurchVAT := VATEntry.Base + VATEntry."Non-Deductible VAT Base";
-                            PurchVAT := VATEntry.Amount + VATEntry."Non-Deductible VAT Amount";
-                        end;
+                GLEntryVATEntryLink.SetRange("G/L Entry No.", GLEntry."Entry No.");
+                if GLEntryVATEntryLink.IsEmpty() then
+                    CurrReport.Skip();
+
+                repeat
+                    SetVATValueFromVATEntry(GLEntryVATEntryLink."VAT Entry No.");
+                until GLEntryVATEntryLink.Next() = 0;
 
                 GLAccount.Get("G/L Account No.");
             end;
@@ -185,4 +177,32 @@ report 743 "VAT Reconciliation Report"
         SalesVAT: Decimal;
         BaseAmountPurchVAT: Decimal;
         PurchVAT: Decimal;
+
+    local procedure SetVATValueFromVATEntry(VATEntryNo: Integer)
+    var
+        VATEntry: Record "VAT Entry";
+    begin
+        VATEntry.SetLoadFields(Amount, "VAT Calculation Type", Base, "Non-Deductible VAT Base", "Non-Deductible VAT Amount");
+        if not VATEntry.Get(VATEntryNo) then
+            exit;
+
+        if VATEntry."VAT Calculation Type" = Enum::"Tax Calculation Type"::"Reverse Charge VAT" then begin
+            BaseAmountRevCharges += VATEntry.Base + VATEntry."Non-Deductible VAT Base";
+            SalesVATRevCharges += VATEntry.Amount + VATEntry."Non-Deductible VAT Amount";
+            exit;
+        end;
+
+        case GLEntry."Gen. Posting Type" of
+            Enum::"General Posting Type"::Sale:
+                begin
+                    BaseAmountSalesVAT += -VATEntry.Base;
+                    SalesVAT += -VATEntry.Amount;
+                end;
+            Enum::"General Posting Type"::Purchase:
+                begin
+                    BaseAmountPurchVAT += VATEntry.Base + VATEntry."Non-Deductible VAT Base";
+                    PurchVAT += VATEntry.Amount + VATEntry."Non-Deductible VAT Amount";
+                end;
+        end;
+    end;
 }

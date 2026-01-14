@@ -4,18 +4,18 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
-using System.Environment.Configuration;
 using Microsoft.Assembly.Document;
-using Microsoft.Inventory.Item;
-using Microsoft.Inventory.BOM;
-using Microsoft.Inventory.Location;
-using Microsoft.Projects.Resources.Resource;
-using Microsoft.Inventory.Ledger;
-using Microsoft.Manufacturing.StandardCost;
-using Microsoft.Inventory.Journal;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Setup;
+using Microsoft.Manufacturing.StandardCost;
+using Microsoft.Projects.Resources.Resource;
+using System.Environment.Configuration;
 
 codeunit 137911 "SCM Calculate Assembly Cost"
 {

@@ -4,6 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Journal;
 
+/// <summary>
+/// Provides list view access to standard general journal templates for selection and management purposes.
+/// Enables users to browse, select, and manage reusable journal templates for efficient journal entry creation.
+/// </summary>
+/// <remarks>
+/// Standard journal template list for template management and selection. Provides access to all available
+/// standard journal templates with options for creation, modification, and deletion of template configurations.
+/// Key features: Template browsing, template selection, template management, journal line generation from templates.
+/// Integration: Used for template selection during journal creation and management of reusable journal patterns.
+/// </remarks>
 page 750 "Standard General Journals"
 {
     Caption = 'Standard General Journals';

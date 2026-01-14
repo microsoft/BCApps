@@ -6,9 +6,9 @@ namespace Microsoft.Inventory.Posting;
 
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Location;
-using Microsoft.Warehouse.Activity;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Warehouse.Activity;
 
 codeunit 99000823 "Mfg. Item Jnl.-Post Batch"
 {
@@ -20,16 +20,40 @@ codeunit 99000823 "Mfg. Item Jnl.-Post Batch"
         ItemJnlPostBatch: Codeunit "Item Jnl.-Post Batch";
 #endif
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Batch", 'OnAfterPostLines', '', true, true)]
-    local procedure OnBeforeCode()
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Batch", 'OnBeforePostLines', '', true, true)]
+    local procedure OnBeforePostLines()
     begin
+        // Ensure that reference is not stale
         Clear(MfgCreatePutaway);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Batch", 'OnHandleWhsePutAwayForProdOutput', '', true, true)]
+    local procedure OnHandleWhsePutAwayForProdOutput(var ItemJnlLine: Record "Item Journal Line")
+    begin
+        HandleWhsePutAwayForProdOutput(ItemJnlLine);
+    end;
+
+    local procedure HandleWhsePutAwayForProdOutput(ItemJournalLine: Record "Item Journal Line")
+    begin
+        if ItemJournalLine.OutputValuePosting() then
+            exit;
+
+        if ItemJournalLine."Entry Type" <> ItemJournalLine."Entry Type"::Output then
+            exit;
+
+        if (ItemJournalLine."Order No." = '') or (ItemJournalLine."Order Line No." = 0) then
+            exit;
+
+        MfgCreatePutaway.IncludeIntoWhsePutAwayForProdOrder(ItemJournalLine);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Batch", 'OnAfterPostLines', '', true, true)]
     local procedure OnAfterPostLines(var ItemJournalLine: Record "Item Journal Line"; var ItemRegNo: Integer; var WhseRegNo: Integer)
     begin
         MfgCreatePutaway.CreateWhsePutAwayForProdOutput();
+
+        // Clean-up reference
+        Clear(MfgCreatePutaway);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Batch", 'OnCheckItemAvailabilityOnAfterSetAvailableQty', '', true, true)]
@@ -64,26 +88,6 @@ codeunit 99000823 "Mfg. Item Jnl.-Post Batch"
             exit;
         ReservationEntry.CalcSums(ReservationEntry."Quantity (Base)");
         exit(-ReservationEntry."Quantity (Base)");
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Batch", 'OnHandleWhsePutAwayForProdOutput', '', true, true)]
-    local procedure OnHandleWhsePutAwayForProdOutput(var ItemJnlLine: Record "Item Journal Line")
-    begin
-        HandleWhsePutAwayForProdOutput(ItemJnlLine);
-    end;
-
-    local procedure HandleWhsePutAwayForProdOutput(ItemJournalLine: Record "Item Journal Line")
-    begin
-        if ItemJournalLine.OutputValuePosting() then
-            exit;
-
-        if ItemJournalLine."Entry Type" <> ItemJournalLine."Entry Type"::Output then
-            exit;
-
-        if (ItemJournalLine."Order No." = '') or (ItemJournalLine."Order Line No." = 0) then
-            exit;
-
-        MfgCreatePutaway.IncludeIntoWhsePutAwayForProdOrder(ItemJournalLine);
     end;
 
     [IntegrationEvent(false, false)]

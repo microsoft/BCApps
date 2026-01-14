@@ -1030,18 +1030,6 @@ codeunit 6520 "Item Tracing Mgt."
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnSetRecordIDOnBeforeProcessServiceDocument(ItemLedgEntry: Record "Item Ledger Entry"; var TrackingEntry: Record "Item Tracing Buffer")
-    begin
-        OnSetRecordIDOnBeforeProcessServiceDocument(ItemLedgEntry, TrackingEntry);
-    end;
-
-    [Obsolete('Moved to codeunit Serv. Item Tracing Mgt.', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnSetRecordIDOnBeforeProcessServiceDocument(ItemLedgEntry: Record "Item Ledger Entry"; var TrackingEntry: Record "Item Tracing Buffer")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitSearchCriteria(var SearchCriteria: Option "None",Lot,Serial,Both,Item,Package; SerialNoFilter: Text; LotNoFilter: Text; PackageNoFilter: Text; ItemNoFilter: Text; var IsHandled: Boolean)
@@ -1063,4 +1051,3 @@ codeunit 6520 "Item Tracing Mgt."
     begin
     end;
 }
-

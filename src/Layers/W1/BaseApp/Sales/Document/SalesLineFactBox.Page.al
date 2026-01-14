@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -75,11 +75,7 @@ page 9087 "Sales Line FactBox"
 
                     trigger OnDrillDown()
                     begin
-#if not CLEAN25
-                        ItemAvailFormsMgt.ShowItemAvailFromSalesLine(Rec, "Item Availability Type"::"Event".AsInteger());
-#else
                         SalesAvailabilityMgt.ShowItemAvailabilityFromSalesLine(Rec, "Item Availability Type"::"Event");
-#endif
                         CurrPage.Update(true);
                     end;
                 }
@@ -205,12 +201,7 @@ page 9087 "Sales Line FactBox"
 
     protected var
         SalesInfoPaneMgt: Codeunit "Sales Info-Pane Management";
-#if not CLEAN25
-        [Obsolete('Replaced by SalesAvailabilityMgt', '25.0')]
-        ItemAvailFormsMgt: Codeunit "Item Availability Forms Mgt";
-#else
         SalesAvailabilityMgt: Codeunit "Sales Availability Mgt.";
-#endif
 
     local procedure ShowNo(): Code[20]
     begin
@@ -219,4 +210,3 @@ page 9087 "Sales Line FactBox"
         exit(Rec."No.");
     end;
 }
-

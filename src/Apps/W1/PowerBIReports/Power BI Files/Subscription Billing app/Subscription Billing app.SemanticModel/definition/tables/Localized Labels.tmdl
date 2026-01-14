@@ -204,10 +204,12 @@ table 'Localized Labels'
 
 	measure 'Back button' = 0
 		formatString: 0
+		isHidden
 		lineageTag: 8a192dfe-ff11-4ade-afb9-acacc9cb7c64
 
 	measure 'Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit, Active Customers, Total Contract Value, Change in Monthly Recurring Revenue' = 0
 		formatString: 0
+		isHidden
 		lineageTag: 673f244c-6171-47fd-88fe-8d25ff9fa65c
 
 	measure 'Churn Analysis' = 0
@@ -218,6 +220,46 @@ table 'Localized Labels'
 	measure 'Avg. Mon. Churn Rate % by Year and Month' = 0
 		isHidden
 		lineageTag: dbec714d-36ad-4e74-bc74-9691ee24a02e
+
+	measure 'Total Contract Value by Package' = 0
+		isHidden
+		lineageTag: eb7ac507-a2f1-4ba2-92d4-e7eb91d456d9
+
+	measure 'Mon. Recurring Revenue by Package' = 0
+		isHidden
+		lineageTag: 9c002ddd-002a-426e-a47d-d6351d291e93
+
+	measure 'Churn by Customer' = 0
+		isHidden
+		lineageTag: 79e806b1-5fe4-461f-9e2d-8d23af4d33ac
+
+	measure 'Profitability by Item' = 0
+		isHidden
+		lineageTag: aef1f788-4dd3-4346-ba15-c7964929e203
+
+	measure 'Mon. Recurring Revenue by Customer Location' = 0
+		isHidden
+		lineageTag: 355d4e8c-e2b7-488d-8aae-610791396576
+
+	measure 'Profitability by Salesperson' = 0
+		isHidden
+		lineageTag: 10fb96a6-7639-4f61-b26c-4c8aeb15b721
+
+	measure 'Total Contract Value by Salesperson' = 0
+		isHidden
+		lineageTag: 5ca0d80c-d7cc-4f84-9bf1-8cadb5777ad1
+
+	measure 'Customer Deferrals by Released Status' = 0
+		isHidden
+		lineageTag: dc49dcdf-4074-4dde-845c-dd35d6864bbc
+
+	measure 'Vendor Deferrals by Released Status' = 0
+		isHidden
+		lineageTag: 10e96e0c-8487-469d-97ea-94d49f78cdd5
+
+	measure 'Billing Forecast by Billing Period, Vendor and Contract No.' = 0
+		isHidden
+		lineageTag: 601a43e9-3983-471f-8187-a5cc4ee23dff
 
 	column unused
 		isHidden

@@ -1,6 +1,8 @@
-﻿codeunit 131300 "Library - ERM"
+﻿/// <summary>
+/// Provides utility functions for Enterprise Resource Management (ERM) test scenarios, including general ledger, journal processing, and financial posting operations.
+/// </summary>
+codeunit 131300 "Library - ERM"
 {
-    // All utility functions related to ERM.
 
     Permissions = TableData Currency = rimd,
                   TableData "Cust. Ledger Entry" = rimd,

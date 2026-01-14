@@ -460,24 +460,35 @@ page 8905 "Purchasing Manager Role Center"
                             Caption = 'Vendor - Detail Trial Balance';
                             RunObject = report "Vendor - Detail Trial Balance";
                         }
+#if not CLEAN28
                         action("Vendor - Top 10 List")
                         {
                             ApplicationArea = Suite;
-                            Caption = 'Vendor - Top 10 List';
+                            Caption = 'Vendor - Top 10 List (Obsolete)';
                             RunObject = report "Vendor - Top 10 List";
+                            ObsoleteState = Pending;
+                            ObsoleteReason = 'This report has been replaced by the report Vendor - Top List (Excel). This report will be removed in a future release.';
+                            ObsoleteTag = '28.0';
                         }
                         action("Vendor - List")
                         {
                             ApplicationArea = Basic, Suite;
-                            Caption = 'Vendor - List';
+                            Caption = 'Vendor - List (Obsolete)';
                             RunObject = report "Vendor - List";
+                            ObsoleteState = Pending;
+                            ObsoleteReason = 'This report is obsolete and will be removed in a future release. See the documentation for alternative options.';
+                            ObsoleteTag = '28.0';
                         }
                         action("Vendor - Summary Aging")
                         {
                             ApplicationArea = Basic, Suite;
-                            Caption = 'Vendor - Summary Aging';
+                            Caption = 'Vendor - Summary Aging (Obsolete)';
                             RunObject = report "Vendor - Summary Aging";
+                            ObsoleteState = Pending;
+                            ObsoleteReason = 'This report is obsolete and will be removed in a future release. See the documentation for alternative options.';
+                            ObsoleteTag = '28.0';
                         }
+#endif
                         action("Vendor Item Catalog")
                         {
                             ApplicationArea = Basic, Suite;

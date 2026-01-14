@@ -27,9 +27,6 @@ codeunit 99000887 "Planning Comp. Avail. Mgt."
         ItemAvailabilityFormsMgt.FilterItem(Item, PlanningComp."Location Code", PlanningComp."Variant Code", PlanningComp."Due Date");
 
         OnBeforeShowItemAvailFromPlanningComp(Item, PlanningComp);
-#if not CLEAN25
-        ItemAvailabilityFormsMgt.RunOnBeforeShowItemAvailFromPlanningComp(Item, PlanningComp);
-#endif
         case AvailabilityType of
             AvailabilityType::Period:
                 if ItemAvailabilityFormsMgt.ShowItemAvailabilityByPeriod(Item, PlanningComp.FieldCaption(PlanningComp."Due Date"), PlanningComp."Due Date", NewDate) then

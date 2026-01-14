@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.FinancialReports;
 
+/// <summary>
+/// Dialog interface for creating new financial reports with template selection.
+/// Provides wizard-style creation process for financial report, account schedule, and column layout setup.
+/// </summary>
+/// <remarks>
+/// Standard dialog page for guided financial report creation. Supports selection of existing
+/// templates for financial reports, account schedules, and column layouts with validation
+/// for duplicate names and dependency management.
+/// </remarks>
 page 8747 "New Financial Report"
 {
     Caption = 'New Financial Report';
@@ -121,6 +130,13 @@ page 8747 "New Financial Report"
         AlreadyExistsAccountScheduleErr: Label 'Row definition %1 will be overwritten.', Comment = '%1 - name of the row definition.';
         AlreadyExistsColumnLayoutErr: Label 'Column definition %1 will be overwritten.', Comment = '%1 - name of the column definition.';
 
+    /// <summary>
+    /// Sets the initial values for financial report creation dialog.
+    /// Configures the source names for financial report, account schedule, and column layout.
+    /// </summary>
+    /// <param name="FinancialReportName">Initial financial report name</param>
+    /// <param name="AccSchedName">Initial account schedule name</param>
+    /// <param name="ColumnLayout">Initial column layout name</param>
     procedure Set(FinancialReportName: Code[10]; AccSchedName: Code[10]; ColumnLayout: Code[10])
     begin
         OldName[1] := FinancialReportName;
@@ -135,16 +151,31 @@ page 8747 "New Financial Report"
         CheckAlreadyExists();
     end;
 
+    /// <summary>
+    /// Returns the financial report name selected in the dialog.
+    /// Provides access to the user-entered financial report name for creation.
+    /// </summary>
+    /// <returns>Financial report name from dialog input</returns>
     procedure GetFinancialReportName(): Code[10]
     begin
         exit(NewName[1]);
     end;
 
+    /// <summary>
+    /// Returns the account schedule name selected in the dialog.
+    /// Provides access to the user-entered account schedule name for creation.
+    /// </summary>
+    /// <returns>Account schedule name from dialog input</returns>
     procedure GetAccSchedName(): Code[10]
     begin
         exit(NewName[2]);
     end;
 
+    /// <summary>
+    /// Returns the column layout name selected in the dialog.
+    /// Provides access to the user-entered column layout name for creation.
+    /// </summary>
+    /// <returns>Column layout name from dialog input, or empty if not applicable</returns>
     procedure GetColumnLayoutName(): Code[10]
     begin
         if ShowColumnLayout then

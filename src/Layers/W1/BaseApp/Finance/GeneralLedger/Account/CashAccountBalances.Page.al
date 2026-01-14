@@ -7,6 +7,10 @@ namespace Microsoft.Finance.GeneralLedger.Account;
 using System.Environment;
 using System.Environment.Configuration;
 
+/// <summary>
+/// Displays balances for cash accounts in a list part view.
+/// This page shows posting-type G/L accounts that are categorized as cash accounts (Assets category, Cash Accounts subcategory).
+/// </summary>
 page 1158 "Cash Account Balances"
 {
     Caption = 'Cash Account Balances';

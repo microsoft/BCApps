@@ -4,13 +4,28 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Reconciliation;
 
+using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Check;
 using Microsoft.Bank.Ledger;
 using Microsoft.Finance.GeneralLedger.Journal;
 using System.Telemetry;
 using System.Utilities;
-using Microsoft.Bank.BankAccount;
 
+/// <summary>
+/// Provides automatic and manual matching capabilities for bank reconciliation statement lines.
+/// This codeunit implements sophisticated algorithms to match imported bank statement lines with
+/// existing bank account ledger entries for traditional bank reconciliation workflows. Supports
+/// various matching criteria including amounts, dates, document numbers, and text descriptions,
+/// with configurable tolerance settings and relationship mapping (one-to-one, one-to-many, many-to-one).
+/// </summary>
+/// <remarks>
+/// Key features include automatic matching with scoring algorithms, manual matching override capabilities,
+/// text similarity matching for complex scenarios, date tolerance handling, amount-based matching with
+/// precision controls, and comprehensive reporting of match quality and confidence levels.
+/// Integrates with bank account ledger entries, check ledger entries, and provides detailed telemetry
+/// for performance monitoring and optimization. Used primarily for bank reconciliation rather than
+/// payment application workflows, focusing on clearing outstanding transactions and identifying discrepancies.
+/// </remarks>
 codeunit 1252 "Match Bank Rec. Lines"
 {
 
@@ -47,6 +62,13 @@ codeunit 1252 "Match Bank Rec. Lines"
         MatchLengthTreshold: Integer;
         NormalizingFactor: Integer;
 
+    /// <summary>
+    /// Creates manual matches between selected bank reconciliation lines and bank account ledger entries.
+    /// Enables users to override automatic matching decisions by explicitly linking statement lines
+    /// with specific ledger entries, supporting complex reconciliation scenarios requiring human judgment.
+    /// </summary>
+    /// <param name="SelectedBankAccReconciliationLine">Bank reconciliation lines selected for manual matching.</param>
+    /// <param name="SelectedBankAccountLedgerEntry">Bank account ledger entries to match with selected lines.</param>
     procedure MatchManually(var SelectedBankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var SelectedBankAccountLedgerEntry: Record "Bank Account Ledger Entry")
     var
         SelectedBankAccLECount: Integer;
@@ -121,6 +143,13 @@ codeunit 1252 "Match Bank Rec. Lines"
         end;
     end;
 
+    /// <summary>
+    /// Determines whether a bank reconciliation line is part of a many-to-one matching relationship.
+    /// Checks if the line has multiple bank reconciliation lines matched to a single bank account
+    /// ledger entry, which requires special handling during removal and processing operations.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line to check for many-to-one relationship.</param>
+    /// <returns>True if the line is part of a many-to-one match; false otherwise.</returns>
     internal procedure BankReconciliationLineInManyToOne(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"): Boolean
     var
         BankAccRecMatchBuffer: Record "Bank Acc. Rec. Match Buffer";
@@ -129,6 +158,12 @@ codeunit 1252 "Match Bank Rec. Lines"
         exit(not BankAccRecMatchBuffer.IsEmpty());
     end;
 
+    /// <summary>
+    /// Removes all matches from selected bank reconciliation lines, clearing their applied entries.
+    /// Unlinks bank account ledger entries and check ledger entries from the reconciliation lines,
+    /// resetting them to unmatched status for potential re-matching with different entries.
+    /// </summary>
+    /// <param name="SelectedBankAccReconciliationLine">Bank reconciliation lines to clear matches from.</param>
     procedure RemoveMatchesFromRecLines(var SelectedBankAccReconciliationLine: Record "Bank Acc. Reconciliation Line")
     var
         MatchesRemoved: Boolean;
@@ -136,6 +171,13 @@ codeunit 1252 "Match Bank Rec. Lines"
         RemoveMatchesFromRecLines(SelectedBankAccReconciliationLine, MatchesRemoved);
     end;
 
+    /// <summary>
+    /// Removes all matches from selected bank reconciliation lines with detailed tracking of removal status.
+    /// Unlinks bank account ledger entries and check ledger entries from the reconciliation lines,
+    /// resetting them to unmatched status while providing feedback on whether any matches were actually removed.
+    /// </summary>
+    /// <param name="SelectedBankAccReconciliationLine">Bank reconciliation lines to clear matches from.</param>
+    /// <param name="MatchesRemoved">Returns true if any matches were removed; false if no matches existed.</param>
     procedure RemoveMatchesFromRecLines(var SelectedBankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var MatchesRemoved: Boolean)
     var
         BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line";
@@ -198,6 +240,14 @@ codeunit 1252 "Match Bank Rec. Lines"
             until SelectedBankAccReconciliationLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Removes specific matches between selected bank reconciliation lines and bank account ledger entries.
+    /// Provides granular control over match removal by targeting specific entry combinations rather than
+    /// clearing all matches from a line. Handles both bank account ledger entries and check ledger entries
+    /// with appropriate status updates and application removal.
+    /// </summary>
+    /// <param name="SelectedBankAccReconciliationLine">Bank reconciliation lines containing matches to remove.</param>
+    /// <param name="SelectedBankAccountLedgerEntry">Specific bank account ledger entries to unlink from the lines.</param>
     procedure RemoveMatch(var SelectedBankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var SelectedBankAccountLedgerEntry: Record "Bank Account Ledger Entry")
     var
         BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
@@ -238,24 +288,28 @@ codeunit 1252 "Match Bank Rec. Lines"
     end;
 
     /// <summary>
-    /// Algorithm for auto matching used in the Bank Acc. Reconciliation page.
-    /// It updates matched Bank Account Ledger Entries by applying them and setting their Statement No., Statement Line No., etc.
+    /// Executes automatic matching algorithm for bank account reconciliation with date tolerance.
+    /// Analyzes bank statement lines and bank account ledger entries to identify potential matches
+    /// based on amounts, dates (within tolerance), document numbers, and text descriptions.
+    /// Updates matched entries by applying them and setting statement references for reconciliation tracking.
     /// </summary>
-    /// <param name="BankAccReconciliation"></param>
-    /// <param name="DaysTolerance"></param>
+    /// <param name="BankAccReconciliation">Bank account reconciliation to process for automatic matching.</param>
+    /// <param name="DaysTolerance">Number of days tolerance for date matching between statement and ledger entries.</param>
     procedure BankAccReconciliationAutoMatch(BankAccReconciliation: Record "Bank Acc. Reconciliation"; DaysTolerance: Integer)
     begin
         BankAccReconciliationAutoMatch(BankAccReconciliation, DaysTolerance, false, true);
     end;
 
     /// <summary>
-    /// Algorithm for auto matching used in the Bank Acc. Reconciliation page.
-    /// It updates matched Bank Account Ledger Entries by applying them and setting their Statement No., Statement Line No., etc.
+    /// Executes comprehensive automatic matching algorithm for bank account reconciliation with advanced options.
+    /// Provides full control over the matching process including event handling, optimization settings,
+    /// and result presentation. Analyzes bank statement lines and bank account ledger entries using
+    /// sophisticated scoring algorithms based on amount, date, document number, and text similarity matching.
     /// </summary>
-    /// <param name="BankAccReconciliation"></param>
-    /// <param name="DaysTolerance"></param>
-    /// <param name="RaiseFindBestMatchesEvent"></param>
-    /// <param name="ShouldShowMatchSummary"></param>
+    /// <param name="BankAccReconciliation">Bank account reconciliation to process for automatic matching.</param>
+    /// <param name="DaysTolerance">Number of days tolerance for date matching between statement and ledger entries.</param>
+    /// <param name="RaiseFindBestMatchesEvent">Whether to raise integration events for custom matching logic.</param>
+    /// <param name="ShouldShowMatchSummary">Whether to display summary notification with matching results.</param>
     procedure BankAccReconciliationAutoMatch(var BankAccReconciliation: Record "Bank Acc. Reconciliation"; DaysTolerance: Integer; RaiseFindBestMatchesEvent: Boolean; ShouldShowMatchSummary: Boolean)
     var
         BankAccount: Record "Bank Account";
@@ -986,41 +1040,92 @@ codeunit 1252 "Match Bank Rec. Lines"
         exit(NormalizingFactor);
     end;
 
+    /// <summary>
+    /// Integration event raised after setting the final text in the match summary display.
+    /// Allows subscribers to customize the summary text or provide alternative display handling.
+    /// </summary>
+    /// <param name="BankAccReconciliation">Bank reconciliation document being summarized.</param>
+    /// <param name="FinalText">The final summary text that will be displayed to the user.</param>
+    /// <param name="IsHandled">Set to true if subscriber handles the text display processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnShowMatchSummaryOnAfterSetFinalText(var BankAccReconciliation: Record "Bank Acc. Reconciliation"; FinalText: Text; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event for finding best matches using custom algorithms or external services.
+    /// Allows subscribers to implement alternative matching logic, potentially with AI or machine learning.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line to find matches for.</param>
+    /// <param name="TempBankAccLedgerEntryMatchingBuffer">Buffer containing potential bank account ledger entry matches.</param>
+    /// <param name="DaysTolerance">Number of days tolerance for date matching.</param>
+    /// <param name="TempBankStatementMatchingBuffer">Buffer for storing and ranking matching results.</param>
+    /// <param name="RemovedPreviouslyAssigned">Indicates if previously assigned matches were removed.</param>
+    /// <param name="Handled">Set to true if subscriber handles the matching process completely.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFindBestMatches(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var TempBankAccLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; DaysTolerance: Integer; var TempBankStatementMatchingBuffer: Record "Bank Statement Matching Buffer" temporary; var RemovedPreviouslyAssigned: Boolean; var Handled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before removing matches from reconciliation lines.
+    /// Allows subscribers to implement custom removal logic or prevent the removal operation.
+    /// </summary>
+    /// <param name="IsHandled">Set to true if subscriber handles the match removal process.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRemoveMatchesFromRecLines(var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after removing an application from a bank account ledger entry during match removal.
+    /// Allows subscribers to perform cleanup operations or additional processing after application removal.
+    /// </summary>
+    /// <param name="BankAccountLedgerEntry">Bank account ledger entry from which application was removed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRemoveMatchOnAfterRemoveApplication(var BankAccountLedgerEntry: Record "Bank Account Ledger Entry");
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before applying entries in a many-to-one matching scenario.
+    /// Allows subscribers to perform validation or modify data before the many-to-one application.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line being applied to multiple entries.</param>
+    /// <param name="BankAccountLedgerEntry">One of the bank account ledger entries being matched.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPerformManyToOneMatchOnBeforeApplyEntries(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var BankAccountLedgerEntry: Record "Bank Account Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after applying entries in a many-to-one matching scenario.
+    /// Allows subscribers to perform post-application processing or logging for many-to-one matches.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line that was applied to multiple entries.</param>
+    /// <param name="BankAccountLedgerEntry">One of the bank account ledger entries that was matched.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPerformManyToOneMatchOnAfterApplyEntries(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var BankAccountLedgerEntry: Record "Bank Account Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before applying entries in one-to-one or one-to-many matching scenarios.
+    /// Allows subscribers to perform validation or modify data before the entry application.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line being applied.</param>
+    /// <param name="BankAccountLedgerEntry">Bank account ledger entry being matched.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPerformOneToOneOrManyMatchOnBeforeApplyEntries(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var BankAccountLedgerEntry: Record "Bank Account Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after applying entries in one-to-one or one-to-many matching scenarios.
+    /// Allows subscribers to perform post-application processing or logging for standard matches.
+    /// </summary>
+    /// <param name="BankAccReconciliationLine">Bank reconciliation line that was applied.</param>
+    /// <param name="BankAccountLedgerEntry">Bank account ledger entry that was matched.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPerformOneToOneOrManyMatchOnAfterApplyEntries(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var BankAccountLedgerEntry: Record "Bank Account Ledger Entry")
     begin

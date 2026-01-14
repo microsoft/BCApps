@@ -46,6 +46,27 @@ page 149042 "AIT CommandLine Card"
                         UpdateAITestMethodLines();
                     end;
                 }
+                field("Language Tag"; LanguageTagFilter)
+                {
+                    Caption = 'Language';
+                    ToolTip = 'Specifies the language to run.';
+
+                    trigger OnValidate()
+                    var
+                        AITTestSuite: Record "AIT Test Suite";
+                        AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
+                    begin
+                        if not AITTestSuite.Get(AITCode) then
+                            Error(CannotFindAITSuiteErr, AITCode);
+
+                        Clear(LineNoFilter);
+
+                        AITTestSuite.Validate("Run Language ID", AITTestSuiteLanguage.GetLanguageIDByTag(LanguageTagFilter));
+                        AITTestSuite.Modify(true);
+
+                        UpdateAITestMethodLines();
+                    end;
+                }
                 field("Line No. Filter"; LineNoFilter)
                 {
                     Caption = 'Line No. Filter';
@@ -274,6 +295,7 @@ page 149042 "AIT CommandLine Card"
         CannotFindAITSuiteErr: Label 'The specified Test Suite with code %1 cannot be found.', Comment = '%1 = Test Suite id.';
         AITCode: Code[100];
         LineNoFilter: Integer;
+        LanguageTagFilter: Text[80];
         NoOfPendingTests: Integer;
         InputDataset: Text;
         SuiteDefinition: Text;

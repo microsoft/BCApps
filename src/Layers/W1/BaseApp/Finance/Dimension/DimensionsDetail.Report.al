@@ -13,6 +13,15 @@ using Microsoft.Foundation.Period;
 using System.Text;
 using System.Utilities;
 
+/// <summary>
+/// Generates detailed dimension analysis reports with G/L entry drill-down capabilities.
+/// Provides comprehensive dimension-based financial analysis with multiple layout options and filtering.
+/// </summary>
+/// <remarks>
+/// Supports analysis view integration, dimension value filtering, and detailed G/L entry reporting.
+/// Includes extensibility through integration events for custom filtering and processing logic.
+/// Essential tool for detailed financial analysis and dimension-based reporting requirements.
+/// </remarks>
 report 28 "Dimensions - Detail"
 {
     DefaultLayout = RDLC;
@@ -852,16 +861,32 @@ report 28 "Dimensions - Detail"
         end;
     end;
 
+    /// <summary>
+    /// Integration event raised after analysis view record processing and before setting entry filter groups.
+    /// Enables custom filtering and processing of analysis view entries during report generation.
+    /// </summary>
+    /// <param name="AnalysisViewEntry">Analysis view entry record being processed</param>
+    /// <param name="AnalysisView">Analysis view configuration record</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetRecordAnalysisViewOnBeforeSetEntryFilterGroup(var AnalysisViewEntry: Record "Analysis View Entry"; AnalysisView: Record "Analysis View")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters on temporary G/L entries during detail printing.
+    /// Enables custom filter modification for detailed G/L entry reporting.
+    /// </summary>
+    /// <param name="TempGLEntry">Temporary G/L entry record with applied filters</param>
     [IntegrationEvent(false, false)]
     local procedure OnPrintDetailOnAfterTempGLEntrySetFilters(var TempGLEntry: Record "G/L Entry" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters on dimension values during report preprocessing.
+    /// Enables custom dimension value filtering for report data preparation.
+    /// </summary>
+    /// <param name="DimensionValue">Dimension value record with applied filters</param>
     [IntegrationEvent(false, false)]
     local procedure OnPreReportOnAfterDimValSetFilters(var DimensionValue: Record "Dimension Value")
     begin

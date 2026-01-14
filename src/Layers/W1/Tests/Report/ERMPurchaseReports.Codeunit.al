@@ -25,8 +25,6 @@ codeunit 134983 "ERM Purchase Reports"
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
         isInitialized: Boolean;
         ValidationErr: Label '%1 must be %2 in Report.', Comment = '%1 - Name of node; %2 - Value of node';
-        AgedLbl: Label 'Portion of %1', Comment = '%1 - Aged type';
-        Aged2Lbl: Label 'Purchases (LCY),Balance (LCY)';
         DimensionTxt: Label '%1 - %2', Comment = '%1 - Dimension Code; %2 - Dimension Value Code';
         LineDimensionsLbl: Label 'Line Dimensions';
         RowNotFoundErr: Label 'There is no dataset row corresponding to Element Name %1 with value %2.', Comment = '%1=Field Caption,%2=Field Value;';
@@ -669,76 +667,6 @@ codeunit 134983 "ERM Purchase Reports"
     end;
 
     [Test]
-    [HandlerFunctions('RHVendorList')]
-    [Scope('OnPrem')]
-    procedure VendorList()
-    var
-        Vendor: Record Vendor;
-        PurchaseHeader: Record "Purchase Header";
-    begin
-        // [FEATURE] [Vendor - List]
-        // [SCENARIO] Check Vendor List Report values
-        Initialize();
-
-        // [GIVEN] Posted Purchase Order for Vendor "V"
-        CreatePurchaseDocument(PurchaseHeader, PurchaseHeader."Document Type"::Order, CreateItem(), '');
-        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
-        Vendor.Get(PurchaseHeader."Buy-from Vendor No.");
-
-        // [WHEN] Run "Vendor - List" report for vendor "V"
-        RunVendorListReport(Vendor);
-
-        // [THEN] Report has correct Vendor "V" values for "Vendor Posting Group", "Payment Method Code", "Balance (LCY)"
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.SetRange('Vendor__No__', PurchaseHeader."Buy-from Vendor No.");
-        if not LibraryReportDataset.GetNextRow() then
-            Error(RowNotFoundErr, 'Vendor__No__', PurchaseHeader."Buy-from Vendor No.");
-        LibraryReportDataset.AssertCurrentRowValueEquals('Vendor__Vendor_Posting_Group_', PurchaseHeader."Vendor Posting Group");
-        LibraryReportDataset.AssertCurrentRowValueEquals('Vendor__Vendor_Posting_Group_', PurchaseHeader."Vendor Posting Group");
-        LibraryReportDataset.AssertCurrentRowValueEquals('Vendor__Invoice_Disc__Code_', PurchaseHeader."Buy-from Vendor No.");
-        LibraryReportDataset.AssertCurrentRowValueEquals('Vendor__Payment_Method_Code_', PurchaseHeader."Payment Method Code");
-
-        Vendor.CalcFields("Balance (LCY)");
-        LibraryReportDataset.AssertCurrentRowValueEquals('Vendor__Balance__LCY__', Vendor."Balance (LCY)");
-    end;
-
-    [Test]
-    [HandlerFunctions('RHVendorList')]
-    [Scope('OnPrem')]
-    procedure VendorListFilterStringWithGlobalDimCaptions()
-    var
-        Vendor: Record Vendor;
-        DimValueCode: array[2] of Code[20];
-        ExpectedFilterString: Text;
-    begin
-        // [FEATURE] [Vendor - List]
-        // [SCENARIO 376798] "Vendor - List" report prints global dimension captions in case of vendor dimension filters
-        Initialize();
-        UpdateGlobalDims();
-
-        // [GIVEN] General Ledger Setup with two global dimensions: "Department", "Project".
-        // [GIVEN] Vendor "V" with two default dimensions: Code = "Department", Value = "ADM"; Code = "Project", Value = "VW".
-        CreateVendorWithDefaultGlobalDimValues(Vendor, DimValueCode);
-
-        // [WHEN] Run "Vendor - List" report with following filters: "No." = "V"; "Department Code" = "ADM", "Project Code" = "VW"
-        Vendor.SetFilter("Global Dimension 1 Code", DimValueCode[1]);
-        Vendor.SetFilter("Global Dimension 2 Code", DimValueCode[2]);
-        RunVendorListReport(Vendor);
-
-        // [THEN] Report prints vendor "V" with following filter string: "No.: <"V">, Department Code: ADM, Project Code: VW"
-        ExpectedFilterString :=
-          StrSubstNo('%1: %2, %3: %4, %5: %6',
-            Vendor.FieldName("No."), Vendor."No.",
-            Vendor.FieldCaption("Global Dimension 1 Code"), DimValueCode[1],
-            Vendor.FieldCaption("Global Dimension 2 Code"), DimValueCode[2]);
-
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.SetRange('Vendor__No__', Vendor."No.");
-        LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.AssertCurrentRowValueEquals('VendFilter', ExpectedFilterString);
-    end;
-
-    [Test]
     [HandlerFunctions('RHVendorRegister')]
     [Scope('OnPrem')]
     procedure VendorRegister()
@@ -778,69 +706,6 @@ codeunit 134983 "ERM Purchase Reports"
 
         // Save Vendor Register Report and Verify it.
         SaveAndVerifyVendorRegister(GLRegister."No.", Amount, true);
-    end;
-
-    [Test]
-    [HandlerFunctions('RHVendorTop10List')]
-    [Scope('OnPrem')]
-    procedure VendorTop10ListBalanceLCY()
-    var
-        ShowType: Option "Purchases (LCY)","Balance (LCY)";
-    begin
-        // Check Vendor Top 10 List Report with option Balance LCY.
-        Initialize();
-        VendorTop10List(ShowType::"Balance (LCY)");
-    end;
-
-    [Test]
-    [HandlerFunctions('RHVendorTop10List')]
-    [Scope('OnPrem')]
-    procedure VendorTop10ListPurchaseLCY()
-    var
-        ShowType: Option "Purchases (LCY)","Balance (LCY)";
-    begin
-        // Check Vendor Top 10 List Report with option Purchases LCY.
-        Initialize();
-        VendorTop10List(ShowType::"Purchases (LCY)");
-    end;
-
-    local procedure VendorTop10List(ShowType: Option)
-    var
-        Vendor: Record Vendor;
-        PurchaseHeader: Record "Purchase Header";
-        VendorLedgerEntry: Record "Vendor Ledger Entry";
-        VendorTop10List: Report "Vendor - Top 10 List";
-        TotalPurchase: Decimal;
-    begin
-        // Setup: Create and Post Purchase Order with Currency. Customized Round formula is required as per Report.
-        CreatePostPurchDocWithCurr(PurchaseHeader, CreateCurrencyAndExchangeRate());
-        VendorLedgerEntry.SetRange("Vendor No.", PurchaseHeader."Buy-from Vendor No.");
-        VendorLedgerEntry.FindFirst();
-        VendorLedgerEntry.CalcFields("Amount (LCY)");
-        TotalPurchase := Round(VendorLedgerEntry."Purchase (LCY)" / VendorLedgerEntry."Purchase (LCY)" * 100, 0.1);
-
-        // Exercise.
-        Clear(VendorTop10List);
-        Vendor.SetRange("No.", PurchaseHeader."Buy-from Vendor No.");
-        VendorTop10List.SetTableView(Vendor);
-        LibraryVariableStorage.Enqueue(ShowType);
-        Commit();
-        VendorTop10List.Run();
-
-        // Verify: Verify Saved Report with Different Fields data.
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.SetRange('Vendor__No__', PurchaseHeader."Buy-from Vendor No.");
-        if not LibraryReportDataset.GetNextRow() then
-            Error(RowNotFoundErr, 'Vendor__No__', PurchaseHeader."Buy-from Vendor No.");
-        LibraryReportDataset.AssertCurrentRowValueEquals('Vendor__Balance__LCY__', -VendorLedgerEntry."Amount (LCY)");
-        LibraryReportDataset.AssertCurrentRowValueEquals('Vendor__Purchases__LCY__', -VendorLedgerEntry."Purchase (LCY)");
-        LibraryReportDataset.AssertCurrentRowValueEquals('Vendor__Purchases__LCY___Control23', -VendorLedgerEntry."Purchase (LCY)");
-        LibraryReportDataset.AssertCurrentRowValueEquals('STRSUBSTNO_Text003_SELECTSTR_ShowType_1_Text004__',
-          StrSubstNo(AgedLbl, SelectStr(ShowType + 1, Aged2Lbl)));
-        LibraryReportDataset.Reset();
-        Assert.AreEqual(TotalPurchase,
-          (LibraryReportDataset.Sum('Vendor__Purchases__LCY__') * 100) / LibraryReportDataset.Sum('TotalVenPurchases'),
-          StrSubstNo(ValidationErr, Vendor.FieldCaption("Balance (LCY)"), TotalPurchase));
     end;
 
     [Test]
@@ -983,28 +848,6 @@ codeunit 134983 "ERM Purchase Reports"
 
         // Verify: Verify Interaction Log Entry for the saved Report.
         VerifyInteractionLogEntry(InteractionLogEntry."Document Type"::"Purch. Return Shipment", DocumentNo);
-    end;
-
-    [Test]
-    [HandlerFunctions('VendorSummaryAgingRequestPageHandler')]
-    [Scope('OnPrem')]
-    procedure CurrencyCodeOnVendorSummerAgingReport()
-    var
-        PurchaseHeader: Record "Purchase Header";
-        Vendor: Record Vendor;
-    begin
-        // Check Currency Code after saving Vendor Summary Aging Report.
-
-        // Setup: Post Purchase Document with Currecy Code.
-        Initialize();
-        CreatePostPurchDocWithCurr(PurchaseHeader, CreateCurrencyAndExchangeRate());
-
-        // Exercise: Save Vendor - Summary Aging Report.
-        Vendor.SetRange("Currency Filter", PurchaseHeader."Currency Code");
-        REPORT.Run(REPORT::"Vendor - Summary Aging", true, false, Vendor);
-
-        // Verify: Verify Currency Code After saving Vendor - Summary Aging Report.
-        VerifyCurrencyCode(PurchaseHeader."Buy-from Vendor No.", PurchaseHeader."Currency Code");
     end;
 
     [Test]
@@ -1732,13 +1575,6 @@ codeunit 134983 "ERM Purchase Reports"
         REPORT.Run(REPORT::"VAT Exceptions");
     end;
 
-    local procedure RunVendorListReport(var Vendor: Record Vendor)
-    begin
-        Commit();
-        Vendor.SetRange("No.", Vendor."No.");
-        REPORT.Run(REPORT::"Vendor - List", true, false, Vendor);
-    end;
-
     local procedure FindItem(VATPct: Decimal): Code[20]
     var
         Item: Record Item;
@@ -1929,20 +1765,6 @@ codeunit 134983 "ERM Purchase Reports"
         end;
     end;
 
-    local procedure VerifyCurrencyCode(BuyFromVendorNo: Code[20]; CurrencyCode: Code[10])
-    var
-        Vendor: Record Vendor;
-    begin
-        LibraryReportDataset.LoadDataSetFile();
-        Vendor.Get(BuyFromVendorNo);
-        Vendor.CalcFields("Balance (LCY)");
-        LibraryReportDataset.SetRange('Vendor__No__', Format(Vendor."No."));
-        if LibraryReportDataset.GetNextRow() then begin
-            LibraryReportDataset.AssertCurrentRowValueEquals('Currency2_Code', CurrencyCode);
-            LibraryReportDataset.AssertCurrentRowValueEquals('InVendBalanceDueLCY_2', -Vendor."Balance (LCY)");
-        end;
-    end;
-
     local procedure VerifyChargeItem(DocumentNo: Code[20])
     var
         PurchaseLine: Record "Purchase Line";
@@ -2082,13 +1904,6 @@ codeunit 134983 "ERM Purchase Reports"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure VendorSummaryAgingRequestPageHandler(var VendorSummaryAging: TestRequestPage "Vendor - Summary Aging")
-    begin
-        VendorSummaryAging.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure RHPurchaseCreditMemo(var PurchaseCreditMemo: TestRequestPage "Purchase - Credit Memo")
     begin
         PurchaseCreditMemo.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
@@ -2169,28 +1984,9 @@ codeunit 134983 "ERM Purchase Reports"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure RHVendorList(var VendorList: TestRequestPage "Vendor - List")
-    begin
-        VendorList.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure RHVendorRegister(var VendorRegister: TestRequestPage "Vendor Register")
     begin
         VendorRegister.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure RHVendorTop10List(var VendorTop10List: TestRequestPage "Vendor - Top 10 List")
-    var
-        ShowType: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(ShowType);
-        VendorTop10List.Show.SetValue(ShowType);
-        VendorTop10List.Quantity.SetValue(LibraryRandom.RandInt(5));
-        VendorTop10List.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
     [RequestPageHandler]

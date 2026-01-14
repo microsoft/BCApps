@@ -3,9 +3,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 #pragma warning disable AA0247
-
+#if not CLEAN28
 codeunit 6700 "O365 Sync. Management"
 {
+    ObsoleteReason = 'Contact sync has been moved to the assisted setup experience with the new Graph-based implementation.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
+
     trigger OnRun()
     var
         IsHandled: Boolean;
@@ -17,6 +21,7 @@ codeunit 6700 "O365 Sync. Management"
         CODEUNIT.Run(CODEUNIT::"Exchange Contact Sync.");
         CODEUNIT.Run(CODEUNIT::"Booking Customer Sync.");
         CODEUNIT.Run(CODEUNIT::"Booking Service Sync.");
+
     end;
 
     var
@@ -121,6 +126,7 @@ codeunit 6700 "O365 Sync. Management"
     end;
 
     [Scope('OnPrem')]
+    [obsolete('Deprecated not in use -Booking sync setup', '28.0')]
     procedure SyncBookingCustomers(var BookingSync: Record "Booking Sync")
     var
         BookingCustomerSync: Codeunit "Booking Customer Sync.";
@@ -169,15 +175,6 @@ codeunit 6700 "O365 Sync. Management"
           ActivityDescription, ActivityMessage, UserID);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by BuildBookingsConnectionStringAsSecretText', '25.0')]
-    [NonDebuggable]
-    [Scope('OnPrem')]
-    procedure BuildBookingsConnectionString(var BookingSync: Record "Booking Sync") ConnectionString: Text
-    begin
-        exit(BuildBookingsConnectionStringAsSecretText(BookingSync).Unwrap());
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure BuildBookingsConnectionStringAsSecretText(var BookingSync: Record "Booking Sync") ConnectionString: SecretText
@@ -208,15 +205,6 @@ codeunit 6700 "O365 Sync. Management"
             ConnectionString := SecretStrSubstNo('%1;{Uri}=%2', ConnectionString, ExchangeSync.GetExchangeEndpoint());
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by BuildExchangeConnectionStringAsSecretText', '25.0')]
-    [NonDebuggable]
-    [Scope('OnPrem')]
-    procedure BuildExchangeConnectionString(var ExchangeSync: Record "Exchange Sync") ConnectionString: Text
-    begin
-        exit(BuildExchangeConnectionStringAsSecretText(ExchangeSync).Unwrap());
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure BuildExchangeConnectionStringAsSecretText(var ExchangeSync: Record "Exchange Sync") ConnectionString: SecretText
@@ -459,3 +447,4 @@ codeunit 6700 "O365 Sync. Management"
     begin
     end;
 }
+#endif

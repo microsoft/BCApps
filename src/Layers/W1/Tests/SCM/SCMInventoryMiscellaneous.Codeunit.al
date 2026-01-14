@@ -1803,6 +1803,131 @@ codeunit 137293 "SCM Inventory Miscellaneous"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('ItemTrackingPageHandler,MessageHandler')]
+    procedure InventoryMovementRegisterWithMultipleVariantsSameLotNo()
+    var
+        Item: Record Item;
+        ItemVariant: array[2] of Record "Item Variant";
+        Bin: array[2] of Record Bin;
+        Location: Record Location;
+        ItemJournalLine: Record "Item Journal Line";
+        WarehouseEmployee: Record "Warehouse Employee";
+        WhseWorksheetLine: Record "Whse. Worksheet Line";
+        WhseWorksheetName: Record "Whse. Worksheet Name";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WhseWorksheetTemplate: Record "Whse. Worksheet Template";
+        WhseInternalPutAwayHeader: Record "Whse. Internal Put-away Header";
+        BinContent: Record "Bin Content";
+        LotNo: Code[10];
+        Quantity: Integer;
+    begin
+        // [SCENARIO 610494] Registering Inventory Movement with multiple item variants using the same Lot Number.
+        Initialize();
+
+        // [GIVEN] Create an Item with Lot tracking.
+        LibraryItemTracking.CreateLotItem(Item);
+
+        // [GIVEN] Create two Item Variants for the Item.
+        LibraryInventory.CreateItemVariant(ItemVariant[1], Item."No.");
+        LibraryInventory.CreateItemVariant(ItemVariant[2], Item."No.");
+
+        // [GIVEN] Create Location with Bins and Warehouse Employee.
+        LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
+
+        // [GIVEN] Create Bins in the Location.
+        LibraryWarehouse.CreateNumberOfBins(Location.Code, '', '', LibraryRandom.RandIntInRange(3, 5), false);
+
+        // [GIVEN] Find first and last Bin codes.
+        Bin[1].SetRange("Location Code", Location.Code);
+        Bin[1].FindFirst();
+
+        Bin[2].SetRange("Location Code", Location.Code);
+        Bin[2].FindLast();
+
+        // [GIVEN] Set and store Qty and LotNo.
+        Quantity := LibraryRandom.RandInt(100);
+        LotNo := LibraryUtility.GenerateGUID();
+
+        // [GIVEN] Create Item Journal Lines with Item Variants "X" but same Lot No.
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, Item."No.", Location.Code, Bin[1].Code, Quantity);
+        ItemJournalLine.Validate("Unit Amount", LibraryRandom.RandIntInRange(100, 1000));
+        ItemJournalLine.Validate("Posting Date", Today());
+        ItemJournalLine.Validate("Variant Code", ItemVariant[1].Code);
+        ItemJournalLine.Validate("Bin Code", Bin[1].Code);
+        ItemJournalLine.Modify(true);
+        LibraryVariableStorage.Enqueue(LotNo);
+        LibraryVariableStorage.Enqueue(Quantity);
+
+        // [GIVEN] Open Item Tracking Lines and assign Lot No.
+        ItemJournalLine.OpenItemTrackingLines(false);
+
+        // [GIVEN] Post the Item Journal Line.
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] Create Item Journal Lines with Item Variants "Y" but same Lot No.
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, Item."No.", Location.Code, Bin[1].Code, Quantity);
+        ItemJournalLine.Validate("Unit Amount", LibraryRandom.RandIntInRange(100, 1000));
+        ItemJournalLine.Validate("Posting Date", Today());
+        ItemJournalLine.Validate("Variant Code", ItemVariant[2].Code);
+        ItemJournalLine.Validate("Bin Code", Bin[1].Code);
+        ItemJournalLine.Modify(true);
+        LibraryVariableStorage.Enqueue(LotNo);
+        LibraryVariableStorage.Enqueue(Quantity);
+
+        // [GIVEN] Open Item Tracking Lines and assign Lot No.
+        ItemJournalLine.OpenItemTrackingLines(false);
+
+        // [GIVEN] Post the Item Journal Line.
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] Create Movement Worksheet, create separate lines for each variant with To Bin Code.
+        LibraryWarehouse.SelectWhseWorksheetTemplate(WhseWorksheetTemplate, WhseWorksheetTemplate.Type::Movement);
+        LibraryWarehouse.SelectWhseWorksheetName(WhseWorksheetName, WhseWorksheetTemplate.Name, Location.Code);
+        WhseWorksheetLine."Worksheet Template Name" := WhseWorksheetName."Worksheet Template Name";
+        WhseWorksheetLine.Name := WhseWorksheetName.Name;
+        WhseWorksheetLine."Location Code" := Location.Code;
+
+        // [GIVEN] Get Bin Content for the first Bin.
+        BinContent.SetRange("Item No.", Item."No.");
+        BinContent.SetRange("Location Code", Location.Code);
+        BinContent.SetRange("Bin Code", Bin[1].Code);
+        BinContent.FindFirst();
+
+        // [GIVEN] Initialize Whse. Internal Put-away Header and Get Bin Content.
+        WhseInternalPutAwayHeader.Init();
+        LibraryWarehouse.WhseGetBinContent(
+            BinContent,
+            WhseWorksheetLine,
+            WhseInternalPutAwayHeader,
+            "Warehouse Destination Type 2"::MovementWorksheet);
+
+        // [GIVEN] Find and Update the created Whse. Worksheet Line.
+        WhseWorksheetLine.SetRange("Worksheet Template Name", WhseWorksheetName."Worksheet Template Name");
+        WhseWorksheetLine.SetRange(Name, WhseWorksheetName.Name);
+        WhseWorksheetLine.FindFirst();
+        WhseWorksheetLine.Validate("To Bin Code", Bin[2].Code);
+        WhseWorksheetLine.Modify(true);
+
+        // [GIVEN] Create Warehouse Activity for the Whse. Worksheet Line.
+        LibraryWarehouse.CreateWhseMovement(WhseWorksheetLine.Name, WhseWorksheetLine."Location Code", "Whse. Activity Sorting Method"::None, false, false);
+
+        // [GIVEN] Set Bin Code on Warehouse Activity Line and Autofill the "Qty. to Handle".
+        WarehouseActivityHeader.SetRange("Location Code", Location.Code);
+        WarehouseActivityHeader.FindFirst();
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        WarehouseActivityLine.ModifyAll("Bin Code", Bin[1].Code);
+
+        // [GIVEN] Autofill the "Qty. to Handle".
+        LibraryWarehouse.AutoFillQtyInventoryActivity(WarehouseActivityHeader);
+
+        // [THEN] Register Inventory Movement should be successful without errors.
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -2934,6 +3059,22 @@ codeunit 137293 "SCM Inventory Miscellaneous"
     procedure PlanningErrorLogModalPageHandler(var PlanningErrorLog: TestPage "Planning Error Log")
     begin
         PlanningErrorLog.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure ItemTrackingPageHandler(var ItemTrackingLines: TestPage "Item Tracking Lines")
+    var
+        DequeueVariable: Variant;
+        LotNo: Code[10];
+        Quantity: Decimal;
+    begin
+        LibraryVariableStorage.Dequeue(DequeueVariable);
+        LotNo := DequeueVariable;
+        LibraryVariableStorage.Dequeue(DequeueVariable);
+        Quantity := DequeueVariable;
+
+        ItemTrackingLines."Lot No.".SetValue(LotNo);
+        ItemTrackingLines."Quantity (Base)".SetValue(Quantity);
     end;
 
     [MessageHandler]

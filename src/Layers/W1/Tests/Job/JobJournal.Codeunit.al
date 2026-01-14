@@ -2956,6 +2956,33 @@ codeunit 136305 "Job Journal"
         RecurringJobJnl."Unit Cost".AssertEquals(Resource."Unit Cost");
     end;
 
+    [Test]
+    procedure UnitCostLCYOnJobPlanningLineForGLAccount()
+    var
+        JobGLAccountPrice: Record "Job G/L Account Price";
+        JobPlanningLine: Record "Job Planning Line";
+        JobTask: Record "Job Task";
+        PriceListLine: Record "Price List Line";
+    begin
+        // [SCENARIO 614334] Check Unit Cost (LCY) on Job Planning Line updated according to Unit Cost on Job GL Account Price.
+        Initialize();
+        PriceListLine.DeleteAll();
+
+        // [GIVEN] A Job with a Job Task.
+        CreateJobWithJobTask(JobTask);
+        LibraryJob.CreateJobGLAccountPrice(JobGLAccountPrice, JobTask."Job No.", JobTask."Job Task No.",
+            LibraryERM.CreateGLAccountWithSalesSetup(), '');
+        UpdateUnitCostOnJobGLAccountPrice(JobGLAccountPrice);
+        CopyFromToPriceListLine.CopyFrom(JobGLAccountPrice, PriceListLine);
+
+        // [WHEN] Creating a job planning line.
+        CreateJobPlanningLine(JobPlanningLine, JobTask, JobPlanningLine."Line Type"::Billable,
+            JobGLAccountPrice."G/L Account No.", JobPlanningLine.Type::"G/L Account");
+
+        // [THEN] Verify Unit Cost (LCY) updated on Job Planning Line.
+        JobPlanningLine.TestField("Unit Cost (LCY)", JobGLAccountPrice."Unit Cost");
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

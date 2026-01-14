@@ -4,13 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.RateChange;
 
-using Microsoft.Service.Pricing;
-using Microsoft.Service.Document;
-using Microsoft.Inventory.Tracking;
-using Microsoft.Utilities;
-using Microsoft.Projects.Resources.Resource;
-using Microsoft.Inventory.Item;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Projects.Resources.Resource;
+using Microsoft.Service.Document;
+using Microsoft.Service.Pricing;
+using Microsoft.Utilities;
 
 codeunit 6471 "Serv. VAT Rate Change Conv."
 {
@@ -323,9 +323,6 @@ codeunit 6471 "Serv. VAT Rate Change Conv."
             OldServiceLine.Validate("Qty. to Invoice", OldServiceLine."Qty. to Invoice");
 
         OnAddNewServiceLineOnBeforeOldServiceLineModify(OldServiceLine, NewServiceLine, VATProdPostingGroup, GenProdPostingGroup);
-#if not CLEAN25
-        VATRateChangeConversionMgt.RunOnAddNewServiceLineOnBeforeOldServiceLineModify(OldServiceLine, NewServiceLine, VATProdPostingGroup, GenProdPostingGroup);
-#endif
         OldServiceLine.Modify();
     end;
 

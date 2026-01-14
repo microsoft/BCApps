@@ -5,13 +5,13 @@
 namespace Microsoft.Inventory.Tracking;
 
 using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Requisition;
-using Microsoft.Manufacturing.Document;
 using Microsoft.Inventory.Location;
-using Microsoft.Inventory.Setup;
-using Microsoft.Manufacturing.Setup;
 using Microsoft.Inventory.Planning;
+using Microsoft.Inventory.Requisition;
+using Microsoft.Inventory.Setup;
+using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Setup;
 
 codeunit 99000869 "Mfg. Invt. Profile Offsetting"
 {

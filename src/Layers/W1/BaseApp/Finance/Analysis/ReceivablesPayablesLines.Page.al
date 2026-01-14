@@ -11,6 +11,10 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Receivables;
 using System.Utilities;
 
+/// <summary>
+/// List part displaying receivables and payables period analysis by customer and vendor ledger data.
+/// Provides period-by-period breakdown of outstanding receivables and payables balances for cash flow analysis.
+/// </summary>
 page 355 "Receivables-Payables Lines"
 {
     Caption = 'Lines';
@@ -120,6 +124,13 @@ page 355 "Receivables-Payables Lines"
     protected var
         GLSetup: Record "General Ledger Setup";
 
+    /// <summary>
+    /// Configures the page with general ledger setup and display parameters for receivables-payables analysis.
+    /// Initializes period type, amount type, and general ledger setup for outstanding balance analysis.
+    /// </summary>
+    /// <param name="NewGLSetup">General Ledger Setup record containing configuration</param>
+    /// <param name="NewPeriodType">Period type for data organization (Month, Quarter, Year, etc.)</param>
+    /// <param name="NewAmountType">Amount type for display (Net Change, Balance at Date, etc.)</param>
     procedure SetLines(var NewGLSetup: Record "General Ledger Setup"; NewPeriodType: Enum "Analysis Period Type"; NewAmountType: Enum "Analysis Amount Type")
     begin
         GLSetup.Copy(NewGLSetup);
@@ -170,6 +181,12 @@ page 355 "Receivables-Payables Lines"
         OnAfterCalcLine(GLSetup, Rec);
     end;
 
+    /// <summary>
+    /// Integration event raised after calculating line values for receivables-payables analysis.
+    /// Enables custom calculation logic for additional balance analysis and reporting fields.
+    /// </summary>
+    /// <param name="GLSetup">General Ledger Setup record with calculated balances</param>
+    /// <param name="ReceivablesPayablesBuffer">Buffer record containing calculated values available for modification</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcLine(var GLSetup: Record "General Ledger Setup"; var ReceivablesPayablesBuffer: Record "Receivables-Payables Buffer")
     begin

@@ -7,6 +7,14 @@ namespace Microsoft.Finance.Consolidation;
 using System.Environment;
 using System.Globalization;
 
+/// <summary>
+/// Temporary table for managing company selection during business unit setup and consolidation configuration.
+/// Contains company filtering and inclusion settings for consolidation processes.
+/// </summary>
+/// <remarks>
+/// Support table used during business unit configuration to select which companies to include in consolidation.
+/// Validates user access permissions to ensure only accessible companies are included.
+/// </remarks>
 table 1827 "Business Unit Setup"
 {
     Caption = 'Business Unit Setup';
@@ -14,14 +22,23 @@ table 1827 "Business Unit Setup"
 
     fields
     {
+        /// <summary>
+        /// Name of the company available for business unit consolidation setup.
+        /// </summary>
         field(1; "Company Name"; Text[30])
         {
             Caption = 'Company Name';
         }
+        /// <summary>
+        /// Indicates whether the company should be included in business unit consolidation processing.
+        /// </summary>
         field(2; Include; Boolean)
         {
             Caption = 'Include';
         }
+        /// <summary>
+        /// Indicates whether the business unit setup for this company has been completed.
+        /// </summary>
         field(3; Completed; Boolean)
         {
             Caption = 'Completed';
@@ -43,6 +60,10 @@ table 1827 "Business Unit Setup"
     var
         Company: Record Company;
 
+    /// <summary>
+    /// Populates the table with available companies for business unit consolidation setup, excluding the consolidated company.
+    /// </summary>
+    /// <param name="ConsolidatedCompany">Name of the consolidated company to exclude from the list</param>
     procedure FillTable(ConsolidatedCompany: Text[30])
     var
         Language: Record Language;

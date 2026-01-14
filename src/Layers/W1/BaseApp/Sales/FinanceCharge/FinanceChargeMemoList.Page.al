@@ -230,22 +230,6 @@ page 448 "Finance Charge Memo List"
         }
         area(reporting)
         {
-#if not CLEAN25
-            action("Finance Charge Memo Nos.")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'The action will be deleted';
-                Image = "Report";
-                //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
-                //PromotedCategory = "Report";
-                RunObject = Report "Finance Charge Memo";
-                ToolTip = 'The action will be deleted.';
-                Visible = false;
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The related report doesn''t exist anymore.';
-                ObsoleteTag = '25.0';
-            }
-#endif
             action("Customer - Balance to Date")
             {
                 ApplicationArea = Basic, Suite;
@@ -311,4 +295,3 @@ page 448 "Finance Charge Memo List"
     var
         FinChrgMemoHeader: Record "Finance Charge Memo Header";
 }
-

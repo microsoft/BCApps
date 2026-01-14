@@ -76,9 +76,7 @@
         asserterror VATAmountLine.CheckVATDifference('', true);
 
         // Verify: Verify Error Raised on Validation of VAT Amount on VAT Amount Line.
-        Assert.ExpectedError(
-          StrSubstNo(
-            VATAmountErr, VATAmountLine.FieldCaption("VAT Difference"), GeneralLedgerSetup.FieldCaption("Max. VAT Difference Allowed")));
+        Assert.ExpectedError(StrSubstNo(VATAmountErr, VATAmountLine.FieldCaption("VAT Difference"), GeneralLedgerSetup.FieldCaption("Max. VAT Difference Allowed")));
     end;
 
     [Test]
@@ -101,10 +99,7 @@
         asserterror VATAmountLine.CheckVATDifference(CurrencyCode, true);
 
         // Verify: Verify Error Raised on Validation of VAT Amount on VAT Amount Line.
-        Assert.ExpectedError(
-          StrSubstNo(
-            CurrVATAmountErr, VATAmountLine.FieldCaption("VAT Difference"), CurrencyCode,
-            GeneralLedgerSetup.FieldCaption("Max. VAT Difference Allowed")));
+        Assert.ExpectedError(StrSubstNo(CurrVATAmountErr, VATAmountLine.FieldCaption("VAT Difference"), CurrencyCode, GeneralLedgerSetup.FieldCaption("Max. VAT Difference Allowed")));
     end;
 
     [Test]
@@ -481,8 +476,7 @@
         CreatePurchDocWithPartQtyToRcpt(PurchaseHeader, PurchaseLine, '', 1, PurchaseHeader."Document Type"::Order);
         PurchaseLine.Validate("VAT Difference", VATDifference);
         PurchaseLine.Modify(true);
-        VATAmount :=
-          Round(PurchaseLine."Qty. to Invoice" * PurchaseLine."Direct Unit Cost" * PurchaseLine."VAT %" / 100) + VATDifference;
+        VATAmount := Round(PurchaseLine."Qty. to Invoice" * PurchaseLine."Direct Unit Cost" * PurchaseLine."VAT %" / 100) + VATDifference;
         PostedDocumentNo := NoSeries.PeekNextNo(PurchaseHeader."Posting No. Series");
 
         // Exercise: Post Purchase Order with Ship and Invoice.
@@ -1320,9 +1314,7 @@
         CreateSalesDocument(SalesHeader, SalesLine, SalesHeader."Document Type"::Invoice, false);
         DocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
         LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
-        LibrarySales.CreateSalesHeader(
-          SalesHeader2, SalesHeader2."Document Type"::Invoice,
-          LibrarySales.CreateCustomerWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+        LibrarySales.CreateSalesHeader(SalesHeader2, SalesHeader2."Document Type"::Invoice, LibrarySales.CreateCustomerWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
         RunCopySalesDocument(SalesHeader2, DocumentNo, "Sales Document Type From"::"Posted Invoice", false, true);
         VATAmount := VATAmountCalculation(BaseAmount, SalesHeader2);
 
@@ -1330,9 +1322,7 @@
         LibrarySales.PostSalesDocument(SalesHeader2, true, true);
 
         // Verify: Verify that VAT Entries are created after Posting.
-        VerifyVATAndBaseAmount(
-          DocumentNo, SalesLine."Gen. Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group",
-          BaseAmount, VATAmount, VATEntry.Type::Sale);
+        VerifyVATAndBaseAmount(DocumentNo, SalesLine."Gen. Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group", BaseAmount, VATAmount, VATEntry.Type::Sale);
 
         // Tear Down: Set Default Value in General Ledger Setup, Sales and Receivables Setup for Invoice Rounding.
         ModifyInvRoundingInGLSetup(OldInvRoundingPrecision);
@@ -1422,9 +1412,7 @@
         DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader2, true, true);
 
         // Verify: Verify that VAT Entries are created after Posting.
-        VerifyVATAndBaseAmount(
-          DocumentNo, PurchaseLine."Gen. Prod. Posting Group", PurchaseLine."VAT Prod. Posting Group",
-          BaseAmount, VATAmount, VATEntry.Type::Purchase);
+        VerifyVATAndBaseAmount(DocumentNo, PurchaseLine."Gen. Prod. Posting Group", PurchaseLine."VAT Prod. Posting Group", BaseAmount, VATAmount, VATEntry.Type::Purchase);
 
         // Tear Down: Set Default Value in General Ledger Setup, Purchases & Paybles Setup for Invoice Rounding.
         ModifyInvRoundingInGLSetup(GeneralLedgerSetup."Inv. Rounding Precision (LCY)");
@@ -1466,9 +1454,7 @@
         DocumentNo := LibrarySales.PostSalesDocument(SalesHeader2, true, true);
 
         // Verify: Verify that VAT Entries are created after Posting.
-        VerifyVATAndBaseAmount(
-          DocumentNo, SalesLine."Gen. Prod. Posting Group", SalesLine."VAT Prod. Posting Group", BaseAmount,
-          VATAmount, VATEntry.Type::Sale);
+        VerifyVATAndBaseAmount(DocumentNo, SalesLine."Gen. Prod. Posting Group", SalesLine."VAT Prod. Posting Group", BaseAmount, VATAmount, VATEntry.Type::Sale);
 
         // Tear Down: Set Default Value in General Ledger Setup, Saels & Receivables Setup for Invoice Rounding.
         ModifyInvRoundingInGLSetup(GeneralLedgerSetup."Inv. Rounding Precision (LCY)");
@@ -2029,13 +2015,9 @@
         // [GIVEN] Sales Order of amount = 3408 with VAT % = 7.7 and the same VAT is used in Invoice Rounding G/L Account
         LibraryERM.CreateVATPostingSetupWithAccounts(
           VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", VATPct);
-        LibrarySales.CreateSalesHeader(
-          SalesHeader, SalesHeader."Document Type"::Order,
-          LibrarySales.CreateCustomerWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
         UpdateInvoiceRoundingAccCustomer(SalesHeader."Sell-to Customer No.", VATPostingSetup."VAT Prod. Posting Group");
-        LibrarySales.CreateSalesLine(
-          SalesLine, SalesHeader, SalesLine.Type::Item,
-          LibraryInventory.CreateItemNoWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"), 1);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNoWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"), 1);
         SalesLine.Validate("Unit Price", SalesAmount);
         SalesLine.Modify(true);
 
@@ -2087,9 +2069,7 @@
           PurchaseHeader, PurchaseHeader."Document Type"::Order,
           LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
         UpdateInvoiceRoundingAccVendor(PurchaseHeader."Buy-from Vendor No.", VATPostingSetup."VAT Prod. Posting Group");
-        LibraryPurchase.CreatePurchaseLine(
-          PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item,
-          LibraryInventory.CreateItemNoWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"), 1);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, LibraryInventory.CreateItemNoWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"), 1);
         PurchaseLine.Validate("Direct Unit Cost", PurchaseAmount);
         PurchaseLine.Modify(true);
 
@@ -2527,7 +2507,7 @@
         PostingDate := WorkDate();
         DocumentDate := WorkDate() + 1;
 
-        // [Then] VAT Date equal to posting date 
+        // [Then] VAT Date equal to posting date
         VATDate := GLSetup.GetVATDate(PostingDate, DocumentDate);
         Assert.AreEqual(PostingDate, VATDate, VatDateComparisonErr);
         Assert.AreNotEqual(DocumentDate, VATDate, VatDateComparisonErr);
@@ -2548,12 +2528,12 @@
         GLSetup."VAT Reporting Date" := GLSetup."VAT Reporting Date"::"Posting Date";
         GLSetup.Modify();
 
-        // [Then] VAT Date is updated to be equal to posting date 
+        // [Then] VAT Date is updated to be equal to posting date
         PostingDate := WorkDate();
         GLSetup.UpdateVATDate(PostingDate, Enum::"VAT Reporting Date"::"Posting Date", VATDate);
         Assert.AreEqual(VATDate, PostingDate, VatDateComparisonErr);
 
-        // [Then] VAT Date is not updated to be equal to document date 
+        // [Then] VAT Date is not updated to be equal to document date
         DocumentDate := 0D;
         GLSetup.UpdateVATDate(DocumentDate, Enum::"VAT Reporting Date"::"Document Date", VATDate);
         Assert.AreNotEqual(VATDate, DocumentDate, VatDateComparisonErr);
@@ -2870,7 +2850,7 @@
         GLSetup."VAT Reporting Date" := GLSetup."VAT Reporting Date"::"Posting Date";
         GLSetup.Modify();
 
-        // [Then] Open Sales invoice    
+        // [Then] Open Sales invoice
         PurchaseCreditMemo.OpenNew();
         PurchaseCreditMemo."VAT Reporting Date".SetValue(WorkDate());
         Evaluate(FieldDate, PurchaseCreditMemo."VAT Reporting Date".Value);
@@ -3563,7 +3543,7 @@
         // [SCENARIO 445818] When adjusting VAT Date, it should reflect in related documents
         Initialize();
 
-        // [WHEN] Posting sales invoice 
+        // [WHEN] Posting sales invoice
         DocType := Enum::"Gen. Journal Document Type"::Invoice;
         PostType := Enum::"General Posting Type"::Sale;
         DocNo := CreateAndPostSalesDoc(0D, DocType);
@@ -3599,7 +3579,7 @@
         // [SCENARIO 445818] When adjusting VAT Date, it should reflect in related documents
         Initialize();
 
-        // [WHEN] Posting purchase invoice 
+        // [WHEN] Posting purchase invoice
         DocType := Enum::"Gen. Journal Document Type"::Invoice;
         PostType := Enum::"General Posting Type"::Purchase;
         DocNo := CreateAndPostPurchDoc(0D, DocType);
@@ -3635,7 +3615,7 @@
         // [SCENARIO 445818] When adjusting VAT Date, it should reflect in related documents
         Initialize();
 
-        // [WHEN] Posting Sales Credit Memo  
+        // [WHEN] Posting Sales Credit Memo
         DocType := Enum::"Gen. Journal Document Type"::"Credit Memo";
         PostType := Enum::"General Posting Type"::Sale;
         DocNo := CreateAndPostSalesDoc(0D, DocType);
@@ -3671,7 +3651,7 @@
         // [SCENARIO 445818] When adjusting VAT Date, it should reflect in related documents
         Initialize();
 
-        // [WHEN] Posting Purchase Credit memo  
+        // [WHEN] Posting Purchase Credit memo
         DocType := Enum::"Gen. Journal Document Type"::"Credit Memo";
         PostType := Enum::"General Posting Type"::Purchase;
         DocNo := CreateAndPostPurchDoc(0D, DocType);
@@ -3744,7 +3724,7 @@
         PostType: Enum "General Posting Type";
     begin
         // [FEATURE] [VAT]
-        // [SCENARIO 448377] Adjusting VAT Date with no doc type 
+        // [SCENARIO 448377] Adjusting VAT Date with no doc type
         Initialize();
 
         // [WHEN] Posting with Sales Invoice to generate VAT entry
@@ -3776,7 +3756,7 @@
         PostType: Enum "General Posting Type";
     begin
         // [FEATURE] [VAT]
-        // [SCENARIO 448377] Adjusting VAT Date with no post type 
+        // [SCENARIO 448377] Adjusting VAT Date with no post type
         Initialize();
 
         // [WHEN] Posting with Sales Invoice to generate VAT entry
@@ -3897,7 +3877,7 @@
         VATEntryNo: Integer;
     begin
         // [FEATURE] [VAT]
-        // [SCENARIO 466417] Blocking change From and To if there is VAT Return Period 
+        // [SCENARIO 466417] Blocking change From and To if there is VAT Return Period
         Initialize();
 
         // [WHEN] We disable the control
@@ -3924,11 +3904,11 @@
         CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 1); // Closed to Closed OK
         CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 2); // Closed to Relased OK
         CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate());     // Released to Closed OK
-        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 4); // Closed to Open OK  
+        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 4); // Closed to Open OK
         CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 2); // Open to Released OK
-        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 4); // Released to Open OK  
-        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 2); // Open to Released OK  
-        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 3); // Released to Released OK  
+        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 4); // Released to Open OK
+        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 2); // Open to Released OK
+        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 3); // Released to Released OK
         CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate());     // RESET
 
         // [WHEN] We warn for changes for closed periods
@@ -3940,11 +3920,11 @@
         CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 1); // Closed to Closed OK
         CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 2); // Closed to Relased OK
         CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate());     // Released to Closed OK
-        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 4); // Closed to Open OK  
-        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 2); // Open to Released OK  
-        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 4); // Released to Open OK  
-        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 2); // Open to Released OK  
-        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 3); // Released to Released OK  
+        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 4); // Closed to Open OK
+        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 2); // Open to Released OK
+        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 4); // Released to Open OK
+        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 2); // Open to Released OK
+        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 3); // Released to Released OK
         CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate());     // RESET
 
         // [WHEN] We block posting with no warnings
@@ -3967,12 +3947,12 @@
         GeneralLedgerSetup.Modify();
         Commit();
 
-        // [THEN] Check that we can do changes through the UI for released and open and we are blocked for closed 
+        // [THEN] Check that we can do changes through the UI for released and open and we are blocked for closed
         CorrectVATDateAndVerifyError(VATEntryNo, WorkDate(), VATReturnPeriodClosedErr); // FROM Released TO Closed FAIL
-        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 4); // Released to Open OK 
+        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 4); // Released to Open OK
         CorrectVATDateAndVerifyError(VATEntryNo, WorkDate(), VATReturnPeriodClosedErr); // FROM Open TO Closed FAIL
-        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 2); // Open to Released OK  
-        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 3); // Released to Released OK  
+        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 2); // Open to Released OK
+        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 3); // Released to Released OK
 
         // [WHEN] Reset VAT entry to closed period and change Control setting
         GeneralLedgerSetup.Get();
@@ -3997,11 +3977,11 @@
         GeneralLedgerSetup.Modify();
         Commit();
 
-        // [THEN] Check that we can do changes through the UI for released and open and we are blocked for closed 
+        // [THEN] Check that we can do changes through the UI for released and open and we are blocked for closed
         CorrectVATDateAndVerifyError(VATEntryNo, WorkDate(), VATReturnPeriodClosedErr); // FROM Released TO Closed FAIL
-        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 4); // Released to Open OK 
+        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 4); // Released to Open OK
         CorrectVATDateAndVerifyError(VATEntryNo, WorkDate(), VATReturnPeriodClosedErr); // FROM Open TO Closed FAIL
-        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 2); // Open to Released OK  
+        CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 2); // Open to Released OK
         CorrectVATDateAndVerifyChange(VATEntryNo, WorkDate() + 3); // Released to Released OK
     end;
 
@@ -4989,7 +4969,7 @@
         InitalVATDate := WorkDate();
         UpdatedVATDate := CalcDate('<+1M>', WorkDate());
 
-        // [WHEN] Sales Gen. Journal Line posted   
+        // [WHEN] Sales Gen. Journal Line posted
         CreateSalesJournalLine(GenJournalLine);
         GenJournalLine."VAT Reporting Date" := InitalVATDate;
         GenJournalLine.Modify();
@@ -4997,7 +4977,7 @@
 
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
-        // [WHEN] Purchase Gen. Journal Line posted 
+        // [WHEN] Purchase Gen. Journal Line posted
         CreatePurchaseJournalLine(GenJournalLine);
         GenJournalLine."VAT Reporting Date" := InitalVATDate;
         GenJournalLine."Document No." := DocumentNo;
@@ -5045,7 +5025,7 @@
         Initialize();
         VATDate := CalcDate('<+1M>', WorkDate());
 
-        // [WHEN] Sales Gen. Journal Line posted   
+        // [WHEN] Sales Gen. Journal Line posted
         CreateSalesJournalLine(GenJournalLine);
         DocumentNo := GenJournalLine."Document No.";
 
@@ -5081,7 +5061,7 @@
         Initialize();
         VATDate := CalcDate('<+1M>', WorkDate());
 
-        // [WHEN] Sales Gen. Journal Line posted   
+        // [WHEN] Sales Gen. Journal Line posted
         CreateSalesJournalLine(GenJournalLine);
         DocumentNo := GenJournalLine."Document No.";
 
@@ -5118,7 +5098,7 @@
         VATSetup."Allow VAT Date To" := WorkDate();
         VATSetup.Modify();
 
-        // [WHEN] General Journal Line defined with VAT Date out of Allowed Period 
+        // [WHEN] General Journal Line defined with VAT Date out of Allowed Period
         CreateSalesJournalLine(GenJournalLine);
         GenJournalLine."VAT Reporting Date" := CalcDate('<+1M>', WorkDate());
         GenJournalLine.Modify();
@@ -5151,7 +5131,7 @@
         VATSetup."Allow VAT Date To" := WorkDate();
         VATSetup.Modify();
 
-        // [WHEN] General Journal Line defined with VAT Date out of Allowed Period 
+        // [WHEN] General Journal Line defined with VAT Date out of Allowed Period
         DocType := Enum::"Gen. Journal Document Type"::Invoice;
         PostType := Enum::"General Posting Type"::Sale;
 
@@ -5186,7 +5166,7 @@
         VATSetup."Allow VAT Date To" := WorkDate();
         VATSetup.Modify();
 
-        // [WHEN] General Journal Line defined with VAT Date out of Allowed Period 
+        // [WHEN] General Journal Line defined with VAT Date out of Allowed Period
         DocType := Enum::"Sales Document Type"::Order;
         PostType := Enum::"General Posting Type"::Sale;
         CreateSalesDoc(SalesHeader, CalcDate('<+1M>', WorkDate()), DocType);
@@ -5213,7 +5193,7 @@
         VATSetup."Allow VAT Date To" := WorkDate();
         VATSetup.Modify();
 
-        // [WHEN] General Journal Line defined with VAT Date out of Allowed Period 
+        // [WHEN] General Journal Line defined with VAT Date out of Allowed Period
         DocType := Enum::"Purchase Document Type"::Order;
         PostType := Enum::"General Posting Type"::Purchase;
         CreatePurchDoc(PurchaseHeader, CalcDate('<+1M>', WorkDate()), DocType);
@@ -5464,10 +5444,10 @@
 
         ExternaDocNo := GenJournalLine."External Document No.";
 
-        // [WHEN] Recurring Journal got posted 
+        // [WHEN] Recurring Journal got posted
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
-        // [THEN] Two VAT Entries are created (one recurring line with VAT Reporting Date = VAT Date, one allocation line wiyth VAT Reporrting Date = Posting Date + 1)  
+        // [THEN] Two VAT Entries are created (one recurring line with VAT Reporting Date = VAT Date, one allocation line wiyth VAT Reporrting Date = Posting Date + 1)
         VerifyVATDateRecurringJournal(ExternaDocNo, GenJournalLine."Posting Date", VATDate);
     end;
 
@@ -6608,7 +6588,7 @@
         VerifyVATBusAndGenBusGroupOnVATEntry(DocumentNo, Vendor."VAT Bus. Posting Group", Vendor."Gen. Bus. Posting Group");
     end;
 
-    local procedure UpdateVATDiffInVATAmountLine(VATAmountLine: Record "VAT Amount Line"; VATDifference: Decimal)
+    local procedure UpdateVATDiffInVATAmountLine(var VATAmountLine: Record "VAT Amount Line"; VATDifference: Decimal)
     begin
         VATAmountLine.Validate("VAT Amount", VATAmountLine."VAT Amount" + VATDifference);
         VATAmountLine.Modify(true);
@@ -6674,7 +6654,7 @@
         VATAmount := SalesLine."VAT %" * BaseAmount / 100;
     end;
 
-    local procedure ValidateAndVerifyVATAmount(VATAmountLine: Record "VAT Amount Line")
+    local procedure ValidateAndVerifyVATAmount(var VATAmountLine: Record "VAT Amount Line")
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
@@ -7278,4 +7258,3 @@
         Assert.IsFalse(BatchPostPurchCreditMemos.ReplaceVATDate.Visible(), '');
     end;
 }
-

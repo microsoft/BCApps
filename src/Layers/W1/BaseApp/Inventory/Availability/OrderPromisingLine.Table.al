@@ -161,35 +161,8 @@ table 99000880 "Order Promising Line"
     {
     }
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure TransferToOrderPromisingLine() in codeunit Sales Availability Mgt.', '25.0')]
-    procedure TransferFromSalesLine(var SalesLine: Record Microsoft.Sales.Document."Sales Line")
-    var
-        SalesAvailabilityMgt: Codeunit Microsoft.Sales.Document."Sales Availability Mgt.";
-    begin
-        SalesAvailabilityMgt.TransferToOrderPromisingLine(Rec, SalesLine);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure TransferToOrderPromisingLine() in codeunit Serv. Availability Mgt.', '25.0')]
-    procedure TransferFromServLine(var ServLine: Record Microsoft.Service.Document."Service Line")
-    var
-        ServAvailabilityMgt: Codeunit Microsoft.Service.Document."Serv. Availability Mgt.";
-    begin
-        ServAvailabilityMgt.TransferToOrderPromisingLine(Rec, ServLine);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure TransferToOrderPromisingLine() in codeunit Job Planning Availability Mgt.', '25.0')]
-    procedure TransferFromJobPlanningLine(var JobPlanningLine: Record Microsoft.Projects.Project.Planning."Job Planning Line")
-    var
-        JobPlanningAvailabilityMgt: Codeunit Microsoft.Projects.Project.Planning."Job Planning Availability Mgt.";
-    begin
-        JobPlanningAvailabilityMgt.TransferToOrderPromisingLine(Rec, JobPlanningLine);
-    end;
-#endif
 
     procedure GetLastEntryNo(): Integer;
     var
@@ -245,43 +218,6 @@ table 99000880 "Order Promising Line"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnAfterTransferFromSalesLine(var OrderPromisingLine: Record "Order Promising Line"; SalesLine: Record Microsoft.Sales.Document."Sales Line")
-    begin
-        OnAfterTransferFromSalesLine(OrderPromisingLine, SalesLine);
-    end;
 
-    [Obsolete('Replaced by event OnAfterTransferToOrderPromisingLine in codeunit Sales Availability Mgt.', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTransferFromSalesLine(var OrderPromisingLine: Record "Order Promising Line"; SalesLine: Record Microsoft.Sales.Document."Sales Line")
-    begin
-    end;
-#endif
 
-#if not CLEAN25
-    internal procedure RunOnAfterTransferFromServLine(var OrderPromisingLine: Record "Order Promising Line"; ServiceLine: Record Microsoft.Service.Document."Service Line")
-    begin
-        OnAfterTransferFromServLine(OrderPromisingLine, ServiceLine);
-    end;
-
-    [Obsolete('Replaced by event OnAfterTransferToOrderPromisingLine in codeunit Serv. Availability Mgt.', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTransferFromServLine(var OrderPromisingLine: Record "Order Promising Line"; ServiceLine: Record Microsoft.Service.Document."Service Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnAfterTransferFromJobPlanningLine(var OrderPromisingLine: Record "Order Promising Line"; JobPlanningLine: Record Microsoft.Projects.Project.Planning."Job Planning Line")
-    begin
-        OnAfterTransferFromJobPlanningLine(OrderPromisingLine, JobPlanningLine);
-    end;
-
-    [Obsolete('Replaced by event OnAfterTransferToOrderPromisingLine in codeunit Job Planning Availability Mgt.', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTransferFromJobPlanningLine(var OrderPromisingLine: Record "Order Promising Line"; JobPlanningLine: Record Microsoft.Projects.Project.Planning."Job Planning Line")
-    begin
-    end;
-#endif
 }
-

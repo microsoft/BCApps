@@ -63,16 +63,6 @@ page 1276 "Doc. Exch. Service Auth."
         OAuthRequestUrl := AuthRequestUrl;
         State := AuthInitialState;
     end;
-#if not CLEAN25
-
-    [Obsolete('Replaced by GetAuthCodeAsSecretText', '25.0')]
-    [Scope('OnPrem')]
-    [NonDebuggable]
-    procedure GetAuthCode(): Text
-    begin
-        exit(GetAuthCodeAsSecretText().Unwrap());
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure GetAuthCodeAsSecretText(): SecretText
@@ -86,19 +76,6 @@ page 1276 "Doc. Exch. Service Auth."
         exit(AuthError);
     end;
 
-#if not CLEAN25
-    [Scope('OnPrem')]
-    [Obsolete('Replaced by GetOAuthProperties(AuthorizationCode: Text; var CodeOut: SecretText; var StateOut: Text)', '25.0')]
-    [NonDebuggable]
-    procedure GetOAuthProperties(AuthorizationCode: Text; var CodeOut: Text; var StateOut: Text)
-    var
-        CodeOutAsSecretText: SecretText;
-    begin
-        CodeOutAsSecretText := CodeOut;
-        GetOAuthProperties(AuthorizationCode, CodeOutAsSecretText, StateOut);
-        CodeOut := CodeOutAsSecretText.Unwrap();
-    end;
-#endif
 
     [Scope('OnPrem')]
     [NonDebuggable]

@@ -4,25 +4,25 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Assembly.Test;
 
-using Microsoft.Warehouse.Tracking;
-using System.TestLibraries.Utilities;
-using Microsoft.Inventory.Tracking;
-using Microsoft.Inventory.Item;
-using Microsoft.Sales.Document;
 using Microsoft.Assembly.Document;
+using Microsoft.Assembly.History;
+using Microsoft.Foundation.Navigate;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
-using Microsoft.Assembly.History;
-using Microsoft.Foundation.NoSeries;
-using Microsoft.Warehouse.Worksheet;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Sales.Document;
 using Microsoft.Warehouse.Activity;
-using Microsoft.Warehouse.Request;
-using Microsoft.Foundation.Navigate;
-using Microsoft.Warehouse.Structure;
-using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Journal;
+using Microsoft.Warehouse.Request;
+using Microsoft.Warehouse.Setup;
+using Microsoft.Warehouse.Structure;
+using Microsoft.Warehouse.Tracking;
+using Microsoft.Warehouse.Worksheet;
+using System.TestLibraries.Utilities;
 
 codeunit 137926 "SCM Assembly Item Tracking"
 {

@@ -23,13 +23,13 @@ using Microsoft.FixedAssets.Insurance;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Maintenance;
 using Microsoft.FixedAssets.Setup;
-using Microsoft.Foundation.Task;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Calendar;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.Task;
 using Microsoft.HumanResources.Setup;
 using Microsoft.Integration.D365Sales;
 using Microsoft.Integration.Dataverse;
@@ -49,11 +49,11 @@ using Microsoft.Sales.Analysis;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Reminder;
 using Microsoft.Sales.Setup;
+using Microsoft.Utilities;
 using Microsoft.Warehouse.ADCS;
 using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
-using Microsoft.Utilities;
 using System.Automation;
 using System.Diagnostics;
 using System.Email;
@@ -818,20 +818,6 @@ page 9018 "Administrator Role Center"
                     RunObject = Page Activity;
                 }
             }
-#if not CLEAN25
-            separator(Action47)
-            {
-                ObsoleteReason = 'Not used';
-                ObsoleteState = Pending;
-                ObsoleteTag = '25.0';
-            }
-            separator(Action263)
-            {
-                ObsoleteReason = 'Not used';
-                ObsoleteState = Pending;
-                ObsoleteTag = '25.0';
-            }
-#endif
             group("&Sales Analysis")
             {
                 Caption = '&Sales Analysis';

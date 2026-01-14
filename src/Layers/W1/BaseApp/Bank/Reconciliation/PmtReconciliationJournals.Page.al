@@ -7,6 +7,10 @@ namespace Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.BankAccount;
 using System.Telemetry;
 
+/// <summary>
+/// List page for payment reconciliation journals.
+/// Displays all available reconciliation journals with creation and navigation capabilities.
+/// </summary>
 page 1294 "Pmt. Reconciliation Journals"
 {
     AdditionalSearchTerms = 'payment application,payment processing,bank reconciliation';

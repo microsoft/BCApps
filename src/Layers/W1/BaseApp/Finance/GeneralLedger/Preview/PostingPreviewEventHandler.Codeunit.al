@@ -5,12 +5,12 @@
 namespace Microsoft.Finance.GeneralLedger.Preview;
 
 using Microsoft.Bank.Ledger;
+using Microsoft.Bank.Reconciliation;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.VAT.Ledger;
-using Microsoft.Bank.Reconciliation;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Maintenance;
 using Microsoft.Foundation.Navigate;
@@ -24,6 +24,27 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Warehouse.Ledger;
 
+/// <summary>
+/// Event handler for capturing and managing posting preview entries across all ledger types.
+/// Intercepts posting operations to create temporary entries for preview display without database commits.
+/// </summary>
+/// <remarks>
+/// <para>
+/// <b>Core Functionality:</b>
+/// Subscribes to posting events from various posting codeunits to capture entries in temporary tables.
+/// Manages entry aggregation, display formatting, and transaction consistency validation.
+/// </para>
+/// <para>
+/// <b>Supported Entry Types:</b>
+/// Handles all major ledger entry types including G/L, customer, vendor, item, VAT, bank, and resource entries.
+/// Provides specialized handling for document entries and navigation support.
+/// </para>
+/// <para>
+/// <b>Extensibility:</b>
+/// Offers integration events for custom entry types and specialized preview display requirements.
+/// Supports custom entry modification and filtering through event subscribers.
+/// </para>
+/// </remarks>
 codeunit 20 "Posting Preview Event Handler"
 {
     EventSubscriberInstance = Manual;
@@ -56,6 +77,12 @@ codeunit 20 "Posting Preview Event Handler"
         TransactionConsistent: Boolean;
         DocumentMaskTok: Label '***', Locked = true;
 
+    /// <summary>
+    /// Retrieves captured preview entries for the specified table type.
+    /// Returns temporary records containing all entries captured during preview processing.
+    /// </summary>
+    /// <param name="TableNo">Table number identifying the entry type to retrieve</param>
+    /// <param name="RecRef">Output record reference containing the captured preview entries</param>
     procedure GetEntries(TableNo: Integer; var RecRef: RecordRef)
     begin
         case TableNo of
@@ -100,11 +127,21 @@ codeunit 20 "Posting Preview Event Handler"
         end
     end;
 
+    /// <summary>
+    /// Determines whether the posting preview transaction maintained consistency.
+    /// Validates that all preview operations completed without transaction errors or rollbacks.
+    /// </summary>
+    /// <returns>True if transaction remained consistent throughout preview processing</returns>
     procedure IsTransactionConsistent(): Boolean
     begin
         exit(TransactionConsistent);
     end;
 
+    /// <summary>
+    /// Displays detailed entries for the specified table type in appropriate preview pages.
+    /// Opens specialized preview pages showing captured entries for comprehensive analysis.
+    /// </summary>
+    /// <param name="TableNo">Table number identifying the entry type to display</param>
     procedure ShowEntries(TableNo: Integer)
     var
         CustLedgEntriesPreview: Page "Cust. Ledg. Entries Preview";
@@ -170,6 +207,10 @@ codeunit 20 "Posting Preview Event Handler"
         end;
     end;
 
+    /// <summary>
+    /// Fills the temporary Document Entry table with all posted entries from the preview transaction.
+    /// </summary>
+    /// <param name="TempDocumentEntry">Temporary table to populate with document entry records.</param>
     procedure FillDocumentEntry(var TempDocumentEntry: Record "Document Entry" temporary)
     begin
         TempDocumentEntry.DeleteAll();
@@ -195,6 +236,11 @@ codeunit 20 "Posting Preview Event Handler"
         OnAfterFillDocumentEntry(TempDocumentEntry);
     end;
 
+    /// <summary>
+    /// Inserts a single preview entry into the temporary Document Entry table.
+    /// </summary>
+    /// <param name="RecVar">Source record variant to insert as document entry.</param>
+    /// <param name="TempDocumentEntry">Temporary table to insert the document entry into.</param>
     procedure InsertDocumentEntry(RecVar: Variant; var TempDocumentEntry: Record "Document Entry" temporary)
     var
         RecRef: RecordRef;
@@ -212,6 +258,9 @@ codeunit 20 "Posting Preview Event Handler"
         TempDocumentEntry.Insert();
     end;
 
+    /// <summary>
+    /// Prevents database commits during preview operations to maintain preview-only transaction state.
+    /// </summary>
     procedure PreventCommit()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -225,6 +274,10 @@ codeunit 20 "Posting Preview Event Handler"
         CommitPrevented := true;
     end;
 
+    /// <summary>
+    /// Controls whether document numbers are displayed in preview results.
+    /// </summary>
+    /// <param name="NewShowDocNo">True to show document numbers, false to hide them.</param>
     procedure SetShowDocumentNo(NewShowDocNo: Boolean)
     begin
         ShowDocNo := NewShowDocNo;
@@ -760,106 +813,230 @@ codeunit 20 "Posting Preview Event Handler"
         TransactionConsistent := IsTransactionConsistent;
     end;
 
+    /// <summary>
+    /// Raised after a document entry is populated during preview processing.
+    /// Allows customization of document entry data for preview display.
+    /// </summary>
+    /// <param name="DocumentEntry">The document entry record being filled.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFillDocumentEntry(var DocumentEntry: Record "Document Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised when retrieving preview entries for a specific table during preview processing.
+    /// Allows customization of which entries are included in preview display.
+    /// </summary>
+    /// <param name="TableNo">The table number for which entries are being retrieved.</param>
+    /// <param name="RecRef">Record reference to the table being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetEntries(TableNo: Integer; var RecRef: RecordRef)
     begin
     end;
 
+    /// <summary>
+    /// Raised after preview entries have been displayed for a specific table.
+    /// Allows post-display processing and cleanup for custom preview entries.
+    /// </summary>
+    /// <param name="TableNo">The table number whose entries were displayed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterShowEntries(TableNo: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying a temporary G/L Entry record during preview processing.
+    /// Allows customization of G/L entry data before it's stored in the preview cache.
+    /// </summary>
+    /// <param name="Rec">The G/L Entry record being modified.</param>
+    /// <param name="TempCustLedgerEntry">The temporary G/L Entry record to be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyTempGLEntry(var Rec: Record "G/L Entry"; var TempCustLedgerEntry: Record "G/L Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying a temporary Customer Ledger Entry record during preview processing.
+    /// Allows customization of customer ledger entry data before it's stored in the preview cache.
+    /// </summary>
+    /// <param name="Rec">The Customer Ledger Entry record being modified.</param>
+    /// <param name="TempCustLedgerEntry">The temporary Customer Ledger Entry record to be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyTempCustLedgEntry(var Rec: Record "Cust. Ledger Entry"; var TempCustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying a temporary Detailed Customer Ledger Entry record during preview processing.
+    /// Allows customization of detailed customer ledger entry data before it's stored in the preview cache.
+    /// </summary>
+    /// <param name="Rec">The Detailed Customer Ledger Entry record being modified.</param>
+    /// <param name="TempCustLedgerEntry">The temporary Detailed Customer Ledger Entry record to be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyTempDtldCustLedgEntry(var Rec: Record "Detailed Cust. Ledg. Entry"; var TempCustLedgerEntry: Record "Detailed Cust. Ledg. Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying a temporary Vendor Ledger Entry record during preview processing.
+    /// Allows customization of vendor ledger entry data before it's stored in the preview cache.
+    /// </summary>
+    /// <param name="Rec">The Vendor Ledger Entry record being modified.</param>
+    /// <param name="TempVendLedgerEntry">The temporary Vendor Ledger Entry record to be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyTempVendLedgEntry(var Rec: Record "Vendor Ledger Entry"; var TempVendLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying a temporary Detailed Vendor Ledger Entry record during preview processing.
+    /// Allows customization of detailed vendor ledger entry data before it's stored in the preview cache.
+    /// </summary>
+    /// <param name="Rec">The Detailed Vendor Ledger Entry record being modified.</param>
+    /// <param name="TempVendLedgerEntry">The temporary Detailed Vendor Ledger Entry record to be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyTempDtldVendLedgEntry(var Rec: Record "Detailed Vendor Ledg. Entry"; var TempVendLedgerEntry: Record "Detailed Vendor Ledg. Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying a temporary VAT Entry record during preview processing.
+    /// Allows customization of VAT entry data before it's stored in the preview cache.
+    /// </summary>
+    /// <param name="Rec">The VAT Entry record being modified.</param>
+    /// <param name="TempVATEntry">The temporary VAT Entry record to be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyTempVATEntry(var Rec: Record "VAT Entry"; var TempVATEntry: Record "VAT Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying a temporary Value Entry record during preview processing.
+    /// Allows customization of value entry data before it's stored in the preview cache.
+    /// </summary>
+    /// <param name="Rec">The Value Entry record being modified.</param>
+    /// <param name="TempValueEntry">The temporary Value Entry record to be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyTempValueEntry(var Rec: Record "Value Entry"; var TempValueEntry: Record "Value Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying a temporary Item Ledger Entry record during preview processing.
+    /// Allows customization of item ledger entry data before it's stored in the preview cache.
+    /// </summary>
+    /// <param name="Rec">The Item Ledger Entry record being modified.</param>
+    /// <param name="TempItemLedgerEntry">The temporary Item Ledger Entry record to be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyTempItemLedgerEntry(var Rec: Record "Item Ledger Entry"; var TempItemLedgerEntry: Record "Item Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying a temporary Fixed Asset Ledger Entry record during preview processing.
+    /// Allows customization of FA ledger entry data before it's stored in the preview cache.
+    /// </summary>
+    /// <param name="Rec">The FA Ledger Entry record being modified.</param>
+    /// <param name="TempFALedgEntry">The temporary FA Ledger Entry record to be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyTempFALedgEntry(var Rec: Record "FA Ledger Entry"; var TempFALedgEntry: Record "FA Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying a temporary Employee Ledger Entry record during preview processing.
+    /// Allows customization of employee ledger entry data before it's stored in the preview cache.
+    /// </summary>
+    /// <param name="Rec">The Employee Ledger Entry record being modified.</param>
+    /// <param name="TempEmplLedgEntry">The temporary Employee Ledger Entry record to be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyTempEmplLedgEntry(var Rec: Record "Employee Ledger Entry"; var TempEmplLedgEntry: Record "Employee Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying a temporary Bank Account Ledger Entry record during preview processing.
+    /// Allows customization of bank account ledger entry data before it's stored in the preview cache.
+    /// </summary>
+    /// <param name="Rec">The Bank Account Ledger Entry record being modified.</param>
+    /// <param name="TempBankAccLedgerEntry">The temporary Bank Account Ledger Entry record to be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyTempBankAccLedgerEntry(var Rec: Record "Bank Account Ledger Entry"; var TempBankAccLedgerEntry: Record "Bank Account Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying a temporary Resource Ledger Entry record during preview processing.
+    /// Allows customization of resource ledger entry data before it's stored in the preview cache.
+    /// </summary>
+    /// <param name="Rec">The Resource Ledger Entry record being modified.</param>
+    /// <param name="TempResLedgerEntry">The temporary Resource Ledger Entry record to be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyTempResLedgerEntry(var Rec: Record "Res. Ledger Entry"; var TempResLedgerEntry: Record "Res. Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying a temporary Maintenance Ledger Entry record during preview processing.
+    /// Allows customization of maintenance ledger entry data before it's stored in the preview cache.
+    /// </summary>
+    /// <param name="Rec">The Maintenance Ledger Entry record being modified.</param>
+    /// <param name="TempMaintenanceLedgerEntry">The temporary Maintenance Ledger Entry record to be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyTempMaintenanceLedgerEntry(var Rec: Record "Maintenance Ledger Entry"; var TempMaintenanceLedgerEntry: Record "Maintenance Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying a temporary Job Ledger Entry record during preview processing.
+    /// Allows customization of job ledger entry data before it's stored in the preview cache.
+    /// </summary>
+    /// <param name="Rec">The Job Ledger Entry record being modified.</param>
+    /// <param name="TempJobLedgerEntry">The temporary Job Ledger Entry record to be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyTempJobLedgerEntry(var Rec: Record "Job Ledger Entry"; var TempJobLedgerEntry: Record "Job Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying a temporary Exchange Rate Adjustment Ledger Entry record during preview processing.
+    /// Allows customization of exchange rate adjustment entry data before it's stored in the preview cache.
+    /// </summary>
+    /// <param name="Rec">The Exchange Rate Adjustment Ledger Entry record being modified.</param>
+    /// <param name="TempExchRateAdjmtLedgEntry">The temporary Exchange Rate Adjustment Ledger Entry record to be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyTempExchRateAdjmtLedgEntry(var Rec: Record "Exch. Rate Adjmt. Ledg. Entry"; var TempExchRateAdjmtLedgEntry: Record "Exch. Rate Adjmt. Ledg. Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying a temporary Warehouse Entry record during preview processing.
+    /// Allows customization of warehouse entry data before it's stored in the preview cache.
+    /// </summary>
+    /// <param name="Rec">The Warehouse Entry record being modified.</param>
+    /// <param name="TempWarehouseEntry">The temporary Warehouse Entry record to be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyTempWarehouseEntry(var Rec: Record "Warehouse Entry"; var TempWarehouseEntry: Record "Warehouse Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying a temporary Physical Inventory Ledger Entry record during preview processing.
+    /// Allows customization of physical inventory entry data before it's stored in the preview cache.
+    /// </summary>
+    /// <param name="Rec">The Physical Inventory Ledger Entry record being modified.</param>
+    /// <param name="TempPhysInventoryLedgerEntry">The temporary Physical Inventory Ledger Entry record to be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyTempPhysInventoryLedgerEntry(var Rec: Record "Phys. Inventory Ledger Entry"; var TempPhysInventoryLedgerEntry: Record "Phys. Inventory Ledger Entry")
     begin
     end;
 
+    /// <summary>
+    /// Raised before modifying a temporary Detailed Employee Ledger Entry record during preview processing.
+    /// Allows customization of detailed employee ledger entry data before it's stored in the preview cache.
+    /// </summary>
+    /// <param name="Rec">The Detailed Employee Ledger Entry record being modified.</param>
+    /// <param name="TempDtldEmplLedgEntry">The temporary Detailed Employee Ledger Entry record to be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyTempDtldEmplLedgEntry(var Rec: Record "Detailed Employee Ledger Entry"; var TempDtldEmplLedgEntry: Record "Detailed Employee Ledger Entry" temporary)
     begin

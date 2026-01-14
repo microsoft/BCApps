@@ -7,14 +7,14 @@ namespace Microsoft.Utilities;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+using System.Azure.Identity;
 using System.Email;
+using System.Environment;
+using System.Environment.Configuration;
+using System.Integration;
 using System.IO;
 using System.Reflection;
 using System.Utilities;
-using System.Integration;
-using System.Environment;
-using System.Environment.Configuration;
-using System.Azure.Identity;
 
 page 1803 "Assisted Company Setup Wizard"
 {

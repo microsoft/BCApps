@@ -4,6 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Journal;
 
+/// <summary>
+/// Temporary table for calculating and displaying G/L account net changes during journal posting preview and validation.
+/// Shows impact of pending journal entries on G/L account balances before actual posting occurs.
+/// </summary>
+/// <remarks>
+/// Temporary calculation table for journal posting impact analysis and preview functionality.
+/// Displays net change calculations and projected balances for G/L accounts affected by journal entries.
+/// Key features: Net change calculation, balance projection, posting preview support, validation assistance.
+/// Usage: Journal posting preview, balance verification, impact analysis before posting execution.
+/// </remarks>
 table 269 "G/L Account Net Change"
 {
     Tabletype = temporary;
@@ -13,20 +23,32 @@ table 269 "G/L Account Net Change"
 
     fields
     {
+        /// <summary>
+        /// G/L account number identifying the account affected by journal entries.
+        /// </summary>
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
         }
+        /// <summary>
+        /// G/L account name for identification and display purposes.
+        /// </summary>
         field(2; Name; Text[100])
         {
             Caption = 'Name';
         }
+        /// <summary>
+        /// Net change amount that will be applied to the G/L account from pending journal entries.
+        /// </summary>
         field(3; "Net Change in Jnl."; Decimal)
         {
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Net Change in Jnl.';
         }
+        /// <summary>
+        /// Projected G/L account balance after posting the pending journal entries.
+        /// </summary>
         field(4; "Balance after Posting"; Decimal)
         {
             AutoFormatExpression = '';

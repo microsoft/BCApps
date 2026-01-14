@@ -20,6 +20,7 @@ using Microsoft.Foundation.Company;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.Period;
 using Microsoft.Foundation.Reporting;
+using Microsoft.Foundation.Task;
 using Microsoft.Integration.D365Sales;
 using Microsoft.Integration.Entity;
 using Microsoft.Integration.SyncEngine;
@@ -31,12 +32,15 @@ using Microsoft.Projects.TimeSheet;
 using Microsoft.Purchases.Setup;
 using Microsoft.Sales.Reminder;
 using Microsoft.Sales.Setup;
+using Microsoft.Utilities;
 using System.AI;
+using System.Apps;
 using System.Automation;
 using System.DataAdministration;
 using System.Device;
 using System.Diagnostics;
 using System.Email;
+using System.Environment;
 using System.Environment.Configuration;
 using System.Globalization;
 using System.Integration;
@@ -46,16 +50,12 @@ using System.Privacy;
 using System.Security.AccessControl;
 using System.Security.Encryption;
 using System.Security.User;
-using System.Threading;
 using System.TestTools.CodeCoverage;
 using System.TestTools.TestRunner;
+using System.Threading;
 using System.Utilities;
 using System.Visualization;
 using System.Xml;
-using System.Apps;
-using Microsoft.Foundation.Task;
-using System.Environment;
-using Microsoft.Utilities;
 
 page 8900 "Administrator Main Role Center"
 {
@@ -924,12 +924,18 @@ page 8900 "Administrator Main Role Center"
                         Caption = 'Outlook Add-in Management';
                         RunObject = page "Office Add-in Management";
                     }
+#if not CLEAN28
                     action("Exchange Sync. Setup Action")
                     {
+                        ObsoleteReason = 'Exchange sync are no longer part of Business Central 365.  Contact Sync is implemented using the Microsoft Graph API.';
+                        ObsoleteState = Pending;
+                        Visible = false;
+                        ObsoleteTag = '28.0';
                         ApplicationArea = Basic, Suite;
                         Caption = 'Exchange Sync. Setup';
                         RunObject = page "Exchange Sync. Setup";
                     }
+#endif
                 }
                 group("GroupOneDrive")
                 {

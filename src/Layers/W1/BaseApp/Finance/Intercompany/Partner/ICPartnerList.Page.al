@@ -9,6 +9,14 @@ using Microsoft.Intercompany.Setup;
 using System.Text;
 using System.Utilities;
 
+/// <summary>
+/// Displays list of all intercompany partners with key information and navigation options.
+/// Provides overview of partner configuration and access to detailed partner management.
+/// </summary>
+/// <remarks>
+/// Primary data source: IC Partner table. Shows partner communication settings, account links,
+/// and status information. Includes navigation to intercompany setup and dimension management.
+/// </remarks>
 page 608 "IC Partner List"
 {
     ApplicationArea = Intercompany;
@@ -169,6 +177,10 @@ page 608 "IC Partner List"
     var
         SetupICQst: Label 'Intercompany information is not set up for your company.\\Do you want to set it up now?';
 
+    /// <summary>
+    /// Returns selection filter text for currently selected IC partner records.
+    /// </summary>
+    /// <returns>Filter text representing selected IC partners</returns>
     procedure GetSelectionFilter(): Text
     var
         Partner: Record "IC Partner";

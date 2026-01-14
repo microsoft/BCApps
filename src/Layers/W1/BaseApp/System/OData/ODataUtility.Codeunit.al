@@ -4,9 +4,9 @@ using System;
 using System.Apps;
 using System.Azure.Identity;
 using System.Environment;
+using System.Globalization;
 using System.Integration.Excel;
 using System.IO;
-using System.Globalization;
 using System.Reflection;
 using System.Utilities;
 
@@ -716,4 +716,3 @@ codeunit 6710 ODataUtility
         exit(GetUrl(CLIENTTYPE::Web));
     end;
 }
-

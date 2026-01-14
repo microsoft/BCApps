@@ -8,6 +8,10 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Intercompany.GLAccount;
 using System.Telemetry;
 
+/// <summary>
+/// Provides dimension value selection interface for copying local dimension values to intercompany dimension values.
+/// Enables filtering and selection of dimension values for intercompany dimension synchronization.
+/// </summary>
 page 706 "IC Dim Values Selector"
 {
     Caption = 'Intercompany Dimension Values Selector';
@@ -100,6 +104,10 @@ page 706 "IC Dim Values Selector"
         DimValuesCopiedAskToCloseQst: Label 'Successfully added to the intercompany dimension values.\Do you want to close the page?';
         SelectedDimValuesAlreadyExistMsg: Label 'Selected dimension values already exist as intercompany dimension values.';
 
+    /// <summary>
+    /// Sets the dimension code filter for the dimension values displayed in the page.
+    /// </summary>
+    /// <param name="SourceDimCode">Dimension code to filter by</param>
     procedure SetDimensionCode(SourceDimCode: Code[20])
     begin
         DimensionCode := SourceDimCode;
@@ -165,6 +173,12 @@ page 706 "IC Dim Values Selector"
 
     end;
 
+    /// <summary>
+    /// Integration event raised before selecting dimension values for processing.
+    /// Allows customization of dimension value selection logic.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to indicate custom selection handling</param>
+    /// <param name="DimensionValue">Dimension value record for custom selection processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSelectingDimensionValue(var IsHandled: Boolean; var DimensionValue: Record "Dimension Value")
     begin

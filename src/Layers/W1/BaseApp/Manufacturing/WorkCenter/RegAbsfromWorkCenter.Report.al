@@ -32,6 +32,7 @@ report 99003805 "Reg. Abs. (from Work Center)"
                     AbsenceChange.Description := Description;
                     AbsenceChange.Capacity := Capacity2;
                     AbsenceChange.UpdateDatetime();
+                    OnAfterGetRecordWorkCenterOnBeforeAbsenceChangeInsertOrModify(AbsenceChange, "Work Center");
                     if not AbsenceChange.Insert() then
                         if Overwrite then
                             AbsenceChange.Modify();
@@ -164,5 +165,10 @@ report 99003805 "Reg. Abs. (from Work Center)"
         Description: Text[30];
         Date: Date;
         Overwrite: Boolean;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetRecordWorkCenterOnBeforeAbsenceChangeInsertOrModify(var RegisteredAbsence: Record "Registered Absence"; var WorkCenter: Record "Work Center")
+    begin
+    end;
 }
 

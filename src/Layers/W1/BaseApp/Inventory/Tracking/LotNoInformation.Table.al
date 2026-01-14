@@ -154,7 +154,7 @@ table 6505 "Lot No. Information"
         LotNoInfoNew.SetRange("Item No.", TrackingSpecification."Item No.");
         LotNoInfoNew.SetRange("Variant Code", TrackingSpecification."Variant Code");
         LotNoInfoNew.SetRange("Lot No.", LotNo);
-        OnShowCardOnAfterLotNoInfoNewSetFilters(LotNoInfoNew, TrackingSpecification);
+        OnShowCardOnAfterLotNoInfoNewSetFilters(LotNoInfoNew, TrackingSpecification, LotNo, LotNoInfoForm);
 
         LotNoInfoForm.SetTableView(LotNoInfoNew);
         LotNoInfoForm.Run();
@@ -171,13 +171,19 @@ table 6505 "Lot No. Information"
         LotNoInfoNew.SetRange("Item No.", WhseItemTrackingLine."Item No.");
         LotNoInfoNew.SetRange("Variant Code", WhseItemTrackingLine."Variant Code");
         LotNoInfoNew.SetRange("Lot No.", LotNo);
+        OnShowCardOnAfterLotNoInfoNewSetFilters2(LotNoInfoNew, WhseItemTrackingLine, LotNo, LotNoInfoForm);
 
         LotNoInfoForm.SetTableView(LotNoInfoNew);
         LotNoInfoForm.Run();
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnShowCardOnAfterLotNoInfoNewSetFilters(var LotNoInformation: Record "Lot No. Information"; TrackingSpecification: Record "Tracking Specification")
+    local procedure OnShowCardOnAfterLotNoInfoNewSetFilters(var LotNoInformation: Record "Lot No. Information"; TrackingSpecification: Record "Tracking Specification"; LotNo: Code[50]; var LotNoInformationCard: Page "Lot No. Information Card")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnShowCardOnAfterLotNoInfoNewSetFilters2(var LotNoInformation: Record "Lot No. Information"; WhseItemTrackingLine: Record "Whse. Item Tracking Line"; LotNo: Code[50]; var LotNoInformationCard: Page "Lot No. Information Card")
     begin
     end;
 }

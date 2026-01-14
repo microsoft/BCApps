@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Registration;
 
+/// <summary>
+/// List page for managing VAT registration number validation service templates.
+/// Provides interface for configuring country-specific and account-type-specific validation rules.
+/// </summary>
 page 246 "VAT Reg. No. Srv. Templates"
 {
     PageType = List;

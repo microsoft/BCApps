@@ -241,9 +241,14 @@ codeunit 99000813 "Carry Out Action"
     var
         PurchaseLine: Record "Purchase Line";
         PurchaseHeader: Record "Purchase Header";
+        PurchaseLineExists: Boolean;
     begin
         RequisitionLine.TestField("Ref. Order Type", RequisitionLine."Ref. Order Type"::Purchase);
-        if PurchaseLine.Get(PurchaseLine."Document Type"::Order, RequisitionLine."Ref. Order No.", RequisitionLine."Ref. Line No.") then begin
+
+        PurchaseLineExists := PurchaseLine.Get(PurchaseLine."Document Type"::Order, RequisitionLine."Ref. Order No.", RequisitionLine."Ref. Line No.");
+        OnPurchOrderChgAndResheduleOnAfterPurchaseLineExistsCheck(RequisitionLine, PurchaseLine, PurchaseLineExists);
+
+        if PurchaseLineExists then begin
             OnPurchOrderChgAndResheduleOnAfterGetPurchLine(PurchaseLine);
             PurchaseLine.BlockDynamicTracking(true);
             PurchaseLine.Validate(Quantity, RequisitionLine.Quantity);
@@ -1460,6 +1465,11 @@ codeunit 99000813 "Carry Out Action"
 
     [IntegrationEvent(true, false)]
     local procedure OnTrySourceTypeForProduction(var RequisitionLine: Record "Requisition Line"; TryChoice: Option; TryWkshTempl: Code[10]; TryWkshName: Code[10]; var ProductionExist: Boolean; var TempDocumentEntry: Record "Document Entry" temporary)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPurchOrderChgAndResheduleOnAfterPurchaseLineExistsCheck(RequisitionLine: Record "Requisition Line"; var PurchaseLine: Record "Purchase Line"; var PurchaseLineExists: Boolean)
     begin
     end;
 }

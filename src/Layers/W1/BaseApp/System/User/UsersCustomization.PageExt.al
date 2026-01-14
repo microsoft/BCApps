@@ -8,12 +8,12 @@ using Microsoft.HumanResources.Employee;
 using Microsoft.Inventory.Item;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Purchases.Vendor;
-using System.EMail;
-using System.Azure.Identity;
-using System.Security.AccessControl;
-using System.Device;
 using Microsoft.Sales.Customer;
 using Microsoft.Warehouse.Setup;
+using System.Azure.Identity;
+using System.Device;
+using System.EMail;
+using System.Security.AccessControl;
 
 pageextension 9801 "Users Customization" extends Users
 {

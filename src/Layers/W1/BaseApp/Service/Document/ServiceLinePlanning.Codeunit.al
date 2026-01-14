@@ -58,15 +58,9 @@ codeunit 99000853 "Service Line-Planning"
     var
         ServiceHeader2: Record "Service Header";
         ServiceLine: Record "Service Line";
-#if not CLEAN25
-        GetUnplannedDemand: Codeunit "Get Unplanned Demand";
-#endif
         DemandQtyBase: Decimal;
     begin
         OnBeforeGetUnplannedServLine(UnplannedDemand, ServiceLine);
-#if not CLEAN25
-        GetUnplannedDemand.RunOnBeforeGetUnplannedServLine(UnplannedDemand, ServiceLine);
-#endif
 
         ServiceLine.SetRange("Document Type", "Service Document Type"::Order);
         ServiceLine.SetFilter("No.", ItemFilter.ToText());
@@ -82,9 +76,6 @@ codeunit 99000853 "Service Line-Planning"
                         sender.InsertUnplannedDemand(
                           UnplannedDemand, UnplannedDemand."Demand Type"::Service, ServiceLine."Document Type".AsInteger(), ServiceLine."Document No.", ServiceHeader2.Status.AsInteger());
                         OnGetUnplannedServLineOnAfterInsertUnplannedDemand(UnplannedDemand);
-#if not CLEAN25
-                        GetUnplannedDemand.RunOnGetUnplannedServLineOnAfterInsertUnplannedDemand(UnplannedDemand);
-#endif
                     end;
                     InsertServiceLine(UnplannedDemand, ServiceLine, DemandQtyBase);
                 end;
@@ -104,9 +95,6 @@ codeunit 99000853 "Service Line-Planning"
     local procedure InsertServiceLine(var UnplannedDemand: Record "Unplanned Demand"; var ServiceLine: Record "Service Line"; DemandQtyBase: Decimal)
     var
         UnplannedDemand2: Record "Unplanned Demand";
-#if not CLEAN25
-        GetUnplannedDemand: Codeunit "Get Unplanned Demand";
-#endif
     begin
         UnplannedDemand2.Copy(UnplannedDemand);
         UnplannedDemand.InitRecord(
@@ -115,9 +103,6 @@ codeunit 99000853 "Service Line-Planning"
           DemandQtyBase, ServiceLine."Needed by Date");
         UnplannedDemand.Reserve := ServiceLine.Reserve = ServiceLine.Reserve::Always;
         OnInsertServiceLineOnBeforeInsert(UnplannedDemand, ServiceLine);
-#if not CLEAN25
-        GetUnplannedDemand.RunOnInsertServLineOnBeforeInsert(UnplannedDemand, ServiceLine);
-#endif
         UnplannedDemand.Insert();
         UnplannedDemand.Copy(UnplannedDemand2);
     end;

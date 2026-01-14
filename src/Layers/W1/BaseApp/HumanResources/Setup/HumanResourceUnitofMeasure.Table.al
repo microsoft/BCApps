@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,12 +19,14 @@ table 5220 "Human Resource Unit of Measure"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies one of the unit of measure codes.';
             NotBlank = true;
             TableRelation = "Unit of Measure";
         }
         field(2; "Qty. per Unit of Measure"; Decimal)
         {
             Caption = 'Qty. per Unit of Measure';
+            ToolTip = 'Specifies the quantity, per unit of measure.';
             DecimalPlaces = 0 : 5;
             InitValue = 1;
 

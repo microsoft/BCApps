@@ -7,9 +7,9 @@ namespace System.Environment.Configuration;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Reporting;
 using System.Environment;
+using System.Telemetry;
 using System.Threading;
 using System.Upgrade;
-using System.Telemetry;
 
 report 357 "Copy Company"
 {

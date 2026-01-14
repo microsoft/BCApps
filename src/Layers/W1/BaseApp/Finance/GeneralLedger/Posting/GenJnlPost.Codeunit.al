@@ -12,6 +12,14 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
 using System.Utilities;
 
+/// <summary>
+/// Handles posting of individual general journal lines with integrated validation and job queue support.
+/// Provides core posting functionality with error handling, preview capabilities, and extensibility events.
+/// </summary>
+/// <remarks>
+/// Supports both immediate posting and job queue scheduling based on General Ledger Setup configuration.
+/// Integrates with posting preview, fixed asset validation, and extensible posting workflows.
+/// </remarks>
 codeunit 231 "Gen. Jnl.-Post"
 {
     EventSubscriberInstance = Manual;
@@ -161,6 +169,11 @@ codeunit 231 "Gen. Jnl.-Post"
                 Message(Text004, GenJnlLine."Journal Batch Name");
     end;
 
+    /// <summary>
+    /// Initiates posting preview for general journal lines without committing transactions.
+    /// Creates preview entries for analysis and validation before actual posting operations.
+    /// </summary>
+    /// <param name="GenJournalLineSource">Journal line record to preview for posting</param>
     procedure Preview(var GenJournalLineSource: Record "Gen. Journal Line")
     var
         GenJnlPostPreview: Codeunit "Gen. Jnl.-Post Preview";
@@ -170,26 +183,56 @@ codeunit 231 "Gen. Jnl.-Post"
         GenJnlPostPreview.Preview(GenJnlPost, GenJournalLineSource);
     end;
 
+    /// <summary>
+    /// Integration event raised before starting journal line posting operations.
+    /// Enables custom validation, preprocessing, or dialog suppression before posting begins.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record that will be posted</param>
+    /// <param name="HideDialog">Set to true to suppress confirmation dialogs during posting</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCode(var GenJournalLine: Record "Gen. Journal Line"; var HideDialog: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before executing the Gen. Jnl.-Post Batch codeunit.
+    /// Enables custom posting logic or complete override of standard batch posting functionality.
+    /// </summary>
+    /// <param name="GenJnlLine">Journal line record being processed for posting</param>
+    /// <param name="IsHandled">Set to true to skip standard Gen. Jnl.-Post Batch execution</param>
+    /// <param name="GenJnlPostBatch">Reference to the Gen. Jnl.-Post Batch codeunit instance</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGenJnlPostBatchRun(var GenJnlLine: Record "Gen. Journal Line"; var IsHandled: Boolean; var GenJnlPostBatch: Codeunit "Gen. Jnl.-Post Batch")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before displaying posting result messages to the user.
+    /// Enables customization of success messages or suppression of standard posting notifications.
+    /// </summary>
+    /// <param name="GenJnlLine">Journal line record that was posted</param>
+    /// <param name="TempJnlBatchName">Original journal batch name before posting operations</param>
+    /// <param name="IsHandled">Set to true to suppress standard posting result messages</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowPostResultMessage(var GenJnlLine: Record "Gen. Journal Line"; TempJnlBatchName: Code[10]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after successful execution of the Gen. Jnl.-Post Batch codeunit.
+    /// Enables post-processing operations or custom cleanup after posting completion.
+    /// </summary>
+    /// <param name="GenJnlLine">Journal line record that was processed during posting</param>
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnAfterGenJnlPostBatchRun(var GenJnlLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after journal template validation but before posting confirmation.
+    /// Enables additional template-specific validation or preprocessing logic.
+    /// </summary>
+    /// <param name="GenJnlLine">Journal line record with validated template</param>
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnAfterCheckTemplate(var GenJnlLine: Record "Gen. Journal Line")
     begin
@@ -207,21 +250,43 @@ codeunit 231 "Gen. Jnl.-Post"
         Result := GenJnlPost.Run(GenJournalLine);
     end;
 
+    /// <summary>
+    /// Integration event raised when setting filter criteria for general journal line processing.
+    /// Enables custom filtering logic for journal line selection and validation workflows.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line record for filter application</param>
     [IntegrationEvent(false, false)]
     local procedure OnGenJnlLineSetFilter(var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before confirming posting of journal lines with the user.
+    /// Enables custom confirmation logic or automatic approval of posting operations.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record to be posted</param>
+    /// <param name="IsHandled">Set to true to skip standard confirmation dialog</param>
+    /// <param name="ShouldExit">Set to true to exit posting without proceeding</param>
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnBeforeConfirmPostJournalLinesResponse(var GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean; var ShouldExit: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after completing the OnRun trigger processing.
+    /// Enables final cleanup or logging operations after journal line posting completion.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record that was processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterOnRun(var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after confirming unvoidable posting checks but before actual posting.
+    /// Enables final validation or preprocessing after user confirmations are complete.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record ready for posting</param>
     [IntegrationEvent(false, false)]
     local procedure OnCodeOnAfterConfirmPostingUnvoidableChecks(var GenJournalLine: Record "Gen. Journal Line")
     begin

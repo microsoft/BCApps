@@ -4,14 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Projects.Project.Planning;
 
+using Microsoft.Foundation.Navigate;
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
-using Microsoft.Inventory.Ledger;
-using Microsoft.Foundation.Navigate;
-using Microsoft.Foundation.UOM;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Project.Ledger;
 using Microsoft.Purchases.Document;
@@ -439,6 +439,8 @@ codeunit 1032 "Job Planning Line-Reserve"
             TempReservationEntry.Insert();
         until ReservationEntry.Next() = 0;
 
+        OnUpdateReservationsWhenPostingJobPlaningLineNegativeAdjFromPOOnAfterTempReservationEntryInserted(JobPlanningLine, ItemJournalLine, ReservationEntry, TempReservationEntry);
+
         TempReservationEntry.Reset();
         TempReservationEntry.FindSet();
         repeat
@@ -501,92 +503,10 @@ codeunit 1032 "Job Planning Line-Reserve"
         CreateBindingReservation(JobPlanningLine, Description, ExpectedDate, ReservQty, ReservQtyBase);
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure BindToTracking()', '25.0')]
-    procedure BindToPurchase(JobPlanningLine: Record "Job Planning Line"; PurchaseLine: Record Microsoft.Purchases.Document."Purchase Line"; ReservQty: Decimal; ReservQtyBase: Decimal)
-    var
-        TrackingSpecification: Record "Tracking Specification";
-        ReservationEntry: Record "Reservation Entry";
-    begin
-        SetBinding(ReservationEntry.Binding::"Order-to-Order");
-        TrackingSpecification.InitTrackingSpecification(
-          DATABASE::Microsoft.Purchases.Document."Purchase Line", PurchaseLine."Document Type".AsInteger(), PurchaseLine."Document No.", '', 0, PurchaseLine."Line No.",
-          PurchaseLine."Variant Code", PurchaseLine."Location Code", PurchaseLine."Qty. per Unit of Measure");
-        CreateReservationSetFrom(TrackingSpecification);
-        CreateBindingReservation(JobPlanningLine, PurchaseLine.Description, PurchaseLine."Expected Receipt Date", ReservQty, ReservQtyBase);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure BindToTracking()', '25.0')]
-    procedure BindToRequisition(JobPlanningLine: Record "Job Planning Line"; RequisitionLine: Record "Requisition Line"; ReservQty: Decimal; ReservQtyBase: Decimal)
-    var
-        TrackingSpecification: Record "Tracking Specification";
-        ReservationEntry: Record "Reservation Entry";
-    begin
-        SetBinding(ReservationEntry.Binding::"Order-to-Order");
-        TrackingSpecification.InitTrackingSpecification(
-          Database::"Requisition Line",
-          0, RequisitionLine."Worksheet Template Name", RequisitionLine."Journal Batch Name", 0, RequisitionLine."Line No.",
-          RequisitionLine."Variant Code", RequisitionLine."Location Code", RequisitionLine."Qty. per Unit of Measure");
-        CreateReservationSetFrom(TrackingSpecification);
-        CreateBindingReservation(JobPlanningLine, RequisitionLine.Description, RequisitionLine."Due Date", ReservQty, ReservQtyBase);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure BindToTracking()', '25.0')]
-    procedure BindToTransfer(JobPlanningLine: Record "Job Planning Line"; TransferLine: Record Microsoft.Inventory.Transfer."Transfer Line"; ReservQty: Decimal; ReservQtyBase: Decimal)
-    var
-        TrackingSpecification: Record "Tracking Specification";
-        ReservationEntry: Record "Reservation Entry";
-    begin
-        SetBinding(ReservationEntry.Binding::"Order-to-Order");
-        TrackingSpecification.InitTrackingSpecification(
-          DATABASE::Microsoft.Inventory.Transfer."Transfer Line", 1, TransferLine."Document No.", '', 0, TransferLine."Line No.",
-          TransferLine."Variant Code", TransferLine."Transfer-to Code", TransferLine."Qty. per Unit of Measure");
-        CreateReservationSetFrom(TrackingSpecification);
-        CreateBindingReservation(JobPlanningLine, TransferLine.Description, TransferLine."Receipt Date", ReservQty, ReservQtyBase);
-    end;
-#endif
 
-#if not CLEAN25
-    [Obsolete('Replaced by procedure BindToTracking()', '25.0')]
-    procedure BindToProdOrder(JobPlanningLine: Record "Job Planning Line"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ReservQty: Decimal; ReservQtyBase: Decimal)
-    var
-        TrackingSpecification: Record "Tracking Specification";
-        ReservationEntry: Record "Reservation Entry";
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeBindToProdOrder(JobPlanningLine, ProdOrderLine, ReservQty, ReservQtyBase, IsHandled);
-        if IsHandled then
-            exit;
 
-        SetBinding(ReservationEntry.Binding::"Order-to-Order");
-        TrackingSpecification.InitTrackingSpecification(
-          DATABASE::Microsoft.Manufacturing.Document."Prod. Order Line", ProdOrderLine.Status.AsInteger(), ProdOrderLine."Prod. Order No.", '', ProdOrderLine."Line No.", 0,
-          ProdOrderLine."Variant Code", ProdOrderLine."Location Code", ProdOrderLine."Qty. per Unit of Measure");
-        CreateReservationSetFrom(TrackingSpecification);
-        CreateBindingReservation(JobPlanningLine, ProdOrderLine.Description, ProdOrderLine."Ending Date", ReservQty, ReservQtyBase);
-    end;
-#endif
-
-#if not CLEAN25
-    [Obsolete('Replaced by procedure BindToTracking()', '25.0')]
-    procedure BindToAssembly(JobPlanningLine: Record "Job Planning Line"; AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header"; ReservQty: Decimal; ReservQtyBase: Decimal)
-    var
-        TrackingSpecification: Record "Tracking Specification";
-        ReservationEntry: Record "Reservation Entry";
-    begin
-        SetBinding(ReservationEntry.Binding::"Order-to-Order");
-        TrackingSpecification.InitTrackingSpecification(
-          DATABASE::Microsoft.Assembly.Document."Assembly Header", AssemblyHeader."Document Type".AsInteger(), AssemblyHeader."No.", '', 0, 0,
-          AssemblyHeader."Variant Code", AssemblyHeader."Location Code", AssemblyHeader."Qty. per Unit of Measure");
-        CreateReservationSetFrom(TrackingSpecification);
-        CreateBindingReservation(JobPlanningLine, AssemblyHeader.Description, AssemblyHeader."Due Date", ReservQty, ReservQtyBase);
-    end;
-#endif
 
     [EventSubscriber(ObjectType::Page, Page::Reservation, 'OnGetQtyPerUOMFromSourceRecRef', '', false, false)]
     local procedure OnGetQtyPerUOMFromSourceRecRef(SourceRecRef: RecordRef; var QtyPerUOM: Decimal; var QtyReserved: Decimal; var QtyReservedBase: Decimal; var QtyToReserve: Decimal; var QtyToReserveBase: Decimal)
@@ -837,13 +757,6 @@ codeunit 1032 "Job Planning Line-Reserve"
         ReservQty: Decimal;
         IsReserved: Boolean;
     begin
-#if not CLEAN25
-        IsReserved := false;
-        sender.RunOnBeforeAutoReserveJobPlanningLine(
-          ReservSummEntryNo, RemainingQtyToReserve, RemainingQtyToReserve, Description, AvailabilityDate, IsReserved, Search, NextStep, CalcReservEntry);
-        if IsReserved then
-            exit;
-#endif
         IsReserved := false;
         OnBeforeAutoReserveJobPlanningLine(
           ReservSummEntryNo, RemainingQtyToReserve, RemainingQtyToReserve, Description, AvailabilityDate, IsReserved, Search, NextStep, CalcReservEntry);
@@ -913,16 +826,14 @@ codeunit 1032 "Job Planning Line-Reserve"
     begin
     end;
 
-#if not CLEAN25
-    [Obsolete('Use procedure BindToTracking()', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeBindToProdOrder(JobPlanningLine: Record "Job Planning Line"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ReservQty: Decimal; ReservQtyBase: Decimal; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAutoReserveJobPlanningLine(ReservSummEntryNo: Integer; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date; var IsReserved: Boolean; Search: Text[1]; NextStep: Integer; CalcReservEntry: Record "Reservation Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateReservationsWhenPostingJobPlaningLineNegativeAdjFromPOOnAfterTempReservationEntryInserted(var JobPlanningLine: Record "Job Planning Line"; var ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry"; var TempReservationEntry: Record "Reservation Entry" temporary)
     begin
     end;
 
@@ -986,9 +897,6 @@ codeunit 1032 "Job Planning Line-Reserve"
             JobPlanningLine."Quantity (Base)" - JobPlanningLine."Remaining Qty. (Base)");
 
         OnAfterInitFromJobPlanningLine(TransactionSpecification, JobPlanningLine);
-#if not CLEAN25
-        TransactionSpecification.RunOnAfterInitFromJobPlanningLine(TransactionSpecification, JobPlanningLine);
-#endif
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnTestItemType', '', false, false)]

@@ -22,11 +22,11 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Posting;
 using Microsoft.Sales.Reports;
 using Microsoft.Sales.Setup;
+using Microsoft.Utilities;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.InventoryDocument;
 using Microsoft.Warehouse.Request;
-using Microsoft.Utilities;
 using System.Automation;
 using System.Integration.PowerBI;
 using System.Text;
@@ -298,20 +298,6 @@ page 9305 "Sales Order List"
         }
         area(factboxes)
         {
-#if not CLEAN25
-            part("Attached Documents"; "Document Attachment Factbox")
-            {
-                ObsoleteTag = '25.0';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The "Document Attachment FactBox" has been replaced by "Doc. Attachment List Factbox", which supports multiple files upload.';
-                ApplicationArea = All;
-                Visible = false;
-                Caption = 'Attachments';
-                SubPageLink = "Table ID" = const(Database::"Sales Header"),
-                              "No." = field("No."),
-                              "Document Type" = field("Document Type");
-            }
-#endif
             part("Attached Documents List"; "Doc. Attachment List Factbox")
             {
                 ApplicationArea = All;

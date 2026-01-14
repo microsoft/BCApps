@@ -4,6 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Clause;
 
+/// <summary>
+/// List page for managing multilingual translations of document-type-specific VAT clause descriptions.
+/// Enables localized VAT clause text for specific document types across multiple languages.
+/// </summary>
+/// <remarks>
+/// Provides translation management for document-type-specific VAT clauses supporting international operations.
+/// Combines document type specialization with multilingual support for comprehensive VAT compliance.
+/// </remarks>
 page 735 "VAT Clause by Doc. Type Trans."
 {
     Caption = 'VAT Clause by Document Type Translations';

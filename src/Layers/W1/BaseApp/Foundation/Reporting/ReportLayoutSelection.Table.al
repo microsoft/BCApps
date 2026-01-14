@@ -140,15 +140,6 @@ table 9651 "Report Layout Selection"
         end;
     end;
 
-#if not CLEAN25
-    [Obsolete('Moved to codeunit Report Management Helper', '25.0')]
-    procedure IsProcessingOnly(ReportID: Integer): Boolean
-    var
-        ReportManagementHelper: Codeunit "Report Management Helper";
-    begin
-        exit(ReportManagementHelper.IsProcessingOnly(ReportID));
-    end;
-#endif
 
     internal procedure HasLayoutOfType(ReportID: Integer; LayoutType: ReportLayoutType): Boolean
     begin
@@ -202,24 +193,6 @@ table 9651 "Report Layout Selection"
         exit(not ReportLayoutList.IsEmpty());
     end;
 
-#if not CLEAN25
-    [Obsolete('Obsolete programming model. Replaced by HasExternalLayout', '25.0')]
-    procedure HasCustomLayout(ReportID: Integer): Integer
-    var
-        CustomReportLayout: Record "Custom Report Layout";
-    begin
-        // Temporarily selected layout for Design-time report execution?
-        if GetTempLayoutSelected() <> '' then
-            if CustomReportLayout.Get(GetTempLayoutSelected()) then begin
-                if CustomReportLayout.Type = CustomReportLayout.Type::RDLC then
-                    exit(1);
-                exit(2);
-            end;
-
-        // Normal selection
-        exit(HasNormalCustomLayoutSelection(ReportID));
-    end;
-#endif
 
     procedure SelectedBuiltinLayoutType(ReportID: Integer): Integer
     begin
@@ -240,35 +213,6 @@ table 9651 "Report Layout Selection"
     end;
 
 #pragma warning disable AS0072
-#if not CLEAN25
-    [Obsolete('Obsolete programming model. Replaced by HasExternalLayout', '25.0')]
-    local procedure HasNormalCustomLayoutSelection(ReportID: Integer) Result: Integer
-    var
-        CustomReportLayout: Record "Custom Report Layout";
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeHasNormalCustomLayoutSelection(ReportID, Result, IsHandled, Rec);
-        if IsHandled then
-            exit;
-
-        if not Get(ReportID, CompanyName) then
-            exit(0);
-        case Type of
-            Type::"Custom Layout":
-                begin
-                    if not CustomReportLayout.Get("Custom Report Layout Code") then
-                        exit(0);
-                    if CustomReportLayout.Type = CustomReportLayout.Type::RDLC then
-                        exit(1);
-                    if CustomReportLayout.Type = CustomReportLayout.Type::Word then
-                        exit(2);
-                end;
-            else
-                exit(0);
-        end;
-    end;
-#endif
 #pragma warning restore AS0072
 
     procedure GetTempLayoutSelected(): Code[20]
@@ -315,13 +259,5 @@ table 9651 "Report Layout Selection"
     end;
 
 #pragma warning disable AS0072
-#if not CLEAN25
-    [Obsolete('Obsolete programming model. Replaced by HasExternalLayout', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeHasNormalCustomLayoutSelection(ReportID: Integer; var Result: Integer; var Handled: Boolean; var ReportLayoutSelectionRec: Record "Report Layout Selection")
-    begin
-    end;
-#endif
 #pragma warning restore AS0072
 }
-

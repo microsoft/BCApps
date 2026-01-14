@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Integration.PowerBI;
 
-using Microsoft.Sales.Document;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
 
 query 60 "Power BI Sales Hdr. Cust."
 {

@@ -31,6 +31,7 @@ table 5904 "Service Item Group"
         }
         field(4; "Default Contract Discount %"; Decimal)
         {
+            AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Default Contract Discount %';
             DecimalPlaces = 0 : 5;
@@ -44,6 +45,7 @@ table 5904 "Service Item Group"
         }
         field(6; "Default Response Time (Hours)"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Default Response Time (Hours)';
             DecimalPlaces = 0 : 5;
         }

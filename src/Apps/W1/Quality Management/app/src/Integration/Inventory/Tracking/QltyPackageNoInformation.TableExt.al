@@ -11,15 +11,15 @@ tableextension 20407 "Qlty. Package No. Information" extends "Package No. Inform
 {
     fields
     {
-        field(20400; "Qlty. Inspection Test Count"; Integer)
+        field(20400; "Qlty. Inspection Count"; Integer)
         {
-            Caption = 'Quality Inspection Test Count';
-            ToolTip = 'Specifies the count of available quality inspection tests for the package number.';
+            Caption = 'Quality Inspection Count';
+            ToolTip = 'Specifies the count of available quality inspections for the package number.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("Qlty. Inspection Test Header" where("Source Item No." = field("Item No."),
-                                                                     "Source Variant Code" = field("Variant Code"),
-                                                                     "Source Package No." = field("Package No.")));
+            CalcFormula = count("Qlty. Inspection Header" where("Source Item No." = field("Item No."),
+                                                                "Source Variant Code" = field("Variant Code"),
+                                                                "Source Package No." = field("Package No.")));
         }
     }
 }

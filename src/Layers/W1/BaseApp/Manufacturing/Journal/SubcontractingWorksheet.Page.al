@@ -6,8 +6,8 @@ namespace Microsoft.Manufacturing.Journal;
 
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
-using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Planning;
 using System.Security.User;
 

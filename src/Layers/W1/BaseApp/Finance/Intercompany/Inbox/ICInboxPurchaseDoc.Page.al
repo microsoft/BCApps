@@ -6,6 +6,10 @@ namespace Microsoft.Intercompany.Inbox;
 
 using Microsoft.Intercompany.Dimension;
 
+/// <summary>
+/// Displays purchase document details for intercompany transactions received from partner companies.
+/// Provides comprehensive view of purchase document header and lines for IC purchase transactions including vendor and delivery information.
+/// </summary>
 page 646 "IC Inbox Purchase Doc."
 {
     Caption = 'IC Inbox Purchase Doc.';

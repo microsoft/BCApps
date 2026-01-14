@@ -78,15 +78,17 @@ codeunit 7003 "Price Calculation - V15" implements "Price Calculation"
     var
         Header: Variant;
         Line: Variant;
+        TableID: Integer;
     begin
         CurrLineWithPrice.GetLine(Header, Line);
-        case CurrLineWithPrice.GetTableNo() of
+        TableID := CurrLineWithPrice.GetTableNo();
+        case TableID of
             Database::"Sales Line":
                 Result := SalesPriceCalcMgt.NoOfSalesLineLineDisc(Header, Line, ShowAll);
-            Database::Microsoft.Service.Document."Service Line":
-                Result := SalesPriceCalcMgt.NoOfServLineLineDisc(Header, Line, ShowAll);
             Database::"Purchase Line":
                 Result := PurchPriceCalcMgt.NoOfPurchLineLineDisc(Header, Line, ShowAll);
+            else
+                OnCountDiscount(TableID, Header, Line, ShowAll, Result);
         end;
     end;
 
@@ -94,15 +96,17 @@ codeunit 7003 "Price Calculation - V15" implements "Price Calculation"
     var
         Header: Variant;
         Line: Variant;
+        TableID: Integer;
     begin
         CurrLineWithPrice.GetLine(Header, Line);
-        case CurrLineWithPrice.GetTableNo() of
+        TableID := CurrLineWithPrice.GetTableNo();
+        case TableID of
             Database::"Sales Line":
                 Result := SalesPriceCalcMgt.NoOfSalesLinePrice(Header, Line, ShowAll);
-            Database::Microsoft.Service.Document."Service Line":
-                Result := SalesPriceCalcMgt.NoOfServLinePrice(Header, Line, ShowAll);
             Database::"Purchase Line":
                 Result := PurchPriceCalcMgt.NoOfPurchLinePrice(Header, Line, ShowAll);
+            else
+                OnCountPrice(TableID, Header, Line, ShowAll, Result);
         end;
     end;
 
@@ -177,15 +181,17 @@ codeunit 7003 "Price Calculation - V15" implements "Price Calculation"
     var
         Header: Variant;
         Line: Variant;
+        TableID: Integer;
     begin
         CurrLineWithPrice.GetLine(Header, Line);
-        case CurrLineWithPrice.GetTableNo() of
+        TableID := CurrLineWithPrice.GetTableNo();
+        case TableID of
             Database::"Sales Line":
                 Result := SalesPriceCalcMgt.SalesLineLineDiscExists(Header, Line, ShowAll);
-            Database::Microsoft.Service.Document."Service Line":
-                Result := SalesPriceCalcMgt.ServLineLineDiscExists(Header, Line, ShowAll);
             Database::"Purchase Line":
                 Result := PurchPriceCalcMgt.PurchLineLineDiscExists(Header, Line, ShowAll);
+            else
+                OnIsDiscountExists(TableID, Header, Line, ShowAll, Result);
         end;
     end;
 
@@ -193,15 +199,17 @@ codeunit 7003 "Price Calculation - V15" implements "Price Calculation"
     var
         Header: Variant;
         Line: Variant;
+        TableID: Integer;
     begin
         CurrLineWithPrice.GetLine(Header, Line);
-        case CurrLineWithPrice.GetTableNo() of
+        TableID := CurrLineWithPrice.GetTableNo();
+        case TableID of
             Database::"Sales Line":
                 Result := SalesPriceCalcMgt.SalesLinePriceExists(Header, Line, ShowAll);
-            Database::Microsoft.Service.Document."Service Line":
-                Result := SalesPriceCalcMgt.ServLinePriceExists(Header, Line, ShowAll);
             Database::"Purchase Line":
                 Result := PurchPriceCalcMgt.PurchLinePriceExists(Header, Line, ShowAll);
+            else
+                OnIsPriceExists(TableID, Header, Line, ShowAll, Result);
         end;
     end;
 
@@ -210,17 +218,14 @@ codeunit 7003 "Price Calculation - V15" implements "Price Calculation"
         Header: Variant;
         Line: Variant;
         PriceType: Enum "Price Type";
+        TableID: Integer;
     begin
         CurrLineWithPrice.GetLine(Header, Line);
-        case CurrLineWithPrice.GetTableNo() of
+        TableID := CurrLineWithPrice.GetTableNo();
+        case TableID of
             Database::"Sales Line":
                 begin
                     SalesPriceCalcMgt.GetSalesLineLineDisc(Header, Line);
-                    PriceType := PriceType::Sale;
-                end;
-            Database::Microsoft.Service.Document."Service Line":
-                begin
-                    SalesPriceCalcMgt.GetServLineLineDisc(Header, Line);
                     PriceType := PriceType::Sale;
                 end;
             Database::"Purchase Line":
@@ -228,6 +233,8 @@ codeunit 7003 "Price Calculation - V15" implements "Price Calculation"
                     PurchPriceCalcMgt.GetPurchLineLineDisc(Header, Line);
                     PriceType := PriceType::Purchase;
                 end;
+            else
+                OnPickDiscount(TableID, Header, Line, PriceType);
         end;
         CurrLineWithPrice.SetLine(PriceType, Header, Line);
     end;
@@ -236,15 +243,17 @@ codeunit 7003 "Price Calculation - V15" implements "Price Calculation"
     var
         Header: Variant;
         Line: Variant;
+        TableID: Integer;
     begin
         CurrLineWithPrice.GetLine(Header, Line);
-        case CurrLineWithPrice.GetTableNo() of
+        TableID := CurrLineWithPrice.GetTableNo();
+        case TableID of
             Database::"Sales Line":
                 SalesPriceCalcMgt.GetSalesLinePrice(Header, Line);
-            Database::Microsoft.Service.Document."Service Line":
-                SalesPriceCalcMgt.GetServLinePrice(Header, Line);
             Database::"Purchase Line":
                 PurchPriceCalcMgt.GetPurchLinePrice(Header, Line);
+            else
+                OnPickPrice(TableID, Header, Line);
         end;
         CurrLineWithPrice.SetLine(CurrLineWithPrice.GetPriceType(), Header, Line);
     end;
@@ -294,7 +303,6 @@ codeunit 7003 "Price Calculation - V15" implements "Price Calculation"
         JobPlanningLine: Record "Job Planning Line";
         ResJournalLine: Record "Res. Journal Line";
         SalesLine: Record "Sales Line";
-        ServiceLine: Record Microsoft.Service.Document."Service Line";
         StandardItemJournalLine: Record "Standard Item Journal Line";
         JobTransferLine: Codeunit "Job Transfer Line";
         Header: Variant;
@@ -341,12 +349,6 @@ codeunit 7003 "Price Calculation - V15" implements "Price Calculation"
                     SalesPriceCalcMgt.FindSalesLinePrice(Header, SalesLine, CalledByFieldNo);
                     CurrLineWithPrice.SetLine(PriceType::Sale, SalesLine);
                 end;
-            Database::Microsoft.Service.Document."Service Line":
-                begin
-                    ServiceLine := Line;
-                    SalesPriceCalcMgt.FindServLinePrice(Header, ServiceLine, CalledByFieldNo);
-                    CurrLineWithPrice.SetLine(PriceType::Sale, ServiceLine);
-                end;
             Database::"Standard Item Journal Line":
                 begin
                     StandardItemJournalLine := Line;
@@ -363,7 +365,6 @@ codeunit 7003 "Price Calculation - V15" implements "Price Calculation"
     local procedure ApplyDiscountSalesHandler()
     var
         SalesLine: Record "Sales Line";
-        ServiceLine: Record Microsoft.Service.Document."Service Line";
         Header: Variant;
         Line: Variant;
         PriceType: Enum "Price Type";
@@ -385,13 +386,9 @@ codeunit 7003 "Price Calculation - V15" implements "Price Calculation"
                     SalesPriceCalcMgt.FindSalesLineLineDisc(Header, SalesLine);
                     CurrLineWithPrice.SetLine(PriceType::Sale, SalesLine);
                 end;
-            Database::Microsoft.Service.Document."Service Line":
-                begin
-                    ServiceLine := Line;
-                    SalesPriceCalcMgt.FindServLineDisc(Header, ServiceLine);
-                    CurrLineWithPrice.SetLine(PriceType::Sale, ServiceLine);
-                end;
         end;
+
+        OnAfterApplyDiscountSalesHandler(CurrLineWithPrice, Header, Line);
     end;
 
     local procedure ApplyPricePurchHandler(CalledByFieldNo: Integer)
@@ -404,7 +401,6 @@ codeunit 7003 "Price Calculation - V15" implements "Price Calculation"
         PurchaseLine: Record "Purchase Line";
         RequisitionLine: Record "Requisition Line";
         SalesLine: Record "Sales Line";
-        ServiceLine: Record Microsoft.Service.Document."Service Line";
         StandardItemJournalLine: Record "Standard Item Journal Line";
         Header: Variant;
         Line: Variant;
@@ -468,14 +464,6 @@ codeunit 7003 "Price Calculation - V15" implements "Price Calculation"
                     PurchPriceCalcMgt.FindResUnitCost(SalesLine);
                     CurrLineWithPrice.SetLine(PriceType::Purchase, SalesLine);
                 end;
-            Database::Microsoft.Service.Document."Service Line":
-                begin
-                    ServiceLine := Line;
-                    if ServiceLine.Type <> ServiceLine.Type::Resource then
-                        exit;
-                    PurchPriceCalcMgt.FindResUnitCost(ServiceLine);
-                    CurrLineWithPrice.SetLine(PriceType::Purchase, ServiceLine);
-                end;
             Database::"Standard Item Journal Line":
                 begin
                     StandardItemJournalLine := Line;
@@ -488,6 +476,7 @@ codeunit 7003 "Price Calculation - V15" implements "Price Calculation"
                     end;
                 end;
         end;
+
         OnAfterApplyPricePurchHandler(CurrLineWithPrice, Header, Line, CalledByFieldNo);
     end;
 
@@ -547,6 +536,11 @@ codeunit 7003 "Price Calculation - V15" implements "Price Calculation"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnAfterApplyDiscountSalesHandler(var CurrLineWithPrice: Interface "Line With Price"; Header: Variant; Line: Variant)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnAfterApplyPricePurchHandler(var CurrLineWithPrice: Interface "Line With Price"; Header: Variant; Line: Variant; CalledByFieldNo: Integer)
     begin
     end;
@@ -558,6 +552,36 @@ codeunit 7003 "Price Calculation - V15" implements "Price Calculation"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeApplyDiscountSalesHandler(var CurrLineWithPrice: Interface "Line With Price"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCountDiscount(TableID: Integer; Header: Variant; Line: Variant; ShowAll: Boolean; var Result: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCountPrice(TableID: Integer; Header: Variant; Line: Variant; ShowAll: Boolean; var Result: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnIsDiscountExists(TableID: Integer; Header: Variant; Line: Variant; ShowAll: Boolean; var Result: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnIsPriceExists(TableID: Integer; Header: Variant; Line: Variant; ShowAll: Boolean; var Result: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPickDiscount(TableID: Integer; Header: Variant; Line: Variant; var PriceType: Enum "Price Type")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPickPrice(TableID: Integer; Header: Variant; Line: Variant)
     begin
     end;
 }

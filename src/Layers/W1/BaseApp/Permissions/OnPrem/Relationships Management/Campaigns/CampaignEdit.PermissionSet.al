@@ -1,17 +1,17 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.CRM.Interaction;
 using Microsoft.CRM.BusinessRelation;
 using Microsoft.CRM.Campaign;
-using Microsoft.CRM.Contact;
-using Microsoft.CRM.Profiling;
-using Microsoft.CRM.Setup;
-using Microsoft.CRM.Segment;
-using Microsoft.Purchases.Archive;
 using Microsoft.CRM.Comment;
-using Microsoft.Sales.Archive;
+using Microsoft.CRM.Contact;
+using Microsoft.CRM.Interaction;
+using Microsoft.CRM.Profiling;
+using Microsoft.CRM.Segment;
+using Microsoft.CRM.Setup;
 using Microsoft.CRM.Task;
 using Microsoft.CRM.Team;
+using Microsoft.Purchases.Archive;
+using Microsoft.Sales.Archive;
 
 permissionset 3125 "Campaign - Edit"
 {

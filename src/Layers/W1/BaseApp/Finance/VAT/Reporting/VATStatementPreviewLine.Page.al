@@ -7,6 +7,10 @@ namespace Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.VAT.Ledger;
 
+/// <summary>
+/// Preview interface displaying VAT statement lines with calculated amounts and drill-down capabilities.
+/// Provides read-only view of VAT statement calculations with interactive access to underlying VAT and G/L entries.
+/// </summary>
 #pragma warning disable AS0106 // Protected variable VATDateType was removed before AS0106 was introduced.
 page 475 "VAT Statement Preview Line"
 #pragma warning restore AS0106
@@ -171,11 +175,28 @@ page 475 "VAT Statement Preview Line"
         VATStatement.CalcLineTotal(VATStatementLine, ColumnValue, Level);
     end;
 
+    /// <summary>
+    /// Updates the VAT statement preview with new calculation parameters and filters.
+    /// Refreshes display with updated selection criteria and currency preferences.
+    /// </summary>
+    /// <param name="VATStmtName">VAT statement name configuration</param>
+    /// <param name="NewSelection">Period or closing date selection type</param>
+    /// <param name="NewPeriodSelection">Period range selection criteria</param>
+    /// <param name="NewUseAmtsInAddCurr">Whether to use additional reporting currency amounts</param>
     procedure UpdateForm(var VATStmtName: Record "VAT Statement Name"; NewSelection: Enum "VAT Statement Report Selection"; NewPeriodSelection: Enum "VAT Statement Report Period Selection"; NewUseAmtsInAddCurr: Boolean)
     begin
         UpdateForm(VATStmtName, NewSelection, NewPeriodSelection, NewUseAmtsInAddCurr, '');
     end;
 
+    /// <summary>
+    /// Updates the VAT statement preview with new calculation parameters including country/region filtering.
+    /// Extended version providing geographic filtering capability for multi-country VAT reporting scenarios.
+    /// </summary>
+    /// <param name="VATStmtName">VAT statement name configuration</param>
+    /// <param name="NewSelection">Period or closing date selection type</param>
+    /// <param name="NewPeriodSelection">Period range selection criteria</param>
+    /// <param name="NewUseAmtsInAddCurr">Whether to use additional reporting currency amounts</param>
+    /// <param name="NewCountryRegionFilter">Country/region filter for geographic reporting</param>
     procedure UpdateForm(var VATStmtName: Record "VAT Statement Name"; NewSelection: Enum "VAT Statement Report Selection"; NewPeriodSelection: Enum "VAT Statement Report Period Selection"; NewUseAmtsInAddCurr: Boolean; NewCountryRegionFilter: Text)
     begin
         Rec.SetRange("Statement Template Name", VATStmtName."Statement Template Name");
@@ -192,31 +213,81 @@ page 475 "VAT Statement Preview Line"
         OnAfterUpdateForm();
     end;
 
+    /// <summary>
+    /// Integration event raised before calculating column values for VAT statement line preview.
+    /// Enables custom calculation logic and override of standard amount calculations.
+    /// </summary>
+    /// <param name="VATStatementLine">VAT statement line being calculated</param>
+    /// <param name="TotalAmount">Total amount result, can be modified</param>
+    /// <param name="Level">Current calculation nesting level</param>
+    /// <param name="IsHandled">Set to true to skip standard calculation logic</param>
+    /// <param name="Selection">Selection type determining calculation criteria</param>
+    /// <param name="PeriodSelection">Period selection for calculation scope</param>
+    /// <param name="PrintInIntegers">Whether amounts are displayed as integers</param>
+    /// <param name="UseAmtsInAddCurr">Whether additional currency amounts are used</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCalcColumnValue(VATStatementLine: Record "VAT Statement Line"; var TotalAmount: Decimal; Level: Integer; var IsHandled: Boolean; Selection: Enum "VAT Statement Report Selection"; PeriodSelection: Enum "VAT Statement Report Period Selection"; PrintInIntegers: Boolean; UseAmtsInAddCurr: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before opening VAT entry page for VAT entry totaling drill-down.
+    /// Enables custom filtering and modification of VAT entry records before page display.
+    /// </summary>
+    /// <param name="VATEntry">VAT entry record to be displayed</param>
+    /// <param name="VATStatementLine">VAT statement line providing drill-down context</param>
+    /// <param name="GLEntry">G/L entry record for related transactions</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeOpenPageVATEntryTotaling(var VATEntry: Record "VAT Entry"; var VATStatementLine: Record "VAT Statement Line"; var GLEntry: Record "G/L Entry")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before running G/L entries page during column value drill-down.
+    /// Enables custom filtering and modification of G/L entry records before page display.
+    /// </summary>
+    /// <param name="VATEntry">VAT entry record providing drill-down context</param>
+    /// <param name="GLEntry">G/L entry record to be displayed</param>
+    /// <param name="VATStatementLine">VAT statement line providing calculation context</param>
     [IntegrationEvent(false, false)]
     local procedure OnColumnValueDrillDownOnBeforeRunGeneralLedgerEntries(var VATEntry: Record "VAT Entry"; var GLEntry: Record "G/L Entry"; var VATStatementLine: Record "VAT Statement Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating the page during form update process.
+    /// Enables custom modifications to VAT statement configuration before page refresh.
+    /// </summary>
+    /// <param name="NewVATStmtName">VAT statement name being updated</param>
+    /// <param name="NewVATStatementLine">VAT statement line being updated</param>
+    /// <param name="NewSelection">New selection type being applied</param>
+    /// <param name="NewPeriodSelection">New period selection being applied</param>
+    /// <param name="NewPrintInIntegers">New print in integers setting</param>
+    /// <param name="NewUseAmtsInAddCurr">New additional currency setting</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateFormOnBeforePageUpdate(var NewVATStmtName: Record "VAT Statement Name"; var NewVATStatementLine: Record "VAT Statement Line"; NewSelection: Enum "VAT Statement Report Selection"; NewPeriodSelection: Enum "VAT Statement Report Period Selection"; NewPrintInIntegers: Boolean; NewUseAmtsInAddCurr: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after completing the form update process.
+    /// Enables custom post-processing after VAT statement preview has been refreshed.
+    /// </summary>
     [IntegrationEvent(true, false)]
     local procedure OnAfterUpdateForm()
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before initializing VAT statement request during form update.
+    /// Enables custom configuration of VAT statement parameters before calculation initialization.
+    /// </summary>
+    /// <param name="NewVATStatementName">VAT statement name being configured</param>
+    /// <param name="NewVATStatementLine">VAT statement line being configured</param>
+    /// <param name="NewSelection">Selection type for calculation</param>
+    /// <param name="NewPeriodSelection">Period selection for calculation</param>
+    /// <param name="NewPrintInIntegers">Print in integers preference</param>
+    /// <param name="NewUseAmtsInAddCurr">Additional currency preference</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateFormOnBeforeVatStatementInitializeRequest(var NewVATStatementName: Record "VAT Statement Name"; var NewVATStatementLine: Record "VAT Statement Line"; NewSelection: Enum "VAT Statement Report Selection"; NewPeriodSelection: Enum "VAT Statement Report Period Selection"; NewPrintInIntegers: Boolean; NewUseAmtsInAddCurr: Boolean)
     begin

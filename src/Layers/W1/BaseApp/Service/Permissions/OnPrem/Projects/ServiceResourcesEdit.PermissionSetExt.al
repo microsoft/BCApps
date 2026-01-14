@@ -4,11 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.Security.AccessControl;
 
-using Microsoft.Service.Pricing;
+using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Item;
 using Microsoft.Service.Ledger;
-using Microsoft.Service.Document;
+using Microsoft.Service.Pricing;
 using Microsoft.Service.Resources;
 
 permissionsetextension 6472 "Service Resources - Edit" extends "Resources - Edit"

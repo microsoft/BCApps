@@ -7,6 +7,16 @@ namespace Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Utilities;
 using System.Utilities;
 
+/// <summary>
+/// Provides background validation of general journal lines for real-time error detection and user feedback.
+/// Performs comprehensive line validation checks without blocking the user interface during data entry.
+/// </summary>
+/// <remarks>
+/// Background processing component for journal line validation. Integrates with the journal error management system
+/// to provide immediate feedback on validation issues while users work with journal entries.
+/// Key features: Asynchronous validation processing, real-time error reporting, document balance checking, comprehensive business rule validation.
+/// Integration: Works with journal error factboxes and background error handling framework for seamless user experience.
+/// </remarks>
 codeunit 9081 "Check Gen. Jnl. Line. Backgr."
 {
     trigger OnRun()
@@ -31,6 +41,16 @@ codeunit 9081 "Check Gen. Jnl. Line. Backgr."
         RecurringLineIsExpiredErr: Label 'The posting date %1 must be less or equal the expiration date %2 in the document %3.', Comment = '%1 - posting date, %2 - expiration date, %3 - document number';
         RecurringLineIsOutOfWorkdateErr: Label 'The posting date %1 must be less or equal the working date %2 in the document %3.', Comment = '%1 - posting date, %2 - working date, %3 - document number';
 
+    /// <summary>
+    /// Executes comprehensive validation checks for general journal lines based on provided parameters.
+    /// Performs document balance validation, recurring journal checks, and integration with standard line validation routines.
+    /// </summary>
+    /// <param name="Args">Dictionary containing error handling parameters for batch and line filtering</param>
+    /// <param name="TempErrorMessage">Temporary error message record to collect and return validation errors</param>
+    /// <remarks>
+    /// Supports both full batch checking and targeted document validation based on parameter settings.
+    /// Integrates with background error handling framework for real-time journal validation feedback.
+    /// </remarks>
     procedure RunCheck(Args: Dictionary of [Text, Text]; var TempErrorMessage: Record "Error Message" temporary)
     var
         GenJnlLine: Record "Gen. Journal Line";
@@ -157,7 +177,7 @@ codeunit 9081 "Check Gen. Jnl. Line. Backgr."
             if GenJnlLine."Recurring Method" <> GenJnlLine."Recurring Method"::" " then
                 Description := StrSubstNo(RecurringDocumentOutOfBalanceErr, GenJnlLine."Document No.")
             else
-            Description := StrSubstNo(DocumentOutOfBalanceErr, GenJnlLine."Document No.", DocumentBalance);
+                Description := StrSubstNo(DocumentOutOfBalanceErr, GenJnlLine."Document No.", DocumentBalance);
             InsertTempLineErrorMessage(
                 TempLineErrorMessage,
                 GenJnlLine.RecordId(),
@@ -218,11 +238,24 @@ codeunit 9081 "Check Gen. Jnl. Line. Backgr."
             until TempErrorMessage.Next() = 0;
     end;
 
+    /// <summary>
+    /// Integration event that occurs after checking a general journal line during background validation.
+    /// Allows additional custom validation logic and error message collection.
+    /// </summary>
+    /// <param name="GenJnlLine">The general journal line that was validated.</param>
+    /// <param name="TempErrorMessage">Error message record for collecting validation errors.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckGenJnlLine(var GenJnlLine: Record "Gen. Journal Line"; var TempErrorMessage: Record "Error Message" temporary)
     begin
     end;
 
+    /// <summary>
+    /// Integration event that occurs before checking general journal line document balance validation.
+    /// Allows custom handling of document balance validation logic during background processing.
+    /// </summary>
+    /// <param name="GenJnlLine">The general journal line being validated for document balance.</param>
+    /// <param name="TempErrorMessage">Error message record for collecting validation errors.</param>
+    /// <param name="IsHandled">Set to true to skip standard document balance validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckGenJnlLineDocBalance(GenJnlLine: Record "Gen. Journal Line"; var TempErrorMessage: Record "Error Message"; var IsHandled: Boolean)
     begin

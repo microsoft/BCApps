@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Warehouse.Worksheet;
 
-using Microsoft.Warehouse.Structure;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Warehouse.Structure;
 
 codeunit 7351 "Create Prod. Movement Wksht."
 {

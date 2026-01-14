@@ -1,9 +1,8 @@
-﻿codeunit 132204 "Library - Warehouse"
+﻿/// <summary>
+/// Provides utility functions for creating and managing warehouse-related entities in test scenarios, including locations, bins, warehouse documents, and warehouse activities.
+/// </summary>
+codeunit 132204 "Library - Warehouse"
 {
-    // Unsupported version tags:
-    // 
-    // Contains all utility functions related to Warehouse Management.
-
 
     trigger OnRun()
     begin

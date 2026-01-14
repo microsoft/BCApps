@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.FinancialReports;
 
+/// <summary>
+/// Provides line-based interface for configuring account schedule chart setup lines.
+/// Enables detailed configuration of chart data series including measure names and visualization types.
+/// </summary>
+/// <remarks>
+/// Primary functionality: Chart line configuration, measure and dimension setup for visualization.
+/// Integration: Links with Account Schedule Chart Setup and chart type management.
+/// Extensibility: Standard page extension patterns for additional chart configuration options.
+/// </remarks>
 page 765 "Acc. Sched. Chart Line"
 {
     Caption = 'Acc. Sched. Chart Line';
@@ -136,6 +145,11 @@ page 765 "Acc. Sched. Chart Line"
         Show: Boolean;
         IsMeasure: Boolean;
 
+    /// <summary>
+    /// Sets the view mode for chart lines to display as measures or dimensions.
+    /// Controls how chart setup lines are interpreted and displayed in the interface.
+    /// </summary>
+    /// <param name="Value">True to view as measures, false to view as dimensions</param>
     procedure SetViewAsMeasure(Value: Boolean)
     begin
         IsMeasure := Value;

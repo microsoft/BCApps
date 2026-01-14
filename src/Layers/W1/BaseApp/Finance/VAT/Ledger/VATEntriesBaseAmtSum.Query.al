@@ -6,6 +6,14 @@ namespace Microsoft.Finance.VAT.Ledger;
 
 using Microsoft.Foundation.Address;
 
+/// <summary>
+/// Query for aggregating VAT entry base amounts by country, VAT registration number, and EU service classification.
+/// Provides summarized VAT base amounts for EU reporting and cross-border transaction analysis.
+/// </summary>
+/// <remarks>
+/// Filtered to sales VAT entries with grouping by country/region and VAT registration. 
+/// Supports EU country identification and 3-party trade analysis for compliance reporting.
+/// </remarks>
 query 19 "VAT Entries Base Amt. Sum"
 {
     Caption = 'VAT Entries Base Amt. Sum';

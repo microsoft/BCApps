@@ -4,11 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.Setup;
 
+using Microsoft.Intercompany.DataExchange;
 using Microsoft.Intercompany.Dimension;
 using Microsoft.Intercompany.GLAccount;
 using Microsoft.Intercompany.Partner;
-using Microsoft.Intercompany.DataExchange;
 
+/// <summary>
+/// Main configuration page for intercompany setup and partner management.
+/// Provides comprehensive interface for configuring intercompany parameters, partners, and system integration.
+/// </summary>
 page 653 "Intercompany Setup"
 {
     Caption = 'Intercompany Setup';

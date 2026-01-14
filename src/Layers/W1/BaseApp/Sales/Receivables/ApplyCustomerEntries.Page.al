@@ -740,18 +740,11 @@ page 232 "Apply Customer Entries"
     end;
 
     var
-#if not CLEAN25
-        ServHeader: Record Microsoft.Service.Document."Service Header";
-#endif
         Cust: Record Customer;
         GLSetup: Record "General Ledger Setup";
         SalesSetup: Record "Sales & Receivables Setup";
         TotalSalesLine: Record "Sales Line";
         TotalSalesLineLCY: Record "Sales Line";
-#if not CLEAN25
-        TotalServLine: Record Microsoft.Service.Document."Service Line";
-        TotalServLineLCY: Record Microsoft.Service.Document."Service Line";
-#endif
         CustEntrySetApplID: Codeunit "Cust. Entry-SetAppl.ID";
         GenJnlApply: Codeunit "Gen. Jnl.-Apply";
         SalesPost: Codeunit "Sales-Post";
@@ -861,41 +854,6 @@ page 232 "Apply Customer Entries"
         SetApplyingCustLedgEntry();
     end;
 
-#if not CLEAN25
-    [Obsolete('Use page Serv. Apply Customer Entries instead.', '25.0')]
-    procedure SetService(NewServHeader: Record Microsoft.Service.Document."Service Header"; var NewCustLedgEntry: Record "Cust. Ledger Entry"; ApplnTypeSelect: Integer)
-    var
-        ServAmountsMgt: Codeunit Microsoft.Service.Posting."Serv-Amounts Mgt.";
-        TotalAdjCostLCY: Decimal;
-    begin
-        ServHeader := NewServHeader;
-        Rec.CopyFilters(NewCustLedgEntry);
-
-        ServAmountsMgt.SumServiceLines(
-          ServHeader, 0, TotalServLine, TotalServLineLCY,
-          VATAmount, VATAmountText, ProfitLCY, ProfitPct, TotalAdjCostLCY);
-
-        case ServHeader."Document Type" of
-            ServHeader."Document Type"::"Credit Memo":
-                ApplyingAmount := -TotalServLine."Amount Including VAT"
-            else
-                ApplyingAmount := TotalServLine."Amount Including VAT";
-        end;
-
-        ApplnDate := ServHeader."Posting Date";
-        ApplnCurrencyCode := ServHeader."Currency Code";
-        CalcType := CalcType::"Service Header";
-
-        case ApplnTypeSelect of
-            ServHeader.FieldNo("Applies-to Doc. No."):
-                ApplnType := ApplnType::"Applies-to Doc. No.";
-            ServHeader.FieldNo("Applies-to ID"):
-                ApplnType := ApplnType::"Applies-to ID";
-        end;
-
-        SetApplyingCustLedgEntry();
-    end;
-#endif
 
     procedure SetCustLedgEntry(NewCustLedgEntry: Record "Cust. Ledger Entry")
     begin
@@ -908,17 +866,10 @@ page 232 "Apply Customer Entries"
     begin
         IsHandled := false;
         OnBeforeSetApplyingCustLedgerEntry(TempApplyingCustLedgEntry, GenJnlLine, SalesHeader, CalcType, IsHandled);
-#if not CLEAN25
-        OnBeforeSetApplyingCustLedgEntry(TempApplyingCustLedgEntry, GenJnlLine, SalesHeader, CalcType, ServHeader, IsHandled);
-#endif
         if not IsHandled then begin
             case CalcType of
                 CalcType::"Sales Header":
                     SetApplyingCustledgEntrySalesHeader();
-#if not CLEAN25
-                CalcType::"Service Header":
-                    SetApplyingCustledgEntryServiceHeader();
-#endif
                 CalcType::"Gen. Jnl. Line":
                     SetApplyingCustLedgEntryGenJnlLine();
                 CalcType::Direct:
@@ -983,30 +934,6 @@ page 232 "Apply Customer Entries"
         OnAfterSetApplyingCustLedgEntrySalesHeader(TempApplyingCustLedgEntry, SalesHeader);
     end;
 
-#if not CLEAN25
-    local procedure SetApplyingCustledgEntryServiceHeader()
-    begin
-        TempApplyingCustLedgEntry."Entry No." := 1;
-        TempApplyingCustLedgEntry."Posting Date" := ServHeader."Posting Date";
-        if ServHeader."Document Type" = ServHeader."Document Type"::"Credit Memo" then
-            TempApplyingCustLedgEntry."Document Type" := TempApplyingCustLedgEntry."Document Type"::"Credit Memo"
-        else
-            TempApplyingCustLedgEntry."Document Type" := TempApplyingCustLedgEntry."Document Type"::Invoice;
-        TempApplyingCustLedgEntry."Document No." := ServHeader."No.";
-        TempApplyingCustLedgEntry."Customer No." := ServHeader."Bill-to Customer No.";
-        TempApplyingCustLedgEntry.Description := ServHeader."Posting Description";
-        TempApplyingCustLedgEntry."Currency Code" := ServHeader."Currency Code";
-        if TempApplyingCustLedgEntry."Document Type" = TempApplyingCustLedgEntry."Document Type"::"Credit Memo" then begin
-            TempApplyingCustLedgEntry.Amount := -TotalServLine."Amount Including VAT";
-            TempApplyingCustLedgEntry."Remaining Amount" := -TotalServLine."Amount Including VAT";
-        end else begin
-            TempApplyingCustLedgEntry.Amount := TotalServLine."Amount Including VAT";
-            TempApplyingCustLedgEntry."Remaining Amount" := TotalServLine."Amount Including VAT";
-        end;
-
-        OnAfterSetApplyingCustLedgEntryServiceHeader(TempApplyingCustLedgEntry, ServHeader);
-    end;
-#endif
 
     local procedure SetApplyingCustLedgEntryGenJnlLine()
     var
@@ -1060,9 +987,6 @@ page 232 "Apply Customer Entries"
         CheckCustLedgEntry(CustLedgEntry);
 
         OnSetCustApplIdOnAfterCheckAgainstApplnCurrency(Rec, CustLedgEntry, CalcType.AsInteger(), GenJnlLine, SalesHeader, TempApplyingCustLedgEntry);
-#if not CLEAN25
-        OnSetCustApplIdAfterCheckAgainstApplnCurrency(Rec, CalcType.AsInteger(), GenJnlLine, SalesHeader, ServHeader, TempApplyingCustLedgEntry);
-#endif
         SetCustEntryApplID(CurrentRec);
 
         CalcApplnAmount();
@@ -1121,10 +1045,6 @@ page 232 "Apply Customer Entries"
                 AppliesToID := GenJnlLine."Applies-to ID";
             CalcType::"Sales Header":
                 AppliesToID := SalesHeader."Applies-to ID";
-#if not CLEAN25
-            CalcType::"Service Header":
-                AppliesToID := ServHeader."Applies-to ID";
-#endif
         end;
         OnAfterGetAppliesToID(CalcType, AppliesToID);
     end;
@@ -1241,10 +1161,6 @@ page 232 "Apply Customer Entries"
                                     case CalcType of
                                         CalcType::"Sales Header":
                                             AppliedCustLedgEntry.SetRange("Customer No.", SalesHeader."Bill-to Customer No.");
-#if not CLEAN25
-                                        else
-                                            AppliedCustLedgEntry.SetRange("Customer No.", ServHeader."Bill-to Customer No.");
-#endif
                                     end;
                                     AppliedCustLedgEntry.SetRange(Open, true);
                                     AppliedCustLedgEntry.SetRange("Applies-to ID", GetAppliesToID());
@@ -1737,13 +1653,6 @@ page 232 "Apply Customer Entries"
     begin
     end;
 
-#if not CLEAN25
-    [Obsolete('Relaced by event OnBeforeSetApplyingCustLedgerEntry without ServHeader parameters', '25.0')]
-    [IntegrationEvent(true, false)]
-    local procedure OnBeforeSetApplyingCustLedgEntry(var ApplyingCustLedgEntry: Record "Cust. Ledger Entry"; GenJournalLine: Record "Gen. Journal Line"; SalesHeader: Record "Sales Header"; var CalcType: Enum "Customer Apply Calculation Type"; ServHeader: Record Microsoft.Service.Document."Service Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(true, false)]
     local procedure OnBeforeSetApplyingCustLedgerEntry(var ApplyingCustLedgEntry: Record "Cust. Ledger Entry"; GenJournalLine: Record "Gen. Journal Line"; SalesHeader: Record "Sales Header"; var CalcType: Enum "Customer Apply Calculation Type"; var IsHandled: Boolean)
@@ -1795,13 +1704,6 @@ page 232 "Apply Customer Entries"
     begin
     end;
 
-#if not CLEAN25
-    [Obsolete('Replaced by event OnSetCustApplIdOnAfterCheckAgainstApplnCurrency ServHeader parameter', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnSetCustApplIdAfterCheckAgainstApplnCurrency(var CustLedgerEntry: Record "Cust. Ledger Entry"; CalcType: Option; var GenJnlLine: Record "Gen. Journal Line"; SalesHeader: Record "Sales Header"; ServHeader: Record Microsoft.Service.Document."Service Header"; ApplyingCustLedgEntry: Record "Cust. Ledger Entry")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnSetCustApplIdOnAfterCheckAgainstApplnCurrency(var CustLedgerEntry: Record "Cust. Ledger Entry"; var CustLedgerEntry2: Record "Cust. Ledger Entry"; CalcType: Option; var GenJnlLine: Record "Gen. Journal Line"; SalesHeader: Record "Sales Header"; ApplyingCustLedgEntry: Record "Cust. Ledger Entry")
@@ -1833,13 +1735,6 @@ page 232 "Apply Customer Entries"
     begin
     end;
 
-#if not CLEAN25
-    [Obsolete('Use page Serv. Apply Customer Entries instead.', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterSetApplyingCustLedgEntryServiceHeader(var TempApplyingCustLedgEntry: Record "Cust. Ledger Entry" temporary; var ServiceHeader: Record Microsoft.Service.Document."Service Header")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetApplyingCustLedgEntryGenJnlLine(var TempApplyingCustLedgEntry: Record "Cust. Ledger Entry" temporary; var GenJnlLine: Record "Gen. Journal Line")

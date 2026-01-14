@@ -255,31 +255,7 @@ codeunit 5531 "Calc. Inventory Page Data"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnAfterTransferTransLine(var InventoryPageData: Record "Inventory Page Data"; var TransferHeader: Record Microsoft.Inventory.Transfer."Transfer Header")
-    begin
-        OnAfterTransferTransLine(InventoryPageData, TransferHeader);
-    end;
 
-    [Obsolete('Replaced by same event in codeunit TransferAvailabilityMgt', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTransferTransLine(var InventoryPageData: Record "Inventory Page Data"; var TransferHeader: Record Microsoft.Inventory.Transfer."Transfer Header")
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnAfterTransferProdOrderComp(var InventoryPageData: Record "Inventory Page Data"; var ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order")
-    begin
-        OnAfterTransferProdOrderComp(InventoryPageData, ProductionOrder);
-    end;
-
-    [Obsolete('Replaced by same event in codeunit ProdOrderAvailabilityMgt', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTransferProdOrderComp(var InventoryPageData: Record "Inventory Page Data"; var ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterTransferPlanningComp(var InventoryPageData: Record "Inventory Page Data"; var RequisitionLine: Record "Requisition Line")
@@ -321,4 +297,3 @@ codeunit 5531 "Calc. Inventory Page Data"
     begin
     end;
 }
-

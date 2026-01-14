@@ -146,12 +146,29 @@ page 1990 "Checklist Banner"
     {
         area(Processing)
         {
+            action(ShowEarlyAccessPreviewFeatures)
+            {
+                ApplicationArea = All;
+                Caption = 'Show new Features and provide Feedback';
+                ToolTip = 'Show a list of new features in the early access preview and provide feedback.';
+                Visible = IsEarlyAccessPreview;
+                Image = AssessFinanceCharges;
+
+                trigger OnAction()
+                begin
+                    OnShowEarlyAccessPreviewFeatures();
+                end;
+            }
             action(StartSetup)
             {
                 ApplicationArea = All;
                 Caption = 'Get started';
                 ToolTip = 'Get started';
-                Visible = not IsEvaluationCompany and not IsChecklistInProgress and not IsChecklistDisplayed and not AreAllItemsCompletedOrSkipped;
+                Visible = not IsEarlyAccessPreview
+                    and not IsEvaluationCompany
+                    and not IsChecklistInProgress
+                    and not IsChecklistDisplayed
+                    and not AreAllItemsCompletedOrSkipped;
                 Image = AssessFinanceCharges;
 
                 trigger OnAction()
@@ -164,7 +181,12 @@ page 1990 "Checklist Banner"
                 ApplicationArea = All;
                 Caption = 'Show demo tours';
                 ToolTip = 'Show demo tours';
-                Visible = IsEvaluationCompany and not IsChecklistInProgress and not IsChecklistDisplayed and not AreAllItemsCompletedOrSkipped;
+                Visible = not IsEarlyAccessPreview
+                    and IsEvaluationCompany
+                    and not IsEarlyAccessPreview
+                    and not IsChecklistInProgress
+                    and not IsChecklistDisplayed
+                    and not AreAllItemsCompletedOrSkipped;
                 Image = AssessFinanceCharges;
 
                 trigger OnAction()
@@ -177,7 +199,9 @@ page 1990 "Checklist Banner"
                 ApplicationArea = All;
                 Caption = 'Got it';
                 ToolTip = 'Got it';
-                Visible = not IsEvaluationCompany and AreAllItemsCompletedOrSkipped;
+                Visible = not IsEarlyAccessPreview
+                    and not IsEvaluationCompany
+                    and AreAllItemsCompletedOrSkipped;
                 Image = AssessFinanceCharges;
 
                 trigger OnAction()
@@ -191,7 +215,10 @@ page 1990 "Checklist Banner"
                 ApplicationArea = All;
                 Caption = 'Skip checklist';
                 ToolTip = 'Skip checklist';
-                Visible = not IsEvaluationCompany and IsChecklistInProgress and not AreAllItemsCompletedOrSkipped;
+                Visible = not IsEarlyAccessPreview
+                    and not IsEvaluationCompany
+                    and IsChecklistInProgress
+                    and not AreAllItemsCompletedOrSkipped;
                 Image = AssessFinanceCharges;
 
                 trigger OnAction()
@@ -209,7 +236,9 @@ page 1990 "Checklist Banner"
                 ApplicationArea = All;
                 Caption = 'Back to checklist';
                 ToolTip = 'Back to checklist';
-                Visible = not IsChecklistDisplayed and (IsChecklistInProgress or AreAllItemsCompletedOrSkipped);
+                Visible = not IsEarlyAccessPreview
+                    and not IsChecklistDisplayed
+                    and (IsChecklistInProgress or AreAllItemsCompletedOrSkipped);
                 Image = AssessFinanceCharges;
 
                 trigger OnAction()
@@ -223,7 +252,9 @@ page 1990 "Checklist Banner"
                 Caption = 'Start';
                 ToolTip = 'Start';
                 Scope = Repeater;
-                Visible = IsChecklistInProgress and ((Rec.Status = Rec.Status::"Not Started") or (Rec.Status = Rec.Status::Skipped))
+                Visible = not IsEarlyAccessPreview
+                    and IsChecklistInProgress
+                    and ((Rec.Status = Rec.Status::"Not Started") or (Rec.Status = Rec.Status::Skipped))
                     and ((Rec."Guided Experience Type" = Rec."Guided Experience Type"::"Assisted Setup")
                     or (Rec."Guided Experience Type" = Rec."Guided Experience Type"::"Manual Setup")
                     or (Rec."Guided Experience Type" = Rec."Guided Experience Type"::"Application Feature")
@@ -241,7 +272,9 @@ page 1990 "Checklist Banner"
                 Caption = 'Start tour';
                 ToolTip = 'Start tour';
                 Scope = Repeater;
-                Visible = IsChecklistInProgress and ((Rec.Status = Rec.Status::"Not Started") or (Rec.Status = Rec.Status::Skipped))
+                Visible = not IsEarlyAccessPreview
+                    and IsChecklistInProgress
+                    and ((Rec.Status = Rec.Status::"Not Started") or (Rec.Status = Rec.Status::Skipped))
                     and ((Rec."Guided Experience Type" = Rec."Guided Experience Type"::Tour)
                     or (Rec."Guided Experience Type" = Rec."Guided Experience Type"::"Spotlight Tour"));
                 Image = AssessFinanceCharges;
@@ -258,7 +291,9 @@ page 1990 "Checklist Banner"
                 ToolTip = 'Play video';
                 Scope = Repeater;
                 Image = Start;
-                Visible = IsChecklistInProgress and ((Rec.Status = Rec.Status::"Not Started") or (Rec.Status = Rec.Status::Skipped))
+                Visible = not IsEarlyAccessPreview
+                    and IsChecklistInProgress
+                    and ((Rec.Status = Rec.Status::"Not Started") or (Rec.Status = Rec.Status::Skipped))
                     and (Rec."Guided Experience Type" = Rec."Guided Experience Type"::Video);
 
                 trigger OnAction()
@@ -272,7 +307,9 @@ page 1990 "Checklist Banner"
                 Caption = 'Revisit';
                 ToolTip = 'Revisit';
                 Scope = Repeater;
-                Visible = IsChecklistInProgress and ((Rec.Status = Rec.Status::Started) or (Rec.Status = Rec.Status::Completed));
+                Visible = not IsEarlyAccessPreview
+                    and IsChecklistInProgress
+                    and ((Rec.Status = Rec.Status::Started) or (Rec.Status = Rec.Status::Completed));
                 Image = AssessFinanceCharges;
 
                 trigger OnAction()
@@ -286,7 +323,9 @@ page 1990 "Checklist Banner"
                 Caption = 'Skip for now';
                 ToolTip = 'Skip for now';
                 Scope = Repeater;
-                Visible = IsChecklistInProgress and ((Rec.Status = Rec.Status::"Not Started") or (Rec.Status = Rec.Status::Started));
+                Visible = not IsEarlyAccessPreview
+                    and IsChecklistInProgress
+                    and ((Rec.Status = Rec.Status::"Not Started") or (Rec.Status = Rec.Status::Started));
                 Image = AssessFinanceCharges;
 
                 trigger OnAction()
@@ -312,6 +351,7 @@ page 1990 "Checklist Banner"
         [WithEvents]
         Tour: DotNet Tour;
         IsEvaluationCompany: Boolean;
+        IsEarlyAccessPreview: Boolean;
         IsChecklistInProgress: Boolean;
         AreAllItemsCompletedOrSkipped: Boolean;
         IsChecklistDisplayed: Boolean;
@@ -334,6 +374,7 @@ page 1990 "Checklist Banner"
         ChecklistBanner: Codeunit "Checklist Banner";
     begin
         SetIsEvaluationCompany();
+        SetIsEarlyAccessPreview();
 
         SkipWelcomePage := false;
         ChecklistBanner.OnOpenChecklistBannerPage(SkipWelcomePage, IsEvaluationCompany);
@@ -410,6 +451,13 @@ page 1990 "Checklist Banner"
             IsEvaluationCompany := Company."Evaluation Company";
     end;
 
+    local procedure SetIsEarlyAccessPreview()
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+    begin
+        IsEarlyAccessPreview := EnvironmentInformation.IsEarlyPreview();
+    end;
+
     local procedure OnChecklistStart()
     begin
         ChecklistBannerImpl.UpdateUserChecklistStatus(UserId(), ChecklistStatus::"In progress");
@@ -419,6 +467,11 @@ page 1990 "Checklist Banner"
         SetChecklistRecord();
 
         CurrPage.Update(false);
+    end;
+
+    local procedure OnShowEarlyAccessPreviewFeatures()
+    begin
+        Page.Run(Page::"Early Access Preview Features");
     end;
 
     local procedure SetChecklistRecord()

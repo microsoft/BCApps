@@ -5,9 +5,9 @@
 namespace Microsoft.Inventory.Availability;
 
 using Microsoft.Foundation.Enums;
-using Microsoft.Projects.Project.Planning;
-using Microsoft.Inventory.Transfer;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Transfer;
+using Microsoft.Projects.Project.Planning;
 
 page 5417 "Item Avail. by UOM Lines"
 {

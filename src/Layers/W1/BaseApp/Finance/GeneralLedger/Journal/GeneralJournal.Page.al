@@ -20,8 +20,8 @@ using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.Reporting;
 using Microsoft.HumanResources.Setup;
-using Microsoft.Purchases.Vendor;
 using Microsoft.Purchases.Setup;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
@@ -34,6 +34,15 @@ using System.Telemetry;
 using System.Threading;
 using System.Utilities;
 
+/// <summary>
+/// Provides the primary interface for general journal entry with support for all account types and transaction scenarios.
+/// Features dual view modes (simple and classic) for optimized data entry and comprehensive transaction management.
+/// </summary>
+/// <remarks>
+/// Primary journal interface supporting G/L accounts, customers, vendors, bank accounts, fixed assets, and employees.
+/// Key features: Dual view modes, document-based navigation, dimension management, allocation accounts, and approval workflows.
+/// Extensibility: Multiple integration events enable custom validation, posting logic, and user interface enhancements.
+/// </remarks>
 page 39 "General Journal"
 {
     // // This page has two view modes based on global variable 'IsSimplePage' as :-
@@ -2181,6 +2190,9 @@ page 39 "General Journal"
         CurrPage.Update(false);
     end;
 
+    /// <summary>
+    /// Sets user interface interaction styles and appearance based on the current journal line status.
+    /// </summary>
     procedure SetUserInteractions()
     begin
         StyleTxt := Rec.GetStyle();
@@ -2278,6 +2290,9 @@ page 39 "General Journal"
             until GenJournalLine.Next(NextNum) = 0;
     end;
 
+    /// <summary>
+    /// Generates and assigns a new document number to the current journal line based on the batch's number series.
+    /// </summary>
     procedure NewDocumentNo()
     var
         [SecurityFiltering(SecurityFilter::Filtered)]
@@ -2583,61 +2598,146 @@ page 39 "General Journal"
         JobQueuesUsed := GeneralLedgerSetup.JobQueueActive();
     end;
 
+    /// <summary>
+    /// Integration event raised after validating shortcut dimension code input.
+    /// Enables custom processing after dimension validation.
+    /// </summary>
+    /// <param name="GenJournalLine">Journal line record being validated</param>
+    /// <param name="ShortcutDimCode">Array of dimension codes</param>
+    /// <param name="DimIndex">Index of the dimension being validated</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateShortcutDimCode(var GenJournalLine: Record "Gen. Journal Line"; var ShortcutDimCode: array[8] of Code[20]; DimIndex: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after validating the current journal batch name.
+    /// Enables custom processing after batch name validation.
+    /// </summary>
+    /// <param name="CurrentJnlBatchName">Journal batch name that was validated</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateCurrentJnlBatchName(CurrentJnlBatchName: Code[10])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before initializing the general journal page.
+    /// Enables custom processing before page initialization and general journal line setup.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal line record being initialized for the page context.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeOnInit(var GenJnlLine: Record "Gen. Journal Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before opening the journal from a specific batch.
+    /// Enables custom logic to control journal opening behavior and result handling.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line record providing context for batch opening.</param>
+    /// <param name="Result">Boolean result indicating whether the journal should be opened successfully.</param>
+    /// <param name="IsHandled">Set to true to skip standard journal opening logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeOpenJournalFromBatch(var GenJournalLine: Record "Gen. Journal Line"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before selecting the journal template for the general journal page.
+    /// Enables custom logic to control template selection behavior and override standard selection.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line record providing context for template selection.</param>
+    /// <param name="GenJnlManagement">General journal management codeunit handling template selection logic.</param>
+    /// <param name="IsHandled">Set to true to skip standard template selection logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeSelectTemplate(var GenJournalLine: Record "Gen. Journal Line"; var GenJnlManagement: Codeunit GenJnlManagement; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before setting data for simple mode during posting operations.
+    /// Enables custom processing before simplified posting mode configuration and data preparation.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line record being configured for simple mode posting.</param>
+    /// <param name="IsSimplePage">Boolean indicating whether the page is operating in simple mode.</param>
+    /// <param name="IsHandled">Set to true to skip standard simple mode data configuration logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetDataForSimpleModeOnPost(var GenJournalLine: Record "Gen. Journal Line"; IsSimplePage: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting data for simple mode during batch change operations.
+    /// Enables custom processing after batch lookup and simple mode data configuration.
+    /// </summary>
+    /// <param name="CurrentJnlBatchName">Code representing the current journal batch name after lookup.</param>
     [IntegrationEvent(false, false)]
     local procedure OnLookupCurrentJnlBatchNameOnAfterSetDataForSimpleModeOnBatchChange(CurrentJnlBatchName: Code[10])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after assigning the current journal batch name during page opening.
+    /// Enables custom processing after batch name assignment and page initialization.
+    /// </summary>
+    /// <param name="CurrentJnlBatchName">Code representing the current journal batch name that was assigned.</param>
     [IntegrationEvent(false, false)]
     local procedure OnOpenPageOnAfterAssignCurrentJnlBatchName(var CurrentJnlBatchName: Code[10])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before retrieving the last viewed journal batch name during page opening.
+    /// Enables custom logic to override standard batch name retrieval and provide custom batch selection.
+    /// </summary>
+    /// <param name="CurrentJnlBatchName">Code representing the current journal batch name (can be modified).</param>
+    /// <param name="GenJnlManagement">General journal management codeunit handling batch name operations.</param>
     [IntegrationEvent(true, false)]
     local procedure OnOpenPageOnBeforeGetLastViewedJournalBatchName(var CurrentJnlBatchName: Code[10]; var GenJnlManagement: Codeunit GenJnlManagement)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after determining whether the apply entries action should be enabled.
+    /// Enables custom logic to control the availability of the apply entries functionality.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line record providing context for apply entries action enablement.</param>
+    /// <param name="ApplyEntriesActionEnabled">Boolean indicating whether the apply entries action should be enabled.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterEnableApplyEntriesAction(GenJournalLine: Record "Gen. Journal Line"; var ApplyEntriesActionEnabled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting user interactions during account number validation.
+    /// Enables custom modification of balance display settings and user interface interaction controls.
+    /// </summary>
+    /// <param name="Balance">Current balance amount calculated for display purposes.</param>
+    /// <param name="TotalBalance">Total balance amount across all related entries.</param>
+    /// <param name="ShowBalance">Boolean indicating whether individual balance should be displayed.</param>
+    /// <param name="ShowTotalBalance">Boolean indicating whether total balance should be displayed.</param>
+    /// <param name="BalanceVisible">Boolean controlling the visibility of the balance field.</param>
+    /// <param name="TotalBalanceVisible">Boolean controlling the visibility of the total balance field.</param>
+    /// <param name="NumberOfRecords">Number of records involved in balance calculations.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAccountNoValidateOnAfterSetUserInteractions(var Balance: Decimal; var TotalBalance: Decimal; var ShowBalance: Boolean; var ShowTotalBalance: Boolean; var BalanceVisible: Boolean; var TotalBalanceVisible: Boolean; var NumberOfRecords: Integer)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating balance calculations and display settings.
+    /// Enables custom logic to override standard balance update processing and control user interface visibility.
+    /// </summary>
+    /// <param name="GenJournalLine">Current general journal line record for balance calculation context.</param>
+    /// <param name="xGenJournalLine">Previous version of general journal line before changes.</param>
+    /// <param name="Balance">Current balance amount that will be displayed.</param>
+    /// <param name="TotalBalance">Total balance amount across all related entries.</param>
+    /// <param name="ShowBalance">Boolean indicating whether individual balance should be displayed.</param>
+    /// <param name="ShowTotalBalance">Boolean indicating whether total balance should be displayed.</param>
+    /// <param name="BalanceVisible">Boolean controlling the visibility of the balance field.</param>
+    /// <param name="TotalBalanceVisible">Boolean controlling the visibility of the total balance field.</param>
+    /// <param name="NumberOfRecords">Number of records involved in balance calculations.</param>
+    /// <param name="IsHandled">Set to true to skip standard balance update logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateBalance(var GenJournalLine: Record "Gen. Journal Line"; xGenJournalLine: Record "Gen. Journal Line"; var Balance: Decimal; var TotalBalance: Decimal; var ShowBalance: Boolean; var ShowTotalBalance: Boolean; var BalanceVisible: Boolean; var TotalBalanceVisible: Boolean; var NumberOfRecords: Integer; var IsHandled: Boolean)
     begin

@@ -1,8 +1,8 @@
 namespace Microsoft.Inventory.Tracking;
 
 using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 

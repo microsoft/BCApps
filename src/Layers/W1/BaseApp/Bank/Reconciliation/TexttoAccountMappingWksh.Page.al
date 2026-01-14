@@ -7,6 +7,10 @@ namespace Microsoft.Bank.Reconciliation;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Purchases.Setup;
 
+/// <summary>
+/// Worksheet page for text-to-account mapping configuration.
+/// Provides advanced interface for creating and testing mapping rules.
+/// </summary>
 page 1254 "Text-to-Account Mapping Wksh."
 {
     AutoSplitKey = true;

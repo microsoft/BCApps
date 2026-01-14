@@ -24,6 +24,10 @@ using Microsoft.Sales.Reminder;
 using Microsoft.Warehouse.Request;
 using System.Reflection;
 
+/// <summary>
+/// Handles VAT rate change conversion operations across all Business Central master data and transactions.
+/// Processes items, resources, G/L accounts, journals, and sales/purchase documents according to setup configuration.
+/// </summary>
 codeunit 550 "VAT Rate Change Conversion"
 {
     Permissions = TableData "VAT Rate Change Log Entry" = i;
@@ -274,6 +278,11 @@ codeunit 550 "VAT Rate Change Conversion"
         end;
     end;
 
+    /// <summary>
+    /// Determines whether VAT product posting groups should be converted based on the update option.
+    /// </summary>
+    /// <param name="UpdateOption">Option value indicating which posting groups to update</param>
+    /// <returns>True if VAT product posting groups should be converted</returns>
     procedure ConvertVATProdPostGrp(UpdateOption: Option): Boolean
     var
         DummyVATRateChangeSetup: Record "VAT Rate Change Setup";
@@ -285,6 +294,11 @@ codeunit 550 "VAT Rate Change Conversion"
         exit(false);
     end;
 
+    /// <summary>
+    /// Determines whether general product posting groups should be converted based on the update option.
+    /// </summary>
+    /// <param name="UpdateOption">Option value indicating which posting groups to update</param>
+    /// <returns>True if general product posting groups should be converted</returns>
     procedure ConvertGenProdPostGrp(UpdateOption: Option): Boolean
     var
         DummyVATRateChangeSetup: Record "VAT Rate Change Setup";
@@ -296,6 +310,12 @@ codeunit 550 "VAT Rate Change Conversion"
         exit(false);
     end;
 
+    /// <summary>
+    /// Updates all records in a specified table with new VAT or general product posting groups.
+    /// </summary>
+    /// <param name="TableID">ID of the table to update</param>
+    /// <param name="ConvertVATProdPostingGroup">Whether to convert VAT product posting groups</param>
+    /// <param name="ConvertGenProdPostingGroup">Whether to convert general product posting groups</param>
     procedure UpdateTable(TableID: Integer; ConvertVATProdPostingGroup: Boolean; ConvertGenProdPostingGroup: Boolean)
     var
         RecRef: RecordRef;
@@ -321,6 +341,12 @@ codeunit 550 "VAT Rate Change Conversion"
             until RecRef.Next() = 0;
     end;
 
+    /// <summary>
+    /// Updates posting group fields in a specific record and creates log entries for the changes.
+    /// </summary>
+    /// <param name="RecRef">Record reference to update</param>
+    /// <param name="ConvertVATProdPostingGroup">Whether to convert VAT product posting groups</param>
+    /// <param name="ConvertGenProdPostingGroup">Whether to convert general product posting groups</param>
     procedure UpdateRec(var RecRef: RecordRef; ConvertVATProdPostingGroup: Boolean; ConvertGenProdPostingGroup: Boolean)
     var
         "Field": Record "Field";
@@ -393,6 +419,10 @@ codeunit 550 "VAT Rate Change Conversion"
             WriteLogEntry(VATRateChangeLogEntry);
     end;
 
+    /// <summary>
+    /// Inserts a log entry for VAT rate change conversion tracking.
+    /// </summary>
+    /// <param name="VATRateChangeLogEntry">Log entry record to insert</param>
     procedure WriteLogEntry(VATRateChangeLogEntry: Record "VAT Rate Change Log Entry")
     begin
         if VATRateChangeLogEntry.Converted then
@@ -587,6 +617,13 @@ codeunit 550 "VAT Rate Change Conversion"
             DescriptionTxt := Text0006;
     end;
 
+    /// <summary>
+    /// Creates a new sales line with updated posting groups when document lines need to be split during conversion.
+    /// Handles complex scenarios with reservations, item charges, and blanket orders.
+    /// </summary>
+    /// <param name="SalesLine">Original sales line to split</param>
+    /// <param name="VATProdPostingGroup">New VAT product posting group for the new line</param>
+    /// <param name="GenProdPostingGroup">New general product posting group for the new line</param>
     procedure AddNewSalesLine(SalesLine: Record "Sales Line"; VATProdPostingGroup: Code[20]; GenProdPostingGroup: Code[20])
     var
         NewSalesLine: Record "Sales Line";
@@ -814,6 +851,10 @@ codeunit 550 "VAT Rate Change Conversion"
         end;
     end;
 
+    /// <summary>
+    /// Updates purchase documents with new VAT and general product posting groups during conversion.
+    /// Handles document status changes, line splitting, and complex validation scenarios.
+    /// </summary>
     procedure UpdatePurchase()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -1177,6 +1218,12 @@ codeunit 550 "VAT Rate Change Conversion"
         OnAfterAddNewPurchaseLine(OldPurchaseLine, NewPurchaseLine);
     end;
 
+    /// <summary>
+    /// Calculates the next available line number for a new purchase line.
+    /// </summary>
+    /// <param name="PurchaseLine">Reference purchase line to find next line number for</param>
+    /// <param name="NextLineNo">Returns the next available line number</param>
+    /// <returns>True if a valid next line number was found</returns>
     procedure GetNextPurchaseLineNo(PurchaseLine: Record "Purchase Line"; var NextLineNo: Integer): Boolean
     var
         PurchaseLine2: Record "Purchase Line";
@@ -1232,6 +1279,12 @@ codeunit 550 "VAT Rate Change Conversion"
         end;
     end;
 
+    /// <summary>
+    /// Determines whether unit price including VAT should be updated for the specified sales line type.
+    /// Uses setup configuration to control which line types require price updates during VAT rate changes.
+    /// </summary>
+    /// <param name="Type">Sales line type to check for unit price update eligibility</param>
+    /// <returns>True if unit price including VAT should be updated for the specified line type, false otherwise</returns>
     procedure UpdateUnitPriceInclVAT(Type: Enum "Sales Line Type"): Boolean
     var
         SalesLine: Record "Sales Line";
@@ -1244,6 +1297,14 @@ codeunit 550 "VAT Rate Change Conversion"
            (VATRateChangeSetup."Upd. Unit Price For FA" and (Type = SalesLine.Type::"Fixed Asset"))));
     end;
 
+    /// <summary>
+    /// Determines whether a record is in scope for conversion based on its posting group values.
+    /// </summary>
+    /// <param name="GenProdPostingGroup">General product posting group of the record</param>
+    /// <param name="VATProdPostingGroup">VAT product posting group of the record</param>
+    /// <param name="ConvertGenProdPostingGroup">Whether general product posting groups are being converted</param>
+    /// <param name="ConvertVATProdPostingGroup">Whether VAT product posting groups are being converted</param>
+    /// <returns>True if the record should be included in the conversion</returns>
     procedure LineInScope(GenProdPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; ConvertGenProdPostingGroup: Boolean; ConvertVATProdPostingGroup: Boolean) Result: Boolean
     begin
         if ConvertGenProdPostingGroup then
@@ -1255,6 +1316,13 @@ codeunit 550 "VAT Rate Change Conversion"
         OnAfterLineInScope(GenProdPostingGroup, VATProdPostingGroup, ConvertGenProdPostingGroup, ConvertVATProdPostingGroup, Result)
     end;
 
+    /// <summary>
+    /// Calculates the next available line number for inserting a new sales line in the same document.
+    /// Uses spacing logic to insert between existing lines when possible, or appends with standard increment.
+    /// </summary>
+    /// <param name="SalesLine">Reference sales line from the document to insert into</param>
+    /// <param name="NextLineNo">Returns the calculated line number for the new sales line</param>
+    /// <returns>True if a valid next line number was calculated, false if calculation failed</returns>
     procedure GetNextSalesLineNo(SalesLine: Record "Sales Line"; var NextLineNo: Integer): Boolean
     var
         SalesLine2: Record "Sales Line";
@@ -1272,6 +1340,12 @@ codeunit 550 "VAT Rate Change Conversion"
         exit(NextLineNo <> SalesLine."Line No.");
     end;
 
+    /// <summary>
+    /// Retrieves the unit amount rounding precision for the specified currency.
+    /// Handles both local currency (empty code) and foreign currency scenarios with proper precision lookup.
+    /// </summary>
+    /// <param name="CurrencyCode">Currency code for precision lookup, or empty for local currency</param>
+    /// <returns>Unit amount rounding precision decimal value for the currency</returns>
     procedure GetRoundingPrecision(CurrencyCode: Code[10]): Decimal
     var
         Currency: Record Currency;
@@ -1282,16 +1356,6 @@ codeunit 550 "VAT Rate Change Conversion"
             Currency.Get(CurrencyCode);
         exit(Currency."Unit-Amount Rounding Precision");
     end;
-
-#if not CLEAN25
-    [Obsolete('Replaced by same procedure in codeunit "Serv. VAT Rate Change Conv."', '25.0')]
-    procedure GetNextServiceLineNo(ServiceLine: Record Microsoft.Service.Document."Service Line"; var NextLineNo: Integer): Boolean
-    var
-        ServVATRateChangeConv: Codeunit "Serv. VAT Rate Change Conv.";
-    begin
-        exit(ServVATRateChangeConv.GetNextServiceLineNo(ServiceLine, NextLineNo));
-    end;
-#endif
 
     local procedure GetNextItemChrgAssSaleLineNo(ItemChargeAssignmentSales: Record "Item Charge Assignment (Sales)"): Integer
     var
@@ -1366,6 +1430,13 @@ codeunit 550 "VAT Rate Change Conversion"
         OnAfterAreTablesSelected(VATRateChangeSetup, Result);
     end;
 
+    /// <summary>
+    /// Determines whether a sales line with the specified type and number should be included in VAT rate change processing.
+    /// Validates line inclusion based on setup configuration and posting group assignments.
+    /// </summary>
+    /// <param name="Type">Sales line type to evaluate for inclusion</param>
+    /// <param name="No">Item, G/L account, or resource number for the sales line</param>
+    /// <returns>True if the sales line should be included in VAT rate change conversion, false otherwise</returns>
     procedure IncludeSalesLine(Type: Enum "Sales Line Type"; No: Code[20]): Boolean
     var
         IsHandled: Boolean;
@@ -1388,6 +1459,13 @@ codeunit 550 "VAT Rate Change Conversion"
         exit(true);
     end;
 
+    /// <summary>
+    /// Determines whether a purchase line with the specified type and number should be included in VAT rate change processing.
+    /// Validates line inclusion based on setup configuration and posting group assignments.
+    /// </summary>
+    /// <param name="Type">Purchase line type to evaluate for inclusion</param>
+    /// <param name="No">Item, G/L account, or resource number for the purchase line</param>
+    /// <returns>True if the purchase line should be included in VAT rate change conversion, false otherwise</returns>
     procedure IncludePurchLine(Type: Enum "Purchase Line Type"; No: Code[20]): Boolean
     var
         IsHandled: Boolean;
@@ -1443,6 +1521,14 @@ codeunit 550 "VAT Rate Change Conversion"
         exit(Res.Find());
     end;
 
+    /// <summary>
+    /// Initializes a VAT rate change log entry with standard tracking information for a record conversion.
+    /// Sets up logging data including record identification, table reference, and status description.
+    /// </summary>
+    /// <param name="VATRateChangeLogEntry">Log entry record to initialize with tracking information</param>
+    /// <param name="RecRef">Record reference for the item being converted</param>
+    /// <param name="OutstandingQuantity">Outstanding quantity on the line being processed</param>
+    /// <param name="LineNo">Line number for reference in case of partial conversion</param>
     procedure InitVATRateChangeLogEntry(var VATRateChangeLogEntry: Record "VAT Rate Change Log Entry"; RecRef: RecordRef; OutstandingQuantity: Decimal; LineNo: Integer)
     begin
         VATRateChangeLogEntry.Init();
@@ -1482,175 +1568,312 @@ codeunit 550 "VAT Rate Change Conversion"
         exit(SalesLine.Quantity = SalesLine."Outstanding Quantity")
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying the original purchase line during VAT rate change conversion.
+    /// Allows custom modifications to both old and new purchase lines before database update.
+    /// </summary>
+    /// <param name="OldPurchaseLine">Original purchase line being modified during conversion</param>
+    /// <param name="NewPurchaseLine">New purchase line created with updated posting groups</param>
+    /// <param name="VATProdPostingGroup">New VAT product posting group being applied</param>
+    /// <param name="GenProdPostingGroup">New general product posting group being applied</param>
     [IntegrationEvent(false, false)]
     local procedure OnAddNewPurchaseLineOnBeforeOldPurchaseLineModify(var OldPurchaseLine: Record "Purchase Line"; var NewPurchaseLine: Record "Purchase Line"; VATProdPostingGroup: Code[20]; GenProdPostingGroup: Code[20])
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying the original sales line during VAT rate change conversion.
+    /// Allows custom modifications to both old and new sales lines before database update.
+    /// </summary>
+    /// <param name="OldSalesLine">Original sales line being modified during conversion</param>
+    /// <param name="NewSalesLine">New sales line created with updated posting groups</param>
+    /// <param name="VATProdPostingGroup">New VAT product posting group being applied</param>
+    /// <param name="GenProdPostingGroup">New general product posting group being applied</param>
     [IntegrationEvent(false, false)]
     local procedure OnAddNewSalesLineOnBeforeOldSalesLineModify(var OldSalesLine: Record "Sales Line"; var NewSalesLine: Record "Sales Line"; VATProdPostingGroup: Code[20]; GenProdPostingGroup: Code[20])
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnAddNewServiceLineOnBeforeOldServiceLineModify(var OldServiceLine: Record Microsoft.Service.Document."Service Line"; var NewServiceLine: Record Microsoft.Service.Document."Service Line"; VATProdPostingGroup: Code[20]; GenProdPostingGroup: Code[20])
-    begin
-        OnAddNewServiceLineOnBeforeOldServiceLineModify(OldServiceLine, NewServiceLine, VATProdPostingGroup, GenProdPostingGroup);
-    end;
-
-    [Obsolete('Replaced by same event in codeunit Serv. VAT Rate Change Conv.', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAddNewServiceLineOnBeforeOldServiceLineModify(var OldServiceLine: Record Microsoft.Service.Document."Service Line"; var NewServiceLine: Record Microsoft.Service.Document."Service Line"; VATProdPostingGroup: Code[20]; GenProdPostingGroup: Code[20])
-    begin
-    end;
-#endif
-
+    /// <summary>
+    /// Integration event raised after initializing a new sales line from an existing sales line during VAT rate change conversion.
+    /// Allows custom field copying and initialization logic for the new sales line.
+    /// </summary>
+    /// <param name="NewSalesLine">New sales line being initialized with updated posting groups</param>
+    /// <param name="SalesLine">Source sales line providing initial field values</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitNewSalesLineFromSalesLine(var NewSalesLine: Record "Sales Line"; SalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after updating all tables during VAT rate change conversion process.
+    /// Allows custom post-processing logic after all configured tables have been updated.
+    /// </summary>
+    /// <param name="VATRateChangeSetup">VAT rate change setup configuration used for the conversion</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterUpdateTables(var VATRateChangeSetup: Record "VAT Rate Change Setup")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after completing the entire VAT rate change conversion process.
+    /// Allows custom finalization logic and cleanup after all conversion operations.
+    /// </summary>
+    /// <param name="VATRateChangeSetup">VAT rate change setup configuration used for the conversion</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterConvert(var VATRateChangeSetup: Record "VAT Rate Change Setup")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after determining if a line is in scope for VAT rate change conversion.
+    /// Allows custom logic to modify the scope determination result based on additional criteria.
+    /// </summary>
+    /// <param name="GenProdPostingGroup">General product posting group of the line being evaluated</param>
+    /// <param name="VATProdPostingGroup">VAT product posting group of the line being evaluated</param>
+    /// <param name="ConvertGenProdPostingGroup">Whether general product posting group conversion is enabled</param>
+    /// <param name="ConvertVATProdPostingGroup">Whether VAT product posting group conversion is enabled</param>
+    /// <param name="Result">Line scope determination result that can be modified by subscribers</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterLineInScope(GenProdPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; ConvertGenProdPostingGroup: Boolean; ConvertVATProdPostingGroup: Boolean; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after checking if tables are selected for VAT rate change conversion.
+    /// Allows custom logic to modify table selection validation results.
+    /// </summary>
+    /// <param name="VATRateChangeSetup">VAT rate change setup configuration being validated</param>
+    /// <param name="Result">Table selection validation result that can be modified by subscribers</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAreTablesSelected(var VATRateChangeSetup: Record "VAT Rate Change Setup"; var Result: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking if a purchase line is partly shipped during VAT rate change validation.
+    /// Allows custom validation logic for purchase line shipping status.
+    /// </summary>
+    /// <param name="PurchaseLine">Purchase line being validated for partial shipment</param>
+    /// <param name="DescriptionTxt">Error description text that can be modified by subscribers</param>
+    /// <param name="IsHandled">Set to true to skip standard validation processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckPurchaseLinePartlyShipped(var PurchaseLine: Record "Purchase Line"; var DescriptionTxt: Text[250]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before checking if a sales line is partly shipped during VAT rate change validation.
+    /// Allows custom validation logic for sales line shipping status.
+    /// </summary>
+    /// <param name="SalesLine">Sales line being validated for partial shipment</param>
+    /// <param name="DescriptionTxt">Error description text that can be modified by subscribers</param>
+    /// <param name="IsHandled">Set to true to skip standard validation processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckSalesLinePartlyShipped(var SalesLine: Record "Sales Line"; var DescriptionTxt: Text[250]; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before starting the VAT rate change conversion process.
+    /// Allows custom initialization and validation logic before conversion begins.
+    /// </summary>
+    /// <param name="VATRateChangeSetup">VAT rate change setup configuration for the conversion</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeConvert(var VATRateChangeSetup: Record "VAT Rate Change Setup")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before finishing the VAT rate change conversion process.
+    /// Allows custom cleanup and finalization logic before closing the conversion operation.
+    /// </summary>
+    /// <param name="VATRateChangeSetup">VAT rate change setup configuration used for the conversion</param>
+    /// <param name="ProgressWindow">Progress dialog window that can be modified by subscribers</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeFinishConvert(var VATRateChangeSetup: Record "VAT Rate Change Setup"; var ProgressWindow: Dialog)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before running the VAT rate change conversion codeunit.
+    /// Allows custom logic to override or enhance the main conversion process execution.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip standard conversion process execution</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnRun(var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating G/L account records during VAT rate change conversion.
+    /// Allows custom validation and modification logic for G/L account updates.
+    /// </summary>
+    /// <param name="GLAccount">G/L account record being updated</param>
+    /// <param name="VATRateChangeSetup">VAT rate change setup configuration</param>
+    /// <param name="IsHandled">Set to true to skip standard G/L account update processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateGLAccount(var GLAccount: Record "G/L Account"; var VATRateChangeSetup: Record "VAT Rate Change Setup"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating item records during VAT rate change conversion.
+    /// Allows custom validation and modification logic for item updates.
+    /// </summary>
+    /// <param name="Item">Item record being updated</param>
+    /// <param name="VATRateChangeSetup">VAT rate change setup configuration</param>
+    /// <param name="IsHandled">Set to true to skip standard item update processing</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeUpdateItem(var Item: Record Item; var VATRateChangeSetup: Record "VAT Rate Change Setup"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating resource records during VAT rate change conversion.
+    /// Allows custom validation and modification logic for resource updates.
+    /// </summary>
+    /// <param name="Resource">Resource record being updated</param>
+    /// <param name="VATRateChangeSetup">VAT rate change setup configuration</param>
+    /// <param name="IsHandled">Set to true to skip standard resource update processing</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeUpdateResource(var Resource: Record Resource; var VATRateChangeSetup: Record "VAT Rate Change Setup"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating sales documents during VAT rate change conversion.
+    /// Allows custom validation and preprocessing logic for sales document updates.
+    /// </summary>
+    /// <param name="VATRateChangeSetup">VAT rate change setup configuration</param>
+    /// <param name="IsHandled">Set to true to skip standard sales document update processing</param>
+    /// <param name="SalesHeader">Sales header record being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateSales(var VATRateChangeSetup: Record "VAT Rate Change Setup"; var IsHandled: Boolean; var SalesHeader: Record "Sales Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating a specific table during VAT rate change conversion.
+    /// Allows custom logic to override or enhance table-specific update processing.
+    /// </summary>
+    /// <param name="TableID">ID of the table being updated</param>
+    /// <param name="ConvertVATProdPostingGroup">Whether VAT product posting group conversion is enabled</param>
+    /// <param name="ConvertGenProdPostingGroup">Whether general product posting group conversion is enabled</param>
+    /// <param name="IsHandled">Set to true to skip standard table update processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateTable(TableID: Integer; ConvertVATProdPostingGroup: Boolean; ConvertGenProdPostingGroup: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before updating purchase documents during VAT rate change conversion.
+    /// Allows custom validation and preprocessing logic for purchase document updates.
+    /// </summary>
+    /// <param name="VATRateChangeSetup">VAT rate change setup configuration</param>
+    /// <param name="IsHandled">Set to true to skip standard purchase document update processing</param>
+    /// <param name="PurchaseHeader">Purchase header record being processed</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePurchase(var VATRateChangeSetup: Record "VAT Rate Change Setup"; var IsHandled: Boolean; var PurchaseHeader: Record "Purchase Header")
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforeUpdateServPriceAdjDetail(var VATRateChangeSetup: Record "VAT Rate Change Setup"; var IsHandled: Boolean)
-    begin
-        OnBeforeUpdateServPriceAdjDetail(VATRateChangeSetup, IsHandled);
-    end;
-
-    [Obsolete('Replaced by same event in codeunit Serv. VAT Rate Change Conv.', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateServPriceAdjDetail(var VATRateChangeSetup: Record "VAT Rate Change Setup"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN25
-    internal procedure RunOnBeforeUpdateService(var VATRateChangeSetup: Record "VAT Rate Change Setup"; var IsHandled: Boolean)
-    begin
-        OnBeforeUpdateService(VATRateChangeSetup, IsHandled);
-    end;
-
-    [Obsolete('Replaced by same event in codeunit Serv. VAT Rate Change Conv.', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateService(var VATRateChangeSetup: Record "VAT Rate Change Setup"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
+    /// <summary>
+    /// Integration event raised before updating a record during VAT rate change conversion.
+    /// Allows custom validation and preprocessing logic for individual record updates.
+    /// </summary>
+    /// <param name="RecRef">Record reference for the record being updated</param>
+    /// <param name="ConvertVATProdPostingGroup">Whether VAT product posting group conversion is enabled</param>
+    /// <param name="ConvertGenProdPostingGroup">Whether general product posting group conversion is enabled</param>
+    /// <param name="IsHandled">Set to true to skip standard record update processing</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateRec(var RecRef: RecordRef; ConvertVATProdPostingGroup: Boolean; ConvertGenProdPostingGroup: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before starting the conversion process within the main convert operation.
+    /// Allows custom initialization and validation logic at the beginning of the conversion workflow.
+    /// </summary>
+    /// <param name="VATRateChangeSetup">VAT rate change setup configuration for the conversion</param>
     [IntegrationEvent(false, false)]
     local procedure OnConvertOnBeforeStartConvert(var VATRateChangeSetup: Record "VAT Rate Change Setup")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after adding a new sales line during VAT rate change conversion.
+    /// Allows custom post-processing logic for the newly created sales line.
+    /// </summary>
+    /// <param name="OldSalesLine">Original sales line that was split or modified</param>
+    /// <param name="NewSalesLine">New sales line created with updated posting groups</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAddNewSalesLine(var OldSalesLine: Record "Sales Line"; var NewSalesLine: Record "Sales Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after adding a new purchase line during VAT rate change conversion.
+    /// Allows custom post-processing logic for the newly created purchase line.
+    /// </summary>
+    /// <param name="OldPurchaseLine">Original purchase line that was split or modified</param>
+    /// <param name="NewPurchaseLine">New purchase line created with updated posting groups</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAddNewPurchaseLine(var OldPurchaseLine: Record "Purchase Line"; var NewPurchaseLine: Record "Purchase Line")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters on purchase headers during purchase document update.
+    /// Allows custom filter modifications for purchase header processing.
+    /// </summary>
+    /// <param name="PurchaseHeader">Purchase header record with applied filters</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdatePurchaseOnAfterPurchaseHeaderSetFilters(var PurchaseHeader: Record "Purchase Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters on purchase lines during purchase document update.
+    /// Allows custom filter modifications for purchase line processing.
+    /// </summary>
+    /// <param name="PurchaseLine">Purchase line record with applied filters</param>
+    /// <param name="PurchaseHeader">Related purchase header record</param>
     [IntegrationEvent(true, false)]
     local procedure OnUpdatePurchaseOnAfterPurchaseLineSetFilters(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header")
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised before modifying a record reference during VAT rate change conversion.
+    /// Allows custom logic before database modification occurs.
+    /// </summary>
+    /// <param name="RecRef">Record reference being modified</param>
+    /// <param name="GenProdPostingGroupConverted">Whether general product posting group was converted</param>
+    /// <param name="VATProdPostingGroupConverted">Whether VAT product posting group was converted</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateRecOnBeforeRecRefModify(var RecRef: RecordRef; GenProdPostingGroupConverted: Boolean; VATProdPostingGroupConverted: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after modifying a record reference during VAT rate change conversion.
+    /// Allows custom post-processing logic after database modification.
+    /// </summary>
+    /// <param name="RecRef">Record reference that was modified</param>
+    /// <param name="GenProdPostingGroupConverted">Whether general product posting group was converted</param>
+    /// <param name="VATProdPostingGroupConverted">Whether VAT product posting group was converted</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateRecOnAfterRecRefModify(var RecRef: RecordRef; GenProdPostingGroupConverted: Boolean; VATProdPostingGroupConverted: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Integration event raised after setting filters on sales headers during sales document update.
+    /// Allows custom filter modifications for sales header processing.
+    /// </summary>
+    /// <param name="VATRateChangeSetup">VAT rate change setup configuration</param>
+    /// <param name="SalesHeader">Sales header record with applied filters</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateSalesOnAfterSalesHeaderSetFilters(VATRateChangeSetup: Record "VAT Rate Change Setup"; var SalesHeader: Record "Sales Header")
     begin

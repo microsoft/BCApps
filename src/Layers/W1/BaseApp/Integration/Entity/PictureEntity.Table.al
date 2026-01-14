@@ -492,6 +492,7 @@ table 5468 "Picture Entity"
         Employee: Record Employee;
         Vendor: Record Vendor;
         Contact: Record Contact;
+        ItemVariant: Record "Item Variant";
         ParentRecordRef: RecordRef;
         MediaDescription: Text;
         IsHandled: Boolean;
@@ -524,6 +525,11 @@ table 5468 "Picture Entity"
                 begin
                     ParentRecordRef.SetTable(Contact);
                     MediaDescription := StrSubstNo(MediaExtensionWithNumNameTxt, Contact."No.", Contact.Name, GetDefaultExtension());
+                end;
+            Database::"Item Variant":
+                begin
+                    ParentRecordRef.SetTable(ItemVariant);
+                    MediaDescription := StrSubstNo(MediaExtensionWithNumFullNameTxt, ItemVariant."Item No.", ItemVariant.Code, ItemVariant.Description, GetDefaultExtension());
                 end;
             else begin
                 IsHandled := false;

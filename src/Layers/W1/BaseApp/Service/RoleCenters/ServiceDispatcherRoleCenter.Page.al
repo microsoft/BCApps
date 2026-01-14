@@ -6,6 +6,7 @@ namespace Microsoft.Service.RoleCenters;
 
 using Microsoft.EServices.EDocument;
 using Microsoft.Foundation.Navigate;
+using Microsoft.Foundation.Task;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Requisition;
@@ -23,7 +24,6 @@ using Microsoft.Service.Reports;
 using System.Automation;
 using System.Email;
 using System.Integration.PowerBI;
-using Microsoft.Foundation.Task;
 using System.Threading;
 using System.Visualization;
 

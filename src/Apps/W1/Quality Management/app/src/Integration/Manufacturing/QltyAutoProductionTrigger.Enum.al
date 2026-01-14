@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Integration.Manufacturing;
 
 /// <summary>
-/// Helps determine the behavior of when to create tests with production output.
+/// Helps determine the behavior of when to create inspections with production output.
 /// </summary>
 enum 20442 "Qlty. Auto. Production Trigger"
 {

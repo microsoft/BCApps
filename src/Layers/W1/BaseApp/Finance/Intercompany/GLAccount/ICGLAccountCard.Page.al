@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Intercompany.GLAccount;
 
+/// <summary>
+/// Detail card interface for creating and editing individual intercompany G/L accounts.
+/// Provides comprehensive account configuration including mapping and account properties.
+/// </summary>
 page 606 "IC G/L Account Card"
 {
     Caption = 'Intercompany G/L Account Card';
@@ -77,7 +81,7 @@ page 606 "IC G/L Account Card"
                     ApplicationArea = Intercompany;
                     Caption = '&List';
                     Image = OpportunitiesList;
-                    RunObject = Page "IC G/L Account List";                    
+                    RunObject = Page "IC G/L Account List";
                     ToolTip = 'View the list of intercompany G/L accounts.';
                 }
             }

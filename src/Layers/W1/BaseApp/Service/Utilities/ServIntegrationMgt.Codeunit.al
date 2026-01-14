@@ -6,10 +6,14 @@ namespace Microsoft.Utilities;
 
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Calendar;
+using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Integration.D365Sales;
-using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Availability;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Projects.Resources.Analysis;
+using Microsoft.Projects.Resources.Resource;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
@@ -22,10 +26,6 @@ using Microsoft.Service.Item;
 using Microsoft.Service.Maintenance;
 using Microsoft.Service.Resources;
 using Microsoft.Service.Setup;
-using Microsoft.Projects.Resources.Analysis;
-using Microsoft.Foundation.Enums;
-using Microsoft.Inventory.Journal;
-using Microsoft.Projects.Resources.Resource;
 using System.DataAdministration;
 using System.Email;
 

@@ -27,7 +27,7 @@ page 700 "Error Messages"
                 }
                 field(Description; Rec."Message")
                 {
-                    ApplicationArea = Invoicing, Basic, Suite;
+                    ApplicationArea = Basic, Suite;
                     DrillDown = true;
                     Enabled = EnableOpenRelatedEntity;
                     StyleExpr = StyleText;
@@ -55,7 +55,7 @@ page 700 "Error Messages"
                 field("Support Url"; Rec."Support Url")
                 {
                     Caption = 'Support URL';
-                    ApplicationArea = Invoicing, Basic, Suite;
+                    ApplicationArea = Basic, Suite;
                     ExtendedDatatype = URL;
                     ToolTip = 'Specifies the URL of an external web site that offers additional support.';
                 }
@@ -124,4 +124,3 @@ page 700 "Error Messages"
         EnableOpenRelatedEntity := RecID.TableNo <> 0;
     end;
 }
-

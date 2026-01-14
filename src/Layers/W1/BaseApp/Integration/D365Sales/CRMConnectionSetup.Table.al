@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -550,17 +550,6 @@ table 5330 "CRM Connection Setup"
         exit(not GetSecretPassword().IsEmpty());
     end;
 
-#if not CLEAN25
-    [Obsolete('Use SetPassword(PasswordText: SecretText) instead.', '25.0')]
-    [NonDebuggable]
-    procedure SetPassword(PasswordText: Text)
-    var
-        SecretPasswordText: SecretText;
-    begin
-        SecretPasswordText := PasswordText;
-        SetPassword(SecretPasswordText);
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure SetPassword(PasswordText: SecretText)
@@ -613,17 +602,6 @@ table 5330 "CRM Connection Setup"
         UnregisterTableConnection(TABLECONNECTIONTYPE::CRM, ConnectionName);
     end;
 
-#if not CLEAN25
-    [Obsolete('Use the GetSecretConnectionStringWithCredentials procedure instead.', '25.0')]
-    [NonDebuggable]
-    procedure GetConnectionStringWithCredentials(): Text
-    var
-        ConnectionString: SecretText;
-    begin
-        ConnectionString := GetSecretConnectionStringWithCredentials();
-        exit(ConnectionString.Unwrap());
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure GetSecretConnectionStringWithCredentials() ConnectionString: SecretText
@@ -677,14 +655,6 @@ table 5330 "CRM Connection Setup"
             ShowError(UserCRMSetupTxt, StrSubstNo(CannotResolveUserFromConnectionSetupErr, CRMProductName.SHORT()));
     end;
 
-#if not CLEAN25
-    [Obsolete('Use the procedure GetSecretPassword instead.', '25.0')]
-    [NonDebuggable]
-    procedure GetPassword(): Text
-    begin
-        exit(GetSecretPassword().Unwrap());
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure GetSecretPassword(): SecretText
@@ -868,17 +838,6 @@ table 5330 "CRM Connection Setup"
         exit(false);
     end;
 
-#if not CLEAN25
-    [Obsolete('Use the procedure that receives PasswordText as SecretText instead.', '25.0')]
-    [NonDebuggable]
-    procedure UpdateFromWizard(var SourceCRMConnectionSetup: Record "CRM Connection Setup"; PasswordText: Text)
-    var
-        SecretPasswordText: SecretText;
-    begin
-        SecretPasswordText := PasswordText;
-        UpdateFromWizard(SourceCRMConnectionSetup, SecretPasswordText);
-    end;
-#endif
 
     procedure UpdateFromWizard(var SourceCRMConnectionSetup: Record "CRM Connection Setup"; PasswordText: SecretText)
     begin

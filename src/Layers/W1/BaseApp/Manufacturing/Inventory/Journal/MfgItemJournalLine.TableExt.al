@@ -5,17 +5,17 @@
 namespace Microsoft.Inventory.Journal;
 
 using Microsoft.CRM.Team;
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Posting;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
-using Microsoft.Foundation.UOM;
-using Microsoft.Warehouse.Request;
 using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Inventory.Location;
+using Microsoft.Warehouse.Request;
 
 tableextension 99000758 "Mfg. Item Journal Line" extends "Item Journal Line"
 {

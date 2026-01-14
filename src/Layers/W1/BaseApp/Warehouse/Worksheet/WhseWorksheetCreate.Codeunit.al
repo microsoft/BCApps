@@ -459,7 +459,7 @@ codeunit 7311 "Whse. Worksheet-Create"
 
         WhseWkshLine."Qty. to Handle" := TypeHelper.Minimum(AvailQtyToPickBase, WhseWkshLine."Qty. Outstanding");
         WhseWkshLine."Qty. to Handle (Base)" := WhseWkshLine.CalcBaseQty(WhseWkshLine."Qty. to Handle");
-        WhseWkshLine.CalcReservedNotFromILEQty(AvailQtyToPickBase, WhseWkshLine."Qty. to Handle", WhseWkshLine."Qty. to Handle (Base)");
+        CheckReservedBasedQuantityUnitOfMeasure(WhseWkshLine, AvailQtyToPickBase);
     end;
 
     procedure AvailableQtyToPickBase(WhseWkshLine: Record "Whse. Worksheet Line"; QtyBase: Decimal): Decimal
@@ -469,6 +469,14 @@ codeunit 7311 "Whse. Worksheet-Create"
         if WhseWkshLine."Qty. per Unit of Measure" <> 0 then
             exit(Round(QtyBase / WhseWkshLine."Qty. per Unit of Measure", UOMMgt.QtyRndPrecision()));
         exit(0);
+    end;
+
+    local procedure CheckReservedBasedQuantityUnitOfMeasure(var WhseWkshLine: Record "Whse. Worksheet Line"; AvailableQuantityToPickBase: Decimal)
+    begin
+        if WhseWkshLine."Qty. per Unit of Measure" <> 0 then
+            AvailableQuantityToPickBase := WhseWkshLine.CalcBaseQty(AvailableQuantityToPickBase);
+
+        WhseWkshLine.CalcReservedNotFromILEQty(AvailableQuantityToPickBase, WhseWkshLine."Qty. to Handle", WhseWkshLine."Qty. to Handle (Base)");
     end;
 
     [IntegrationEvent(false, false)]

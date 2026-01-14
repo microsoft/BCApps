@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Address;
 
-using Microsoft.Service.Document;
 using Microsoft.Service.Contract;
+using Microsoft.Service.Document;
 using Microsoft.Service.History;
 
 codeunit 6001 "Service Format Address"
@@ -19,9 +19,6 @@ codeunit 6001 "Service Format Address"
     begin
         IsHandled := false;
         OnBeforeServiceOrderSellto(AddrArray, ServHeader, IsHandled);
-#if not CLEAN25
-        FormatAddress.RunOnBeforeServiceOrderSellto(AddrArray, ServHeader, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -39,9 +36,6 @@ codeunit 6001 "Service Format Address"
     begin
         IsHandled := false;
         OnBeforeServiceOrderShipto(AddrArray, ServHeader, IsHandled);
-#if not CLEAN25
-        FormatAddress.RunOnBeforeServiceOrderShipto(AddrArray, ServHeader, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -59,9 +53,6 @@ codeunit 6001 "Service Format Address"
     begin
         IsHandled := false;
         OnBeforeServContractSellto(AddrArray, ServContract, IsHandled);
-#if not CLEAN25
-        FormatAddress.RunOnBeforeServContractSellto(AddrArray, ServContract, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -84,9 +75,6 @@ codeunit 6001 "Service Format Address"
 
         IsHandled := false;
         OnBeforeServContractShipTo(AddrArray, ServiceContractHeader, IsHandled);
-#if not CLEAN25
-        FormatAddress.RunOnBeforeServContractShipTo(AddrArray, ServiceContractHeader, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -104,9 +92,6 @@ codeunit 6001 "Service Format Address"
     begin
         IsHandled := false;
         OnBeforeServiceInvBillTo(AddrArray, ServiceInvHeader, IsHandled);
-#if not CLEAN25
-        FormatAddress.RunOnBeforeServiceInvBillTo(AddrArray, ServiceInvHeader, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -125,9 +110,6 @@ codeunit 6001 "Service Format Address"
     begin
         IsHandled := false;
         OnBeforeServiceInvShipTo(AddrArray, CustAddr, ServiceInvHeader, IsHandled, Result);
-#if not CLEAN25
-        FormatAddress.RunOnBeforeServiceInvShipTo(AddrArray, CustAddr, ServiceInvHeader, IsHandled, Result);
-#endif
         if IsHandled then
             exit(Result);
 
@@ -152,9 +134,6 @@ codeunit 6001 "Service Format Address"
     begin
         IsHandled := false;
         OnBeforeServiceShptShipTo(AddrArray, ServiceShptHeader, IsHandled);
-#if not CLEAN25
-        FormatAddress.RunOnBeforeServiceShptShipTo(AddrArray, ServiceShptHeader, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -172,9 +151,6 @@ codeunit 6001 "Service Format Address"
     begin
         IsHandled := false;
         OnBeforeServiceShptSellTo(AddrArray, ServiceShptHeader, IsHandled);
-#if not CLEAN25
-        FormatAddress.RunOnBeforeServiceShptSellTo(AddrArray, ServiceShptHeader, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -193,9 +169,6 @@ codeunit 6001 "Service Format Address"
     begin
         IsHandled := false;
         OnBeforeServiceShptBillTo(AddrArray, ShipToAddr, ServiceShptHeader, IsHandled, Result);
-#if not CLEAN25
-        FormatAddress.RunOnBeforeServiceShptBillTo(AddrArray, ShipToAddr, ServiceShptHeader, IsHandled, Result);
-#endif
         if IsHandled then
             exit(Result);
 
@@ -220,9 +193,6 @@ codeunit 6001 "Service Format Address"
     begin
         IsHandled := false;
         OnBeforeServiceCrMemoBillTo(AddrArray, ServiceCrMemoHeader, IsHandled);
-#if not CLEAN25
-        FormatAddress.RunOnBeforeServiceCrMemoBillTo(AddrArray, ServiceCrMemoHeader, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -241,9 +211,6 @@ codeunit 6001 "Service Format Address"
     begin
         IsHandled := false;
         OnBeforeServiceCrMemoShipTo(AddrArray, CustAddr, ServiceCrMemoHeader, IsHandled, Result);
-#if not CLEAN25
-        FormatAddress.RunOnBeforeServiceCrMemoShipTo(AddrArray, CustAddr, ServiceCrMemoHeader, IsHandled, Result);
-#endif
         if IsHandled then
             exit(Result);
 
@@ -268,9 +235,6 @@ codeunit 6001 "Service Format Address"
     begin
         IsHandled := false;
         OnBeforeServiceHeaderSellTo(AddrArray, ServiceHeader, IsHandled);
-#if not CLEAN25
-        FormatAddress.RunOnBeforeServiceHeaderSellTo(AddrArray, ServiceHeader, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -288,9 +252,6 @@ codeunit 6001 "Service Format Address"
     begin
         IsHandled := false;
         OnBeforeServiceHeaderBillTo(AddrArray, ServiceHeader, IsHandled);
-#if not CLEAN25
-        FormatAddress.RunOnBeforeServiceHeaderBillTo(AddrArray, ServiceHeader, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -308,9 +269,6 @@ codeunit 6001 "Service Format Address"
     begin
         IsHandled := false;
         OnBeforeServiceHeaderShipTo(AddrArray, ServiceHeader, IsHandled);
-#if not CLEAN25
-        FormatAddress.RunOnBeforeServiceHeaderShipTo(AddrArray, ServiceHeader, IsHandled);
-#endif
         if IsHandled then
             exit;
 

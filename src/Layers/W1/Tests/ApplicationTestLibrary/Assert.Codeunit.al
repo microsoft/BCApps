@@ -1,3 +1,6 @@
+/// <summary>
+/// Provides assertion functions for verifying test conditions and comparing expected versus actual values in test scenarios.
+/// </summary>
 codeunit 130000 Assert
 {
 
@@ -242,7 +245,6 @@ codeunit 130000 Assert
         TableCaption := AllObjWithCaption."Object Caption";
 
         IsCantFindError := true;
-        // TODO Return: IsCantFindError := StrPos(LastErrorText, CantFindTok) > 0;
         if not IsCantFindError then
             Error(ErrorMessageIsNotMatchingExpectedErrorFormatErr, LastErrorText);
 
@@ -326,14 +328,11 @@ codeunit 130000 Assert
                 Error(ExpectedTestFieldFailedErr, TableCaptionTested, LastErrorText);
 
         IsTestFieldError := true;
-        // TODO Return: IsTestFieldError := MatchesTestFieldMessageFormat(LastErrorText);
-        // IsTestFieldError := MatchesTestFieldMessageFormat(ExpectedTestFieldFailedErr);
 
         if not IsTestFieldError then
             Error(ErrorMessageIsNotMatchingExpectedErrorFormatErr, LastErrorText);
     end;
 
-    // TODO: Return to local
     internal procedure MatchesTestFieldMessageFormat(ErrorMessage: Text): Boolean
     begin
         if (StrPos(ErrorMessage, TestFieldFormat1Tok) > 0) and (StrPos(ErrorMessage, TestFieldFormat1Part2Tok) > 0) then

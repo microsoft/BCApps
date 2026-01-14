@@ -2472,158 +2472,176 @@
     </ReportSection>
   </ReportSections>
   <ReportParameters>
-    <ReportParameter Name="DataRetrieved">
+    <ReportParameter Name="DataRetrievedLbl">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>DataRetrieved</Value>
+          <Value>DataRetrievedLbl</Value>
         </Values>
       </DefaultValue>
-      <Prompt>DataRetrieved</Prompt>
+      <Prompt>DataRetrievedLbl</Prompt>
     </ReportParameter>
-    <ReportParameter Name="InventoryCustomerSales">
+    <ReportParameter Name="InventoryCustomerSalesLbl">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>InventoryCustomerSales</Value>
+          <Value>InventoryCustomerSalesLbl</Value>
         </Values>
       </DefaultValue>
-      <Prompt>InventoryCustomerSales</Prompt>
+      <Prompt>InventoryCustomerSalesLbl</Prompt>
     </ReportParameter>
-    <ReportParameter Name="InventoryCustomerSalesPrint">
+    <ReportParameter Name="InvCustomerSalesPrintLbl">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>InventoryCustomerSalesPrint</Value>
+          <Value>InvCustomerSalesPrintLbl</Value>
         </Values>
       </DefaultValue>
-      <Prompt>InventoryCustomerSalesPrint</Prompt>
+      <Prompt>InvCustomerSalesPrintLbl</Prompt>
     </ReportParameter>
-    <ReportParameter Name="InvCustomerSalesAnalysis">
+    <ReportParameter Name="InvCustomerSalesAnalysisLbl">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>InvCustomerSalesAnalysis</Value>
+          <Value>InvCustomerSalesAnalysisLbl</Value>
         </Values>
       </DefaultValue>
-      <Prompt>InvCustomerSalesAnalysis</Prompt>
+      <Prompt>InvCustomerSalesAnalysisLbl</Prompt>
     </ReportParameter>
-    <ReportParameter Name="PostingDateFilterLabel">
+    <ReportParameter Name="CustomerNoLbl">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>PostingDateFilterLabel</Value>
+          <Value>CustomerNoLbl</Value>
         </Values>
       </DefaultValue>
-      <Prompt>PostingDateFilterLabel</Prompt>
+      <Prompt>CustomerNoLbl</Prompt>
     </ReportParameter>
-    <ReportParameter Name="AboutTheReportLabel">
+    <ReportParameter Name="CustNameLbl">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>AboutTheReportLabel</Value>
+          <Value>CustNameLbl</Value>
         </Values>
       </DefaultValue>
-      <Prompt>AboutTheReportLabel</Prompt>
+      <Prompt>CustNameLbl</Prompt>
     </ReportParameter>
-    <ReportParameter Name="EnvironmentLabel">
+    <ReportParameter Name="InvQtyLbl">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>EnvironmentLabel</Value>
+          <Value>InvQtyLbl</Value>
         </Values>
       </DefaultValue>
-      <Prompt>EnvironmentLabel</Prompt>
+      <Prompt>InvQtyLbl</Prompt>
     </ReportParameter>
-    <ReportParameter Name="CompanyLabel">
+    <ReportParameter Name="AmountLbl">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>CompanyLabel</Value>
+          <Value>AmountLbl</Value>
         </Values>
       </DefaultValue>
-      <Prompt>CompanyLabel</Prompt>
+      <Prompt>AmountLbl</Prompt>
     </ReportParameter>
-    <ReportParameter Name="UserLabel">
+    <ReportParameter Name="DiscountAmtLbl">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>UserLabel</Value>
+          <Value>DiscountAmtLbl</Value>
         </Values>
       </DefaultValue>
-      <Prompt>UserLabel</Prompt>
+      <Prompt>DiscountAmtLbl</Prompt>
     </ReportParameter>
-    <ReportParameter Name="RunOnLabel">
+    <ReportParameter Name="ProfitLbl">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>RunOnLabel</Value>
+          <Value>ProfitLbl</Value>
         </Values>
       </DefaultValue>
-      <Prompt>RunOnLabel</Prompt>
+      <Prompt>ProfitLbl</Prompt>
     </ReportParameter>
-    <ReportParameter Name="ReportNameLabel">
+    <ReportParameter Name="ProfitPctLbl">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>ReportNameLabel</Value>
+          <Value>ProfitPctLbl</Value>
         </Values>
       </DefaultValue>
-      <Prompt>ReportNameLabel</Prompt>
+      <Prompt>ProfitPctLbl</Prompt>
     </ReportParameter>
-    <ReportParameter Name="DocumentationLabel">
+    <ReportParameter Name="PeriodLbl">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>DocumentationLabel</Value>
+          <Value>PeriodLbl</Value>
         </Values>
       </DefaultValue>
-      <Prompt>DocumentationLabel</Prompt>
+      <Prompt>PeriodLbl</Prompt>
     </ReportParameter>
-    <ReportParameter Name="CustNameLabel">
+    <ReportParameter Name="AboutTheReportLbl">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>CustNameLabel</Value>
+          <Value>AboutTheReportLbl</Value>
         </Values>
       </DefaultValue>
-      <Prompt>CustNameLabel</Prompt>
+      <Prompt>AboutTheReportLbl</Prompt>
     </ReportParameter>
-    <ReportParameter Name="InvQtyLabel">
+    <ReportParameter Name="EnvironmentLbl">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>InvQtyLabel</Value>
+          <Value>EnvironmentLbl</Value>
         </Values>
       </DefaultValue>
-      <Prompt>InvQtyLabel</Prompt>
+      <Prompt>EnvironmentLbl</Prompt>
     </ReportParameter>
-    <ReportParameter Name="DiscountAmtLabel">
+    <ReportParameter Name="CompanyLbl">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>DiscountAmtLabel</Value>
+          <Value>CompanyLbl</Value>
         </Values>
       </DefaultValue>
-      <Prompt>DiscountAmtLabel</Prompt>
+      <Prompt>CompanyLbl</Prompt>
     </ReportParameter>
-    <ReportParameter Name="ProfitLabel">
+    <ReportParameter Name="UserLbl">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>ProfitLabel</Value>
+          <Value>UserLbl</Value>
         </Values>
       </DefaultValue>
-      <Prompt>ProfitLabel</Prompt>
+      <Prompt>UserLbl</Prompt>
     </ReportParameter>
-    <ReportParameter Name="ProfitPctLabel">
+    <ReportParameter Name="RunOnLbl">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>ProfitPctLabel</Value>
+          <Value>RunOnLbl</Value>
         </Values>
       </DefaultValue>
-      <Prompt>ProfitPctLabel</Prompt>
+      <Prompt>RunOnLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ReportNameLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ReportNameLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ReportNameLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="DocumentationLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>DocumentationLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>DocumentationLbl</Prompt>
     </ReportParameter>
     <ReportParameter Name="ReportTitle">
       <DataType>String</DataType>
@@ -2773,171 +2791,181 @@
   <ReportParametersLayout>
     <GridLayoutDefinition>
       <NumberOfColumns>1</NumberOfColumns>
-      <NumberOfRows>33</NumberOfRows>
+      <NumberOfRows>35</NumberOfRows>
       <CellDefinitions>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>0</RowIndex>
-          <ParameterName>DataRetrieved</ParameterName>
+          <ParameterName>DataRetrievedLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>1</RowIndex>
-          <ParameterName>InventoryCustomerSales</ParameterName>
+          <ParameterName>InventoryCustomerSalesLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>2</RowIndex>
-          <ParameterName>InventoryCustomerSalesPrint</ParameterName>
+          <ParameterName>InvCustomerSalesPrintLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>3</RowIndex>
-          <ParameterName>InvCustomerSalesAnalysis</ParameterName>
+          <ParameterName>InvCustomerSalesAnalysisLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>4</RowIndex>
-          <ParameterName>PostingDateFilterLabel</ParameterName>
+          <ParameterName>CustomerNoLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>5</RowIndex>
-          <ParameterName>AboutTheReportLabel</ParameterName>
+          <ParameterName>CustNameLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>6</RowIndex>
-          <ParameterName>EnvironmentLabel</ParameterName>
+          <ParameterName>InvQtyLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>7</RowIndex>
-          <ParameterName>CompanyLabel</ParameterName>
+          <ParameterName>AmountLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>8</RowIndex>
-          <ParameterName>UserLabel</ParameterName>
+          <ParameterName>DiscountAmtLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>9</RowIndex>
-          <ParameterName>RunOnLabel</ParameterName>
+          <ParameterName>ProfitLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>10</RowIndex>
-          <ParameterName>ReportNameLabel</ParameterName>
+          <ParameterName>ProfitPctLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>11</RowIndex>
-          <ParameterName>DocumentationLabel</ParameterName>
+          <ParameterName>PeriodLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>12</RowIndex>
-          <ParameterName>CustNameLabel</ParameterName>
+          <ParameterName>AboutTheReportLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>13</RowIndex>
-          <ParameterName>InvQtyLabel</ParameterName>
+          <ParameterName>EnvironmentLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>14</RowIndex>
-          <ParameterName>DiscountAmtLabel</ParameterName>
+          <ParameterName>CompanyLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>15</RowIndex>
-          <ParameterName>ProfitLabel</ParameterName>
+          <ParameterName>UserLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>16</RowIndex>
-          <ParameterName>ProfitPctLabel</ParameterName>
+          <ParameterName>RunOnLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>17</RowIndex>
-          <ParameterName>ReportTitle</ParameterName>
+          <ParameterName>ReportNameLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>18</RowIndex>
-          <ParameterName>Page</ParameterName>
+          <ParameterName>DocumentationLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>19</RowIndex>
-          <ParameterName>CustomerNo</ParameterName>
+          <ParameterName>ReportTitle</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>20</RowIndex>
-          <ParameterName>Name</ParameterName>
+          <ParameterName>Page</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>21</RowIndex>
-          <ParameterName>InvoicedQty</ParameterName>
+          <ParameterName>CustomerNo</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>22</RowIndex>
-          <ParameterName>Amount</ParameterName>
+          <ParameterName>Name</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>23</RowIndex>
-          <ParameterName>DiscountAmt</ParameterName>
+          <ParameterName>InvoicedQty</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>24</RowIndex>
-          <ParameterName>Profit</ParameterName>
+          <ParameterName>Amount</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>25</RowIndex>
-          <ParameterName>ProfitPct</ParameterName>
+          <ParameterName>DiscountAmt</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>26</RowIndex>
-          <ParameterName>Total</ParameterName>
+          <ParameterName>Profit</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>27</RowIndex>
-          <ParameterName>No_ItemCaption</ParameterName>
+          <ParameterName>ProfitPct</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>28</RowIndex>
-          <ParameterName>Description_ItemCaption</ParameterName>
+          <ParameterName>Total</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>29</RowIndex>
-          <ParameterName>BaseUnitofMeasure_ItemCaption</ParameterName>
+          <ParameterName>No_ItemCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>30</RowIndex>
-          <ParameterName>SourceNo_ItemLedgEntryCaption</ParameterName>
+          <ParameterName>Description_ItemCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>31</RowIndex>
-          <ParameterName>SalesAmtActual_ItemLedgEntryCaption</ParameterName>
+          <ParameterName>BaseUnitofMeasure_ItemCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>32</RowIndex>
+          <ParameterName>SourceNo_ItemLedgEntryCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>33</RowIndex>
+          <ParameterName>SalesAmtActual_ItemLedgEntryCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>34</RowIndex>
           <ParameterName>Profit_ItemLedgEntryCaption</ParameterName>
         </CellDefinition>
       </CellDefinitions>
@@ -2994,6 +3022,18 @@ End Function</Code>
   <DataSets>
     <DataSet Name="DataSet_Result">
       <Fields>
+        <Field Name="CompanyName">
+          <DataField>CompanyName</DataField>
+        </Field>
+        <Field Name="PeriodText">
+          <DataField>PeriodText</DataField>
+        </Field>
+        <Field Name="ItemFilter">
+          <DataField>ItemFilter</DataField>
+        </Field>
+        <Field Name="ItemLedgEntryFilter">
+          <DataField>ItemLedgEntryFilter</DataField>
+        </Field>
         <Field Name="No_Item">
           <DataField>No_Item</DataField>
         </Field>
@@ -3039,50 +3079,38 @@ End Function</Code>
         <Field Name="ProfitPct_ItemLedgEntryFormat">
           <DataField>ProfitPct_ItemLedgEntryFormat</DataField>
         </Field>
-        <Field Name="Subtotals_InvQty">
-          <DataField>Subtotals_InvQty</DataField>
+        <Field Name="SubTotals_InvQty">
+          <DataField>SubTotals_InvQty</DataField>
         </Field>
-        <Field Name="Subtotals_InvQtyFormat">
-          <DataField>Subtotals_InvQtyFormat</DataField>
+        <Field Name="SubTotals_InvQtyFormat">
+          <DataField>SubTotals_InvQtyFormat</DataField>
         </Field>
-        <Field Name="Subtotals_SalesAmtActual">
-          <DataField>Subtotals_SalesAmtActual</DataField>
+        <Field Name="SubTotals_SalesAmtActual">
+          <DataField>SubTotals_SalesAmtActual</DataField>
         </Field>
-        <Field Name="Subtotals_SalesAmtActualFormat">
-          <DataField>Subtotals_SalesAmtActualFormat</DataField>
+        <Field Name="SubTotals_SalesAmtActualFormat">
+          <DataField>SubTotals_SalesAmtActualFormat</DataField>
         </Field>
-        <Field Name="Subtotals_DiscountAmount">
-          <DataField>Subtotals_DiscountAmount</DataField>
+        <Field Name="SubTotals_DiscountAmount">
+          <DataField>SubTotals_DiscountAmount</DataField>
         </Field>
-        <Field Name="Subtotals_DiscountAmountFormat">
-          <DataField>Subtotals_DiscountAmountFormat</DataField>
+        <Field Name="SubTotals_DiscountAmountFormat">
+          <DataField>SubTotals_DiscountAmountFormat</DataField>
         </Field>
-        <Field Name="Subtotals_Profit">
-          <DataField>Subtotals_Profit</DataField>
+        <Field Name="SubTotals_Profit">
+          <DataField>SubTotals_Profit</DataField>
         </Field>
-        <Field Name="Subtotals_ProfitFormat">
-          <DataField>Subtotals_ProfitFormat</DataField>
+        <Field Name="SubTotals_ProfitFormat">
+          <DataField>SubTotals_ProfitFormat</DataField>
         </Field>
-        <Field Name="Subtotals_ProfitPct">
-          <DataField>Subtotals_ProfitPct</DataField>
+        <Field Name="SubTotals_ProfitPct">
+          <DataField>SubTotals_ProfitPct</DataField>
         </Field>
-        <Field Name="Subtotals_ProfitPctFormat">
-          <DataField>Subtotals_ProfitPctFormat</DataField>
+        <Field Name="SubTotals_ProfitPctFormat">
+          <DataField>SubTotals_ProfitPctFormat</DataField>
         </Field>
-        <Field Name="Subtotals_Description">
-          <DataField>Subtotals_Description</DataField>
-        </Field>
-        <Field Name="CompanyName">
-          <DataField>CompanyName</DataField>
-        </Field>
-        <Field Name="PeriodText">
-          <DataField>PeriodText</DataField>
-        </Field>
-        <Field Name="ItemFilter">
-          <DataField>ItemFilter</DataField>
-        </Field>
-        <Field Name="ItemLedgEntryFilter">
-          <DataField>ItemLedgEntryFilter</DataField>
+        <Field Name="SubTotals_Description">
+          <DataField>SubTotals_Description</DataField>
         </Field>
         <Field Name="Totals_SalesAmtActual">
           <DataField>Totals_SalesAmtActual</DataField>

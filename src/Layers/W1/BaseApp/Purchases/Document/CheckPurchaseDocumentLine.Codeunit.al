@@ -49,9 +49,6 @@ codeunit 9066 "Check Purchase Document Line"
     begin
         IsHandled := false;
         OnBeforeCheckPurchaseLines(Item, CurrentFieldNo, CheckFieldNo, CheckFieldCaption, IsHandled);
-#if not CLEAN25
-        Item.RunOnBeforeCheckPurchLine(Item, CurrentFieldNo, CheckFieldNo, CheckFieldCaption, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -59,9 +56,6 @@ codeunit 9066 "Check Purchase Document Line"
         PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
         PurchaseLine.SetRange("No.", Item."No.");
         OnCheckPurchLineOnAfterPurchLineSetFilters(Item, PurchaseLine, CurrentFieldNo, CheckFieldNo, CheckFieldCaption);
-#if not CLEAN25
-        Item.RunOnCheckPurchLineOnAfterPurchLineSetFilters(Item, PurchaseLine, CurrentFieldNo, CheckFieldNo, CheckFieldCaption);
-#endif
         PurchaseLine.SetLoadFields("Document Type");
         if PurchaseLine.FindFirst() then begin
             if CurrentFieldNo = 0 then

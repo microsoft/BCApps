@@ -10,16 +10,17 @@ codeunit 136321 "Job Archiving"
     end;
 
     var
+        Assert: Codeunit Assert;
         JobArchiveManagement: Codeunit "Job Archive Management";
-        LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        LibrarySetupStorage: Codeunit "Library - Setup Storage";
-        LibraryVariableStorage: Codeunit "Library - Variable Storage";
-        LibraryJob: Codeunit "Library - Job";
         JobCreateInvoice: Codeunit "Job Create-Invoice";
-        LibrarySales: Codeunit "Library - Sales";
         LibraryDimension: Codeunit "Library - Dimension";
         LibraryERM: Codeunit "Library - ERM";
-        Assert: Codeunit Assert;
+        LibraryJob: Codeunit "Library - Job";
+        LibraryRandom: Codeunit "Library - Random";
+        LibrarySales: Codeunit "Library - Sales";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         ArchiveConfirmMsg: Label 'Archive %1 no.: %2?';
         JobArchiveMsg: Label 'Project %1 has been archived.', Comment = '%1 = Project No.';
         JobRestoredMsg: Label '%1 %2 has been restored.', Comment = '%1 = Project Table Caption %2 = Project No.';
@@ -518,6 +519,83 @@ codeunit 136321 "Job Archiving"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    procedure VerifyJobArchiveIsRenamedWhenJobNoIsChanged()
+    var
+        Job: Record Job;
+        JobArchive: Record "Job Archive";
+        JobCommentLine: Record "Comment Line";
+        JobCommentLineArchive: Record "Comment Line";
+        JobPlanningLine: Record "Job Planning Line";
+        JobPlanningLineArchive: Record "Job Planning Line Archive";
+        JobTask: Record "Job Task";
+        JobTaskArchive: Record "Job Task Archive";
+        NewJobNo, OldJobNo : Code[20];
+    begin
+        // [SCENARIO 612600] Verify that Job Archive records are renamed when Job No. is changed manually
+        Initialize();
+
+        // [GIVEN] Set Always Archive
+        SetArchiveOption('Always');
+
+        // [GIVEN] Create Job and Job Task
+        CreateJobAndJobTask(Job, JobTask);
+
+        // [GIVEN] Create Job Comment Line.
+        CreateSimpleJobCommentLine(JobCommentLine, Job);
+
+        // [GIVEN] Create Job Planning Line
+        CreateSimpleJobPlanningLine(JobPlanningLine, JobTask);
+
+        // [GIVEN] Change Job Status to create archive version 1
+        Job.Validate("Status", Job."Status"::Planning);
+        Job.Modify(true);
+
+        // [GIVEN] Change Job Status again to create archive version 2
+        Job.Validate("Status", Job."Status"::Quote);
+        Job.Modify(true);
+
+        // [GIVEN] Store the old Job No.
+        OldJobNo := Job."No.";
+
+        // [WHEN] Rename Job No.
+        NewJobNo := LibraryRandom.RandText(15);
+        Job.Rename(NewJobNo);
+
+        // [THEN] Verify Job Archive records are renamed
+        JobArchive.SetRange("No.", NewJobNo);
+        Assert.AreEqual(2, JobArchive.Count, 'Job Archive should have 2 versions with new Job No.');
+
+        // [THEN] Verify old Job Archive records no longer exist
+        JobArchive.SetRange("No.", OldJobNo);
+        Assert.AreEqual(0, JobArchive.Count, 'Job Archive should not have any records with old Job No.');
+
+        // [THEN] Verify Job Task Archive records are renamed
+        JobTaskArchive.SetRange("Job No.", NewJobNo);
+        Assert.IsTrue(JobTaskArchive.FindFirst(), 'Job Task Archive should have records with new Job No.');
+
+        JobTaskArchive.SetRange("Job No.", OldJobNo);
+        Assert.AreEqual(0, JobTaskArchive.Count, 'Job Task Archive should not have any records with old Job No.');
+
+        // [THEN] Verify Job Planning Line Archive records are renamed
+        JobPlanningLineArchive.SetRange("Job No.", NewJobNo);
+        Assert.IsTrue(JobPlanningLineArchive.FindFirst(), 'Job Planning Line Archive should have records with new Job No.');
+
+        JobPlanningLineArchive.SetRange("Job No.", OldJobNo);
+        Assert.AreEqual(0, JobPlanningLineArchive.Count, 'Job Planning Line Archive should not have any records with old Job No.');
+
+        // [THEN] Verify Job Comment Line Archive records are renamed
+        JobCommentLineArchive.SetRange("No.", NewJobNo);
+        Assert.IsTrue(JobCommentLineArchive.FindFirst(), 'Job Comment Line Archive should have records with new Job No.');
+
+        JobCommentLineArchive.SetRange("No.", OldJobNo);
+        Assert.AreEqual(0, JobCommentLineArchive.Count, 'Job Comment Line Archive should not have any records with old Job No.');
+
+        // [THEN] Verify No. of Archived Versions is correct
+        Job.CalcFields("No. of Archived Versions");
+        Assert.AreEqual(2, Job."No. of Archived Versions", 'No. of Archived Versions should be 2 after renumbering');
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"Job Archiving");
@@ -657,6 +735,28 @@ codeunit 136321 "Job Archiving"
         LibraryDimension.CreateDimensionValue(DimensionValue, LibraryERM.GetGlobalDimensionCode(1));
         LibraryDimension.CreateDefaultDimensionCustomer(
           DefaultDimension, Customer."No.", DimensionValue."Dimension Code", DimensionValue.Code);
+    end;
+
+    local procedure CreateSimpleJobCommentLine(var JobCommentLine: Record "Comment Line"; Job: Record Job)
+    begin
+        JobCommentLine.Init();
+        JobCommentLine.Validate("Table Name", JobCommentLine."Table Name"::Job);
+        JobCommentLine.Validate("No.", Job."No.");
+        JobCommentLine.Validate("Line No.", GetNextLineNo(JobCommentLine));
+        JobCommentLine.Validate(Date, Today);
+        JobCommentLine.Validate(Comment, LibraryRandom.RandText(50));
+        JobCommentLine.Insert(true);
+    end;
+
+    local procedure GetNextLineNo(JobCommentLine: Record "Comment Line"): Integer
+    begin
+        JobCommentLine.Reset();
+        JobCommentLine.SetRange("Table Name", JobCommentLine."Table Name"::Job);
+        JobCommentLine.SetRange("No.", JobCommentLine."No.");
+        if JobCommentLine.FindLast() then
+            exit(JobCommentLine."Line No." + 10000);
+
+        exit(10000);
     end;
 
     [ConfirmHandler]

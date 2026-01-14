@@ -667,18 +667,6 @@ codeunit 5815 "Undo Sales Shipment Line"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforeDeleteSalesShptLineServItems(var SalesShipmentLine: Record "Sales Shipment Line"; var IsHandled: Boolean)
-    begin
-        OnBeforeDeleteSalesShptLineServItems(SalesShipmentLine, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit ServUndoSalesShipmentLine', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeDeleteSalesShptLineServItems(var SalesShipmentLine: Record "Sales Shipment Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertNewShipmentLine(var SalesShipmentLine: Record "Sales Shipment Line"; var PostedWhseShipmentLine: Record "Posted Whse. Shipment Line"; var PostedWhseShptLineFound: Boolean; DocLineNo: Integer; ItemShptEntryNo: Integer)
@@ -700,17 +688,6 @@ codeunit 5815 "Undo Sales Shipment Line"
     begin
     end;
 
-#if not CLEAN25
-    internal procedure RunOnBeforeGetDeleteServItems(SalesShipmentLine: Record "Sales Shipment Line"; var ServiceItem: Record Microsoft.Service.Item."Service Item"; HideDialog: Boolean; var Result: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-
-    [Obsolete('Moved to codeunit ServUndoSalesShipmentLine', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetDeleteServItems(SalesShipmentLine: Record "Sales Shipment Line"; var ServiceItem: Record Microsoft.Service.Item."Service Item"; HideDialog: Boolean; var Result: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSalesShptLineModify(var SalesShptLine: Record "Sales Shipment Line")
@@ -812,4 +789,3 @@ codeunit 5815 "Undo Sales Shipment Line"
     begin
     end;
 }
-

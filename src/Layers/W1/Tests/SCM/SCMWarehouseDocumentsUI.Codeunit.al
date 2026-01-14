@@ -9,16 +9,17 @@ codeunit 137081 "SCM Warehouse Documents UI"
         Assert: Codeunit Assert;
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
         LibraryService: Codeunit "Library - Service";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
-        LibraryUtility: Codeunit "Library - Utility";
-        LibraryRandom: Codeunit "Library - Random";
-        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryUtility: Codeunit "Library - Utility";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
         isInitialized: Boolean;
         UserIsNotWhseEmployeeAtWMSLocationErr: Label 'You must first set up user %1 as a warehouse employee at a location with the Bin Mandatory setting.', Comment = '%1: USERID';
         DefaultLocationNotDirectedPutawayPickErr: Label 'You must set up a default location with the Directed Put-away and Pick setting and assign it to user %1.', Comment = '%1: USERID';
+        UserIsNotWhseEmployeeForLocationErr: Label 'To open warehouse document for location %1, You must first set up user %2 as a warehouse employee.', Comment = '%1: Location Code, %2: User Id';
 
     [Test]
     procedure ViewWhsePutAwayFromPurchOrder()
@@ -791,6 +792,216 @@ codeunit 137081 "SCM Warehouse Documents UI"
         Assert.ExpectedError(StrSubstNo(DefaultLocationNotDirectedPutawayPickErr, UserId()));
 
         LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerNo')]
+    procedure ShowDocumentErrorWhenUserNotWarehouseEmployeeForShipment()
+    var
+        Item: Record Item;
+        Location: array[2] of Record Location;
+        SalesHeader: Record "Sales Header";
+        SalesLine: array[2] of Record "Sales Line";
+        WarehouseEmployee: Record "Warehouse Employee";
+        i: Integer;
+        WhseShipmentLinesPage: TestPage "Whse. Shipment Lines";
+    begin
+        // [SCENARIO 578571] Show Document from Warehouse Shipment Lines throws error when user is not a warehouse employee for the location
+        Initialize();
+        WarehouseEmployee.DeleteAll();
+
+        // [GIVEN] Create a new Item.
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] Create a Sales Order.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+
+        // [GIVEN] Create two locations.
+        for i := 1 to 2 do begin
+            LibraryWarehouse.CreateLocationWMS(Location[i], false, false, false, true, true);
+
+            // [GIVEN] Item with stock at both locations
+            LibraryInventory.PostPositiveAdjustment(
+                Item, Location[i].Code, '', '', LibraryRandom.RandIntInRange(100, 200), WorkDate(), LibraryRandom.RandInt(1000));
+
+            // [GIVEN] Create sales lines for both locations.
+            LibrarySales.CreateSalesLine(
+                SalesLine[i], SalesHeader, SalesLine[i].Type::Item, Item."No.", LibraryRandom.RandIntInRange(10, 20));
+            SalesLine[i].Validate("Location Code", Location[i].Code);
+            SalesLine[i].Modify(true);
+        end;
+
+        // [GIVEN] User is only a warehouse employee at first location
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location[1].Code, false);
+
+        // [GIVEN] Release the sales order.
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+
+        // [GIVEN] Warehouse shipments created for both locations
+        LibraryWarehouse.CreateWhseShipmentFromSO(SalesHeader);
+
+        // [GIVEN] Open Warehouse Shipment Lines page and navigate to the line for location second (where user is not employee)
+        WhseShipmentLinesPage.OpenView();
+        WhseShipmentLinesPage.Filter.SetFilter("Location Code", Location[2].Code);
+        WhseShipmentLinesPage.First();
+
+        // [WHEN] User clicks Show Document action
+        asserterror WhseShipmentLinesPage.ShowDocument.Invoke();
+
+        // [THEN] Error is thrown indicating user must be set up as warehouse employee for location second.
+        Assert.ExpectedError(StrSubstNo(UserIsNotWhseEmployeeForLocationErr, Location[2].Code, UserId()));
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerNo')]
+    procedure ShowDocumentErrorWhenUserNotWarehouseEmployeeForReceipt()
+    var
+        Item: Record Item;
+        Location: array[2] of Record Location;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: array[2] of Record "Purchase Line";
+        WarehouseEmployee: Record "Warehouse Employee";
+        i: Integer;
+        WhseReceiptLinesPage: TestPage "Whse. Receipt Lines";
+    begin
+        // [SCENARIO 578571] Show Document from Warehouse Receipt Lines throws error when user is not a warehouse employee for the location
+        Initialize();
+        WarehouseEmployee.DeleteAll();
+
+        // [GIVEN] Create a new Item.
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] Create a Purchase Order.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, LibraryPurchase.CreateVendorNo());
+
+        // [GIVEN] Create two locations.
+        for i := 1 to 2 do begin
+            LibraryWarehouse.CreateLocationWMS(Location[i], false, false, false, true, true);
+
+            // [GIVEN] Create purchase lines for both locations.
+            LibraryPurchase.CreatePurchaseLine(PurchaseLine[i], PurchaseHeader, PurchaseLine[i].Type::Item, Item."No.", LibraryRandom.RandIntInRange(10, 20));
+            PurchaseLine[i].Validate("Location Code", Location[i].Code);
+            PurchaseLine[i].Modify(true);
+        end;
+
+        // [GIVEN] User is only a warehouse employee at first location.
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location[1].Code, false);
+
+        // [GIVEN] Release the purchase order.
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+
+        // [GIVEN] Warehouse receipts created for both locations
+        LibraryWarehouse.CreateWhseReceiptFromPO(PurchaseHeader);
+
+        // [GIVEN] Open Warehouse Receipt Lines page and navigate to the line for location second (where user is not employee)
+        WhseReceiptLinesPage.OpenView();
+        WhseReceiptLinesPage.Filter.SetFilter("Location Code", Location[2].Code);
+        WhseReceiptLinesPage.First();
+
+        // [WHEN] User clicks Show Document action
+        asserterror WhseReceiptLinesPage.ShowDocument.Invoke();
+
+        // [THEN] Error is thrown indicating user must be set up as warehouse employee for location second.
+        Assert.ExpectedError(StrSubstNo(UserIsNotWhseEmployeeForLocationErr, Location[2].Code, UserId()));
+    end;
+
+    [Test]
+    procedure ShowDocumentSuccessWhenUserIsWarehouseEmployeeForShipment()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        WarehouseEmployee: Record "Warehouse Employee";
+        WhseShipmentHeader: Record "Warehouse Shipment Header";
+        WhseShipmentLinesPage: TestPage "Whse. Shipment Lines";
+        WhseShipmentPage: TestPage "Warehouse Shipment";
+    begin
+        // [SCENARIO 578571] Show Document from Warehouse Shipment Lines succeeds when user is a warehouse employee for the location
+        Initialize();
+        WarehouseEmployee.DeleteAll();
+
+        // [GIVEN]  Create a new Location with warehouse shipment required
+        LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, true);
+
+        // [GIVEN] User is a warehouse employee at location.
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
+
+        // [GIVEN] Item with stock at location
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.PostPositiveAdjustment(
+            Item, Location.Code, '', '', LibraryRandom.RandIntInRange(1000, 2000), WorkDate(), LibraryRandom.RandInt(10000));
+
+        // [GIVEN] Sales order with one line for the location, and released
+        LibrarySales.CreateSalesOrderWithLocation(SalesHeader, LibrarySales.CreateCustomerNo(), Location.Code);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", LibraryRandom.RandIntInRange(10, 20));
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+
+        // [GIVEN] Warehouse shipment created
+        LibraryWarehouse.CreateWhseShipmentFromSO(SalesHeader);
+        FindWhseShipmentHeader(WhseShipmentHeader, Location.Code, Enum::"Warehouse Activity Source Document"::"Sales Order", SalesHeader."No.");
+
+        // [GIVEN] Open Warehouse Shipment Lines page and navigate to the line
+        WhseShipmentLinesPage.OpenView();
+        WhseShipmentLinesPage.Filter.SetFilter("Location Code", Location.Code);
+        WhseShipmentLinesPage.First();
+        WhseShipmentPage.Trap();
+
+        // [WHEN] User clicks Show Document action
+        WhseShipmentLinesPage.ShowDocument.Invoke();
+
+        // [THEN] Warehouse Shipment page opens with the correct shipment
+        WhseShipmentPage."No.".AssertEquals(WhseShipmentHeader."No.");
+        WhseShipmentPage."Location Code".AssertEquals(Location.Code);
+    end;
+
+    [Test]
+    procedure ShowDocumentSuccessWhenUserIsWarehouseEmployeeForReceipt()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        WarehouseEmployee: Record "Warehouse Employee";
+        WhseReceiptHeader: Record "Warehouse Receipt Header";
+        WhseReceiptLinesPage: TestPage "Whse. Receipt Lines";
+        WhseReceiptPage: TestPage "Warehouse Receipt";
+    begin
+        // [SCENARIO 578571] Show Document from Warehouse Receipt Lines succeeds when user is a warehouse employee for the location
+        Initialize();
+        WarehouseEmployee.DeleteAll();
+
+        // [GIVEN]  Create a new Location with warehouse receipt required
+        LibraryWarehouse.CreateLocationWMS(Location, false, false, false, true, false);
+
+        // [GIVEN] User is a warehouse employee at location.
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
+
+        // [GIVEN] Item with stock at location
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] Purchase order with one line for the location, and released
+        LibraryPurchase.CreatePurchaseOrderWithLocation(PurchaseHeader, LibraryPurchase.CreateVendorNo(), Location.Code);
+        LibraryPurchase.CreatePurchaseLine(
+            PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", LibraryRandom.RandIntInRange(10, 20));
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+
+        // [GIVEN] Warehouse Receipt created
+        LibraryWarehouse.CreateWhseReceiptFromPO(PurchaseHeader);
+        FindWhseReceiptHeader(WhseReceiptHeader, Location.Code, Enum::"Warehouse Activity Source Document"::"Purchase Order", PurchaseHeader."No.");
+
+        // [GIVEN] Open Warehouse Receipt Lines page and navigate to the line
+        WhseReceiptLinesPage.OpenView();
+        WhseReceiptLinesPage.Filter.SetFilter("Location Code", Location.Code);
+        WhseReceiptLinesPage.First();
+        WhseReceiptPage.Trap();
+
+        // [WHEN] User clicks Show Document action
+        WhseReceiptLinesPage.ShowDocument.Invoke();
+
+        // [THEN] Warehouse Receipt page opens with the correct receipt
+        WhseReceiptPage."No.".AssertEquals(WhseReceiptHeader."No.");
+        WhseReceiptPage."Location Code".AssertEquals(Location.Code);
     end;
 
     local procedure Initialize()

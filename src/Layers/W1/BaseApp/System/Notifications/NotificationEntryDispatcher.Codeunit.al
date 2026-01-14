@@ -298,6 +298,7 @@ codeunit 1509 "Notification Entry Dispatcher"
             exit(Result);
 
         TempLayoutCode := '';
+        Clear(HtmlBodyTempBlob);
         OnGetHTMLBodyTextOnAfterSetTempLayoutCode(NotificationEntry, BodyTextOut, TempLayoutCode);
         ReportLayoutSelection.SetTempLayoutSelected(TempLayoutCode);
         RecRef.GetTable(NotificationEntry);

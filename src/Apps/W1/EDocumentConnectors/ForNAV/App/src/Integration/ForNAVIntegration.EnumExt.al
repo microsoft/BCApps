@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
-using Microsoft.eServices.EDocument.Integration.Interfaces;
 using Microsoft.eServices.EDocument.Integration;
+using Microsoft.eServices.EDocument.Integration.Interfaces;
 
 enumextension 6410 "ForNAV Integration" extends "Service Integration"
 {

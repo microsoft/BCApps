@@ -5,8 +5,8 @@
 namespace Microsoft.Warehouse.Activity;
 
 using Microsoft.Inventory.Availability;
-using Microsoft.Warehouse.Availability;
 using Microsoft.Inventory.Location;
+using Microsoft.Warehouse.Availability;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Structure;
 

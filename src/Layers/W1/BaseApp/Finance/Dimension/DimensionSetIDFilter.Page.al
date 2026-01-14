@@ -4,6 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Interactive dimension filtering interface for creating complex dimension set ID filters.
+/// Enables users to specify multiple dimension criteria for filtering dimension sets in reports and analysis.
+/// </summary>
+/// <remarks>
+/// Used in reporting and analysis scenarios where filtering by specific dimension combinations is required.
+/// Provides visual interface for building dimension filters with dimension value selection and filtering capabilities.
+/// Integrates with dimension management to generate dimension set ID filters for report parameters and analysis views.
+/// </remarks>
 page 481 "Dimension Set ID Filter"
 {
     Caption = 'Dimension Filter';
@@ -149,6 +158,11 @@ page 481 "Dimension Set ID Filter"
         NotificationMsg: Label 'The view is filtered by dimensions:';
         RecordAlreadyExistsErr: Label 'The record already exists.';
 
+    /// <summary>
+    /// Opens the dimension filter dialog and returns the calculated dimension set ID filter.
+    /// Creates filter criteria for dimension sets based on user-selected dimension values.
+    /// </summary>
+    /// <returns>Dimension set ID filter expression for use in reports and queries</returns>
     procedure LookupFilter() DimFilter: Text
     var
         DimensionMgt: Codeunit DimensionManagement;
@@ -182,11 +196,21 @@ page 481 "Dimension Set ID Filter"
             until TempDimensionSetIDFilterLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Retrieves the current dimension filter line configuration from the temporary buffer.
+    /// Used to transfer filter settings between page instances and calling processes.
+    /// </summary>
+    /// <param name="NewTempDimensionSetIDFilterLine">Target buffer to receive current filter configuration</param>
     procedure GetTempDimensionSetIDFilterLine(var NewTempDimensionSetIDFilterLine: Record "Dimension Set ID Filter Line" temporary)
     begin
         NewTempDimensionSetIDFilterLine.Copy(TempDimensionSetIDFilterLine, true)
     end;
 
+    /// <summary>
+    /// Sets the dimension filter line configuration in the temporary buffer.
+    /// Used to initialize the page with predefined filter settings from calling processes.
+    /// </summary>
+    /// <param name="NewTempDimensionSetIDFilterLine">Source buffer containing filter configuration to load</param>
     procedure SetTempDimensionSetIDFilterLine(var NewTempDimensionSetIDFilterLine: Record "Dimension Set ID Filter Line" temporary)
     begin
         TempDimensionSetIDFilterLine.Copy(NewTempDimensionSetIDFilterLine, true);

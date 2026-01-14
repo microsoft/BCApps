@@ -1,16 +1,16 @@
 namespace System.Telemetry;
 
-using Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.BankAccount;
+using Microsoft.Bank.Reconciliation;
 using Microsoft.Finance.FinancialReports;
 using Microsoft.Sales.History;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Feedback;
+using System.IO;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Threading;
-using System.IO;
 
 codeunit 1351 "Telemetry Subscribers"
 {

@@ -173,6 +173,7 @@ codeunit 99000765 "Mfg. Whse. Activity Register"
         WhseActivityRegister.RunOnBeforeProdCompLineModify(ProdOrderComponent, WhseActivityLine);
 #endif
         ProdOrderComponent.Modify();
+        UpdateCompletelyPickedProdOrderComponent(WhseActivityLine);
         OnAfterProdCompLineModify(ProdOrderComponent);
 #if not CLEAN27
         WhseActivityRegister.RunOnAfterProdCompLineModify(ProdOrderComponent);
@@ -201,6 +202,28 @@ codeunit 99000765 "Mfg. Whse. Activity Register"
            (ProdOrderLine."Put-away Status" <> xProdOrderLine."Put-away Status")
         then
             ProdOrderLine.Modify();
+    end;
+
+    local procedure UpdateCompletelyPickedProdOrderComponent(WarehouseActivityLine: Record "Warehouse Activity Line")
+    var
+        ProdOrderComponent: Record "Prod. Order Component";
+        Item: Record Item;
+    begin
+        ProdOrderComponent.SetRange("Prod. Order No.", WarehouseActivityLine."Source No.");
+        ProdOrderComponent.SetRange(Status, ProdOrderComponent.Status::Released);
+        ProdOrderComponent.SetRange("Completely Picked", false);
+        ProdOrderComponent.SetLoadFields("Item No.", "Flushing Method", "Completely Picked");
+        if ProdOrderComponent.FindSet() then
+            repeat
+                ProdOrderComponent.CalcFields("Pick Qty.");
+                Item.SetLoadFields("No.", Type);
+                if Item.Get(ProdOrderComponent."Item No.") then
+                    if ((ProdOrderComponent."Flushing Method" = ProdOrderComponent."Flushing Method"::Backward) or Item.IsNonInventoriableType())
+                        and (ProdOrderComponent."Pick Qty." = 0) then begin
+                        ProdOrderComponent."Completely Picked" := true;
+                        ProdOrderComponent.Modify();
+                    end;
+            until ProdOrderComponent.Next() = 0;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Register", 'OnGetSourceLineBaseQtyByWhseActivityDocumentType', '', false, false)]

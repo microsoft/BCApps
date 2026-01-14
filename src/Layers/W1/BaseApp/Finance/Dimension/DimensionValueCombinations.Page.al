@@ -4,6 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Card page for managing dimension value combinations and their restrictions.
+/// Provides interface for configuring which dimension value combinations are allowed or blocked in business operations.
+/// </summary>
+/// <remarks>
+/// Used to set up dimension combination rules that enforce business logic constraints during posting operations.
+/// Integrates with dimension validation processes to prevent invalid dimension combinations from being used.
+/// </remarks>
 page 539 "Dimension Value Combinations"
 {
     Caption = 'Dimension Value Combinations';

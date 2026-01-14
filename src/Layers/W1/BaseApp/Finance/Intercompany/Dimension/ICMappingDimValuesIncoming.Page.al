@@ -6,6 +6,10 @@ namespace Microsoft.Intercompany.Dimension;
 
 using Microsoft.Finance.Dimension;
 
+/// <summary>
+/// Enables mapping of intercompany dimension values to local company dimension values for incoming transactions.
+/// Provides editing interface for establishing dimension value mappings with hierarchical display formatting.
+/// </summary>
 page 635 "IC Mapping Dim Values Incoming"
 {
     PageType = ListPart;
@@ -83,11 +87,19 @@ page 635 "IC Mapping Dim Values Incoming"
         Emphasize := Rec."Dimension Value Type" <> Rec."Dimension Value Type"::Standard;
     end;
 
+    /// <summary>
+    /// Sets the intercompany dimension filter for dimension values displayed in the page.
+    /// </summary>
+    /// <param name="ICDimension">IC dimension record to filter by</param>
     procedure SetDimensionFilter(ICDimension: Record "IC Dimension")
     begin
         ICDimensionFilter := ICDimension;
     end;
 
+    /// <summary>
+    /// Retrieves the currently selected intercompany dimension value lines for processing.
+    /// </summary>
+    /// <param name="ICDimensionValues">Record variable to store selected IC dimension value records</param>
     procedure GetSelectedLines(var ICDimensionValues: Record "IC Dimension Value")
     begin
         CurrPage.SetSelectionFilter(ICDimensionValues);

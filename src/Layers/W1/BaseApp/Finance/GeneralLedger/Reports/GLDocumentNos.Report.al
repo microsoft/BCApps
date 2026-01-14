@@ -9,6 +9,15 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
 using System.Utilities;
 
+/// <summary>
+/// Generates G/L document number report analyzing document sequence and identifying gaps or duplicates.
+/// Provides document number analysis for audit trail verification and numbering sequence validation.
+/// </summary>
+/// <remarks>
+/// Data source: G/L Entry table sorted by document number for sequence analysis.
+/// Identifies missing document numbers, duplicate sequences, and posting irregularities.
+/// Critical for audit procedures, compliance verification, and document control validation.
+/// </remarks>
 report 23 "G/L Document Nos."
 {
     DefaultLayout = RDLC;

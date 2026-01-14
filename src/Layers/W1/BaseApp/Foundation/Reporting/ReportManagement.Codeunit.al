@@ -89,15 +89,9 @@ codeunit 44 ReportManagement
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reporting Triggers", 'HasCustomLayout', '', false, false)]
     local procedure HasCustomLayout(ObjectType: Option "Report","Page"; ObjectID: Integer; var LayoutType: Option "None",RDLC,Word,Excel,Custom)
     var
-#if not CLEAN25
-        ReportLayoutSelection: Record "Report Layout Selection";
-#endif
     begin
         if ObjectType <> ObjectType::Report then
             Error(NotSupportedErr);
-#if not CLEAN25
-        LayoutType := ReportLayoutSelection.HasCustomLayout(ObjectID);
-#endif
         OnAfterHasCustomLayout(ObjectType, ObjectID, LayoutType);
     end;
 
@@ -430,4 +424,3 @@ codeunit 44 ReportManagement
     begin
     end;
 }
-
