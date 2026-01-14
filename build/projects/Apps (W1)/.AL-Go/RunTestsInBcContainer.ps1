@@ -4,6 +4,9 @@ Param(
 Import-Module (Join-Path $PSScriptRoot "../../../scripts/EnlistmentHelperFunctions.psm1" -Resolve)
 
 #TODO: Revert this when 616057 is fixed
+$buildMode = Get-BuildMode
+Write-Host "Build mode is $buildMode"
+Write-Host "Is buildmode CZ? $((Get-BuildMode -eq "CZ"))"
 if ((Get-BuildMode -eq "CZ") -and ($parameters["appName"] -eq "Quality Management-Tests")) {
     Write-Host "Skipping tests for Quality Management in CZ build mode due to 616057"
     return $true
