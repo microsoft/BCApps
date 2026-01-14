@@ -30,10 +30,6 @@ query 30100 "Shpfy Shipment Location"
                     DataItemLink = "Line Id" = SalesShipmentLine."Shpfy Order Line Id";
                     SqlJoinType = InnerJoin;
 
-                    column(LocationId; "Location Id") { }
-
-                    column(DeliveryMethodType; "Delivery Method Type") { }
-
                     column(NoOfLines)
                     {
                         Method = Count;
