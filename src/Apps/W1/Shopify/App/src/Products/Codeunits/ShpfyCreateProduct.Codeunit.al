@@ -253,6 +253,7 @@ codeunit 30174 "Shpfy Create Product"
     var
         SkippedRecord: Codeunit "Shpfy Skipped Record";
         ItemAttributeIds: List of [Integer];
+        SkippedReason: Text[250];
         TooManyAttributesAsOptionErr: Label 'Item %1 has %2 attributes marked as "As Option". Shopify supports a maximum of 3 product options.', Comment = '%1 = Item No., %2 = Number of attributes';
         DuplicateOptionCombinationErr: Label 'Item %1 has duplicate item variant attribute value combinations. Each variant must have a unique combination of option values.', Comment = '%1 = Item No.';
     begin
@@ -261,8 +262,16 @@ codeunit 30174 "Shpfy Create Product"
 
         GetItemAttributeIDsMarkedAsOption(Item, ItemAttributeIds);
 
+        if ItemAttributeIds.Count() = 0 then
+            exit(false);
+
         if ItemAttributeIds.Count() > 3 then begin
             SkippedRecord.LogSkippedRecord(Item.RecordId, StrSubstNo(TooManyAttributesAsOptionErr, Item."No.", ItemAttributeIds.Count()), Shop);
+            exit(true);
+        end;
+
+        if CheckItemVariantsMissingAttributeValues(Item, ItemAttributeIds, SkippedReason) then begin
+            SkippedRecord.LogSkippedRecord(Item.RecordId, SkippedReason, Shop);
             exit(true);
         end;
 
@@ -284,26 +293,68 @@ codeunit 30174 "Shpfy Create Product"
         CombinationKeyTok: Label '%1:%2|', Locked = true, Comment = '%1 = Attribute ID, %2 = Attribute Value';
     begin
         ItemVariant.SetRange("Item No.", Item."No.");
-        if ItemVariant.FindSet() then
-            repeat
-                VariantCode := ItemVariant.Code;
+        if not ItemVariant.FindSet() then
+            exit(false);
 
-                CombinationKey := '';
-                foreach AttributeId in ItemAttributeIds do begin
-                    ItemVarAttrValueMapping.SetRange("Item No.", Item."No.");
-                    ItemVarAttrValueMapping.SetRange("Variant Code", VariantCode);
-                    ItemVarAttrValueMapping.SetRange("Item Attribute ID", AttributeId);
-                    if ItemVarAttrValueMapping.FindFirst() then
-                        if ItemAttributeValue.Get(ItemVarAttrValueMapping."Item Attribute ID", ItemVarAttrValueMapping."Item Attribute Value ID") then
-                            CombinationKey += StrSubstNo(CombinationKeyTok, ItemAttributeValue."Attribute ID", ItemAttributeValue.Value);
-                end;
+        repeat
+            VariantCode := ItemVariant.Code;
 
-                if CombinationKey <> '' then
-                    if VariantCombinations.ContainsKey(CombinationKey) then
-                        exit(true)
-                    else
-                        VariantCombinations.Add(CombinationKey, VariantCode);
-            until ItemVariant.Next() = 0;
+            CombinationKey := '';
+            foreach AttributeId in ItemAttributeIds do begin
+                ItemVarAttrValueMapping.SetRange("Item No.", Item."No.");
+                ItemVarAttrValueMapping.SetRange("Variant Code", VariantCode);
+                ItemVarAttrValueMapping.SetRange("Item Attribute ID", AttributeId);
+                if ItemVarAttrValueMapping.FindFirst() then
+                    if ItemAttributeValue.Get(ItemVarAttrValueMapping."Item Attribute ID", ItemVarAttrValueMapping."Item Attribute Value ID") then
+                        CombinationKey += StrSubstNo(CombinationKeyTok, ItemAttributeValue."Attribute ID", ItemAttributeValue.Value);
+            end;
+
+            if CombinationKey <> '' then
+                if VariantCombinations.ContainsKey(CombinationKey) then
+                    exit(true)
+                else
+                    VariantCombinations.Add(CombinationKey, VariantCode);
+        until ItemVariant.Next() = 0;
+    end;
+
+    local procedure CheckItemVariantsMissingAttributeValues(Item: Record Item; ItemAttributeIds: List of [Integer]; var SkippedReason: Text[250]): Boolean
+    var
+        ItemAttribute: Record "Item Attribute";
+        ItemVariant: Record "Item Variant";
+        ItemVarAttrValueMapping: Record "Item Var. Attr. Value Mapping";
+        ItemAttributeValue: Record "Item Attribute Value";
+        AttributeId: Integer;
+        MissingVariantCode: Code[10];
+        MissingAttributeName: Text[250];
+        MissingAttributeErr: Label 'Item %1 Variant %2 is missing an attribute "%3". All item variants must have must have item attributes marked as "As Option".', Comment = '%1 = Item No., %2 = Variant Code, %3 = Attribute Name';
+        MissingAttributeValueErr: Label 'Item %1 Variant %2 is missing a value for attribute "%3". All item variants must have values for attributes marked as "As Option".', Comment = '%1 = Item No., %2 = Variant Code, %3 = Attribute Name';
+    begin
+        ItemVariant.SetRange("Item No.", Item."No.");
+        if not ItemVariant.FindSet() then
+            exit(false);
+
+        repeat
+            foreach AttributeId in ItemAttributeIds do begin
+                ItemVarAttrValueMapping.SetRange("Item No.", Item."No.");
+                ItemVarAttrValueMapping.SetRange("Variant Code", ItemVariant.Code);
+                ItemVarAttrValueMapping.SetRange("Item Attribute ID", AttributeId);
+                if not ItemVarAttrValueMapping.FindFirst() then begin
+                    MissingVariantCode := ItemVariant.Code;
+                    if ItemAttribute.Get(AttributeId) then
+                        MissingAttributeName := ItemAttribute.Name;
+                    SkippedReason := StrSubstNo(MissingAttributeErr, Item."No.", MissingVariantCode, MissingAttributeName);
+                    exit(true);
+                end else
+                    if ItemAttributeValue.Get(ItemVarAttrValueMapping."Item Attribute ID", ItemVarAttrValueMapping."Item Attribute Value ID") then
+                        if ItemAttributeValue.Value = '' then begin
+                            MissingVariantCode := ItemVariant.Code;
+                            if ItemAttribute.Get(AttributeId) then
+                                MissingAttributeName := ItemAttribute.Name;
+                            SkippedReason := StrSubstNo(MissingAttributeValueErr, Item."No.", MissingVariantCode, MissingAttributeName);
+                            exit(true);
+                        end;
+            end;
+        until ItemVariant.Next() = 0;
     end;
 
     local procedure FillProductOptionsForShopifyVariants(Item: Record Item; var TempShopifyVariant: Record "Shpfy Variant" temporary)
