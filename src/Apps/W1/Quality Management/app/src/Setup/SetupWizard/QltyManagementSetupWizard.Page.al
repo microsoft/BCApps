@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Setup.SetupWizard;
 
+using Microsoft.DemoTool;
 using Microsoft.QualityManagement.Configuration;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
@@ -57,6 +58,18 @@ page 20438 "Qlty. Management Setup Wizard"
                 {
                     Caption = 'How to?';
                     InstructionalText = 'Navigate to the Contoso Demo Tool page. Then, select the Quality Management module, and click on the Generate action. This will install demo data including sample inspection templates, inspection generation rules, and quality inspections.';
+                }
+                field(LinkToContosoDemoToolPage; LinkToContosoDemoToolPageLbl)
+                {
+                    Caption = 'Navigate to Contoso Demo Tool';
+                    ShowCaption = false;
+                    Editable = false;
+                    ApplicationArea = All;
+
+                    trigger OnDrillDown()
+                    begin
+                        Page.RunModal(Page::"Contoso Demo Tool");
+                    end;
                 }
             }
             group(SettingsFor_StepWhatAreYouMakingQltyInspectionsFor)
@@ -441,6 +454,7 @@ page 20438 "Qlty. Management Setup Wizard"
         ReRunThisWizardWithMorePermissionErr: Label 'It looks like you need more permissions to run this wizard successfully. Please ask your Business Central administrator to grant more permission.';
         FinishWizardLbl: Label 'Finish wizard.', Locked = true;
         QualityManagementTok: Label 'Quality Management', Locked = true;
+        LinkToContosoDemoToolPageLbl: Label 'Open Contoso Demo Tool', Locked = true;
 
     trigger OnInit();
     begin
