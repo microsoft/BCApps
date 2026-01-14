@@ -36,7 +36,6 @@ codeunit 30174 "Shpfy Create Product"
         Getlocations: Boolean;
         ProductId: BigInteger;
         ItemVariantIsBlockedLbl: Label 'Item variant is blocked or sales blocked.';
-        TooManyAttributesAsOptionErr: Label 'Item %1 has %2 attributes marked as "As Option". Shopify supports a maximum of 3 product options.', Comment = '%1 = Item No., %2 = Number of attributes';
 
     trigger OnRun()
     var
@@ -63,6 +62,9 @@ codeunit 30174 "Shpfy Create Product"
         TempShopifyVariant: Record "Shpfy Variant" temporary;
         TempShopifyTag: Record "Shpfy Tag" temporary;
     begin
+        if CheckProductOptionsInaccuraciesExists(Item) then
+            exit;
+
         CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempShopifyTag);
         if not VariantApi.FindShopifyProductVariant(TempShopifyProduct, TempShopifyVariant) then
             ProductId := ProductApi.CreateProduct(TempShopifyProduct, TempShopifyVariant, TempShopifyTag)
@@ -171,7 +173,7 @@ codeunit 30174 "Shpfy Create Product"
                 CreateTempShopifyVariantFromItem(Item, TempShopifyVariant);
 
         TempShopifyProduct.Insert(false);
-        FillOptionsForAllVariants(Item."No.", TempShopifyVariant);
+        FillProductOptionsForShopifyVariants(Item, TempShopifyVariant);
         Events.OnAfterCreateTempShopifyProduct(Item, TempShopifyProduct, TempShopifyVariant, TempShopifyTag);
     end;
 
@@ -247,52 +249,90 @@ codeunit 30174 "Shpfy Create Product"
         TempShopifyVariant.Insert(false);
     end;
 
-    local procedure FillOptionsForAllVariants(ItemNo: Code[20]; var TempShopifyVariant: Record "Shpfy Variant" temporary)
+    local procedure CheckProductOptionsInaccuraciesExists(var Item: Record Item): Boolean
     var
-        ItemAttribute: Record "Item Attribute";
-        ItemAttributeValueMapping: Record "Item Attribute Value Mapping";
+        SkippedRecord: Codeunit "Shpfy Skipped Record";
+        ItemAttributeIds: List of [Integer];
+        TooManyAttributesAsOptionErr: Label 'Item %1 has %2 attributes marked as "As Option". Shopify supports a maximum of 3 product options.', Comment = '%1 = Item No., %2 = Number of attributes';
+        DuplicateOptionCombinationErr: Label 'Item %1 has duplicate item variant attribute value combinations. Each variant must have a unique combination of option values.', Comment = '%1 = Item No.';
+    begin
+        if Shop."UoM as Variant" then
+            exit(false);
+
+        GetItemAttributeIDsMarkedAsOption(Item, ItemAttributeIds);
+
+        if ItemAttributeIds.Count() > 3 then begin
+            SkippedRecord.LogSkippedRecord(Item.RecordId, StrSubstNo(TooManyAttributesAsOptionErr, Item."No.", ItemAttributeIds.Count()), Shop);
+            exit(true);
+        end;
+
+        if CheckProductOptionDuplicatesExists(Item, ItemAttributeIds) then begin
+            SkippedRecord.LogSkippedRecord(Item.RecordId, StrSubstNo(DuplicateOptionCombinationErr, Item."No."), Shop);
+            exit(true);
+        end;
+    end;
+
+    local procedure CheckProductOptionDuplicatesExists(Item: Record Item; ItemAttributeIds: List of [Integer]): Boolean
+    var
+        ItemAttributeValue: Record "Item Attribute Value";
+        ItemVariant: Record "Item Variant";
+        ItemVarAttrValueMapping: Record "Item Var. Attr. Value Mapping";
+        VariantCombinations: Dictionary of [Text, Code[10]];
+        CombinationKey: Text;
+        VariantCode: Code[10];
+        AttributeId: Integer;
+        CombinationKeyTok: Label '%1:%2|', Locked = true, Comment = '%1 = Attribute ID, %2 = Attribute Value';
+    begin
+        ItemVariant.SetRange("Item No.", Item."No.");
+        if ItemVariant.FindSet() then
+            repeat
+                VariantCode := ItemVariant.Code;
+
+                CombinationKey := '';
+                foreach AttributeId in ItemAttributeIds do begin
+                    ItemVarAttrValueMapping.SetRange("Item No.", Item."No.");
+                    ItemVarAttrValueMapping.SetRange("Variant Code", VariantCode);
+                    ItemVarAttrValueMapping.SetRange("Item Attribute ID", AttributeId);
+                    if ItemVarAttrValueMapping.FindFirst() then
+                        if ItemAttributeValue.Get(ItemVarAttrValueMapping."Item Attribute ID", ItemVarAttrValueMapping."Item Attribute Value ID") then
+                            CombinationKey += StrSubstNo(CombinationKeyTok, ItemAttributeValue."Attribute ID", ItemAttributeValue.Value);
+                end;
+
+                if CombinationKey <> '' then
+                    if VariantCombinations.ContainsKey(CombinationKey) then
+                        exit(true)
+                    else
+                        VariantCombinations.Add(CombinationKey, VariantCode);
+            until ItemVariant.Next() = 0;
+    end;
+
+    local procedure FillProductOptionsForShopifyVariants(Item: Record Item; var TempShopifyVariant: Record "Shpfy Variant" temporary)
+    var
         ItemVariant: Record "Item Variant";
         ItemAttributeIds: List of [Integer];
         VariantCode: Code[10];
     begin
-        // Skip if UoM as Variant is enabled
         if Shop."UoM as Variant" then
             exit;
 
-        // Step 1: Get Item Attributes defined at Item level with "As Option" (these define the schema)
-        ItemAttributeValueMapping.SetRange("Table ID", Database::Item);
-        ItemAttributeValueMapping.SetRange("No.", ItemNo);
-        if ItemAttributeValueMapping.FindSet() then
-            repeat
-                if ItemAttribute.Get(ItemAttributeValueMapping."Item Attribute ID") then
-                    if (not ItemAttribute.Blocked) and (ItemAttribute."Shpfy Incl. in Product Sync" = ItemAttribute."Shpfy Incl. in Product Sync"::"As Option") then
-                        if not ItemAttributeIds.Contains(ItemAttribute.ID) then
-                            ItemAttributeIds.Add(ItemAttribute.ID);
-            until ItemAttributeValueMapping.Next() = 0;
+        GetItemAttributeIDsMarkedAsOption(Item, ItemAttributeIds);
 
-        // Step 2.1: Checks - Exit if no attributes are defined with "As Option"
         if ItemAttributeIds.Count() = 0 then
             exit;
 
-        // Step 2.2: Checks - Error if more than 3 attributes are defined with "As Option"
-        if ItemAttributeIds.Count() > 3 then
-            Error(TooManyAttributesAsOptionErr, ItemNo, ItemAttributeIds.Count());
-
-        // Step 3: For each variant, fill in the option values
         if TempShopifyVariant.FindSet() then
             repeat
-                // Get the variant code from Item Variant SystemId
                 VariantCode := '';
                 if not IsNullGuid(TempShopifyVariant."Item Variant SystemId") then
                     if ItemVariant.GetBySystemId(TempShopifyVariant."Item Variant SystemId") then
                         VariantCode := ItemVariant.Code;
 
-                FillOptionsFromItemAttributes(ItemNo, VariantCode, ItemAttributeIds, TempShopifyVariant);
+                FillProductOptionsFromItemAttributes(Item."No.", VariantCode, ItemAttributeIds, TempShopifyVariant);
                 TempShopifyVariant.Modify(false);
             until TempShopifyVariant.Next() = 0;
     end;
 
-    local procedure FillOptionsFromItemAttributes(ItemNo: Code[20]; VariantCode: Code[10]; ItemAttributeIds: List of [Integer]; var TempShopifyVariant: Record "Shpfy Variant" temporary)
+    local procedure FillProductOptionsFromItemAttributes(ItemNo: Code[20]; VariantCode: Code[10]; ItemAttributeIds: List of [Integer]; var TempShopifyVariant: Record "Shpfy Variant" temporary)
     var
         ItemAttribute: Record "Item Attribute";
         ItemAttributeValue: Record "Item Attribute Value";
@@ -301,13 +341,10 @@ codeunit 30174 "Shpfy Create Product"
         OptionIndex: Integer;
         AttributeId: Integer;
     begin
-        // For each attribute defined at Item level, get the value from Item Variant (if exists) or Item
         OptionIndex := 1;
         foreach AttributeId in ItemAttributeIds do
             if ItemAttribute.Get(AttributeId) then begin
-                // Get the Option Value from Item Variant Attribute Value Mapping or Item Attribute Value Mapping
                 if VariantCode <> '' then begin
-                    // Try to get value from Item Variant
                     ItemVarAttrValueMapping.SetRange("Item No.", ItemNo);
                     ItemVarAttrValueMapping.SetRange("Variant Code", VariantCode);
                     ItemVarAttrValueMapping.SetRange("Item Attribute ID", AttributeId);
@@ -315,7 +352,6 @@ codeunit 30174 "Shpfy Create Product"
                         if ItemAttributeValue.Get(ItemVarAttrValueMapping."Item Attribute ID", ItemVarAttrValueMapping."Item Attribute Value ID") then
                             AssignOptionValue(TempShopifyVariant, OptionIndex, ItemAttribute.Name, ItemAttributeValue.Value);
                 end else begin
-                    // Get value from Item Attribute Value Mapping (no variant)
                     ItemAttributeValueMapping.SetRange("Table ID", Database::Item);
                     ItemAttributeValueMapping.SetRange("No.", ItemNo);
                     ItemAttributeValueMapping.SetRange("Item Attribute ID", AttributeId);
@@ -346,6 +382,22 @@ codeunit 30174 "Shpfy Create Product"
                     TempShopifyVariant."Option 3 Value" := CopyStr(AttributeValue, 1, MaxStrLen(TempShopifyVariant."Option 3 Value"));
                 end;
         end;
+    end;
+
+    local procedure GetItemAttributeIDsMarkedAsOption(Item: Record Item; var ItemAttributeIds: List of [Integer])
+    var
+        ItemAttribute: Record "Item Attribute";
+        ItemAttributeValueMapping: Record "Item Attribute Value Mapping";
+    begin
+        ItemAttributeValueMapping.SetRange("Table ID", Database::Item);
+        ItemAttributeValueMapping.SetRange("No.", Item."No.");
+        if ItemAttributeValueMapping.FindSet() then
+            repeat
+                if ItemAttribute.Get(ItemAttributeValueMapping."Item Attribute ID") then
+                    if (not ItemAttribute.Blocked) and (ItemAttribute."Shpfy Incl. in Product Sync" = ItemAttribute."Shpfy Incl. in Product Sync"::"As Option") then
+                        if not ItemAttributeIds.Contains(ItemAttribute.ID) then
+                            ItemAttributeIds.Add(ItemAttribute.ID);
+            until ItemAttributeValueMapping.Next() = 0;
     end;
 
     /// <summary> 
