@@ -62,7 +62,7 @@ codeunit 30174 "Shpfy Create Product"
         TempShopifyVariant: Record "Shpfy Variant" temporary;
         TempShopifyTag: Record "Shpfy Tag" temporary;
     begin
-        if CheckProductOptionsInaccuraciesExists(Item) then
+        if not CheckItemAttributesCompatibleForProductOptions(Item) then
             exit;
 
         CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempShopifyTag);
@@ -172,8 +172,8 @@ codeunit 30174 "Shpfy Create Product"
             end else
                 CreateTempShopifyVariantFromItem(Item, TempShopifyVariant);
 
+        FillProductOptionsForShopifyVariants(Item, TempShopifyVariant, TempShopifyProduct);
         TempShopifyProduct.Insert(false);
-        FillProductOptionsForShopifyVariants(Item, TempShopifyVariant);
         Events.OnAfterCreateTempShopifyProduct(Item, TempShopifyProduct, TempShopifyVariant, TempShopifyTag);
     end;
 
@@ -249,7 +249,7 @@ codeunit 30174 "Shpfy Create Product"
         TempShopifyVariant.Insert(false);
     end;
 
-    local procedure CheckProductOptionsInaccuraciesExists(var Item: Record Item): Boolean
+    internal procedure CheckItemAttributesCompatibleForProductOptions(Item: Record Item): Boolean
     var
         SkippedRecord: Codeunit "Shpfy Skipped Record";
         ItemAttributeIds: List of [Integer];
@@ -258,27 +258,29 @@ codeunit 30174 "Shpfy Create Product"
         DuplicateOptionCombinationErr: Label 'Item %1 has duplicate item variant attribute value combinations. Each variant must have a unique combination of option values.', Comment = '%1 = Item No.';
     begin
         if Shop."UoM as Variant" then
-            exit(false);
+            exit(true);
 
         GetItemAttributeIDsMarkedAsOption(Item, ItemAttributeIds);
 
         if ItemAttributeIds.Count() = 0 then
-            exit(false);
+            exit(true);
 
         if ItemAttributeIds.Count() > 3 then begin
             SkippedRecord.LogSkippedRecord(Item.RecordId, StrSubstNo(TooManyAttributesAsOptionErr, Item."No.", ItemAttributeIds.Count()), Shop);
-            exit(true);
+            exit(false);
         end;
 
-        if CheckItemVariantsMissingAttributeValues(Item, ItemAttributeIds, SkippedReason) then begin
+        if CheckMissingItemAttributeValues(Item, ItemAttributeIds, SkippedReason) then begin
             SkippedRecord.LogSkippedRecord(Item.RecordId, SkippedReason, Shop);
-            exit(true);
+            exit(false);
         end;
 
         if CheckProductOptionDuplicatesExists(Item, ItemAttributeIds) then begin
             SkippedRecord.LogSkippedRecord(Item.RecordId, StrSubstNo(DuplicateOptionCombinationErr, Item."No."), Shop);
-            exit(true);
+            exit(false);
         end;
+
+        exit(true);
     end;
 
     local procedure CheckProductOptionDuplicatesExists(Item: Record Item; ItemAttributeIds: List of [Integer]): Boolean
@@ -317,47 +319,61 @@ codeunit 30174 "Shpfy Create Product"
         until ItemVariant.Next() = 0;
     end;
 
-    local procedure CheckItemVariantsMissingAttributeValues(Item: Record Item; ItemAttributeIds: List of [Integer]; var SkippedReason: Text[250]): Boolean
+    local procedure CheckMissingItemAttributeValues(Item: Record Item; ItemAttributeIds: List of [Integer]; var SkippedReason: Text[250]): Boolean
     var
         ItemAttribute: Record "Item Attribute";
         ItemVariant: Record "Item Variant";
+        ItemAttributeValueMapping: Record "Item Attribute Value Mapping";
         ItemVarAttrValueMapping: Record "Item Var. Attr. Value Mapping";
         ItemAttributeValue: Record "Item Attribute Value";
         AttributeId: Integer;
         MissingVariantCode: Code[10];
         MissingAttributeName: Text[250];
         MissingAttributeErr: Label 'Item %1 Variant %2 is missing an attribute "%3". All item variants must have must have item attributes marked as "As Option".', Comment = '%1 = Item No., %2 = Variant Code, %3 = Attribute Name';
-        MissingAttributeValueErr: Label 'Item %1 Variant %2 is missing a value for attribute "%3". All item variants must have values for attributes marked as "As Option".', Comment = '%1 = Item No., %2 = Variant Code, %3 = Attribute Name';
+        MissingItemAttributeValueErr: Label 'Item %1 is missing a value for attribute "%2". Item must have values for attributes marked as "As Option".', Comment = '%1 = Item No., %2 = Attribute Name';
+        MissingItemVarAttributeValueErr: Label 'Item %1 Variant %2 is missing a value for attribute "%3". All item variants must have values for attributes marked as "As Option".', Comment = '%1 = Item No., %2 = Variant Code, %3 = Attribute Name';
     begin
         ItemVariant.SetRange("Item No.", Item."No.");
-        if not ItemVariant.FindSet() then
-            exit(false);
-
-        repeat
+        if ItemVariant.FindSet() then
+            repeat
+                foreach AttributeId in ItemAttributeIds do begin
+                    ItemVarAttrValueMapping.SetRange("Item No.", Item."No.");
+                    ItemVarAttrValueMapping.SetRange("Variant Code", ItemVariant.Code);
+                    ItemVarAttrValueMapping.SetRange("Item Attribute ID", AttributeId);
+                    if not ItemVarAttrValueMapping.FindFirst() then begin
+                        MissingVariantCode := ItemVariant.Code;
+                        if ItemAttribute.Get(AttributeId) then
+                            MissingAttributeName := ItemAttribute.Name;
+                        SkippedReason := StrSubstNo(MissingAttributeErr, Item."No.", MissingVariantCode, MissingAttributeName);
+                        exit(true);
+                    end else
+                        if ItemAttributeValue.Get(ItemVarAttrValueMapping."Item Attribute ID", ItemVarAttrValueMapping."Item Attribute Value ID") then
+                            if ItemAttributeValue.Value = '' then begin
+                                MissingVariantCode := ItemVariant.Code;
+                                if ItemAttribute.Get(AttributeId) then
+                                    MissingAttributeName := ItemAttribute.Name;
+                                SkippedReason := StrSubstNo(MissingItemVarAttributeValueErr, Item."No.", MissingVariantCode, MissingAttributeName);
+                                exit(true);
+                            end;
+                end;
+            until ItemVariant.Next() = 0
+        else
             foreach AttributeId in ItemAttributeIds do begin
-                ItemVarAttrValueMapping.SetRange("Item No.", Item."No.");
-                ItemVarAttrValueMapping.SetRange("Variant Code", ItemVariant.Code);
-                ItemVarAttrValueMapping.SetRange("Item Attribute ID", AttributeId);
-                if not ItemVarAttrValueMapping.FindFirst() then begin
-                    MissingVariantCode := ItemVariant.Code;
-                    if ItemAttribute.Get(AttributeId) then
-                        MissingAttributeName := ItemAttribute.Name;
-                    SkippedReason := StrSubstNo(MissingAttributeErr, Item."No.", MissingVariantCode, MissingAttributeName);
-                    exit(true);
-                end else
-                    if ItemAttributeValue.Get(ItemVarAttrValueMapping."Item Attribute ID", ItemVarAttrValueMapping."Item Attribute Value ID") then
+                ItemAttributeValueMapping.SetRange("Table ID", Database::Item);
+                ItemAttributeValueMapping.SetRange("No.", Item."No.");
+                ItemAttributeValueMapping.SetRange("Item Attribute ID", AttributeId);
+                if ItemAttributeValueMapping.FindFirst() then
+                    if ItemAttributeValue.Get(ItemAttributeValueMapping."Item Attribute ID", ItemAttributeValueMapping."Item Attribute Value ID") then
                         if ItemAttributeValue.Value = '' then begin
-                            MissingVariantCode := ItemVariant.Code;
                             if ItemAttribute.Get(AttributeId) then
                                 MissingAttributeName := ItemAttribute.Name;
-                            SkippedReason := StrSubstNo(MissingAttributeValueErr, Item."No.", MissingVariantCode, MissingAttributeName);
+                            SkippedReason := StrSubstNo(MissingItemAttributeValueErr, Item."No.", MissingAttributeName);
                             exit(true);
                         end;
             end;
-        until ItemVariant.Next() = 0;
     end;
 
-    local procedure FillProductOptionsForShopifyVariants(Item: Record Item; var TempShopifyVariant: Record "Shpfy Variant" temporary)
+    local procedure FillProductOptionsForShopifyVariants(Item: Record Item; var TempShopifyVariant: Record "Shpfy Variant" temporary; var TempShopifyProduct: Record "Shpfy Product" temporary)
     var
         ItemVariant: Record "Item Variant";
         ItemAttributeIds: List of [Integer];
@@ -381,6 +397,8 @@ codeunit 30174 "Shpfy Create Product"
                 FillProductOptionsFromItemAttributes(Item."No.", VariantCode, ItemAttributeIds, TempShopifyVariant);
                 TempShopifyVariant.Modify(false);
             until TempShopifyVariant.Next() = 0;
+
+        TempShopifyProduct."Has Variants" := true;
     end;
 
     local procedure FillProductOptionsFromItemAttributes(ItemNo: Code[20]; VariantCode: Code[10]; ItemAttributeIds: List of [Integer]; var TempShopifyVariant: Record "Shpfy Variant" temporary)
