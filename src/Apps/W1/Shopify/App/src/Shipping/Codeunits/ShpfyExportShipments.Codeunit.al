@@ -102,6 +102,7 @@ codeunit 30190 "Shpfy Export Shipments"
             until SalesShipmentLine.Next() = 0;
 
             TempFulfillmentOrderLine.Reset();
+            TempFulfillmentOrderLine.SetCurrentKey("Shopify Fulfillment Order Id");
             if TempFulfillmentOrderLine.FindSet() then begin
                 GraphQuery.Append('{"query": "mutation {fulfillmentCreate( fulfillment: {');
                 if GetNotifyCustomer(Shop, SalesShipmentHeader, TempFulfillmentOrderLine."Shopify Location Id") then
