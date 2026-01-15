@@ -39,7 +39,6 @@ page 8351 "MCP Config Card"
 
                     trigger OnValidate()
                     begin
-                        Session.LogMessage('0000QE6', StrSubstNo(SettingConfigurationActiveLbl, Rec.SystemId, Rec.Active), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MCPConfigImplementation.GetTelemetryCategory());
 
                         if Rec.Active then
                             MCPConfigImplementation.ValidateConfiguration(Rec, true);
@@ -51,8 +50,6 @@ page 8351 "MCP Config Card"
 
                     trigger OnValidate()
                     begin
-                        Session.LogMessage('0000QE7', StrSubstNo(SettingConfigurationEnableDynamicToolModeLbl, Rec.SystemId, Rec.EnableDynamicToolMode), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MCPConfigImplementation.GetTelemetryCategory());
-
                         if not Rec.EnableDynamicToolMode then
                             Rec.DiscoverReadOnlyObjects := false;
 
@@ -63,11 +60,6 @@ page 8351 "MCP Config Card"
                 field(DiscoverReadOnlyObjects; Rec.DiscoverReadOnlyObjects)
                 {
                     Editable = not IsDefault and Rec.EnableDynamicToolMode and not Rec.Active;
-
-                    trigger OnValidate()
-                    begin
-                        Session.LogMessage('0000QGJ', StrSubstNo(SettingConfigurationDiscoverReadOnlyObjectsLbl, Rec.SystemId, Rec.DiscoverReadOnlyObjects), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MCPConfigImplementation.GetTelemetryCategory());
-                    end;
                 }
                 field(AllowProdChanges; Rec.AllowProdChanges)
                 {
@@ -78,7 +70,6 @@ page 8351 "MCP Config Card"
                         if not Rec.AllowProdChanges then
                             MCPConfigImplementation.DisableCreateUpdateDeleteToolsInConfig(Rec.SystemId);
                         CurrPage.Update();
-                        Session.LogMessage('0000QE8', StrSubstNo(SettingConfigurationAllowProdChangesLbl, Rec.SystemId, Rec.AllowProdChanges), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MCPConfigImplementation.GetTelemetryCategory());
                     end;
                 }
             }
@@ -161,13 +152,24 @@ page 8351 "MCP Config Card"
         ToolModeLbl := StaticToolModeLbl;
     end;
 
+    trigger OnDeleteRecord(): Boolean
+    begin
+        MCPConfigImplementation.LogConfigurationDeleted(Rec);
+    end;
+
+    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
+    begin
+        MCPConfigImplementation.LogConfigurationCreated(Rec);
+    end;
+
+    trigger OnModifyRecord(): Boolean
+    begin
+        MCPConfigImplementation.LogConfigurationModified(Rec, xRec);
+    end;
+
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
         IsDefault: Boolean;
-        SettingConfigurationActiveLbl: Label 'Setting MCP configuration %1 Active to %2', Comment = '%1 - configuration ID, %2 - active', Locked = true;
-        SettingConfigurationEnableDynamicToolModeLbl: Label 'Setting MCP configuration %1 EnableDynamicToolMode to %2', Comment = '%1 - configuration ID, %2 - enable dynamic tool mode', Locked = true;
-        SettingConfigurationAllowProdChangesLbl: Label 'Setting MCP configuration %1 AllowProdChanges to %2', Comment = '%1 - configuration ID, %2 - allow production changes', Locked = true;
-        SettingConfigurationDiscoverReadOnlyObjectsLbl: Label 'Setting MCP configuration %1 DiscoverReadOnlyObjects to %2', Comment = '%1 - configuration ID, %2 - allow read-only API discovery', Locked = true;
         ToolModeLbl: Text;
         StaticToolModeLbl: Label 'In Static Tool Mode, objects in the available tools will be directly exposed to clients. You can manage these tools by adding, modifying, or removing them from the configuration.';
         DynamicToolModeLbl: Label 'In Dynamic Tool Mode, only system tools will be exposed to clients. Objects within the available tools can be discovered, described and invoked dynamically using system tools. You can enable dynamic discovery of any read-only object outside of the available tools using Discover Additional Objects setting.';
