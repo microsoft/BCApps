@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Configuration.Template;
 
 /// <summary>
-/// This is used to influence how the Sample Size on a test is initially set.
+/// This is used to influence how the Sample Size on an inspection is initially set.
 /// </summary>
 enum 20463 "Qlty. Sample Size Source"
 {

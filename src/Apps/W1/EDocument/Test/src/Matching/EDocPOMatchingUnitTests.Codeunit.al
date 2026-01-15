@@ -13,8 +13,8 @@ using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
-using Microsoft.Purchases.Vendor;
 using Microsoft.Purchases.Setup;
+using Microsoft.Purchases.Vendor;
 
 codeunit 133508 "E-Doc. PO Matching Unit Tests"
 {
@@ -2210,7 +2210,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         LinkEDocumentLineToPurchaseLine(EDocument, EDocumentPurchaseLine, PurchaseLine);
 
         // [WHEN] TransferPOMatchesFromEDocumentToInvoice is called
-        EDocPOMatching.TransferPOMatchesFromEDocumentToInvoice(EDocument, PurchaseHeader);
+        EDocPOMatching.TransferPOMatchesFromEDocumentToInvoice(EDocument);
 
         // [THEN] The invoice line's Receipt No. and Receipt Line No. are set
         PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
@@ -2283,7 +2283,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         LinkEDocumentLineToPurchaseLine(EDocument, EDocumentPurchaseLine3, PurchaseLine3);
 
         // [WHEN] TransferPOMatchesFromEDocumentToInvoice is called
-        EDocPOMatching.TransferPOMatchesFromEDocumentToInvoice(EDocument, PurchaseHeader);
+        EDocPOMatching.TransferPOMatchesFromEDocumentToInvoice(EDocument);
 
         // [THEN] Each invoice line has the correct Receipt No. and Receipt Line No.
         PurchaseLine1.Get(PurchaseLine1."Document Type", PurchaseLine1."Document No.", PurchaseLine1."Line No.");
@@ -2334,7 +2334,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         LinkEDocumentLineToPurchaseLine(EDocument, EDocumentPurchaseLine, PurchaseLine);
 
         // [WHEN] TransferPOMatchesFromInvoiceToEDocument is called
-        EDocPOMatching.TransferPOMatchesFromInvoiceToEDocument(PurchaseHeader, EDocument);
+        EDocPOMatching.TransferPOMatchesFromInvoiceToEDocument(PurchaseHeader);
 
         // [THEN] The E-Document line is matched to the purchase order line
         Assert.IsTrue(EDocPOMatching.IsPOLineMatchedToEDocumentLine(PurchaseOrderLine, EDocumentPurchaseLine), 'Expected E-Document line to be matched to PO line');
@@ -2409,7 +2409,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         LinkEDocumentLineToPurchaseLine(EDocument, EDocumentPurchaseLine3, PurchaseLine3);
 
         // [WHEN] TransferPOMatchesFromInvoiceToEDocument is called
-        EDocPOMatching.TransferPOMatchesFromInvoiceToEDocument(PurchaseHeader, EDocument);
+        EDocPOMatching.TransferPOMatchesFromInvoiceToEDocument(PurchaseHeader);
 
         // [THEN] Each E-Document line is matched to its corresponding PO line and receipt line
         Assert.IsTrue(EDocPOMatching.IsPOLineMatchedToEDocumentLine(PurchaseOrderLine1, EDocumentPurchaseLine1), 'Expected first E-Document line to be matched to first PO line');

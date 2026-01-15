@@ -1,8 +1,9 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go-Actions/v8.1/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/6f564fa18b52c98eebc26fb118f1402c0d781dd1/Actions/.Modules/settings.schema.json",
   "projectName": "Business Foundation Tests",
   "testFolders": [
     "../../../src/Business Foundation/Test"
   ],
-  "installOnlyReferencedApps": false
+  "installOnlyReferencedApps": false,
+  "testType": "UnitTest"
 }

@@ -5,6 +5,7 @@
 
 namespace System.Security.User;
 
+using System.Agents;
 using System.Security.AccessControl;
 
 page 9801 "User Subform"
@@ -99,6 +100,13 @@ page 9801 "User Subform"
         PermissionScope: Text;
         PermissionSetNotFound: Boolean;
         UserPermissionsTok: Label 'User Permissions', Locked = true;
+
+    trigger OnOpenPage()
+    var
+        AgentUtilities: Codeunit "Agent Utilities";
+    begin
+        AgentUtilities.BlockPageFromBeingOpenedByAgent();
+    end;
 
     trigger OnAfterGetRecord()
     var
