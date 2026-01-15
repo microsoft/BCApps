@@ -11,17 +11,7 @@ permissionset 8350 "MCP - Objects"
     Assignable = false;
     Caption = 'MCP - Objects';
 
-    Permissions = codeunit "MCP Config" = X,
-                  codeunit "MCP Config Implementation" = X,
-                  page "MCP API Config Tool Lookup" = X,
-                  page "MCP API Publisher Lookup" = X,
-                  page "MCP Entra Application List" = X,
-                  page "MCP Config Card" = X,
-                  page "MCP Config List" = X,
-                  page "MCP Config Tool List" = X,
-                  page "MCP Connection String" = X,
-                  page "MCP Copy Config" = X,
-                  page "MCP Tools By API Group" = X,
-                  table "MCP API Publisher Group" = X,
+    Permissions = table "MCP Configuration" = X,
+                  table "MCP Configuration Tool" = X,
                   table "MCP Entra Application" = X;
 }

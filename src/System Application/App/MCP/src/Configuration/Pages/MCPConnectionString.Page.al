@@ -76,7 +76,7 @@ page 8358 "MCP Connection String"
         ConnectionStringJson: Text;
         ConfigurationName: Text[100];
         DownloadTitleLbl: Label 'Download MCP Connection String';
-        TextFileFilterLbl: Label 'Text Files (*.txt)|*.txt', Locked = true;
+        TextFileFilterLbl: Label 'Text Files (*.txt)|*.txt';
         FileNamePatternLbl: Label 'mcp-config-%1.txt', Locked = true, Comment = '%1 = Configuration name';
 
     internal procedure SetConnectionString(NewConnectionString: Text; NewConfigurationName: Text[100])
