@@ -15,7 +15,7 @@ codeunit 8353 "MCP Config Missing Object" implements "MCP Config Warning"
 
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
-        MissingObjectWarningLbl: Label '%1 %2 referenced by this configuration no longer exists in the system.', Comment = '%1=Object type, %2=Object Id';
+        MissingObjectWarningLbl: Label '%1 (%2) referenced by this configuration no longer exists in the system.', Comment = '%1=Object type, %2=Object Id';
         MissingObjectFixLbl: Label 'Remove this tool from the configuration.';
 
     procedure CheckForWarnings(ConfigId: Guid; var MCPConfigWarning: Record "MCP Config Warning"; var EntryNo: Integer)
