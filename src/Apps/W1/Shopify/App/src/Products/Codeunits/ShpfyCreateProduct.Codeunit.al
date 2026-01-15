@@ -249,6 +249,12 @@ codeunit 30174 "Shpfy Create Product"
         TempShopifyVariant.Insert(false);
     end;
 
+
+    /// <summary> 
+    /// Checks if item attributes marked as "As Option" are compatible to be used as product options in Shopify.
+    /// </summary>  
+    /// <param name="Item">The item to check.</param>
+    /// <returns>True if the item attributes are compatible, false otherwise.</returns>
     internal procedure CheckItemAttributesCompatibleForProductOptions(Item: Record Item): Boolean
     var
         SkippedRecord: Codeunit "Shpfy Skipped Record";
@@ -419,20 +425,27 @@ codeunit 30174 "Shpfy Create Product"
                     ItemVarAttrValueMapping.SetRange("Item Attribute ID", AttributeId);
                     if ItemVarAttrValueMapping.FindFirst() then
                         if ItemAttributeValue.Get(ItemVarAttrValueMapping."Item Attribute ID", ItemVarAttrValueMapping."Item Attribute Value ID") then
-                            AssignOptionValue(TempShopifyVariant, OptionIndex, ItemAttribute.Name, ItemAttributeValue.Value);
+                            AssignProductOptionValues(TempShopifyVariant, OptionIndex, ItemAttribute.Name, ItemAttributeValue.Value);
                 end else begin
                     ItemAttributeValueMapping.SetRange("Table ID", Database::Item);
                     ItemAttributeValueMapping.SetRange("No.", ItemNo);
                     ItemAttributeValueMapping.SetRange("Item Attribute ID", AttributeId);
                     if ItemAttributeValueMapping.FindFirst() then
                         if ItemAttributeValue.Get(ItemAttributeValueMapping."Item Attribute ID", ItemAttributeValueMapping."Item Attribute Value ID") then
-                            AssignOptionValue(TempShopifyVariant, OptionIndex, ItemAttribute.Name, ItemAttributeValue.Value);
+                            AssignProductOptionValues(TempShopifyVariant, OptionIndex, ItemAttribute.Name, ItemAttributeValue.Value);
                 end;
                 OptionIndex += 1;
             end;
     end;
 
-    local procedure AssignOptionValue(var TempShopifyVariant: Record "Shpfy Variant" temporary; OptionIndex: Integer; AttributeName: Text[250]; AttributeValue: Text[250])
+    /// <summary> 
+    /// Assigns product option values to the temporary Shopify variant based on the option index.
+    /// </summary>
+    /// <param name="TempShopifyVariant">Parameter of type Record "Shpfy Variant" temporary.</param>
+    /// <param name="OptionIndex">Parameter of type Integer.</param>
+    /// <param name="AttributeName">Parameter of type Text[250].</param>
+    /// <param name="AttributeValue">Parameter of type Text[250].</param>
+    internal procedure AssignProductOptionValues(var TempShopifyVariant: Record "Shpfy Variant" temporary; OptionIndex: Integer; AttributeName: Text[250]; AttributeValue: Text[250])
     begin
         case OptionIndex of
             1:
