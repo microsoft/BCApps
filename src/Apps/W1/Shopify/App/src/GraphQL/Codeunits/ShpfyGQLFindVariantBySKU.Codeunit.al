@@ -27,7 +27,7 @@ codeunit 30131 "Shpfy GQL FindVariantBySKU" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(25);
+        exit(4);
     end;
 
 }

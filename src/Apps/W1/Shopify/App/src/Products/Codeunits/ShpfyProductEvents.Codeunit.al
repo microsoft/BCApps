@@ -82,6 +82,15 @@ codeunit 30177 "Shpfy Product Events"
     begin
     end;
 
+    /// <summary>
+    /// Raised before updating product metafields in Shopify.
+    /// </summary>
+    /// <param name="ProductId">The Shopify product Id.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnBeforeUpdateProductMetafields(ProductId: BigInteger)
+    begin
+    end;
+
 #pragma warning disable AS0027
     /// <summary> 
     /// Raised After Find Item Template.
@@ -382,6 +391,17 @@ codeunit 30177 "Shpfy Product Events"
     /// <param name="InStream">Parameter of type InStream.</param>
     [IntegrationEvent(false, false)]
     internal procedure OnAfterUpdateItemPicture(var Item: Record Item; ImageUrl: Text; InStream: InStream)
+    begin
+    end;
+
+    /// <summary> 
+    /// Raised After Modify Item Variant Picture.
+    /// </summary>
+    /// <param name="ItemVariant">Parameter of type Record "Item Variant".</param>
+    /// <param name="ImageUrl">Parameter of type Text.</param>
+    /// <param name="InStream">Parameter of type InStream.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnAfterUpdateItemVariantPicture(var ItemVariant: Record "Item Variant"; ImageUrl: Text; InStream: InStream)
     begin
     end;
 
