@@ -869,6 +869,7 @@ codeunit 30178 "Shpfy Product Export"
                     ShopifyVariant.Price := JVariant.GetDecimal('price');
                     ShopifyVariant."Compare at Price" := JVariant.GetDecimal('compareAtPrice');
                     ShopifyVariant."Updated At" := JVariant.GetDateTime('updatedAt');
+                    ShopifyVariant."Unit Cost" := JVariant.GetDecimal('unitCost');
                     ShopifyVariant.Modify();
                 end;
                 exit;
