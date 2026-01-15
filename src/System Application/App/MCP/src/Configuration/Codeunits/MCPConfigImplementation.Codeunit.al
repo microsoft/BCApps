@@ -11,6 +11,7 @@ using System.Environment;
 using System.Environment.Configuration;
 #endif
 using System.Reflection;
+using System.Utilities;
 
 codeunit 8351 "MCP Config Implementation"
 {
@@ -561,10 +562,9 @@ codeunit 8351 "MCP Config Implementation"
 
     local procedure IsTIEEnvironment(): Boolean
     var
-        Url: Text;
+        Uri: Codeunit Uri;
     begin
-        Url := LowerCase(GetUrl(ClientType::Web));
-        exit(StrPos(Url, 'businesscentral.dynamics-tie.com') <> 0);
+        exit(Uri.AreURIsHaveSameHost(GetUrl(ClientType::Web), 'https://businesscentral.dynamics-tie.com'));
     end;
 
     local procedure BuildConnectionStringJson(MCPPrefix: Text; MCPUrl: Text; TenantId: Text; EnvironmentName: Text; Company: Text; ConfigurationName: Text[100]): Text
