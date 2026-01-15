@@ -11,7 +11,8 @@ permissionset 8350 "MCP - Objects"
     Assignable = false;
     Caption = 'MCP - Objects';
 
-    Permissions = table "MCP Configuration" = X,
+    Permissions = table "MCP API Publisher Group" = X,
+                  table "MCP Configuration" = X,
                   table "MCP Configuration Tool" = X,
                   table "MCP Entra Application" = X;
 }
