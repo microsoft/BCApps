@@ -15,6 +15,7 @@ permissionset 8350 "MCP - Objects"
                   codeunit "MCP Config Implementation" = X,
                   codeunit "MCP Config Missing Object" = X,
                   codeunit "MCP Config Missing Parent" = X,
+                  codeunit "MCP Config Missing Read Tool" = X,
                   page "MCP API Config Tool Lookup" = X,
                   page "MCP API Publisher Lookup" = X,
                   page "MCP Config Card" = X,

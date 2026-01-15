@@ -21,7 +21,7 @@ codeunit 8354 "MCP Config Missing Parent" implements "MCP Config Warning"
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
         PageMetadata: Record "Page Metadata";
-        MCPUtilities: Codeunit "MCP Utilities";
+        // MCPUtilities: Codeunit "MCP Utilities";
         PageIdVersions: Dictionary of [Integer, Text];
         ParentMCPTools: Dictionary of [Integer, List of [Integer]];
         ParentPageIds: List of [Integer];
@@ -42,7 +42,7 @@ codeunit 8354 "MCP Config Missing Parent" implements "MCP Config Warning"
         until MCPConfigurationTool.Next() = 0;
 
         // Get parent mappings from platform
-        ParentMCPTools := MCPUtilities.GetParentMCPTools(PageIdVersions);
+        // ParentMCPTools := MCPUtilities.GetParentMCPTools(PageIdVersions);
 
         // Check each page with parents for missing parent tools
         foreach PageId in ParentMCPTools.Keys() do begin
