@@ -188,7 +188,7 @@ codeunit 30189 "Shpfy Variant API"
                 HasChange := true;
                 GraphQuery.Append(', compareAtPrice: null');
             end;
-        if (ShopifyVariant."Unit Cost" <> xShopifyVariant."Unit Cost") or (ShopifyVariant.Weight <> xShopifyVariant.Weight) or (ShopifyVariant.SKU <> xShopifyVariant.SKU) then begin //or UpdateDefaultVariant then begin
+        if (ShopifyVariant."Unit Cost" <> xShopifyVariant."Unit Cost") or (ShopifyVariant.Weight <> xShopifyVariant.Weight) or (ShopifyVariant.SKU <> xShopifyVariant.SKU) then begin
             HasChange := true;
             GraphQuery.Append(', inventoryItem: {tracked: ');
             if Shop."Inventory Tracked" then
@@ -641,6 +641,7 @@ codeunit 30189 "Shpfy Variant API"
         GraphQuery: TextBuilder;
         Price: Text;
         CompareAtPrice: Text;
+        UnitCost: Text;
     begin
         IsBulkOperationEnabled := RecordCount >= BulkOperationMgt.GetBulkOperationThreshold();
         GraphQuery.Append('{"query":"mutation { productVariantsBulkUpdate(productId: \"gid://shopify/Product/');
@@ -669,6 +670,14 @@ codeunit 30189 "Shpfy Variant API"
                 GraphQuery.Append(', compareAtPrice: null');
                 CompareAtPrice := '0';
             end;
+        if ShopifyVariant."Unit Cost" <> xShopifyVariant."Unit Cost" then begin
+            HasChange := true;
+            GraphQuery.Append(', inventoryItem: {cost: \"');
+            GraphQuery.Append(Format(ShopifyVariant."Unit Cost", 0, 9));
+            GraphQuery.Append('\"}');
+            if IsBulkOperationEnabled then
+                UnitCost := Format(ShopifyVariant."Unit Cost", 0, 9);
+        end;
 
         GraphQuery.Append('}]) {productVariants {updatedAt}, userErrors {field, message}}}"}');
 
@@ -679,15 +688,18 @@ codeunit 30189 "Shpfy Variant API"
                     Price := Format(ShopifyVariant.Price, 0, 9);
                 if CompareAtPrice = '' then
                     CompareAtPrice := Format(ShopifyVariant."Compare at Price", 0, 9);
+                if UnitCost = '' then
+                    UnitCost := Format(ShopifyVariant."Unit Cost", 0, 9);
 
                 GraphQueryList.Add(ShopifyVariant.Id, GraphQuery);
                 JRequest.Add('id', ShopifyVariant.Id);
                 JRequest.Add('price', xShopifyVariant.Price);
                 JRequest.Add('compareAtPrice', xShopifyVariant."Compare at Price");
+                JRequest.Add('unitCost', xShopifyVariant."Unit Cost");
                 JRequest.Add('updatedAt', xShopifyVariant."Updated At");
                 JRequestData.Add(JRequest);
 
-                BulkOperationInput.AppendLine(StrSubstNo(IBulkOperation.GetInput(), ShopifyVariant."Product Id", ShopifyVariant.Id, Price, CompareAtPrice));
+                BulkOperationInput.AppendLine(StrSubstNo(IBulkOperation.GetInput(), ShopifyVariant."Product Id", ShopifyVariant.Id, Price, CompareAtPrice, UnitCost));
                 ShopifyVariant."Updated At" := CurrentDateTime();
                 ShopifyVariant.Modify();
             end else begin
