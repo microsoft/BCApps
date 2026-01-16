@@ -54,7 +54,7 @@ codeunit 30343 "Shpfy Create Item As Variant"
 
 
         if ShopifyProduct."Has Variants" and (OptionName <> VariantOptionTok) then
-            ProductExport.ValidateItemAttributesAndAssignProductOptionsForNewVariant(TempShopifyVariant, Item, '', ShopifyProduct.Id);
+            ProductExport.ValidateItemAttributesAsProductOptionsForNewVariant(TempShopifyVariant, Item, '', ShopifyProduct.Id);
 
         Events.OnAfterCreateTempShopifyVariant(Item, TempShopifyVariant);
         TempShopifyVariant.Modify();

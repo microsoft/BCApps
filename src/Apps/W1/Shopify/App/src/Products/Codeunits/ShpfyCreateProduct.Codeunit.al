@@ -6,7 +6,6 @@
 namespace Microsoft.Integration.Shopify;
 
 using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Item.Attribute;
 using Microsoft.Inventory.Item.Catalog;
 
 /// <summary>

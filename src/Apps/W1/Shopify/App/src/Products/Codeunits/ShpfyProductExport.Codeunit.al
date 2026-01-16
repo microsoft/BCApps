@@ -257,7 +257,7 @@ codeunit 30178 "Shpfy Product Export"
         Clear(TempShopifyVariant);
         FillInProductVariantData(TempShopifyVariant, Item, ItemVariant);
 
-        if not ValidateItemAttributesAndAssignProductOptionsForNewVariant(TempShopifyVariant, Item, ItemVariant.Code, TempShopifyProduct.Id) then
+        if not ValidateItemAttributesAsProductOptionsForNewVariant(TempShopifyVariant, Item, ItemVariant.Code, TempShopifyProduct.Id) then
             exit;
 
         TempShopifyVariant.Insert(false);
@@ -1156,7 +1156,7 @@ codeunit 30178 "Shpfy Product Export"
     /// <param name="Item">Parameter of type Record Item.</param>   
     /// <param name="ItemVariant">Parameter of type Record "Item Variant".</param>
     /// <param name="ShopifyProductId">Parameter of type BigInteger.</param>
-    internal procedure ValidateItemAttributesAndAssignProductOptionsForNewVariant(var TempShopifyVariant: Record "Shpfy Variant" temporary; Item: Record Item; ItemVariantCode: Code[10]; ShopifyProductId: BigInteger): Boolean
+    internal procedure ValidateItemAttributesAsProductOptionsForNewVariant(var TempShopifyVariant: Record "Shpfy Variant" temporary; Item: Record Item; ItemVariantCode: Code[10]; ShopifyProductId: BigInteger): Boolean
     var
         ItemAttributeIds: List of [Integer];
         ProductOptions: Dictionary of [Integer, Text];
