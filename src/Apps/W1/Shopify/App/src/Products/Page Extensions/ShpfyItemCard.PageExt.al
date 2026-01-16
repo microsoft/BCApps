@@ -52,6 +52,7 @@ pageextension 30119 "Shpfy Item Card" extends "Item Card"
                         SyncProducts: Codeunit "Shpfy Sync Products";
                     begin
                         if SyncProducts.ConfirmAddItemToShopify(Rec, Shop) then begin
+                            ProductExport.SetShop(Shop);
                             if not ProductExport.CheckItemAttributesCompatibleForProductOptions(Rec) then
                                 exit;
 
