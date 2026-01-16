@@ -27,6 +27,7 @@ codeunit 30178 "Shpfy Product Export"
         tabledata "Item Attribute Translation" = r,
         tabledata "Item Attribute Value" = r,
         tabledata "Item Attribute Value Mapping" = r,
+        tabledata "Item Var. Attr. Value Mapping" = r,
         tabledata "Item Category" = r,
         tabledata "Item Reference" = r,
         tabledata "Item Unit of Measure" = rim,

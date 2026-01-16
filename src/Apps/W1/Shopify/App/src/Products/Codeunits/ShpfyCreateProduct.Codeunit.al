@@ -17,12 +17,8 @@ codeunit 30174 "Shpfy Create Product"
     Access = Internal;
     Permissions =
         tabledata Item = r,
-        tabledata "Item Attribute" = r,
-        tabledata "Item Attribute Value" = r,
-        tabledata "Item Attribute Value Mapping" = r,
         tabledata "Item Reference" = r,
         tabledata "Item Unit of Measure" = r,
-        tabledata "Item Var. Attr. Value Mapping" = r,
         tabledata "Item Variant" = r;
     TableNo = Item;
 
