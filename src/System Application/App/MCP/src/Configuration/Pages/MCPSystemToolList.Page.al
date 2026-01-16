@@ -5,7 +5,7 @@
 
 namespace System.MCP;
 
-page 8357 "MCP System Tool List"
+page 8365 "MCP System Tool List"
 {
     Caption = 'System Tools';
     ApplicationArea = All;

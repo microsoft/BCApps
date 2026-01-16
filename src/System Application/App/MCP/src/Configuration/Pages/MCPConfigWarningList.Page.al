@@ -5,7 +5,7 @@
 
 namespace System.MCP;
 
-page 8358 "MCP Config Warning List"
+page 8359 "MCP Config Warning List"
 {
     ApplicationArea = All;
     PageType = List;

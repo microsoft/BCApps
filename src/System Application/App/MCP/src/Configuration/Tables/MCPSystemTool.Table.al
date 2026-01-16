@@ -5,7 +5,7 @@
 
 namespace System.MCP;
 
-table 8351 "MCP System Tool"
+table 8353 "MCP System Tool"
 {
     Access = Internal;
     DataClassification = SystemMetadata;
