@@ -57,13 +57,13 @@ codeunit 30343 "Shpfy Create Item As Variant"
 
 
         if ShopifyProduct."Has Variants" and (OptionName <> VariantOptionTok) then begin
-            CollectExistingProductVariantOptions(ProductOptions, ExistingProductOptionValues);
+            CollectExistingProductVariantOptionValues(ProductOptions, ExistingProductOptionValues);
 
             for ProductOptionIndex := 1 to ProductOptions.Count() do
                 if not AssignProductOptionValuesToTempProductVariant(TempShopifyVariant, Item, ProductOptions, ProductOptionIndex) then
                     exit;
 
-            if not CheckProdOptionsCombinationUnique(TempShopifyVariant, ExistingProductOptionValues, Item) then
+            if not CheckProductOptionsCombinationUnique(TempShopifyVariant, ExistingProductOptionValues, Item) then
                 exit;
         end;
 
@@ -76,7 +76,8 @@ codeunit 30343 "Shpfy Create Item As Variant"
         end;
     end;
 
-    local procedure CollectExistingProductVariantOptions(var ProductOptions: Dictionary of [Integer, Text]; var ExistingProductOptionValues: Dictionary of [Text, Text])
+    #region Shopify Product Options as Item/Variant Attributes 
+    local procedure CollectExistingProductVariantOptionValues(var ProductOptions: Dictionary of [Integer, Text]; var ExistingProductOptionValues: Dictionary of [Text, Text])
     var
         ShopifyVariant: Record "Shpfy Variant";
         ItemAttribute: Record "Item Attribute";
@@ -130,6 +131,7 @@ codeunit 30343 "Shpfy Create Item As Variant"
     var
         ItemAttributeValueMapping: Record "Item Attribute Value Mapping";
         ItemAttributeValue: Record "Item Attribute Value";
+        ProductExport: Codeunit "Shpfy Product Export";
         SkippedRecord: Codeunit "Shpfy Skipped Record";
         ItemWithoutRequiredAttributeErr: Label 'Item %1 cannot be added as a product variant because it does not have required attributes.', Comment = '%1 = Item No.';
         ItemWithoutRequiredAttributeValueErr: Label 'Item %1 cannot be added as a product variant because it does not have a value for the required attributes.', Comment = '%1 = Item No.';
@@ -140,7 +142,7 @@ codeunit 30343 "Shpfy Create Item As Variant"
         if ItemAttributeValueMapping.FindFirst() then begin
             if ItemAttributeValue.Get(ItemAttributeValueMapping."Item Attribute ID", ItemAttributeValueMapping."Item Attribute Value ID") then begin
                 ItemAttributeValue.CalcFields("Attribute Name");
-                CreateProduct.AssignProductOptionValues(TempShopifyVariant, ProductOptionIndex, ItemAttributeValue."Attribute Name", ItemAttributeValue.Value);
+                ProductExport.AssignProductOptionValues(TempShopifyVariant, ProductOptionIndex, ItemAttributeValue."Attribute Name", ItemAttributeValue.Value);
             end else begin
                 SkippedRecord.LogSkippedRecord(Item.RecordId(), StrSubstNo(ItemWithoutRequiredAttributeValueErr, Item."No."), Shop);
                 exit(false);
@@ -153,7 +155,7 @@ codeunit 30343 "Shpfy Create Item As Variant"
         exit(true);
     end;
 
-    local procedure CheckProdOptionsCombinationUnique(var TempShopifyVariant: Record "Shpfy Variant" temporary; ExistingProductOptionValues: Dictionary of [Text, Text]; Item: Record "Item"): Boolean
+    local procedure CheckProductOptionsCombinationUnique(var TempShopifyVariant: Record "Shpfy Variant" temporary; ExistingProductOptionValues: Dictionary of [Text, Text]; Item: Record "Item"): Boolean
     var
         SkippedRecord: Codeunit "Shpfy Skipped Record";
         CombinationKey: Text;
@@ -171,6 +173,7 @@ codeunit 30343 "Shpfy Create Item As Variant"
 
         exit(true);
     end;
+    #endregion
 
     /// <summary>
     /// Checks if items can be added as variants to the product. The items cannot be added as variants if:
