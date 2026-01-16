@@ -1060,6 +1060,12 @@ codeunit 30178 "Shpfy Product Export"
             end;
     end;
 
+    /// <summary> 
+    /// Fills product options for Shopify variants based on item attributes marked as "As Option".
+    /// </summary>
+    /// <param name="Item">The item to process.</param>
+    /// <param name="TempShopifyVariant">Parameter of Shopify Variants to fill.</param>
+    /// <param name="TempShopifyProduct">Parameter of Shopify Product.</param>
     internal procedure FillProductOptionsForShopifyVariants(Item: Record Item; var TempShopifyVariant: Record "Shpfy Variant" temporary; var TempShopifyProduct: Record "Shpfy Product" temporary)
     var
         ItemVariant: Record "Item Variant";
