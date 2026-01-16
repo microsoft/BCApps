@@ -5,6 +5,7 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using Microsoft.Inventory.Item.Attribute;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
@@ -300,6 +301,9 @@ table 30102 "Shpfy Shop"
 
             trigger OnValidate()
             begin
+                if "UoM as Variant" then
+                    VerifyNoItemAttributesAsOptions();
+
                 if "UoM as Variant" and ("Option Name for UoM" = '') then
                     "Option Name for UoM" := 'Unit of Measure';
             end;
@@ -1090,4 +1094,13 @@ table 30102 "Shpfy Shop"
     end;
 #pragma warning restore AL0432
 #endif
+
+    local procedure VerifyNoItemAttributesAsOptions()
+    var
+        ItemAttribute: Record "Item Attribute";
+    begin
+        ItemAttribute.SetRange("Shpfy Incl. in Product Sync", "Shpfy Incl. in Product Sync"::"As Option");
+        if not ItemAttribute.IsEmpty() then
+            Error('UoM as Variant is unavailable due to existing Item Attributes marked as “As Option” which are utilized for Shopify Product Options.');
+    end;
 }
