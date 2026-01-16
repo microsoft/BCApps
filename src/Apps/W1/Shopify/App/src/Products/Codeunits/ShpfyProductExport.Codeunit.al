@@ -257,13 +257,10 @@ codeunit 30178 "Shpfy Product Export"
         Clear(TempShopifyVariant);
         FillInProductVariantData(TempShopifyVariant, Item, ItemVariant);
 
-        if not CheckItemAttributesCompatibleForProductOptions(Item) then
+        if not ValidateItemAttributesAndAssignProductOptionsForNewVariant(TempShopifyVariant, Item, ItemVariant.Code, TempShopifyProduct.Id) then
             exit;
 
         TempShopifyVariant.Insert(false);
-
-        FillProductOptionsForShopifyVariants(Item, TempShopifyVariant, TempShopifyProduct);
-
         VariantApi.AddProductVariant(TempShopifyVariant, ProductId, "Shpfy Variant Create Strategy"::DEFAULT);
     end;
 
@@ -429,6 +426,11 @@ codeunit 30178 "Shpfy Product Export"
             ShopifyVariant.Weight := Item."Gross Weight";
             if ShopifyVariant."Option 1 Name" = '' then
                 ShopifyVariant."Option 1 Name" := 'Variant';
+            if ShopifyVariant."Option 1 Name" = 'Variant' then
+                if ItemAsVariant then
+                    ShopifyVariant."Option 1 Value" := Item."No."
+                else
+                    ShopifyVariant."Option 1 Value" := ItemVariant.Code;
             ShopifyVariant."Shop Code" := Shop.Code;
             ShopifyVariant."Item SystemId" := Item.SystemId;
             ShopifyVariant."Item Variant SystemId" := ItemVariant.SystemId;
@@ -917,7 +919,7 @@ codeunit 30178 "Shpfy Product Export"
 
     #region Shopify Product Options as Item/Variant Attributes 
     /// <summary> 
-    /// Checks if item attributes marked as "As Option" are compatible to be used as product options in Shopify.
+    /// Checks if item/item variant attributes marked as "As Option" are compatible to be used as product options in Shopify.
     /// </summary>  
     /// <param name="Item">The item to check.</param>
     /// <returns>True if the item attributes are compatible, false otherwise.</returns>
@@ -1125,14 +1127,7 @@ codeunit 30178 "Shpfy Product Export"
             end;
     end;
 
-    /// <summary> 
-    /// Assigns product option values to the temporary Shopify variant based on the option index.
-    /// </summary>
-    /// <param name="TempShopifyVariant">Parameter of type Record "Shpfy Variant" temporary.</param>
-    /// <param name="OptionIndex">Parameter of type Integer.</param>
-    /// <param name="AttributeName">Parameter of type Text[250].</param>
-    /// <param name="AttributeValue">Parameter of type Text[250].</param>
-    internal procedure AssignProductOptionValues(var TempShopifyVariant: Record "Shpfy Variant" temporary; OptionIndex: Integer; AttributeName: Text[250]; AttributeValue: Text[250])
+    local procedure AssignProductOptionValues(var TempShopifyVariant: Record "Shpfy Variant" temporary; OptionIndex: Integer; AttributeName: Text[250]; AttributeValue: Text[250])
     begin
         case OptionIndex of
             1:
@@ -1151,6 +1146,165 @@ codeunit 30178 "Shpfy Product Export"
                     TempShopifyVariant."Option 3 Value" := CopyStr(AttributeValue, 1, MaxStrLen(TempShopifyVariant."Option 3 Value"));
                 end;
         end;
+    end;
+
+
+    /// <summary> 
+    /// Validates item attributes and prepares temporary Shopify variant by assigning product option values from Item/Item Variant.
+    /// </summary>
+    /// <param name="TempShopifyVariant">Parameter of type Record "Shpfy Variant" temporary.</param>
+    /// <param name="Item">Parameter of type Record Item.</param>   
+    /// <param name="ItemVariant">Parameter of type Record "Item Variant".</param>
+    /// <param name="ShopifyProductId">Parameter of type BigInteger.</param>
+    internal procedure ValidateItemAttributesAndAssignProductOptionsForNewVariant(var TempShopifyVariant: Record "Shpfy Variant" temporary; Item: Record Item; ItemVariantCode: Code[10]; ShopifyProductId: BigInteger): Boolean
+    var
+        ItemAttributeIds: List of [Integer];
+        ProductOptions: Dictionary of [Integer, Text];
+        ExistingProductOptionValues: Dictionary of [Text, Text];
+        ProductOptionIndex: Integer;
+    begin
+        if Shop."UoM as Variant" then
+            exit(true);
+
+        GetItemAttributeIDsMarkedAsOption(Item, ItemAttributeIds);
+
+        if ItemAttributeIds.Count() = 0 then
+            exit(true);
+
+        CollectExistingProductVariantOptionValues(ProductOptions, ExistingProductOptionValues, ShopifyProductId);
+
+        for ProductOptionIndex := 1 to ProductOptions.Count() do
+            if not AssignProductOptionValuesToTempProductVariant(TempShopifyVariant, Item, ItemVariantCode, ProductOptions, ProductOptionIndex) then
+                exit(false);
+
+        if not CheckProductOptionsCombinationUnique(TempShopifyVariant, ExistingProductOptionValues, Item, ItemVariantCode) then
+            exit(false);
+
+        exit(true);
+    end;
+
+    local procedure CollectExistingProductVariantOptionValues(var ProductOptions: Dictionary of [Integer, Text]; var ExistingProductOptionValues: Dictionary of [Text, Text]; ShopifyProductId: BigInteger)
+    var
+        ShopifyVariant: Record "Shpfy Variant";
+        ItemAttribute: Record "Item Attribute";
+        CombinationKey: Text;
+    begin
+        ShopifyVariant.SetAutoCalcFields("Variant Code");
+        ShopifyVariant.SetRange("Product Id", ShopifyProductId);
+        if ShopifyVariant.FindSet() then
+            repeat
+                CombinationKey := BuildCombinationKey(
+                    ShopifyVariant."Option 1 Name", ShopifyVariant."Option 1 Value",
+                    ShopifyVariant."Option 2 Name", ShopifyVariant."Option 2 Value",
+                    ShopifyVariant."Option 3 Name", ShopifyVariant."Option 3 Value");
+
+                if not ExistingProductOptionValues.ContainsKey(CombinationKey) then
+                    ExistingProductOptionValues.Add(CombinationKey, ShopifyVariant."Variant Code");
+            until ShopifyVariant.Next() = 0;
+
+        if ShopifyVariant."Option 1 Name" <> '' then begin
+            ItemAttribute.SetRange(Name, ShopifyVariant."Option 1 Name");
+            if ItemAttribute.FindFirst() then
+                ProductOptions.Add(ItemAttribute.ID, ShopifyVariant."Option 1 Name");
+        end;
+        if ShopifyVariant."Option 2 Name" <> '' then begin
+            ItemAttribute.SetRange(Name, ShopifyVariant."Option 2 Name");
+            if ItemAttribute.FindFirst() then
+                ProductOptions.Add(ItemAttribute.ID, ShopifyVariant."Option 2 Name");
+        end;
+        if ShopifyVariant."Option 3 Name" <> '' then begin
+            ItemAttribute.SetRange(Name, ShopifyVariant."Option 3 Name");
+            if ItemAttribute.FindFirst() then
+                ProductOptions.Add(ItemAttribute.ID, ShopifyVariant."Option 3 Name");
+        end;
+    end;
+
+    local procedure BuildCombinationKey(Option1Name: Text; Option1Value: Text; Option2Name: Text; Option2Value: Text; Option3Name: Text; Option3Value: Text): Text
+    var
+        CombinationKey: Text;
+        KeyPartTok: Label '%1:%2|', Locked = true, Comment = '%1 = Option Name, %2 = Option Value';
+    begin
+        if Option1Name <> '' then
+            CombinationKey += StrSubstNo(KeyPartTok, Option1Name, Option1Value);
+        if Option2Name <> '' then
+            CombinationKey += StrSubstNo(KeyPartTok, Option2Name, Option2Value);
+        if Option3Name <> '' then
+            CombinationKey += StrSubstNo(KeyPartTok, Option3Name, Option3Value);
+
+        exit(CombinationKey);
+    end;
+
+    local procedure AssignProductOptionValuesToTempProductVariant(var TempShopifyVariant: Record "Shpfy Variant" temporary; Item: Record "Item"; ItemVariantCode: Code[10]; ProductOptions: Dictionary of [Integer, Text]; ProductOptionIndex: Integer): Boolean
+    var
+        ItemVariant: Record "Item Variant";
+        ItemAttributeValueMapping: Record "Item Attribute Value Mapping";
+        ItemVarAttrValueMapping: Record "Item Var. Attr. Value Mapping";
+        ItemAttributeValue: Record "Item Attribute Value";
+        ItemWithoutRequiredAttributeErr: Label 'Item %1 cannot be added as a product variant because it does not have required attributes.', Comment = '%1 = Item No.';
+        ItemWithoutRequiredAttributeValueErr: Label 'Item %1 cannot be added as a product variant because it does not have a value for the required attributes.', Comment = '%1 = Item No.';
+        ItemVariantWithoutRequiredAttributeErr: Label 'Item Variant %1 cannot be added as a product variant because it does not have required attributes.', Comment = '%1 = Item No.';
+        ItemVariantWithoutRequiredAttributeValueErr: Label 'Item Variant%1 cannot be added as a product variant because it does not have a value for the required attributes.', Comment = '%1 = Item No.';
+    begin
+        ItemVariant.SetRange("Item No.", Item."No.");
+        ItemVariant.SetRange("Code", ItemVariantCode);
+        if ItemVariant.FindFirst() then begin
+            ItemVarAttrValueMapping.SetRange("Item No.", Item."No.");
+            ItemVarAttrValueMapping.SetRange("Variant Code", ItemVariant."Code");
+            ItemVarAttrValueMapping.SetRange("Item Attribute ID", ProductOptions.Keys.Get(ProductOptionIndex));
+            if ItemVarAttrValueMapping.FindFirst() then begin
+                if ItemAttributeValue.Get(ItemVarAttrValueMapping."Item Attribute ID", ItemVarAttrValueMapping."Item Attribute Value ID") then begin
+                    ItemAttributeValue.CalcFields("Attribute Name");
+                    AssignProductOptionValues(TempShopifyVariant, ProductOptionIndex, ItemAttributeValue."Attribute Name", ItemAttributeValue.Value);
+                end else begin
+                    SkippedRecord.LogSkippedRecord(Item.RecordId(), StrSubstNo(ItemVariantWithoutRequiredAttributeValueErr, Item."No."), Shop);
+                    exit(false);
+                end;
+            end else begin
+                SkippedRecord.LogSkippedRecord(Item.RecordId(), StrSubstNo(ItemVariantWithoutRequiredAttributeErr, Item."No."), Shop);
+                exit(false);
+            end;
+        end else begin
+            ItemAttributeValueMapping.SetRange("Table ID", Database::Item);
+            ItemAttributeValueMapping.SetRange("No.", Item."No.");
+            ItemAttributeValueMapping.SetRange("Item Attribute ID", ProductOptions.Keys.Get(ProductOptionIndex));
+            if ItemAttributeValueMapping.FindFirst() then begin
+                if ItemAttributeValue.Get(ItemAttributeValueMapping."Item Attribute ID", ItemAttributeValueMapping."Item Attribute Value ID") then begin
+                    ItemAttributeValue.CalcFields("Attribute Name");
+                    AssignProductOptionValues(TempShopifyVariant, ProductOptionIndex, ItemAttributeValue."Attribute Name", ItemAttributeValue.Value);
+                end else begin
+                    SkippedRecord.LogSkippedRecord(Item.RecordId(), StrSubstNo(ItemWithoutRequiredAttributeValueErr, Item."No."), Shop);
+                    exit(false);
+                end;
+            end else begin
+                SkippedRecord.LogSkippedRecord(Item.RecordId(), StrSubstNo(ItemWithoutRequiredAttributeErr, Item."No."), Shop);
+                exit(false);
+            end;
+        end;
+
+        exit(true);
+    end;
+
+    local procedure CheckProductOptionsCombinationUnique(var TempShopifyVariant: Record "Shpfy Variant" temporary; ExistingProductOptionValues: Dictionary of [Text, Text]; Item: Record "Item"; ItemVariantCode: Code[10]): Boolean
+    var
+        ItemVariant: Record "Item Variant";
+        CombinationKey: Text;
+        DuplicateItemCombinationErr: Label 'Item %1 cannot be added as a product variant because another variant already has the same option values.', Comment = '%1 = Item No.';
+        DuplicateItemVarCombinationErr: Label 'Item %1 cannot be added as a product variant because another variant already has the same option values.', Comment = '%1 = Item No.';
+    begin
+        CombinationKey := BuildCombinationKey(
+            TempShopifyVariant."Option 1 Name", TempShopifyVariant."Option 1 Value",
+            TempShopifyVariant."Option 2 Name", TempShopifyVariant."Option 2 Value",
+            TempShopifyVariant."Option 3 Name", TempShopifyVariant."Option 3 Value");
+
+        if ExistingProductOptionValues.ContainsKey(CombinationKey) then begin
+            if ItemVariant.Get(Item."No.", ItemVariantCode) then
+                SkippedRecord.LogSkippedRecord(ItemVariant.RecordId(), StrSubstNo(DuplicateItemVarCombinationErr, Item."No."), Shop)
+            else
+                SkippedRecord.LogSkippedRecord(Item.RecordId(), StrSubstNo(DuplicateItemCombinationErr, Item."No."), Shop);
+            exit(false);
+        end;
+
+        exit(true);
     end;
     #endregion
 }
