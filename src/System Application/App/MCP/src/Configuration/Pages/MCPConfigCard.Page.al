@@ -39,7 +39,6 @@ page 8351 "MCP Config Card"
 
                     trigger OnValidate()
                     begin
-
                         if Rec.Active then
                             MCPConfigImplementation.ValidateConfiguration(Rec, true);
                     end;
