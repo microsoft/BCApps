@@ -429,6 +429,7 @@ codeunit 30178 "Shpfy Product Export"
             ShopifyVariant."Item SystemId" := Item.SystemId;
             ShopifyVariant."Item Variant SystemId" := ItemVariant.SystemId;
             ShopifyVariant."UoM Option Id" := 2;
+            ProductEvents.OnAfterFillInProductVariantData(ShopifyVariant, Item, ItemVariant, Shop);
         end;
     end;
 
@@ -481,6 +482,7 @@ codeunit 30178 "Shpfy Product Export"
             ShopifyVariant."Item SystemId" := Item.SystemId;
             ShopifyVariant."Item Variant SystemId" := ItemVariant.SystemId;
             ShopifyVariant."UoM Option Id" := 2;
+            ProductEvents.OnAfterFillInProductVariantDataFromVariant(ShopifyVariant, Item, ItemVariant, ItemUnitofMeasure, Shop);
         end;
     end;
 
