@@ -7,6 +7,7 @@ namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Foundation.Attachment;
+using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using System.Feedback;
 using System.Telemetry;
@@ -264,82 +265,115 @@ page 6181 "E-Document Purchase Draft"
     {
         area(Processing)
         {
-            action(CreateDocument)
+            group(ProcessDocument)
             {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Finalize draft';
-                ToolTip = 'Process the electronic document into a business central document';
-                Image = CreateDocument;
-                Visible = ShowFinalizeDraftAction;
+                Caption = 'Process';
+                Image = Process;
 
-                trigger OnAction()
-                begin
-                    FinalizeEDocument();
-                end;
-            }
-            action(ResetDraftDocument)
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Reset draft';
-                ToolTip = 'Resets the draft document. Any changes made to the draft document will be lost.';
-                Image = Restore;
-                Visible = true;
-                trigger OnAction()
-                begin
-                    ResetDraft();
-                end;
-            }
-            action(AnalyzeDocument)
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Analyze document';
-                ToolTip = 'Analyze the selected electronic document';
-                Image = SendAsPDF;
-                Visible = ShowAnalyzeDocumentAction;
+                action(CreateDocument)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Finalize draft';
+                    ToolTip = 'Process the electronic document into a business central document';
+                    Image = CreateDocument;
+                    Visible = ShowFinalizeDraftAction;
 
-                trigger OnAction()
-                begin
-                    AnalyzeEDocument();
-                end;
-            }
-            action(ViewFile)
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'View pdf';
-                ToolTip = 'View pdf.';
-                Image = ViewDetails;
-                Visible = HasPDFSource;
+                    trigger OnAction()
+                    var
+                        EDocImportParameters: Record "E-Doc. Import Parameters";
+                    begin
+                        Session.LogMessage('0000PCO', FinalizeDraftInvokedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EDocumentPurchaseHeader.FeatureName());
+                        FinalizeEDocument(EDocImportParameters);
+                    end;
+                }
+                action(LinkToExistingDocument)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Link to existing document';
+                    ToolTip = 'Link this electronic document to an existing purchase document in Business Central. Use this when you have already created the document manually and want to attach the e-document to it.';
+                    Image = Links;
 
-                trigger OnAction()
-                begin
-                    Rec.ViewSourceFile();
-                end;
-            }
-            action(ViewExtractedDocumentData)
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'View extracted data';
-                ToolTip = 'View the extracted data from the source file.';
-                Image = ViewRegisteredOrder;
+                    trigger OnAction()
+                    begin
+                        DoLinkToExistingDocument();
+                    end;
+                }
+                action(ResetDraftDocument)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Reset draft';
+                    ToolTip = 'Resets the draft document. Any changes made to the draft document will be lost.';
+                    Image = Restore;
 
-                trigger OnAction()
-                var
-                    EDocImport: Codeunit "E-Doc. Import";
-                begin
-                    EDocImport.ViewExtractedData(Rec);
-                end;
+                    trigger OnAction()
+                    begin
+                        ResetDraft();
+                    end;
+                }
+                action(AnalyzeDocument)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Analyze document';
+                    ToolTip = 'Analyze the selected electronic document';
+                    Image = SendAsPDF;
+                    Visible = ShowAnalyzeDocumentAction;
+
+                    trigger OnAction()
+                    begin
+                        AnalyzeEDocument();
+                    end;
+                }
             }
-            action(GetFeedback)
+            group(ViewDocument)
             {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Provide feedback';
-                ToolTip = 'Provide feedback on the Payables Agent experience.';
+                Caption = 'View';
+                Image = View;
+
+                action(ViewFile)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'View pdf';
+                    ToolTip = 'View pdf.';
+                    Image = ViewDetails;
+                    Visible = HasPDFSource;
+
+                    trigger OnAction()
+                    begin
+                        Rec.ViewSourceFile();
+                    end;
+                }
+                action(ViewExtractedDocumentData)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'View extracted data';
+                    ToolTip = 'View the extracted data from the source file.';
+                    Image = ViewRegisteredOrder;
+
+                    trigger OnAction()
+                    var
+                        EDocImport: Codeunit "E-Doc. Import";
+                    begin
+                        EDocImport.ViewExtractedData(Rec);
+                    end;
+                }
+            }
+            group(Help)
+            {
+                Caption = 'Help';
                 Image = Help;
 
-                trigger OnAction()
-                begin
-                    ProvideFeedback();
-                end;
+                action(GetFeedback)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Provide feedback';
+                    ToolTip = 'Provide feedback on the Payables Agent experience.';
+                    Image = Help;
+
+                    trigger OnAction()
+                    begin
+                        ProvideFeedback();
+                    end;
+                }
             }
         }
         area(Navigation)
@@ -388,19 +422,32 @@ page 6181 "E-Document Purchase Draft"
                 }
             }
         }
+
         area(Promoted)
         {
             group(Category_Process)
             {
+                Caption = 'Process';
                 actionref(Promoted_CreateDocument; CreateDocument)
                 {
                 }
                 actionref(Promoted_AnalyseDocument; AnalyzeDocument)
                 {
                 }
+            }
+            group(Category_View)
+            {
+                Caption = 'View';
                 actionref(Promoted_ViewFile; ViewFile)
                 {
                 }
+                actionref(Promoted_ViewExtractedData; ViewExtractedDocumentData)
+                {
+                }
+            }
+            group(Category_Help)
+            {
+                Caption = 'Help';
                 actionref(Promoted_GetFeedback; GetFeedback)
                 {
                 }
@@ -534,18 +581,15 @@ page 6181 "E-Document Purchase Draft"
         CurrPage.ErrorMessagesFactBox.Page.Update(false);
     end;
 
-    local procedure FinalizeEDocument()
+    local procedure FinalizeEDocument(EDocImportParameters: Record "E-Doc. Import Parameters")
     var
         TempErrorMessage: Record "Error Message" temporary;
         ErrorMessage: Record "Error Message";
-        EDocImportParameters: Record "E-Doc. Import Parameters";
         EDocImport: Codeunit "E-Doc. Import";
         EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         Telemetry: Codeunit Telemetry;
         CustomDimensions: Dictionary of [Text, Text];
     begin
-        Session.LogMessage('0000PCO', FinalizeDraftInvokedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EDocumentPurchaseHeader.FeatureName());
-
         if not GlobalEDocumentHelper.EnsureInboundEDocumentHasService(Rec) then
             exit;
 
@@ -657,6 +701,23 @@ page 6181 "E-Document Purchase Draft"
             end;
             MicrosoftUserFeedback.SetIsAIFeedback(true).RequestFeedback('Payables Agent Draft', 'PayablesAgent', 'Payables Agent', ContextFiles, ContextProperties);
         end;
+    end;
+
+    local procedure DoLinkToExistingDocument()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        EDocImportParameters: Record "E-Doc. Import Parameters";
+        ConfirmDialogMgt: Codeunit "Confirm Management";
+        LinkToExistingDocumentQst: Label 'Do you want to link this e-document to %1 %2? This will mark the e-document as processed.', Comment = '%1 = Document Type, %2 = Document No.';
+    begin
+        if not EDocumentProcessing.OpenPurchaseDocumentList(Rec."Document Type", PurchaseHeader) then
+            exit;
+
+        if not ConfirmDialogMgt.GetResponseOrDefault(StrSubstNo(LinkToExistingDocumentQst, PurchaseHeader."Document Type", PurchaseHeader."No."), true) then
+            exit;
+
+        EDocImportParameters."Link To Existing Doc. Rec. ID" := PurchaseHeader.RecordId();
+        FinalizeEDocument(EDocImportParameters);
     end;
 
     var

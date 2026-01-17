@@ -687,6 +687,71 @@ codeunit 6108 "E-Document Processing"
         exit(RecCaption);
     end;
 
+    procedure GetPurchaseDocTypeFilter(EDocumentType: Enum "E-Document Type") PurchaseDocType: Enum "Purchase Document Type"
+    begin
+        case EDocumentType of
+            EDocumentType::"Purchase Invoice":
+                exit(PurchaseDocType::Invoice);
+            EDocumentType::"Purchase Credit Memo":
+                exit(PurchaseDocType::"Credit Memo");
+            EDocumentType::"Purchase Order":
+                exit(PurchaseDocType::Order);
+        end;
+    end;
+
+    procedure LinkToExistingPurchaseDocument(EDocument: Record "E-Document"; PurchaseHeader: Record "Purchase Header"): Boolean
+    var
+        EDocImportParameters: Record "E-Doc. Import Parameters";
+        ConfirmDialogMgt: Codeunit "Confirm Management";
+        EDocImport: Codeunit "E-Doc. Import";
+        LinkToExistingDocumentQst: Label 'Do you want to link this e-document to %1 %2? This will mark the e-document as processed.', Comment = '%1 = Document Type, %2 = Document No.';
+    begin
+        if not ConfirmDialogMgt.GetResponseOrDefault(StrSubstNo(LinkToExistingDocumentQst, PurchaseHeader."Document Type", PurchaseHeader."No."), true) then
+            exit(false);
+
+        EDocImportParameters."Link To Existing Doc. Rec. ID" := PurchaseHeader.RecordId();
+        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        exit(EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters));
+    end;
+
+    procedure OpenPurchaseDocumentList(EDocumentType: Enum "E-Document Type"; var PurchaseHeader: Record "Purchase Header"): Boolean
+    var
+        PurchaseInvoices: Page "Purchase Invoices";
+        PurchaseOrders: Page "Purchase Orders";
+        PurchaseCreditMemos: Page "Purchase Credit Memos";
+    begin
+        case EDocumentType of
+            EDocumentType::"Purchase Invoice":
+                begin
+                    PurchaseInvoices.SetTableView(PurchaseHeader);
+                    PurchaseInvoices.LookupMode := true;
+                    if PurchaseInvoices.RunModal() = Action::LookupOK then begin
+                        PurchaseInvoices.GetRecord(PurchaseHeader);
+                        exit(true);
+                    end;
+                end;
+            EDocumentType::"Purchase Credit Memo":
+                begin
+                    PurchaseCreditMemos.SetTableView(PurchaseHeader);
+                    PurchaseCreditMemos.LookupMode := true;
+                    if PurchaseCreditMemos.RunModal() = Action::LookupOK then begin
+                        PurchaseCreditMemos.GetRecord(PurchaseHeader);
+                        exit(true);
+                    end;
+                end;
+            EDocumentType::"Purchase Order":
+                begin
+                    PurchaseOrders.SetTableView(PurchaseHeader);
+                    PurchaseOrders.LookupMode := true;
+                    if PurchaseOrders.RunModal() = Action::LookupOK then begin
+                        PurchaseOrders.GetRecord(PurchaseHeader);
+                        exit(true);
+                    end;
+                end;
+        end;
+        exit(false);
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetTypeFromSourceDocument(RecordVariant: Variant; var EDocumentType: Enum "E-Document Type")
     begin
