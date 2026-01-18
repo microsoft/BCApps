@@ -8,7 +8,7 @@ using System.TestTools.TestRunner;
 
 permissionset 149030 "AI Test Toolkit"
 {
-    Caption = 'Business Central AI Test Toolkit';
+    Caption = 'Business Central AI Eval Toolkit';
     Access = Public;
     Assignable = true;
 
