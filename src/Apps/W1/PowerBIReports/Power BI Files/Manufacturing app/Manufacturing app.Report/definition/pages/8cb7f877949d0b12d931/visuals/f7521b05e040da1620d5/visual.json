@@ -385,6 +385,90 @@
             }
           ]
         }
+      },
+      {
+        "name": "bb89f3c16ad6603bdc37",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Production Orders"
+              }
+            },
+            "Property": "Total Actual Cost"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "418613d5552a64d48116",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Production Orders"
+              }
+            },
+            "Property": "Actual Material Cost"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "7e9ac9508edb6e6a0970",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Production Orders"
+              }
+            },
+            "Property": "Actual Capacity Cost"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "8b9af8cca40436846025",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Production Orders"
+              }
+            },
+            "Property": "Actual Subcontracted Cost"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "b00c7b7cd4a95066a010",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Production Orders"
+              }
+            },
+            "Property": "Actual Manufacturing Overhead Cost"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "3e91c1ae543453071a42",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Production Orders"
+              }
+            },
+            "Property": "Actual Capacity Overhead Cost"
+          }
+        },
+        "type": "Advanced"
       }
     ]
   }

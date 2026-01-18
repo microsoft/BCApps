@@ -415,10 +415,13 @@ table 'Capacity Ledger Entries'
 
 	column Subcontracting
 		dataType: boolean
+		isHidden
 		formatString: """TRUE"";""TRUE"";""FALSE"""
 		lineageTag: 2d8940a5-5103-41d1-85e7-26975582d66f
 		summarizeBy: none
 		sourceColumn: Subcontracting
+
+		changedProperty = IsHidden
 
 		annotation SummarizationSetBy = Automatic
 
