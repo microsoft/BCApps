@@ -64,7 +64,7 @@ page 20438 "Qlty. Management Setup Wizard"
                     Caption = 'Navigate to Contoso Demo Tool';
                     ShowCaption = false;
                     Editable = false;
-                    ApplicationArea = All;
+                    ApplicationArea = QualityManagement;
 
                     trigger OnDrillDown()
                     begin
