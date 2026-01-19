@@ -17,7 +17,7 @@ codeunit 9452 "File Scenario"
     /// <returns>True if an account for the default scenario was found; otherwise - false.</returns>
     procedure GetDefaultFileAccount(var TempFileAccount: Record "File Account" temporary): Boolean
     begin
-        exit(FileScenarioImpl.GetFileAccountOrDefault(Enum::"File Scenario"::Default, TempFileAccount));
+        exit(FileScenarioImpl.GetFileAccount(Enum::"File Scenario"::Default, TempFileAccount));
     end;
 
     /// <summary>
@@ -30,6 +30,17 @@ codeunit 9452 "File Scenario"
     procedure GetFileAccount(Scenario: Enum "File Scenario"; var TempFileAccount: Record "File Account" temporary): Boolean
     begin
         exit(FileScenarioImpl.GetFileAccount(Scenario, TempFileAccount));
+    end;
+
+    /// <summary>
+    /// Gets the file account used by the given file scenario.
+    /// </summary>
+    /// <param name="Scenario">The scenario to look for.</param>
+    /// <param name="TempFileAccount">Out parameter holding information about the file account.</param>
+    /// <returns>True if an account for the specified scenario was found; otherwise - false.</returns>
+    procedure GetSpecificFileAccount(Scenario: Enum "File Scenario"; var TempFileAccount: Record "File Account" temporary): Boolean
+    begin
+        exit(FileScenarioImpl.GetSpecificFileAccount(Scenario, TempFileAccount));
     end;
 
     /// <summary>

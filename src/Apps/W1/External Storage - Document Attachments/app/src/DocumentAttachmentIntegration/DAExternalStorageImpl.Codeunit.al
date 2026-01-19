@@ -5,11 +5,11 @@
 
 namespace Microsoft.ExternalStorage.DocumentAttachments;
 
-using System.ExternalFileStorage;
-using System.Utilities;
-using System.Environment;
-using System.Security.Encryption;
 using Microsoft.Foundation.Attachment;
+using System.Environment;
+using System.ExternalFileStorage;
+using System.Security.Encryption;
+using System.Utilities;
 
 codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 {
@@ -39,7 +39,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             exit;
 
         // Search for External Storage assigned File Scenario
-        if FileScenarioCU.GetFileAccount(Scenario, FileAccount) then begin
+        if FileScenarioCU.GetSpecificFileAccount(Scenario, FileAccount) then begin
             SkipInsertOrModify := true;
             exit;
         end;
@@ -136,7 +136,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 
         // Search for External Storage assigned File Scenario
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
-        if not FileScenarioCU.GetFileAccount(FileScenario, FileAccount) then
+        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, FileAccount) then
             exit(false);
 
         // Create the file with connector using the File Account framework
@@ -185,7 +185,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 
         // Search for External Storage assigned File Scenario
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
-        if not FileScenarioCU.GetFileAccount(FileScenario, FileAccount) then
+        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, FileAccount) then
             exit(false);
 
         // Get the file with connector using the File Account framework
@@ -227,7 +227,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 
         // Search for External Storage assigned File Scenario
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
-        if not FileScenarioCU.GetFileAccount(FileScenario, FileAccount) then
+        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, FileAccount) then
             exit(false);
 
         // Get the file with connector using the File Account framework
@@ -258,7 +258,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     begin
         // Search for External Storage assigned File Scenario
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
-        if not FileScenarioCU.GetFileAccount(FileScenario, FileAccount) then
+        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, FileAccount) then
             exit(false);
 
         // Get the file from external storage
@@ -288,7 +288,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     begin
         // Search for External Storage assigned File Scenario
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
-        if not FileScenarioCU.GetFileAccount(FileScenario, FileAccount) then
+        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, FileAccount) then
             exit(false);
 
         // Get the file from external storage
@@ -316,7 +316,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     begin
         // Search for External Storage assigned File Scenario
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
-        if not FileScenarioCU.GetFileAccount(FileScenario, FileAccount) then
+        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, FileAccount) then
             exit(false);
 
         // Get the file from external storage
@@ -359,7 +359,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 
         // Search for External Storage assigned File Scenario
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
-        if not FileScenarioCU.GetFileAccount(FileScenario, FileAccount) then
+        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, FileAccount) then
             exit(false);
 
         // Delete the file with connector using the File Account framework
@@ -651,7 +651,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     begin
         // Initialize external file storage with the scenario
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
-        if not FileScenarioCU.GetFileAccount(FileScenario, FileAccount) then
+        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, FileAccount) then
             exit('');
 
         ExternalFileStorage.Initialize(FileScenario);
@@ -742,7 +742,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     begin
         // Initialize external file storage with the scenario
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
-        if not FileScenarioCU.GetFileAccount(FileScenario, FileAccount) then
+        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, FileAccount) then
             exit;
 
         ExternalFileStorage.Initialize(FileScenario);
@@ -811,7 +811,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 
         // Initialize external file storage
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
-        if not FileScenarioCU.GetFileAccount(FileScenario, FileAccount) then
+        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, FileAccount) then
             exit(false);
 
         ExternalFileStorage.Initialize(FileScenario);

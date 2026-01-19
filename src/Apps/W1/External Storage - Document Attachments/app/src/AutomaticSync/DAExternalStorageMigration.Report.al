@@ -112,7 +112,7 @@ report 8753 "DA External Storage Migration"
         ProcessedCount: Integer;
         TotalCount: Integer;
         MigrationCompletedMsg: Label '%1 file(s) have been successfully migrated to the current company folder. %2 failed.', Comment = '%1 = Number of migrated files, %2 = Number of failed migrations';
-        NoFilesToMigrateLbl: Label 'All Files are already in the current company folder. No migration needed.';
+        NoFilesToMigrateLbl: Label 'No files need to be migrated.';
         ProcessingMsg: Label 'Processing #1###### attachments...', Comment = '%1 - Total Number of Attachments';
 
     local procedure LogMigrationTelemetry()

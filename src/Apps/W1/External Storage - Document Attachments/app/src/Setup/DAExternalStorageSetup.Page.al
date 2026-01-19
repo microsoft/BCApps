@@ -5,8 +5,8 @@
 
 namespace Microsoft.ExternalStorage.DocumentAttachments;
 
-using System.Utilities;
 using System.Threading;
+using System.Utilities;
 
 /// <summary>
 /// Setup page for External Storage functionality.

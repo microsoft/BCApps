@@ -20,29 +20,29 @@ codeunit 9453 "File Scenario Impl."
         FileScenario: Record "File Scenario";
         FileAccounts: Codeunit "File Account";
     begin
-        FileAccounts.GetAllAccounts(TempAllFileAccounts);
-
         // Find the account for the provided scenario
-        if FileScenario.Get(Scenario) then
+        if GetSpecificFileAccount(Scenario, TempFileAccount) then
+            exit(true);
+
+        // Fallback to the default account if the scenario isn't mapped or the mapped account doesn't exist
+        FileAccounts.GetAllAccounts(TempAllFileAccounts);
+        if FileScenario.Get(Enum::"File Scenario"::Default) then
             if TempAllFileAccounts.Get(FileScenario."Account Id", FileScenario.Connector) then begin
                 TempFileAccount := TempAllFileAccounts;
                 exit(true);
             end;
     end;
 
-    procedure GetFileAccountOrDefault(Scenario: Enum "File Scenario"; var TempFileAccount: Record "File Account" temporary): Boolean
+    procedure GetSpecificFileAccount(Scenario: Enum "File Scenario"; var TempFileAccount: Record "File Account" temporary): Boolean
     var
         TempAllFileAccounts: Record "File Account" temporary;
         FileScenario: Record "File Scenario";
         FileAccounts: Codeunit "File Account";
     begin
-        // Find the account for the provided scenario
-        if GetFileAccount(Scenario, TempFileAccount) then
-            exit(true);
-
-        // Fallback to the default account if the scenario isn't mapped or the mapped account doesn't exist
         FileAccounts.GetAllAccounts(TempAllFileAccounts);
-        if FileScenario.Get(Enum::"File Scenario"::Default) then
+
+        // Find the account for the provided scenario
+        if FileScenario.Get(Scenario) then
             if TempAllFileAccounts.Get(FileScenario."Account Id", FileScenario.Connector) then begin
                 TempFileAccount := TempAllFileAccounts;
                 exit(true);
