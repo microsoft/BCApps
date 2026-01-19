@@ -24,6 +24,6 @@ codeunit 30219 "Shpfy GQL AddProductImage" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(10);
+        exit(20);
     end;
 }

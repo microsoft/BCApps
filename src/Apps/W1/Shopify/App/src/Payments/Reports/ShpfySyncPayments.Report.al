@@ -26,7 +26,7 @@ report 30105 "Shpfy Sync Payments"
                 Payments: Codeunit "Shpfy Payments";
             begin
                 Payments.SetShop(Shop);
-                Payments.SyncPaymentTransactions();
+                Payments.SyncPayouts();
             end;
         }
     }

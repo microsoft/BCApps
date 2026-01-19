@@ -924,7 +924,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                 end;
         end;
 
-        if QltyManagementSetup.Modify(false) then;
+        QltyManagementSetup.Modify(false);
         QltyInspectionGenRule."Item Filter" := ItemRule;
         QltyInspectionGenRule.Modify();
 

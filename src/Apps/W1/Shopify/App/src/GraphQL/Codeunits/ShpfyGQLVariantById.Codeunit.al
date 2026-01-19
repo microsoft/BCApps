@@ -27,7 +27,7 @@ codeunit 30150 "Shpfy GQL VariantById" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(25);
+        exit(13);
     end;
 
 }
