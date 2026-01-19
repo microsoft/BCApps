@@ -188,23 +188,25 @@ table 4310 "Agent Setup Buffer"
         until SourceTempAgentAccessControl.Next() = 0;
     end;
 
-    internal procedure GetUserSettings(): Record "User Settings"
+    internal procedure GetUserSettings(var TempNewUserSetting: Record "User Settings" temporary)
     var
         UserSettings: Record "User Settings";
         Agent: Codeunit Agent;
     begin
-        if not UserSettingsSet then begin
+        if not TempUserSettings.FindFirst() then begin
             Agent.GetUserSettings(Rec."User Security ID", UserSettings);
             TempUserSettings.Copy(UserSettings);
         end;
 
-        exit(TempUserSettings);
+        TempNewUserSetting.Copy(TempUserSettings, true);
     end;
 
     internal procedure SetUserSettings(var UserSettingsRec: Record "User Settings")
     begin
+        TempUserSettings.Reset();
+        TempUserSettings.DeleteAll();
         TempUserSettings.Copy(UserSettingsRec);
-        UserSettingsSet := true;
+        TempUserSettings.Insert();
     end;
 
     local procedure SetStateUpdated()
@@ -215,5 +217,4 @@ table 4310 "Agent Setup Buffer"
     var
         TempAgentAccessControl: Record "Agent Access Control" temporary;
         TempUserSettings: Record "User Settings" temporary;
-        UserSettingsSet: Boolean;
 }
