@@ -518,6 +518,8 @@ page 20438 "Qlty. Management Setup Wizard"
         ReRunThisWizardWithMorePermissionErr: Label 'It looks like you need more permissions to run this wizard successfully. Please ask your Business Central administrator to grant more permission.';
         FinishWizardLbl: Label 'Finish wizard.', Locked = true;
         QualityManagementTok: Label 'Quality Management', Locked = true;
+        QualityInspectionsLbl: Label 'Quality Inspections', Locked = true;
+        QualityInspectionGenerationRulesLbl: Label 'Quality Inspection Generation Rules', Locked = true;
         LinkToContosoDemoToolPageLbl: Label 'Open Contoso Demo Tool', Locked = true;
 
     trigger OnInit();
