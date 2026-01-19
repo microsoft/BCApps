@@ -1,3 +1,7 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 enumextension 5213 "Sust. Contoso Demo Data Module" extends "Contoso Demo Data Module"
 {
     value(5213; "Quality Management")
