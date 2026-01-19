@@ -48,23 +48,6 @@ table 8750 "DA External Storage Setup"
                     DAFeatureTelemetry.LogFeatureDisabled();
             end;
         }
-        field(5; "Delete After"; DateFormula)
-        {
-            Caption = 'Delete After';
-            ToolTip = 'Specifies the duration after which files should be deleted from external storage. Use <0D> for immediate deletion after upload, <30D> for 30 days, etc.';
-            InitValue = 0D;
-        }
-        field(8; "Delete from BC after Upload"; Boolean)
-        {
-            Caption = 'Delete from BC after Upload';
-            ToolTip = 'Specifies if files should be deleted immediately after upload. When enabled, Delete After is set to 0D.';
-
-            trigger OnValidate()
-            begin
-                if "Delete from BC after Upload" then
-                    Evaluate("Delete After", '<0D>');
-            end;
-        }
         field(6; "Scheduled Upload"; Boolean)
         {
             Caption = 'Scheduled Upload';

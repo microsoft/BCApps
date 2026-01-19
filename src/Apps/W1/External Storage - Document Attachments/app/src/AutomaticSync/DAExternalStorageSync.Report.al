@@ -68,12 +68,11 @@ report 8752 "DA External Storage Sync"
                         if not ExternalStorageImpl.DownloadFromExternalStorage(DocumentAttachment) then
                             FailedCount += 1;
                 end;
-                if DeleteExpiredFiles then
-                    if CalcDate(StrSubstNo(DateFormulaLbl, GetDateFormulaFromExternalStorageSetup()), DocumentAttachment."External Upload Date".Date()) >= Today() then
-                        if ExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment) then
-                            DeleteCount += 1
-                        else
-                            DeleteFailedCount += 1;
+                if (DocumentAttachment."Uploaded Externally") and (DocumentAttachment."Deleted Internally" = false) then
+                    if ExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment) then
+                        DeleteCount += 1
+                    else
+                        DeleteFailedCount += 1;
                 Commit(); // Commit after each record to avoid lost in communication error with external storage service
 
                 if (MaxRecordsToProcess > 0) and (ProcessedCount >= MaxRecordsToProcess) then
@@ -157,14 +156,6 @@ report 8752 "DA External Storage Sync"
             SyncDirection::"From External Storage":
                 DocumentAttachment.SetRange("Uploaded Externally", true);
         end;
-    end;
-
-    local procedure GetDateFormulaFromExternalStorageSetup(): DateFormula
-    var
-        ExternalStorageSetup: Record "DA External Storage Setup";
-    begin
-        ExternalStorageSetup.Get();
-        exit(ExternalStorageSetup."Delete After");
     end;
 
     local procedure LogSyncTelemetry()

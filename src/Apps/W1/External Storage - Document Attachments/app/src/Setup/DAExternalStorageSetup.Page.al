@@ -50,19 +50,6 @@ page 8750 "DA External Storage Setup"
             group(UploadAndDeletePolicy)
             {
                 Caption = 'Upload and Delete Policy';
-                field("Delete from BC after Upload"; Rec."Delete from BC after Upload")
-                {
-                    trigger OnValidate()
-                    begin
-                        UpdateDeleteAfterVisibility();
-                        CurrPage.Update(false);
-                    end;
-                }
-                field("Delete After"; Rec."Delete After")
-                {
-                    ShowMandatory = true;
-                    Enabled = ShowDeleteAfter;
-                }
                 field("Scheduled Upload"; Rec."Scheduled Upload") { }
                 field("Delete from External Storage"; Rec."Delete from External Storage") { }
             }
@@ -177,21 +164,10 @@ page 8750 "DA External Storage Setup"
             Rec.Init();
             Rec.Insert();
         end;
-        UpdateDeleteAfterVisibility();
-    end;
-
-    trigger OnAfterGetCurrRecord()
-    begin
-        UpdateDeleteAfterVisibility();
     end;
 
     var
         ShowDeleteAfter: Boolean;
-
-    local procedure UpdateDeleteAfterVisibility()
-    begin
-        ShowDeleteAfter := not Rec."Delete from BC after Upload";
-    end;
 
     local procedure SelectRootFolder()
     var

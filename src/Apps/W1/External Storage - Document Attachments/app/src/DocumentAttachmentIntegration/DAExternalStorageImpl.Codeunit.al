@@ -403,20 +403,6 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     end;
 
     /// <summary>
-    /// Determines if files should be deleted immediately based on external storage setup.
-    /// </summary>
-    /// <returns>True if files should be deleted immediately, false otherwise.</returns>
-    procedure ShouldBeDeleted(): Boolean
-    var
-        ExternalStorageSetup: Record "DA External Storage Setup";
-    begin
-        if not ExternalStorageSetup.Get() then
-            exit(false);
-
-        exit(CalcDate(ExternalStorageSetup."Delete After", Today()) <= Today());
-    end;
-
-    /// <summary>
     /// Maps file extensions to their corresponding MIME types.
     /// </summary>
     /// <param name="Rec">The document attachment record.</param>
@@ -521,9 +507,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not ExternalStorageImpl.UploadToExternalStorage(Rec) then
             exit;
 
-        // Check if it should be immediately deleted
-        if ExternalStorageImpl.ShouldBeDeleted() then
-            ExternalStorageImpl.DeleteFromInternalStorage(Rec);
+        ExternalStorageImpl.DeleteFromInternalStorage(Rec);
     end;
 
     /// <summary>

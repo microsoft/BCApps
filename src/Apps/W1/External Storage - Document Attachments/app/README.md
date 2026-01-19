@@ -21,8 +21,6 @@ The External Storage extension provides seamless integration between Microsoft D
 - **Environment Hash Display**: View current environment hash for reference and troubleshooting
 
 ### **Flexible Deletion Policies**
-- **Delete from BC after Upload**: Immediately delete from internal storage right after external upload
-- **Delete After**: Configurable retention period using date formulas (e.g., `<7D>` for 7 days, `<30D>` for 30 days)
 - **Delete from External Storage**: Optionally delete files from external storage when attachments are removed from BC
 - **Automatic Cleanup**: Scheduled job queue can automatically delete expired files based on retention policy
 
@@ -62,8 +60,6 @@ The External Storage extension provides seamless integration between Microsoft D
    - Configure settings:
      - **Enabled**: Enable the External Storage feature
      - **Root Folder**: Select the root folder path for attachments (use AssistEdit to browse)
-     - **Delete from BC after Upload**: Enable to immediately delete files from BC after upload
-     - **Delete After**: Set retention period using date formula (e.g., `<7D>` for 7 days)
      - **Scheduled Upload**: Enable automatic background upload via job queue
      - **Delete from External Storage**: Enable to delete external files when attachments are removed from BC
 
@@ -76,9 +72,6 @@ The External Storage extension provides seamless integration between Microsoft D
   - Use AssistEdit button to browse and select folder interactively
 
 #### Upload and Delete Policy
-- **Delete from BC after Upload**: When enabled, files are immediately removed from internal storage after successful upload to external storage
-- **Delete After**: Date formula specifying retention period before internal deletion (e.g., `<7D>`, `<30D>`)
-  - Only active when "Delete from BC after Upload" is disabled
 - **Scheduled Upload**: Enable automatic background upload using job queue
   - Job runs daily at 1:00 AM
   - Maximum 3 retry attempts on failure
