@@ -7,7 +7,7 @@ namespace Microsoft.Integration.Shopify;
 
 /// <summary>
 /// Enum Shpfy Tracking Companies (ID 30122).
-/// Represented by shopify.dev/docs/admin-api/rest/reference/shipping-and-fulfillment/fulfillment
+/// Represented by https://shopify.dev/docs/api/admin-graphql/latest/objects/Fulfillment#field-Fulfillment.fields.trackingInfo.company
 /// </summary>
 enum 30122 "Shpfy Tracking Companies"
 {
@@ -132,7 +132,7 @@ enum 30122 "Shpfy Tracking Companies"
     }
     value(29; "New Zeeland Post")
     {
-        Caption = 'New Zeeland Post';
+        Caption = 'New Zealand Post';
     }
     value(30; Newgistics)
     {
