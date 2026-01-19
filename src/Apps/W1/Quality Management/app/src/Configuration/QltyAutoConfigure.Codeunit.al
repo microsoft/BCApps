@@ -12,19 +12,14 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
-using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
-using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.Sales.Document;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Ledger;
-using System.IO;
-using System.Utilities;
 
 /// <summary>
 /// Contains helper functions to use for automatic configuration.
