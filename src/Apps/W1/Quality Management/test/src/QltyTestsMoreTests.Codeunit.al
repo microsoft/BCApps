@@ -42,12 +42,14 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
     var
         LibraryAssert: Codeunit "Library Assert";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         AssistEditTemplateValue: Text;
         ChooseFromLookupValue: Text;
         ChooseFromLookupValueVendorNo: Text;
         AttributeNameToValue: Dictionary of [Text, Text];
         MessageTxt: Text;
+        IsInitialized: Boolean;
         TemplateCodeTok: Label 'TemplateCode', Locked = true;
         ResultCodeTxt: Label 'UNAVAILABLE';
         DefaultTopLeftTok: Label 'Inspection', Locked = true;
@@ -95,6 +97,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         TestCode: Text;
     begin
         // [SCENARIO] User can use AssistEdit to select a lookup table for a Table Lookup test value type
+        Initialize();
 
         // [GIVEN] A random test code is generated
         QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
@@ -128,6 +131,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         TestCode: Text;
     begin
         // [SCENARIO] Expression Formula can only be used with Expression field types, not Boolean
+        Initialize();
 
         // [GIVEN] A random test code is generated
         QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
@@ -154,6 +158,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         TestCode: Text;
     begin
         // [SCENARIO] User can use AssistEdit to define a filter for the lookup table (e.g., filter Vendors by Country)
+        Initialize();
 
         // [GIVEN] A random test code is generated
         QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
@@ -190,6 +195,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         TestCode: Text;
     begin
         // [SCENARIO] When a Table Lookup field is inserted with a filter, Allowable Values are auto-populated from the filtered records
+        Initialize();
 
         // [GIVEN] A vendor is created
         LibraryPurchase.CreateVendor(Vendor);
@@ -221,6 +227,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         TestCode: Text;
     begin
         // [SCENARIO] AssistEdit on Expression Formula should error when field type is Boolean
+        Initialize();
 
         // [GIVEN] A random test code is generated
         QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
@@ -252,6 +259,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyTestCard: TestPage "Qlty. Test Card";
     begin
         // [SCENARIO] User can use AssistEdit to select a default value from the lookup table for a Table Lookup field
+        Initialize();
 
         // [GIVEN] Quality Management setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -295,6 +303,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         TestCode: Text;
     begin
         // [SCENARIO] User can use AssistEdit to define an expression formula for a Text Expression field type
+        Initialize();
 
         // [GIVEN] A random test code is generated
         QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
@@ -328,6 +337,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
     begin
         // [SCENARIO] Changing a test value type should error if the test is already used in an existing inspection
+        Initialize();
 
         // [GIVEN] A basic template and inspection instance are created
         QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
@@ -352,6 +362,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ToLoadQltyTest: Record "Qlty. Test";
     begin
         // [SCENARIO] Setting a result condition should error if the result does not exist and ThrowError is true
+        Initialize();
 
         // [GIVEN] Any existing result with code 'UNAVAILABLE' is deleted
         ToLoadQltyInspectionResult.SetRange(Code, ResultCodeTxt);
@@ -372,6 +383,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ToLoadQltyTest: Record "Qlty. Test";
     begin
         // [SCENARIO] Setting a result condition should exit gracefully if the result does not exist and ThrowError is false
+        Initialize();
 
         // [GIVEN] Any existing result with code 'UNAVAILABLE' is deleted
         ToLoadQltyInspectionResult.SetRange(Code, ResultCodeTxt);
@@ -393,6 +405,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         TestCodeTxt: Text;
     begin
         // [SCENARIO] Setting a result condition should error if the result exists but has no configuration and ThrowError is true
+        Initialize();
 
         // [GIVEN] A result with code 'UNAVAILABLE' exists
         ToLoadQltyInspectionResult.SetRange(Code, ResultCodeTxt);
@@ -425,6 +438,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ToLoadQltyTest: Record "Qlty. Test";
     begin
         // [SCENARIO] Setting a result condition should exit gracefully if the result exists but has no configuration and ThrowError is false
+        Initialize();
 
         // [GIVEN] A result with code 'UNAVAILABLE' exists
         ToLoadQltyInspectionResult.SetRange(Code, ResultCodeTxt);
@@ -454,6 +468,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         TestCode: Text;
     begin
         // [SCENARIO] User can use Lookup to select a field from the lookup table (e.g., select Vendor "No." field)
+        Initialize();
 
         // [GIVEN] A random test code is generated
         QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
@@ -490,6 +505,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         TestCode: Text;
     begin
         // [SCENARIO] User can use AssistEdit to select a field from the lookup table (e.g., select Vendor "No." field)
+        Initialize();
 
         // [GIVEN] A random test code is generated
         QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
@@ -522,6 +538,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyManagementSetup: Record "Qlty. Management Setup";
     begin
         // [SCENARIO] Picture Upload Behavior can be validated and changed to "Attach document"
+        Initialize();
 
         // [GIVEN] Quality Management setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -546,6 +563,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
     begin
         // [SCENARIO] Setting Picture Upload Behavior to "Attach and upload to OneDrive" requires OneDrive configuration
+        Initialize();
 
         // [GIVEN] Quality Management setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -580,6 +598,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryInventory: Codeunit "Library - Inventory";
     begin
         // [SCENARIO] Bin Move Batch Name can be validated and set to a Transfer journal batch
+        Initialize();
 
         // [GIVEN] Quality Management setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -611,6 +630,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryInventory: Codeunit "Library - Inventory";
     begin
         // [SCENARIO] Adjustment Batch Name can be validated and set to an Item journal batch
+        Initialize();
 
         // [GIVEN] Quality Management setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -639,6 +659,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyManagementSetup: Record "Qlty. Management Setup";
     begin
         // [SCENARIO] When Quality Management Setup is inserted, Brick Headers are initialized to default values
+        Initialize();
 
         // [GIVEN] Any existing setup record is deleted
         if QltyManagementSetup.Get() then
@@ -672,6 +693,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyManagementSetup: Record "Qlty. Management Setup";
     begin
         // [SCENARIO] GetSetupVideoLink returns an empty string
+        Initialize();
 
         // [GIVEN] Quality Management setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -693,6 +715,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         TestCode: Text;
     begin
         // [SCENARIO] Template line can be modified to set Expression Formula for a Text Expression field type
+        Initialize();
 
         // [GIVEN] All existing templates are deleted
         ConfigurationToLoadQltyInspectionTemplateHdr.DeleteAll();
@@ -732,6 +755,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         TestCode: Text;
     begin
         // [SCENARIO] Attempting to set Expression Formula on a template line with Boolean field type should error
+        Initialize();
 
         // [GIVEN] All existing templates are deleted
         ConfigurationToLoadQltyInspectionTemplateHdr.DeleteAll();
@@ -770,6 +794,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ScheduleGroupCode: Text;
     begin
         // [SCENARIO] Setting a Schedule Group on a generation rule without filters should error
+        Initialize();
 
         // [GIVEN] All existing templates are deleted
         ConfigurationToLoadQltyInspectionTemplateHdr.DeleteAll();
@@ -809,6 +834,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ScheduleGroupCode: Text;
     begin
         // [SCENARIO] Setting a new Schedule Group on a generation rule with filters creates a job queue entry
+        Initialize();
 
         // [GIVEN] All existing templates are deleted
         ConfigurationToLoadQltyInspectionTemplateHdr.DeleteAll();
@@ -866,6 +892,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ScheduleGroupCode: Text;
     begin
         // [SCENARIO] User can create an additional job queue entry for an existing generation rule with schedule group
+        Initialize();
 
         // [GIVEN] All existing templates are deleted and a new template is created
         QltyInspectionTemplateHdr.DeleteAll();
@@ -915,6 +942,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ScheduleGroupCode: Text;
     begin
         // [SCENARIO] Clearing a schedule group from a generation rule deletes the associated job queue entry when it's the only rule using that group
+        Initialize();
 
         // [GIVEN] All existing templates are deleted and a new template is created
         QltyInspectionTemplateHdr.DeleteAll();
@@ -966,6 +994,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ScheduleGroupCode: Text;
     begin
         // [SCENARIO] Clearing a schedule group from one generation rule should not delete the job queue entry when other rules still use the same group
+        Initialize();
 
         // [GIVEN] All existing templates are deleted and a new template is created
         QltyInspectionTemplateHdr.DeleteAll();
@@ -1025,6 +1054,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         TemplateCode: Text;
     begin
         // [SCENARIO] Using Lookup on Schedule Group creates default schedule group and job queue entry
+        Initialize();
 
         // [GIVEN] Quality Management setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -1079,6 +1109,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
         // [SCENARIO] Production Trigger can be validated and set to OnProductionOrderRelease
+        Initialize();
 
         // [GIVEN] Quality Management setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -1102,6 +1133,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
         // [SCENARIO] Warehouse Receive Trigger can be validated and set to OnWarehouseReceiptCreate
+        Initialize();
 
         // [GIVEN] Quality Management setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -1125,6 +1157,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
         // [SCENARIO] Warehouse Movement Trigger can be validated and set to OnWhseMovementRegister
+        Initialize();
 
         // [GIVEN] Quality Management setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -1148,6 +1181,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
         // [SCENARIO] Purchase Trigger can be validated and set to OnPurchaseOrderPostReceive
+        Initialize();
 
         // [GIVEN] Quality Management setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -1171,6 +1205,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
         // [SCENARIO] Sales Return Trigger can be validated and set to OnSalesReturnOrderPostReceive
+        Initialize();
 
         // [GIVEN] Quality Management setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -1194,6 +1229,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
         // [SCENARIO] Transfer Trigger can be validated and set to OnTransferOrderPostReceive
+        Initialize();
 
         // [GIVEN] Quality Management setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -1217,6 +1253,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
         // [SCENARIO] Assembly Trigger can be validated and set to OnAssemblyOutputPost
+        Initialize();
 
         // [GIVEN] Quality Management setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -1241,6 +1278,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
         // [SCENARIO] Setting Assembly Trigger changes Activation Trigger from "Manual only" to "Manual or Automatic"
+        Initialize();
 
         // [GIVEN] Quality Management setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -1269,6 +1307,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionGenRules: TestPage "Qlty. Inspection Gen. Rules";
     begin
         // [SCENARIO] User can use AssistEdit to define a Condition Filter for generation rule
+        Initialize();
 
         // [GIVEN] Quality Management setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -1307,6 +1346,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionGenRules: TestPage "Qlty. Inspection Gen. Rules";
     begin
         // [SCENARIO] User can use AssistEdit to define an Item Filter for generation rule
+        Initialize();
 
         // [GIVEN] Quality Management setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -1349,6 +1389,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionGenRules: TestPage "Qlty. Inspection Gen. Rules";
     begin
         // [SCENARIO] User can use AssistEdit to define an Item Attribute Filter for generation rule
+        Initialize();
 
         // [GIVEN] An item attribute with value 'Red' is created
         LibraryInventory.CreateItemAttributeWithValue(ItemAttribute, ItemAttributeValue, ItemAttribute.Type::Option, 'Red');
@@ -1384,6 +1425,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
         // [SCENARIO] Negative Source Quantity value is converted to absolute positive value
+        Initialize();
 
         // [GIVEN] A basic template and inspection instance are created
         QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
@@ -1402,6 +1444,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
         // [SCENARIO] Pass Quantity can be set to match Source Quantity
+        Initialize();
 
         // [GIVEN] A basic template and inspection instance are created
         QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
@@ -1420,6 +1463,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
         // [SCENARIO] Ensure that pass and fail quantity combined do not exceed the source quantity.
+        Initialize();
 
         // [GIVEN] A basic template and inspection instance are created
         QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
@@ -1463,6 +1507,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
         // [SCENARIO] Fail Quantity can be set to match Source Quantity
+        Initialize();
 
         // [GIVEN] A basic template and inspection instance are created
         QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
@@ -1483,6 +1528,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ProdOrderLine: Record "Prod. Order Line";
     begin
         // [SCENARIO] GetRelatedItem retrieves item from source document when Source Item No. is blank
+        Initialize();
 
         // [GIVEN] A basic template and inspection instance are created
         QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
@@ -1512,6 +1558,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryInventory: Codeunit "Library - Inventory";
     begin
         // [SCENARIO] GetItemAttributeValue retrieves the correct attribute value for the source item
+        Initialize();
 
         // [GIVEN] An item is created
         LibraryInventory.CreateItem(Item);
@@ -1537,6 +1584,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ordId: RecordId;
     begin
         // [SCENARIO] SetRecordFiltersToFindInspectionFor throws an error when provided with a null RecordId
+        Initialize();
 
         // [GIVEN] A null RecordId
 
@@ -1561,6 +1609,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
         // [SCENARIO] SetRecordFiltersToFindInspectionFor throws error when item cannot be identified
+        Initialize();
 
         // [GIVEN] Setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -1598,6 +1647,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
         // [SCENARIO] SetRecordFiltersToFindInspectionFor throws error when tracking information cannot be identified
+        Initialize();
 
         // [GIVEN] Setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -1630,6 +1680,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
         // [SCENARIO] SetRecordFiltersToFindInspectionFor throws error when document information cannot be identified
+        Initialize();
 
         // [GIVEN] Setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -1667,6 +1718,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionLine: Record "Qlty. Inspection Line";
     begin
         // [SCENARIO] OnInsert trigger sets system timestamps on inspection line
+        Initialize();
 
         // [GIVEN] An inspection header is inserted
         QltyInspectionHeader.Insert();
@@ -1694,6 +1746,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
     begin
         // [SCENARIO] OnDelete trigger removes associated result condition configurations
+        Initialize();
 
         // [GIVEN] Setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -1744,6 +1797,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionSubform: TestPage "Qlty. Inspection Subform";
     begin
         // [SCENARIO] User can edit measurement note via modal editor on inspection line
+        Initialize();
 
         // [GIVEN] A basic template and inspection instance are created
         QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
@@ -1780,6 +1834,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspection: TestPage "Qlty. Inspection";
     begin
         // [SCENARIO] User can use AssistEdit to select from allowable values list for Test Value
+        Initialize();
 
         // [GIVEN] Setup exists, a full WMS location is created, and an item is created
         QltyInspectionUtility.EnsureSetupExists();
@@ -1839,6 +1894,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspection: TestPage "Qlty. Inspection";
     begin
         // [SCENARIO] User can use AssistEdit to select from table lookup for Test Value
+        Initialize();
 
         // [GIVEN] Setup exists, a full WMS location is created, and an item is created
         QltyInspectionUtility.EnsureSetupExists();
@@ -1903,6 +1959,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspection: TestPage "Qlty. Inspection";
     begin
         // [SCENARIO] Updating a text field value automatically updates dependent text expression fields
+        Initialize();
 
         // [GIVEN] Setup exists, a full WMS location is created, and an item is created
         QltyInspectionUtility.EnsureSetupExists();
@@ -1966,6 +2023,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         SourceConfigCode: Text;
     begin
         // [SCENARIO] Validating To Type automatically sets the corresponding To Table No.
+        Initialize();
 
         // [GIVEN] A source configuration record is initialized with a random code
         SpecificQltyInspectSourceConfig.Init();
@@ -1988,6 +2046,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         MaxSortOrder: Integer;
     begin
         // [SCENARIO] OnInsert trigger automatically sets Sort Order to next available value
+        Initialize();
 
         // [GIVEN] Setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -2019,6 +2078,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         MaxSortOrder: Integer;
     begin
         // [SCENARIO] OnModify trigger recalculates Sort Order when manually set to low value
+        Initialize();
 
         // [GIVEN] Setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -2052,6 +2112,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         SourceConfigCode: Text;
     begin
         // [SCENARIO] Insert throws error when attempting to create recursive configuration
+        Initialize();
 
         // [GIVEN] Setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -2077,6 +2138,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         SourceConfigCode: Text;
     begin
         // [SCENARIO] Modify throws error when attempting to change to recursive configuration
+        Initialize();
 
         // [GIVEN] Setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -2106,6 +2168,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         SourceConfigCode: Text;
     begin
         // [SCENARIO] OnDelete trigger removes associated source field configuration lines
+        Initialize();
 
         // [GIVEN] A new source configuration record is created
         SpecificQltyInspectSourceConfig.Init();
@@ -2134,6 +2197,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         SourceConfigCode: Text;
     begin
         // [SCENARIO] DetectInterestingConfiguration throws error when From Table is Reservation Entry
+        Initialize();
 
         // [GIVEN] Setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -2158,6 +2222,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         SourceConfigCode: Text;
     begin
         // [SCENARIO] DetectInterestingConfiguration throws error when To Table is Reservation Entry
+        Initialize();
 
         // [GIVEN] Setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -2185,6 +2250,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         SourceConfigCode: Text;
     begin
         // [SCENARIO] To Field No. can be validated to a custom field on inspection header
+        Initialize();
 
         // [GIVEN] Setup exists
         QltyInspectionUtility.EnsureSetupExists();
@@ -2215,9 +2281,9 @@ codeunit 139965 "Qlty. Tests - More Tests"
         SpecificQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         SpecificQltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
         SourceConfigCode: Text;
-
     begin
         // [SCENARIO] Validating To Type throws error when mismatched with parent configuration
+        Initialize();
 
         // [GIVEN] A new source configuration with To Type = Inspection is created
         SpecificQltyInspectSourceConfig.Init();
@@ -2246,6 +2312,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         SourceConfigCode: Text;
     begin
         // [SCENARIO] Validating Display As throws error when To Type is not Inspection
+        Initialize();
 
         // [GIVEN] A new source configuration with To Type = "Chained table" is created
         SpecificQltyInspectSourceConfig.Init();
@@ -2278,6 +2345,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
     begin
         // [SCENARIO] Quality Management application area is enabled by default on Essential experience
+        Initialize();
 
         // [GIVEN] Application Area Setup exists or is created for current company and user
         if not ApplicationAreaMgmtFacade.GetApplicationAreaSetupRecFromCompany(ApplicationAreaSetup, CompanyName()) then begin
@@ -2292,6 +2360,15 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [WHEN] Checking if Quality Management application area is enabled
         // [THEN] The application area is enabled
         LibraryAssert.AreEqual(true, QltyInspectionUtility.IsQualityManagementApplicationAreaEnabled(), 'Should be enabled.');
+    end;
+
+    local procedure Initialize()
+    begin
+        if IsInitialized then
+            exit;
+
+        LibraryERMCountryData.CreateVATData();
+        IsInitialized := true;
     end;
 
     [ModalPageHandler]
