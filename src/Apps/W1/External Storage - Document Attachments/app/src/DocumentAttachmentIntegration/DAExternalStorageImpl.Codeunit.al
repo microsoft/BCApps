@@ -351,6 +351,9 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not DocumentAttachment."Uploaded Externally" then
             exit(false);
 
+        if DocumentAttachment."Skip Delete On Copy" then
+            exit(false);
+
         // Check if file belongs to another environment - if so, just clear the reference
         if IsFileFromAnotherEnvironmentOrCompany(DocumentAttachment) then begin
             DocumentAttachment.MarkAsNotUploadedToExternal();
@@ -542,6 +545,11 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 
         // Delete from external storage
         ExternalStorageImpl.DeleteFromExternalStorage(Rec);
+
+        if Rec."Skip Delete On Copy" then begin
+            Rec."Skip Delete On Copy" := false;
+            Rec.Modify();
+        end;
     end;
 
     /// <summary>
@@ -630,6 +638,12 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     begin
         if DocumentAttachment."Uploaded Externally" then
             IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", OnCopyAttachmentsOnAfterSetToDocumentFilters, '', false, false)]
+    local procedure "Document Attachment Mgmt_OnCopyAttachmentsOnAfterSetToDocumentFilters"(var ToDocumentAttachment: Record "Document Attachment"; ToRecRef: RecordRef; ToAttachmentDocumentType: Enum "Attachment Document Type"; ToNo: Code[20]; ToLineNo: Integer)
+    begin
+        ToDocumentAttachment."Skip Delete On Copy" := ToDocumentAttachment."Uploaded Externally";
     end;
     #endregion
 

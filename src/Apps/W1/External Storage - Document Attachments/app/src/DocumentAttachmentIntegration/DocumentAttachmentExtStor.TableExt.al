@@ -50,6 +50,13 @@ tableextension 8750 "Document Attachment Ext.Stor." extends "Document Attachment
             Editable = false;
             ToolTip = 'Specifies a hash identifying the tenant, environment, and company that originally uploaded this file to external storage.';
         }
+        field(8755; "Skip Delete On Copy"; Boolean)
+        {
+            Caption = 'Skip Delete On Copy';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            ToolTip = 'Specifies whether to skip deletion of this attachment from external storage.';
+        }
     }
 
     /// <summary>
