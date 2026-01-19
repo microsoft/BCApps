@@ -43,8 +43,6 @@ report 8752 "DA External Storage Sync"
 
                 ProcessedCount := 0;
                 FailedCount := 0;
-                DeleteAfterUploadCount := 0;
-                DeleteAfterUploadFailedCount := 0;
 
                 if GuiAllowed() then
                     Dialog.Open(ProcessingMsg, TotalCount);
@@ -66,11 +64,6 @@ report 8752 "DA External Storage Sync"
                         if not ExternalStorageImpl.DownloadFromExternalStorage(DocumentAttachment) then
                             FailedCount += 1;
                 end;
-                if (DocumentAttachment."Uploaded Externally") and (DocumentAttachment."Deleted Internally" = false) then
-                    if ExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment) then
-                        DeleteAfterUploadCount += 1
-                    else
-                        DeleteAfterUploadFailedCount += 1;
                 Commit(); // Commit after each record to avoid lost in communication error with external storage service
 
                 if (MaxRecordsToProcess > 0) and (ProcessedCount >= MaxRecordsToProcess) then
@@ -124,7 +117,6 @@ report 8752 "DA External Storage Sync"
     var
         ExternalStorageImpl: Codeunit "DA External Storage Impl.";
         Dialog: Dialog;
-        DeleteAfterUploadCount, DeleteAfterUploadFailedCount : Integer;
         FailedCount: Integer;
         MaxRecordsToProcess: Integer;
         ProcessedCount: Integer;

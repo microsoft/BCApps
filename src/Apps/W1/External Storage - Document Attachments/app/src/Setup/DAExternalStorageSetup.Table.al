@@ -29,7 +29,7 @@ table 8750 "DA External Storage Setup"
         field(2; Enabled; Boolean)
         {
             Caption = 'Enabled';
-            ToolTip = 'Specifies if the External Storage feature is enabled.';
+            ToolTip = 'Specifies if the External Storage feature is enabled. Enable this to start using external storage for document attachments.';
 
             trigger OnValidate()
             var

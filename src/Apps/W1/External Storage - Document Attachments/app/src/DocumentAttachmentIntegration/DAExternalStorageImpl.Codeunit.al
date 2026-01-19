@@ -899,18 +899,6 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         exit(MigratedCount);
     end;
 
-    /// <summary>
-    /// Shows the current environment hash for use in another environment.
-    /// </summary>
-    procedure ShowCurrentEnvironmentHash()
-    var
-        CurrentHash: Text[16];
-        HashCopiedMsg: Label 'Current environment hash: %1', Comment = '%1 = Hash value';
-    begin
-        CurrentHash := GetCurrentEnvironmentHash();
-        Message(HashCopiedMsg, CurrentHash);
-    end;
-
     #region Telemetry Logging
     local procedure LogFeatureUsedTelemetry()
     var

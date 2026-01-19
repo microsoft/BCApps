@@ -34,7 +34,6 @@ page 8750 "DA External Storage Setup"
                 Caption = 'General';
                 field(Enabled; Rec.Enabled)
                 {
-                    ToolTip = 'Specifies if the External Storage feature is enabled. Enable this to start using external storage for document attachments.';
                     Importance = Promoted;
                 }
                 field("Root Folder"; Rec."Root Folder")
