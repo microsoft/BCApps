@@ -340,7 +340,7 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
                     "Shpfy Currency Handling"::"Shop Currency":
                         SalesLine.Validate("Unit Price", ReturnLine."Discounted Total Amount" / ReturnLine.Quantity);
                     "Shpfy Currency Handling"::"Presentment Currency":
-                        SalesLine.Validate("Unit Price", "Presentment Disc. Total Amt." / ReturnLine.Quantity);
+                        SalesLine.Validate("Unit Price", ReturnLine."Presentment Disc. Total Amt." / ReturnLine.Quantity);
                 end;
             end;
             SalesLine."Shpfy Refund Id" := RefundHeader."Refund Id";
