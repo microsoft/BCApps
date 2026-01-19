@@ -645,6 +645,17 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     begin
         ToDocumentAttachment."Skip Delete On Copy" := ToDocumentAttachment."Uploaded Externally";
     end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnBeforeOpenInOneDrive, '', false, false)]
+    local procedure "Document Attachment_OnBeforeOpenInOneDrive"(var Rec: Record "Document Attachment"; var IsHandled: Boolean)
+    var
+        NotSupportedMsg: Label 'Opening Document Attachments stored in External Storage via OneDrive is not supported.';
+    begin
+        if Rec."Uploaded Externally" then begin
+            IsHandled := true;
+            Message(NotSupportedMsg);
+        end;
+    end;
     #endregion
 
     /// <summary>
