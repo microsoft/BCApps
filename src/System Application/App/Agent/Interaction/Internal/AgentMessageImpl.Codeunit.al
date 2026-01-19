@@ -16,7 +16,7 @@ codeunit 4308 "Agent Message Impl."
 
     var
         GlobalIgnoreAttachment: Boolean;
-        AttachmentsFilenameLbl: Label 'attachments_task%1_msg%2.zip', Comment = 'Filename format for downloading multiple attachments as a zip file. %1 = Task ID, %2 = Message ID';
+        AttachmentsFilenameLbl: Label 'attachments_task%1_%2.zip', Comment = 'Filename format for downloading multiple attachments as a zip file. %1 = task ID, %2 = date/time stamp', Locked = true;
 
     procedure GetText(var AgentTaskMessage: Record "Agent Task Message"): Text
     var
@@ -137,7 +137,7 @@ codeunit 4308 "Agent Message Impl."
         DataCompression.SaveZipArchive(ZipOutStream);
         DataCompression.CloseZipArchive();
         TempBlob.CreateInStream(ZipInStream);
-        FileName := StrSubstNo(AttachmentsFilenameLbl, Format(AgentTaskMessage."Task ID"), Format(AgentTaskMessage.ID));
+        FileName := StrSubstNo(AttachmentsFilenameLbl, Format(AgentTaskMessage."Task ID"), Format(AgentTaskMessage.SystemCreatedAt));
         File.DownloadFromStream(ZipInStream, DownloadDialogTitleLbl, '', '', FileName);
     end;
 

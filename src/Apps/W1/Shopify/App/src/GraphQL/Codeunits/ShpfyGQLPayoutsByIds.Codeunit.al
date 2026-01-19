@@ -3,19 +3,19 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.MCP;
+namespace Microsoft.Integration.Shopify;
 
-codeunit 8352 "MCP Install"
+codeunit 30420 "Shpfy GQL PayoutsByIds" implements "Shpfy IGraphQL"
 {
-    Subtype = Install;
-    InherentEntitlements = X;
-    InherentPermissions = X;
+    Access = Internal;
 
-    trigger OnInstallAppPerDatabase()
-    var
-        MCPConfigImplementation: Codeunit "MCP Config Implementation";
+    procedure GetGraphQL(): Text
     begin
-        MCPConfigImplementation.CreateDefaultConfiguration();
-        MCPConfigImplementation.CreateVSCodeEntraApplication();
+        exit('{"query":"{ shopifyPaymentsAccount { payouts(first: 200, query: \"id:{{IdFilter}}\") { nodes { id status } } } }"}');
+    end;
+
+    procedure GetExpectedCost(): Integer
+    begin
+        exit(13);
     end;
 }

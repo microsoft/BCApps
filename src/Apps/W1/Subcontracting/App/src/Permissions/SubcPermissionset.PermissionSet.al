@@ -43,7 +43,6 @@ permissionset 99001500 "Subc. Permissionset"
         codeunit "Subc. Reporting Triggers Ext" = X,
         codeunit "Subc. Req.Line Extension" = X,
         codeunit "Subc. Req. Wksh. Make Ord." = X,
-        codeunit "Subc. SelectionFilterMgmt" = X,
         codeunit "Subcontracting Comp. Init." = X,
         codeunit "Subcontracting Management" = X,
         codeunit "Subcontracting Management Ext." = X,
