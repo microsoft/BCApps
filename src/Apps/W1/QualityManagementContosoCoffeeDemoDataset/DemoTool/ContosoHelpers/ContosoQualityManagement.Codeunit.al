@@ -197,7 +197,6 @@ codeunit 5222 "Contoso Quality Management"
             QltyInspectionGenRule.Validate(Description, Description);
 
         QltyInspectionGenRule.Validate("Activation Trigger", ActivationTrigger);
-        // QltyInspectionGenRule.Validate("Purchase Trigger", PurchaseTrigger);
 
         if Exists then
             QltyInspectionGenRule.Modify(true)
