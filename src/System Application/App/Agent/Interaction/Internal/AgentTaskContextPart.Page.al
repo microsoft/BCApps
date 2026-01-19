@@ -7,7 +7,7 @@ namespace System.Agents;
 
 using System.Agents.TaskPane;
 
-page 4339 "Agent Task Context Part"
+page 4343 "Agent Task Context Part"
 {
     ApplicationArea = All;
     Caption = 'Context';
