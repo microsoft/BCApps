@@ -64,4 +64,39 @@ page 30140 "Shpfy Fulfillment Order Card"
             }
         }
     }
+
+    actions
+    {
+        area(navigation)
+        {
+            action("Retrieved Shopify Data")
+            {
+                ApplicationArea = All;
+                Caption = 'Retrieved Shopify Data';
+                Image = Entry;
+                ToolTip = 'View the data retrieved from Shopify.';
+
+                trigger OnAction();
+                var
+                    DataCapture: Record "Shpfy Data Capture";
+                begin
+                    DataCapture.SetCurrentKey("Linked To Table", "Linked To Id");
+                    DataCapture.SetRange("Linked To Table", Database::"Shpfy FulFillment Order Header");
+                    DataCapture.SetRange("Linked To Id", Rec.SystemId);
+                    Page.Run(Page::"Shpfy Data Capture List", DataCapture);
+                end;
+            }
+        }
+        area(promoted)
+        {
+            group(Category_Inspect)
+            {
+                Caption = 'Inspect';
+
+                actionref("Retrieved Shopify Data_Promoted"; "Retrieved Shopify Data")
+                {
+                }
+            }
+        }
+    }
 }

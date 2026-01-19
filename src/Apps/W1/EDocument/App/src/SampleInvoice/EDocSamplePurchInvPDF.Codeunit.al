@@ -4,8 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 
-using System.Utilities;
+using Microsoft.Foundation.Reporting;
 using System.IO;
+using System.Utilities;
 
 /// <summary>
 /// Facade codeunit for managing sample purchase invoice PDF generation.
@@ -74,5 +75,16 @@ codeunit 6208 "E-Doc Sample Purch.Inv. PDF"
         FilePath := CopyStr(FileManagement.ServerTempFileName('pdf'), 1, MaxStrLen(FilePath));
         SamplePurchaseInvoice.SaveAsPdf(FilePath);
         FileManagement.BLOBImportFromServerFile(TempBlob, FilePath);
+    end;
+
+    /// <summary>
+    /// Sets the certain Word layout for E-Doc Sample Purchase Invoice report
+    /// </summary>
+    /// <param name="LayoutNo"></param>
+    procedure SetSamplePurchInvoiceLayout(LayoutName: Text[250])
+    var
+        DesignTimeReportSelection: Codeunit "Design-time Report Selection";
+    begin
+        DesignTimeReportSelection.SetSelectedLayout(LayoutName);
     end;
 }

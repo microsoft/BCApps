@@ -6,10 +6,10 @@ namespace Microsoft.eServices.EDocument.DemoData;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
-using Microsoft.eServices.EDocument.Processing.Interfaces;
-using System.Utilities;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Purchases.Vendor;
+using System.Utilities;
 
 /// <summary>
 /// Implementation of IStructuredFormatReader for Contoso Inbound E-Document invoices.

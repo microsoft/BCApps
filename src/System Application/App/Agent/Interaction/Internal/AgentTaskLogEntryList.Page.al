@@ -58,7 +58,7 @@ page 4303 "Agent Task Log Entry List"
                 field("User Full Name"; Rec."User Full Name")
                 {
                     Caption = 'User Full Name';
-                    Tooltip = 'Specifies the full name of the user that was involved in performing the step..';
+                    Tooltip = 'Specifies the full name of the user that was involved in performing the step.';
                 }
                 field(Description; Rec.Description)
                 {
