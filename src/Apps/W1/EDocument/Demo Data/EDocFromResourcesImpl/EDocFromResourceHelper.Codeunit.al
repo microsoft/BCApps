@@ -1,15 +1,16 @@
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.DemoData;
 
-using Microsoft.Purchases.History;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.AllocationAccount;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
 
 codeunit 5405 "E-Doc. From Resource Helper"
@@ -19,6 +20,9 @@ codeunit 5405 "E-Doc. From Resource Helper"
     InherentPermissions = X;
     Permissions = tabledata "Purch. Inv. Header" = rimd,
                   tabledata "Purch. Inv. Line" = rimd;
+    ObsoleteReason = 'A new implementation in Contoso Inbound E-Document codeunit is used instead.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
 
     /// <summary>
     ///  Creates E-Documents from PDF files located in the .resources\PDFs folder.
@@ -204,3 +208,4 @@ codeunit 5405 "E-Doc. From Resource Helper"
     begin
     end;
 }
+#endif

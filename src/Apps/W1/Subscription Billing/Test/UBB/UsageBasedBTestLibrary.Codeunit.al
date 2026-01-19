@@ -1,9 +1,9 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.IO;
-using System.Globalization;
 using Microsoft.Finance.Currency;
 using Microsoft.Sales.Document;
+using System.Globalization;
+using System.IO;
 
 codeunit 139892 "Usage Based B. Test Library"
 {

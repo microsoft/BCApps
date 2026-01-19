@@ -1,0 +1,147 @@
+table 'Assembly Lines'
+	lineageTag: 7d81e3fd-34b3-4f54-b13a-0f99ba6433c4
+
+	/// This measure shows how many items are yet to be assembled for a finished product by summing up the remaining quantity of items on all assembly lines.
+	measure 'Qty. on Asm. Component' = SUM('Assembly Lines'[remainingQuantity])
+		displayFolder: _Assembly Line Measures
+		lineageTag: d8011d99-a8e8-43ce-8e65-8294c58b592e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Assembly Lines - Earliest Due Date' = MIN('Assembly Lines'[Due Date])
+		formatString: Short Date
+		displayFolder: _Assembly Line Measures
+		lineageTag: af11dfab-bd3e-4de6-a139-07460dc93270
+
+	measure 'Assembly Line Quantity Link' =
+			
+			VAR Endpoint = "&page=903&"
+			VAR BaseLink = [Base Link] & Endpoint
+			VAR OrderBaseLink = BaseLink & "filter='Assembly Line'.'Document Type' IS 'Order'"
+			// Filter Context
+			VAR Items = CONCATENATEX(VALUES('Assembly Lines'[itemNo]),'Assembly Lines'[itemNo], "|")
+			VAR DimensionSetIDs = CONCATENATEX(VALUES('Assembly Lines'[dimensionSetID]), 'Assembly Lines'[dimensionSetID], "|")
+			
+			VAR ItemFilter = " AND 'Assembly Line'.'No.' IS '" & Items & "'"
+			VAR DimensionFilter = " AND 'Assembly Line'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			RETURN
+			OrderBaseLink & ItemFilter & DimensionFilter
+		displayFolder: _Back Link
+		lineageTag: 19f9d473-1224-45dd-b93a-54bda8096b7f
+
+	column itemNo
+		dataType: string
+		isHidden
+		lineageTag: 5f8d1c3b-165e-40ec-83c6-d17f811f95be
+		summarizeBy: none
+		sourceColumn: itemNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column locationCode
+		dataType: string
+		isHidden
+		lineageTag: 4995d643-886b-47c4-ac8c-9b066538d609
+		summarizeBy: none
+		sourceColumn: locationCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column dimensionSetID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: c6d5dfed-6975-44db-b5d6-bc117cb6a5b3
+		summarizeBy: none
+		sourceColumn: dimensionSetID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Due Date'
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: 1c22a14f-8556-4268-bbe5-6b7c1edf3735
+		summarizeBy: none
+		sourceColumn: Due Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Document No.'
+		dataType: string
+		lineageTag: 570412f1-a5e9-4dbc-863e-b7b39b99832f
+		summarizeBy: none
+		sourceColumn: Document No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Quantity Per Unit of Measure'
+		dataType: double
+		lineageTag: 38128ffa-0fc0-4468-8d59-f919621e0d75
+		summarizeBy: sum
+		sourceColumn: Quantity Per Unit of Measure
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Unit of Measure Code'
+		dataType: string
+		lineageTag: c3ac9ee0-7398-46f2-81e6-e7314154c6fe
+		summarizeBy: none
+		sourceColumn: Unit of Measure Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column remainingQuantity
+		dataType: double
+		isHidden
+		lineageTag: b1eaba23-f67d-42da-aa89-3303b03f4a4e
+		summarizeBy: sum
+		sourceColumn: remainingQuantity
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'Assembly Lines' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="assemblyLines",Signature="table"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        TableData,
+				        {
+				            {"itemNo", type text},
+				            {"remainingQuantity", type number},
+				            {"dueDate", type date},
+				            {"locationCode", type text},
+				            {"documentNo", type text},
+				            {"dimensionSetID", Int64.Type},
+				            {"qtyPerUnitOfMeasure", type number},
+				            {"unitOfMeasureCode", type text}
+				        }
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type", {"ETag"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns",{{"documentNo", "Document No."}, {"dueDate", "Due Date"},{"qtyPerUnitOfMeasure","Quantity Per Unit of Measure"},{"unitOfMeasureCode","Unit of Measure Code"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

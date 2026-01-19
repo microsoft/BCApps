@@ -71,6 +71,21 @@ codeunit 4316 "Agent Task Message Builder"
     end;
 
     /// <summary>
+    /// Set whether to sanitize the message text.
+    /// When set to false, message sanitization will be bypassed.
+    /// The default value is true.
+    /// </summary>
+    /// <param name="SkipSanitizeMessage">Specifies if the message sanitization should be skipped.</param>
+    /// <returns>This instance of the Agent Task Message Builder.</returns>
+    [Scope('OnPrem')]
+    procedure SetSkipMessageSanitization(SkipSanitizeMessage: Boolean): codeunit "Agent Task Message Builder"
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        AgentTaskMsgBuilderImpl.SetSkipMessageSanitization(SkipSanitizeMessage);
+        exit(this);
+    end;
+
+    /// <summary>
     /// Set the external ID of the task.
     /// </summary>
     /// <param name="ExternalId">The external ID of the task. This field is used to connect to external systems, like Message ID for emails.</param>
@@ -227,11 +242,13 @@ codeunit 4316 "Agent Task Message Builder"
     /// Get the last attachment that was added to the task message.
     /// </summary>
     /// <returns>
-    /// The last attachment that was added to the task message.
+    /// True if any attachments exist for the task message, false otherwise.
     /// </returns>
-    procedure GetAttachments(var TempAttachments: Record "Agent Task File" temporary)
+#pragma warning disable AS0102
+    procedure GetAttachments(var TempAttachments: Record "Agent Task File" temporary): Boolean
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
-        AgentTaskMsgBuilderImpl.GetAttachments(TempAttachments);
+        exit(AgentTaskMsgBuilderImpl.GetAttachments(TempAttachments));
     end;
+#pragma warning restore AS0102
 }

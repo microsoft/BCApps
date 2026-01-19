@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
+using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Document;
@@ -17,7 +18,6 @@ using Microsoft.Service.History;
 using System.Automation;
 using System.Telemetry;
 using System.Utilities;
-
 
 codeunit 6102 "E-Doc. Export"
 {
@@ -33,6 +33,7 @@ codeunit 6102 "E-Doc. Export"
         WorkFlow: Record Workflow;
         EDocWorkFlowProcessing: Codeunit "E-Document WorkFlow Processing";
         IsHandled: Boolean;
+        Type: Enum "E-Document Type";
     begin
         OnBeforeEDocumentCheck(EDocSourceRecRef, EDocumentProcessingPhase, IsHandled);
         if IsHandled then
@@ -46,7 +47,8 @@ codeunit 6102 "E-Doc. Export"
         if EDocWorkFlowProcessing.DoesFlowHasEDocService(EDocumentService, DocumentSendingProfile."Electronic Service Flow") then
             if EDocumentService.FindSet() then
                 repeat
-                    if IsDocumentTypeSupportedByService(EDocumentService, EDocSourceRecRef, true) then begin
+                    Type := EDocumentProcessing.GetTypeFromSourceDocument(EDocSourceRecRef);
+                    if IsDocumentSupported(EDocumentService, EDocSourceRecRef, Type) then begin
                         EDocumentInterface := EDocumentService."Document Format";
                         EDocumentInterface.Check(EDocSourceRecRef, EDocumentService, EDocumentProcessingPhase);
                     end;
@@ -101,7 +103,7 @@ codeunit 6102 "E-Doc. Export"
     /// If services do not support the document type they are filtered out
     ///
     /// </summary>
-    local procedure CreateEDocument(var EDocument: Record "E-Document"; var DocumentHeader: RecordRef; var EDocumentService: Record "E-Document Service"; EDocumentType: Enum "E-Document Type"): Boolean
+    internal procedure CreateEDocument(var EDocument: Record "E-Document"; var DocumentHeader: RecordRef; var EDocumentService: Record "E-Document Service"; EDocumentType: Enum "E-Document Type"): Boolean
     var
         EDocumentLog: Codeunit "E-Document Log";
         SupportedServices: List of [Code[20]];
@@ -113,7 +115,7 @@ codeunit 6102 "E-Doc. Export"
 
         if EDocumentService.FindSet() then
             repeat
-                if IsDocumentTypeSupported(EDocumentService, EDocumentType) then
+                if IsDocumentSupported(EDocumentService, DocumentHeader, EDocumentType) then
                     SupportedServices.Add(EDocumentService.Code);
             until EDocumentService.Next() = 0;
 
@@ -463,113 +465,39 @@ codeunit 6102 "E-Doc. Export"
         Telemetry.LogMessage('0000LBI', EDocTelemetryCreateBatchScopeEndLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All);
     end;
 
-    local procedure IsDocumentTypeSupportedByService(EDocService: Record "E-Document Service"; var SourceDocumentHeader: RecordRef; ForCheck: Boolean): Boolean
+    local procedure IsDocumentTypeSupported(EDocService: Record "E-Document Service"; EDocumentType: Enum "E-Document Type"): Boolean
     var
         EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
-        SalesHeader: Record "Sales Header";
-        ServiceHeader: Record "Service Header";
-        PurchHeader: Record "Purchase Header";
         EDocSourceType: Enum "E-Document Type";
-        SalesDocumentType: Enum "Sales Document Type";
-        ServiceDocumentType: Enum "Service Document Type";
-        PurchDocumentType: Enum "Purchase Document Type";
     begin
-        case SourceDocumentHeader.Number of
-            Database::"Sales Header":
-                begin
-                    SalesDocumentType := SourceDocumentHeader.Field(SalesHeader.FieldNo("Document Type")).Value;
-                    case SalesDocumentType of
-                        SalesHeader."Document Type"::Quote:
-                            EDocSourceType := EDocSourceType::"Sales Quote";
-                        SalesHeader."Document Type"::Order:
-                            if ForCheck then
-                                exit(EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Sales Order") or EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Sales Invoice"))
-                            else
-                                EDocSourceType := EDocSourceType::"Sales Order";
-                        SalesHeader."Document Type"::"Return Order":
-                            if ForCheck then
-                                exit(EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Sales Return Order") or EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Sales Credit Memo"))
-                            else
-                                EDocSourceType := EDocSourceType::"Sales Return Order";
-                        SalesHeader."Document Type"::Invoice:
-                            EDocSourceType := EDocSourceType::"Sales Invoice";
-                        SalesHeader."Document Type"::"Credit Memo":
-                            EDocSourceType := EDocSourceType::"Sales Credit Memo";
-                    end;
-                end;
-            Database::"Sales Invoice Header":
-                EDocSourceType := EDocSourceType::"Sales Invoice";
-            Database::"Sales Cr.Memo Header":
-                EDocSourceType := EDocSourceType::"Sales Credit Memo";
-            Database::"Service Header":
-                begin
-                    ServiceDocumentType := SourceDocumentHeader.Field(ServiceHeader.FieldNo("Document Type")).Value;
-                    case ServiceDocumentType of
-                        ServiceHeader."Document Type"::Order:
-                            if ForCheck then
-                                exit(EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Service Order") or EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Service Invoice"))
-                            else
-                                EDocSourceType := EDocSourceType::"Service Order";
-                        ServiceHeader."Document Type"::Invoice:
-                            EDocSourceType := EDocSourceType::"Service Invoice";
-                        ServiceHeader."Document Type"::"Credit Memo":
-                            EDocSourceType := EDocSourceType::"Service Credit Memo";
-                    end;
-                end;
-            Database::"Service Invoice Header":
-                EDocSourceType := EDocSourceType::"Service Invoice";
-            Database::"Service Cr.Memo Header":
-                EDocSourceType := EDocSourceType::"Service Credit Memo";
-            Database::"Finance Charge Memo Header":
-                if ForCheck then
-                    exit(EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Finance Charge Memo") or EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Issued Finance Charge Memo"))
-                else
-                    EDocSourceType := EDocSourceType::"Finance Charge Memo";
-            Database::"Issued Fin. Charge Memo Header":
-                EDocSourceType := EDocSourceType::"Issued Finance Charge Memo";
-            Database::"Reminder Header":
-                if ForCheck then
-                    exit(EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::Reminder) or EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Issued Reminder"))
-                else
-                    EDocSourceType := EDocSourceType::Reminder;
-            Database::"Issued Reminder Header":
-                EDocSourceType := EDocSourceType::"Issued Reminder";
-            Database::"Purchase Header":
-                begin
-                    PurchDocumentType := SourceDocumentHeader.Field(PurchHeader.FieldNo("Document Type")).Value;
-                    case PurchDocumentType of
-                        PurchHeader."Document Type"::Quote:
-                            EDocSourceType := EDocSourceType::"Purchase Quote";
-                        PurchHeader."Document Type"::Order:
-                            if ForCheck then
-                                exit(EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Purchase Order") or EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Purchase Invoice"))
-                            else
-                                EDocSourceType := EDocSourceType::"Purchase Order";
-                        PurchHeader."Document Type"::"Return Order":
-                            if ForCheck then
-                                exit(EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Purchase Return Order") or EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Purchase Credit Memo"))
-                            else
-                                EDocSourceType := EDocSourceType::"Purchase Return Order";
-                        PurchHeader."Document Type"::Invoice:
-                            EDocSourceType := EDocSourceType::"Purchase Invoice";
-                        PurchHeader."Document Type"::"Credit Memo":
-                            EDocSourceType := EDocSourceType::"Purchase Credit Memo";
-                    end;
-                end;
-            Database::"Purch. Inv. Header":
-                EDocSourceType := EDocSourceType::"Purchase Invoice";
-            Database::"Purch. Cr. Memo Hdr.":
-                EDocSourceType := EDocSourceType::"Purchase Credit Memo";
+        case EDocumentType of
+            EDocumentType::"Sales Order":
+                exit(EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Sales Order") or EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Sales Invoice"));
+            EDocumentType::"Sales Return Order":
+                exit(EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Sales Return Order") or EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Sales Credit Memo"));
+            EDocumentType::"Service Order":
+                exit(EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Service Order") or EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Service Invoice"));
+            EDocumentType::"Finance Charge Memo":
+                exit(EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Finance Charge Memo") or EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Issued Finance Charge Memo"));
+            EDocumentType::Reminder:
+                exit(EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::Reminder) or EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Issued Reminder"));
+            EDocumentType::"Purchase Order":
+                exit(EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Purchase Order") or EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Purchase Invoice"));
+            EDocumentType::"Purchase Return Order":
+                exit(EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Purchase Return Order") or EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType::"Purchase Credit Memo"));
         end;
-
-        exit(EDocServiceSupportedType.Get(EDocService.Code, EDocSourceType));
+        exit(EDocServiceSupportedType.Get(EDocService.Code, EDocumentType));
     end;
 
-    local procedure IsDocumentTypeSupported(EDocService: Record "E-Document Service"; DocumentType: Enum "E-Document Type"): Boolean
+    local procedure IsDocumentSupported(EDocumentService: Record "E-Document Service"; SourceDocumentHeader: RecordRef; DocumentType: Enum "E-Document Type"): Boolean
     var
-        EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
+        IExportEligibilityEvaluator: Interface IExportEligibilityEvaluator;
     begin
-        exit(EDocServiceSupportedType.Get(EDocService.Code, DocumentType));
+        if not IsDocumentTypeSupported(EDocumentService, DocumentType) then
+            exit(false);
+
+        IExportEligibilityEvaluator := EDocumentService."Export Eligibility Evaluator";
+        exit(IExportEligibilityEvaluator.ShouldExport(EDocumentService, SourceDocumentHeader, DocumentType));
     end;
 
     var

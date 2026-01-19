@@ -5,14 +5,15 @@
 
 namespace Microsoft.Integration.Shopify.Test;
 
-using Microsoft.Integration.Shopify;
-using System.TestLibraries.Utilities;
-using Microsoft.Sales.Document;
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.SalesTax;
-using Microsoft.Sales.Customer;
+using Microsoft.Foundation.Address;
+using Microsoft.Integration.Shopify;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
-using Microsoft.Foundation.Address;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using System.TestLibraries.Utilities;
 
 codeunit 139608 "Shpfy Orders API Test"
 {
@@ -25,6 +26,10 @@ codeunit 139608 "Shpfy Orders API Test"
         LibraryRandom: Codeunit "Library - Random";
         OrdersAPISubscriber: Codeunit "Shpfy Orders API Subscriber";
         Any: Codeunit Any;
+        OrdersToImportChannelLiableMismatchTxt: Label 'Orders to import Channel Liable Taxes mismatch when %1.', Locked = true;
+        OrderLevelTaxLineExpectedTxt: Label 'An order-level tax line should exist when %1.', Locked = true;
+        ChannelLiableFlagMismatchTxt: Label 'Channel Liable flag mismatch when %1.', Locked = true;
+        OrderHeaderChannelLiableMismatchTxt: Label 'Order header Channel Liable Taxes mismatch when %1.', Locked = true;
 
     [Test]
     procedure UnitTestExtractShopifyOrdersToImport()
@@ -132,6 +137,39 @@ codeunit 139608 "Shpfy Orders API Test"
 
         // [THEN] ShpfyOrdersToImport."Order Amount" = ShpfyOrderHeader."Total Amount"
         LibraryAssert.AreEqual(OrdersToImport."Order Amount", OrderHeader."Total Amount", 'ShpfyOrdersToImport."Order Amount" = ShpfyOrderHeader."Total Amount"');
+    end;
+
+    [Test]
+    procedure UnitTestImportShopifyOrderStoresRetailLocation()
+    var
+        Shop: Record "Shpfy Shop";
+        OrderHeader: Record "Shpfy Order Header";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        JShopifyOrder: JsonObject;
+        JShopifyLineItems: JsonArray;
+    begin
+        // [SCENARIO] Retail location metadata is stored on the Shopify order header during import.
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Customer Mapping Type" := "Shpfy Customer Mapping"::"By EMail/Phone";
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] the order to import as a json structure containing retail location info.
+        JShopifyOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JShopifyLineItems, false);
+
+        // [WHEN] ShpfyImportOrder.ImportOrder
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, OrdersToImport, ImportOrder, JShopifyOrder, JShopifyLineItems);
+
+        // [THEN] Retail location details are stored on the order header
+        LibraryAssert.AreEqual(1234567890L, OrderHeader."Retail Location Id", 'Retail location id must be stored on the order header.');
+        LibraryAssert.AreEqual('Retail Test Location', OrderHeader."Retail Location Name", 'Retail location name must be stored on the order header.');
     end;
 
     [Test]
@@ -759,6 +797,74 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    procedure UnitTestCreateSalesDocumentWithPresentmentCurrency()
+    var
+        Shop: Record "Shpfy Shop";
+        OrderHeader: Record "Shpfy Order Header";
+        SalesHeader: Record "Sales Header";
+        ShopifyCustomer: Record "Shpfy Customer";
+        Item: Record Item;
+        SalesLine: Record "Sales Line";
+        Currency: Record Currency;
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        ProcessOrders: Codeunit "Shpfy Process Orders";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        LibraryERM: Codeunit "Library - ERM";
+        Amount: Decimal;
+        PresentmentAmount: Decimal;
+        PresentmentCurrencyCode: Code[10];
+    begin
+        // [SCENARIO] For shop with currency handling set to "Presentment Currency", the sales document is created with the presentment currency
+        Initialize();
+
+        // [GIVEN] Shop with currency handling set to "Presentment Currency"
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Currency Handling" := Shop."Currency Handling"::"Presentment Currency";
+        Shop.Modify(false);
+        // [GIVEN] Presentment currency
+        PresentmentCurrencyCode := LibraryERM.CreateCurrencyWithRounding();
+        // [GIVEN] Amount and Presentment amount
+        Amount := LibraryRandom.RandDec(999, 2);
+        Currency.Get(PresentmentCurrencyCode);
+        PresentmentAmount := Round(CurrencyExchangeRate.ExchangeAmtLCYToFCY(
+                WorkDate(),
+                PresentmentCurrencyCode,
+                Amount,
+                CurrencyExchangeRate.ExchangeRate(WorkDate(), PresentmentCurrencyCode)),
+            Currency."Amount Rounding Precision");
+        // [GIVEN] Customer
+        CreateShopifyCustomer(Shop, ShopifyCustomer);
+        // [GIVEN] Item
+        CreateItem(Item, Amount);
+        // [GIVEN] Shopify order
+        CreatePresentmentShopifyOrder(
+            Shop,
+            OrderHeader,
+            ShopifyCustomer,
+            Item,
+            Amount,
+            PresentmentAmount,
+            PresentmentCurrencyCode);
+
+        Commit(); // Commit to make ProcessShopifyOrder Codeunit.Run() execution work
+
+        // [WHEN] Order is processed
+        ProcessOrders.ProcessShopifyOrder(OrderHeader);
+
+        // [THEN] Sales document is created from Shopify order and order line is reserved
+        SalesHeader.SetRange("Shpfy Order Id", OrderHeader."Shopify Order Id");
+        LibraryAssert.IsTrue(SalesHeader.FindLast(), 'Sales document is created from Shopify order');
+        LibraryAssert.AreEqual(SalesHeader."Currency Code", PresentmentCurrencyCode, 'Sales document is created with presentment currency');
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange("No.", Item."No.");
+        SalesLine.FindFirst();
+        LibraryAssert.AreEqual(PresentmentAmount, SalesLine.Amount, 'Sales line amount should match presentment amount');
+        // [THEN] Restore Shop currency handling
+        Shop."Currency Handling" := Shop."Currency Handling"::"Shop Currency";
+        Shop.Modify(false);
+    end;
+
+    [Test]
     procedure UnitTestImportShopifyOrderAndCreateSalesDocumentDueDate()
     var
         Shop: Record "Shpfy Shop";
@@ -843,6 +949,329 @@ codeunit 139608 "Shpfy Orders API Test"
         LibraryAssert.AreEqual(OrderHeader."Sales Order No.", SalesHeader."No.", 'ShpfyOrderHeader."Sales Order No." = SalesHeader."No."');
     end;
 
+    [Test]
+    procedure ChannelLiableFlagMissingDefaultsToFalseOnOrdersToImport()
+    var
+        Shop: Record "Shpfy Shop";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        OrdersAPI: Codeunit "Shpfy Orders API";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        Cursor: Text;
+        JOrdersToImport: JsonObject;
+        ExpectedChannelLiable: Boolean;
+        ScenarioName: Text;
+        ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
+    begin
+        // [GIVEN] Shopify shop context and an orders-to-import payload missing taxLines.
+        Initialize();
+        Clear(OrdersToImport);
+        if not OrdersToImport.IsEmpty then
+            OrdersToImport.DeleteAll();
+
+        Shop := CommunicationMgt.GetShopRecord();
+        JOrdersToImport := OrderHandlingHelper.GetOrdersToImport(false);
+        PrepareOrdersToImportChannelLiableScenario(ChannelLiableScenario::Missing, JOrdersToImport, ExpectedChannelLiable, ScenarioName);
+
+        // [WHEN] Orders are extracted from Shopify.
+        OrdersAPI.ExtractShopifyOrdersToImport(Shop, JOrdersToImport, Cursor);
+
+        // [THEN] Channel Liable flag on the staging record defaults to false.
+        OrdersToImport.Reset();
+        LibraryAssert.IsTrue(OrdersToImport.FindLast(), 'Orders to import record is created');
+        LibraryAssert.AreEqual(ExpectedChannelLiable, OrdersToImport."Channel Liable Taxes", StrSubstNo(OrdersToImportChannelLiableMismatchTxt, ScenarioName));
+    end;
+
+    [Test]
+    procedure ChannelLiableFlagTrueIsStoredOnOrdersToImport()
+    var
+        Shop: Record "Shpfy Shop";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        OrdersAPI: Codeunit "Shpfy Orders API";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        Cursor: Text;
+        JOrdersToImport: JsonObject;
+        ExpectedChannelLiable: Boolean;
+        ScenarioName: Text;
+        ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
+    begin
+        // [GIVEN] Shopify shop context and an orders-to-import payload with channelLiable set to true.
+        Initialize();
+        Clear(OrdersToImport);
+        if not OrdersToImport.IsEmpty then
+            OrdersToImport.DeleteAll();
+
+        Shop := CommunicationMgt.GetShopRecord();
+        JOrdersToImport := OrderHandlingHelper.GetOrdersToImport(false);
+        PrepareOrdersToImportChannelLiableScenario(ChannelLiableScenario::TrueValue, JOrdersToImport, ExpectedChannelLiable, ScenarioName);
+
+        // [WHEN] Orders are extracted from Shopify.
+        OrdersAPI.ExtractShopifyOrdersToImport(Shop, JOrdersToImport, Cursor);
+
+        // [THEN] Channel Liable flag on the staging record is true.
+        OrdersToImport.Reset();
+        LibraryAssert.IsTrue(OrdersToImport.FindLast(), 'Orders to import record is created');
+        LibraryAssert.AreEqual(ExpectedChannelLiable, OrdersToImport."Channel Liable Taxes", StrSubstNo(OrdersToImportChannelLiableMismatchTxt, ScenarioName));
+    end;
+
+    [Test]
+    procedure ChannelLiableFlagFalseIsStoredOnOrdersToImport()
+    var
+        Shop: Record "Shpfy Shop";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        OrdersAPI: Codeunit "Shpfy Orders API";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        Cursor: Text;
+        JOrdersToImport: JsonObject;
+        ExpectedChannelLiable: Boolean;
+        ScenarioName: Text;
+        ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
+    begin
+        // [GIVEN] Shopify shop context and an orders-to-import payload with channelLiable set to false.
+        Initialize();
+        Clear(OrdersToImport);
+        if not OrdersToImport.IsEmpty then
+            OrdersToImport.DeleteAll();
+
+        Shop := CommunicationMgt.GetShopRecord();
+        JOrdersToImport := OrderHandlingHelper.GetOrdersToImport(false);
+        PrepareOrdersToImportChannelLiableScenario(ChannelLiableScenario::FalseValue, JOrdersToImport, ExpectedChannelLiable, ScenarioName);
+
+        // [WHEN] Orders are extracted from Shopify.
+        OrdersAPI.ExtractShopifyOrdersToImport(Shop, JOrdersToImport, Cursor);
+
+        // [THEN] Channel Liable flag on the staging record is false.
+        OrdersToImport.Reset();
+        LibraryAssert.IsTrue(OrdersToImport.FindLast(), 'Orders to import record is created');
+        LibraryAssert.AreEqual(ExpectedChannelLiable, OrdersToImport."Channel Liable Taxes", StrSubstNo(OrdersToImportChannelLiableMismatchTxt, ScenarioName));
+    end;
+
+    [Test]
+    procedure ChannelLiableFlagNullDefaultsToFalseOnOrdersToImport()
+    var
+        Shop: Record "Shpfy Shop";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        OrdersAPI: Codeunit "Shpfy Orders API";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        Cursor: Text;
+        JOrdersToImport: JsonObject;
+        ExpectedChannelLiable: Boolean;
+        ScenarioName: Text;
+        ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
+    begin
+        // [GIVEN] Shopify shop context and an orders-to-import payload with channelLiable provided as null.
+        Initialize();
+        Clear(OrdersToImport);
+        if not OrdersToImport.IsEmpty then
+            OrdersToImport.DeleteAll();
+
+        Shop := CommunicationMgt.GetShopRecord();
+        JOrdersToImport := OrderHandlingHelper.GetOrdersToImport(false);
+        PrepareOrdersToImportChannelLiableScenario(ChannelLiableScenario::NullValue, JOrdersToImport, ExpectedChannelLiable, ScenarioName);
+
+        // [WHEN] Orders are extracted from Shopify.
+        OrdersAPI.ExtractShopifyOrdersToImport(Shop, JOrdersToImport, Cursor);
+
+        // [THEN] Channel Liable flag on the staging record defaults to false.
+        OrdersToImport.Reset();
+        LibraryAssert.IsTrue(OrdersToImport.FindLast(), 'Orders to import record is created');
+        LibraryAssert.AreEqual(ExpectedChannelLiable, OrdersToImport."Channel Liable Taxes", StrSubstNo(OrdersToImportChannelLiableMismatchTxt, ScenarioName));
+    end;
+
+    [Test]
+    procedure ChannelLiableFlagMissingDefaultsToFalse()
+    var
+        Shop: Record "Shpfy Shop";
+        OrderHeader: Record "Shpfy Order Header";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        JOrder: JsonObject;
+        JLineItems: JsonArray;
+        ExpectedChannelLiable: Boolean;
+        ScenarioName: Text;
+        OrderTaxLineFound: Boolean;
+    begin
+        // [GIVEN] Shopify shop context and an order JSON with the taxLines array removed.
+        Initialize();
+
+        Shop := CommunicationMgt.GetShopRecord();
+        ImportOrder.SetShop(Shop.Code);
+
+        JOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JLineItems, false);
+
+        JOrder.Remove('taxLines');
+
+        ExpectedChannelLiable := false;
+        ScenarioName := 'missing taxLines';
+
+        // [WHEN] Order is imported
+
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, OrdersToImport, ImportOrder, JOrder, JLineItems);
+
+        // [THEN] Channel Liable in tax line and order header is set properly
+        OrderTaxLine.Reset();
+        OrderTaxLine.SetRange("Parent Id", OrderHeader."Shopify Order Id");
+
+        OrderTaxLineFound := not OrderTaxLine.IsEmpty();
+        LibraryAssert.IsFalse(OrderTaxLineFound, 'Order-level tax lines should not be created when taxLines array is missing.');
+
+        OrderHeader.CalcFields("Channel Liable Taxes");
+        LibraryAssert.AreEqual(ExpectedChannelLiable, OrderHeader."Channel Liable Taxes", StrSubstNo(OrderHeaderChannelLiableMismatchTxt, ScenarioName));
+    end;
+
+    [Test]
+    procedure ChannelLiableFlagTrueIsImported()
+    var
+        Shop: Record "Shpfy Shop";
+        OrderHeader: Record "Shpfy Order Header";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        JOrder: JsonObject;
+        JLineItems: JsonArray;
+        ExpectedHasRecord: Boolean;
+        ExpectedChannelLiable: Boolean;
+        ScenarioName: Text;
+        OrderTaxLineFound: Boolean;
+        ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
+    begin
+        // [GIVEN] Shopify shop context and an order JSON with channelLiable explicitly set to true.
+        Initialize();
+
+        Shop := CommunicationMgt.GetShopRecord();
+        ImportOrder.SetShop(Shop.Code);
+
+        JOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JLineItems, false);
+
+        JOrder.Remove('taxLines');
+
+        PrepareChannelLiableWithTaxLines(ChannelLiableScenario::TrueValue, JOrder, ExpectedHasRecord, ExpectedChannelLiable, ScenarioName);
+
+        // [WHEN] Order is imported
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, OrdersToImport, ImportOrder, JOrder, JLineItems);
+
+        // [THEN] Channel Liable in tax line and order header is set properly
+        OrderTaxLine.Reset();
+        OrderTaxLine.SetRange("Parent Id", OrderHeader."Shopify Order Id");
+
+        OrderTaxLineFound := OrderTaxLine.FindFirst();
+        if ExpectedHasRecord then begin
+            LibraryAssert.IsTrue(OrderTaxLineFound, StrSubstNo(OrderLevelTaxLineExpectedTxt, ScenarioName));
+            if OrderTaxLineFound then
+                LibraryAssert.AreEqual(ExpectedChannelLiable, OrderTaxLine."Channel Liable", StrSubstNo(ChannelLiableFlagMismatchTxt, ScenarioName));
+        end else
+            LibraryAssert.IsFalse(OrderTaxLineFound, 'Order-level tax lines should not be created when taxLines array is missing.');
+
+        OrderHeader.CalcFields("Channel Liable Taxes");
+        LibraryAssert.AreEqual(ExpectedChannelLiable, OrderHeader."Channel Liable Taxes", StrSubstNo(OrderHeaderChannelLiableMismatchTxt, ScenarioName));
+    end;
+
+    [Test]
+    procedure ChannelLiableFlagFalseIsImported()
+    var
+        Shop: Record "Shpfy Shop";
+        OrderHeader: Record "Shpfy Order Header";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        JOrder: JsonObject;
+        JLineItems: JsonArray;
+        ExpectedHasRecord: Boolean;
+        ExpectedChannelLiable: Boolean;
+        ScenarioName: Text;
+        OrderTaxLineFound: Boolean;
+        ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
+    begin
+        // [GIVEN] Shopify shop context and an order JSON with channelLiable explicitly set to false.
+        Initialize();
+
+        Shop := CommunicationMgt.GetShopRecord();
+        ImportOrder.SetShop(Shop.Code);
+
+        JOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JLineItems, false);
+
+        JOrder.Remove('taxLines');
+
+        PrepareChannelLiableWithTaxLines(ChannelLiableScenario::FalseValue, JOrder, ExpectedHasRecord, ExpectedChannelLiable, ScenarioName);
+
+        // [WHEN] Order is imported
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, OrdersToImport, ImportOrder, JOrder, JLineItems);
+
+        // [THEN] Channel Liable in tax line and order header is set properly
+        OrderTaxLine.Reset();
+        OrderTaxLine.SetRange("Parent Id", OrderHeader."Shopify Order Id");
+
+        OrderTaxLineFound := OrderTaxLine.FindFirst();
+        if ExpectedHasRecord then begin
+            LibraryAssert.IsTrue(OrderTaxLineFound, StrSubstNo(OrderLevelTaxLineExpectedTxt, ScenarioName));
+            if OrderTaxLineFound then
+                LibraryAssert.AreEqual(ExpectedChannelLiable, OrderTaxLine."Channel Liable", StrSubstNo(ChannelLiableFlagMismatchTxt, ScenarioName));
+        end else
+            LibraryAssert.IsFalse(OrderTaxLineFound, 'Order-level tax lines should not be created when taxLines array is missing.');
+
+        OrderHeader.CalcFields("Channel Liable Taxes");
+        LibraryAssert.AreEqual(ExpectedChannelLiable, OrderHeader."Channel Liable Taxes", StrSubstNo(OrderHeaderChannelLiableMismatchTxt, ScenarioName));
+    end;
+
+    [Test]
+    procedure ChannelLiableFlagNullDefaultsToFalse()
+    var
+        Shop: Record "Shpfy Shop";
+        OrderHeader: Record "Shpfy Order Header";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        JOrder: JsonObject;
+        JLineItems: JsonArray;
+        ExpectedHasRecord: Boolean;
+        ExpectedChannelLiable: Boolean;
+        ScenarioName: Text;
+        OrderTaxLineFound: Boolean;
+        ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
+    begin
+        // [GIVEN] Shopify shop context and an order JSON with channelLiable provided as null.
+        Initialize();
+
+        Shop := CommunicationMgt.GetShopRecord();
+        ImportOrder.SetShop(Shop.Code);
+
+        JOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JLineItems, false);
+
+        JOrder.Remove('taxLines');
+
+        PrepareChannelLiableWithTaxLines(ChannelLiableScenario::NullValue, JOrder, ExpectedHasRecord, ExpectedChannelLiable, ScenarioName);
+
+        // [WHEN] Order is imported
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, OrdersToImport, ImportOrder, JOrder, JLineItems);
+
+        // [THEN] Channel Liable in tax line and order header is set properly
+        OrderTaxLine.Reset();
+        OrderTaxLine.SetRange("Parent Id", OrderHeader."Shopify Order Id");
+
+        OrderTaxLineFound := OrderTaxLine.FindFirst();
+        if ExpectedHasRecord then begin
+            LibraryAssert.IsTrue(OrderTaxLineFound, StrSubstNo(OrderLevelTaxLineExpectedTxt, ScenarioName));
+            if OrderTaxLineFound then
+                LibraryAssert.AreEqual(ExpectedChannelLiable, OrderTaxLine."Channel Liable", StrSubstNo(ChannelLiableFlagMismatchTxt, ScenarioName));
+        end else
+            LibraryAssert.IsFalse(OrderTaxLineFound, 'Order-level tax lines should not be created when taxLines array is missing.');
+
+        OrderHeader.CalcFields("Channel Liable Taxes");
+        LibraryAssert.AreEqual(ExpectedChannelLiable, OrderHeader."Channel Liable Taxes", StrSubstNo(OrderHeaderChannelLiableMismatchTxt, ScenarioName));
+    end;
+
     local procedure CreateTaxArea(var TaxArea: Record "Tax Area"; var ShopifyTaxArea: Record "Shpfy Tax Area"; Shop: Record "Shpfy Shop")
     var
         ShopifyCustomerTemplate: Record "Shpfy Customer Template";
@@ -884,9 +1313,176 @@ codeunit 139608 "Shpfy Orders API Test"
         OrderRisk.Insert();
     end;
 
+    local procedure CreateItem(var Item: Record Item; Amount: Decimal)
+    var
+        LibraryInventory: Codeunit "Library - Inventory";
+    begin
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Unit Price", Amount);
+        Item.Validate("Last Direct Cost", Amount);
+        Item.Modify(true);
+    end;
+
+    local procedure CreatePresentmentShopifyOrder(
+        Shop: Record "Shpfy Shop";
+        var OrderHeader: Record "Shpfy Order Header";
+        ShopifyCustomer: Record "Shpfy Customer";
+        Item: Record Item;
+        Amount: Decimal;
+        PresentmentAmount: Decimal;
+        PresentmentCurrencyCode: Code[10])
+    var
+        OrderLine: Record "Shpfy Order Line";
+        ShopifyVariant: Record "Shpfy Variant";
+    begin
+        OrderHeader."Customer Id" := ShopifyCustomer.Id;
+        OrderHeader."Shop Code" := Shop.Code;
+        OrderHeader."Presentment Currency Code" := PresentmentCurrencyCode;
+        OrderHeader."Presentment Total Amount" := PresentmentAmount;
+        OrderHeader."Total Amount" := Amount;
+
+        OrderHeader."Shopify Order Id" := LibraryRandom.RandIntInRange(100000, 999999);
+        OrderHeader.Insert(false);
+
+        ShopifyVariant."Item SystemId" := Item.SystemId;
+        ShopifyVariant.Id := LibraryRandom.RandIntInRange(100000, 999999);
+        ShopifyVariant."Shop Code" := Shop.Code;
+        ShopifyVariant.Insert(false);
+        OrderLine."Shopify Order Id" := OrderHeader."Shopify Order Id";
+        OrderLine."Shopify Variant Id" := ShopifyVariant.Id;
+        OrderLine."Unit Price" := Amount;
+        OrderLine."Presentment Unit Price" := PresentmentAmount;
+        OrderLine.Quantity := 1;
+        OrderLine.Insert(false);
+    end;
+
+    local procedure CreateShopifyCustomer(Shop: Record "Shpfy Shop"; var ShopifyCustomer: Record "Shpfy Customer")
+    var
+        Customer: Record Customer;
+        LibrarySales: Codeunit "Library - Sales";
+    begin
+        LibrarySales.CreateCustomer(Customer);
+        ShopifyCustomer.Id := LibraryRandom.RandIntInRange(100000, 999999);
+        ShopifyCustomer."Customer SystemId" := Customer.SystemId;
+        ShopifyCustomer."Shop Id" := Shop."Shop Id";
+        ShopifyCustomer.Insert(false);
+    end;
+
     local procedure Initialize()
     begin
         Codeunit.Run(Codeunit::"Shpfy Initialize Test");
         if BindSubscription(OrdersAPISubscriber) then;
+    end;
+
+    local procedure PrepareOrdersToImportChannelLiableScenario(ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue; var JOrdersToImport: JsonObject; var ExpectedChannelLiable: Boolean; var ScenarioName: Text)
+    var
+        JOrder: JsonToken;
+        JOrders: JsonArray;
+        JNode: JsonObject;
+        JTaxLines: JsonArray;
+        JTaxLine: JsonObject;
+        JNull: JsonValue;
+    begin
+        JOrdersToImport.GetObject('data').GetObject('orders').GetArray('edges').Get(0, JOrder);
+        JNode := JOrder.AsObject().GetObject('node');
+
+        if JNode.Contains('taxLines') then
+            JNode.Remove('taxLines');
+
+        Clear(JTaxLine);
+        Clear(JTaxLines);
+
+        case ChannelLiableScenario of
+            ChannelLiableScenario::Missing:
+                begin
+                    ExpectedChannelLiable := false;
+                    ScenarioName := 'missing taxLines';
+                end;
+            ChannelLiableScenario::TrueValue:
+                begin
+                    JTaxLine.Add('channelLiable', true);
+                    JTaxLines.Add(JTaxLine);
+                    JNode.Add('taxLines', JTaxLines);
+
+                    ScenarioName := Format(ChannelLiableScenario);
+                    ExpectedChannelLiable := true;
+                end;
+            ChannelLiableScenario::FalseValue:
+                begin
+                    JTaxLine.Add('channelLiable', false);
+                    JTaxLines.Add(JTaxLine);
+                    JNode.Add('taxLines', JTaxLines);
+
+                    ScenarioName := Format(ChannelLiableScenario);
+                    ExpectedChannelLiable := false;
+                end;
+            ChannelLiableScenario::NullValue:
+                begin
+                    JNull.SetValueToNull();
+                    JTaxLine.Add('channelLiable', JNull);
+                    JTaxLines.Add(JTaxLine);
+                    JNode.Add('taxLines', JTaxLines);
+
+                    ScenarioName := Format(ChannelLiableScenario);
+                    ExpectedChannelLiable := false;
+                end;
+        end;
+
+        Clear(JOrders);
+        JOrders.Add(JOrder);
+        JOrdersToImport.GetObject('data').GetObject('orders').Replace('edges', JOrders);
+    end;
+
+    local procedure PrepareChannelLiableWithTaxLines(ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue; var JOrder: JsonObject; var ExpectedHasRecord: Boolean; var ExpectedChannelLiable: Boolean; var ScenarioName: Text)
+    var
+        JTaxLines: JsonArray;
+        JTaxLine: JsonObject;
+        JPriceSet: JsonObject;
+        JShopMoney: JsonObject;
+        JPresentmentMoney: JsonObject;
+        JNull: JsonValue;
+    begin
+        ExpectedHasRecord := true;
+        ScenarioName := Format(ChannelLiableScenario);
+
+        Clear(JTaxLine);
+        Clear(JTaxLines);
+        Clear(JPriceSet);
+        Clear(JShopMoney);
+        Clear(JPresentmentMoney);
+
+        JTaxLine.Add('title', 'VAT');
+        JTaxLine.Add('rate', 0.10);
+        JTaxLine.Add('ratePercentage', 10);
+
+        JShopMoney.Add('amount', '10');
+        JPriceSet.Add('shopMoney', JShopMoney);
+
+        JPresentmentMoney.Add('amount', '10');
+        JPriceSet.Add('presentmentMoney', JPresentmentMoney);
+
+        JTaxLine.Add('priceSet', JPriceSet);
+
+        case ChannelLiableScenario of
+            ChannelLiableScenario::TrueValue:
+                begin
+                    JTaxLine.Add('channelLiable', true);
+                    ExpectedChannelLiable := true;
+                end;
+            ChannelLiableScenario::FalseValue:
+                begin
+                    JTaxLine.Add('channelLiable', false);
+                    ExpectedChannelLiable := false;
+                end;
+            ChannelLiableScenario::NullValue:
+                begin
+                    JNull.SetValueToNull();
+                    JTaxLine.Add('channelLiable', JNull);
+                    ExpectedChannelLiable := false;
+                end;
+        end;
+
+        JTaxLines.Add(JTaxLine);
+        JOrder.Add('taxLines', JTaxLines);
     end;
 }

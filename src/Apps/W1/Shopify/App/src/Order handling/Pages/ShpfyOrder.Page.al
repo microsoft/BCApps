@@ -42,18 +42,6 @@ page 30113 "Shpfy Order"
                     Editable = false;
                     ToolTip = 'Specifies the order number from Shopify.';
                 }
-#if not CLEAN25
-                field(RiskLevel; Rec."Risk Level")
-                {
-                    ApplicationArea = All;
-                    Editable = false;
-                    ToolTip = 'Specifies the risk level from the Shopify order.';
-                    Visible = false;
-                    ObsoleteReason = 'This field is not imported.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '25.0';
-                }
-#endif
                 field("High Risk"; Rec."High Risk")
                 {
                     ApplicationArea = All;
@@ -242,11 +230,62 @@ page 30113 "Shpfy Order"
                     Editable = false;
                     ToolTip = 'Specifies whether a sales order has been created for the Shopify Order.';
                 }
+                group(ProcessedCurrHanndling)
+                {
+                    ShowCaption = false;
+                    Visible = Rec.Processed;
+
+                    field(ProcessedCurrencyHandling; Rec."Processed Currency Handling")
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Processed Currency Handling';
+                        Importance = Additional;
+                        Editable = false;
+                        ToolTip = 'Specifies how the currency was handled when processing the order.';
+                    }
+                }
                 field(FinancialStatus; Rec."Financial Status")
                 {
                     ApplicationArea = All;
                     Editable = false;
                     ToolTip = 'Specifies the status of payments associated with the order. Valid values are: pending, authorized, partially paid, paid, partially refunded, refunded, voided.';
+                }
+                group(PresentmentCurrency)
+                {
+                    ShowCaption = false;
+                    Visible = PresentmentVisible;
+
+                    field("Presentment Subtotal Amount"; Rec."Presentment Subtotal Amount")
+                    {
+                        ApplicationArea = All;
+                        Editable = false;
+                    }
+                    field("Pres. Shipping Charges Amount"; Rec."Pres. Shipping Charges Amount")
+                    {
+                        ApplicationArea = All;
+                        Editable = false;
+                    }
+                    field("Presentment Total Amount"; Rec."Presentment Total Amount")
+                    {
+                        ApplicationArea = All;
+                        Editable = false;
+                        Importance = Promoted;
+                    }
+                    field("Presentment VAT Amount"; Rec."Presentment VAT Amount")
+                    {
+                        ApplicationArea = All;
+                        Editable = false;
+                    }
+                    field("Presentment Discount Amount"; Rec."Presentment Discount Amount")
+                    {
+                        ApplicationArea = All;
+                        Editable = false;
+                    }
+                    field("Presentment Currency Code"; Rec."Presentment Currency Code")
+                    {
+                        ApplicationArea = All;
+                        Editable = false;
+                    }
                 }
                 field(FulfillmentStatus; Rec."Fulfillment Status")
                 {
@@ -353,6 +392,13 @@ page 30113 "Shpfy Order"
                     ApplicationArea = All;
                     ToolTip = 'Specifies if tax is included in the unit price.';
                 }
+                field("Channel Liable Taxes"; Rec."Channel Liable Taxes")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    ToolTip = 'Specifies if any tax line on the order is liable to be charged by the sales channel.';
+                }
+
                 field(CurrencyCode; Rec."Currency Code")
                 {
                     ApplicationArea = All;
@@ -598,6 +644,7 @@ page 30113 "Shpfy Order"
 
                     trigger OnAction();
                     var
+                        Shop: Record "Shpfy Shop";
                         ShopifyOrderHeader: Record "Shpfy Order Header";
                         ProcessShopifyOrders: Codeunit "Shpfy Process Orders";
                     begin
@@ -609,6 +656,8 @@ page 30113 "Shpfy Order"
                             Commit();
                             ShopifyOrderHeader.Get(Rec."Shopify Order Id");
                             ShopifyOrderHeader.SetRecFilter();
+                            Shop.Get(Rec."Shop Code");
+                            ProcessShopifyOrders.SetShop(Shop);
                             ProcessShopifyOrders.ProcessShopifyOrders(ShopifyOrderHeader);
                             Rec.Get(Rec."Shopify Order Id");
                         end;
@@ -998,14 +1047,19 @@ page 30113 "Shpfy Order"
         OrderCancelFailedErr: Label 'Specifies the order could not be cancelled. You can see the error message from Shopify Log Entries.';
         LogEntriesLbl: Label 'Log Entries';
         WorkDescription: Text;
+        TotalAmount, SubtotalAmount : Decimal;
+        PresentmentVisible: Boolean;
 
     trigger OnAfterGetRecord()
     begin
+        SetPresentmentCurrencyVisibility();
         WorkDescription := Rec.GetWorkDescription();
     end;
 
-    trigger OnOpenPage()
+    local procedure SetPresentmentCurrencyVisibility()
     begin
+        PresentmentVisible := Rec.IsPresentmentCurrencyOrder();
+
+        CurrPage.ShopifyOrderLines.Page.SetShowPresentmentCurrency(PresentmentVisible);
     end;
 }
-

@@ -32,18 +32,11 @@ page 8350 "MCP Config List"
         {
             repeater(Control1)
             {
-                field(Name; Rec.Name)
-                {
-                    ToolTip = 'Specifies the name of the MCP configuration.';
-                }
-                field(Description; Rec.Description)
-                {
-                    ToolTip = 'Specifies the description of the MCP configuration.';
-                }
-                field(Active; Rec.Active)
-                {
-                    ToolTip = 'Specifies whether the MCP configuration is active.';
-                }
+                field(Name; Rec.Name) { }
+                field(Description; Rec.Description) { }
+                field(Active; Rec.Active) { }
+                field(EnableDynamicToolMode; Rec.EnableDynamicToolMode) { }
+                field(DiscoverReadOnlyObjects; Rec.DiscoverReadOnlyObjects) { }
             }
         }
     }
@@ -66,9 +59,43 @@ page 8350 "MCP Config List"
                 end;
             }
         }
+        area(Processing)
+        {
+            action(MCPEntraApplications)
+            {
+                Caption = 'Entra Applications';
+                ToolTip = 'View registered Entra applications and their Client IDs for MCP client configuration.';
+                Image = Setup;
+                RunObject = page "MCP Entra Application List";
+            }
+            action(GenerateConnectionString)
+            {
+                Caption = 'Connection String';
+                ToolTip = 'Generate a connection string for this MCP configuration to use in your MCP client.';
+                Image = Export;
+
+                trigger OnAction()
+                var
+                    MCPConfigImplementation: Codeunit "MCP Config Implementation";
+                begin
+                    MCPConfigImplementation.ShowConnectionString(Rec.Name);
+                end;
+            }
+        }
         area(Promoted)
         {
             actionref(Promoted_Copy; Copy) { }
+            actionref(Promoted_MCPEntraApplications; MCPEntraApplications) { }
+            actionref(Promoted_GenerateConnectionString; GenerateConnectionString) { }
+        }
+    }
+
+    views
+    {
+        view(ActiveConfigurations)
+        {
+            Caption = 'Active configurations';
+            Filters = where(Active = const(true));
         }
     }
 

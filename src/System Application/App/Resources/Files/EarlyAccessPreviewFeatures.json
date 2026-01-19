@@ -1,0 +1,38 @@
+[
+    {
+        "FeatureName": "Create contract service orders with respect to the One Service Item Line/Order setting",
+        "Description": "Ensure consistent service order creation by enforcing the One Service Item Line/Order rule when generating orders from service contracts.  Start by reviewing the **One Service Item Line/Order** field on the **Service Management Setup** page to understand whether orders will be split per service item or combined. Open the **Create Contract Service Orders** page, set the **Starting Date** and **Ending Date**, and apply filters as needed. Run the batch to automatically create service orders for planned service dates.",
+        "HelpURL": "",
+        "VideoURL": ""
+    },
+    {
+        "FeatureName": "Post purchase invoices for drop shipments independently of related sales invoices",
+        "Description": "This feature lets you post purchase invoices for drop shipment orders even if the related sales invoice hasn’t been posted yet, supporting workflows where vendor invoicing and customer billing happen at different times. To use it, open the Purchase Order with drop shipmnet lines and post the invoice directly. You can also use the **Get receipt lines** action in the purchase invoice to invoice received drop shipment lines.",
+        "HelpURL": "",
+        "VideoURL": ""
+    },
+    {
+        "FeatureName": "Send Posted Sales Shipments and Return Receipts via Email",
+        "Description": "Enable users to email posted sales shipments and return receipts directly from Business Central. This helps businesses deliver critical shipment documents quickly and improves customer communication. To get started, open the Posted Sales Shipment or Posted Return Receipt pages and use the **Send by Email** or **Send** actions. You can also print and attach the PDF version in the Attachment part.",
+        "HelpURL": "",
+        "VideoURL": ""
+    },
+    {
+      "FeatureName": "Create purchase quotes for contacts",
+      "Description": "Create purchase quotes for contacts before committing to vendor creation, reducing administrative overhead and speeding up quote registration. Start on the **Purchase Quote** page and select a **Contact No.** that is not linked to a vendor, then (if needed) choose a **Vendor Template Code** when multiple templates are available. Enter the quote lines and other required details as usual. When you use **Release** or **Make Order**, Business Central automatically creates the vendor based on the selected template and converts the document accordingly.",
+      "HelpURL": "",
+      "VideoURL": ""
+    },
+    {
+      "FeatureName": "Assign custom collections to items exported to Shopify",
+      "Description": "Synchronize Shopify custom collections with Business Central to streamline product organization and support tax‑override scenarios. Start on the **Shopify Custom Product Collections** page to import collections from Shopify and choose which ones should be added when exporting items to Shopify. You can specify advanced conditions to define when specific item is added to collection during export.",
+      "HelpURL": "",
+      "VideoURL": ""
+    },
+    {
+      "FeatureName": "Create Purchase Orders from Drop Shipment Sales Orders",
+      "Description": "Create purchase orders directly from sales orders marked for Drop Shipment to speed up processing and improve backorder accuracy. Start on a sales order with Drop Shipment lines and use the **Create Purchase Orders** action to create purchase order. Or include these sales orders through **Order Planning** page or choose the **Drop Shipment** action group in the **Planning Worksheet**.",
+      "HelpURL": "",
+      "VideoURL": ""
+    }
+]

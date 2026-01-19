@@ -5,11 +5,11 @@
 
 namespace System.Test.Azure.ActiveDirectory;
 
-using System.TestLibraries.Azure.ActiveDirectory;
-using System.TestLibraries.Mocking;
-using System.Azure.Identity;
-using System.TestLibraries.Environment;
 using System;
+using System.Azure.Identity;
+using System.TestLibraries.Azure.ActiveDirectory;
+using System.TestLibraries.Environment;
+using System.TestLibraries.Mocking;
 using System.TestLibraries.Utilities;
 
 codeunit 139087 "Azure AD Graph Test"

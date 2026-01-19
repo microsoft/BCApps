@@ -6,9 +6,9 @@
 namespace Microsoft.eServices.EDocument;
 
 using Microsoft.Sales.History;
+using System.IO;
 using System.Text;
 using System.Utilities;
-using System.IO;
 
 page 6169 "E-Document QR Code Viewer"
 {

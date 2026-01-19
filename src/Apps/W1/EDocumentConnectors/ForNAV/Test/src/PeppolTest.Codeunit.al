@@ -3,11 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
-using System.Utilities;
+
 using Microsoft.eServices.EDocument;
-using Microsoft.Inventory.Item.Catalog;
-using Microsoft.Inventory.Item;
 using Microsoft.eServices.EDocument.Integration;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Item.Catalog;
+using System.Utilities;
 
 codeunit 148220 "ForNAV Peppol Test"
 {

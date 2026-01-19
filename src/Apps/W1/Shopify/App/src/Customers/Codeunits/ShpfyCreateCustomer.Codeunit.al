@@ -5,10 +5,10 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Sales.Customer;
-using Microsoft.Finance.Dimension;
 using Microsoft.CRM.BusinessRelation;
+using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Address;
+using Microsoft.Sales.Customer;
 
 /// <summary>
 /// Codeunit Shpfy Create Customer (ID 30110).
@@ -122,6 +122,7 @@ codeunit 30110 "Shpfy Create Customer"
         CustomerTemplMgt: Codeunit "Customer Templ. Mgt.";
         UpdateCustomer: Codeunit "Shpfy Update Customer";
         ICounty: Interface "Shpfy ICounty";
+        ITaxRegistrationIdMapping: Interface "Shpfy Tax Registration Id Mapping";
         CountryCode: Code[20];
         CurrentTemplateCode: Code[20];
         IsHandled: Boolean;
@@ -170,11 +171,16 @@ codeunit 30110 "Shpfy Create Customer"
         if CompanyLocation."Shpfy Payment Terms Id" <> 0 then
             Customer.Validate("Payment Terms Code", UpdateCustomer.GetPaymentTermsCodeFromShopifyPaymentTermsId(CompanyLocation."Shpfy Payment Terms Id"));
 
+        ITaxRegistrationIdMapping := Shop."Shpfy Comp. Tax Id Mapping";
+        ITaxRegistrationIdMapping.UpdateTaxRegistrationId(Customer, CompanyLocation."Tax Registration Id");
+
         Customer.Modify();
 
-        ShopifyCustomer.Copy(TempShopifyCustomer);
-        ShopifyCustomer."Customer SystemId" := Customer.SystemId;
-        ShopifyCustomer.Insert();
+        if not ShopifyCustomer.Get(TempShopifyCustomer.Id) then begin
+            ShopifyCustomer.Copy(TempShopifyCustomer);
+            ShopifyCustomer."Customer SystemId" := Customer.SystemId;
+            ShopifyCustomer.Insert();
+        end;
 
         ShopifyCompany."Customer SystemId" := Customer.SystemId;
         ShopifyCompany."Main Contact Customer Id" := ShopifyCustomer.Id;

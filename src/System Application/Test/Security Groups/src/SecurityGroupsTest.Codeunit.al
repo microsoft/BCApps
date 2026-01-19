@@ -5,14 +5,14 @@
 
 namespace System.Test.Security.AccessControl;
 
-using System.TestLibraries.Environment;
-using System.TestLibraries.Azure.ActiveDirectory;
-using System.TestLibraries.Security.AccessControl;
-using System.TestLibraries.Mocking;
-using System.Security.AccessControl;
 using System;
-using System.Utilities;
+using System.Security.AccessControl;
+using System.TestLibraries.Azure.ActiveDirectory;
+using System.TestLibraries.Environment;
+using System.TestLibraries.Mocking;
+using System.TestLibraries.Security.AccessControl;
 using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 135016 "Security Groups Test"
 {

@@ -5,11 +5,11 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using System.Apps;
 using System.Azure.KeyVault;
 using System.Environment;
 using System.Security.Authentication;
 using System.Utilities;
-using System.Apps;
 
 /// <summary>
 /// Codeunit Shpfy Authentication Mgt. (ID 30199).
@@ -174,25 +174,20 @@ codeunit 30199 "Shpfy Authentication Mgt."
     end;
 
     internal procedure AssertValidShopUrl(ShopUrl: Text)
-    begin
-        if not IsValidShopUrl(ShopUrl) then
-            Error(InvalidShopUrlErr);
-    end;
-
-    local procedure IsValidShopUrl(ShopUrl: Text): Boolean
     var
-        Regex: Codeunit Regex;
+        URI: Codeunit Uri;
         PatternLbl: Label '^(https)\:\/\/[a-zA-Z0-9][a-zA-Z0-9\-]*\.myshopify\.com[\/]*$', Locked = true;
     begin
-        exit(Regex.IsMatch(ShopUrl, PatternLbl))
+        if not URI.IsValidURIPattern(ShopUrl, PatternLbl) then
+            Error(InvalidShopUrlErr);
     end;
 
     procedure IsValidHostName(Hostname: Text): Boolean
     var
-        Regex: Codeunit Regex;
+        URI: Codeunit Uri;
         PatternLbl: Label '^[a-zA-Z0-9][a-zA-Z0-9\-]*\.myshopify\.com$', Locked = true;
     begin
-        exit(Regex.IsMatch(Hostname, PatternLbl))
+        exit(URI.IsValidURIPattern(Hostname, PatternLbl));
     end;
 
     procedure CorrectShopUrl(var ShopUrl: Text[250])
@@ -218,9 +213,22 @@ codeunit 30199 "Shpfy Authentication Mgt."
     internal procedure CheckScopeChange(Shop: Record "Shpfy Shop"): Boolean
     var
         RegisteredStoreNew: Record "Shpfy Registered Store New";
+        ActualScopes: List of [Text];
+        RequestedScopes: List of [Text];
+        Scope: Text;
     begin
-        if RegisteredStoreNew.Get(Shop.GetStoreName()) then
-            exit(RegisteredStoreNew."Actual Scope" <> GetScope());
+        if not RegisteredStoreNew.Get(Shop.GetStoreName()) then
+            exit(false);
+
+        ActualScopes := RegisteredStoreNew."Actual Scope".Split(',');
+        RequestedScopes := GetScope().Split(',');
+
+        if ActualScopes.Count() <> RequestedScopes.Count() then
+            exit(true);
+
+        foreach Scope in RequestedScopes do
+            if not ActualScopes.Contains(Scope) then
+                exit(true);
 
         exit(false);
     end;

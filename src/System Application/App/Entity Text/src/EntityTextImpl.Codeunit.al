@@ -6,9 +6,9 @@
 namespace System.Text;
 
 using System;
-using System.Utilities;
 using System.AI;
 using System.Telemetry;
+using System.Utilities;
 
 /// <summary>
 /// Implements functionality to handle text suggestions.

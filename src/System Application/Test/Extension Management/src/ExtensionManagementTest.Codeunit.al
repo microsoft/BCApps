@@ -5,12 +5,12 @@
 
 namespace System.Test.Apps;
 
-using System.Environment.Configuration;
 using System.Apps;
-using System.TestLibraries.Apps;
+using System.Environment.Configuration;
 using System.Media;
-using System.TestLibraries.Utilities;
+using System.TestLibraries.Apps;
 using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Utilities;
 
 codeunit 133100 "Extension Management Test"
 {

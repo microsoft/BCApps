@@ -1,12 +1,12 @@
 namespace Microsoft.Integration.Shopify;
 
+using Microsoft.Finance.RoleCenters;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Globalization;
+using System.Media;
 using System.Reflection;
 using System.Telemetry;
-using Microsoft.Finance.RoleCenters;
-using System.Media;
 
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.

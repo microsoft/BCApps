@@ -9,11 +9,11 @@
 
 namespace System.DataAdministration;
 
+using Microsoft.Inventory.Item.Picture;
 using System.Environment;
-using System.Utilities;
 using System.IO;
 using System.Reflection;
-using Microsoft.Inventory.Item.Picture;
+using System.Utilities;
 
 codeunit 605 "Data Archive Provider" implements "Data Archive Provider"
 {

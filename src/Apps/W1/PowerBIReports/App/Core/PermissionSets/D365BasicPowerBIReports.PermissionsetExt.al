@@ -3,6 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.PowerBIReports;
+
 using System.Security.AccessControl;
 
 permissionsetextension 36950 "D365 BASIC PowerBI Reports" extends "D365 BASIC"

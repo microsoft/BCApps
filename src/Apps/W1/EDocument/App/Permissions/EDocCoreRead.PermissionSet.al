@@ -6,11 +6,11 @@ namespace Microsoft.eServices.EDocument;
 
 using Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.EServices.EDocument.OrderMatch;
-using Microsoft.eServices.EDocument.Service.Participant;
-using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.OrderMatch.Copilot;
-using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing;
+using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Service.Participant;
 
 permissionset 6101 "E-Doc. Core - Read"
 {
@@ -49,7 +49,12 @@ permissionset 6101 "E-Doc. Core - Read"
         tabledata "E-Doc. Vendor Assign. History" = R,
         tabledata "E-Doc. Purchase Line History" = R,
         tabledata "ED Purchase Line Field Setup" = R,
+        tabledata "E-Doc Sample Purch. Inv File" = R,
+#if not CLEAN28
+#pragma warning disable AL0432
         tabledata "EDoc Historical Matching Setup" = R,
+#pragma warning restore AL0432
+#endif
         tabledata "E-Doc. Record Link" = R;
     #endregion Purchase draft        
 }

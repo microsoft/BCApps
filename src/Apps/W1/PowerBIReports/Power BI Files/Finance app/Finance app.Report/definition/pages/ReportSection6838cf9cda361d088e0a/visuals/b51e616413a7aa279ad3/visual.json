@@ -1,0 +1,31 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "b51e616413a7aa279ad3",
+  "position": {
+    "x": 443.47146613654331,
+    "y": 62,
+    "z": 3000,
+    "height": 230,
+    "width": 395.02176458032841,
+    "tabOrder": 2000
+  },
+  "visualGroup": {
+    "displayName": "Quick Ratio Group",
+    "groupMode": "ScaleMode",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Quick Ratio, Current Assets, Inventory.'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

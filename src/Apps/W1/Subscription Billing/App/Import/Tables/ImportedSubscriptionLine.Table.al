@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Inventory.Item;
 using Microsoft.Finance.Currency;
+using Microsoft.Inventory.Item;
 using System.Security.User;
 
 table 8009 "Imported Subscription Line"
@@ -82,7 +82,7 @@ table 8009 "Imported Subscription Line"
             Caption = 'Calculation Base Amount';
             MinValue = 0;
             BlankZero = true;
-            AutoFormatType = 1;
+            AutoFormatType = 2;
             AutoFormatExpression = Rec."Currency Code";
         }
         field(16; "Calculation Base %"; Decimal)

@@ -26,58 +26,38 @@ page 8351 "MCP Config Card"
                 Caption = 'General';
                 field(Name; Rec.Name)
                 {
-                    ToolTip = 'Specifies the name of the MCP configuration.';
                     Editable = not IsDefault;
                 }
                 field(Description; Rec.Description)
                 {
-                    ToolTip = 'Specifies the description of the MCP configuration.';
                     Editable = not IsDefault;
+                    MultiLine = true;
                 }
                 field(Active; Rec.Active)
                 {
-                    ToolTip = 'Specifies whether the MCP configuration is active.';
                     Editable = not IsDefault;
-
-                    trigger OnValidate()
-                    begin
-                        Session.LogMessage('0000QE6', StrSubstNo(SettingConfigurationActiveLbl, Rec.SystemId, Rec.Active), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MCPConfigImplementation.GetTelemetryCategory());
-                    end;
                 }
                 field(EnableDynamicToolMode; Rec.EnableDynamicToolMode)
                 {
-                    Caption = 'Dynamic Tool Mode';
-                    ToolTip = 'Specifies whether to enable dynamic tool mode for this MCP configuration. When enabled, clients can search for tools within the configuration dynamically.';
                     Editable = not IsDefault;
 
                     trigger OnValidate()
                     begin
-                        Session.LogMessage('0000QE7', StrSubstNo(SettingConfigurationEnableDynamicToolModeLbl, Rec.SystemId, Rec.EnableDynamicToolMode), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MCPConfigImplementation.GetTelemetryCategory());
-
                         if not Rec.EnableDynamicToolMode then
                             Rec.DiscoverReadOnlyObjects := false;
                     end;
                 }
                 field(DiscoverReadOnlyObjects; Rec.DiscoverReadOnlyObjects)
                 {
-                    Caption = 'Discover Additional Objects';
-                    ToolTip = 'Specifies whether to allow discovery of read-only objects not defined in the configuration. Only supported with dynamic tool mode.';
                     Editable = not IsDefault and Rec.EnableDynamicToolMode;
-
-                    trigger OnValidate()
-                    begin
-                        Session.LogMessage('0000QGJ', StrSubstNo(SettingConfigurationDiscoverReadOnlyObjectsLbl, Rec.SystemId, Rec.DiscoverReadOnlyObjects), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MCPConfigImplementation.GetTelemetryCategory());
-                    end;
                 }
                 field(AllowProdChanges; Rec.AllowProdChanges)
                 {
-                    Caption = 'Allow Create/Update/Delete Tools';
-                    ToolTip = 'Specifies whether to allow create, update and delete tools for this MCP configuration.';
-
                     trigger OnValidate()
                     begin
+                        if not Rec.AllowProdChanges then
+                            MCPConfigImplementation.DisableCreateUpdateDeleteToolsInConfig(Rec.SystemId);
                         CurrPage.Update();
-                        Session.LogMessage('0000QE8', StrSubstNo(SettingConfigurationAllowProdChangesLbl, Rec.SystemId, Rec.AllowProdChanges), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MCPConfigImplementation.GetTelemetryCategory());
                     end;
                 }
             }
@@ -107,9 +87,32 @@ page 8351 "MCP Config Card"
                 end;
             }
         }
+        area(Processing)
+        {
+            action(MCPEntraApplications)
+            {
+                Caption = 'Entra Applications';
+                ToolTip = 'View registered Entra applications and their Client IDs for MCP client configuration.';
+                Image = Setup;
+                RunObject = page "MCP Entra Application List";
+            }
+            action(GenerateConnectionString)
+            {
+                Caption = 'Connection String';
+                ToolTip = 'Generate a connection string for this MCP configuration to use in your MCP client.';
+                Image = Export;
+
+                trigger OnAction()
+                begin
+                    MCPConfigImplementation.ShowConnectionString(Rec.Name);
+                end;
+            }
+        }
         area(Promoted)
         {
             actionref(Promoted_Copy; Copy) { }
+            actionref(Promoted_MCPEntraApplications; MCPEntraApplications) { }
+            actionref(Promoted_GenerateConnectionString; GenerateConnectionString) { }
         }
     }
 
@@ -118,11 +121,22 @@ page 8351 "MCP Config Card"
         IsDefault := MCPConfigImplementation.IsDefaultConfiguration(Rec);
     end;
 
+    trigger OnDeleteRecord(): Boolean
+    begin
+        MCPConfigImplementation.LogConfigurationDeleted(Rec);
+    end;
+
+    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
+    begin
+        MCPConfigImplementation.LogConfigurationCreated(Rec);
+    end;
+
+    trigger OnModifyRecord(): Boolean
+    begin
+        MCPConfigImplementation.LogConfigurationModified(Rec, xRec);
+    end;
+
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
         IsDefault: Boolean;
-        SettingConfigurationActiveLbl: Label 'Setting MCP configuration %1 Active to %2', Comment = '%1 - configuration ID, %2 - active', Locked = true;
-        SettingConfigurationEnableDynamicToolModeLbl: Label 'Setting MCP configuration %1 EnableDynamicToolMode to %2', Comment = '%1 - configuration ID, %2 - enable dynamic tool mode', Locked = true;
-        SettingConfigurationAllowProdChangesLbl: Label 'Setting MCP configuration %1 AllowProdChanges to %2', Comment = '%1 - configuration ID, %2 - allow production changes', Locked = true;
-        SettingConfigurationDiscoverReadOnlyObjectsLbl: Label 'Setting MCP configuration %1 DiscoverReadOnlyObjects to %2', Comment = '%1 - configuration ID, %2 - allow read-only API discovery', Locked = true;
 }

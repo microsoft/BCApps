@@ -1,16 +1,16 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Security.User;
-using Microsoft.Utilities;
-using Microsoft.Inventory.Item;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Purchases.Document;
-using Microsoft.Purchases.History;
 using Microsoft.Finance.Currency;
-using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Inventory.Item;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Utilities;
+using System.Security.User;
 
 #pragma warning disable AA0210
 codeunit 139913 "Vendor Deferrals Test"
@@ -304,7 +304,8 @@ codeunit 139913 "Vendor Deferrals Test"
         GetGLEntryAmountFromAccountNo(GLAmountAfterInvoicing, GeneralPostingSetup."Vend. Sub. Contr. Def. Account");
 
         // Expect Amount on GL Account to be decreased by Released Vendor Deferral
-        ContractDeferralsRelease.Run();
+        Commit(); // close transaction before report is called
+        ContractDeferralsRelease.Run();  // ContractDeferralsReleaseRequestPageHandler
         GetGLEntryAmountFromAccountNo(GLAmountAfterRelease, GeneralPostingSetup."Vend. Sub. Contr. Def. Account");
         Assert.AreEqual(GLAmountAfterInvoicing - VendorContractDeferral.Amount, GLAmountAfterRelease, 'Amount was not moved from Deferrals Account to Contract Account');
 
@@ -357,7 +358,8 @@ codeunit 139913 "Vendor Deferrals Test"
         Assert.AreEqual(0, GLLineDiscountAmountAfterInvoicing, 'There should not be amount posted into Purchase Line Discount Account.');
 
         // Expect Amount on GL Account to be decreased by Released Vendor Deferral
-        ContractDeferralsRelease.Run();
+        Commit(); // close transaction before report is called
+        ContractDeferralsRelease.Run();  // ContractDeferralsReleaseRequestPageHandler
         GetGLEntryAmountFromAccountNo(GLAmountAfterRelease, GeneralPostingSetup."Vend. Sub. Contr. Def. Account");
         Assert.AreEqual(GLAmountAfterInvoicing - VendorContractDeferral.Amount, GLAmountAfterRelease, 'Amount was not moved from Deferrals Account to Contract Account');
 
@@ -381,7 +383,8 @@ codeunit 139913 "Vendor Deferrals Test"
         PostPurchDocumentAndFetchDeferrals();
         // Release only first Vendor Subscription Contract Deferral
         PostingDate := VendorContractDeferral."Posting Date";
-        ContractDeferralsRelease.Run();
+        Commit(); // close transaction before report is called
+        ContractDeferralsRelease.Run();  // ContractDeferralsReleaseRequestPageHandler
 
         PurchaseInvoiceHeader.Get(PostedDocumentNo);
         PostPurchCreditMemo();
@@ -511,7 +514,8 @@ codeunit 139913 "Vendor Deferrals Test"
         PostPurchDocumentAndFetchDeferrals();
 
         PostingDate := VendorContractDeferral."Posting Date"; // Used in request page handler
-        ContractDeferralsRelease.Run();
+        Commit(); // close transaction before report is called
+        ContractDeferralsRelease.Run();  // ContractDeferralsReleaseRequestPageHandler
         PurchaseInvoiceHeader.Get(PostedDocumentNo);
         CorrectPostedPurchaseInvoice.CreateCreditMemoCopyDocument(PurchaseInvoiceHeader, PurchaseCrMemoHeader);
         PurchaseCrMemoHeader.Validate("Vendor Cr. Memo No.", LibraryUtility.GenerateGUID());
@@ -664,7 +668,8 @@ codeunit 139913 "Vendor Deferrals Test"
         // [THEN] Releasing each deferral entry should be correct
         repeat
             PostingDate := VendorContractDeferral."Posting Date";
-            ContractDeferralsRelease.Run();
+            Commit(); // close transaction before report is called
+            ContractDeferralsRelease.Run();  // ContractDeferralsReleaseRequestPageHandler
             VendorContractDeferral.Get(VendorContractDeferral."Entry No.");
             GLEntry.Get(VendorContractDeferral."G/L Entry No.");
             GLEntry.TestField("Subscription Contract No.", VendorContractDeferral."Subscription Contract No.");
@@ -693,7 +698,8 @@ codeunit 139913 "Vendor Deferrals Test"
         // [THEN] Releasing each deferral entry should be correct
         repeat
             PostingDate := VendorContractDeferral."Posting Date";
-            ContractDeferralsRelease.Run();
+            Commit(); // close transaction before report is called
+            ContractDeferralsRelease.Run();  // ContractDeferralsReleaseRequestPageHandler
             VendorContractDeferral.Get(VendorContractDeferral."Entry No.");
             GLEntry.Get(VendorContractDeferral."G/L Entry No.");
             GLEntry.TestField("Subscription Contract No.", VendorContractDeferral."Subscription Contract No.");

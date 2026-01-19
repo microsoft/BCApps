@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.IO;
 using Microsoft.Finance.GeneralLedger.Setup;
+using System.IO;
 
 table 8018 "Usage Data Generic Import"
 {

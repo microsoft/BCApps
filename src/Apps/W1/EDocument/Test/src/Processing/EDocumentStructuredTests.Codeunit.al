@@ -4,16 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Test;
 
-using Microsoft.eServices.EDocument.Integration;
-using Microsoft.Sales.Customer;
 using Microsoft.eServices.EDocument;
-using Microsoft.Purchases.Vendor;
-using System.TestLibraries.Utilities;
-using Microsoft.eServices.EDocument.Processing.Import.Purchase;
-using System.IO;
-using Microsoft.Foundation.Attachment;
-using Microsoft.Finance.Currency;
+using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.Finance.Currency;
+using Microsoft.Foundation.Attachment;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
+using System.IO;
+using System.TestLibraries.Utilities;
 
 codeunit 139891 "E-Document Structured Tests"
 {

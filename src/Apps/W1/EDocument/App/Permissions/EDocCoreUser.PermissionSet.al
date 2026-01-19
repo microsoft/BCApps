@@ -4,14 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
+using Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.eServices.EDocument.OrderMatch;
-using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.eServices.EDocument.Service.Participant;
-using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.OrderMatch.Copilot;
 using Microsoft.eServices.EDocument.Processing;
+using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
-using Microsoft.eServices.EDocument.IO.Peppol;
+using Microsoft.eServices.EDocument.Service.Participant;
+using Microsoft.Finance.GeneralLedger.Journal;
 
 permissionset 6105 "E-Doc. Core - User"
 {
@@ -50,7 +50,12 @@ permissionset 6105 "E-Doc. Core - User"
         tabledata "E-Doc. Vendor Assign. History" = IMD,
         tabledata "E-Doc. Purchase Line History" = IMD,
         tabledata "ED Purchase Line Field Setup" = IMD,
+        tabledata "E-Doc Sample Purch. Inv File" = IMD,
+#if not CLEAN28
+#pragma warning disable AL0432
         tabledata "EDoc Historical Matching Setup" = IMD,
+#pragma warning restore AL0432
+#endif
         tabledata "E-Doc. Record Link" = IMD,
     #endregion Purchase draft
         tabledata "Gen. Journal Line" = imd;

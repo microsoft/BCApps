@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Processing;
 
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.Purchases.Document;
+
 /// <summary>
 /// This table is used to link records together.
 /// Used by purchase draft historical mapping algorithm:
@@ -78,6 +81,33 @@ table 6141 "E-Doc. Record Link"
 
     }
 
+    internal procedure InsertEDocumentHeaderLink(EDocumentPurchaseHeader: Record "E-Document Purchase Header"; PurchaseHeader: Record "Purchase Header")
+    begin
+        InsertLinkBetweenEDocumentRecords(Database::"E-Document Purchase Header", EDocumentPurchaseHeader.SystemId, Database::"Purchase Header", PurchaseHeader.SystemId, EDocumentPurchaseHeader."E-Document Entry No.");
+    end;
 
+    internal procedure InsertEDocumentLineLink(EDocumentPurchaseLine: Record "E-Document Purchase Line"; PurchaseLine: Record "Purchase Line")
+    begin
+        InsertLinkBetweenEDocumentRecords(Database::"E-Document Purchase Line", EDocumentPurchaseLine.SystemId, Database::"Purchase Line", PurchaseLine.SystemId, EDocumentPurchaseLine."E-Document Entry No.");
+    end;
+
+    local procedure InsertLinkBetweenEDocumentRecords(SourceTableNo: Integer; SourceSystemId: Guid; TargetTableNo: Integer; TargetSystemId: Guid; EDocumentEntryNo: Integer)
+    var
+        EDocRecordLink: Record "E-Doc. Record Link";
+    begin
+        // We clear any existing link, the only valid links should be the ones we are creating now
+        EDocRecordLink.SetRange("Source Table No.", SourceTableNo);
+        EDocRecordLink.SetRange("Source SystemId", SourceSystemId);
+        EDocRecordLink.SetRange("Target Table No.", TargetTableNo);
+        EDocRecordLink.DeleteAll();
+
+        // We create the new link
+        EDocRecordLink."E-Document Entry No." := EDocumentEntryNo;
+        EDocRecordLink."Source Table No." := SourceTableNo;
+        EDocRecordLink."Source SystemId" := SourceSystemId;
+        EDocRecordLink."Target Table No." := TargetTableNo;
+        EDocRecordLink."Target SystemId" := TargetSystemId;
+        EDocRecordLink.Insert();
+    end;
 
 }

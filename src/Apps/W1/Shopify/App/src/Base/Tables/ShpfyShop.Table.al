@@ -5,23 +5,23 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Finance.GeneralLedger.Account;
-using System.Globalization;
-using System.IO;
-using Microsoft.Sales.Customer;
-using Microsoft.Sales.Pricing;
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.VAT.Setup;
 using Microsoft.Finance.SalesTax;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Inventory.Item;
-using System.Security.AccessControl;
-using System.DataAdministration;
-using System.Privacy;
-using System.Threading;
 using Microsoft.Inventory.Location;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Pricing;
+using System.DataAdministration;
+using System.Globalization;
+using System.IO;
+using System.Privacy;
+using System.Security.AccessControl;
 using System.Telemetry;
+using System.Threading;
 
 /// <summary>
 /// Table Shpfy Shop (ID 30102).
@@ -766,6 +766,11 @@ table 30102 "Shpfy Shop"
         {
             Caption = 'Company Tax Id Mapping';
             DataClassification = CustomerContent;
+        }
+        field(135; "Currency Handling"; Enum "Shpfy Currency Handling")
+        {
+            Caption = 'Currency Handling';
+            InitValue = "Shop Currency";
         }
         field(200; "Shop Id"; Integer)
         {

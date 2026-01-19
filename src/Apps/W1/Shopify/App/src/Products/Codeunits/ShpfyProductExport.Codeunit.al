@@ -8,9 +8,9 @@ namespace Microsoft.Integration.Shopify;
 using Microsoft.Foundation.ExtendedText;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
-using System.Text;
-using Microsoft.Purchases.Vendor;
 using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Purchases.Vendor;
+using System.Text;
 
 /// <summary>
 /// Codeunit Shpfy Product Export (ID 30178).
@@ -68,7 +68,6 @@ codeunit 30178 "Shpfy Product Export"
         ProductEvents: Codeunit "Shpfy Product Events";
         ProductPriceCalc: Codeunit "Shpfy Product Price Calc.";
         VariantApi: Codeunit "Shpfy Variant API";
-        MetafieldAPI: Codeunit "Shpfy Metafield API";
         SkippedRecord: Codeunit "Shpfy Skipped Record";
         OnlyUpdatePrice: Boolean;
         RecordCount: Integer;
@@ -361,7 +360,7 @@ codeunit 30178 "Shpfy Product Export"
             end;
             ShopifyVariant."Tax Code" := Item."Tax Group Code";
             ShopifyVariant.Taxable := true;
-            ShopifyVariant.Weight := Item."Gross Weight";
+            ShopifyVariant.Weight := ItemUnitofMeasure."Qty. per Unit of Measure" > 0 ? Item."Gross Weight" * ItemUnitofMeasure."Qty. per Unit of Measure" : Item."Gross Weight";
             ShopifyVariant."Option 1 Name" := Shop."Option Name for UoM";
             ShopifyVariant."Option 1 Value" := ItemUnitofMeasure.Code;
             ShopifyVariant."Shop Code" := Shop.Code;
@@ -472,7 +471,7 @@ codeunit 30178 "Shpfy Product Export"
             end;
             ShopifyVariant."Tax Code" := Item."Tax Group Code";
             ShopifyVariant.Taxable := true;
-            ShopifyVariant.Weight := Item."Gross Weight";
+            ShopifyVariant.Weight := ItemUnitofMeasure."Qty. per Unit of Measure" > 0 ? Item."Gross Weight" * ItemUnitofMeasure."Qty. per Unit of Measure" : Item."Gross Weight";
             ShopifyVariant."Option 1 Name" := 'Variant';
             ShopifyVariant."Option 1 Value" := ItemVariant.Code;
             ShopifyVariant."Option 2 Name" := Shop."Option Name for UoM";
@@ -578,7 +577,6 @@ codeunit 30178 "Shpfy Product Export"
         ProductApi.SetShop(Shop);
         VariantApi.SetShop(Shop);
         ProductPriceCalc.SetShop(Shop);
-        MetafieldAPI.SetShop(Shop);
     end;
 
     /// <summary> 
@@ -765,17 +763,20 @@ codeunit 30178 "Shpfy Product Export"
     local procedure UpdateMetafields(ProductId: BigInteger)
     var
         ShpfyVariant: Record "Shpfy Variant";
+        Metafields: Codeunit "Shpfy Metafields";
     begin
         if OnlyUpdatePrice then
             exit;
 
-        MetafieldAPI.CreateOrUpdateMetafieldsInShopify(Database::"Shpfy Product", ProductId);
+        ProductEvents.OnBeforeUpdateProductMetafields(ProductId);
+
+        Metafields.SyncMetafieldsToShopify(Database::"Shpfy Product", ProductId, Shop.Code);
 
         ShpfyVariant.SetRange("Product Id", ProductId);
         ShpfyVariant.ReadIsolation := IsolationLevel::ReadCommitted;
         if ShpfyVariant.FindSet() then
             repeat
-                MetafieldAPI.CreateOrUpdateMetafieldsInShopify(Database::"Shpfy Variant", ShpfyVariant.Id);
+                Metafields.SyncMetafieldsToShopify(Database::"Shpfy Variant", ShpfyVariant.Id, Shop.Code);
             until ShpfyVariant.Next() = 0;
     end;
 
@@ -868,6 +869,7 @@ codeunit 30178 "Shpfy Product Export"
                     ShopifyVariant.Price := JVariant.GetDecimal('price');
                     ShopifyVariant."Compare at Price" := JVariant.GetDecimal('compareAtPrice');
                     ShopifyVariant."Updated At" := JVariant.GetDateTime('updatedAt');
+                    ShopifyVariant."Unit Cost" := JVariant.GetDecimal('unitCost');
                     ShopifyVariant.Modify();
                 end;
                 exit;

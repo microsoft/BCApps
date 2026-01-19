@@ -5,11 +5,11 @@
 namespace Microsoft.eServices.EDocument.IO.Peppol;
 
 using Microsoft.Finance.Currency;
-using Microsoft.Sales.FinanceCharge;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.Reminder;
 
 codeunit 6172 "E-Doc. PEPPOL Validation"

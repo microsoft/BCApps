@@ -5,6 +5,8 @@
 
 namespace System.Agents;
 
+using System;
+
 codeunit 4311 "Agent Task Msg. Builder Impl."
 {
     Access = Internal;
@@ -21,6 +23,7 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         GlobalMessageText: Text;
         GlobalRequiresReview: Boolean;
         GlobalIgnoreAttachment: Boolean;
+        GlobalSkipSanitizeMessage: Boolean;
 
     [Scope('OnPrem')]
     procedure Initialize(MessageText: Text): codeunit "Agent Task Msg. Builder Impl."
@@ -34,10 +37,10 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
     [Scope('OnPrem')]
     procedure Initialize(From: Text[250]; MessageText: Text): codeunit "Agent Task Msg. Builder Impl."
     begin
-        GlobalFrom := From;
-        GlobalMessageText := MessageText;
         GlobalRequiresReview := true;
         GlobalIgnoreAttachment := false;
+        GlobalFrom := From;
+        GlobalMessageText := MessageText;
         exit(this);
     end;
 
@@ -52,6 +55,13 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
     procedure SetIgnoreAttachment(IgnoreAttachment: Boolean): codeunit "Agent Task Msg. Builder Impl."
     begin
         GlobalIgnoreAttachment := IgnoreAttachment;
+        exit(this);
+    end;
+
+    [Scope('OnPrem')]
+    procedure SetSkipMessageSanitization(SkipSanitizeMessage: Boolean): codeunit "Agent Task Msg. Builder Impl."
+    begin
+        GlobalSkipSanitizeMessage := SkipSanitizeMessage;
         exit(this);
     end;
 
@@ -85,9 +95,12 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         AgentTaskImpl: Codeunit "Agent Task Impl.";
         AgentMessageImpl: Codeunit "Agent Message Impl.";
         IgnoreAttachment: Boolean;
+        MessageText: Text;
     begin
         VerifyMandatoryFieldsSet();
-        GlobalAgentTaskMessage := AgentTaskImpl.AddMessage(GlobalFrom, GlobalMessageText, GlobalMessageExternalID, GlobalAgentTask, GlobalRequiresReview);
+
+        MessageText := GlobalSkipSanitizeMessage ? GlobalMessageText : SanitizeMessage(GlobalMessageText);
+        GlobalAgentTaskMessage := AgentTaskImpl.AddMessage(GlobalFrom, MessageText, GlobalMessageExternalID, GlobalAgentTask, GlobalRequiresReview);
         TempAgentTaskFileToAttach.Reset();
         TempAgentTaskFileToAttach.SetAutoCalcFields(Content);
         if TempAgentTaskFileToAttach.FindSet() then
@@ -171,13 +184,17 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
     end;
 
     [Scope('OnPrem')]
-    procedure GetAttachments(var TempAttachments: record "Agent Task File" temporary)
+    procedure GetAttachments(var TempAttachments: record "Agent Task File" temporary): Boolean
     begin
-        TempAgentTaskFileToAttach.FindSet();
+        if not TempAgentTaskFileToAttach.FindSet() then
+            exit(false);
+
         repeat
             TempAgentTaskFileToAttach.Copy(TempAttachments);
             TempAttachments.Insert();
         until TempAgentTaskFileToAttach.Next() = 0;
+
+        exit(true);
     end;
 
     local procedure VerifyMandatoryFieldsSet()
@@ -204,59 +221,70 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
     end;
 
     procedure GetContentTypeFromFilename(FileName: Text): Text[250]
+    var
+        LowerCaseFileName: text;
     begin
-        if FileName.EndsWith('.graphql') or FileName.EndsWith('.gql') then
+        LowerCaseFileName := LowerCase(FileName);
+        if LowerCaseFileName.EndsWith('.graphql') or LowerCaseFileName.EndsWith('.gql') then
             exit('application/graphql');
-        if FileName.EndsWith('.js') then
+        if LowerCaseFileName.EndsWith('.js') then
             exit('application/javascript');
-        if FileName.EndsWith('.json') then
+        if LowerCaseFileName.EndsWith('.json') then
             exit('application/json');
-        if FileName.EndsWith('.doc') then
+        if LowerCaseFileName.EndsWith('.doc') then
             exit('application/msword(.doc)');
-        if FileName.EndsWith('.pdf') then
+        if LowerCaseFileName.EndsWith('.pdf') then
             exit('application/pdf');
-        if FileName.EndsWith('.sql') then
+        if LowerCaseFileName.EndsWith('.sql') then
             exit('application/sql');
-        if FileName.EndsWith('.xls') then
+        if LowerCaseFileName.EndsWith('.xls') then
             exit('application/vnd.ms-excel(.xls)');
-        if FileName.EndsWith('.ppt') then
+        if LowerCaseFileName.EndsWith('.ppt') then
             exit('application/vnd.ms-powerpoint(.ppt)');
-        if FileName.EndsWith('.odt') then
+        if LowerCaseFileName.EndsWith('.odt') then
             exit('application/vnd.oasis.opendocument.text(.odt)');
-        if FileName.EndsWith('.pptx') then
+        if LowerCaseFileName.EndsWith('.pptx') then
             exit('application/vnd.openxmlformats-officedocument.presentationml.presentation(.pptx)');
-        if FileName.EndsWith('.xlsx') then
+        if LowerCaseFileName.EndsWith('.xlsx') then
             exit('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet(.xlsx)');
-        if FileName.EndsWith('.docx') then
+        if LowerCaseFileName.EndsWith('.docx') then
             exit('application/vnd.openxmlformats-officedocument.wordprocessingml.document(.docx)');
-        if FileName.EndsWith('.xml') then
+        if LowerCaseFileName.EndsWith('.xml') then
             exit('application/xml');
-        if FileName.EndsWith('.zip') then
+        if LowerCaseFileName.EndsWith('.zip') then
             exit('application/zip');
-        if FileName.EndsWith('.zst') then
+        if LowerCaseFileName.EndsWith('.zst') then
             exit('application/zstd(.zst)');
-        if FileName.EndsWith('.mpeg') then
+        if LowerCaseFileName.EndsWith('.mpeg') then
             exit('audio/mpeg');
-        if FileName.EndsWith('.ogg') then
+        if LowerCaseFileName.EndsWith('.ogg') then
             exit('audio/ogg');
-        if FileName.EndsWith('.gif') then
+        if LowerCaseFileName.EndsWith('.gif') then
             exit('application/gif');
-        if FileName.EndsWith('.jpeg') then
+        if LowerCaseFileName.EndsWith('.jpeg') then
             exit('application/jpeg');
-        if FileName.EndsWith('.jpg') then
+        if LowerCaseFileName.EndsWith('.jpg') then
             exit('application/jpg');
-        if FileName.EndsWith('.png') then
+        if LowerCaseFileName.EndsWith('.png') then
             exit('application/png');
-        if FileName.EndsWith('.css') then
+        if LowerCaseFileName.EndsWith('.css') then
             exit('text/css');
-        if FileName.EndsWith('.csv') then
+        if LowerCaseFileName.EndsWith('.csv') then
             exit('text/csv');
-        if FileName.EndsWith('.html') then
+        if LowerCaseFileName.EndsWith('.html') then
             exit('text/html');
-        if FileName.EndsWith('.php') then
+        if LowerCaseFileName.EndsWith('.php') then
             exit('text/php');
-        if FileName.EndsWith('.txt') then
+        if LowerCaseFileName.EndsWith('.txt') then
             exit('text/plain');
         exit('');
+    end;
+
+    internal procedure SanitizeMessage(MessageBody: Text): Text
+    var
+        AppHTMLSanitizer: DotNet AppHtmlSanitizer;
+    begin
+        AppHTMLSanitizer := AppHTMLSanitizer.AppHtmlSanitizer();
+        exit(AppHTMLSanitizer.SanitizeEmail(MessageBody));
     end;
 }

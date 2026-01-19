@@ -5,10 +5,10 @@
 namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Integration.Interfaces;
+using Microsoft.eServices.EDocument.Integration.Receive;
 using Microsoft.eServices.EDocument.Integration.Send;
 using System.Utilities;
-using Microsoft.eServices.EDocument.Integration.Receive;
-using Microsoft.eServices.EDocument.Integration.Interfaces;
 
 codeunit 139658 "E-Doc. Integration Mock V2" implements IDocumentSender, IDocumentReceiver, IDocumentResponseHandler, ISentDocumentActions, IConsentManager
 {

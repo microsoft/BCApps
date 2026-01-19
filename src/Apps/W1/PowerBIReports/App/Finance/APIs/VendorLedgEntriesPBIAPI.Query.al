@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.PowerBIReports;
 
-using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.History;
+using Microsoft.Purchases.Payables;
 
 query 36963 "Vendor Ledg. Entries - PBI API"
 {

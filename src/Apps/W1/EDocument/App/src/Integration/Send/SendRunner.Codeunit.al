@@ -5,13 +5,14 @@
 namespace Microsoft.eServices.EDocument.Integration.Send;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Integration.Interfaces;
-
 #if not CLEAN26
-using System.Utilities;
 using Microsoft.eServices.EDocument.Integration;
 #endif
 
+using Microsoft.eServices.EDocument.Integration.Interfaces;
+#if not CLEAN26
+using System.Utilities;
+#endif
 codeunit 6146 "Send Runner"
 {
     Access = Internal;

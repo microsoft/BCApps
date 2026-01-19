@@ -1,8 +1,8 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Sales.Customer;
 using Microsoft.Foundation.Address;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
 
 codeunit 8053 "Sub. Contract Notifications"
 {

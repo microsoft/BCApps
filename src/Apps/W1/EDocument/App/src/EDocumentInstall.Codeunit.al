@@ -4,11 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.IO;
 
+using Microsoft.eServices.EDocument.OrderMatch.Copilot;
 using System.IO;
 using System.Reflection;
-using System.Utilities;
 using System.Upgrade;
-using Microsoft.eServices.EDocument.OrderMatch.Copilot;
+using System.Utilities;
 
 codeunit 6161 "E-Document Install"
 {

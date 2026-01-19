@@ -1,0 +1,1158 @@
+table 'Translated Localized Labels'
+	isHidden
+	lineageTag: 044d3441-8cd8-45e0-871d-29ee129b7880
+
+	measure 'My Report Title Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Můj nadpis sestavy",
+			   "da-DK", "Min rapporttitel",
+			   "de-AT", "Titel meines Berichts",
+			   "de-CH", "Titel meines Berichts",
+			   "de-DE", "Titel meines Berichts",
+			   "en-AU", "My Report Title",
+			   "en-CA", "My Report Title",
+			   "en-GB", "My Report Title",
+			   "en-NZ", "My Report Title",
+			   "es-ES", "Título del informe",
+			   "es-MX", "Título del informe",
+			   "fi-FI", "Oman raportin otsikko",
+			   "fr-BE", "Titre de l’état",
+			   "fr-CA", "Titre de mon rapport",
+			   "fr-CH", "Titre de l’état",
+			   "fr-FR", "Titre de l’état",
+			   "is-IS", "Skýrslutitill notanda",
+			   "it-CH", "Titolo report personale",
+			   "it-IT", "Titolo report personale",
+			   "nb-NO", "Min rapporttittel",
+			   "nl-BE", "Mijn rapporttitel",
+			   "nl-NL", "Mijn rapporttitel",
+			   "sv-SE", "Min rapportrubrik",
+			   "My Report Title"
+			)
+		isHidden
+		lineageTag: 7cff47c2-de3b-4059-aeb8-d81d1f7b14a4
+
+	measure 'My Button Caption Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Popisek mého tlačítka",
+			   "da-DK", "Min knaptitel",
+			   "de-AT", "Beschriftung Meine Schaltfläche",
+			   "de-CH", "Beschriftung Meine Schaltfläche",
+			   "de-DE", "Beschriftung Meine Schaltfläche",
+			   "en-AU", "My Button Caption",
+			   "en-CA", "My Button Caption",
+			   "en-GB", "My Button Caption",
+			   "en-NZ", "My Button Caption",
+			   "es-ES", "Título de botón",
+			   "es-MX", "Título de botón",
+			   "fi-FI", "Oma painikkeen otsikko",
+			   "fr-BE", "Légende de mon bouton",
+			   "fr-CA", "Légende de mon bouton",
+			   "fr-CH", "Légende de mon bouton",
+			   "fr-FR", "Légende de mon bouton",
+			   "is-IS", "Texti hnapps notanda",
+			   "it-CH", "Didascalia pulsante personale",
+			   "it-IT", "Didascalia pulsante personale",
+			   "nb-NO", "Min knappetittel",
+			   "nl-BE", "Bijschrift van mijn knop",
+			   "nl-NL", "Bijschrift van mijn knop",
+			   "sv-SE", "Min knapprubrik",
+			   "My Button Caption"
+			)
+		isHidden
+		lineageTag: b2c4df3d-73ca-4cd3-b5d2-228c040801c8
+
+	measure 'My Visual Title Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Název mého vizuálu",
+			   "da-DK", "Min visuelle titel",
+			   "de-AT", "Titel meines Visuals",
+			   "de-CH", "Titel meines Visuals",
+			   "de-DE", "Titel meines Visuals",
+			   "en-AU", "My Visual Title",
+			   "en-CA", "My Visual Title",
+			   "en-GB", "My Visual Title",
+			   "en-NZ", "My Visual Title",
+			   "es-ES", "Título visual",
+			   "es-MX", "Título visual",
+			   "fi-FI", "Oma visuaalinen otsikko",
+			   "fr-BE", "Mon titre visuel",
+			   "fr-CA", "Mon titre visuel",
+			   "fr-CH", "Mon titre visuel",
+			   "fr-FR", "Mon titre visuel",
+			   "is-IS", "Sjónrænn titill notanda",
+			   "it-CH", "Titolo visivo personale",
+			   "it-IT", "Titolo visivo personale",
+			   "nb-NO", "Min visuelle tittel",
+			   "nl-BE", "Mijn visuele titel",
+			   "nl-NL", "Mijn visuele titel",
+			   "sv-SE", "Min visuella rubrik",
+			   "My Visual Title"
+			)
+		isHidden
+		lineageTag: ff017175-22fb-4bb4-889d-62a47874e772
+
+	measure 'Inventory Valuation Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Hodnota zásob",
+			   "da-DK", "Lagerværdi",
+			   "de-AT", "Lagerbestandsbewertung",
+			   "de-CH", "Lagerbestandsbewertung",
+			   "de-DE", "Lagerbestandsbewertung",
+			   "en-AU", "Inventory Valuation",
+			   "en-CA", "Inventory Valuation",
+			   "en-GB", "Inventory Valuation",
+			   "en-NZ", "Inventory Valuation",
+			   "es-ES", "Valoración inventario",
+			   "es-MX", "Valuación de inventarios",
+			   "fi-FI", "Varaston arvostus",
+			   "fr-BE", "Évaluation du stock",
+			   "fr-CA", "Évaluation de l’inventaire",
+			   "fr-CH", "Évaluation du stock",
+			   "fr-FR", "Évaluation du stock",
+			   "is-IS", "Birgðavirði",
+			   "it-CH", "Valutazione magazzino",
+			   "it-IT", "Valutazione magazzino",
+			   "nb-NO", "Beholdningsverdisetting",
+			   "nl-BE", "Voorraadwaardering",
+			   "nl-NL", "Voorraadwaardering",
+			   "sv-SE", "Lagervärdering",
+			   "Inventory Valuation"
+			)
+		isHidden
+		lineageTag: f55135dc-7cd9-4dab-bad7-292aef6a21a0
+
+	measure 'for Business Central Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "pro Business Central",
+			   "da-DK", "til Business Central",
+			   "de-AT", "für Business Central",
+			   "de-CH", "für Business Central",
+			   "de-DE", "für Business Central",
+			   "en-AU", "for Business Central",
+			   "en-CA", "for Business Central",
+			   "en-GB", "for Business Central",
+			   "en-NZ", "for Business Central",
+			   "es-ES", "para Business Central",
+			   "es-MX", "para Business Central",
+			   "fi-FI", "Business Centralille",
+			   "fr-BE", "pour Business Central",
+			   "fr-CA", "pour Business Central",
+			   "fr-CH", "pour Business Central",
+			   "fr-FR", "pour Business Central",
+			   "is-IS", "fyrir Business Central",
+			   "it-CH", "per Business Central",
+			   "it-IT", "per Business Central",
+			   "nb-NO", "for Business Central",
+			   "nl-BE", "voor Business Central",
+			   "nl-NL", "voor Business Central",
+			   "sv-SE", "för Business Central",
+			   "for Business Central"
+			)
+		isHidden
+		lineageTag: c6ec1ccc-d713-4ccd-9487-3130cf5a46b6
+
+	measure 'CONNECT YOUR DATA Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "PŘIPOJENÍ DAT",
+			   "da-DK", "FORBIND DINE DATA",
+			   "de-AT", "MIT EIGENEN DATEN VERBINDEN",
+			   "de-CH", "MIT EIGENEN DATEN VERBINDEN",
+			   "de-DE", "MIT EIGENEN DATEN VERBINDEN",
+			   "en-AU", "CONNECT YOUR DATA",
+			   "en-CA", "CONNECT YOUR DATA",
+			   "en-GB", "CONNECT YOUR DATA",
+			   "en-NZ", "CONNECT YOUR DATA",
+			   "es-ES", "CONECTAR LOS DATOS",
+			   "es-MX", "CONECTAR LOS DATOS",
+			   "fi-FI", "YHDISTÄ TIETOSI",
+			   "fr-BE", "CONNECTER VOS DONNÉES",
+			   "fr-CA", "CONNECTER VOS DONNÉES",
+			   "fr-CH", "CONNECTER VOS DONNÉES",
+			   "fr-FR", "CONNECTER VOS DONNÉES",
+			   "is-IS", "TENGIÐ GÖGN",
+			   "it-CH", "CONNETTI I DATI",
+			   "it-IT", "CONNETTI I DATI",
+			   "nb-NO", "KOBLE TIL DATAENE",
+			   "nl-BE", "UW GEGEVENS VERBINDEN",
+			   "nl-NL", "UW GEGEVENS VERBINDEN",
+			   "sv-SE", "ANSLUT DINA DATA",
+			   "CONNECT YOUR DATA"
+			)
+		isHidden
+		lineageTag: 74809545-61c1-437a-8656-30a7e2c6a04a
+
+	measure '1. Download the Inventory Connector for Power BI Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "1. Stažení řešení Inventory Connector for Power BI",
+			   "da-DK", "1. Download lager-connectoren for Power BI",
+			   "de-AT", "1. Inventory Connector for Power BI herunterladen",
+			   "de-CH", "1. Inventory Connector for Power BI herunterladen",
+			   "de-DE", "1. Inventory Connector for Power BI herunterladen",
+			   "en-AU", "1. Download the Inventory Connector for Power BI",
+			   "en-CA", "1. Download the Inventory Connector for Power BI",
+			   "en-GB", "1. Download the Inventory Connector for Power BI",
+			   "en-NZ", "1. Download the Inventory Connector for Power BI",
+			   "es-ES", "1. Descargar el Conector de inventario para Power BI",
+			   "es-MX", "1. Descargar el Conector de inventario para Power BI",
+			   "fi-FI", "1. Lataa Inventory Connector for Power BI",
+			   "fr-BE", "1. Téléchargez le connecteur de stock pour Power BI",
+			   "fr-CA", "1. Téléchargez le connecteur d’inventaire pour Power BI",
+			   "fr-CH", "1. Téléchargez le connecteur de stock pour Power BI",
+			   "fr-FR", "1. Téléchargez le connecteur de stock pour Power BI",
+			   "is-IS", "1. Sækið birgðatengilinn fyrir Power BI",
+			   "it-CH", "1. Scaricare Inventory Connector for Power BI",
+			   "it-IT", "1. Scaricare Inventory Connector for Power BI",
+			   "nb-NO", "1. Last ned beholdningskoblingen for Power BI",
+			   "nl-BE", "1. Download de Voorraadconnector voor Power BI",
+			   "nl-NL", "1. Download de Voorraadconnector voor Power BI",
+			   "sv-SE", "1. Ladda ned lageranslutningsprogrammet för Power BI",
+			   "1. Download the Inventory Connector for Power BI"
+			)
+		isHidden
+		lineageTag: b33e8fc9-d312-48f3-9ae5-b93e135758a5
+
+	measure '2. Configure Dynamics 365 Business Central Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "2. Konfigurace Dynamics 365 Business Central",
+			   "da-DK", "2. Konfigurer Dynamics 365 Business Central",
+			   "de-AT", "2. Dynamics 365 Business Central konfigurieren",
+			   "de-CH", "2. Dynamics 365 Business Central konfigurieren",
+			   "de-DE", "2. Dynamics 365 Business Central konfigurieren",
+			   "en-AU", "2. Configure Dynamics 365 Business Central",
+			   "en-CA", "2. Configure Dynamics 365 Business Central",
+			   "en-GB", "2. Configure Dynamics 365 Business Central",
+			   "en-NZ", "2. Configure Dynamics 365 Business Central",
+			   "es-ES", "2. Configurar Dynamics 365 Business Central",
+			   "es-MX", "2. Configurar Dynamics 365 Business Central",
+			   "fi-FI", "2. Määritä Dynamics 365 Business Central",
+			   "fr-BE", "2. Configurez Dynamics 365 Business Central",
+			   "fr-CA", "2. Configurez Dynamics 365 Business Central",
+			   "fr-CH", "2. Configurez Dynamics 365 Business Central",
+			   "fr-FR", "2. Configurez Dynamics 365 Business Central",
+			   "is-IS", "2. Grunnstillið Dynamics 365 Business Central",
+			   "it-CH", "2. Configurare Dynamics 365 Business Central",
+			   "it-IT", "2. Configurare Dynamics 365 Business Central",
+			   "nb-NO", "2. Konfigurer Dynamics 365 Business Central",
+			   "nl-BE", "2. Dynamics 365 Business Central configureren",
+			   "nl-NL", "2. Dynamics 365 Business Central configureren",
+			   "sv-SE", "2. Konfigurera Dynamics 365 Business Central",
+			   "2. Configure Dynamics 365 Business Central"
+			)
+		isHidden
+		lineageTag: 0f438a0d-cca2-451c-b5b5-c73b4696c910
+
+	measure 'USE, EDIT AND BUILD YOUR OWN REPORTS Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "POUŽÍVÁNÍ, ÚPRAVA A TVORBA VLASTNÍCH SESTAV",
+			   "da-DK", "BRUG, REDIGER OG OPRET DINE EGNE RAPPORTER",
+			   "de-AT", "EIGENE BERICHTE VERWENDEN, BEARBEITEN UND ERSTELLEN",
+			   "de-CH", "EIGENE BERICHTE VERWENDEN, BEARBEITEN UND ERSTELLEN",
+			   "de-DE", "EIGENE BERICHTE VERWENDEN, BEARBEITEN UND ERSTELLEN",
+			   "en-AU", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "en-CA", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "en-GB", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "en-NZ", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "es-ES", "USAR, EDITAR Y CREAR SUS PROPIOS INFORMES",
+			   "es-MX", "USAR, EDITAR Y CREAR SUS PROPIOS INFORMES",
+			   "fi-FI", "KÄYTÄ, MUOKKAA JA LUO OMIA RAPORTTEJA",
+			   "fr-BE", "UTILISER, MODIFIER ET CRÉER VOS PROPRES ÉTATS",
+			   "fr-CA", "UTILISER, MODIFIER ET CRÉER VOS PROPRES RAPPORTS",
+			   "fr-CH", "UTILISER, MODIFIER ET CRÉER VOS PROPRES ÉTATS",
+			   "fr-FR", "UTILISER, MODIFIER ET CRÉER VOS PROPRES ÉTATS",
+			   "is-IS", "NOTIÐ, BREYTIÐ OG BÚIÐ TIL EIGIN SKÝRSLUR",
+			   "it-CH", "USA, MODIFICA E CREA I TUOI REPORT",
+			   "it-IT", "USA, MODIFICA E CREA I TUOI REPORT",
+			   "nb-NO", "BRUK, REDIGER OG BYGG DINE EGNE RAPPORTER",
+			   "nl-BE", "UW EIGEN RAPPORTEN GEBRUIKEN, BEWERKEN EN MAKEN",
+			   "nl-NL", "UW EIGEN RAPPORTEN GEBRUIKEN, BEWERKEN EN MAKEN",
+			   "sv-SE", "ANVÄND, REDIGERA OCH SKAPA EGNA RAPPORTER",
+			   "USE, EDIT AND BUILD YOUR OWN REPORTS"
+			)
+		isHidden
+		lineageTag: 8d6feee5-b47e-4645-bf16-4b31d1fe9610
+
+	measure 'Inventory Valuation includes a variety of pre-built reports to help you see your data immediately. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Hodnota zásob obsahuje řadu předpřipravených sestav, které vám pomohou okamžitě zobrazit vaše data.",
+			   "da-DK", "Lagerværdi omfatter en række forudbyggede rapporter, der hjælper dig med at få vist dine data med det samme.",
+			   "de-AT", "Die Bestandsbewertung enthält eine Vielzahl vordefinierter Berichte, mit denen Sie Ihre Daten unmittelbar ansehen können.",
+			   "de-CH", "Die Bestandsbewertung enthält eine Vielzahl vordefinierter Berichte, mit denen Sie Ihre Daten unmittelbar ansehen können.",
+			   "de-DE", "Die Bestandsbewertung enthält eine Vielzahl vordefinierter Berichte, mit denen Sie Ihre Daten unmittelbar ansehen können.",
+			   "en-AU", "Inventory Valuation includes a variety of pre-built reports to help you see your data immediately.",
+			   "en-CA", "Inventory Valuation includes a variety of pre-built reports to help you see your data immediately.",
+			   "en-GB", "Inventory Valuation includes a variety of pre-built reports to help you see your data immediately.",
+			   "en-NZ", "Inventory Valuation includes a variety of pre-built reports to help you see your data immediately.",
+			   "es-ES", "Valoración de inventario incluye una variedad de informes prediseñados para ayudarle a ver sus datos de inmediato.",
+			   "es-MX", "La valuación de inventarios incluye diversos informes prediseñados para ayudarle a ver sus datos de inmediato.",
+			   "fi-FI", "Varaston arvostus sisältää erilaisia etukäteen luotuja raportteja, joiden avulla voit tarkastella tietoja heti.",
+			   "fr-BE", "Évaluation du stock comprend une variété de rapports prédéfinis pour vous aider à voir vos données immédiatement.",
+			   "fr-CA", "L’évaluation de l’inventaire comprend une variété de rapports prédéfinis pour vous aider à voir vos données immédiatement.",
+			   "fr-CH", "Évaluation du stock comprend une variété de rapports prédéfinis pour vous aider à voir vos données immédiatement.",
+			   "fr-FR", "Évaluation du stock comprend une variété de rapports prédéfinis pour vous aider à voir vos données immédiatement.",
+			   "is-IS", "Birgðavirði felur í sér innbyggðar skýrslur af ólíkum toga til að skoða gögn samstundis.",
+			   "it-CH", "Valutazione magazzino include una serie di report predefiniti che consentono di visualizzare immediatamente i dati.",
+			   "it-IT", "Valutazione magazzino include una serie di report predefiniti che consentono di visualizzare immediatamente i dati.",
+			   "nb-NO", "Beholdningsverdisetting inkluderer en rekke forhåndsbygde rapporter for å hjelpe deg med å se dataene umiddelbart.",
+			   "nl-BE", "Voorraadwaardering bevat een verscheidenheid aan vooraf gemaakte rapporten om u te helpen uw gegevens direct te bekijken.",
+			   "nl-NL", "Voorraadwaardering bevat een verscheidenheid aan vooraf gemaakte rapporten om u te helpen uw gegevens direct te bekijken.",
+			   "sv-SE", "Lagervärdering innehåller en mängd fördefinierade rapporter som gör att du kan visa data omedelbart.",
+			   "Inventory Valuation includes a variety of pre-built reports to help you see your data immediately."
+			)
+		isHidden
+		lineageTag: 6bfc1e56-e361-4693-b4f7-e7cc67256489
+
+	measure 'You are able to edit these reports or build your own report from scratch. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Tyto sestavy můžete upravovat nebo si vytvořit vlastní sestavu od základu.",
+			   "da-DK", "Du kan redigere disse rapporter eller oprette din egen rapport fra bunden.",
+			   "de-AT", "Sie können diese Berichte bearbeiten oder Ihren eigenen Bericht von Grund auf neu erstellen.",
+			   "de-CH", "Sie können diese Berichte bearbeiten oder Ihren eigenen Bericht von Grund auf neu erstellen.",
+			   "de-DE", "Sie können diese Berichte bearbeiten oder Ihren eigenen Bericht von Grund auf neu erstellen.",
+			   "en-AU", "You are able to edit these reports or build your own report from scratch.",
+			   "en-CA", "You are able to edit these reports or build your own report from scratch.",
+			   "en-GB", "You are able to edit these reports or build your own report from scratch.",
+			   "en-NZ", "You are able to edit these reports or build your own report from scratch.",
+			   "es-ES", "Puede editar estos informes o crear el suyo propio desde cero.",
+			   "es-MX", "Puede editar estos informes o crear el suyo propio desde cero.",
+			   "fi-FI", "Voit muokata näitä raportteja tai luoda oman raportin alusta alkaen.",
+			   "fr-BE", "Vous pouvez modifier ces états ou créer votre propre état à partir de zéro.",
+			   "fr-CA", "Vous pouvez modifier ces rapports ou créer votre propre rapport à partir de zéro.",
+			   "fr-CH", "Vous pouvez modifier ces états ou créer votre propre état à partir de zéro.",
+			   "fr-FR", "Vous pouvez modifier ces états ou créer votre propre état à partir de zéro.",
+			   "is-IS", "Hægt er að breyta þessum skýrslum eða búa til nýja skýrslu frá grunni.",
+			   "it-CH", "È possibile modificare questi report o creare il proprio report da zero.",
+			   "it-IT", "È possibile modificare questi report o creare il proprio report da zero.",
+			   "nb-NO", "Du kan redigere disse rapportene eller lage din egen rapport fra bunnen av.",
+			   "nl-BE", "U kunt deze rapporten bewerken of uw eigen rapport helemaal opnieuw maken.",
+			   "nl-NL", "U kunt deze rapporten bewerken of uw eigen rapport helemaal opnieuw maken.",
+			   "sv-SE", "Du kan redigera dessa rapporter eller skapa en egen rapport från grunden.",
+			   "You are able to edit these reports or build your own report from scratch."
+			)
+		isHidden
+		lineageTag: 9679423e-454a-4f9c-9d69-a23f3f23f46a
+
+	measure 'HELP AND SUPPORT Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "POMOC A PODPORA",
+			   "da-DK", "HJÆLP OG SUPPORT",
+			   "de-AT", "HILFE UND SUPPORT",
+			   "de-CH", "HILFE UND SUPPORT",
+			   "de-DE", "HILFE UND SUPPORT",
+			   "en-AU", "HELP AND SUPPORT",
+			   "en-CA", "HELP AND SUPPORT",
+			   "en-GB", "HELP AND SUPPORT",
+			   "en-NZ", "HELP AND SUPPORT",
+			   "es-ES", "AYUDA Y SOPORTE",
+			   "es-MX", "AYUDA Y SOPORTE",
+			   "fi-FI", "OHJE JA TUKI",
+			   "fr-BE", "AIDE ET SUPPORT",
+			   "fr-CA", "AIDE ET SUPPORT",
+			   "fr-CH", "AIDE ET SUPPORT",
+			   "fr-FR", "AIDE ET SUPPORT",
+			   "is-IS", "HJÁLP OG STUÐNINGUR",
+			   "it-CH", "GUIDA E SUPPORTO",
+			   "it-IT", "GUIDA E SUPPORTO",
+			   "nb-NO", "HJELP OG KUNDESTØTTE",
+			   "nl-BE", "HELP EN ONDERSTEUNING",
+			   "nl-NL", "HELP EN ONDERSTEUNING",
+			   "sv-SE", "HJÄLP OCH SUPPORT",
+			   "HELP AND SUPPORT"
+			)
+		isHidden
+		lineageTag: 2e13c603-5e3d-4177-96a9-b82171da84ac
+
+	measure 'For help and support with your new report please visit the Analytics overview documentation. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Nápovědu a podporu k nové sestavě naleznete v dokumentaci k přehledu Analytics.",
+			   "da-DK", "Du kan få hjælp og support til din nye rapport i dokumentationen til analyseoversigten.",
+			   "de-AT", "Hilfe und Unterstützung für Ihren neuen Bericht finden Sie in der Dokumentation Analysen – Übersicht.",
+			   "de-CH", "Hilfe und Unterstützung für Ihren neuen Bericht finden Sie in der Dokumentation Analysen – Übersicht.",
+			   "de-DE", "Hilfe und Unterstützung für Ihren neuen Bericht finden Sie in der Dokumentation Analysen – Übersicht.",
+			   "en-AU", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "en-CA", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "en-GB", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "en-NZ", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "es-ES", "Para obtener ayuda y soporte técnico con su nuevo informe, visite la documentación de información general de Analytics.",
+			   "es-MX", "Para obtener ayuda y soporte técnico con su nuevo informe, visite la documentación de información general de Analytics.",
+			   "fi-FI", "Lisätietoja ja tukea uudelle raportillesi löydät analytiikan yleiskuvauksesta.",
+			   "fr-BE", "Pour obtenir de l’aide et de l’assistance concernant votre nouvel état, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "fr-CA", "Pour obtenir de l’aide et de l’assistance concernant votre nouveau rapport, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "fr-CH", "Pour obtenir de l’aide et de l’assistance concernant votre nouvel état, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "fr-FR", "Pour obtenir de l’aide et de l’assistance concernant votre nouvel état, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "is-IS", "Lesið fylgigögn greiningaryfirlitsins til að fá hjálp og aðstoð við nýju skýrsluna.",
+			   "it-CH", "Per assistenza e supporto per il nuovo report, vedere la documentazione generale di analisi.",
+			   "it-IT", "Per assistenza e supporto per il nuovo report, vedere la documentazione generale di analisi.",
+			   "nb-NO", "Hvis du vil ha hjelp og støtte med den nye rapporten, kan du gå til dokumentasjonen for analyseoversikten.",
+			   "nl-BE", "Ga voor hulp en ondersteuning met uw nieuwe rapport naar de Analytics-overzichtsdocumentatie.",
+			   "nl-NL", "Ga voor hulp en ondersteuning met uw nieuwe rapport naar de Analytics-overzichtsdocumentatie.",
+			   "sv-SE", "Hjälp och support med den nya rapporten finns i översiktsdokumentationen för Analys.",
+			   "For help and support with your new report please visit the Analytics overview documentation."
+			)
+		isHidden
+		lineageTag: 5fc5e210-5be8-4f04-b7a9-15cd5867c7b1
+
+	measure 'OTHER POWER BI REPORTS Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "DALŠÍ SESTAVY POWER BI",
+			   "da-DK", "ANDRE POWER BI-RAPPORTER",
+			   "de-AT", "SONSTIGE POWER BI-BERICHTE",
+			   "de-CH", "SONSTIGE POWER BI-BERICHTE",
+			   "de-DE", "SONSTIGE POWER BI-BERICHTE",
+			   "en-AU", "OTHER POWER BI REPORTS",
+			   "en-CA", "OTHER POWER BI REPORTS",
+			   "en-GB", "OTHER POWER BI REPORTS",
+			   "en-NZ", "OTHER POWER BI REPORTS",
+			   "es-ES", "OTROS INFORMES DE POWER BI",
+			   "es-MX", "OTROS INFORMES DE POWER BI",
+			   "fi-FI", "MUUT POWER BI -RAPORTIT",
+			   "fr-BE", "AUTRES ÉTATS POWER BI",
+			   "fr-CA", "AUTRES RAPPORTS POWER BI",
+			   "fr-CH", "AUTRES ÉTATS POWER BI",
+			   "fr-FR", "AUTRES ÉTATS POWER BI",
+			   "is-IS", "AÐRAR POWER BI-SKÝRSLUR",
+			   "it-CH", "ALTRI REPORT DI POWER BI",
+			   "it-IT", "ALTRI REPORT DI POWER BI",
+			   "nb-NO", "ANDRE POWER BI-RAPPORTER",
+			   "nl-BE", "OVERIGE POWER BI-RAPPORTEN",
+			   "nl-NL", "OVERIGE POWER BI-RAPPORTEN",
+			   "sv-SE", "ÖVRIGA POWER BI-RAPPORTER",
+			   "OTHER POWER BI REPORTS"
+			)
+		isHidden
+		lineageTag: eac1b315-8481-49d3-9e20-96546efbc68c
+
+	measure 'PURCHASE Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "NÁKUP",
+			   "da-DK", "INDKØB",
+			   "de-AT", "EINKAUF",
+			   "de-CH", "EINKAUF",
+			   "de-DE", "EINKAUF",
+			   "en-AU", "PURCHASE",
+			   "en-CA", "PURCHASE",
+			   "en-GB", "PURCHASE",
+			   "en-NZ", "PURCHASE",
+			   "es-ES", "COMPRA",
+			   "es-MX", "COMPRA",
+			   "fi-FI", "OSTO",
+			   "fr-BE", "ACHAT",
+			   "fr-CA", "ACHAT",
+			   "fr-CH", "ACHAT",
+			   "fr-FR", "ACHAT",
+			   "is-IS", "KAUP",
+			   "it-CH", "ACQUISTI",
+			   "it-IT", "ACQUISTI",
+			   "nb-NO", "KJØP",
+			   "nl-BE", "INKOOP",
+			   "nl-NL", "INKOOP",
+			   "sv-SE", "INKÖP",
+			   "PURCHASE"
+			)
+		isHidden
+		lineageTag: dea15bd1-318c-4c3d-bfdf-50253399bad0
+
+	measure 'FINANCE Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "FINANCE",
+			   "da-DK", "FINANS",
+			   "de-AT", "FINANZEN",
+			   "de-CH", "FINANZEN",
+			   "de-DE", "FINANZEN",
+			   "en-AU", "FINANCE",
+			   "en-CA", "FINANCE",
+			   "en-GB", "FINANCE",
+			   "en-NZ", "FINANCE",
+			   "es-ES", "FINANZAS",
+			   "es-MX", "FINANZAS",
+			   "fi-FI", "TALOUSHALLINTO",
+			   "fr-BE", "FINANCIER",
+			   "fr-CA", "FINANCIER",
+			   "fr-CH", "FINANCIER",
+			   "fr-FR", "FINANCIER",
+			   "is-IS", "FJÁRMÁL",
+			   "it-CH", "DATI FINANZIARI",
+			   "it-IT", "DATI FINANZIARI",
+			   "nb-NO", "FINANS",
+			   "nl-BE", "FINANCIËN",
+			   "nl-NL", "FINANCIËN",
+			   "sv-SE", "EKONOMI",
+			   "FINANCE"
+			)
+		isHidden
+		lineageTag: a9982af3-9991-4bad-a024-ddd81c9deb02
+
+	measure 'PROJECTS Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "PROJEKTY",
+			   "da-DK", "PROJEKTER",
+			   "de-AT", "PROJEKTE",
+			   "de-CH", "PROJEKTE",
+			   "de-DE", "PROJEKTE",
+			   "en-AU", "PROJECTS",
+			   "en-CA", "PROJECTS",
+			   "en-GB", "PROJECTS",
+			   "en-NZ", "PROJECTS",
+			   "es-ES", "PROYECTOS",
+			   "es-MX", "PROYECTOS",
+			   "fi-FI", "PROJEKTIT",
+			   "fr-BE", "PROJETS",
+			   "fr-CA", "PROJETS",
+			   "fr-CH", "PROJETS",
+			   "fr-FR", "PROJETS",
+			   "is-IS", "VERKEFNI",
+			   "it-CH", "PROGETTI",
+			   "it-IT", "PROGETTI",
+			   "nb-NO", "PROSJEKTER",
+			   "nl-BE", "PROJECTEN",
+			   "nl-NL", "PROJECTEN",
+			   "sv-SE", "PROJEKT",
+			   "PROJECTS"
+			)
+		isHidden
+		lineageTag: c19d32ea-4594-4e9c-b4ca-02fbb1edd6f3
+
+	measure 'INVENTORY Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "ZÁSOBY",
+			   "da-DK", "LAGER",
+			   "de-AT", "LAGERBESTAND",
+			   "de-CH", "LAGERBESTAND",
+			   "de-DE", "LAGERBESTAND",
+			   "en-AU", "INVENTORY",
+			   "en-CA", "INVENTORY",
+			   "en-GB", "INVENTORY",
+			   "en-NZ", "INVENTORY",
+			   "es-ES", "INVENTARIO",
+			   "es-MX", "INVENTARIO",
+			   "fi-FI", "VARASTO",
+			   "fr-BE", "STOCK",
+			   "fr-CA", "INVENTAIRE",
+			   "fr-CH", "STOCK",
+			   "fr-FR", "STOCK",
+			   "is-IS", "BIRGÐIR",
+			   "it-CH", "INVENTARIO",
+			   "it-IT", "INVENTARIO",
+			   "nb-NO", "BEHOLDNING",
+			   "nl-BE", "VOORRAAD",
+			   "nl-NL", "VOORRAAD",
+			   "sv-SE", "LAGER",
+			   "INVENTORY"
+			)
+		isHidden
+		lineageTag: 6d9a11cd-4cc3-4ba2-961f-31db6f82b51b
+
+	measure 'SALES Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "PRODEJ",
+			   "da-DK", "SALG",
+			   "de-AT", "VERKAUF",
+			   "de-CH", "VERKAUF",
+			   "de-DE", "VERKAUF",
+			   "en-AU", "SALES",
+			   "en-CA", "SALES",
+			   "en-GB", "SALES",
+			   "en-NZ", "SALES",
+			   "es-ES", "VENTAS",
+			   "es-MX", "VENTAS",
+			   "fi-FI", "MYYNTI",
+			   "fr-BE", "VENTES",
+			   "fr-CA", "VENTES",
+			   "fr-CH", "VENTES",
+			   "fr-FR", "VENTES",
+			   "is-IS", "SALA",
+			   "it-CH", "VENDITE",
+			   "it-IT", "VENDITE",
+			   "nb-NO", "SALG",
+			   "nl-BE", "VERKOPEN",
+			   "nl-NL", "VERKOPEN",
+			   "sv-SE", "FÖRSÄLJNING",
+			   "SALES"
+			)
+		isHidden
+		lineageTag: 3f0cbd57-d187-47d8-91f7-9b8276eba16a
+
+	measure 'Inventory Valuation Overview Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Přehled hodnoty zásob",
+			   "da-DK", "Oversigt over lagerværdi",
+			   "de-AT", "Übersicht über Bestandsbewertung",
+			   "de-CH", "Übersicht über Bestandsbewertung",
+			   "de-DE", "Übersicht über Bestandsbewertung",
+			   "en-AU", "Inventory Valuation Overview",
+			   "en-CA", "Inventory Valuation Overview",
+			   "en-GB", "Inventory Valuation Overview",
+			   "en-NZ", "Inventory Valuation Overview",
+			   "es-ES", "Información general de valoración de inventario",
+			   "es-MX", "Información general de valuación de inventarios",
+			   "fi-FI", "Varaston arvostuksen yleiskatsaus",
+			   "fr-BE", "Vue d’ensemble d’Évaluation du stock",
+			   "fr-CA", "Vue d’ensemble de l’évaluation de l’inventaire",
+			   "fr-CH", "Vue d’ensemble d’Évaluation du stock",
+			   "fr-FR", "Vue d’ensemble d’Évaluation du stock",
+			   "is-IS", "Yfirlit birgðamats",
+			   "it-CH", "Panoramica di Valutazione magazzino",
+			   "it-IT", "Panoramica di Valutazione magazzino",
+			   "nb-NO", "Oversikt over beholdningsverdisetting",
+			   "nl-BE", "Overzicht van voorraadwaardering",
+			   "nl-NL", "Overzicht van voorraadwaardering",
+			   "sv-SE", "Översikt över Lagervärdering",
+			   "Inventory Valuation Overview"
+			)
+		isHidden
+		lineageTag: 161bc342-55d0-45b9-9e40-ae649fda7730
+
+	measure 'Inventory Value & Cost Posted to G/L by Month Year Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Hodnota zásob a zaúčtované náklady podle měsíce a roku",
+			   "da-DK", "Lagerværdi og omkostninger bogført i finans efter måned År",
+			   "de-AT", "Nach Monat Jahr in der Finanzbuchhaltung gebuchter Bestandswert und Einstandspreis",
+			   "de-CH", "Nach Monat Jahr in der Finanzbuchhaltung gebuchter Bestandswert und Einstandspreis",
+			   "de-DE", "Nach Monat Jahr in der Finanzbuchhaltung gebuchter Bestandswert und Einstandspreis",
+			   "en-AU", "Inventory Value & Cost Posted to G/L by Month Year",
+			   "en-CA", "Inventory Value & Cost Posted to G/L by Month Year",
+			   "en-GB", "Inventory Value & Cost Posted to G/L by Month Year",
+			   "en-NZ", "Inventory Value & Cost Posted to G/L by Month Year",
+			   "es-ES", "Valor de inventario y coste registrados en C/G por mes año",
+			   "es-MX", "Valor de invent. y costo registrados en C/G por mes y año",
+			   "fi-FI", "Varaston arvo ja KP:oon kirjatut kustannukset kuukauden vuoden mukaan",
+			   "fr-BE", "Valeur et coût du stock validés en comptabilité par mois et par année",
+			   "fr-CA", "Valeur et coût de l’inventaire reportés au GL par mois et par année",
+			   "fr-CH", "Valeur et coût du stock validés en comptabilité par mois et par année",
+			   "fr-FR", "Valeur et coût du stock validés en comptabilité par mois et par année",
+			   "is-IS", "Birgðavirði og kostnaður bókaður í fjárhag eftir mánuði og ári",
+			   "it-CH", "Valore e costi magazzino registrati in C/G per mese/anno",
+			   "it-IT", "Valore e costi magazzino registrati in C/G per mese/anno",
+			   "nb-NO", "Beholdningsverdi og -kostnad bokført i finans etter Måned År",
+			   "nl-BE", "Voorraadwaarde en kosten geboekt naar grootboek per maand jaar",
+			   "nl-NL", "Voorraadwaarde en kosten geboekt naar grootboek per maand jaar",
+			   "sv-SE", "Lagervärde och -kostnad bokfört i redovisning per Månad År",
+			   "Inventory Value & Cost Posted to G/L by Month Year"
+			)
+		isHidden
+		lineageTag: f8df7134-2205-4647-b022-ab0a5c787b39
+
+	measure 'Inventory Value by Location Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Hodnota zásob podle lokace",
+			   "da-DK", "Lagerværdi efter placering",
+			   "de-AT", "Bestandswert nach Lagerort",
+			   "de-CH", "Bestandswert nach Lagerort",
+			   "de-DE", "Bestandswert nach Lagerort",
+			   "en-AU", "Inventory Value by Location",
+			   "en-CA", "Inventory Value by Location",
+			   "en-GB", "Inventory Value by Location",
+			   "en-NZ", "Inventory Value by Location",
+			   "es-ES", "Valor de inventario por almacén",
+			   "es-MX", "Valor de inventario por almacén",
+			   "fi-FI", "Varaston arvo sijainneittain",
+			   "fr-BE", "Valeur du stock par magasin",
+			   "fr-CA", "Valeur de l’inventaire par emplacement",
+			   "fr-CH", "Valeur du stock par magasin",
+			   "fr-FR", "Valeur du stock par magasin",
+			   "is-IS", "Birgðavirði eftir staðsetningu",
+			   "it-CH", "Valore magazzino per ubicazione",
+			   "it-IT", "Valore magazzino per ubicazione",
+			   "nb-NO", "Beholdningsverdi etter lokasjon",
+			   "nl-BE", "Voorraadwaarde per locatie",
+			   "nl-NL", "Voorraadwaarde per locatie",
+			   "sv-SE", "Lagervärde per lagerställe",
+			   "Inventory Value by Location"
+			)
+		isHidden
+		lineageTag: fc1f6420-c668-410a-a1c7-9a5a9a022742
+
+	measure 'Inventory Quantity Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Množství zásob",
+			   "da-DK", "Lagerantal",
+			   "de-AT", "Lagerbestandsmenge",
+			   "de-CH", "Lagerbestandsmenge",
+			   "de-DE", "Lagerbestandsmenge",
+			   "en-AU", "Inventory Quantity",
+			   "en-CA", "Inventory Quantity",
+			   "en-GB", "Inventory Quantity",
+			   "en-NZ", "Inventory Quantity",
+			   "es-ES", "Cantidad de inventario",
+			   "es-MX", "Cantidad de inventario",
+			   "fi-FI", "Varastomäärä",
+			   "fr-BE", "Quantité en stock",
+			   "fr-CA", "Quantité en inventaire",
+			   "fr-CH", "Quantité en stock",
+			   "fr-FR", "Quantité en stock",
+			   "is-IS", "Birgðamagn",
+			   "it-CH", "Quantità in giacenza",
+			   "it-IT", "Quantità in giacenza",
+			   "nb-NO", "Beholdningsantall",
+			   "nl-BE", "Voorraadaantal",
+			   "nl-NL", "Voorraadaantal",
+			   "sv-SE", "Lagerantal",
+			   "Inventory Quantity"
+			)
+		isHidden
+		lineageTag: a19f593b-5c84-4496-8265-9aedf7a0e6ba
+
+	measure 'Inventory Valuation by Item Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Hodnota zásob podle zboží",
+			   "da-DK", "Lagerværdi efter vare",
+			   "de-AT", "Bestandswert nach Artikel",
+			   "de-CH", "Bestandswert nach Artikel",
+			   "de-DE", "Bestandswert nach Artikel",
+			   "en-AU", "Inventory Valuation by Item",
+			   "en-CA", "Inventory Valuation by Item",
+			   "en-GB", "Inventory Valuation by Item",
+			   "en-NZ", "Inventory Valuation by Item",
+			   "es-ES", "Valoración de inventario por producto",
+			   "es-MX", "Valuación de inventarios por producto",
+			   "fi-FI", "Varaston arvostus nimikkeen mukaan",
+			   "fr-BE", "Évaluation du stock par article",
+			   "fr-CA", "Évaluation de l’inventaire par article",
+			   "fr-CH", "Évaluation du stock par article",
+			   "fr-FR", "Évaluation du stock par article",
+			   "is-IS", "Birgðamat eftir vöru",
+			   "it-CH", "Valutazione magazzino per articolo",
+			   "it-IT", "Valutazione magazzino per articolo",
+			   "nb-NO", "Beholdningsverdisetting etter vare",
+			   "nl-BE", "Voorraadwaardering per artikel",
+			   "nl-NL", "Voorraadwaardering per artikel",
+			   "sv-SE", "Lagervärdering per artikel",
+			   "Inventory Valuation by Item"
+			)
+		isHidden
+		lineageTag: 698f9595-ef91-4f1d-a940-db27a7c719a3
+
+	measure 'Inventory Valuation by Location Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Hodnota zásob podle lokace",
+			   "da-DK", "Lagerværdi efter placering",
+			   "de-AT", "Bestandsbewertung nach Lagerort",
+			   "de-CH", "Bestandsbewertung nach Lagerort",
+			   "de-DE", "Bestandsbewertung nach Lagerort",
+			   "en-AU", "Inventory Valuation by Location",
+			   "en-CA", "Inventory Valuation by Location",
+			   "en-GB", "Inventory Valuation by Location",
+			   "en-NZ", "Inventory Valuation by Location",
+			   "es-ES", "Valoración de inventario por almacén",
+			   "es-MX", "Valuación de inventarios por almacén",
+			   "fi-FI", "Varaston arvostus sijainneittain",
+			   "fr-BE", "Évaluation du stock par magasin",
+			   "fr-CA", "Évaluation de l’inventaire par emplacement",
+			   "fr-CH", "Évaluation du stock par magasin",
+			   "fr-FR", "Évaluation du stock par magasin",
+			   "is-IS", "Birgðavirðismat eftir staðsetningu",
+			   "it-CH", "Valutazione magazzino per ubicazione",
+			   "it-IT", "Valutazione magazzino per ubicazione",
+			   "nb-NO", "Beholdningsverdisetting etter lokasjon",
+			   "nl-BE", "Voorraadwaardering per locatie",
+			   "nl-NL", "Voorraadwaardering per locatie",
+			   "sv-SE", "Lagervärdering per lagerställe",
+			   "Inventory Valuation by Location"
+			)
+		isHidden
+		lineageTag: f3ae988a-6716-473a-8512-c682e1a40e6d
+
+	measure 'Detailed Inventory Valuation Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobná hodnoty zásob",
+			   "da-DK", "Detaljeret lagerværdi",
+			   "de-AT", "Detaillierte Bestandsbewertung",
+			   "de-CH", "Detaillierte Bestandsbewertung",
+			   "de-DE", "Detaillierte Bestandsbewertung",
+			   "en-AU", "Detailed Inventory Valuation",
+			   "en-CA", "Detailed Inventory Valuation",
+			   "en-GB", "Detailed Inventory Valuation",
+			   "en-NZ", "Detailed Inventory Valuation",
+			   "es-ES", "Valoración de inventario detallada",
+			   "es-MX", "Valuación de inventarios detallada",
+			   "fi-FI", "Tarkka varaston arvostus",
+			   "fr-BE", "Évaluation du stock détaillée",
+			   "fr-CA", "Évaluation détaillée de l’inventaire",
+			   "fr-CH", "Évaluation du stock détaillée",
+			   "fr-FR", "Évaluation du stock détaillée",
+			   "is-IS", "Ítarlegt birgðavirði",
+			   "it-CH", "Valutazione magazzino dettagliata",
+			   "it-IT", "Valutazione magazzino dettagliata",
+			   "nb-NO", "Detaljert beholdningsverdisetting",
+			   "nl-BE", "Gedetailleerde voorraadwaardering",
+			   "nl-NL", "Gedetailleerde voorraadwaardering",
+			   "sv-SE", "Detaljerad lagervärdering",
+			   "Detailed Inventory Valuation"
+			)
+		isHidden
+		lineageTag: 0263f6b9-1b56-49fb-87b0-bb99b7cccc3d
+
+	measure 'The inventory valuation by item shows item number, beginning balance value, increase value, decrease value, and ending balance value. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Hodnota zásob podle zboží zobrazuje číslo zboží, počáteční hodnotu salda, zvýšenou hodnotu, sníženou hodnotu a hodnotu koncového salda.",
+			   "da-DK", "Lagerværdi efter vare viser varenummer, startsaldoværdi, forøget værdi, reduceret værdi og slutsaldoværdi.",
+			   "de-AT", "Die Lagerbestandsbewertung nach Artikel zeigt die Artikelnummer, den Anfangssaldowert, den Mehrwert, den Abnahmewert und den Endsaldowert an.",
+			   "de-CH", "Die Lagerbestandsbewertung nach Artikel zeigt die Artikelnummer, den Anfangssaldowert, den Mehrwert, den Abnahmewert und den Endsaldowert an.",
+			   "de-DE", "Die Lagerbestandsbewertung nach Artikel zeigt die Artikelnummer, den Anfangssaldowert, den Mehrwert, den Abnahmewert und den Endsaldowert an.",
+			   "en-AU", "The inventory valuation by item shows item number, beginning balance value, increase value, decrease value, and ending balance value.",
+			   "en-CA", "The inventory valuation by item shows item number, beginning balance value, increase value, decrease value, and ending balance value.",
+			   "en-GB", "The inventory valuation by item shows item number, beginning balance value, increase value, decrease value, and ending balance value.",
+			   "en-NZ", "The inventory valuation by item shows item number, beginning balance value, increase value, decrease value, and ending balance value.",
+			   "es-ES", "La valoración de inventario por producto muestra el número de producto, el valor de saldo inicial, el valor de aumento, el valor de disminución y el valor de saldo final.",
+			   "es-MX", "La valuación de inventarios por producto muestra el número de producto, el valor de saldo inicial, el valor de aumento, el valor de disminución y el valor de saldo final.",
+			   "fi-FI", "Varaston arvostus nimikkeen mukaan näyttää nimikenumeron, alkusaldon arvon, lisäysarvon, vähennysarvon ja loppusaldon arvon.",
+			   "fr-BE", "L’évaluation du stock par article indique le numéro d’article, la valeur du solde d’ouverture, la valeur d’entrée, la valeur de sortie et la valeur du solde de clôture.",
+			   "fr-CA", "L’évaluation de l’inventaire par article indique le numéro d’article, la valeur du solde d’ouverture, la valeur d’augmentation, la valeur de diminution et la valeur du solde de clôture.",
+			   "fr-CH", "L’évaluation du stock par article indique le numéro d’article, la valeur du solde d’ouverture, la valeur d’entrée, la valeur de sortie et la valeur du solde de clôture.",
+			   "fr-FR", "L’évaluation du stock par article indique le numéro d’article, la valeur du solde d’ouverture, la valeur d’entrée, la valeur de sortie et la valeur du solde de clôture.",
+			   "is-IS", "„Birgðavirði eftir vöru“ sýnir vörunúmer, virði upphafsstöðu, hækkað virði, lækkað virði og virði lokastöðu.",
+			   "it-CH", "La valutazione magazzino per articolo mostra il numero, il valore del saldo iniziale, il valore di aumento e di diminuzione e il valore del saldo finale relativi all'articolo.",
+			   "it-IT", "La valutazione magazzino per articolo mostra il numero, il valore del saldo iniziale, il valore di aumento e di diminuzione e il valore del saldo finale relativi all'articolo.",
+			   "nb-NO", "Beholdningsverdisettingen etter vare viser varenummer, startsaldoverdi, økningsverdi, reduksjonsverdi og sluttsaldoverdi.",
+			   "nl-BE", "De voorraadwaardering per artikel bevat artikelnummer, beginsaldowaarde, toenamewaarde, afnamewaarde en eindsaldowaarde.",
+			   "nl-NL", "De voorraadwaardering per artikel bevat artikelnummer, beginsaldowaarde, toenamewaarde, afnamewaarde en eindsaldowaarde.",
+			   "sv-SE", "Lagervärdering per artikel visar artikelnummer, ingående saldovärde, ökningsvärde, minskningsvärde och slutbalansvärde.",
+			   "The inventory valuation by item shows item number, beginning balance value, increase value, decrease value, and ending balance value."
+			)
+		isHidden
+		lineageTag: bccee3dd-0d5f-415b-8d3c-a0fc23583d80
+
+	measure 'The inventory valuation by location shows location code, beginning balance value, increase value, decrease value, and ending balance value. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Hodnota zásob podle lokace zobrazuje kód lokace, počáteční hodnotu salda, zvýšenou hodnotu, sníženou hodnotu a hodnotu koncového salda.",
+			   "da-DK", "Lagerværdi efter placering viser placeringskode, startsaldoværdi, forøget værdi, reduceret værdi og slutsaldoværdi.",
+			   "de-AT", "Die Lagerbestandsbewertung nach Lagerort zeigt den Lagerortcode, den Anfangssaldowert, den Mehrwert, den Abnahmewert und den Endsaldowert an.",
+			   "de-CH", "Die Lagerbestandsbewertung nach Lagerort zeigt den Lagerortcode, den Anfangssaldowert, den Mehrwert, den Abnahmewert und den Endsaldowert an.",
+			   "de-DE", "Die Lagerbestandsbewertung nach Lagerort zeigt den Lagerortcode, den Anfangssaldowert, den Mehrwert, den Abnahmewert und den Endsaldowert an.",
+			   "en-AU", "The inventory valuation by location shows location code, beginning balance value, increase value, decrease value, and ending balance value.",
+			   "en-CA", "The inventory valuation by location shows location code, beginning balance value, increase value, decrease value, and ending balance value.",
+			   "en-GB", "The inventory valuation by location shows location code, beginning balance value, increase value, decrease value, and ending balance value.",
+			   "en-NZ", "The inventory valuation by location shows location code, beginning balance value, increase value, decrease value, and ending balance value.",
+			   "es-ES", "La valoración de inventario por almacén muestra el código de almacén, el valor de saldo inicial, el valor de aumento, el valor de disminución y el valor de saldo final.",
+			   "es-MX", "La valuación de inventarios por almacén muestra el código de almacén, el valor de saldo inicial, el valor de aumento, el valor de disminución y el valor de saldo final.",
+			   "fi-FI", "Varaston arvostus sijainneittain näyttää sijaintikoodin, alkusaldon arvon, lisäysarvon, vähennysarvon ja loppusaldon arvon.",
+			   "fr-BE", "L’évaluation du stock par magasin indique le code magasin, la valeur du solde d’ouverture, la valeur d’entrée, la valeur de sortie et la valeur du solde de clôture.",
+			   "fr-CA", "L’évaluation de l’inventaire par emplacement indique le code d’emplacement, la valeur du solde d’ouverture, la valeur d’augmentation, la valeur de diminution et la valeur du solde de clôture.",
+			   "fr-CH", "L’évaluation du stock par magasin indique le code magasin, la valeur du solde d’ouverture, la valeur d’entrée, la valeur de sortie et la valeur du solde de clôture.",
+			   "fr-FR", "L’évaluation du stock par magasin indique le code magasin, la valeur du solde d’ouverture, la valeur d’entrée, la valeur de sortie et la valeur du solde de clôture.",
+			   "is-IS", "„Birgðavirði eftir staðsetningu“ sýnir staðsetningarkóða, virði upphafsstöðu, hækkað virði, lækkað virði og virði lokastöðu.",
+			   "it-CH", "La valutazione magazzino per ubicazione mostra il codice ubicazione, il valore del saldo iniziale, il valore di aumento e di diminuzione e il valore del saldo finale.",
+			   "it-IT", "La valutazione magazzino per ubicazione mostra il codice ubicazione, il valore del saldo iniziale, il valore di aumento e di diminuzione e il valore del saldo finale.",
+			   "nb-NO", "Beholdningsverdisettingen etter lokasjon viser lokasjonskode, startsaldoverdi, økningsverdi, reduksjonsverdi og sluttsaldoverdi.",
+			   "nl-BE", "De voorraadwaardering per locatie bevat locatiecode, beginsaldowaarde, toenamewaarde, afnamewaarde en eindsaldowaarde.",
+			   "nl-NL", "De voorraadwaardering per locatie bevat locatiecode, beginsaldowaarde, toenamewaarde, afnamewaarde en eindsaldowaarde.",
+			   "sv-SE", "Lagervärdering per lagerställe visar lagerställekod, ingående saldovärde, ökningsvärde, minskningsvärde och slutbalansvärde.",
+			   "The inventory valuation by location shows location code, beginning balance value, increase value, decrease value, and ending balance value."
+			)
+		isHidden
+		lineageTag: 5c7c5eed-6a58-4ccb-9480-ec54da098925
+
+	measure 'The detailed inventory valuation shows date, item number and description, location code, document type, entry number, invoiced quantity, cost amount (actual), cost amount (expected), cost posted to G/L (actual), and cost posted to G/L (expected). Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Podrobná hodnota zásob zobrazuje datum, číslo zboží a popis, kód lokace, typ dokladu, číslo zboží, fakturované množství, částku nákladů (skutečná), částku nákladů (očekávaná), zaúčtované náklady (skutečné) a zaúčtované náklady (očekávané).",
+			   "da-DK", "Den detaljerede lagerværdi viser dato, varenummer og beskrivelse, lokationskode, dokumenttype, postnummer, faktureret antal, kostbeløb (faktisk), kostbeløb (forventet), omkostning bogført til finans (faktisk) og omkostning bogført til finans (forventet).",
+			   "de-AT", "Die detaillierte Lagerbestandsbewertung zeigt Datum, Artikelnummer und Beschreibung, Lagerortcode, Belegart, Postennummer, fakturierte Menge, Einstandsbetrag (Ist), Einstandsbetrag (erwartet), in der Finanzbuchhaltung gebuchte Kosten (Ist) und in der Finanzbuchhaltung gebuchte Kosten (erwartet) an.",
+			   "de-CH", "Die detaillierte Lagerbestandsbewertung zeigt Datum, Artikelnummer und Beschreibung, Lagerortcode, Belegart, Postennummer, fakturierte Menge, Einstandsbetrag (Ist), Einstandsbetrag (erwartet), in der Finanzbuchhaltung gebuchte Kosten (Ist) und in der Finanzbuchhaltung gebuchte Kosten (erwartet) an.",
+			   "de-DE", "Die detaillierte Lagerbestandsbewertung zeigt Datum, Artikelnummer und Beschreibung, Lagerortcode, Belegart, Postennummer, fakturierte Menge, Einstandsbetrag (Ist), Einstandsbetrag (erwartet), in der Finanzbuchhaltung gebuchte Kosten (Ist) und in der Finanzbuchhaltung gebuchte Kosten (erwartet) an.",
+			   "en-AU", "The detailed inventory valuation shows date, item number and description, location code, document type, entry number, invoiced quantity, cost amount (actual), cost amount (expected), cost posted to G/L (actual), and cost posted to G/L (expected).",
+			   "en-CA", "The detailed inventory valuation shows date, item number and description, location code, document type, entry number, invoiced quantity, cost amount (actual), cost amount (expected), cost posted to G/L (actual), and cost posted to G/L (expected).",
+			   "en-GB", "The detailed inventory valuation shows date, item number and description, location code, document type, entry number, invoiced quantity, cost amount (actual), cost amount (expected), cost posted to G/L (actual), and cost posted to G/L (expected).",
+			   "en-NZ", "The detailed inventory valuation shows date, item number and description, location code, document type, entry number, invoiced quantity, cost amount (actual), cost amount (expected), cost posted to G/L (actual), and cost posted to G/L (expected).",
+			   "es-ES", "La valoración detallada del inventario muestra la fecha, el número de producto y la descripción, el código de almacén, el tipo de documento, el número de movimiento, la cantidad facturada, el importe de coste (real), el importe de coste (previsto), el coste registrado en la contabilidad general (real) y el coste registrado en la contabilidad general (previsto).",
+			   "es-MX", "La valuación de inventarios detallada muestra la fecha, el número de producto y la descripción, el código de almacén, el tipo de documento, el número de movimiento, la cantidad facturada, el importe de costo (real), el importe de costo (previsto), el costo registrado en la contabilidad general (real) y el costo registrado en la contabilidad general (previsto).",
+			   "fi-FI", "Tarkka varaston arvostus näyttää päivämäärän, nimikenumeron ja kuvauksen, sijaintikoodin, asiakirjatyypin, tapahtumanumeron, laskutetun määrän, kustannussumman (toteuma), kustannussumman (oletettu), kirjanpitoon kirjatun kustannuksen (toteuma) ja kirjanpitoon kirjatun kustannuksen (oletettu).",
+			   "fr-BE", "L’évaluation du stock détaillée indique la date, le numéro et la description de l’article, le code magasin, le type de document, le numéro d’écriture, la quantité facturée, le montant du coût (réel), le montant du coût (prévu), le coût validé en comptabilité (réel) et le coût validé en comptabilité (prévu).",
+			   "fr-CA", "L’évaluation détaillée de l’inventaire indique la date, le numéro et la description de l’article, le code d’emplacement, le type de document, le numéro d’écriture, la quantité facturée, le montant du coût (réel), le montant du coût (prévu), le coût reporté au GL (réel) et le coût reporté au GL (prévu).",
+			   "fr-CH", "L’évaluation du stock détaillée indique la date, le numéro et la description de l’article, le code magasin, le type de document, le numéro d’écriture, la quantité facturée, le montant du coût (réel), le montant du coût (prévu), le coût validé en comptabilité (réel) et le coût validé en comptabilité (prévu).",
+			   "fr-FR", "L’évaluation du stock détaillée indique la date, le numéro et la description de l’article, le code magasin, le type de document, le numéro d’écriture, la quantité facturée, le montant du coût (réel), le montant du coût (prévu), le coût validé en comptabilité (réel) et le coût validé en comptabilité (prévu).",
+			   "is-IS", "„Ítarlegt birgðavirði“ sýnir dagsetningu, vörunúmer, lýsingu, staðsetningarkóða, tegund fylgiskjals, færslunúmer, reikningsfært magn, kostnaðarupphæð (raunveruleg), kostnaðarupphæð (áætluð), kostnað bókaðan í fjárhag (raunverulegan) og kostnað bókaðan í fjárhag (áætlaðan).",
+			   "it-CH", "La valutazione magazzino dettagliata mostra la data, il numero, la descrizione il codice ubicazione, il tipo di documento, il numero di movimento, la quantità fatturata, l'importo dei costi (effettivo e previsto), e il costo registrato in C/G (effettivo e previsto) relativi agli articoli.",
+			   "it-IT", "La valutazione magazzino dettagliata mostra la data, il numero, la descrizione il codice ubicazione, il tipo di documento, il numero di movimento, la quantità fatturata, l'importo dei costi (effettivo e previsto), e il costo registrato in C/G (effettivo e previsto) relativi agli articoli.",
+			   "nb-NO", "Den detaljerte beholdningsverdisettingen viser dato, varenummer og beskrivelse, lokasjonskode, dokumenttype, oppføringsnummer, fakturert antall, kostbeløp (faktisk), kostbeløp (forventet), bokført kost (faktisk) og kostnad bokført i finans (forventet).",
+			   "nl-BE", "De gedetailleerde voorraadwaardering bevat datum, artikelnummer en -beschrijving, locatiecode, documenttype, postnummer, gefactureerd aantal, kostenbedrag (werkelijk), kostenbedrag (verwacht), naar grootboek geboekte kosten (werkelijk) en naar grootboek geboekte kosten (verwacht).",
+			   "nl-NL", "De gedetailleerde voorraadwaardering bevat datum, artikelnummer en -beschrijving, locatiecode, documenttype, postnummer, gefactureerd aantal, kostenbedrag (werkelijk), kostenbedrag (verwacht), naar grootboek geboekte kosten (werkelijk) en naar grootboek geboekte kosten (verwacht).",
+			   "sv-SE", "Den detaljerade lagervärderingen visar datum, artikelnummer och beskrivning, lagerställekod, dokumenttyp, transaktionsnummer, fakturerat antal, kostnadsbelopp (aktuellt), kostnadsbelopp (förväntat), kostnad bokförd i redovisning (utfall) och kostnad bokförd i redovisning (förväntad).",
+			   "The detailed inventory valuation shows date, item number and description, location code, document type, entry number, invoiced quantity, cost amount (actual), cost amount (expected), cost posted to G/L (actual), and cost posted to G/L (expected)."
+			)
+		isHidden
+		lineageTag: 83455c99-98cd-4cd4-bb93-8ad177eef17d
+
+	measure 'The inventory valuation by location shows location and ending balance value. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Hodnota zásob podle lokace ukazuje lokaci a hodnotu koncového salda.",
+			   "da-DK", "Lagerværdien efter placering viser placering og slutsaldoværdi.",
+			   "de-AT", "Die Lagerbewertung nach Lagerort zeigt den Lagerort und den Endsaldowert an.",
+			   "de-CH", "Die Lagerbewertung nach Lagerort zeigt den Lagerort und den Endsaldowert an.",
+			   "de-DE", "Die Lagerbewertung nach Lagerort zeigt den Lagerort und den Endsaldowert an.",
+			   "en-AU", "The inventory valuation by location shows location and ending balance value.",
+			   "en-CA", "The inventory valuation by location shows location and ending balance value.",
+			   "en-GB", "The inventory valuation by location shows location and ending balance value.",
+			   "en-NZ", "The inventory valuation by location shows location and ending balance value.",
+			   "es-ES", "La valoración del inventario por almacén muestra el almacén y el valor del saldo final.",
+			   "es-MX", "La valuación de inventarios por almacén muestra el almacén y el valor del saldo final.",
+			   "fi-FI", "Varaston arvostus sijainneittain näyttää sijainnin ja loppusaldon arvon.",
+			   "fr-BE", "L’évaluation du stock par magasin indique le magasin et la valeur du solde de clôture.",
+			   "fr-CA", "L’évaluation de l’inventaire par emplacement indique l’emplacement et la valeur du solde de clôture.",
+			   "fr-CH", "L’évaluation du stock par magasin indique le magasin et la valeur du solde de clôture.",
+			   "fr-FR", "L’évaluation du stock par magasin indique le magasin et la valeur du solde de clôture.",
+			   "is-IS", "„Birgðavirði eftir staðsetningu“ sýnir staðsetningu og virði lokastöðu.",
+			   "it-CH", "La valutazione magazzino per ubicazione mostra l'ubicazione e il valore del saldo finale.",
+			   "it-IT", "La valutazione magazzino per ubicazione mostra l'ubicazione e il valore del saldo finale.",
+			   "nb-NO", "Beholdningsverdisettingen etter lokasjon viser lokasjon og sluttsaldoverdi.",
+			   "nl-BE", "De voorraadwaardering per locatie bevat de locatie en de eindsaldowaarde.",
+			   "nl-NL", "De voorraadwaardering per locatie bevat de locatie en de eindsaldowaarde.",
+			   "sv-SE", "Lagervärdering per plats visar lagerställe och slutsaldo.",
+			   "The inventory valuation by location shows location and ending balance value."
+			)
+		isHidden
+		lineageTag: 333e1c49-0b50-48be-9cf3-5c522e343371
+
+	measure 'The inventory valuation by item shows item category and ending balance quantity. Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Hodnota zásob podle zboží zobrazuje kategorii zboží a konečné zůstatkové množství.",
+			   "da-DK", "Lagerværdien efter vare viser varekategori og slutsaldoantal.",
+			   "de-AT", "Die Lagerbewertung nach Artikel zeigt die Artikelkategorie und die Endsaldomenge an.",
+			   "de-CH", "Die Lagerbewertung nach Artikel zeigt die Artikelkategorie und die Endsaldomenge an.",
+			   "de-DE", "Die Lagerbewertung nach Artikel zeigt die Artikelkategorie und die Endsaldomenge an.",
+			   "en-AU", "The inventory valuation by item shows item category and ending balance quantity.",
+			   "en-CA", "The inventory valuation by item shows item category and ending balance quantity.",
+			   "en-GB", "The inventory valuation by item shows item category and ending balance quantity.",
+			   "en-NZ", "The inventory valuation by item shows item category and ending balance quantity.",
+			   "es-ES", "La valoración de inventario por producto muestra la categoría del producto y la cantidad del saldo final.",
+			   "es-MX", "La valuación de inventarios por producto muestra la categoría del producto y la cantidad del saldo final.",
+			   "fi-FI", "Varaston arvostus nimikkeen mukaan näyttää nimikeluokan ja loppusaldon määrän.",
+			   "fr-BE", "L’évaluation du stock par article indique la catégorie d’article et la quantité du solde final.",
+			   "fr-CA", "L’évaluation de l’inventaire par article indique la catégorie d’article et la quantité du solde de clôture.",
+			   "fr-CH", "L’évaluation du stock par article indique la catégorie d’article et la quantité du solde final.",
+			   "fr-FR", "L’évaluation du stock par article indique la catégorie d’article et la quantité du solde final.",
+			   "is-IS", "„Birgðavirði eftir vöru“ sýnir vöruflokk og magn lokastöðu.",
+			   "it-CH", "La valutazione magazzino per articolo mostra la categoria e la quantità del saldo finale relativi all'articolo.",
+			   "it-IT", "La valutazione magazzino per articolo mostra la categoria e la quantità del saldo finale relativi all'articolo.",
+			   "nb-NO", "Beholdningsverdisettingen etter vare viser varekategori og sluttsaldoantall.",
+			   "nl-BE", "De voorraadwaardering per artikel bevat artikelcategorie en eindsaldoaantal.",
+			   "nl-NL", "De voorraadwaardering per artikel bevat artikelcategorie en eindsaldoaantal.",
+			   "sv-SE", "Lagervärdering per artikel visar artikelkategori och kvantitet utgående saldo.",
+			   "The inventory valuation by item shows item category and ending balance quantity."
+			)
+		isHidden
+		lineageTag: a125c483-de11-4028-b0b8-03a457c01e75
+
+	measure 'Last Refreshed Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Naposledy aktualizováno",
+			   "da-DK", "Sidst opdateret",
+			   "de-AT", "Zuletzt aktualisiert",
+			   "de-CH", "Zuletzt aktualisiert",
+			   "de-DE", "Zuletzt aktualisiert",
+			   "en-AU", "Last Refreshed",
+			   "en-CA", "Last Refreshed",
+			   "en-GB", "Last Refreshed",
+			   "en-NZ", "Last Refreshed",
+			   "es-ES", "Última actualización",
+			   "es-MX", "Última actualización",
+			   "fi-FI", "Päivitetty viimeksi",
+			   "fr-BE", "Dernière actualisation",
+			   "fr-CA", "Dernière actualisation",
+			   "fr-CH", "Dernière actualisation",
+			   "fr-FR", "Dernière actualisation",
+			   "is-IS", "Síðast uppfært",
+			   "it-CH", "Ultimo aggiornamento",
+			   "it-IT", "Ultimo aggiornamento",
+			   "nb-NO", "Sist oppdatert",
+			   "nl-BE", "Laatst vernieuwd",
+			   "nl-NL", "Laatst vernieuwd",
+			   "sv-SE", "Uppdaterades senast",
+			   "Last Refreshed"
+			)
+		isHidden
+		lineageTag: c3a5bda3-da48-4f6d-b50a-da140bb2d154
+
+	measure 'Company Name Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Název společnosti",
+			   "da-DK", "Virksomhedsnavn",
+			   "de-AT", "Mandantenname",
+			   "de-CH", "Mandantenname",
+			   "de-DE", "Mandantenname",
+			   "en-AU", "Company Name",
+			   "en-CA", "Company Name",
+			   "en-GB", "Company Name",
+			   "en-NZ", "Company Name",
+			   "es-ES", "Nombre empresa",
+			   "es-MX", "Nombre empresa",
+			   "fi-FI", "Yrityksen nimi",
+			   "fr-BE", "Nom de la société",
+			   "fr-CA", "Nom de la compagnie",
+			   "fr-CH", "Nom de la société",
+			   "fr-FR", "Nom de la société",
+			   "is-IS", "Heiti fyrirtækis",
+			   "it-CH", "Nome società",
+			   "it-IT", "Nome società",
+			   "nb-NO", "Selskapsnavn",
+			   "nl-BE", "Bedrijfsnaam",
+			   "nl-NL", "Bedrijfsnaam",
+			   "sv-SE", "Företagsnamn",
+			   "Company Name"
+			)
+		isHidden
+		lineageTag: e5496123-4911-43ad-afb0-42def5b81067
+
+	measure 'Inventory value as of  Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Hodnota zásob k datu ",
+			   "da-DK", "Lagerværdi pr. ",
+			   "de-AT", "Lagerbestandswert zum ",
+			   "de-CH", "Lagerbestandswert zum ",
+			   "de-DE", "Lagerbestandswert zum ",
+			   "en-AU", "Inventory value as of ",
+			   "en-CA", "Inventory value as of ",
+			   "en-GB", "Inventory value as of ",
+			   "en-NZ", "Inventory value as of ",
+			   "es-ES", "Valor de inventario a partir de ",
+			   "es-MX", "Valor de inventario a partir de ",
+			   "fi-FI", "Varaston arvo ",
+			   "fr-BE", "Valeur stock au ",
+			   "fr-CA", "Valeur inventaire au ",
+			   "fr-CH", "Valeur stock au ",
+			   "fr-FR", "Valeur stock au ",
+			   "is-IS", "Birgðavirði frá og með ",
+			   "it-CH", "Valore magazzino a partire da ",
+			   "it-IT", "Valore magazzino a partire da ",
+			   "nb-NO", "Beholdningsverdi per ",
+			   "nl-BE", "Voorraadwaarde vanaf ",
+			   "nl-NL", "Voorraadwaarde vanaf ",
+			   "sv-SE", "Lagervärde per ",
+			   "Inventory value as of "
+			)
+		isHidden
+		lineageTag: bbe8e3aa-ce26-4d57-8b36-0af79138d631
+
+	measure 'Ending Balance Value and Invoiced Quantity by Location Code Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Hodnota koncového salda a fakturované množství podle kódu lokace",
+			   "da-DK", "Slutsaldoværdi og faktureret antal efter lokationskode",
+			   "de-AT", "Endsaldowert und fakturierte Menge nach Lagerortcode",
+			   "de-CH", "Endsaldowert und fakturierte Menge nach Lagerortcode",
+			   "de-DE", "Endsaldowert und fakturierte Menge nach Lagerortcode",
+			   "en-AU", "Ending Balance Value and Invoiced Quantity by Location Code",
+			   "en-CA", "Ending Balance Value and Invoiced Quantity by Location Code",
+			   "en-GB", "Ending Balance Value and Invoiced Quantity by Location Code",
+			   "en-NZ", "Ending Balance Value and Invoiced Quantity by Location Code",
+			   "es-ES", "Valor del saldo final y cantidad facturada por código de almacén",
+			   "es-MX", "Valor del saldo final y cantidad facturada por código de almacén",
+			   "fi-FI", "Loppusaldon arvo ja laskutettu määrä sijaintikoodin mukaan",
+			   "fr-BE", "Valeur du solde de clôture et quantité facturée par code magasin",
+			   "fr-CA", "Valeur du solde de clôture et quantité facturée par code d’emplacement",
+			   "fr-CH", "Valeur du solde de clôture et quantité facturée par code magasin",
+			   "fr-FR", "Valeur du solde de clôture et quantité facturée par code magasin",
+			   "is-IS", "Virði lokastöðu og reikningsfært magn eftir staðsetningarkóða",
+			   "it-CH", "Valore saldo finale e quantità fatturata per codice ubicazione",
+			   "it-IT", "Valore saldo finale e quantità fatturata per codice ubicazione",
+			   "nb-NO", "Sluttsaldoverdi og fakturert antall etter lokasjonskode",
+			   "nl-BE", "Eindsaldowaarde en gefactureerd aantal per locatiecode",
+			   "nl-NL", "Eindsaldowaarde en gefactureerd aantal per locatiecode",
+			   "sv-SE", "Kvantitet utgående saldo och fakturerat antal per lagerställekod",
+			   "Ending Balance Value and Invoiced Quantity by Location Code"
+			)
+		isHidden
+		lineageTag: 5834f8a3-3cd2-4bdf-a02c-14b350750409
+
+	measure 'Ending Balance Value, Ending Balance Posted to G/L and Variance by Month Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Hodnota koncového salda, konečné zaúčtované saldo a odchylka podle měsíce",
+			   "da-DK", "Slutsaldoværdi, Slutsaldo bogført til finans og Afvigelse efter måned",
+			   "de-AT", "Endsaldowert, am Ende in der Finanzbuchhaltung geb. Saldo und Varianz nach Monat",
+			   "de-CH", "Endsaldowert, am Ende in der Finanzbuchhaltung geb. Saldo und Varianz nach Monat",
+			   "de-DE", "Endsaldowert, am Ende in der Finanzbuchhaltung geb. Saldo und Varianz nach Monat",
+			   "en-AU", "Ending Balance Value, Ending Balance Posted to G/L and Variance by Month",
+			   "en-CA", "Ending Balance Value, Ending Balance Posted to G/L and Variance by Month",
+			   "en-GB", "Ending Balance Value, Ending Balance Posted to G/L and Variance by Month",
+			   "en-NZ", "Ending Balance Value, Ending Balance Posted to G/L and Variance by Month",
+			   "es-ES", "Valor de saldo final, saldo final registrado en contabilidad y desviación por mes",
+			   "es-MX", "Valor de saldo final, saldo final registrado en contabilidad y desviación por mes",
+			   "fi-FI", "Loppusaldon arvo, Kirjanpitoon kirjattu loppusaldo ja Vaihtelu kuukauden mukaan",
+			   "fr-BE", "Valeur du solde de clôture, Solde de clôture validé en comptabilité et Écart par mois",
+			   "fr-CA", "Valeur du solde de clôture, Solde de clôture reporté au GL et Écart par mois",
+			   "fr-CH", "Valeur du solde de clôture, Solde de clôture validé en comptabilité et Écart par mois",
+			   "fr-FR", "Valeur du solde de clôture, Solde de clôture validé en comptabilité et Écart par mois",
+			   "is-IS", "Virði lokastöðu, lokastaða bókuð í fjárhag og frávik eftir mánuði",
+			   "it-CH", "Valore saldo finale, saldo finale registrato in C/G e scostamento per mese",
+			   "it-IT", "Valore saldo finale, saldo finale registrato in C/G e scostamento per mese",
+			   "nb-NO", "Sluttsaldoverdi, sluttsaldo bokført i finans og avvik etter måned",
+			   "nl-BE", "Eindsaldowaarde, eindsaldo geboekt naar GB en verschil per maand",
+			   "nl-NL", "Eindsaldowaarde, eindsaldo geboekt naar GB en verschil per maand",
+			   "sv-SE", "Värde för slutsaldo, Slutsaldo bokförd i redovisning och Varians per månad",
+			   "Ending Balance Value, Ending Balance Posted to G/L and Variance by Month"
+			)
+		isHidden
+		lineageTag: 6f75e877-e98c-479b-ba7e-5989e457f2a6
+
+	measure 'Ending Balance Quantity by Item Category Code Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Množství koncového salda podle kódu kategorie zboží",
+			   "da-DK", "Slutsaldoantal efter varekategorikode",
+			   "de-AT", "Endsaldomenge nach Artikelkategoriencode",
+			   "de-CH", "Endsaldomenge nach Artikelkategoriencode",
+			   "de-DE", "Endsaldomenge nach Artikelkategoriencode",
+			   "en-AU", "Ending Balance Quantity by Item Category Code",
+			   "en-CA", "Ending Balance Quantity by Item Category Code",
+			   "en-GB", "Ending Balance Quantity by Item Category Code",
+			   "en-NZ", "Ending Balance Quantity by Item Category Code",
+			   "es-ES", "Cantidad de saldo final por código de categoría producto",
+			   "es-MX", "Cantidad de saldo final por código de categoría producto",
+			   "fi-FI", "Loppusaldon määrä nimikeluokan koodin mukaan",
+			   "fr-BE", "Quantité par code catégorie article solde de clôture",
+			   "fr-CA", "Quantité par code catégorie article solde de clôture",
+			   "fr-CH", "Quantité par code catégorie article solde de clôture",
+			   "fr-FR", "Quantité par code catégorie article solde de clôture",
+			   "is-IS", "Magn lokastöðu eftir vöruflokkskóða",
+			   "it-CH", "Quantità saldo finale per codice categoria articolo",
+			   "it-IT", "Quantità saldo finale per codice categoria articolo",
+			   "nb-NO", "Sluttsaldoandtapp etter varekategorikode",
+			   "nl-BE", "Eindsaldoaantal per artikelcategoriecode",
+			   "nl-NL", "Eindsaldoaantal per artikelcategoriecode",
+			   "sv-SE", "Kvantitet utgående saldo per artikelkategorikod",
+			   "Ending Balance Quantity by Item Category Code"
+			)
+		isHidden
+		lineageTag: 66cfe684-fe3c-4423-a724-8e9e2c02ae48
+
+	measure 'Ending Balance Value by Location Name Label' =
+			SWITCH(USERCULTURE(),
+			   "cs-CZ", "Hodnota koncového salda podle názvu lokace",
+			   "da-DK", "Slutsaldoværdi efter placeringsnavn",
+			   "de-AT", "Endsaldowert nach Lagerortname",
+			   "de-CH", "Endsaldowert nach Lagerortname",
+			   "de-DE", "Endsaldowert nach Lagerortname",
+			   "en-AU", "Ending Balance Value by Location Name",
+			   "en-CA", "Ending Balance Value by Location Name",
+			   "en-GB", "Ending Balance Value by Location Name",
+			   "en-NZ", "Ending Balance Value by Location Name",
+			   "es-ES", "Valor de saldo final por nombre de almacén",
+			   "es-MX", "Valor de saldo final por nombre de almacén",
+			   "fi-FI", "Loppusaldon arvo sijainnin nimen mukaan",
+			   "fr-BE", "Valeur du solde de clôture par nom de magasin",
+			   "fr-CA", "Valeur du solde de clôture par nom d’emplacement",
+			   "fr-CH", "Valeur du solde de clôture par nom de magasin",
+			   "fr-FR", "Valeur du solde de clôture par nom de magasin",
+			   "is-IS", "Virði lokastöðu eftir heiti staðsetningar",
+			   "it-CH", "Valore saldo finale per nome ubicazione",
+			   "it-IT", "Valore saldo finale per nome ubicazione",
+			   "nb-NO", "Sluttsaldoverdi etter lokasjonsnavn",
+			   "nl-BE", "Eindsaldowaarde per locatienaam",
+			   "nl-NL", "Eindsaldowaarde per locatienaam",
+			   "sv-SE", "Värde för slutsaldo per lagerställenamn",
+			   "Ending Balance Value by Location Name"
+			)
+		isHidden
+		lineageTag: 4ab4c29d-5f68-4d56-b3c1-f013ae850ec3
+
+	column unused
+		isHidden
+		displayFolder: unused
+		lineageTag: 899f0ca3-06e9-491e-909f-fe594be185c0
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [unused]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Partition = calculated
+		mode: import
+		source = DATATABLE("unused", STRING, {{"This is a table automatically generated by Translations Builder"}})
+

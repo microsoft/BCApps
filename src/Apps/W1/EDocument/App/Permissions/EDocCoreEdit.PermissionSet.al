@@ -7,10 +7,10 @@ namespace Microsoft.eServices.EDocument;
 
 using Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.EServices.EDocument.OrderMatch;
-using Microsoft.eServices.EDocument.Service.Participant;
-using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.OrderMatch.Copilot;
+using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Service.Participant;
 
 permissionset 6102 "E-Doc. Core - Edit"
 {
@@ -42,6 +42,7 @@ permissionset 6102 "E-Doc. Core - Edit"
         tabledata "E-Document Header Mapping" = IMD,
         tabledata "E-Document Line Mapping" = IMD,
         tabledata "E-Document Purchase Header" = IMD,
-        tabledata "E-Document Purchase Line" = IMD;
+        tabledata "E-Document Purchase Line" = IMD,
+        tabledata "E-Doc Sample Purch. Inv File" = IMD;
 }
 #endif

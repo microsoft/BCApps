@@ -1,8 +1,8 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Sales.Customer;
 using Microsoft.CRM.Contact;
 using Microsoft.Inventory.Item;
+using Microsoft.Sales.Customer;
 using System.Security.User;
 
 table 8008 "Imported Subscription Header"

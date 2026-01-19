@@ -5,9 +5,9 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using System.Telemetry;
 using System.Azure.KeyVault;
 using System.Environment;
+using System.Telemetry;
 
 /// <summary>
 /// Codeunit Shpfy Communication Mgt. (ID 30103).
@@ -36,8 +36,8 @@ codeunit 30103 "Shpfy Communication Mgt."
         MissingApiVersionExpiryDateTxt: Label 'The api version expiry date has not been initialized.', Locked = true;
         ApiVersionExpiryDateAKVSecretNameLbl: Label 'ShopifyApiVersionExpiryDate', Locked = true;
         CannotParseParametersTxt: Label 'Cannot parse parameters.', Locked = true;
-
         ApiVersionNotFoundTxt: Label 'Api version %1 is not found.', Comment = '%1 - api version', Locked = true;
+        GraphQLThrottledTxt: Label 'Shopify GraphQL request %1 was throttled.', Comment = '%1 - request ID', Locked = true;
 
     /// <summary> 
     /// Create Web Request URL.
@@ -158,6 +158,7 @@ codeunit 30103 "Shpfy Communication Mgt."
         if JResponse.ReadFrom(ReceivedData) then begin
             ShpfyGraphQLRateLimit.SetQueryCost(ShpfyJsonHelper.GetJsonToken(JResponse, 'extensions.cost.throttleStatus'));
             while JResponse.AsObject().Contains('errors') and Format(JResponse).Contains('THROTTLED') do begin
+                LogGraphQLThrottledTelemetry(JResponse, ExpectedCost, ResponseHeaders);
                 ShpfyGraphQLRateLimit.WaitForRequestAvailable(ExpectedCost);
                 if JResponse.ReadFrom(ExecuteWebRequest(CreateWebRequestURL('graphql.json'), 'POST', GraphQLQuery, ResponseHeaders, 3, CheckOutgoingRequest)) then
                     ShpfyGraphQLRateLimit.SetQueryCost(ShpfyJsonHelper.GetJsonToken(JResponse, 'extensions.cost.throttleStatus'));
@@ -215,7 +216,6 @@ codeunit 30103 "Shpfy Communication Mgt."
         RetryCounter: Integer;
     begin
         FeatureTelemetry.LogUptake('0000HUV', 'Shopify', Enum::"Feature Uptake Status"::Used);
-        FeatureTelemetry.LogUsage('0000IF5', 'Shopify', 'Shopify web request executed.');
         if CheckOutgoingRequest then
             CheckOutgoingRequests(Url, Method, Request);
 
@@ -473,6 +473,39 @@ codeunit 30103 "Shpfy Communication Mgt."
         if HttpResponseMessage.Headers().GetValues('X-Request-ID', Values) then
             RequestId := Values[1];
         Session.LogMessage('0000K8W', StrSubstNo(RequestTelemetryLbl, Method, RequestId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
+    end;
+
+    local procedure LogGraphQLThrottledTelemetry(JResponse: JsonToken; ExpectedCost: Decimal; ResponseHeaders: HttpHeaders)
+    var
+        ShpfyJsonHelper: Codeunit "Shpfy Json Helper";
+        CustomDimensions: Dictionary of [Text, Text];
+        Values: array[10] of Text;
+        AvailableTokens: Decimal;
+        RestoreRate: Decimal;
+        MaxAvailable: Decimal;
+        RequestedCost: Decimal;
+        ActualCost: Decimal;
+        RequestId: Text;
+    begin
+        AvailableTokens := ShpfyJsonHelper.GetValueAsDecimal(JResponse, 'extensions.cost.throttleStatus.currentlyAvailable');
+        RestoreRate := ShpfyJsonHelper.GetValueAsDecimal(JResponse, 'extensions.cost.throttleStatus.restoreRate');
+        MaxAvailable := ShpfyJsonHelper.GetValueAsDecimal(JResponse, 'extensions.cost.throttleStatus.maximumAvailable');
+        RequestedCost := ShpfyJsonHelper.GetValueAsDecimal(JResponse, 'extensions.cost.requestedQueryCost');
+        ActualCost := ShpfyJsonHelper.GetValueAsDecimal(JResponse, 'extensions.cost.actualQueryCost');
+        if ResponseHeaders.GetValues('X-Request-ID', Values) then
+            RequestId := Values[1];
+
+        CustomDimensions.Add('Category', CategoryTok);
+        CustomDimensions.Add('ShopId', Format(Shop."Shop Id"));
+        CustomDimensions.Add('RequestId', RequestId);
+        CustomDimensions.Add('ExpectedCost', Format(ExpectedCost, 0, 9));
+        CustomDimensions.Add('RequestedCost', Format(RequestedCost, 0, 9));
+        CustomDimensions.Add('ActualCost', Format(ActualCost, 0, 9));
+        CustomDimensions.Add('AvailableTokens', Format(AvailableTokens, 0, 9));
+        CustomDimensions.Add('MaxAvailable', Format(MaxAvailable, 0, 9));
+        CustomDimensions.Add('RestoreRate', Format(RestoreRate, 0, 9));
+
+        Session.LogMessage('0000QWH', StrSubstNo(GraphQLThrottledTxt, RequestId), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
     end;
 
     local procedure GetQueryCost(Response: Text): Integer

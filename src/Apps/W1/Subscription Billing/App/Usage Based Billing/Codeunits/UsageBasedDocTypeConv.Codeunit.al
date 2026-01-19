@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Sales.Document;
 using Microsoft.Purchases.Document;
+using Microsoft.Sales.Document;
 
 codeunit 8024 "Usage Based Doc. Type Conv."
 {

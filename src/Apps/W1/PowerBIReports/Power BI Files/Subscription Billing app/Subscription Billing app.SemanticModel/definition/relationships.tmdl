@@ -1,0 +1,119 @@
+relationship df09f516-e31b-c6f6-b93e-464786c27f86
+	fromColumn: 'Customer Contract Line'.'Customer Contract No.'
+	toColumn: 'Customer Contract'.'Customer Contract No.'
+
+relationship 104f27b6-1b89-bc22-306f-74144205b97a
+	fromColumn: 'Vendor Contract Line'.'Vendor Contract No.'
+	toColumn: 'Vendor Contract'.'Vendor Contract No.'
+
+relationship 66cbba4c-a6d7-f1e8-bfb6-2402eabd5350
+	fromColumn: 'Customer Contract Line'.'Customer No.'
+	toColumn: Customers.'Customer No.'
+
+relationship c4068136-d140-f61b-c697-37b5c904889d
+	fromColumn: 'Vendor Contract Line'.'Vendor No.'
+	toColumn: Vendors.'Vendor No.'
+
+relationship f8f74bd9-53fb-6c01-302f-083dbf2f761d
+	fromColumn: 'Customer Contract Deferrals'.'Dimension Set ID'
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship c9d8503a-7be1-4a47-4a93-1c01ea3b6fb4
+	fromColumn: 'Vendor Contract Deferrals'.'Dimension Set ID'
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship 0991a7fd-eb08-b168-2040-dbf20073b8e9
+	isActive: false
+	fromColumn: 'Customer Contract Line'.'Dimension Set ID'
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship 28fa964c-4937-38ca-408a-93ad2b5ddaa4
+	isActive: false
+	fromColumn: 'Vendor Contract Line'.'Dimension Set ID'
+	toColumn: 'Dimension Sets'.dimensionSetID
+
+relationship d13fc6c3-7e69-5cc9-aef9-8c120d2bc00a
+	fromColumn: 'Customer Contract Deferrals'.'Is Released Key'
+	toColumn: 'Is Released'.'Is Released Key'
+
+relationship 74b5a5e5-22bb-7720-4da1-5eb4f39d1b92
+	fromColumn: 'Vendor Contract Deferrals'.'Is Released Key'
+	toColumn: 'Is Released'.'Is Released Key'
+
+relationship 2470fc77-e1e0-ef44-5e0b-f10592ff8886
+	fromColumn: 'Vendor Contract Deferrals'.'Vendor Contract Line Key'
+	toColumn: 'Vendor Contract Line'.'Vendor Contract Line Key'
+
+relationship 316b9a4f-120d-c99f-c29a-720c2f3f47e5
+	fromColumn: 'Customer Contract Deferrals'.'Customer Contract Line Key'
+	toColumn: 'Customer Contract Line'.'Customer Contract Line Key'
+
+relationship 6a7c4c49-c7a9-f11f-e064-2366df85ce3a
+	fromColumn: 'Customer Contract'.'Salesperson Code'
+	toColumn: Salesperson.'Salesperson Code'
+
+relationship b7c5d2ac-1ad7-f927-f924-f4dfe4f205ce
+	fromColumn: 'Customer Billing Forecast'.'Customer Contract Line Key'
+	toColumn: 'Customer Contract Line'.'Customer Contract Line Key'
+
+relationship e2cccd02-d137-840f-5bf1-3419ad98c2e8
+	fromColumn: 'Vendor Billing Forecast'.'Vendor Contract Line Key'
+	toColumn: 'Vendor Contract Line'.'Vendor Contract Line Key'
+
+relationship 89e9cebf-d6c5-6d80-cfbb-5abb46bbbffc
+	fromColumn: 'Customer Contract Line'.'Analysis Date'
+	toColumn: 'Analysis Date'.'Analysis Date'
+
+relationship a4e5873f-5f39-b6ce-dcf7-a10f516112b1
+	fromColumn: 'Vendor Contract Line'.'Analysis Date'
+	toColumn: 'Analysis Date'.'Analysis Date'
+
+relationship 22be9f2f-8eb8-b8f6-d897-3194896b9226
+	fromColumn: 'Customer Contract Changes'.'Customer Contract Line Key'
+	toColumn: 'Customer Contract Line'.'Customer Contract Line Key'
+
+relationship bd002b58-f000-945a-200e-6decb35c24a4
+	fromColumn: 'Vendor Contract Line'.'Subscription Package Key'
+	toColumn: Subscription.'Subscription Package Key'
+
+relationship 88ff94a1-34db-3c4b-4e7c-21266454036a
+	fromColumn: 'Customer Contract Line'.'Subscription Package Key'
+	toColumn: Subscription.'Subscription Package Key'
+
+relationship 80414a26-dae8-1b37-0124-b2ca687e5edd
+	fromColumn: 'Vendor Contract Line'.'Item No.'
+	toColumn: Item.'Item No.'
+
+relationship dc3dc700-54d2-4b88-1476-3ead61000752
+	fromColumn: 'Customer Contract Line'.'Item No.'
+	toColumn: Item.'Item No.'
+
+relationship ef84c36d-381a-72e3-a1c6-2781bebe6630
+	fromColumn: Item.'Item Category Code'
+	toColumn: 'Item Category'.'Item Category Code'
+
+relationship 0f262536-8a91-34a9-ed42-a009cdb01c92
+	fromColumn: 'Customer Contract Deferrals'.'Posting Date'
+	toColumn: Date.Date
+
+relationship e4d09685-a0f0-02f9-5cc7-0d6feadcc3f4
+	fromColumn: 'Vendor Contract Deferrals'.'Posting Date'
+	toColumn: Date.Date
+
+relationship bc5d0b23-a9f1-e2e0-a709-5efe9c6183d2
+	fromColumn: 'Customer Billing Forecast'.'Billing Date'
+	toColumn: Date.Date
+
+relationship aad3924a-bcce-9274-b61d-e083e24f43f5
+	fromColumn: 'Vendor Billing Forecast'.'Billing Date'
+	toColumn: Date.Date
+
+relationship 91982125-2aa3-0a83-87b7-16911234d746
+	isActive: false
+	fromColumn: 'Analysis Date'.'Analysis Date'
+	toColumn: Date.Date
+
+relationship 4e0d5525-21e9-4811-4e56-b4c2176f9b62
+	fromColumn: 'Customer Contract Changes'.Date
+	toColumn: Date.Date
+

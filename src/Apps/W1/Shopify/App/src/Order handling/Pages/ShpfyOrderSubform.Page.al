@@ -5,6 +5,8 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using Microsoft.Inventory.Item;
+
 /// <summary>
 /// Page Shpfy Order Subform (ID 30122).
 /// </summary>
@@ -41,6 +43,17 @@ page 30122 "Shpfy Order Subform"
                     ApplicationArea = All;
                     ShowMandatory = true;
                     ToolTip = 'Specifies the item number.';
+
+                    trigger OnValidate()
+                    var
+                        Item: Record Item;
+                    begin
+                        if Item.Get(Rec."Item No.") then
+                            if Item."Sales Unit of Measure" <> '' then
+                                Rec."Unit of Measure Code" := Item."Sales Unit of Measure"
+                            else
+                                Rec."Unit of Measure Code" := Item."Base Unit of Measure";
+                    end;
                 }
                 field(UnitOfMeasureCode; Rec."Unit of Measure Code")
                 {
@@ -77,12 +90,24 @@ page 30122 "Shpfy Order Subform"
                     Editable = false;
                     ToolTip = 'Specifies the prices for one unit on the line.';
                 }
+                field("Presentment Unit Price"; Rec."Presentment Unit Price")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    Visible = PresentmentCurrencyVisible;
+                }
                 field(DiscountAmount; Rec."Discount Amount")
                 {
                     ApplicationArea = All;
                     Editable = false;
                     ToolTip = 'Specifies the discount amount that is granted for the item on the line.';
 
+                }
+                field("Presentment Discount Amount"; Rec."Presentment Discount Amount")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    Visible = PresentmentCurrencyVisible;
                 }
                 field(FullfillableQuantity; Rec."Fulfillable Quantity")
                 {
@@ -117,4 +142,12 @@ page 30122 "Shpfy Order Subform"
             }
         }
     }
+
+    var
+        PresentmentCurrencyVisible: Boolean;
+
+    internal procedure SetShowPresentmentCurrency(Show: Boolean)
+    begin
+        PresentmentCurrencyVisible := Show;
+    end;
 }

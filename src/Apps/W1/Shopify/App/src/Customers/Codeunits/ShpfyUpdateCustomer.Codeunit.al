@@ -5,9 +5,9 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Sales.Customer;
 using Microsoft.CRM.BusinessRelation;
 using Microsoft.Foundation.Address;
+using Microsoft.Sales.Customer;
 
 /// <summary>
 /// Codeunit Shpfy Update Customer (ID 30124).
@@ -134,6 +134,7 @@ codeunit 30124 "Shpfy Update Customer"
         CompanyLocation: Record "Shpfy Company Location";
         ShopifyTaxArea: Record "Shpfy Tax Area";
         ICounty: Interface "Shpfy ICounty";
+        ITaxRegistrationIdMapping: Interface "Shpfy Tax Registration Id Mapping";
     begin
         if not Customer.GetBySystemId(ShopifyCompany."Customer SystemId") then
             exit;
@@ -172,6 +173,9 @@ codeunit 30124 "Shpfy Update Customer"
 
         if CompanyLocation."Shpfy Payment Terms Id" <> 0 then
             Customer.Validate("Payment Terms Code", GetPaymentTermsCodeFromShopifyPaymentTermsId(CompanyLocation."Shpfy Payment Terms Id"));
+
+        ITaxRegistrationIdMapping := Shop."Shpfy Comp. Tax Id Mapping";
+        ITaxRegistrationIdMapping.UpdateTaxRegistrationId(Customer, CompanyLocation."Tax Registration Id");
 
         Customer.Modify();
     end;

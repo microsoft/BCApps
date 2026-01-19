@@ -6,9 +6,9 @@
 namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Integration.Shopify;
-using System.TestLibraries.Utilities;
-using Microsoft.Sales.Customer;
 using Microsoft.Inventory.Item;
+using Microsoft.Sales.Customer;
+using System.TestLibraries.Utilities;
 
 codeunit 139564 "Shpfy Order Refunds Helper"
 {
@@ -253,7 +253,18 @@ codeunit 139564 "Shpfy Order Refunds Helper"
         exit(RefundHeader."Refund Id");
     end;
 
-    internal procedure CreateRefundLine(RefundId: BigInteger; OrderLineId: BigInteger; RestockType: Enum "Shpfy Restock Type")
+    internal procedure CreateRefundHeaderWithPresentmentCurrency(OrderId: BigInteger; Amount: Decimal; ShopCode: Code[20]; PresentmentCurrencyCode: Code[10]; PresentmentAmount: Decimal): BigInteger
+    var
+        RefundHeader: Record "Shpfy Refund Header";
+    begin
+        RefundHeader.Get(CreateRefundHeader(OrderId, 0, Amount, ShopCode));
+        RefundHeader."Presentment Currency Code" := PresentmentCurrencyCode;
+        RefundHeader."Pres. Tot. Refunded Amount" := PresentmentAmount;
+        RefundHeader.Modify(false);
+        exit(RefundHeader."Refund Id");
+    end;
+
+    internal procedure CreateRefundLine(RefundId: BigInteger; OrderLineId: BigInteger; RestockType: Enum "Shpfy Restock Type"): BigInteger
     var
         RefundLine: Record "Shpfy Refund Line";
         RefundHeader: Record "Shpfy Refund Header";
@@ -270,6 +281,7 @@ codeunit 139564 "Shpfy Order Refunds Helper"
         RefundLine."Subtotal Amount" := 156.38;
         RefundLine."Can Create Credit Memo" := RefundsAPI.IsNonZeroOrReturnRefund(RefundHeader) or (RefundLine."Restock Type" = RefundLine."Restock Type"::Return);
         RefundLine.Insert();
+        exit(RefundLine."Refund Line Id");
     end;
 
     internal procedure CreateRefundLine(RefundId: BigInteger; OrderLineId: BigInteger; LocationId: BigInteger; RestockType: Enum "Shpfy Restock Type")
@@ -290,6 +302,18 @@ codeunit 139564 "Shpfy Order Refunds Helper"
         RefundLine."Can Create Credit Memo" := RefundsAPI.IsNonZeroOrReturnRefund(RefundHeader) or (RefundLine."Restock Type" = RefundLine."Restock Type"::Return);
         RefundLine."Location Id" := LocationId;
         RefundLine.Insert();
+    end;
+
+    internal procedure CreateRefundLineWithPresentmentCurrency(RefundId: BigInteger; OrderLineId: BigInteger; Amount: Decimal; PresentmentAmount: Decimal)
+    var
+        RefundLine: Record "Shpfy Refund Line";
+    begin
+        RefundLine.Get(RefundId, CreateRefundLine(RefundId, OrderLineId, "Shpfy Restock Type"::Return));
+        RefundLine.Amount := Amount;
+        RefundLine."Subtotal Amount" := Amount;
+        RefundLine."Presentment Amount" := PresentmentAmount;
+        RefundLine."Presentment Subtotal Amount" := PresentmentAmount;
+        RefundLine.Modify(false);
     end;
 
     local procedure GetItem(): Record Item

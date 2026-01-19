@@ -1,0 +1,37 @@
+table Country/Region
+	lineageTag: 60f5456e-1b5c-4448-9a86-e4c1970e18f3
+
+	column 'Country Region Code'
+		dataType: string
+		isKey
+		lineageTag: 0d932f35-6962-429c-820f-e5833623f366
+		dataCategory: Country
+		summarizeBy: none
+		sourceColumn: Country Region Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Country Region Name'
+		dataType: string
+		lineageTag: f41d290c-5bc0-4d88-93e0-f9c066311f9d
+		summarizeBy: none
+		sourceColumn: Country Region Name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Country/Region = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="pbiCountryRegions",Signature="table"]}[Data],
+				    #"Renamed Columns" = Table.RenameColumns(TableData,{{"code", "Country Region Code"}, {"name", "Country Region Name"}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns",{"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

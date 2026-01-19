@@ -6,9 +6,9 @@
 namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Integration.Shopify;
-using System.TestLibraries.Utilities;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
+using System.TestLibraries.Utilities;
 
 /// <summary>
 /// Codeunit Shpfy Inventory API Test (ID 139586).

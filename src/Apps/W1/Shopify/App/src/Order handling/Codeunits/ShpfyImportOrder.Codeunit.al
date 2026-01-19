@@ -5,9 +5,9 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Sales.Document;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Sales.Document;
 
 /// <summary>
 /// Codeunit Shpfy Import Order (ID 30161).
@@ -353,6 +353,7 @@ codeunit 30161 "Shpfy Import Order"
         CompanyId: BigInteger;
         MainContactId: BigInteger;
         LocationId: BigInteger;
+        RetailLocationId: BigInteger;
         CompanyName: Text;
         EMail: Text;
         FirstName: Text;
@@ -498,6 +499,13 @@ codeunit 30161 "Shpfy Import Order"
             end;
         end;
         #endregion
+        #region Retail Location
+        if JsonHelper.GetJsonObject(JOrder, JObject, 'retailLocation') then begin
+            RetailLocationId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JOrder, 'retailLocation.legacyResourceId'));
+            OrderHeaderRecordRef.Field(OrderHeader.FieldNo("Retail Location Id")).Value := RetailLocationId;
+            JsonHelper.GetValueIntoField(JOrder, 'retailLocation.name', OrderHeaderRecordRef, OrderHeader.FieldNo("Retail Location Name"));
+        end;
+        #endregion
         OrderHeaderRecordRef.SetTable(OrderHeader);
         OrderHeader."Currency Code" := TranslateCurrencyCode(OrderHeader."Currency Code");
         OrderHeader."Presentment Currency Code" := TranslateCurrencyCode(OrderHeader."Presentment Currency Code");
@@ -639,11 +647,8 @@ codeunit 30161 "Shpfy Import Order"
         Currency: Record Currency;
         GeneralLedgerSetup: Record "General Ledger Setup";
         CurrencyCode: Code[10];
-        IsHandled: Boolean;
     begin
-        OrderEvents.OnBeforeTranslateCurrencyCode(ShopifyCurrencyCode, CurrencyCode, IsHandled);
-        if not IsHandled then
-            Currency.SetLoadFields(Code);
+        Currency.SetLoadFields(Code);
         Currency.SetRange("ISO Code", CopyStr(ShopifyCurrencyCode, 1, 3));
         if Currency.FindFirst() then
             CurrencyCode := Currency.Code;
@@ -802,6 +807,7 @@ codeunit 30161 "Shpfy Import Order"
             JsonHelper.GetValueIntoField(JToken, 'ratePercentage', RecordRef, OrderTaxLine.FieldNo("Rate %"));
             JsonHelper.GetValueIntoField(JToken, 'priceSet.shopMoney.amount', RecordRef, OrderTaxLine.FieldNo(Amount));
             JsonHelper.GetValueIntoField(JToken, 'priceSet.presentmentMoney.amount', RecordRef, OrderTaxLine.FieldNo("Presentment Amount"));
+            JsonHelper.GetValueIntoField(JToken, 'channelLiable', RecordRef, OrderTaxLine.FieldNo("Channel Liable"));
             RecordRef.Insert(true);
             RecordRef.Close();
         end;

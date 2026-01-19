@@ -1,21 +1,21 @@
 namespace Microsoft.SubscriptionBilling;
 
-using System.Utilities;
-using System.Security.User;
-using System.Reflection;
-using System.Environment.Configuration;
-using Microsoft.Foundation.PaymentTerms;
-using Microsoft.Foundation.Address;
-using Microsoft.Foundation.NoSeries;
-using Microsoft.Foundation.AuditCodes;
-using Microsoft.Purchases.Vendor;
-using Microsoft.CRM.Contact;
-using Microsoft.CRM.Team;
-using Microsoft.CRM.BusinessRelation;
-using Microsoft.CRM.Outlook;
-using Microsoft.Finance.Dimension;
-using Microsoft.Finance.Currency;
 using Microsoft.Bank.BankAccount;
+using Microsoft.CRM.BusinessRelation;
+using Microsoft.CRM.Contact;
+using Microsoft.CRM.Outlook;
+using Microsoft.CRM.Team;
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.Dimension;
+using Microsoft.Foundation.Address;
+using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Purchases.Vendor;
+using System.Environment.Configuration;
+using System.Reflection;
+using System.Security.User;
+using System.Utilities;
 
 table 8063 "Vendor Subscription Contract"
 {
@@ -1592,14 +1592,14 @@ table 8063 "Vendor Subscription Contract"
             until VendorContractLine.Next() = 0;
     end;
 
-    internal procedure CreateVendorContractLineFromServiceCommitment(ServiceCommitment: Record "Subscription Line")
+    procedure CreateVendorContractLineFromServiceCommitment(ServiceCommitment: Record "Subscription Line")
     var
         VendorContractLine: Record "Vend. Sub. Contract Line";
     begin
         CreateVendorContractLineFromServiceCommitment(ServiceCommitment, ServiceCommitment."Subscription Contract No.", VendorContractLine);
     end;
 
-    internal procedure CreateVendorContractLineFromServiceCommitment(var ServiceCommitment: Record "Subscription Line"; ContractNo: Code[20]; var VendorContractLine: Record "Vend. Sub. Contract Line")
+    procedure CreateVendorContractLineFromServiceCommitment(var ServiceCommitment: Record "Subscription Line"; ContractNo: Code[20]; var VendorContractLine: Record "Vend. Sub. Contract Line")
     var
         ServiceObject: Record "Subscription Header";
         VendorContract: Record "Vendor Subscription Contract";

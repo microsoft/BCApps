@@ -1,9 +1,9 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Pricing;
-using Microsoft.Finance.Dimension;
-using Microsoft.Finance.Currency;
 
 table 8073 "Subscription Line Archive"
 {
@@ -65,7 +65,7 @@ table 8073 "Subscription Line Archive"
             Caption = 'Calculation Base Amount';
             MinValue = 0;
             BlankZero = true;
-            AutoFormatType = 1;
+            AutoFormatType = 2;
             AutoFormatExpression = Rec."Currency Code";
         }
         field(12; "Calculation Base %"; Decimal)

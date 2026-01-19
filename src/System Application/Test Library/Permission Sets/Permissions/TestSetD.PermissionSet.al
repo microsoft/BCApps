@@ -5,8 +5,8 @@
 
 namespace System.TestLibraries.Security.AccessControl;
 
-using System.TestLibraries.Reflection;
 using System.Security.AccessControl;
+using System.TestLibraries.Reflection;
 
 permissionset 133404 "Test Set D"
 {

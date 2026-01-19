@@ -1,6 +1,8 @@
 Param(
     [Hashtable] $parameters,
-    [switch] $DisableTestIsolation
+    [switch] $DisableTestIsolation,
+    [validateSet("UnitTest","IntegrationTest", "Uncategorized")]
+    [string] $TestType
 )
 
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
@@ -42,7 +44,7 @@ function Invoke-TestsWithReruns {
         } else {
             $attempt++
             $parameters["ReRun"] = $true
-            if ($attempt -gt $maxReruns) {
+            if ($attempt -ge $maxReruns) {
                 Write-Host "Tests failed after $maxReruns attempts."
                 return $false
             } else {
@@ -52,13 +54,26 @@ function Invoke-TestsWithReruns {
     }
 }
 
-if ($DisableTestIsolation)
-{
-    $parameters["requiredTestIsolation"] = "Disabled" # filtering on tests that require Disabled Test Isolation
-    $parameters["testRunnerCodeunitId"] = "130451" # Test Runner with disabled test isolation
+if ($null -ne $TestType) {
+    Write-Host "Using test type $TestType"
+    $parameters["testType"] = $TestType
 }
 
 $parameters["disabledTests"] = @(Get-DisabledTests) # Add disabled tests to parameters
 $parameters["renewClientContextBetweenTests"] = $true
+
+if ($DisableTestIsolation)
+{
+    Write-Host "Using RequiredTestIsolation: Disabled"
+    $parameters["requiredTestIsolation"] = "Disabled" # filtering on tests that require Disabled Test Isolation
+    $parameters["testRunnerCodeunitId"] = "130451" # Test Runner with disabled test isolation
+
+    return Invoke-TestsWithReruns -parameters $parameters -maxReruns 1 # do not retry for Isolation Disabled tests, as they leave traces in the DB
+} else
+{   # this is neded to reset the parameters, in case of previous run with -DisableTestIsolation
+    Write-Host "Using RequiredTestIsolation: None"
+    $parameters["requiredTestIsolation"] = "None"  # filtering on tests that don't require Test Isolation
+    $parameters["testRunnerCodeunitId"] = "130450" # Test Runner with Codeunit test isolation
+}
 
 return Invoke-TestsWithReruns -parameters $parameters

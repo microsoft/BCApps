@@ -1,0 +1,731 @@
+cultureInfo cs-CZ
+	translations
+		model Model
+			table 'Dimension Sets'
+				caption: Sady dimenzí
+				column 'Global Dimension 1'
+					caption: Globální dimenze 1
+				column 'Global Dimension 2'
+					caption: Globální dimenze 2
+				column 'Shortcut Dimension 3'
+					caption: Zkratka dimenze 3
+				column 'Shortcut Dimension 4'
+					caption: Zkratka dimenze 4
+				column 'Shortcut Dimension 5'
+					caption: Zkratka dimenze 5
+				column 'Shortcut Dimension 6'
+					caption: Zkratka dimenze 6
+				column 'Shortcut Dimension 7'
+					caption: Zkratka dimenze 7
+				column 'Shortcut Dimension 8'
+					caption: Zkratka dimenze 8
+				column id
+					caption: ID
+			table Vendors
+				caption: Dodavatelé
+				column 'Vendor No.'
+					caption: Číslo dodavatele
+				column 'Vendor Name'
+					caption: Jméno dodavatele
+				column Address
+					caption: Adresa
+				column 'Address 2'
+					caption: Adresa 2
+				column City
+					caption: Město
+				column 'Post Code'
+					caption: Poštovní směrovací číslo
+				column State
+					caption: Stát
+				column 'Country/Region Code'
+					caption: Kód země/oblasti
+				column 'Vendor Posting Group'
+					caption: Účto skupina dodavatele
+				column 'Vendor No. & Name'
+					caption: Číslo a jméno dodavatele
+			table Customers
+				caption: Zákazníci
+				column 'Customer No.'
+					caption: Číslo zákazníka
+				column 'Customer Name'
+					caption: Jméno zákazníka
+				column Address
+					caption: Adresa
+				column 'Address 2'
+					caption: Adresa 2
+				column City
+					caption: Město
+				column 'Post Code'
+					caption: Poštovní směrovací číslo
+				column State
+					caption: Stát
+				column 'Country/Region Code'
+					caption: Kód země/oblasti
+				column 'Customer Posting Group'
+					caption: Účto skupina zákazníka
+				column 'Customer Price Group'
+					caption: Cenová skupina zákazníka
+				column 'Customer Discount Group'
+					caption: Skupina slev zákazníka
+				column 'Customer No. & Name'
+					caption: Číslo a jméno zákazníka
+			table Date
+				caption: Datum
+				column 'Week Day'
+					caption: Den v týdnu
+				column 'Day Type'
+					caption: Typ dne
+				column 'Calendar Year'
+					caption: Kalendářní rok
+				column 'Calendar Quarter'
+					caption: Kalendářní kvartál
+				column 'Calendar Quarter Year'
+					caption: Rok kalendářního kvartálu
+				column 'Calendar Month'
+					caption: Kalendářní měsíc
+				column 'Calendar Month Year'
+					caption: Kalendářní měsíc v roce
+				column 'Calendar Week'
+					caption: Kalendářní týden
+				column 'Calendar Week Year'
+					caption: Kalendářní týden a rok
+				column 'Calendar RelativeWeekPos'
+					caption: Relativní pozice kalendářního týdne
+				column 'Calendar RelativeMonthPos'
+					caption: Relativní pozice kalendářního měsíce
+				column 'Calendar RelativeQuarterPos'
+					caption: Relativní pozice kalendářního kvartálu
+				column 'Calendar RelativeYearPos'
+					caption: Relativní pozice kalendářního roku
+				column 'Calendar StartOfMonth'
+					caption: Začátek kalendářního měsíce
+				column 'Calendar EndOfMonth'
+					caption: Konec kalendářního měsíce
+				column 'Calendar StartOfQuarter'
+					caption: Začátek kalendářního kvartálu
+				column 'Calendar EndOfQuarter'
+					caption: Konec kalendářního kvartálu
+				column 'Calendar StartOfYear'
+					caption: Začátek kalendářního roku
+				column 'Calendar EndOfYear'
+					caption: Konec kalendářního roku
+				column 'Calendar MonthDays'
+					caption: Kalendářní dny v měsíci
+				column 'Calendar QuarterDays'
+					caption: Dny kalendářního kvartálu
+				column 'Calendar YearDays'
+					caption: Dny kalendářního roku
+				column 'Calendar DayOfMonthNumber'
+					caption: Číslo dne v kalendářním měsíci
+				column 'Calendar DayOfQuarterNumber'
+					caption: Číslo dne v kalendářním kvartálu
+				column 'Calendar DayOfYearNumber'
+					caption: Číslo dne v kalendářním roce
+				column 'Calendar DatePreviousWeek'
+					caption: Datum v předchozím kalendářním týdnu
+				column 'Calendar DatePreviousMonth'
+					caption: Datum v předchozím kalendářním měsíci
+				column 'Calendar DatePreviousQuarter'
+					caption: Datum v předchozím kalendářním kvartálu
+				column 'Calendar DatePreviousYear'
+					caption: Datum v předchozím kalendářním roce
+				column 'Fiscal Year'
+					caption: Fiskální rok
+				column 'Fiscal Quarter'
+					caption: Fiskální kvartál
+				column 'Fiscal Quarter Year'
+					caption: FIskální rok kvartálu
+				column 'Fiscal Month'
+					caption: Fiskální měsíc
+				column 'Fiscal Month Year'
+					caption: FIskální rok měsíce
+				column 'Fiscal Week'
+					caption: Fiskální týden
+				column 'Fiscal Week Year'
+					caption: Fiskální týden a rok
+				column 'Fiscal RelativeWeekPos'
+					caption: Relativní pozice fiskálního týdne
+				column 'Fiscal RelativeMonthPos'
+					caption: Relativní pozice fiskálního měsíce
+				column 'Fiscal RelativeQuarterPos'
+					caption: Relativní pozice fiskálního kvartálu
+				column 'Fiscal RelativeYearPos'
+					caption: Relativní pozice fiskálního roku
+				column 'Fiscal StartOfMonth'
+					caption: Začátek fiskálního měsíce
+				column 'Fiscal EndOfMonth'
+					caption: Konec fiskálního měsíce
+				column 'Fiscal StartOfQuarter'
+					caption: Začátek fiskálního kvartálu
+				column 'Fiscal EndOfQuarter'
+					caption: Konec fiskálního kvartálu
+				column 'Fiscal StartOfYear'
+					caption: Začátek fiskálního roku
+				column 'Fiscal EndOfYear'
+					caption: Konec fiskálního roku
+				column 'Fiscal MonthDays'
+					caption: Dny fiskálního měsíce
+				column 'Fiscal QuarterDays'
+					caption: Dny fiskálního kvartálu
+				column 'Fiscal YearDays'
+					caption: Dny fiskálního roku
+				column 'Fiscal DayOfMonthNumber'
+					caption: Číslo dne ve fiskálním měsíci
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Číslo dne ve fiskálním kvartálu
+				column 'Fiscal DayOfYearNumber'
+					caption: Číslo dne ve fiskálním roce
+				column 'Fiscal DatePreviousWeek'
+					caption: Datum v předchozím fiskálním týdnu
+				column 'Fiscal DatePreviousMonth'
+					caption: Datum v předchozím fiskálním měsíci
+				column 'Fiscal DatePreviousQuarter'
+					caption: Datum v předchozím fiskálním kvartálu
+				column 'Fiscal DatePreviousYear'
+					caption: Datum v předchozím fiskálním roce
+				column 'FW Year'
+					caption: Rok FT
+				column 'FW Quarter'
+					caption: Kvartál FT
+				column 'FW Quarter Year'
+					caption: Rok kvartálu FT
+				column 'FW Month'
+					caption: Měsíc FT
+				column 'FW Month Year'
+					caption: Rok měsíce FT
+				column 'FW Week'
+					caption: Týden FT
+				column 'FW Period'
+					caption: Období FT
+				column 'FW Week Year'
+					caption: Týden a rok FT
+				column 'FW StartOfWeek'
+					caption: Začátek týdne FT
+				column 'FW EndOfWeek'
+					caption: Konec týdne FT
+				column 'FW RelativeWeekPos'
+					caption: Relativní pozice týdne FT
+				column 'FW RelativeMonthPos'
+					caption: Relativní pozice měsíce FT
+				column 'FW RelativeQuarterPos'
+					caption: Relativní pozice kvartálu FT
+				column 'FW RelativeYearPos'
+					caption: Relativní pozice roku FT
+				column 'FW StartOfMonth'
+					caption: Začátek měsíce FT
+				column 'FW EndOfMonth'
+					caption: Konec měsíce FT
+				column 'FW StartOfQuarter'
+					caption: Začátek kvartálu FT
+				column 'FW EndOfQuarter'
+					caption: Konec kvartálu FT
+				column 'FW StartOfYear'
+					caption: Začátek roku FT
+				column 'FW EndOfYear'
+					caption: Konec roku FT
+				column 'FW MonthDays'
+					caption: Dny v měsíci FT
+				column 'FW QuarterDays'
+					caption: Dny kvartálu FT
+				column 'FW YearDays'
+					caption: Dny roku FT
+				column 'FW DayOfMonthNumber'
+					caption: Číslo dne v měsíci FT
+				column 'FW DayOfQuarterNumber'
+					caption: Číslo dne v kvartálu FT
+				column 'FW DayOfYearNumber'
+					caption: Číslo dne v roce FT
+				column 'FW DatePreviousWeek'
+					caption: Datum v předchozím týdnu FT
+				column 'FW DatePreviousMonth'
+					caption: Datum v předchozím měsíci FT
+				column 'FW DatePreviousQuarter'
+					caption: Datum v předchozím kvartálu FT
+				column 'FW DatePreviousYear'
+					caption: Datum v předchozím roce FT
+				column 'Relative Day'
+					caption: Relativní den
+				column Sequential365DayNumber
+					caption: Pořadové číslo dne 365
+				column 'Data Range Deferrals'
+					caption: Časová rozlišení rozsahu dat
+				measure 'No. of Days'
+					caption: Počet dnů
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Fiskální rok-kvartál-měsíc-týden
+					level 'Fiscal Year'
+						caption: Fiskální rok
+					level 'Fiscal Quarter Year'
+						caption: FIskální rok kvartálu
+					level 'Fiscal Month Year'
+						caption: FIskální rok měsíce
+					level 'Fiscal Week Year'
+						caption: Fiskální týden a rok
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalendářní rok-kvartál-měsíc-týden
+					level 'Calendar Year'
+						caption: Kalendářní rok
+					level 'Calendar Quarter Year'
+						caption: Rok kalendářního kvartálu
+					level 'Calendar Month Year'
+						caption: Kalendářní měsíc v roce
+					level 'Calendar Week Year'
+						caption: Kalendářní týden a rok
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Rok-kvartál-měsíc-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Quarter Year'
+						caption: Rok kvartálu FT
+					level 'FW Month Year'
+						caption: Rok měsíce FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+				hierarchy 'Fiscal Year-Month'
+					caption: Fiskální rok-měsíc
+					level 'Fiscal Year'
+						caption: Fiskální rok
+					level 'Fiscal Month Year'
+						caption: FIskální rok měsíce
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Fiskální rok-měsíc-týden
+					level 'Fiscal Year'
+						caption: Fiskální rok
+					level 'Fiscal Month Year'
+						caption: FIskální rok měsíce
+					level 'Fiscal Week Year'
+						caption: Fiskální týden a rok
+				hierarchy 'Calendar Year-Month'
+					caption: Kalendářní rok-měsíc
+					level 'Calendar Year'
+						caption: Kalendářní rok
+					level 'Calendar Month Year'
+						caption: Kalendářní měsíc v roce
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalendářní rok-měsíc-týden
+					level 'Calendar Year'
+						caption: Kalendářní rok
+					level 'Calendar Month Year'
+						caption: Kalendářní měsíc v roce
+					level 'Calendar Week Year'
+						caption: Kalendářní týden a rok
+				hierarchy 'FW Year-Month-Week'
+					caption: Rok-měsíc-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Month Year'
+						caption: Rok měsíce FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Rok-kvartál-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Quarter Year'
+						caption: Rok kvartálu FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+				hierarchy 'FW Year-Week'
+					caption: Rok-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+			table 'Localized Labels'
+				measure 'CONNECT YOUR DATA'
+					caption: PŘIPOJENÍ DAT
+				measure '1. Download the Finance Connector for Power BI'
+					caption: 1. Stažení řešení Finance Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Konfigurace Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: POUŽÍVÁNÍ, ÚPRAVA A TVORBA VLASTNÍCH SESTAV
+				measure 'Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.'
+					caption: Finance obsahují řadu předpřipravených sestav, které vám pomohou okamžitě zobrazit vaše data. Tyto sestavy můžete upravovat nebo si vytvořit vlastní sestavu od základu.
+				measure 'HELP AND SUPPORT'
+					caption: POMOC A PODPORA
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Nápovědu a podporu k nové sestavě naleznete v dokumentaci k přehledu Analytics.
+				measure 'for Business Central'
+					caption: pro Business Central
+				measure 'Last Refreshed'
+					caption: Naposledy aktualizováno
+				measure 'Company Name'
+					caption: Název společnosti
+				measure 'Analysis Entries as of'
+					caption: Položky analýzy ke dni
+				measure 'Billing Forecast by Billing Period, Customer and Contract No.'
+					caption: Prognóza fakturace podle fakturačního období, zákazníka a č. smlouvy
+				measure 'Billing Forecast by Year and Month'
+					caption: Prognóza fakturace podle kalendářního roku a měsíce
+				measure 'Billing Schedule'
+					caption: Plán fakturace
+				measure 'Change of Mon. Recurring Revenue by Year and Month'
+					caption: Změna měsíčního periodického výnosu podle roku a měsíce
+				measure 'Current Date Range:'
+					caption: Aktuální rozsah dat:
+				measure 'Customer Contract Deferrals'
+					caption: Časová rozlišení zákaznické smlouvy
+				measure 'Customer Contract Lines'
+					caption: Řádky zákaznické smlouvy
+				measure 'Customer Deferrals (Caption)'
+					caption: Časová rozlišení zákazníka
+				measure 'Mon. Recurring Revenue Analysis'
+					caption: Analýza měsíčních periodických výnosů
+				measure 'Mon. Recurring Revenue and Mon. Recurring Revenue PY by Month'
+					caption: Měsíční periodické výnosy a měsíční periodické výnosy PR podle kalendářního měsíce
+				measure 'Mon. Recurring Revenue and Year-Over-Year Growth by Year and Month'
+					caption: Měsíční periodické výnosy a meziroční růst podle kalendářního roku a měsíce
+				measure 'Mon. Recurring Revenue by Customer'
+					caption: Měsíční periodické výnosy podle zákazníka
+				measure 'Mon. Recurring Revenue by Salesperson'
+					caption: Měsíční periodické výnosy podle prodejce
+				measure 'Mon. Recurring Revenue by Year and Month'
+					caption: Měsíční periodické výnosy podle kalendářního roku a měsíce
+				measure 'Mon. Recurring Revenue by Item'
+					caption: Měsíční periodické výnosy podle zboží
+				measure 'Mon. Recurring Revenue by Item Category'
+					caption: Měsíční periodické výnosy podle kategorie zboží
+				measure 'Mon. Recurring Revenue Churn and Downgrade by Customer Contract'
+					caption: Odchod zákazníků a downgrade měsíčních periodických výnosů podle zákaznické smlouvy
+				measure 'Mon. Recurring Revenue New and Upgrade by Customer Contract'
+					caption: Noví zákazníci a upgrade měsíčních periodických výnosů podle zákaznické smlouvy
+				measure 'Monthly Sales and Cost Forecast by Year and Month'
+					caption: Měsíční prognóza výnosů a nákladů podle kalendářního roku a měsíce
+				measure 'Monthly Sales and Cost Forecast by Salesperson, Customer and Contract No.'
+					caption: Prognóza měsíčních výnosů a nákladů podle prodejce, zákazníka a č. smlouvy
+				measure 'Released and Deferred Amount by Year and Month'
+					caption: Uvolněná a časové rozlišená částka podle kalendářního roku a měsíce
+				measure 'Revenue Analysis'
+					caption: Analýza výnosů
+				measure 'Revenue by Customer'
+					caption: Výnosy podle zákazníka
+				measure 'Revenue by Item'
+					caption: Výnosy podle zboží
+				measure 'Revenue by Salesperson'
+					caption: Výnosy podle prodejce
+				measure 'Revenue Development'
+					caption: Vývoj výnosů
+				measure 'Sales and Cost Forecast'
+					caption: Prognóza výnosů
+				measure 'Revenue Year-Over-Year Growth'
+					caption: Meziroční růst výnosů
+				measure 'Subscription Billing Analysis'
+					caption: Analýza Subscription Billing
+				measure 'Subscription Billing Overview'
+					caption: Přehled Subscription Billing
+				measure 'Top 5 Customers by Mon. Recurring Revenue'
+					caption: 5 předních zákazníků podle měsíčního periodického výnosu
+				measure 'Top 5 Vendors by Mon. Recurring Cost'
+					caption: 5 nejlepších prodejců podle měsíčních periodických nákladů
+				measure 'Total Contract Value Analysis'
+					caption: Analýza celkové hodnoty smlouvy
+				measure 'Total Contract Value and Total Contract Value PY by Month'
+					caption: Celková hodnota smlouvy a PR celkové hodnoty smlouvy podle kalendářního měsíce
+				measure 'Total Contract Value and Year-Over-Year Growth by Year and Month'
+					caption: Celková hodnota smlouvy a meziroční růst podle kalendářního roku a měsíce
+				measure 'Total Contract Value by Year and Month'
+					caption: Celková hodnota smlouvy podle kalendářního roku a měsíce
+				measure 'Total Contract Value Year-Over-Year Growth'
+					caption: Meziroční růst celkové hodnoty smlouvy
+				measure 'Vendor Contract Deferrals'
+					caption: Časová rozlišení dodavatelské smlouvy
+				measure 'Vendor Deferrals (Caption)'
+					caption: Časová rozlišení dodavatele
+				measure 'Back button'
+					caption: Tlačítko zpět
+				measure 'Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit, Active Customers, Total Contract Value, Change in Monthly Recurring Revenue'
+					caption: Měsíční periodické výnosy, Měsíční periodické náklady, Měsíční čistý zisk, Aktivní zákazníci, Celková hodnota smlouvy, Změna měsíčních periodických výnosů
+				measure 'Churn Analysis'
+					caption: Analýza ztráty zákazníků
+				measure 'Avg. Mon. Churn Rate % by Year and Month'
+					caption: Prům. měsíční míra úbytku (%) podle roku a měsíce
+			table 'Meta Information'
+				caption: SPOLEČNOST
+			table Subscription
+				caption: Objekt servisu
+				column 'Subscription No.'
+					caption: Číslo objektu servisu
+				column 'Package Code'
+					caption: Kód zásilky
+				column 'Subscription Desc.'
+					caption: Popis objektu servisu
+				column 'Analysis Date'
+					caption: Datum analýzy
+				column 'Subscription No. Desc.'
+					caption: Popisy čísla Subscription
+			table 'Vendor Contract Deferrals'
+				caption: Časová rozlišení dodavatelské smlouvy
+				column 'Document Type'
+					caption: Typ dokladu
+				column 'Document No.'
+					caption: Číslo dokladu
+				column 'Posting Date'
+					caption: Zúčtovací datum
+				column 'Document Posting Date'
+					caption: Zúčtovací datum dokladu
+				column 'Release Posting Date'
+					caption: Vydat zúčtovací datum
+				column 'G LEntry No.'
+					caption: Číslo věcné položky
+				column Discount
+					caption: Sleva
+				column 'Document Line No.'
+					caption: Číslo řádku dokladu
+			table 'Customer Contract Line'
+				caption: Řádek zákaznické smlouvy
+				column 'Subscription Line No.'
+					caption: Číslo řádku závazku
+				column Template
+					caption: Šablona
+				column 'Customer Contract Line Desc.'
+					caption: Popis řádku zákaznické smlouvy
+				column 'Subscription Start Date'
+					caption: Počáteční datum servisu
+				column 'Subscription End Date'
+					caption: Koncové datum služby
+				column 'Next Billing Date'
+					caption: Další datum fakturace
+				column 'Billing Base Period'
+					caption: Základní fakturační období
+				column 'Invoicing Item No.'
+					caption: Číslo fakturovaného zboží
+				column 'Customer Contract Line No.'
+					caption: Číslo řádku zákaznické smlouvy
+				column 'Notice Period'
+					caption: Výpovědní lhůta
+				column 'Initial Term'
+					caption: Počáteční termín
+				column 'Extension Term'
+					caption: Termín rozšíření
+				column 'Billing Rhythm'
+					caption: Fakturační rytmus
+				column 'Cancellation Possible Until'
+					caption: Storno možné do
+				column 'Term Until'
+					caption: Termín do
+				column 'Renewal Term'
+					caption: Termín obnovení
+				column 'Line Active'
+					caption: Aktivní řádek
+				column 'Remaining Term'
+					caption: Zbývající termín
+				column 'Billing Rhythm Months'
+					caption: Měsíce fakturačního rytmu
+				column 'Customer Contract No.'
+					caption: Číslo zákaznické smlouvy
+				column 'Is Usage Based Billing'
+					caption: Je fakturace založená na využití
+				column 'Source Type'
+					caption: Typ původu
+				column 'Source No.'
+					caption: Číslo původu
+			table 'Vendor Contract Line'
+				caption: Řádek dodavatelské smlouvy
+				column 'Subscription Line No.'
+					caption: Číslo řádku závazku
+				column Template
+					caption: Šablona
+				column 'Vendor Contract Line Desc.'
+					caption: Popis řádku dodavatelské smlouvy
+				column 'Subscription Start Date'
+					caption: Počáteční datum servisu
+				column 'Subscription End Date'
+					caption: Koncové datum služby
+				column 'Next Billing Date'
+					caption: Další datum fakturace
+				column 'Vendor Contract Line No.'
+					caption: Číslo řádku dodavatelské smlouvy
+				column 'Notice Period'
+					caption: Výpovědní lhůta
+				column 'Initial Term'
+					caption: Počáteční termín
+				column 'Extension Term'
+					caption: Termín rozšíření
+				column 'Billing Rhythm'
+					caption: Fakturační rytmus
+				column 'Cancellation Possible Until'
+					caption: Storno možné do
+				column 'Term Until'
+					caption: Termín do
+				column 'Renewal Term'
+					caption: Termín obnovení
+				column 'Line Active'
+					caption: Aktivní řádek
+				column 'Remaining Term'
+					caption: Zbývající termín
+				column 'Billing Rhythm Months'
+					caption: Měsíce fakturačního rytmu
+				column 'Vendor Contract No.'
+					caption: Číslo dodavatelské smlouvy
+				column 'Is Latest Version'
+					caption: Je nejnovější verze
+				column 'Is Usage Based Billing'
+					caption: Je fakturace založená na využití
+				column 'Source Type'
+					caption: Typ původu
+				column 'Source No.'
+					caption: Číslo původu
+			table 'Customer Contract Deferrals'
+				caption: Časová rozlišení zákaznické smlouvy
+				column 'Document Type'
+					caption: Typ dokladu
+				column 'Document No.'
+					caption: Číslo dokladu
+				column 'Posting Date'
+					caption: Zúčtovací datum
+				column 'Document Line No.'
+					caption: Číslo řádku dokladu
+				column 'Document Posting Date'
+					caption: Zúčtovací datum dokladu
+				column 'Release Posting Date'
+					caption: Vydat zúčtovací datum
+				column 'G LEntry No.'
+					caption: Číslo věcné položky
+			table 'Customer Contract'
+				caption: Zákaznická smlouva
+				column 'Customer Contract No.'
+					caption: Číslo zákaznické smlouvy
+				column 'Customer Contract Type'
+					caption: Typ zákaznické smlouvy
+				column 'Customer Contract Description'
+					caption: Popis zákaznické smlouvy
+				column 'Customer Contract No. Desc.'
+					caption: Popis čísla zákaznické smlouvy
+			table 'Vendor Contract'
+				caption: Dodavatelská smlouva
+				column 'Vendor Contract No.'
+					caption: Číslo dodavatelské smlouvy
+				column 'Vendor Contract Type'
+					caption: Typ dodavatelské smlouvy
+				column 'Vendor Contract Description'
+					caption: Popis dodavatelské smlouvy
+				column 'Vendor Contract No. Desc.'
+					caption: Popis čísla dodavatelské smlouvy
+			table 'UBB handling'
+				caption: Manipulace FZNV
+				column 'Treat Usage Based Billing as constant'
+					caption: Považovat FZNV za konstantní
+			table 'Is Released'
+				caption: Je vydáno
+			table Item
+				caption: Zboží
+				column 'Item No.'
+					caption: Číslo zboží
+				column 'Item Name'
+					caption: Název zboží
+				column 'Item Category Code'
+					caption: Kód kategorie zboží
+				column 'Item Category Description'
+					caption: Popis kategorie zboží
+				column 'Inventory Posting Group'
+					caption: Účto skupina zboží
+				column 'Base Unit of Measure'
+					caption: Základní měrná jednotka
+				column 'Item No. & Description'
+					caption: Číslo a popis zboží
+			table 'Analysis Date'
+				caption: Datum analýzy
+				column 'Is Initial Version'
+					caption: Je počáteční verze
+				column 'Is Current Version'
+					caption: Je aktuální verze
+			table 'Calc. Group - Time Intelligence for Calendar (Fiscal)'
+				caption: Skupina výpočtu – časová analýza pro kalendář (fiskální)
+				column Perspective
+					caption: Perspektiva
+			table 'Subscription Billing KPIs'
+				caption: KPI Subscription Billing
+				measure 'Mon. Recurring Revenue'
+					caption: MPV
+				measure 'Mon. Recurring Cost'
+					caption: MPN
+				measure 'Customer Deferrals'
+					caption: Časová rozlišení zákazníka
+				measure 'Vendor Deferrals'
+					caption: Časová rozlišení dodavatele
+				measure 'Annual Recurring Revenue'
+					caption: ZZP
+				measure 'Total Contract Value'
+					caption: CHS
+				measure 'Forecast Sales'
+					caption: Prognóza prodeje
+				measure 'Mon. Recurring Cost PY'
+					caption: MPN PR
+				measure 'Mon. Recurring Cost Δ vs. PY'
+					caption: MPN Δ vs. PR
+				measure 'Mon. Recurring Revenue Churn'
+					caption: Odchod zákazníků – měsíční periodické výnosy
+				measure 'Mon. Recurring Revenue PY'
+					caption: MPV PR
+				measure 'Mon. Recurring Revenue New'
+					caption: Nové měsíční periodické výnosy
+				measure 'Mon. Recurring Revenue Δ vs. PY'
+					caption: Měsíční periodické výnosy Δ vs. PR
+				measure 'Mon. Net Profit Amount'
+					caption: NMPV
+				measure 'Mon. Net Profit %'
+					caption: NMPV (%) MPV
+				measure 'Mon. Net Profit PY'
+					caption: NMPV PR
+				measure 'Mon. Net Profit Δ vs. PY'
+					caption: NMPV Δ vs. PR
+				measure 'Change in Mon. Recurring Revenue'
+					caption: Celková změna MPV
+				measure 'Total Contract Value PY'
+					caption: CHS PR
+				measure 'Total Contract Value Δ vs. PY'
+					caption: CHS Δ vs. PR
+				measure 'Last Update Analysis Entries'
+					caption: Poslední aktualizace položek analýzy
+				measure 'Last Update Semantic Model'
+					caption: Poslední aktualizace sémantického modelu
+				measure 'Param Environment'
+					caption: Prostředí parametrů
+				measure 'Param Company'
+					caption: Společnost parametrů
+				measure 'Mon. Recurring Revenue Upgrade'
+					caption: Upgrade – měsíční periodické výnosy
+				measure 'Mon. Recurring Revenue Change UBB'
+					caption: Změna měsíčních periodických výnosů FZNV
+				measure 'Reporting Currency'
+					caption: Měna pro hlášení
+				measure 'Active Customers'
+					caption: Aktivní zákazníci
+				measure 'Active Customers PY'
+					caption: Aktivní zákazníci PR
+				measure 'Active Customers Δ vs. PY'
+					caption: Aktivní zákazníci Δ vs. PR
+				measure 'Customer Billing Forecast'
+					caption: Prognóza fakturace zákazníka
+				measure 'Vendor Billing Forecast'
+					caption: Prognóza fakturace dodavatele
+				measure 'Forecast Costs'
+					caption: Prognóza nákladů
+				measure 'Mon. Recurring Revenue Downgrade'
+					caption: Downgrade – měsíční periodické výnosy
+				measure 'Selected Date Range'
+					caption: Zvolený rozsah dat
+				measure 'Avg. Mon. Churn Rate %'
+					caption: Prům. měsíční míra úbytku (%)
+				measure 'Mon. Avg. Downgrade Rate %'
+					caption: Měsíční prům. míra downgradu (%)
+				measure 'Mon. Recurring Revenue Downgrade & Churn'
+					caption: Downgrade a odchod zákazníků – měsíční periodické výnosy
+			table Salesperson
+				caption: Prodejce
+				column 'Salesperson Code'
+					caption: Kód prodejce
+				column 'Salesperson Name'
+					caption: Jméno prodejce
+			table 'Customer Contract Changes'
+				caption: Změny zákaznické smlouvy
+				column 'Customer Contract Line Key'
+					caption: Klíč řádku zákaznické smlouvy
+				column Date
+					caption: Datum
+				column 'Change Type'
+					caption: Typ změny
+				column 'MRR Delta'
+					caption: Delta MPV
+

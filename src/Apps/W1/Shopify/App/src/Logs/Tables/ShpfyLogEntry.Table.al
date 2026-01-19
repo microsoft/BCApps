@@ -5,9 +5,9 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.User;
-using System.Reflection;
 
 /// <summary>
 /// Table Shpfy Log Entry (ID 30115).
@@ -95,13 +95,8 @@ table 30115 "Shpfy Log Entry"
             Caption = 'Request Id';
             DataClassification = SystemMetadata;
             ObsoleteReason = 'Replaced with "Shpfy Request Id" field';
-#if not CLEAN25
-            ObsoleteState = Pending;
-            ObsoleteTag = '25.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '28.0';
-#endif
         }
 #endif
         field(14; "Request Preview"; Text[50])
@@ -142,28 +137,6 @@ table 30115 "Shpfy Log Entry"
     fieldgroups
     {
     }
-
-    var
-        DeleteLogEntriesLbl: Label 'Are you sure that you want to delete Shopify log entries?';
-
-    /// <summary> 
-    /// Delete Entries.
-    /// </summary>
-    /// <param name="DaysOld">Parameter of type Integer.</param>
-    internal procedure DeleteEntries(DaysOld: Integer);
-    begin
-        if not Confirm(DeleteLogEntriesLbl) then
-            exit;
-
-        if DaysOld > 0 then begin
-            SetFilter("Date and Time", '<=%1', CreateDateTime(Today - DaysOld, Time));
-            if not IsEmpty then
-                DeleteAll(false);
-            SetRange("Date and Time");
-        end else
-            if not IsEmpty then
-                DeleteAll(false);
-    end;
 
     /// <summary> 
     /// Get Request.
@@ -227,4 +200,3 @@ table 30115 "Shpfy Log Entry"
         if Modify() then;
     end;
 }
-

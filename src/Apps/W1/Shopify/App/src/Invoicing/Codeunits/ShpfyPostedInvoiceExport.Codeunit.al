@@ -5,8 +5,8 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Sales.History;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Sales.History;
 
 /// <summary>
 /// Codeunit Shpfy Posted Invoice Export" (ID 30316).
@@ -86,7 +86,7 @@ codeunit 30362 "Shpfy Posted Invoice Export"
             OrderId := JsonHelper.GetValueAsBigInteger(JResponse, 'data.draftOrderComplete.draftOrder.order.legacyResourceId');
             OrderNo := JsonHelper.GetValueAsText(JResponse, 'data.draftOrderComplete.draftOrder.order.name');
 
-            FulfillmentOrderIds := FulfillmentAPI.GetFulfillmentOrderIds(Format(OrderId), GetNumberOfLines(TempOrderLine, OrderTaxLines));
+            FulfillmentOrderIds := FulfillmentAPI.GetFulfillmentOrderIds(Format(OrderId));
             CreateFulfillmentsForShopifyOrder(FulfillmentOrderIds);
             CreateShopifyInvoiceHeader(OrderId);
             SetSalesInvoiceShopifyOrderInformation(SalesInvoiceHeader, OrderId, Format(OrderNo));
@@ -319,7 +319,7 @@ codeunit 30362 "Shpfy Posted Invoice Export"
         TempOrderLine."Gift Card" := false;
         TempOrderLine.Taxable := false;
         TempOrderLine."Unit Price" := SalesInvoiceLine."Unit Price";
-        TempOrderLine.Weight := SalesInvoiceLine."Net Weight";
+        TempOrderLine.Weight := SalesInvoiceLine."Gross Weight";
         TempOrderHeader."Discount Amount" += SalesInvoiceLine."Line Discount Amount";
         TempOrderHeader.Modify(false);
 
@@ -371,11 +371,6 @@ codeunit 30362 "Shpfy Posted Invoice Export"
         DocLinkToBCDoc."Document Type" := BCDocumentTypeConvert.Convert(SalesInvoiceHeader);
         DocLinkToBCDoc."Document No." := SalesInvoiceHeader."No.";
         DocLinkToBCDoc.Insert(true);
-    end;
-
-    local procedure GetNumberOfLines(var TempOrderLine: Record "Shpfy Order Line" temporary; var OrderTaxLines: Dictionary of [Text, Decimal]): Integer
-    begin
-        exit(OrderTaxLines.Count() + TempOrderLine.Count());
     end;
 
     internal procedure ConfigurePaymentTermsMapping(ErrorInfo: ErrorInfo)

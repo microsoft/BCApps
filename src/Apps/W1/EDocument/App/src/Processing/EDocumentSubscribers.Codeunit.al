@@ -1,39 +1,39 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
+using Microsoft.eServices.EDocument.IO.Peppol;
+using Microsoft.eServices.EDocument.OrderMatch;
+using Microsoft.EServices.EDocument.Processing;
+using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Reporting;
+using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
-using Microsoft.eServices.EDocument.OrderMatch;
-using Microsoft.eServices.EDocument.Service.Participant;
-using Microsoft.eServices.EDocument.Processing.Import.Purchase;
-using Microsoft.Inventory.Transfer;
+using Microsoft.Purchases.Setup;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
-using System.Telemetry;
 using Microsoft.Sales.Posting;
 using Microsoft.Sales.Receivables;
-using Microsoft.Utilities;
 using Microsoft.Sales.Reminder;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Posting;
-using Microsoft.EServices.EDocument.Processing;
-using Microsoft.eServices.EDocument.Processing.Import;
-using Microsoft.eServices.EDocument.IO.Peppol;
-using Microsoft.Purchases.Setup;
+using Microsoft.Utilities;
 using System.Automation;
-using System.Utilities;
 using System.Reflection;
+using System.Telemetry;
+using System.Utilities;
 
 codeunit 6103 "E-Document Subscribers"
 {
@@ -422,15 +422,22 @@ codeunit 6103 "E-Document Subscribers"
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. Purchase Line History");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Line - Field");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"ED Purchase Line Field Setup");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. PO Matching Setup");
+#if not CLEAN28
+#pragma warning disable AL0432
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"EDoc Historical Matching Setup");
+#pragma warning restore AL0432
+#endif
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. Vendor Assign. History");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. Record Link");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Notification");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. PO Matching Setup");
 #if not CLEAN26
 #pragma warning disable AL0432
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"EDoc. Purch. Line Field Setup");
 #pragma warning restore AL0432
 #endif
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc Sample Purch. Inv File");
     end;
 
 
@@ -567,7 +574,7 @@ codeunit 6103 "E-Document Subscribers"
 
     procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile")
     begin
-        CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, EDocumentProcessing.GetTypeFromPostedSourceDocument(PostedRecord));
+        CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, EDocumentProcessing.GetTypeFromSourceDocument(PostedRecord));
     end;
 
     procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile"; DocumentType: Enum "E-Document Type")
@@ -575,13 +582,8 @@ codeunit 6103 "E-Document Subscribers"
         TypeHelper: Codeunit "Type Helper";
         RecordRef: RecordRef;
         PostedSourceDocumentHeader: RecordRef;
-        IsHandled: Boolean;
         UnsupportedRecordTypeErr: Label 'Unsupported record %1.', Comment = '%1 - Record Type';
     begin
-        OnBeforeCreateEDocumentFromPostedDocument(PostedRecord, IsHandled);
-        if IsHandled then
-            exit;
-
         if DocumentType = DocumentType::None then begin // Undefined document type is not supported
             TypeHelper.CopyRecVariantToRecRef(PostedRecord, RecordRef);
             Error(UnsupportedRecordTypeErr, RecordRef.Name());
@@ -624,8 +626,4 @@ codeunit 6103 "E-Document Subscribers"
         Telemetry.LogMessage('0000PYF', DraftChangeTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
     end;
 
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateEDocumentFromPostedDocument(PostedRecord: Variant; var IsHandled: Boolean)
-    begin
-    end;
 }

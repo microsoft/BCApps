@@ -1,0 +1,46 @@
+table 'Close Opportunity Codes'
+	lineageTag: 1748f80a-2a43-47b0-baad-33151638be88
+
+	column 'Close Opportunity Code'
+		dataType: string
+		lineageTag: 754c1ed9-6623-42d3-b7a4-328d3756abb8
+		summarizeBy: none
+		sourceColumn: Close Opportunity Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Close Opportunity Type'
+		dataType: string
+		lineageTag: ce85448d-1a51-4d90-bc3f-9be031b28ec1
+		summarizeBy: none
+		sourceColumn: Close Opportunity Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Close Opportunity Description'
+		dataType: string
+		lineageTag: b9b15c37-99b0-47ba-bffa-0cb91fedab79
+		summarizeBy: none
+		sourceColumn: Close Opportunity Description
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Close Opportunity Codes' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(#"ENVIRONMENT", #"COMPANY",#"API_ENDPOINT", []),
+				    TableData = Source{[Name="closeOpportunityCodes",Signature="table"]}[Data],
+				    #"Renamed Columns" = Table.RenameColumns(
+				        TableData,
+				        {{"closeOpportunityCode", "Close Opportunity Code"}, {"closeOpportunityType", "Close Opportunity Type"}, {"closeOpportunityDescription", "Close Opportunity Description"}}
+				    ),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns",{"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
