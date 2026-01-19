@@ -44,17 +44,6 @@ codeunit 9452 "File Scenario"
     end;
 
     /// <summary>
-    /// Gets the file account used by the given file scenario or the default file account if no specific account is assigned to the scenario.
-    /// </summary>
-    /// <param name="Scenario">The scenario to look for.</param>
-    /// <param name="TempFileAccount">Out parameter holding information about the file account.</param>
-    /// <returns>True if an account for the specified scenario was found; otherwise - false.</returns>
-    procedure GetFileAccountOrDefault(Scenario: Enum "File Scenario"; var TempFileAccount: Record "File Account" temporary): Boolean
-    begin
-        exit(FileScenarioImpl.GetFileAccountOrDefault(Scenario, TempFileAccount));
-    end;
-
-    /// <summary>
     /// Sets a default file account.
     /// </summary>
     /// <param name="TempFileAccount">The file account to use.</param>
