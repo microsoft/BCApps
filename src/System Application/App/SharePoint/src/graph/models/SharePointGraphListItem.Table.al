@@ -12,7 +12,7 @@ table 9131 "SharePoint Graph List Item"
 {
     Access = Public;
     TableType = Temporary;
-    DataClassification = CustomerContent;
+    DataClassification = SystemMetadata;
     InherentEntitlements = X;
     InherentPermissions = X;
     Extensible = false;
@@ -22,49 +22,41 @@ table 9131 "SharePoint Graph List Item"
         field(1; Id; Text[250])
         {
             Caption = 'Id';
-            DataClassification = CustomerContent;
             Description = 'Unique identifier of the list item';
         }
         field(2; ListId; Text[250])
         {
             Caption = 'List Id';
-            DataClassification = CustomerContent;
             Description = 'ID of the parent list';
         }
         field(3; Title; Text[250])
         {
             Caption = 'Title';
-            DataClassification = CustomerContent;
             Description = 'Title of the list item';
         }
         field(4; ContentType; Text[100])
         {
             Caption = 'Content Type';
-            DataClassification = CustomerContent;
             Description = 'Content type of the list item';
         }
         field(5; WebUrl; Text[2048])
         {
             Caption = 'Web URL';
-            DataClassification = CustomerContent;
             Description = 'URL to view the list item in a web browser';
         }
         field(6; CreatedDateTime; DateTime)
         {
             Caption = 'Created Date Time';
-            DataClassification = CustomerContent;
             Description = 'Date and time when the list item was created';
         }
         field(7; LastModifiedDateTime; DateTime)
         {
             Caption = 'Last Modified Date Time';
-            DataClassification = CustomerContent;
             Description = 'Date and time when the list item was last modified';
         }
         field(8; FieldsJson; Blob)
         {
             Caption = 'Fields JSON';
-            DataClassification = CustomerContent;
             Description = 'JSON representation of the list item''s custom fields';
         }
     }
