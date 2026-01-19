@@ -3058,6 +3058,7 @@ codeunit 139628 "E-Doc. Receive Test"
         TempXMLBuffer: Record "XML Buffer" temporary;
         TempBlob: Codeunit "Temp Blob";
         EDocImport: Codeunit "E-Doc. Import";
+        EDocServicesPage: TestPage "E-Document Services";
         EDocumentPage: TestPage "E-Document";
         Document: Text;
         XMLInstream: InStream;
@@ -3068,6 +3069,11 @@ codeunit 139628 "E-Doc. Receive Test"
 
         // [GIVEN] Create E-Document Service.
         LibraryEDoc.CreateTestReceiveServiceForEDoc(EDocService, Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] Reset E-Document Service formats.
+        EDocServicesPage.OpenView();
+        EDocServicesPage.Filter.SetFilter(Code, EDocService.Code);
+        EDocServicesPage.ResetFormats.Invoke();
 
         // [GIVEN] Create vendor with VAT Business Posting Group.
         LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, Enum::"Tax Calculation Type"::"Normal VAT", 1);
