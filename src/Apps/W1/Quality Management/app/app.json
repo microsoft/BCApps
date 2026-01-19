@@ -33,9 +33,6 @@
         "includeSourceInSymbolFile": true,
         "allowDownloadingSource": true
     },
-    "resourceFolders": [
-        "Resources"
-    ],
     "features": [
         "NoImplicitWith",
         "TranslationFile"
