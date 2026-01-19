@@ -40,12 +40,12 @@ table 20400 "Qlty. Management Setup"
         {
             Caption = 'Quality Inspection Nos.';
             TableRelation = "No. Series";
-            ToolTip = 'Specifies the default number series used for quality inspection documents when there is not a no. series defined on a Quality Inspection Template. When a no. series is defined on a template, then that is used instead.';
+            ToolTip = 'Specifies the default number series for quality inspection documents used when there isn''t a number series defined on the quality inspection template.';
         }
-        field(3; "Show Inspection Behavior"; Enum "Qlty. Show Inspection Behavior")
+        field(3; "Show Inspection Behavior"; Enum "Qlty. When to Show Inspections")
         {
             Caption = 'Show Inspection Behavior';
-            ToolTip = 'Specifies whether to show the Quality Inspection page after an inspection has been made.';
+            ToolTip = 'Specifies whether inspections are shown immediately or sent to a queue for quality inspectors. For demonstrations and training, it can be useful to show automatically created inspections immediately. In production scenarios, automatically created inspections are usually not shown, instead they are queued or dispatch for quality inspectors.';
         }
         field(4; "Create Inspection Behavior"; Enum "Qlty. Create Inspect. Behavior")
         {
@@ -242,8 +242,8 @@ table 20400 "Qlty. Management Setup"
         {
             Description = 'When enabled, provides events and responses for working with Business Central workflows and approvals.';
             DataClassification = SystemMetadata;
-            Caption = 'Workflow Integration Enabled';
-            ToolTip = 'Specifies whether to enable events and responses for workflows.';
+            Caption = 'Workflow Integration';
+            ToolTip = 'Specifies whether to enable events and responses for workflows and approval requests.';
         }
         field(73; "Bin Move Batch Name"; Code[10])
         {
@@ -492,7 +492,7 @@ table 20400 "Qlty. Management Setup"
         {
             Caption = 'Create Inspection On Assembly Trigger';
             Description = 'Provides automation to create an inspection when an assembly order creates output.';
-            ToolTip = 'Specifies a default assembly-related trigger value for Inspection Generation Rules to try and create an inspection.';
+            ToolTip = 'Specifies when to create an inspection for assembly orders using inspection generation rules';
 
             trigger OnValidate()
             var
