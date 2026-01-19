@@ -570,6 +570,30 @@
     {
       "id": "PTE0017",
       "action": "Warning"
+    },
+    {
+      "id": "AS0075",
+      "action": "Warning"
+    },
+    {
+      "id": "AA0230",
+      "action": "Warning"
+    },
+    {
+      "id": "AA0213",
+      "action": "Warning"
+    },
+    {
+      "id": "AA0241",
+      "action": "None"
+    },
+    {
+      "id": "AL0590",
+      "action": "Warning"
+    },
+    {
+      "id": "AS0054",
+      "action": "Warning"
     }
   ]
 }
