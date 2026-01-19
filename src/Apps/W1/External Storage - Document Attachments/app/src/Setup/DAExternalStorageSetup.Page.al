@@ -46,32 +46,17 @@ page 8750 "DA External Storage Setup"
                         SelectRootFolder();
                     end;
                 }
+                field(CurrentEnvironmentHash; CurrentEnvironmentHash)
+                {
+                    Caption = 'Current Environment Hash';
+                    ToolTip = 'Specifies the current environment hash used in the folder structure in external storage.';
+                    Editable = false;
+                }
             }
             group(UploadAndDeletePolicy)
             {
                 Caption = 'Upload and Delete Policy';
-                field("Scheduled Upload"; Rec."Scheduled Upload") { }
                 field("Delete from External Storage"; Rec."Delete from External Storage") { }
-            }
-
-            group(JobQueueInformation)
-            {
-                Caption = 'Job Queue Information';
-                field("Job Queue Entry ID"; Rec."Job Queue Entry ID")
-                {
-                    ToolTip = 'Specifies the ID of the job queue entry for automatic synchronization.';
-
-                    trigger OnDrillDown()
-                    begin
-                        ShowJobQueueEntry();
-                    end;
-                }
-                field(JobQueueStatus; GetJobQueueStatus())
-                {
-                    Caption = 'Job Queue Status';
-                    Editable = false;
-                    ToolTip = 'Specifies the current status of the job queue entry.';
-                }
             }
         }
     }
@@ -101,31 +86,9 @@ page 8750 "DA External Storage Setup"
                     Report.Run(Report::"DA External Storage Migration");
                 end;
             }
-            action(ShowCurrentHash)
-            {
-                Caption = 'Show Current Environment Hash';
-                Image = Copy;
-                ToolTip = 'Show the current environment hash used in the folder structure in external storage.';
-
-                trigger OnAction()
-                begin
-                    ShowCurrentEnvironmentHash();
-                end;
-            }
         }
         area(Navigation)
         {
-            action(ShowJobQueue)
-            {
-                Caption = 'Show Job Queue Entry';
-                Image = JobListSetup;
-                ToolTip = 'View the job queue entry for automatic synchronization.';
-
-                trigger OnAction()
-                begin
-                    ShowJobQueueEntry();
-                end;
-            }
             action(DocumentAttachments)
             {
                 Caption = 'Document Attachments';
@@ -145,29 +108,22 @@ page 8750 "DA External Storage Setup"
             actionref(DocumentAttachments_Promoted; DocumentAttachments)
             {
             }
-            group(InfoGroup)
-            {
-                Caption = 'Info';
-                actionref(ShowCurrentHash_Promoted; ShowCurrentHash)
-                {
-                }
-                actionref(ShowJobQueue_Promoted; ShowJobQueue)
-                {
-                }
-            }
         }
     }
 
     trigger OnOpenPage()
+    var
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
     begin
         if not Rec.Get() then begin
             Rec.Init();
             Rec.Insert();
         end;
+        CurrentEnvironmentHash := DAExternalStorageImpl.GetCurrentEnvironmentHash();
     end;
 
     var
-        ShowDeleteAfter: Boolean;
+        CurrentEnvironmentHash: Text[16];
 
     local procedure SelectRootFolder()
     var
@@ -185,36 +141,5 @@ page 8750 "DA External Storage Setup"
                 Rec."Root Folder" := '';
             CurrPage.Update();
         end;
-    end;
-
-    local procedure ShowCurrentEnvironmentHash()
-    var
-        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
-    begin
-        DAExternalStorageImpl.ShowCurrentEnvironmentHash();
-    end;
-
-    local procedure ShowJobQueueEntry()
-    var
-        JobQueueEntry: Record "Job Queue Entry";
-    begin
-        if not IsNullGuid(Rec."Job Queue Entry ID") then
-            if JobQueueEntry.Get(Rec."Job Queue Entry ID") then
-                Page.Run(Page::"Job Queue Entry Card", JobQueueEntry);
-    end;
-
-    local procedure GetJobQueueStatus(): Text
-    var
-        JobQueueEntry: Record "Job Queue Entry";
-        NotCreatedLbl: Label 'Not Created';
-        DeletedLbl: Label 'Deleted';
-    begin
-        if IsNullGuid(Rec."Job Queue Entry ID") then
-            exit(NotCreatedLbl);
-
-        if not JobQueueEntry.Get(Rec."Job Queue Entry ID") then
-            exit(DeletedLbl);
-
-        exit(Format(JobQueueEntry.Status));
     end;
 }

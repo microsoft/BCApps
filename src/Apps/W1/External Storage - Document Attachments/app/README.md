@@ -6,13 +6,6 @@ The External Storage extension provides seamless integration between Microsoft D
 
 ## Key Features
 
-### **Automatic Scheduled Upload**
-- Automatically uploads new document attachments to configured external storage via scheduled job queue
-- Supports multiple storage connectors via the File Account framework
-- Generates unique file names to prevent collisions
-- Maintains original file metadata and associations
-- Configurable job queue runs daily at 1:00 AM with automatic retry capability
-
 ### **Multi-Tenant, Multi-Environment, and Multi-Company Support**
 - **Environment Hash**: Unique hash based on Tenant ID + Environment Name + Company System ID
 - **Organized Folder Structure**: Files are stored in hierarchical folders: `RootFolder/EnvironmentHash/TableName/FileName`
@@ -41,7 +34,6 @@ The External Storage extension provides seamless integration between Microsoft D
 - Microsoft Dynamics 365 Business Central version 28.0 or later
 - File Account module configured with external storage connector
 - Appropriate permissions for file operations
-- Job Queue functionality enabled for scheduled uploads
 
 ### Installation Steps
 
@@ -60,7 +52,6 @@ The External Storage extension provides seamless integration between Microsoft D
    - Configure settings:
      - **Enabled**: Enable the External Storage feature
      - **Root Folder**: Select the root folder path for attachments (use AssistEdit to browse)
-     - **Scheduled Upload**: Enable automatic background upload via job queue
      - **Delete from External Storage**: Enable to delete external files when attachments are removed from BC
 
 ### Configuration Options
@@ -72,24 +63,10 @@ The External Storage extension provides seamless integration between Microsoft D
   - Use AssistEdit button to browse and select folder interactively
 
 #### Upload and Delete Policy
-- **Scheduled Upload**: Enable automatic background upload using job queue
-  - Job runs daily at 1:00 AM
-  - Maximum 3 retry attempts on failure
 - **Delete from External Storage**: When enabled, files are deleted from external storage when the attachment is removed from Business Central
 
-#### Job Queue Information
-- **Job Queue Entry ID**: System-generated ID for the scheduled upload job
-- **Job Queue Status**: Current status (Not Created, Ready, On Hold, Deleted)
-- Click on Job Queue Entry ID to open detailed job queue card
 
 ## Usage
-
-### Automatic Mode
-When Scheduled Upload is enabled:
-1. User attaches a document to any Business Central record
-2. System automatically uploads to external storage via scheduled job queue (runs daily at 1:00 AM)
-3. File remains accessible through standard attachment functionality
-4. Internal file is deleted based on configured retention policy
 
 ### Multi-Company and Multi-Environment Support
 
@@ -137,7 +114,6 @@ From **External Storage Setup** page:
 - **Storage Sync**: Run synchronization manually to upload/download files
 - **Migrate Files**: Migrate all files from previous environment/company to current folder structure
 - **Show Current Environment Hash**: Display the current environment hash for reference
-- **Show Job Queue Entry**: View and manage the scheduled upload job
 - **Document Attachments**: Open the list of all document attachments with external storage information
 
 #### Individual File Operations
@@ -160,13 +136,6 @@ From **External Storage Synchronize** report:
 - Files deleted internally are automatically retrieved from external storage when accessed
 - No change to end-user experience
 - Cross-environment and cross-company access is handled automatically
-
-### Job Queue Management
-- Scheduled upload job runs daily at 1:00 AM
-- Automatic retry on failure (up to 3 attempts)
-- Job status visible in setup page
-- Can be manually triggered via **Storage Sync** action
-- Job can be paused by disabling **Scheduled Upload**
 
 ## Important Notes
 

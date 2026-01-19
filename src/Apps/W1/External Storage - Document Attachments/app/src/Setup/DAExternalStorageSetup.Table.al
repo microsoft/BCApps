@@ -48,16 +48,6 @@ table 8750 "DA External Storage Setup"
                     DAFeatureTelemetry.LogFeatureDisabled();
             end;
         }
-        field(6; "Scheduled Upload"; Boolean)
-        {
-            Caption = 'Scheduled Upload';
-            ToolTip = 'Specifies if files should be uploaded automatically with using the Job Queue. When enabled, a Job Queue entry is created to run the upload process in the background.';
-
-            trigger OnValidate()
-            begin
-                ManageJobQueue();
-            end;
-        }
         field(7; "Delete from External Storage"; Boolean)
         {
             Caption = 'Delete External File on Attachment Delete';
@@ -101,74 +91,4 @@ table 8750 "DA External Storage Setup"
             Clustered = true;
         }
     }
-
-    local procedure ManageJobQueue()
-    var
-        JobQueueEntry: Record "Job Queue Entry";
-    begin
-        if "Scheduled Upload" then begin
-            // Create job queue if it doesn't exist
-            if IsNullGuid("Job Queue Entry ID") or not JobQueueEntry.Get("Job Queue Entry ID") then
-                CreateJobQueue()
-            else
-                // Reactivate if it exists but is not ready
-                if JobQueueEntry.Status <> JobQueueEntry.Status::Ready then begin
-                    JobQueueEntry.Status := JobQueueEntry.Status::Ready;
-                    JobQueueEntry.Modify(true);
-                end;
-        end else
-            // Delete or set to on hold when Auto Upload is disabled
-            if not IsNullGuid("Job Queue Entry ID") then
-                if JobQueueEntry.Get("Job Queue Entry ID") then begin
-                    JobQueueEntry.Status := JobQueueEntry.Status::"On Hold";
-                    JobQueueEntry.Modify(true);
-                end;
-    end;
-
-    local procedure CreateJobQueue()
-    var
-        JobQueueEntry: Record "Job Queue Entry";
-        JobQueueCategoryLbl: Label 'EXTATTACH', Locked = true;
-        JobQueueDescriptionLbl: Label 'External Storage - Automatic Upload';
-        OneAmTime: Time;
-    begin
-        OneAmTime := 010000T; // 1:00 AM
-
-        JobQueueEntry.Init();
-        JobQueueEntry."Object Type to Run" := JobQueueEntry."Object Type to Run"::Report;
-        JobQueueEntry."Object ID to Run" := Report::"DA External Storage Sync";
-        JobQueueEntry.Description := JobQueueDescriptionLbl;
-        JobQueueEntry."Job Queue Category Code" := JobQueueCategoryLbl;
-        JobQueueEntry."Run in User Session" := false;
-        JobQueueEntry."Maximum No. of Attempts to Run" := 3;
-
-        // Schedule for 1 AM daily
-        JobQueueEntry."Earliest Start Date/Time" := CreateDateTime(Today() + 1, OneAmTime);
-        if Time() < OneAmTime then
-            JobQueueEntry."Earliest Start Date/Time" := CreateDateTime(Today(), OneAmTime);
-
-        JobQueueEntry."Recurring Job" := true;
-        JobQueueEntry."No. of Minutes between Runs" := 1440; // 24 hours
-
-        // Set report parameters to upload to external storage
-        JobQueueEntry."Report Request Page Options" := true;
-
-        JobQueueEntry.Status := JobQueueEntry.Status::Ready;
-        JobQueueEntry.Insert(true);
-
-        "Job Queue Entry ID" := JobQueueEntry.ID;
-        Modify();
-    end;
-
-    internal procedure DeleteJobQueue()
-    var
-        JobQueueEntry: Record "Job Queue Entry";
-    begin
-        if not IsNullGuid("Job Queue Entry ID") then
-            if JobQueueEntry.Get("Job Queue Entry ID") then
-                JobQueueEntry.Delete(true);
-
-        Clear("Job Queue Entry ID");
-        Modify();
-    end;
 }

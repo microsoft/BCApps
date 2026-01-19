@@ -341,6 +341,9 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not IsFeatureEnabled() then
             exit(false);
 
+        if not DocumentAttachment.Find() then
+            exit(false);
+
         // Validate input parameters
         if DocumentAttachment."External File Path" = '' then
             exit(false);
@@ -496,9 +499,6 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not ExternalStorageSetup.Get() then
             exit;
 
-        if not ExternalStorageSetup."Scheduled Upload" then
-            exit;
-
         // Only process files with actual content
         if not Rec."Document Reference ID".HasValue() then
             exit;
@@ -619,6 +619,18 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         AttachmentIsAvailable := ExternalStorageImpl.CheckIfFileExistInExternalStorage(DocumentAttachment."External File Path");
         IsHandled := true;
     end;
+
+    /// <summary>
+    /// Event handler for before checking Document Reference ID on insert.
+    /// </summary>
+    /// <param name="DocumentAttachment">The document attachment record.</param>
+    /// <param name="IsHandled">Indicates if the event has been handled.</param>
+    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnInsertOnBeforeCheckDocRefID, '', false, false)]
+    local procedure "Document Attachment_OnInsertOnBeforeCheckDocRefID"(var DocumentAttachment: Record "Document Attachment"; var IsHandled: Boolean)
+    begin
+        if DocumentAttachment."Uploaded Externally" then
+            IsHandled := true;
+    end;
     #endregion
 
     /// <summary>
@@ -736,7 +748,11 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             ExternalFileStorage.CreateDirectory(CompanyFolderPath);
     end;
 
-    local procedure GetCurrentEnvironmentHash(): Text[16]
+    /// <summary>
+    /// Gets the current environment hash for use in folder structure.
+    /// </summary>
+    /// <returns>The hash value (first 16 characters of SHA256).</returns>
+    procedure GetCurrentEnvironmentHash(): Text[16]
     var
         Company: Record Company;
         EnvironmentInformation: Codeunit "Environment Information";
