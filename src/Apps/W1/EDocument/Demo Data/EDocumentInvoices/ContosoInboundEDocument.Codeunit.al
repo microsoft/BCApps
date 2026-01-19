@@ -19,6 +19,7 @@ codeunit 5429 "Contoso Inbound E-Document"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+    EventSubscriberInstance = Manual;
 
     var
         EDocPurchaseHeader: Record "E-Document Purchase Header";
@@ -77,7 +78,9 @@ codeunit 5429 "Contoso Inbound E-Document"
         EDocumentService := GetEDocService();
         TempBlob := SaveSamplePurchInvReportToPDF();
         EDocument := CreateEDocument(TempBlob, EDocumentService);
+        BindSubscription(this);
         ProcessEDocument(EDocument);
+        UnbindSubscription(this);
         PostPurchaseInvoice(EDocument."Entry No");
     end;
 
@@ -176,6 +179,12 @@ codeunit 5429 "Contoso Inbound E-Document"
         CreateEDocDemodataService: Codeunit "Create E-Doc DemoData Service";
     begin
         EDocumentService.Get(CreateEDocDemodataService.EDocumentServiceCode());
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Header", OnInitRecordOnAfterAssignDates, '', false, false)]
+    local procedure SetPostingDateOfSampleInvoiceOnInitRecordOnAfterAssignDates(var PurchaseHeader: Record "Purchase Header")
+    begin
+        PurchaseHeader."Posting Date" := EDocPurchaseHeader."Document Date";
     end;
 
 }
