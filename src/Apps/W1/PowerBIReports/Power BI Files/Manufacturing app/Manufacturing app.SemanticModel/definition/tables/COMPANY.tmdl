@@ -22,7 +22,7 @@ table COMPANY
 	partition COMPANY = m
 		mode: import
 		queryGroup: 'Connection Details'
-		source = "CRONUS USA, Inc." meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+		source = "Cronus" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
 
 	changedProperty = IsHidden
 
