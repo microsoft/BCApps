@@ -15,6 +15,7 @@ table 9133 "SharePoint Graph Drive"
     DataClassification = SystemMetadata; // Data classification is SystemMetadata as the table is temporary
     InherentEntitlements = X;
     InherentPermissions = X;
+    Extensible = false;
 
     fields
     {

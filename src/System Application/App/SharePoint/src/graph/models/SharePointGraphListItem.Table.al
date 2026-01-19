@@ -15,6 +15,7 @@ table 9131 "SharePoint Graph List Item"
     DataClassification = CustomerContent;
     InherentEntitlements = X;
     InherentPermissions = X;
+    Extensible = false;
 
     fields
     {
