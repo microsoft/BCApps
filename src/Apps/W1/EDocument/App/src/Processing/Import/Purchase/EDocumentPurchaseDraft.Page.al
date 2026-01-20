@@ -32,6 +32,8 @@ page 6181 "E-Document Purchase Draft"
         {
             group(General)
             {
+                Caption = 'General';
+
                 field(Record; RecordLinkTxt)
                 {
                     Caption = 'Finalized Document';
