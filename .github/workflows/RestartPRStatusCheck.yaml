@@ -103,19 +103,29 @@ jobs:
               for ($retry = 0; $retry -lt $maxRetries; $retry++) {
                 try {
                   if ($retry -gt 0) {
-                    Write-Host "  Retry attempt $($retry + 1)/$maxRetries..."
-                    Start-Sleep -Seconds 2
+                    # Exponential backoff: 2s, 4s, 8s
+                    $delaySeconds = 2 * [Math]::Pow(2, $retry - 1)
+                    Write-Host "  Retry attempt $($retry + 1)/$maxRetries (waiting $delaySeconds seconds)..."
+                    Start-Sleep -Seconds $delaySeconds
                   }
 
                   # Rerequest the check by re-running the workflow
                   # First, get the workflow run ID from the check details URL
                   if ($statusCheck.detailsUrl -match '/runs/(\d+)') {
                     $runId = $matches[1]
-                    gh api --method POST "/repos/${{ github.repository }}/actions/runs/$runId/rerun" | Out-Null
-                    Write-Host "  ✓ Successfully triggered re-run of workflow (run ID: $runId)"
-                    $restarted++
-                    $success = $true
-                    break
+                    # Validate run ID is a positive integer
+                    if ([int]$runId -gt 0) {
+                      gh api --method POST "/repos/${{ github.repository }}/actions/runs/$runId/rerun" | Out-Null
+                      Write-Host "  ✓ Successfully triggered re-run of workflow (run ID: $runId)"
+                      $restarted++
+                      $success = $true
+                      break
+                    }
+                    else {
+                      Write-Host "  ✗ Invalid run ID extracted: $runId"
+                      $failed++
+                      break
+                    }
                   }
                   else {
                     Write-Host "  ✗ Could not extract run ID from details URL: $($statusCheck.detailsUrl)"
