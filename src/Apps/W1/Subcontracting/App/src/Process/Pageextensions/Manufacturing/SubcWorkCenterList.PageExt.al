@@ -37,12 +37,4 @@ pageextension 99001507 "Subc. Work Center List" extends "Work Center List"
             }
         }
     }
-    procedure GetCurrSelectionFilter(): Text
-    var
-        WorkCenter: Record "Work Center";
-        SubSelectionFilterMgmt: Codeunit "Subc. SelectionFilterMgmt";
-    begin
-        CurrPage.SetSelectionFilter(WorkCenter);
-        exit(SubSelectionFilterMgmt.GetSelectionFilterForWorkCenter(WorkCenter));
-    end;
 }
