@@ -172,17 +172,7 @@ page 99001503 "Subc. Prod. Order Components"
             }
         }
     }
-    trigger OnAfterGetRecord()
-    begin
-        Rec.ShowShortcutDimCode(ShortcutDimCode);
-    end;
-
-    trigger OnNewRecord(BelowxRec: Boolean)
-    begin
-        Clear(ShortcutDimCode);
-    end;
 
     var
         FactBoxmanagement: Codeunit "Subc. Factbox Mgmt.";
-        ShortcutDimCode: array[8] of Code[20];
 }

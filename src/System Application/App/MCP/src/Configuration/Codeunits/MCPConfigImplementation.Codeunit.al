@@ -5,10 +5,13 @@
 
 namespace System.MCP;
 
+using System.Azure.Identity;
+using System.Environment;
 #if not CLEAN28
 using System.Environment.Configuration;
 #endif
 using System.Reflection;
+using System.Utilities;
 
 codeunit 8351 "MCP Config Implementation"
 {
@@ -34,6 +37,14 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfigurationAuditCreatedLbl: Label 'MCP Configuration %1 created by user %2 in company %3', Comment = '%1 - configuration name, %2 - user security ID, %3 - company name', Locked = true;
         MCPConfigurationAuditModifiedLbl: Label 'MCP Configuration %1 modified by user %2 in company %3', Comment = '%1 - configuration name, %2 - user security ID, %3 - company name', Locked = true;
         MCPConfigurationAuditDeletedLbl: Label 'MCP Configuration %1 deleted by user %2 in company %3', Comment = '%1 - configuration name, %2 - user security ID, %3 - company name', Locked = true;
+        ConnectionStringLbl: Label '%1 Connection String', Comment = '%1 - configuration name';
+        MCPUrlProdLbl: Label 'https://mcp.businesscentral.dynamics.com', Locked = true;
+        MCPUrlTIELbl: Label 'https://mcp.businesscentral.dynamics-tie.com', Locked = true;
+        MCPPrefixProdLbl: Label 'businesscentral', Locked = true;
+        MCPPrefixTIELbl: Label 'businesscentral-tie', Locked = true;
+        VSCodeAppNameLbl: Label 'VS Code', Locked = true;
+        VSCodeAppDescriptionLbl: Label 'Visual Studio Code';
+        VSCodeClientIdLbl: Label 'aebc6443-996d-45c2-90f0-388ff96faa56', Locked = true;
 
     #region Configurations
     internal procedure GetConfigurationIdByName(Name: Text[100]): Guid
@@ -236,6 +247,19 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfiguration.DiscoverReadOnlyObjects := true;
         MCPConfiguration.AllowProdChanges := true;
         MCPConfiguration.Insert();
+    end;
+
+    internal procedure CreateVSCodeEntraApplication()
+    var
+        MCPEntraApplication: Record "MCP Entra Application";
+    begin
+        if MCPEntraApplication.Get(VSCodeAppNameLbl) then
+            exit;
+
+        MCPEntraApplication.Name := VSCodeAppNameLbl;
+        MCPEntraApplication.Description := VSCodeAppDescriptionLbl;
+        Evaluate(MCPEntraApplication."Client ID", VSCodeClientIdLbl);
+        MCPEntraApplication.Insert();
     end;
 
     internal procedure IsDefaultConfiguration(MCPConfiguration: Record "MCP Configuration"): Boolean
@@ -504,6 +528,74 @@ codeunit 8351 "MCP Config Implementation"
         if AllObjWithCaption.Get(ObjectType, MCPConfigurationTool."Object ID") then
             exit(CopyStr(AllObjWithCaption."Object Name", 1, 100));
         exit('');
+    end;
+    #endregion
+
+    #region Connection String
+    internal procedure ShowConnectionString(ConfigurationName: Text[100])
+    var
+        MCPConnectionString: Page "MCP Connection String";
+        ConnectionString: Text;
+    begin
+        ConnectionString := GenerateConnectionString(ConfigurationName);
+        MCPConnectionString.SetConnectionString(ConnectionString, ConfigurationName);
+        MCPConnectionString.Caption(StrSubstNo(ConnectionStringLbl, ConfigurationName));
+        MCPConnectionString.RunModal();
+    end;
+
+    internal procedure GenerateConnectionString(ConfigurationName: Text[100]): Text
+    var
+        AzureADTenant: Codeunit "Azure AD Tenant";
+        EnvironmentInformation: Codeunit "Environment Information";
+        MCPUrl: Text;
+        MCPPrefix: Text;
+        TenantId: Text;
+        EnvironmentName: Text;
+        Company: Text;
+    begin
+        GetMCPUrlAndPrefix(MCPUrl, MCPPrefix);
+        TenantId := AzureADTenant.GetAadTenantId();
+        EnvironmentName := EnvironmentInformation.GetEnvironmentName();
+        Company := CompanyName();
+
+        exit(BuildConnectionStringJson(MCPPrefix, MCPUrl, TenantId, EnvironmentName, Company, ConfigurationName));
+    end;
+
+    local procedure GetMCPUrlAndPrefix(var MCPUrl: Text; var MCPPrefix: Text)
+    begin
+        if IsTIEEnvironment() then begin
+            MCPUrl := MCPUrlTIELbl;
+            MCPPrefix := MCPPrefixTIELbl;
+        end else begin
+            MCPUrl := MCPUrlProdLbl;
+            MCPPrefix := MCPPrefixProdLbl;
+        end;
+    end;
+
+    local procedure IsTIEEnvironment(): Boolean
+    var
+        Uri: Codeunit Uri;
+    begin
+        exit(Uri.AreURIsHaveSameHost(GetUrl(ClientType::Web), 'https://businesscentral.dynamics-tie.com'));
+    end;
+
+    local procedure BuildConnectionStringJson(MCPPrefix: Text; MCPUrl: Text; TenantId: Text; EnvironmentName: Text; Company: Text; ConfigurationName: Text[100]): Text
+    var
+        JsonBuilder: TextBuilder;
+    begin
+        JsonBuilder.AppendLine('{');
+        JsonBuilder.AppendLine('  "' + MCPPrefix + '": {');
+        JsonBuilder.AppendLine('    "url": "' + MCPUrl + '",');
+        JsonBuilder.AppendLine('    "type": "http",');
+        JsonBuilder.AppendLine('    "headers": {');
+        JsonBuilder.AppendLine('      "TenantId": "' + TenantId + '",');
+        JsonBuilder.AppendLine('      "EnvironmentName": "' + EnvironmentName + '",');
+        JsonBuilder.AppendLine('      "Company": "' + Company + '",');
+        JsonBuilder.AppendLine('      "ConfigurationName": "' + ConfigurationName + '"');
+        JsonBuilder.AppendLine('    }');
+        JsonBuilder.AppendLine('  }');
+        JsonBuilder.AppendLine('}');
+        exit(JsonBuilder.ToText());
     end;
     #endregion
 

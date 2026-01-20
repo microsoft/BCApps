@@ -32,6 +32,8 @@ page 6181 "E-Document Purchase Draft"
         {
             group(General)
             {
+                Caption = 'General';
+
                 field(Record; RecordLinkTxt)
                 {
                     Caption = 'Finalized Document';
@@ -205,6 +207,7 @@ page 6181 "E-Document Purchase Draft"
                 }
                 field("Amount Incl. VAT"; EDocumentPurchaseHeader.Total)
                 {
+                    Caption = 'Amount Incl. VAT';
                     ToolTip = 'Specifies the total amount of the electronic document including VAT.';
                     Importance = Promoted;
 
@@ -217,6 +220,7 @@ page 6181 "E-Document Purchase Draft"
                 }
                 field("Currency Code"; EDocumentPurchaseHeader."Currency Code")
                 {
+                    Caption = 'Currency Code';
                     Importance = Promoted;
                     ToolTip = 'Specifies the electronic document currency code.';
                     Editable = true;

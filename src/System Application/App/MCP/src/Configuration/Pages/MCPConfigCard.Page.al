@@ -87,9 +87,32 @@ page 8351 "MCP Config Card"
                 end;
             }
         }
+        area(Processing)
+        {
+            action(MCPEntraApplications)
+            {
+                Caption = 'Entra Applications';
+                ToolTip = 'View registered Entra applications and their Client IDs for MCP client configuration.';
+                Image = Setup;
+                RunObject = page "MCP Entra Application List";
+            }
+            action(GenerateConnectionString)
+            {
+                Caption = 'Connection String';
+                ToolTip = 'Generate a connection string for this MCP configuration to use in your MCP client.';
+                Image = Export;
+
+                trigger OnAction()
+                begin
+                    MCPConfigImplementation.ShowConnectionString(Rec.Name);
+                end;
+            }
+        }
         area(Promoted)
         {
             actionref(Promoted_Copy; Copy) { }
+            actionref(Promoted_MCPEntraApplications; MCPEntraApplications) { }
+            actionref(Promoted_GenerateConnectionString; GenerateConnectionString) { }
         }
     }
 

@@ -12,6 +12,18 @@
   "logo": "",
   "dependencies": [
     {
+      "id": "95025170-61fc-4808-9505-4ba1fe1d05d9",
+      "name": "Azure AD Tenant",
+      "publisher": "Microsoft",
+      "version": "28.0.0.0"
+    },
+    {
+      "id": "e31ad830-3d46-472e-afeb-1d3d35247943",
+      "name": "BLOB Storage",
+      "publisher": "Microsoft",
+      "version": "28.0.0.0"
+    },
+    {
       "id": "2673d810-273e-402f-9093-2eaef7e03b83",
       "name": "Environment Information",
       "publisher": "Microsoft",
@@ -20,6 +32,12 @@
     {
       "id": "ae59aed1-040c-453c-9585-fe9da2f8211e",
       "name": "Feature Key",
+      "publisher": "Microsoft",
+      "version": "28.0.0.0"
+    },
+    {
+      "id": "1b2efb4b-8c44-4d74-a56f-60646645bb21",
+      "name": "URI",
       "publisher": "Microsoft",
       "version": "28.0.0.0"
     }
