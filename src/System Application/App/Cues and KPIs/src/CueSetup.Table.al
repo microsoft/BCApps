@@ -4,10 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Visualization;
-
-using System.Security.User;
 using System.Reflection;
 using System.Security.AccessControl;
+using System.Security.User;
 
 table 9701 "Cue Setup"
 {

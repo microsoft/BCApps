@@ -3,9 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace System.IO;
-
-using System.Utilities;
 using System;
+using System.Utilities;
 
 /// <summary>
 /// Codeunit that provides helper functions for PDF processing.

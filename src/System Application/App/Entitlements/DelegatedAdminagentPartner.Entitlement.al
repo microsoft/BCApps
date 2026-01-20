@@ -4,12 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Security.AccessControl;
-
-using System.Azure.Identity;
-using System.Environment.Configuration;
-using System.Email;
-using System.ExternalFileStorage;
 using System.Apps;
+using System.Azure.Identity;
+using System.Email;
+using System.Environment.Configuration;
+using System.ExternalFileStorage;
 using System.Integration;
 
 entitlement "Delegated Admin agent - Partner"

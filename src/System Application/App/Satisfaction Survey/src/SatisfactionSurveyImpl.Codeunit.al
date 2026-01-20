@@ -4,11 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Feedback;
-
 using System;
-using System.Environment;
 using System.Azure.Identity;
 using System.Azure.KeyVault;
+using System.Environment;
 using System.Environment.Configuration;
 using System.Security.AccessControl;
 

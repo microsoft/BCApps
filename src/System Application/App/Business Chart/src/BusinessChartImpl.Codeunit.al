@@ -4,10 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Visualization;
-
 using System;
-using System.Utilities;
 using System.Integration;
+using System.Utilities;
 
 codeunit 478 "Business Chart Impl."
 {

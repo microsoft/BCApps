@@ -4,10 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Security.AccessControl;
-
-using System.Environment.Configuration;
 using System.Apps;
 using System.Email;
+using System.Environment.Configuration;
 
 entitlement "Azure AD Application Api"
 {

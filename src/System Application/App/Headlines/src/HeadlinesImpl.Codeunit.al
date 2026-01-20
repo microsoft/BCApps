@@ -4,10 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Visualization;
-
 using System;
-using System.Security.User;
 using System.Security.AccessControl;
+using System.Security.User;
 
 codeunit 1470 "Headlines Impl."
 {

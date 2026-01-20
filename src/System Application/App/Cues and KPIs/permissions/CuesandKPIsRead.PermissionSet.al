@@ -4,10 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Visualization;
-
+using System.Environment.Configuration;
 using System.Reflection;
 using System.Security.User;
-using System.Environment.Configuration;
 
 permissionset 9701 "Cues and KPIs - Read"
 {

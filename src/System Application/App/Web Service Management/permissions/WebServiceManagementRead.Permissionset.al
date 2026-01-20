@@ -4,10 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Integration;
-
-using System.Reflection;
 using System.Apps;
 using System.Environment.Configuration;
+using System.Reflection;
 
 permissionset 6710 "Web Service Management - Read"
 {

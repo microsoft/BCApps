@@ -4,9 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Security.AccessControl;
-
-using System.Environment;
 using System.Diagnostics;
+using System.Environment;
 
 permissionset 95 "Session - Read"
 {
