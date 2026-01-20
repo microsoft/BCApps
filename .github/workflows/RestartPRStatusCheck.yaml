@@ -60,7 +60,7 @@ jobs:
 
             # Filter workflow runs for this specific PR
             $prBuilds = $prBuildRuns | Where-Object {
-              $_.pull_requests | Where-Object { $_.number -eq $pr.number }
+              $_.pull_requests -and ($_.pull_requests | Where-Object { $_.number -eq $pr.number })
             }
 
             if ($prBuilds.Count -eq 0) {
