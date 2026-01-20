@@ -18,7 +18,7 @@ defaults:
 jobs:
   RestartStatusChecks:
     runs-on: ubuntu-latest
-    name: Restart Old PR Status Checks
+    name: Restart Stale PR Status Checks
     steps:
       - name: Checkout
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
@@ -46,70 +46,93 @@ jobs:
           $now = [DateTime]::UtcNow
           $thresholdHours = 72
           $restarted = 0
-
-          # Get all workflow runs for pull_request event
-          Write-Host "Fetching workflows..."
-          $workflows = gh api "/repos/${{ github.repository }}/actions/workflows" | ConvertFrom-Json
-          $prBuildWorkflow = $workflows.workflows | Where-Object { $_.name -eq "Pull Request Build" }
-
-          if (-not $prBuildWorkflow) {
-            Write-Host "Could not find 'Pull Request Build' workflow, exiting"
-            exit 0
-          }
-
-          Write-Host "Fetching workflow runs for 'Pull Request Build' (ID: $($prBuildWorkflow.id))..."
-          $allRuns = gh api --paginate "/repos/${{ github.repository }}/actions/workflows/$($prBuildWorkflow.id)/runs?event=pull_request&per_page=100" | ConvertFrom-Json
-          $prBuildRuns = $allRuns.workflow_runs
-
-          Write-Host "Found $($prBuildRuns.Count) 'Pull Request Build' workflow runs"
+          $failed = 0
+          $maxRetries = 3
 
           foreach ($pr in $prs) {
             Write-Host ""
             Write-Host "Checking PR #$($pr.number): $($pr.title)"
 
-            # Filter workflow runs for this specific PR
-            $prBuilds = $prBuildRuns | Where-Object {
-              $_.pull_requests -and ($_.pull_requests | Where-Object { $_.number -eq $pr.number })
+            # Get checks for this PR
+            try {
+              $checks = gh pr checks $pr.number --json name,status,conclusion,completedAt,detailsUrl | ConvertFrom-Json
             }
-
-            if ($prBuilds.Count -eq 0) {
-              Write-Host "  No 'Pull Request Build' workflow runs found for this PR"
+            catch {
+              Write-Host "  ✗ Failed to get checks for PR: $_"
+              $failed++
               continue
             }
 
-            # Get the most recent run
-            $latestRun = $prBuilds | Sort-Object -Property created_at -Descending | Select-Object -First 1
+            # Find the "Pull Request Status Check"
+            $statusCheck = $checks | Where-Object { $_.name -eq "Pull Request Status Check" }
 
-            Write-Host "  Latest workflow run: $($latestRun.id) (Status: $($latestRun.status), Conclusion: $($latestRun.conclusion))"
-
-            # Check if the run is completed and successful
-            if ($latestRun.status -ne "completed") {
-              Write-Host "  Workflow is still running, skipping"
+            if (-not $statusCheck) {
+              Write-Host "  No 'Pull Request Status Check' found for this PR"
               continue
             }
 
-            if ($latestRun.conclusion -ne "success") {
-              Write-Host "  Workflow conclusion is '$($latestRun.conclusion)', not 'success', skipping"
+            Write-Host "  Check status: $($statusCheck.status), Conclusion: $($statusCheck.conclusion)"
+
+            # Check if the check is completed and successful
+            if ($statusCheck.status -ne "COMPLETED") {
+              Write-Host "  Check is still running, skipping"
+              continue
+            }
+
+            if ($statusCheck.conclusion -ne "SUCCESS") {
+              Write-Host "  Check conclusion is '$($statusCheck.conclusion)', not 'SUCCESS', skipping"
               continue
             }
 
             # Check the age of the completion
-            $completedAt = [DateTime]::Parse($latestRun.updated_at, [System.Globalization.CultureInfo]::InvariantCulture)
+            if (-not $statusCheck.completedAt) {
+              Write-Host "  No completion time available, skipping"
+              continue
+            }
+
+            $completedAt = [DateTime]::Parse($statusCheck.completedAt, [System.Globalization.CultureInfo]::InvariantCulture)
             $ageInHours = ($now - $completedAt).TotalHours
 
             Write-Host "  Completed at: $completedAt UTC (Age: $([Math]::Round($ageInHours, 2)) hours)"
 
             if ($ageInHours -gt $thresholdHours) {
-              Write-Host "  Status check is older than $thresholdHours hours, restarting..."
+              Write-Host "  Status check is older than $thresholdHours hours, requesting rerun..."
 
-              try {
-                # Re-run the workflow
-                gh api --method POST "/repos/${{ github.repository }}/actions/runs/$($latestRun.id)/rerun" | Out-Null
-                Write-Host "  ✓ Successfully triggered re-run of workflow $($latestRun.id)"
-                $restarted++
-              }
-              catch {
-                Write-Host "  ✗ Failed to restart workflow: $_"
+              # Try to rerequest the check with retries
+              $success = $false
+              for ($retry = 0; $retry -lt $maxRetries; $retry++) {
+                try {
+                  if ($retry -gt 0) {
+                    Write-Host "  Retry attempt $($retry + 1)/$maxRetries..."
+                    Start-Sleep -Seconds 2
+                  }
+
+                  # Rerequest the check by re-running the workflow
+                  # First, get the workflow run ID from the check details URL
+                  if ($statusCheck.detailsUrl -match '/runs/(\d+)') {
+                    $runId = $matches[1]
+                    gh api --method POST "/repos/${{ github.repository }}/actions/runs/$runId/rerun" | Out-Null
+                    Write-Host "  ✓ Successfully triggered re-run of workflow (run ID: $runId)"
+                    $restarted++
+                    $success = $true
+                    break
+                  }
+                  else {
+                    Write-Host "  ✗ Could not extract run ID from details URL: $($statusCheck.detailsUrl)"
+                    $failed++
+                    break
+                  }
+                }
+                catch {
+                  $errorMsg = $_.Exception.Message
+                  if ($retry -eq $maxRetries - 1) {
+                    Write-Host "  ✗ Failed to restart workflow after $maxRetries attempts: $errorMsg"
+                    $failed++
+                  }
+                  else {
+                    Write-Host "  ⚠ Attempt $($retry + 1) failed: $errorMsg"
+                  }
+                }
               }
             }
             else {
@@ -118,4 +141,6 @@ jobs:
           }
 
           Write-Host ""
-          Write-Host "Summary: Restarted $restarted workflow run(s)"
+          Write-Host "Summary:"
+          Write-Host "  ✓ Successfully restarted: $restarted workflow run(s)"
+          Write-Host "  ✗ Failed attempts: $failed"
