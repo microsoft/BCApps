@@ -73,7 +73,7 @@ page 149040 "AIT Test Suite List"
                     Image = Export;
                     Enabled = ValidRecord;
                     Scope = Repeater;
-                    ToolTip = 'Exports the AI Eval Suite configuration'.;
+                    ToolTip = 'Exports the AI Eval Suite configuration.';
 
                     trigger OnAction()
                     var
