@@ -1,0 +1,112 @@
+name: 'Restart Pull Request Status Check'
+
+on:
+  schedule:
+    - cron: '0 0 */3 * *' # Run every 3 days at midnight UTC
+  workflow_dispatch: # Allow manual trigger for testing
+
+permissions:
+  actions: write
+  checks: read
+  contents: read
+  pull-requests: read
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  RestartStatusChecks:
+    runs-on: ubuntu-latest
+    name: Restart Old PR Status Checks
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Check and Restart Status Checks
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $ProgressPreference = "SilentlyContinue"
+          Set-StrictMode -Version 2.0
+
+          Write-Host "Fetching open pull requests..."
+
+          # Get all open pull requests
+          $prs = gh pr list --state open --json number,headRefName,title,url --limit 1000 | ConvertFrom-Json
+
+          Write-Host "Found $($prs.Count) open pull requests"
+
+          if ($prs.Count -eq 0) {
+            Write-Host "No open pull requests found, exiting"
+            exit 0
+          }
+
+          $now = [DateTime]::UtcNow
+          $thresholdHours = 72
+          $restarted = 0
+
+          # Get all workflow runs for pull_request event
+          Write-Host "Fetching workflow runs..."
+          $allRuns = gh api --paginate "/repos/${{ github.repository }}/actions/runs?event=pull_request&per_page=100" | ConvertFrom-Json
+          $prBuildRuns = $allRuns.workflow_runs | Where-Object { $_.name -eq "Pull Request Build" }
+
+          Write-Host "Found $($prBuildRuns.Count) 'Pull Request Build' workflow runs"
+
+          foreach ($pr in $prs) {
+            Write-Host ""
+            Write-Host "Checking PR #$($pr.number): $($pr.title)"
+
+            # Filter workflow runs for this specific PR
+            $prBuilds = $prBuildRuns | Where-Object {
+              $_.pull_requests | Where-Object { $_.number -eq $pr.number }
+            }
+
+            if ($prBuilds.Count -eq 0) {
+              Write-Host "  No 'Pull Request Build' workflow runs found for this PR"
+              continue
+            }
+
+            # Get the most recent run
+            $latestRun = $prBuilds | Sort-Object -Property created_at -Descending | Select-Object -First 1
+
+            Write-Host "  Latest workflow run: $($latestRun.id) (Status: $($latestRun.status), Conclusion: $($latestRun.conclusion))"
+
+            # Check if the run is completed and successful
+            if ($latestRun.status -ne "completed") {
+              Write-Host "  Workflow is still running, skipping"
+              continue
+            }
+
+            if ($latestRun.conclusion -ne "success") {
+              Write-Host "  Workflow conclusion is '$($latestRun.conclusion)', not 'success', skipping"
+              continue
+            }
+
+            # Check the age of the completion
+            $completedAt = [DateTime]::Parse($latestRun.updated_at)
+            $ageInHours = ($now - $completedAt).TotalHours
+
+            Write-Host "  Completed at: $completedAt UTC (Age: $([Math]::Round($ageInHours, 2)) hours)"
+
+            if ($ageInHours -gt $thresholdHours) {
+              Write-Host "  Status check is older than $thresholdHours hours, restarting..."
+
+              try {
+                # Re-run the workflow
+                gh api --method POST "/repos/${{ github.repository }}/actions/runs/$($latestRun.id)/rerun" | Out-Null
+                Write-Host "  ✓ Successfully triggered re-run of workflow $($latestRun.id)"
+                $restarted++
+              }
+              catch {
+                Write-Host "  ✗ Failed to restart workflow: $_"
+              }
+            }
+            else {
+              Write-Host "  Status check is recent enough, no action needed"
+            }
+          }
+
+          Write-Host ""
+          Write-Host "Summary: Restarted $restarted workflow run(s)"
