@@ -48,9 +48,18 @@ jobs:
           $restarted = 0
 
           # Get all workflow runs for pull_request event
-          Write-Host "Fetching workflow runs..."
-          $allRuns = gh api --paginate "/repos/${{ github.repository }}/actions/runs?event=pull_request&per_page=100" | ConvertFrom-Json
-          $prBuildRuns = $allRuns.workflow_runs | Where-Object { $_.name -eq "Pull Request Build" }
+          Write-Host "Fetching workflows..."
+          $workflows = gh api "/repos/${{ github.repository }}/actions/workflows" | ConvertFrom-Json
+          $prBuildWorkflow = $workflows.workflows | Where-Object { $_.name -eq "Pull Request Build" }
+
+          if (-not $prBuildWorkflow) {
+            Write-Host "Could not find 'Pull Request Build' workflow, exiting"
+            exit 0
+          }
+
+          Write-Host "Fetching workflow runs for 'Pull Request Build' (ID: $($prBuildWorkflow.id))..."
+          $allRuns = gh api --paginate "/repos/${{ github.repository }}/actions/workflows/$($prBuildWorkflow.id)/runs?event=pull_request&per_page=100" | ConvertFrom-Json
+          $prBuildRuns = $allRuns.workflow_runs
 
           Write-Host "Found $($prBuildRuns.Count) 'Pull Request Build' workflow runs"
 
@@ -85,7 +94,7 @@ jobs:
             }
 
             # Check the age of the completion
-            $completedAt = [DateTime]::Parse($latestRun.updated_at)
+            $completedAt = [DateTime]::Parse($latestRun.updated_at, [System.Globalization.CultureInfo]::InvariantCulture)
             $ageInHours = ($now - $completedAt).TotalHours
 
             Write-Host "  Completed at: $completedAt UTC (Age: $([Math]::Round($ageInHours, 2)) hours)"
