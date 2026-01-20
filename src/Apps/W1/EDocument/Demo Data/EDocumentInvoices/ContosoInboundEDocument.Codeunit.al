@@ -4,12 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.DemoData;
 
-using Microsoft.Purchases.Document;
-using System.Utilities;
 using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Posting;
+using System.Utilities;
 
 /// <summary>
 /// The purpose of the codeunit is to generate inbound e-document invoices

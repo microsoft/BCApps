@@ -140,6 +140,39 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    procedure UnitTestImportShopifyOrderStoresRetailLocation()
+    var
+        Shop: Record "Shpfy Shop";
+        OrderHeader: Record "Shpfy Order Header";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        JShopifyOrder: JsonObject;
+        JShopifyLineItems: JsonArray;
+    begin
+        // [SCENARIO] Retail location metadata is stored on the Shopify order header during import.
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Customer Mapping Type" := "Shpfy Customer Mapping"::"By EMail/Phone";
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] the order to import as a json structure containing retail location info.
+        JShopifyOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JShopifyLineItems, false);
+
+        // [WHEN] ShpfyImportOrder.ImportOrder
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, OrdersToImport, ImportOrder, JShopifyOrder, JShopifyLineItems);
+
+        // [THEN] Retail location details are stored on the order header
+        LibraryAssert.AreEqual(1234567890L, OrderHeader."Retail Location Id", 'Retail location id must be stored on the order header.');
+        LibraryAssert.AreEqual('Retail Test Location', OrderHeader."Retail Location Name", 'Retail location name must be stored on the order header.');
+    end;
+
+    [Test]
     procedure UnitTestImportB2BShopifyOrder()
     var
         Shop: Record "Shpfy Shop";
