@@ -673,7 +673,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
         QltyInspectionGenRule.Modify();
         QltyManagementSetup.Get();
         QltyManagementSetup."Warehouse Trigger" := QltyWarehouseTrigger;
-        if QltyManagementSetup.Modify(false) then;
+        QltyManagementSetup.Modify(false);
 
         ExistingQltyInspectionGenRule.SetRange("Template Code", QltyInspectionGenRule."Template Code");
         ExistingQltyInspectionGenRule.SetRange("Source Table No.", QltyInspectionGenRule."Source Table No.");

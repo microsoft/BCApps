@@ -428,6 +428,7 @@ codeunit 30178 "Shpfy Product Export"
             ShopifyVariant."Item SystemId" := Item.SystemId;
             ShopifyVariant."Item Variant SystemId" := ItemVariant.SystemId;
             ShopifyVariant."UoM Option Id" := 2;
+            ProductEvents.OnAfterFillInProductVariantData(ShopifyVariant, Item, ItemVariant, Shop);
         end;
     end;
 
@@ -480,6 +481,7 @@ codeunit 30178 "Shpfy Product Export"
             ShopifyVariant."Item SystemId" := Item.SystemId;
             ShopifyVariant."Item Variant SystemId" := ItemVariant.SystemId;
             ShopifyVariant."UoM Option Id" := 2;
+            ProductEvents.OnAfterFillInProductVariantDataFromVariant(ShopifyVariant, Item, ItemVariant, ItemUnitofMeasure, Shop);
         end;
     end;
 
@@ -869,6 +871,7 @@ codeunit 30178 "Shpfy Product Export"
                     ShopifyVariant.Price := JVariant.GetDecimal('price');
                     ShopifyVariant."Compare at Price" := JVariant.GetDecimal('compareAtPrice');
                     ShopifyVariant."Updated At" := JVariant.GetDateTime('updatedAt');
+                    ShopifyVariant."Unit Cost" := JVariant.GetDecimal('unitCost');
                     ShopifyVariant.Modify();
                 end;
                 exit;

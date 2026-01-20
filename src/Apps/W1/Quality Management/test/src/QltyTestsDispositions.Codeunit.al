@@ -342,72 +342,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     end;
 
     [Test]
-    procedure PurchaseReturnSerialTrackedAdvLocation()
-    var
-        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        AdvWhseLocation: Record Location;
-        Item: Record Item;
-        Vendor: Record Vendor;
-        QltyInspectionHeader: Record "Qlty. Inspection Header";
-        PurOrderPurchaseHeader: Record "Purchase Header";
-        PurOrdPurchaseLine: Record "Purchase Line";
-        PurOrdReservationEntry: Record "Reservation Entry";
-        TempTrackedPurRtnBufferPurchaseHeader: Record "Purchase Header" temporary;
-        OptionalItemVariant: Code[10];
-        Reason: Code[10];
-        CreditMemo: Code[35];
-        SpecificQty: Decimal;
-    begin
-        // [SCENARIO] Create a purchase return order from a quality inspection for serial-tracked items in an advanced warehouse location
-
-        Initialize();
-
-        // [GIVEN] An advanced warehouse location with full warehouse management is created
-        LibraryWarehouse.CreateFullWMSLocation(AdvWhseLocation, 3);
-
-        // [GIVEN] Serial tracked item is created
-        QltyInspectionUtility.CreateSerialTrackedItemWithVariant(Item, OptionalItemVariant);
-
-        // [GIVEN] A vendor is created
-        LibraryPurchase.CreateVendor(Vendor);
-
-        // [GIVEN] A purchase order for 3 serial-tracked items is created, released, and fully received
-        QltyPurOrderGenerator.CreatePurchaseOrder(3, AdvWhseLocation, Item, Vendor, OptionalItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, PurOrdReservationEntry);
-        LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
-        QltyPurOrderGenerator.ReceivePurchaseOrder(AdvWhseLocation, PurOrderPurchaseHeader, PurOrdPurchaseLine);
-        PurOrdPurchaseLine.Get(PurOrdPurchaseLine."Document Type", PurOrdPurchaseLine."Document No.", PurOrdPurchaseLine."Line No.");
-        LibraryAssert.AreEqual(PurOrderPurchaseHeader.Status, PurOrderPurchaseHeader.Status::Released, 'Purchase Order was not released.');
-        LibraryAssert.AreEqual(PurOrdPurchaseLine."Qty. Received (Base)", PurOrdPurchaseLine."Quantity (Base)", 'Purchase Order was not fully received.');
-
-        // [GIVEN] A quality inspection template and generation rule are created
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
-        // [GIVEN] A quality inspection is created with purchase line and tracking
-        QltyInspectionUtility.CreateInspectionWithPurchaseLineAndTracking(PurOrdPurchaseLine, PurOrdReservationEntry, QltyInspectionHeader);
-
-        // [GIVEN] A return reason code and credit memo number are prepared
-        Reason := GetOrCreateReturnReasonCode();
-
-        CreditMemo := CopyStr(LibraryUtility.GenerateRandomText(35), 1, MaxStrLen(CreditMemo));
-
-        // [GIVEN] A specific quantity is set for return
-        SpecificQty := 3;
-
-        QltyInspectionGenRule.Delete();
-
-        // [WHEN] Purchase return disposition is performed with item tracked quantity behavior
-        QltyDispPurchaseReturn.PerformDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Item Tracked Quantity", SpecificQty, '', '', Reason, CreditMemo);
-        QltyDispPurchaseReturn.GetCreatedPurchaseReturnBuffer(TempTrackedPurRtnBufferPurchaseHeader);
-        // [THEN] The purchase return order is created correctly for serial-tracked items
-        VerifyInspectionAssertions(1, QltyInspectionHeader, TempTrackedPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
-
-        // [WHEN] Purchase return disposition with specific quantity behavior is attempted on serial-tracked items
-        asserterror QltyDispPurchaseReturn.PerformDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Specific Quantity", SpecificQty, '', '', Reason, CreditMemo);
-        // [THEN] An error is expected because no purchase receipt line exists for specific quantity with serial tracking
-        LibraryAssert.ExpectedError(StrSubstNo(NoPurchRcptLineErr, Item."No.", QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No."));
-    end;
-
-    [Test]
     procedure PurchaseReturnFullPackageAdvLocation()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -7325,6 +7259,72 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ItemJournalBatch.Delete();
         ItemJournalTemplate.Delete();
         QltyInspectionGenRule.Delete();
+    end;
+
+    [Test]
+    procedure PurchaseReturnSerialTrackedAdvLocation()
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        AdvWhseLocation: Record Location;
+        Item: Record Item;
+        Vendor: Record Vendor;
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        PurOrderPurchaseHeader: Record "Purchase Header";
+        PurOrdPurchaseLine: Record "Purchase Line";
+        PurOrdReservationEntry: Record "Reservation Entry";
+        TempTrackedPurRtnBufferPurchaseHeader: Record "Purchase Header" temporary;
+        OptionalItemVariant: Code[10];
+        Reason: Code[10];
+        CreditMemo: Code[35];
+        SpecificQty: Decimal;
+    begin
+        // [SCENARIO] Create a purchase return order from a quality inspection for serial-tracked items in an advanced warehouse location
+
+        Initialize();
+
+        // [GIVEN] An advanced warehouse location with full warehouse management is created
+        LibraryWarehouse.CreateFullWMSLocation(AdvWhseLocation, 3);
+
+        // [GIVEN] Serial tracked item is created
+        QltyInspectionUtility.CreateSerialTrackedItemWithVariant(Item, OptionalItemVariant);
+
+        // [GIVEN] A vendor is created
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [GIVEN] A purchase order for 3 serial-tracked items is created, released, and fully received
+        QltyPurOrderGenerator.CreatePurchaseOrder(3, AdvWhseLocation, Item, Vendor, OptionalItemVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, PurOrdReservationEntry);
+        LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
+        QltyPurOrderGenerator.ReceivePurchaseOrder(AdvWhseLocation, PurOrderPurchaseHeader, PurOrdPurchaseLine);
+        PurOrdPurchaseLine.Get(PurOrdPurchaseLine."Document Type", PurOrdPurchaseLine."Document No.", PurOrdPurchaseLine."Line No.");
+        LibraryAssert.AreEqual(PurOrderPurchaseHeader.Status, PurOrderPurchaseHeader.Status::Released, 'Purchase Order was not released.');
+        LibraryAssert.AreEqual(PurOrdPurchaseLine."Qty. Received (Base)", PurOrdPurchaseLine."Quantity (Base)", 'Purchase Order was not fully received.');
+
+        // [GIVEN] A quality inspection template and generation rule are created
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        // [GIVEN] A quality inspection is created with purchase line and tracking
+        QltyInspectionUtility.CreateInspectionWithPurchaseLineAndTracking(PurOrdPurchaseLine, PurOrdReservationEntry, QltyInspectionHeader);
+
+        // [GIVEN] A return reason code and credit memo number are prepared
+        Reason := GetOrCreateReturnReasonCode();
+
+        CreditMemo := CopyStr(LibraryUtility.GenerateRandomText(35), 1, MaxStrLen(CreditMemo));
+
+        // [GIVEN] A specific quantity is set for return
+        SpecificQty := 3;
+
+        QltyInspectionGenRule.Delete();
+
+        // [WHEN] Purchase return disposition is performed with item tracked quantity behavior
+        QltyDispPurchaseReturn.PerformDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Item Tracked Quantity", SpecificQty, '', '', Reason, CreditMemo);
+        QltyDispPurchaseReturn.GetCreatedPurchaseReturnBuffer(TempTrackedPurRtnBufferPurchaseHeader);
+        // [THEN] The purchase return order is created correctly for serial-tracked items
+        VerifyInspectionAssertions(1, QltyInspectionHeader, TempTrackedPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
+
+        // [WHEN] Purchase return disposition with specific quantity behavior is attempted on serial-tracked items
+        asserterror QltyDispPurchaseReturn.PerformDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Specific Quantity", SpecificQty, '', '', Reason, CreditMemo);
+        // [THEN] An error is expected because no purchase receipt line exists for specific quantity with serial tracking
+        LibraryAssert.ExpectedError(StrSubstNo(NoPurchRcptLineErr, Item."No.", QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No."));
     end;
 
     local procedure Initialize()
