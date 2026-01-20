@@ -564,8 +564,6 @@ page 20438 "Qlty. Management Setup Wizard"
     end;
 
     local procedure ChangeToStep(Step: Integer);
-    var
-        GuidedExperience: Codeunit "Guided Experience";
     begin
         if Step < 1 then
             Step := 1;
