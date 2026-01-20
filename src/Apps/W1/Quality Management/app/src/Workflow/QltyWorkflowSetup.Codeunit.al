@@ -5,7 +5,6 @@
 namespace Microsoft.QualityManagement.Workflow;
 
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup;
 using System.Automation;
 using System.Security.AccessControl;
 
@@ -16,7 +15,6 @@ using System.Security.AccessControl;
 codeunit 20423 "Qlty. Workflow Setup"
 {
     var
-        QltyManagementSetup: Record "Qlty. Management Setup";
         QltyPrefixTok: Label 'QLTY-', Locked = true;
         InspectionFinishesEventTok: Label 'QLTY-E-FINISH-1', Locked = true;
         InspectionReopenedEventTok: Label 'QLTY-E-REOPEN-1', Locked = true;
