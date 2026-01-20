@@ -15,12 +15,14 @@ codeunit 139076 "Mock SFTP File" implements "ISFTP File"
         FullNameVar: Text;
         IsDirectoryVar: Boolean;
         LengthVar: BigInteger;
+        LastWriteTimeVar: DateTime;
 
-    procedure Initialize(NewFullName: Text; NewIsDirectory: Boolean; NewLength: BigInteger)
+    procedure Initialize(NewFullName: Text; NewIsDirectory: Boolean; NewLength: BigInteger; NewLastWriteTime: DateTime)
     begin
         FullNameVar := NewFullName;
         IsDirectoryVar := NewIsDirectory;
         LengthVar := NewLength;
+        LastWriteTimeVar := NewLastWriteTime;
     end;
 
     procedure MoveTo(Destination: Text): Boolean
@@ -52,5 +54,10 @@ codeunit 139076 "Mock SFTP File" implements "ISFTP File"
     procedure Length(): BigInteger
     begin
         exit(LengthVar);
+    end;
+
+    procedure LastWriteTime(): DateTime
+    begin
+        exit(LastWriteTimeVar);
     end;
 }
