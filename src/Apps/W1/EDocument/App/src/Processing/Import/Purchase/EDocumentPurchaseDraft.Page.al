@@ -266,82 +266,100 @@ page 6181 "E-Document Purchase Draft"
     {
         area(Processing)
         {
-            action(CreateDocument)
+            group(ProcessDocument)
             {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Finalize draft';
-                ToolTip = 'Process the electronic document into a business central document';
-                Image = CreateDocument;
-                Visible = ShowFinalizeDraftAction;
+                Caption = 'Process';
+                Image = Process;
 
-                trigger OnAction()
-                begin
-                    FinalizeEDocument();
-                end;
-            }
-            action(ResetDraftDocument)
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Reset draft';
-                ToolTip = 'Resets the draft document. Any changes made to the draft document will be lost.';
-                Image = Restore;
-                Visible = true;
-                trigger OnAction()
-                begin
-                    ResetDraft();
-                end;
-            }
-            action(AnalyzeDocument)
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Analyze document';
-                ToolTip = 'Analyze the selected electronic document';
-                Image = SendAsPDF;
-                Visible = ShowAnalyzeDocumentAction;
+                action(CreateDocument)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Finalize draft';
+                    ToolTip = 'Process the electronic document into a business central document';
+                    Image = CreateDocument;
+                    Visible = ShowFinalizeDraftAction;
 
-                trigger OnAction()
-                begin
-                    AnalyzeEDocument();
-                end;
-            }
-            action(ViewFile)
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'View pdf';
-                ToolTip = 'View pdf.';
-                Image = ViewDetails;
-                Visible = HasPDFSource;
+                    trigger OnAction()
+                    begin
+                        FinalizeEDocument();
+                    end;
+                }
+                action(ResetDraftDocument)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Reset draft';
+                    ToolTip = 'Resets the draft document. Any changes made to the draft document will be lost.';
+                    Image = Restore;
 
-                trigger OnAction()
-                begin
-                    Rec.ViewSourceFile();
-                end;
-            }
-            action(ViewExtractedDocumentData)
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'View extracted data';
-                ToolTip = 'View the extracted data from the source file.';
-                Image = ViewRegisteredOrder;
+                    trigger OnAction()
+                    begin
+                        ResetDraft();
+                    end;
+                }
+                action(AnalyzeDocument)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Analyze document';
+                    ToolTip = 'Analyze the selected electronic document';
+                    Image = SendAsPDF;
+                    Visible = ShowAnalyzeDocumentAction;
 
-                trigger OnAction()
-                var
-                    EDocImport: Codeunit "E-Doc. Import";
-                begin
-                    EDocImport.ViewExtractedData(Rec);
-                end;
+                    trigger OnAction()
+                    begin
+                        AnalyzeEDocument();
+                    end;
+                }
             }
-            action(GetFeedback)
+            group(ViewDocument)
             {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Provide feedback';
-                ToolTip = 'Provide feedback on the Payables Agent experience.';
+                Caption = 'View';
+                Image = View;
+
+                action(ViewFile)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'View pdf';
+                    ToolTip = 'View pdf.';
+                    Image = ViewDetails;
+                    Visible = HasPDFSource;
+
+                    trigger OnAction()
+                    begin
+                        Rec.ViewSourceFile();
+                    end;
+                }
+                action(ViewExtractedDocumentData)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'View extracted data';
+                    ToolTip = 'View the extracted data from the source file.';
+                    Image = ViewRegisteredOrder;
+
+                    trigger OnAction()
+                    var
+                        EDocImport: Codeunit "E-Doc. Import";
+                    begin
+                        EDocImport.ViewExtractedData(Rec);
+                    end;
+                }
+            }
+            group(Help)
+            {
+                Caption = 'Help';
                 Image = Help;
 
-                trigger OnAction()
-                begin
-                    ProvideFeedback();
-                end;
+                action(GetFeedback)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Provide feedback';
+                    ToolTip = 'Provide feedback on the Payables Agent experience.';
+                    Image = Help;
+
+                    trigger OnAction()
+                    begin
+                        ProvideFeedback();
+                    end;
+                }
             }
         }
         area(Navigation)
@@ -390,25 +408,39 @@ page 6181 "E-Document Purchase Draft"
                 }
             }
         }
+
         area(Promoted)
         {
             group(Category_Process)
             {
+                Caption = 'Process';
                 actionref(Promoted_CreateDocument; CreateDocument)
                 {
                 }
                 actionref(Promoted_AnalyseDocument; AnalyzeDocument)
                 {
                 }
+            }
+            group(Category_View)
+            {
+                Caption = 'View';
                 actionref(Promoted_ViewFile; ViewFile)
                 {
                 }
+                actionref(Promoted_ViewExtractedData; ViewExtractedDocumentData)
+                {
+                }
+            }
+            group(Category_Help)
+            {
+                Caption = 'Help';
                 actionref(Promoted_GetFeedback; GetFeedback)
                 {
                 }
             }
         }
     }
+
 
     trigger OnOpenPage()
     var
