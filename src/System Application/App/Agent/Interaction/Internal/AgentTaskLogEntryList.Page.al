@@ -153,6 +153,8 @@ page 4303 "Agent Task Log Entry List"
                 ToolTip = 'Tell us what you think about the agent and suggest new features or improvements.';
                 Image = Comment;
                 Scope = Repeater;
+                Enabled = AgentPublisherType <> AgentPublisherType::"Third Party";
+                Visible = AgentPublisherType <> AgentPublisherType::"Third Party";
 
                 trigger OnAction()
                 begin
@@ -174,6 +176,7 @@ page 4303 "Agent Task Log Entry List"
 
     local procedure UpdateControls()
     var
+        Agent: Record Agent;
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
         DetailsTxt := AgentTaskImpl.GetDetailsForAgentTaskLogEntry(Rec);
@@ -185,6 +188,10 @@ page 4303 "Agent Task Log Entry List"
             else
                 TypeStyle := Format(PageStyle::Standard);
         end;
+
+        AgentPublisherType := AgentTaskImpl.TryGetAgentRecordFromTaskId(Rec."Task ID", Agent)
+            ? Agent."Publisher Type"
+            : AgentPublisherType::"Third Party";
     end;
 
     local procedure RequestFeedback()
@@ -193,10 +200,11 @@ page 4303 "Agent Task Log Entry List"
         ContextProperties: Dictionary of [Text, Text];
     begin
         ContextProperties := AgentUserFeedback.InitializeAgentTaskContext(Rec."Task ID");
-        AgentUserFeedback.RequestFeedback(ContextProperties);
+        AgentUserFeedback.RequestFeedback('Agent Task Log Entries', 'Agent', ContextProperties);
     end;
 
     var
+        AgentPublisherType: Enum "Agent Publisher Type";
         DetailsTxt: Text;
         TypeStyle: Text;
 }

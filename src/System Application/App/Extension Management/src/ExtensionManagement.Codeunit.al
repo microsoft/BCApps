@@ -264,16 +264,6 @@ codeunit 2504 "Extension Management"
     end;
 
     /// <summary>
-    /// Returns the Publisher of the app given the App Id.
-    /// </summary>
-    /// <param name="AppId">The unique identifier of the app.</param>
-    /// <returns>The publisher of the app.</returns>
-    procedure GetAppPublisher(AppId: Guid): Text
-    begin
-        exit(ExtensionOperationImpl.GetAppPublisher(AppId))
-    end;
-
-    /// <summary>
     /// Returns the detailed message from a deployment operation.
     /// </summary>
     /// <param name="OperationId">The Id of the operation to get the detailed message from.</param>
