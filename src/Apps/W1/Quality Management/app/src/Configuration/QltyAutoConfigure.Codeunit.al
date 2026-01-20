@@ -93,7 +93,6 @@ codeunit 20402 "Qlty. Auto Configure"
         ProdRoutingToInspectDescriptionTok: Label 'Prod. Order Routing Line to Inspect', Locked = true;
         AssemblyOutputToInspectTok: Label 'ASSEMBLYOUTPUTTOINSPECT', Locked = true;
         AssemblyOutputToInspectDescriptionTok: Label 'Posted Assembly Header to Inspect', Locked = true;
-        ResourceBasedInstallFileTok: Label 'InstallFiles/PackageQM-EXPRESSDEMO.rapidstart', Locked = true;
 
     internal procedure GetDefaultPassResult(): Text
     begin
