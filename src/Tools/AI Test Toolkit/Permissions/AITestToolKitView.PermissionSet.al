@@ -16,5 +16,9 @@ permissionset 149034 "AI Test Toolkit - View"
         tabledata "AIT Test Suite" = IMD,
         tabledata "AIT Test Suite Language" = IMD,
         tabledata "AIT Test Method Line" = IMD,
-        tabledata "AIT Log Entry" = IMD;
+        tabledata "AIT Log Entry" = IMD,
+        tabledata "AIT Query Schema" = IMD,
+        tabledata "AIT Test Input" = IMD,
+        tabledata "AIT Test Input Line" = IMD,
+        tabledata "AIT Validation Entry" = IMD;
 }

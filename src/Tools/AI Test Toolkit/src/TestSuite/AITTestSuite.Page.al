@@ -358,6 +358,46 @@ page 149031 "AIT Test Suite"
                 ToolTip = 'Open input datasets.';
                 RunObject = page "Test Input Groups";
             }
+            action(EditDataset)
+            {
+                Caption = 'Edit Dataset';
+                Image = Edit;
+                ToolTip = 'Opens the dataset editor for the current test suite''s input dataset.';
+                Enabled = Rec."Input Dataset" <> '';
+
+                trigger OnAction()
+                var
+                    TestInputGroup: Record "Test Input Group";
+                    AITDatasetEditor: Page "AIT Dataset Editor";
+                begin
+                    if not TestInputGroup.Get(Rec."Input Dataset") then begin
+                        Message(DatasetNotFoundMsg);
+                        exit;
+                    end;
+                    AITDatasetEditor.SetRecord(TestInputGroup);
+                    AITDatasetEditor.Run();
+                end;
+            }
+            action(NoCodeWizard)
+            {
+                Caption = 'Create Test (No-Code)';
+                Image = NewDocument;
+                ToolTip = 'Opens the wizard to create a new test input without writing code.';
+
+                trigger OnAction()
+                var
+                    AITDatasetWizard: Page "AIT Dataset Wizard";
+                begin
+                    AITDatasetWizard.RunModal();
+                end;
+            }
+            action(NoCodeTestInputs)
+            {
+                Caption = 'No-Code Test Inputs';
+                Image = TestFile;
+                ToolTip = 'View and manage test inputs created via the No-Code wizard.';
+                RunObject = page "AIT Test Inputs";
+            }
             action(Languages)
             {
                 Caption = 'Configure languages';
@@ -397,6 +437,12 @@ page 149031 "AIT Test Suite"
                 actionref(Datasets_Promoted; Datasets)
                 {
                 }
+                actionref(EditDataset_Promoted; EditDataset)
+                {
+                }
+                actionref(NoCodeWizard_Promoted; NoCodeWizard)
+                {
+                }
                 actionref(Languages_Promoted; Languages)
                 {
                 }
@@ -416,6 +462,7 @@ page 149031 "AIT Test Suite"
         TestRunnerDisplayName: Text;
         Language: Text;
         InputDatasetChangedQst: Label 'You have modified the input dataset.\\Do you want to update the lines?';
+        DatasetNotFoundMsg: Label 'The input dataset could not be found. Please select a valid dataset.';
         EvaluationSetupTxt: Text;
 
     trigger OnOpenPage()

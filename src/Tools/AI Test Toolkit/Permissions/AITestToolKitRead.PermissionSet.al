@@ -15,5 +15,9 @@ permissionset 149033 "AI Test Toolkit - Read"
         tabledata "AIT Test Suite" = R,
         tabledata "AIT Test Suite Language" = R,
         tabledata "AIT Test Method Line" = R,
-        tabledata "AIT Log Entry" = R;
+        tabledata "AIT Log Entry" = R,
+        tabledata "AIT Query Schema" = R,
+        tabledata "AIT Test Input" = R,
+        tabledata "AIT Test Input Line" = R,
+        tabledata "AIT Validation Entry" = R;
 }

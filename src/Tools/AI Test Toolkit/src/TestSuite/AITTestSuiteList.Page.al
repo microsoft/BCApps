@@ -96,10 +96,27 @@ page 149040 "AIT Test Suite List"
                 ToolTip = 'Open input datasets.';
                 RunObject = page "Test Input Groups";
             }
+            action(NoCodeTestInputs)
+            {
+                Caption = 'No-Code Test Inputs';
+                Image = TestFile;
+                ToolTip = 'View and manage test inputs created via the No-Code wizard.';
+                RunObject = page "AIT Test Inputs";
+            }
+            action(AIFeatures)
+            {
+                Caption = 'AI Features';
+                Image = Setup;
+                ToolTip = 'View and manage AI feature query schemas.';
+                RunObject = page "AIT Query Schemas";
+            }
         }
         area(Promoted)
         {
             actionref(Datasets_Promoted; Datasets)
+            {
+            }
+            actionref(NoCodeTestInputs_Promoted; NoCodeTestInputs)
             {
             }
             group(Category_Category4)
