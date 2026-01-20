@@ -38,7 +38,6 @@ page 4343 "Agent Task Context Part"
                 Caption = 'Task ID';
                 ToolTip = 'Specifies the ID of the task that was executed.';
                 Editable = false;
-                ExtendedDatatype = Task;
 
                 trigger OnDrillDown()
                 var

@@ -37,7 +37,6 @@ page 4300 "Agent Task List"
                 {
                     Caption = 'Task ID';
                     Editable = false;
-                    ExtendedDatatype = Task;
 
                     trigger OnDrillDown()
                     var
