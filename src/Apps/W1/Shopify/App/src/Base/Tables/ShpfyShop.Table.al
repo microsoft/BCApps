@@ -1098,9 +1098,10 @@ table 30102 "Shpfy Shop"
     local procedure VerifyNoItemAttributesAsOptions()
     var
         ItemAttribute: Record "Item Attribute";
+        UoMVariantUnavailableErr: Label 'UoM as Variant is unavailable due to existing Item Attributes marked as “As Option” which are utilized for Shopify Product Options.';
     begin
         ItemAttribute.SetRange("Shpfy Incl. in Product Sync", "Shpfy Incl. in Product Sync"::"As Option");
         if not ItemAttribute.IsEmpty() then
-            Error('UoM as Variant is unavailable due to existing Item Attributes marked as “As Option” which are utilized for Shopify Product Options.');
+            Error(UoMVariantUnavailableErr);
     end;
 }

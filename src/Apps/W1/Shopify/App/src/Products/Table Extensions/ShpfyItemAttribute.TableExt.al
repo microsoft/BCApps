@@ -15,6 +15,7 @@ tableextension 30112 "Shpfy Item Attribute" extends "Item Attribute"
         {
             Caption = 'Incl. in Product Sync';
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies whether to include this item attribute in product synchronization to Shopify. Select "As Option" to export the attribute as a Shopify Product Option.';
         }
     }
 }

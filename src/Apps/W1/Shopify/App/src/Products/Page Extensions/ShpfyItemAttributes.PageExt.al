@@ -16,7 +16,6 @@ pageextension 30127 "Shpfy Item Attributes" extends "Item Attributes"
             field("Shpfy Incl. in Product Sync"; Rec."Shpfy Incl. in Product Sync")
             {
                 ApplicationArea = All;
-                ToolTip = 'Specifies whether to include this item attribute in product synchronization to Shopify. Select "As Option" to export the attribute as a Shopify Product Option.';
             }
         }
     }
