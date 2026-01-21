@@ -4,10 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Privacy;
-
 using System.Environment;
-using System.Reflection;
 using System.Environment.Configuration;
+using System.Reflection;
 using System.Security.AccessControl;
 
 permissionset 1750 "Data Classification - Read"

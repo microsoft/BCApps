@@ -4,10 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Email;
-
-using System.Telemetry;
-using System.Security.User;
 using System.Security.AccessControl;
+using System.Security.User;
+using System.Telemetry;
 
 /// <summary>
 /// Page to display and control what view policies users have been assigned.

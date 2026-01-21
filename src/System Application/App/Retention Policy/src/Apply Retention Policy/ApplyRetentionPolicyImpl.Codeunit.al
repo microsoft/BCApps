@@ -4,11 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.DataAdministration;
-
-using System.Telemetry;
 using System.Reflection;
-using System.Security.User;
 using System.Security.AccessControl;
+using System.Security.User;
+using System.Telemetry;
 
 codeunit 3904 "Apply Retention Policy Impl."
 {

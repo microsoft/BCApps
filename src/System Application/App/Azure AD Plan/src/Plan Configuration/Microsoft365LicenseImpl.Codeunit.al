@@ -4,10 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Azure.Identity;
-
-using System.Telemetry;
-using System.Security.AccessControl;
 using System.Environment;
+using System.Security.AccessControl;
+using System.Telemetry;
 
 codeunit 9087 "Microsoft 365 License Impl."
 {

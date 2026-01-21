@@ -4,9 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Environment.Configuration;
-
-using System.Media;
 using System.Globalization;
+using System.Media;
 
 /// <summary>This page shows all registered assisted setup guides.</summary>
 page 1801 "Assisted Setup"
