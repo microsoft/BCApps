@@ -45,7 +45,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
                 }
                 field(ChoosechooseTemplate; TemplateCode)
                 {
-                    Caption = 'Choose Template';
+                    Caption = 'Choose template';
                     ToolTip = 'Specifies which Quality Inspection template do you want to use?';
                     ShowMandatory = true;
 

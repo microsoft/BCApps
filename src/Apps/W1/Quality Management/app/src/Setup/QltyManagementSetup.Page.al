@@ -77,7 +77,6 @@ page 20400 "Qlty. Management Setup"
                     field("CoA Contact No."; Rec."Certificate Contact No.")
                     {
                         ApplicationArea = All;
-                        Caption = 'Certificate of Analysis Contact';
                         AboutTitle = 'Certificate of Analysis Contact';
                         AboutText = 'When supplied, these contact details will appear on the Certificate of Analysis report.';
                     }
@@ -85,7 +84,6 @@ page 20400 "Qlty. Management Setup"
                     {
                         Importance = Additional;
                         ApplicationArea = All;
-                        Caption = 'Maximum Rows To Fetch In Lookups';
                         ShowCaption = true;
                         AboutTitle = 'Maximum Rows To Fetch In Lookups';
                         AboutText = 'This is the maximum number of rows to fetch on data lookups. Keeping the number as low as possible will increase usability and performance.';
@@ -94,11 +92,10 @@ page 20400 "Qlty. Management Setup"
                     group(SettingsForExplainShowInspection)
                     {
                         Caption = 'When to show inspections';
-                        InstructionalText = 'Define when to show inspections. For demonstrations and training, it can be useful to show automatically created inspections immediately.  However in most production scenarios, these inspections are sent to a queue or dispatch for quality inspectors.';
+                        InstructionalText = 'Define when to show inspections. For demonstrations and training, it can be useful to show automatically created inspections immediately. However, in most production scenarios, these inspections are sent to a queue or dispatch for quality inspectors.';
                         field("Show Inspection Behavior"; Rec."Show Inspection Behavior")
                         {
                             ApplicationArea = All;
-                            Caption = 'When to show inspections';
                             ShowCaption = true;
                             Importance = Promoted;
                             AboutTitle = 'When To Show Inspections';
@@ -108,7 +105,6 @@ page 20400 "Qlty. Management Setup"
                     field("Picture Upload Behavior"; Rec."Picture Upload Behavior")
                     {
                         ApplicationArea = All;
-                        Caption = 'Picture Upload Behavior';
                         ShowCaption = true;
                         AboutTitle = 'Picture Upload Behavior';
                         AboutText = 'When a picture has been taken, this value defines what to do with that picture.';
@@ -120,7 +116,6 @@ page 20400 "Qlty. Management Setup"
                         {
                             Importance = Additional;
                             ApplicationArea = All;
-                            Caption = 'Workflow Integration';
                             AboutTitle = 'Business Central Workflow integration.';
                             AboutText = 'Workflows can be used to trigger dispositions, such as negative adjustments, transfers, moves, and more.';
                         }
@@ -143,22 +138,18 @@ page 20400 "Qlty. Management Setup"
                     field("Warehouse Receive Trigger"; Rec."Warehouse Receive Trigger")
                     {
                         ApplicationArea = All;
-                        Caption = 'Warehouse Receipts';
                     }
                     field("Purchase Trigger"; Rec."Purchase Trigger")
                     {
                         ApplicationArea = All;
-                        Caption = 'Purchase Orders';
                     }
                     field("Sales Return Trigger"; Rec."Sales Return Trigger")
                     {
                         ApplicationArea = All;
-                        Caption = 'Sales Returns';
                     }
                     field("Transfer Trigger"; Rec."Transfer Trigger")
                     {
                         ApplicationArea = All;
-                        Caption = 'Transfer Orders';
                     }
                     field(ChooseCreateNewRule_Receiving; 'Create receipt inspection rule')
                     {
@@ -200,7 +191,6 @@ page 20400 "Qlty. Management Setup"
 
                     field("Production Trigger"; Rec."Production Trigger")
                     {
-                        Caption = 'Production - Create Inspection';
                         ApplicationArea = Manufacturing;
                         ShowCaption = true;
                         AboutTitle = 'Production related trigger';
@@ -208,7 +198,6 @@ page 20400 "Qlty. Management Setup"
                     }
                     field("Auto Output Configuration"; Rec."Auto Output Configuration")
                     {
-                        Caption = 'Auto Output Configuration';
                         ApplicationArea = Manufacturing;
                         ShowCaption = true;
                         AboutTitle = 'Auto Output Configuration';
@@ -216,7 +205,6 @@ page 20400 "Qlty. Management Setup"
                     }
                     field("Assembly Trigger"; Rec."Assembly Trigger")
                     {
-                        Caption = 'Assembly - Create Inspection';
                         ApplicationArea = Assembly;
                         ShowCaption = true;
                         AboutTitle = 'Assembly related trigger';
@@ -261,7 +249,6 @@ page 20400 "Qlty. Management Setup"
 
                     field("Warehouse Trigger"; Rec."Warehouse Trigger")
                     {
-                        Caption = 'Create Inspection';
                         ApplicationArea = All;
                         ShowCaption = true;
                         AboutTitle = 'Warehouse related trigger';
@@ -269,7 +256,6 @@ page 20400 "Qlty. Management Setup"
                     }
                     field("Whse. Move Related Triggers"; Rec."Whse. Move Related Triggers")
                     {
-                        Caption = 'Related Generation Rules';
                         ApplicationArea = All;
                     }
                     field(ChooseCreateNewRule_WhseMovement; 'Create warehouse inspection rule')
@@ -295,21 +281,18 @@ page 20400 "Qlty. Management Setup"
                     field("Bin Move Batch Name"; Rec."Bin Move Batch Name")
                     {
                         ApplicationArea = All;
-                        Caption = 'Batch Name';
                         AboutTitle = 'Batch Name (Non-Directed Pick and Put-away location)';
                         AboutText = 'The batch to use for bin movements and reclassifications for non-directed pick and put-away locations';
                     }
                     field("Bin Whse. Move Batch Name"; Rec."Bin Whse. Move Batch Name")
                     {
                         ApplicationArea = All;
-                        Caption = 'Whse. Batch Name';
                         AboutTitle = 'Batch Name (Directed Pick and Put-away location)';
                         AboutText = 'The batch to use for bin movements and reclassifications for directed pick and put-away locations';
                     }
                     field("Whse. Wksh. Name"; Rec."Whse. Wksh. Name")
                     {
                         ApplicationArea = All;
-                        Caption = 'Whse. Worksheet Name';
                         AboutTitle = 'Warehouse Worksheet Name (Directed Pick and Put-away location)';
                         AboutText = 'The warehouse worksheet name for warehouse movements for directed pick and put-away locations';
                     }
@@ -322,14 +305,12 @@ page 20400 "Qlty. Management Setup"
                     field("Item Adjustment Batch Name"; Rec."Adjustment Batch Name")
                     {
                         ApplicationArea = All;
-                        Caption = 'Batch Name';
                         AboutTitle = 'Batch Name (Non-Directed Pick and Put-away location)';
                         AboutText = 'The batch to use for negative inventory adjustments for non-directed pick and put-away locations';
                     }
                     field("Whse. Adjustment Batch Name"; Rec."Whse. Adjustment Batch Name")
                     {
                         ApplicationArea = All;
-                        Caption = 'Whse. Batch Name';
                         AboutTitle = 'Batch Name (Directed Pick and Put-away location)';
                         AboutText = 'The batch to use for negative inventory adjustments for directed pick and put-away locations';
                     }

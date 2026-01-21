@@ -44,7 +44,7 @@ table 20400 "Qlty. Management Setup"
         }
         field(3; "Show Inspection Behavior"; Enum "Qlty. When to Show Inspections")
         {
-            Caption = 'Show Inspection Behavior';
+            Caption = 'When to Show Inspections';
             ToolTip = 'Specifies whether inspections are shown immediately or sent to a queue for quality inspectors. For demonstrations and training, it can be useful to show automatically created inspections immediately. In production scenarios, automatically created inspections are usually not shown, instead they are queued or dispatch for quality inspectors.';
         }
         field(4; "Create Inspection Behavior"; Enum "Qlty. Create Inspect. Behavior")
@@ -60,7 +60,7 @@ table 20400 "Qlty. Management Setup"
         }
         field(6; "Certificate Contact No."; Code[20])
         {
-            Caption = 'Certificate of Analysis Contact No.';
+            Caption = 'Certificate of Analysis Contact';
             Description = 'When supplied, these contact details will appear on the CoA report.';
             TableRelation = Contact."No.";
             ToolTip = 'Specifies the contact details that will appear on the Certificate of Analysis report when supplied.';
@@ -68,7 +68,7 @@ table 20400 "Qlty. Management Setup"
         field(10; "Production Trigger"; Enum "Qlty. Production Trigger")
         {
             Description = 'Optionally choose a production related trigger to try and create an inspection.';
-            Caption = 'Production Trigger';
+            Caption = 'Production - Create Inspection';
             ToolTip = 'Specifies a default production-related trigger value for Inspection Generation Rules to try and create an inspection.';
 
             trigger OnValidate()
@@ -129,7 +129,7 @@ table 20400 "Qlty. Management Setup"
         field(29; "Warehouse Trigger"; Enum "Qlty. Warehouse Trigger")
         {
             Description = 'Optionally choose a warehouse related trigger to try and create an inspection.';
-            Caption = 'Warehouse Trigger';
+            Caption = 'Create Inspection';
             ToolTip = 'Specifies a default warehousing related trigger value for Inspection Generation Rules to try and create an inspection.';
 
             trigger OnValidate()
@@ -152,7 +152,7 @@ table 20400 "Qlty. Management Setup"
         field(30; "Whse. Move Related Triggers"; Integer)
         {
             CalcFormula = count("Qlty. Inspection Gen. Rule" where(Intent = const("Warehouse Movement")));
-            Caption = 'Whse. Move Related Triggers';
+            Caption = 'Related Generation Rules';
             Editable = false;
             FieldClass = FlowField;
             ToolTip = 'Specifies the Inspection Generation Rules that are warehouse movement related.';
@@ -247,7 +247,7 @@ table 20400 "Qlty. Management Setup"
         }
         field(73; "Bin Move Batch Name"; Code[10])
         {
-            Caption = 'Bin Move Batch Name';
+            Caption = 'Batch Name';
             ToolTip = 'Specifies the batch to use for bin movements and reclassifications for non-directed pick and put-away locations.';
 
             trigger OnLookup()
@@ -275,7 +275,7 @@ table 20400 "Qlty. Management Setup"
         }
         field(74; "Bin Whse. Move Batch Name"; Code[10])
         {
-            Caption = 'Bin Whse. Move Batch Name';
+            Caption = 'Whse. Batch Name';
             Description = 'The batch to use for bin movements for directed pick and put-away locations';
             ToolTip = 'Specifies the batch to use for bin movements and reclassifications for directed pick and put-away locations.';
 
@@ -307,7 +307,7 @@ table 20400 "Qlty. Management Setup"
         }
         field(91; "Max Rows Field Lookups"; Integer)
         {
-            Caption = 'Maximum Rows To Fetch on Field Lookups';
+            Caption = 'Maximum Rows To Fetch In Lookups';
             BlankZero = true;
             MinValue = 1;
             MaxValue = 1000;
@@ -322,7 +322,7 @@ table 20400 "Qlty. Management Setup"
         }
         field(93; "Whse. Wksh. Name"; Code[10])
         {
-            Caption = 'Warehouse Worksheet Name';
+            Caption = 'Whse. Worksheet Name';
             ToolTip = 'Specifies the worksheet used for warehouse movements for directed pick and put-away locations.';
 
             trigger OnLookup()
@@ -353,7 +353,7 @@ table 20400 "Qlty. Management Setup"
         }
         field(95; "Adjustment Batch Name"; Code[10])
         {
-            Caption = 'Adjustment Batch Name';
+            Caption = 'Batch Name';
             ToolTip = 'Specifies the batch to use for negative inventory adjustment item journals.';
 
             trigger OnLookup()
@@ -381,7 +381,7 @@ table 20400 "Qlty. Management Setup"
         }
         field(96; "Whse. Adjustment Batch Name"; Code[10])
         {
-            Caption = 'Whse. Adjustment Batch Name';
+            Caption = 'Whse. Batch Name';
             ToolTip = 'Specifies the batch to use for negative inventory adjustment warehouse item journals.';
 
             trigger OnLookup()
@@ -412,7 +412,7 @@ table 20400 "Qlty. Management Setup"
         }
         field(97; "Warehouse Receive Trigger"; Enum "Qlty. Whse. Receive Trigger")
         {
-            Caption = 'Create Inspection On Warehouse Receive Trigger';
+            Caption = 'Warehouse Receipts';
             Description = 'Provides automation to create an inspection when a warehouse receipt is created.';
             ToolTip = 'Specifies a default warehouse receipt trigger value for Inspection Generation Rules to create an inspection.';
 
@@ -433,7 +433,7 @@ table 20400 "Qlty. Management Setup"
         }
         field(98; "Purchase Trigger"; Enum "Qlty. Purchase Trigger")
         {
-            Caption = 'Create Inspection On Purchase Trigger';
+            Caption = 'Purchase Orders';
             Description = 'Provides automation to create an inspection when a purchase is received.';
             ToolTip = 'Specifies a default purchase trigger value for Inspection Generation Rules to create an inspection.';
 
@@ -452,7 +452,7 @@ table 20400 "Qlty. Management Setup"
         }
         field(99; "Sales Return Trigger"; Enum "Qlty. Sales Return Trigger")
         {
-            Caption = 'Create Inspection On Sales Return Trigger';
+            Caption = 'Sales Returns';
             Description = 'Provides automation to create an inspection when a sales return is received.';
             ToolTip = 'Specifies a default sales return trigger value for Inspection Generation Rules to create an inspection.';
 
@@ -471,7 +471,7 @@ table 20400 "Qlty. Management Setup"
         }
         field(100; "Transfer Trigger"; Enum "Qlty. Transfer Trigger")
         {
-            Caption = 'Create Inspection On Transfer Trigger';
+            Caption = 'Transfer Orders';
             Description = 'Provides automation to create an inspection when a transfer order is received.';
             ToolTip = 'Specifies a default transfer trigger value for Inspection Generation Rules to create an inspection.';
 
@@ -490,7 +490,7 @@ table 20400 "Qlty. Management Setup"
         }
         field(101; "Assembly Trigger"; Enum "Qlty. Assembly Trigger")
         {
-            Caption = 'Create Inspection On Assembly Trigger';
+            Caption = 'Assembly - Create Inspection';
             Description = 'Provides automation to create an inspection when an assembly order creates output.';
             ToolTip = 'Specifies when to create an inspection for assembly orders using inspection generation rules';
 
