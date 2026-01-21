@@ -700,21 +700,6 @@ codeunit 6108 "E-Document Processing"
         end;
     end;
 
-    procedure LinkToExistingPurchaseDocument(EDocument: Record "E-Document"; PurchaseHeader: Record "Purchase Header"): Boolean
-    var
-        EDocImportParameters: Record "E-Doc. Import Parameters";
-        ConfirmDialogMgt: Codeunit "Confirm Management";
-        EDocImport: Codeunit "E-Doc. Import";
-        LinkToExistingDocumentQst: Label 'Do you want to link this e-document to %1 %2? This will mark the e-document as processed.', Comment = '%1 = Document Type, %2 = Document No.';
-    begin
-        if not ConfirmDialogMgt.GetResponseOrDefault(StrSubstNo(LinkToExistingDocumentQst, PurchaseHeader."Document Type", PurchaseHeader."No."), true) then
-            exit(false);
-
-        EDocImportParameters."Existing Doc. RecordId" := PurchaseHeader.RecordId();
-        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        exit(EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters));
-    end;
-
     internal procedure ErrorIfNotAllowedToLinkToExistingDoc(EDocument: Record "E-Document"; EDocumentPurchaseHeader: Record "E-Document Purchase Header")
     var
         Vendor: Record Vendor;
