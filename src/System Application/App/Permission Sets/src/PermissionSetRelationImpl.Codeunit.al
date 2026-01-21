@@ -4,10 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Security.AccessControl;
-
 using System;
-using System.Telemetry;
 using System.Security.User;
+using System.Telemetry;
 
 /// <summary>
 /// Implementation codeunit that provides functions for copying permission sets, including/excluding permission sets and getting the permission set tree.

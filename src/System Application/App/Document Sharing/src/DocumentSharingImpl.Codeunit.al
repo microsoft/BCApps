@@ -4,11 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Integration;
-
-using System.Telemetry;
-using System.Globalization;
 using System.Azure.Identity;
 using System.Environment;
+using System.Globalization;
+using System.Telemetry;
 
 /// <summary>
 /// Codeunit that contains the implementation for document sharing.

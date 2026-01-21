@@ -4,11 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Security.AccessControl;
-
 using System.Agents;
+using System.Security.User;
 using System.Telemetry;
 using System.Utilities;
-using System.Security.User;
 
 /// <summary>
 /// The main page for interacting with security groups.

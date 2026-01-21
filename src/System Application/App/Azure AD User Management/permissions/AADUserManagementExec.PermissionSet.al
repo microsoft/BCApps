@@ -4,10 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Azure.Identity;
-
+using System.Environment.Configuration;
 using System.Globalization;
 using System.Security.AccessControl;
-using System.Environment.Configuration;
 
 permissionset 9515 "AAD User Management - Exec"
 {

@@ -4,9 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.DataAdministration;
-
-using System.Reflection;
 using System.Environment.Configuration;
+using System.Reflection;
 
 codeunit 3903 "Retention Policy Setup Impl."
 {

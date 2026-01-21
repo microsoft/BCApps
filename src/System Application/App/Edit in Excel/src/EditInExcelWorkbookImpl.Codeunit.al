@@ -4,10 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Integration.Excel;
-
 using System;
-using System.Environment;
 using System.Azure.Identity;
+using System.Environment;
 using System.Integration;
 
 /// <summary>

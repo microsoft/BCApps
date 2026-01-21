@@ -4,14 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Environment.Configuration;
-
 using System;
-using System.Telemetry;
-using System.Media;
-using System.Globalization;
-using System.Security.AccessControl;
-using System.Reflection;
 using System.Environment;
+using System.Globalization;
+using System.Media;
+using System.Reflection;
+using System.Security.AccessControl;
+using System.Telemetry;
 
 codeunit 1996 "Checklist Banner Impl."
 {

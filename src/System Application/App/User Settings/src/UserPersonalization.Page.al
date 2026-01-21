@@ -4,9 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Environment.Configuration;
-
-using System.Globalization;
 using System.DateTime;
+using System.Globalization;
 
 /// <summary>
 /// Page that shows the settings of a given user.
