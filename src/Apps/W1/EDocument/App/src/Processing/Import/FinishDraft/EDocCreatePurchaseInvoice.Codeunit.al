@@ -97,9 +97,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
 
         PurchaseHeader.TestField("Document Type", "Purchase Document Type"::Invoice);
         Clear(PurchaseHeader."E-Document Link");
-
-        if PurchaseHeader."Created from E-Document" then
-            PurchaseHeader.Delete(true);
+        PurchaseHeader.Modify();
     end;
 
     procedure CreatePurchaseInvoice(EDocument: Record "E-Document"): Record "Purchase Header"

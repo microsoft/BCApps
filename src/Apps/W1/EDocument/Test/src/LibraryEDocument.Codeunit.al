@@ -253,6 +253,8 @@ codeunit 139629 "Library - E-Document"
         else
             EntryNo := EDocument."Entry No";
         EDocument."Entry No" := EntryNo;
+        EDocument.Direction := EDocument.Direction::Incoming;
+        EDocument.Service := EDocService.Code;
         EDocument.Insert();
         EDocumentServiceStatus."E-Document Entry No" := EntryNo;
         EDocumentServiceStatus."E-Document Service Code" := EDocService.Code;

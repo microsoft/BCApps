@@ -714,7 +714,9 @@ page 6181 "E-Document Purchase Draft"
         PurchaseHeader: Record "Purchase Header";
         EDocImportParameters: Record "E-Doc. Import Parameters";
         ConfirmDialogMgt: Codeunit "Confirm Management";
-        LinkToExistingDocumentQst: Label 'Do you want to link this e-document to %1 %2? This will mark the e-document as processed.', Comment = '%1 = Document Type, %2 = Document No.';
+        LinkToExistingDocumentQst: Label 'Do you want to link this e-document to %1 %2?', Comment = '%1 = Document Type, %2 = Document No.';
+        RelinkToExistingDocumentQst: Label 'This e-document is already linked to a document. Do you want to unlink the existing document and link to %1 %2 instead? The previously linked document will need to be cleaned up manually.', Comment = '%1 = Document Type, %2 = Document No.';
+        ConfirmQst: Text;
     begin
         EDocumentProcessing.ErrorIfNotAllowedToLinkToExistingDoc(Rec, EDocumentPurchaseHeader);
         PurchaseHeader.SetRange("Buy-from Vendor No.", EDocumentPurchaseHeader."[BC] Vendor No.");
@@ -722,7 +724,8 @@ page 6181 "E-Document Purchase Draft"
         if not EDocumentProcessing.OpenPurchaseDocumentList(Rec."Document Type", PurchaseHeader) then
             exit;
 
-        if not ConfirmDialogMgt.GetResponseOrDefault(StrSubstNo(LinkToExistingDocumentQst, PurchaseHeader."Document Type", PurchaseHeader."No."), true) then
+        ConfirmQst := StrSubstNo(Rec.Status = Rec.Status::Processed ? RelinkToExistingDocumentQst : LinkToExistingDocumentQst, PurchaseHeader."Document Type", PurchaseHeader."No.");
+        if not ConfirmDialogMgt.GetResponseOrDefault(ConfirmQst, Rec.Status <> Rec.Status::Processed) then
             exit;
 
         EDocImportParameters."Existing Doc. RecordId" := PurchaseHeader.RecordId();
