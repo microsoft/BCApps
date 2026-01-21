@@ -751,7 +751,7 @@ report 99001504 "Subc. Dispatching List"
             column(YourRef_PurchHeader; "Your Reference")
             {
             }
-            dataitem("PurchaseLine"; "Purchase Line")
+            dataitem("Purchase Line"; "Purchase Line")
             {
                 DataItemLink = "Document Type" = field("Document Type"), "Document No." = field("No.");
                 DataItemTableView = sorting("Document Type", "Document No.", "Line No.") where("Prod. Order No." = filter(<> ''));
@@ -784,13 +784,13 @@ report 99001504 "Subc. Dispatching List"
                 column(ExpectedReceiptDateLbl; ExpectedReceiptDateLbl)
                 {
                 }
-                column(SubcDescriptionCaption; "PurchaseLine".FieldCaption(Description))
+                column(SubcDescriptionCaption; "Purchase Line".FieldCaption(Description))
                 {
                 }
                 column(SubcExpectedReceiptDate; Format("Expected Receipt Date", 0, LineDateFormatExpression))
                 {
                 }
-                column(SubcLineDescription2; "PurchaseLine"."Description 2")
+                column(SubcLineDescription2; "Purchase Line"."Description 2")
                 {
                 }
                 column(SubcLineDisc; LineDiscountPctText)
@@ -799,7 +799,7 @@ report 99001504 "Subc. Dispatching List"
                 column(SubcLineMark; LineMark)
                 {
                 }
-                column(SubcNoCaption; "PurchaseLine".FieldCaption("No."))
+                column(SubcNoCaption; "Purchase Line".FieldCaption("No."))
                 {
                 }
                 column(SubcPosNoText; PosNoText)
@@ -808,13 +808,13 @@ report 99001504 "Subc. Dispatching List"
                 column(SubcPUoM; PricingUoMCode)
                 {
                 }
-                column(SubcPurchQty; "PurchaseLine".Quantity)
+                column(SubcPurchQty; "Purchase Line".Quantity)
                 {
                 }
                 column(SubcPUS; PriceUnit)
                 {
                 }
-                column(SubcQuantityCaption; "PurchaseLine".FieldCaption(Quantity))
+                column(SubcQuantityCaption; "Purchase Line".FieldCaption(Quantity))
                 {
                 }
                 column(SubcSalesLineLineAmount; LineAmount)
@@ -876,21 +876,21 @@ report 99001504 "Subc. Dispatching List"
                 column(PromisedReceiptDateLbl; PromisedReceiptDateLbl)
                 {
                 }
-                column(Purchase_Line_Operation_No_; "PurchaseLine"."Subc. Operation No.")
+                column(Purchase_Line_Operation_No_; "Purchase Line"."Subc. Operation No.")
                 {
                 }
-                column(Purchase_Line_Outstanding_Qty; "PurchaseLine"."Outstanding Quantity")
+                column(Purchase_Line_Outstanding_Qty; "Purchase Line"."Outstanding Quantity")
                 { }
-                column(Purchase_Line_Prod__Order_Line_No_; "PurchaseLine"."Subc. Prod. Order Line No.")
+                column(Purchase_Line_Prod__Order_Line_No_; "Purchase Line"."Subc. Prod. Order Line No.")
                 {
                 }
-                column(Purchase_Line_Prod__Order_No_; "PurchaseLine"."Subc. Prod. Order No.")
+                column(Purchase_Line_Prod__Order_No_; "Purchase Line"."Subc. Prod. Order No.")
                 {
                 }
-                column(Purchase_Line_Routing_No_; "PurchaseLine"."Subc. Routing No.")
+                column(Purchase_Line_Routing_No_; "Purchase Line"."Subc. Routing No.")
                 {
                 }
-                column(Purchase_Line_Routing_Reference_No_; "PurchaseLine"."Subc. Rtng Reference No.")
+                column(Purchase_Line_Routing_Reference_No_; "Purchase Line"."Subc. Rtng Reference No.")
                 {
                 }
                 column(PurchLineLineDisc_Lbl; PurchLineLineDiscCaptionLbl)
@@ -943,12 +943,12 @@ report 99001504 "Subc. Dispatching List"
                 column(VendorItemNo_PurchLine; "Vendor Item No.")
                 {
                 }
-                dataitem("Prod. Order PurchaseLine"; "Prod. Order Line")
+                dataitem("Prod. Order Line"; "Prod. Order Line")
                 {
                     DataItemLink = "Prod. Order No." = field("Prod. Order No."), "Line No." = field("Prod. Order Line No.");
                     DataItemTableView = sorting(Status, "Prod. Order No.", "Line No.") where(Status = const(Released));
                 }
-                dataitem("Prod. Order Routing PurchaseLine"; "Prod. Order Routing Line")
+                dataitem("Prod. Order Routing Line"; "Prod. Order Routing Line")
                 {
                     DataItemLink = "Prod. Order No." = field("Prod. Order No."), "Routing No." = field("Routing No."), "Routing Reference No." = field("Routing Reference No."), "Operation No." = field("Operation No.");
                     DataItemTableView = sorting(Status, "Prod. Order No.", "Routing Reference No.", "Routing No.", "Operation No.") where(Status = const(Released));
@@ -958,19 +958,19 @@ report 99001504 "Subc. Dispatching List"
                     { }
                     column(ItemLbl; ItemLbl)
                     { }
-                    column(Prod__Order_Line___Item_No__; "Prod. Order PurchaseLine"."Item No.")
+                    column(Prod__Order_Line___Item_No__; "Prod. Order Line"."Item No.")
                     {
                     }
-                    column(Prod__Order_Line___Quantity__Base__; "Prod. Order PurchaseLine"."Quantity (Base)")
+                    column(Prod__Order_Line___Quantity__Base__; "Prod. Order Line"."Quantity (Base)")
                     {
                     }
-                    column(Prod__Order_Line___Remaining_Quantity_; Format("Prod. Order PurchaseLine"."Remaining Quantity"))
+                    column(Prod__Order_Line___Remaining_Quantity_; Format("Prod. Order Line"."Remaining Quantity"))
                     {
                     }
-                    column(Prod__Order_Line___Unit_of_Measure_Code_; "Prod. Order PurchaseLine"."Unit of Measure Code")
+                    column(Prod__Order_Line___Unit_of_Measure_Code_; "Prod. Order Line"."Unit of Measure Code")
                     {
                     }
-                    column(Prod__Order_Line__Quantity; Format("Prod. Order PurchaseLine".Quantity))
+                    column(Prod__Order_Line__Quantity; Format("Prod. Order Line".Quantity))
                     {
                     }
                     column(Prod__Order_Routing_Line__Ending_Date_; Format("Ending Date", 0, 4))
@@ -1088,9 +1088,9 @@ report 99001504 "Subc. Dispatching List"
                     if "Item Reference No." <> '' then
                         ItemNo := "Item Reference No.";
 
-                    FormatDocument.SetPurchaseLine("PurchaseLine", FormattedQuanitity, FormattedDirectUnitCost, FormattedVATPct, FormattedLineAmount);
+                    FormatDocument.SetPurchaseLine("Purchase Line", FormattedQuanitity, FormattedDirectUnitCost, FormattedVATPct, FormattedLineAmount);
 
-                    BlankZero("PurchaseLine");
+                    BlankZero("Purchase Line");
                 end;
             }
             dataitem(Totals; "Integer")
@@ -1163,7 +1163,7 @@ report 99001504 "Subc. Dispatching List"
                 }
                 trigger OnAfterGetRecord()
                 var
-                    TempPurchaseLine: Record "Purchase Line" temporary;
+                    TempPrepmtPurchaseLine: Record "Purchase Line" temporary;
                 begin
                     Clear(TempPurchaseLine);
                     Clear(PurchPost);
@@ -1183,15 +1183,15 @@ report 99001504 "Subc. Dispatching List"
                     if not TempPrepaymentInvLineBuffer.IsEmpty() then
                         TempPrepaymentInvLineBuffer.DeleteAll();
                     PurchasePostPrepayments.GetPurchLines("Purchase Header", 0, TempPurchaseLine);
-                    if not TempPurchaseLine.IsEmpty() then begin
+                    if not TempPrepmtPurchaseLine.IsEmpty() then begin
                         PurchasePostPrepayments.GetPurchLinesToDeduct("Purchase Header", TempPurchaseLine);
                         if not TempPurchaseLine.IsEmpty() then
                             PurchasePostPrepayments.CalcVATAmountLines("Purchase Header", TempPurchaseLine, TempPrePmtVATAmountLineDeduct, 1);
                     end;
-                    PurchasePostPrepayments.CalcVATAmountLines("Purchase Header", TempPurchaseLine, TempPrepmtVATAmountLine, 0);
+                    PurchasePostPrepayments.CalcVATAmountLines("Purchase Header", TempPrepmtPurchaseLine, TempPrepmtVATAmountLine, 0);
                     TempPrepmtVATAmountLine.DeductVATAmountLine(TempPrePmtVATAmountLineDeduct);
-                    PurchasePostPrepayments.UpdateVATOnLines("Purchase Header", TempPurchaseLine, TempPrepmtVATAmountLine, 0);
-                    PurchasePostPrepayments.BuildInvLineBuffer("Purchase Header", TempPurchaseLine, 0, TempPrepaymentInvLineBuffer);
+                    PurchasePostPrepayments.UpdateVATOnLines("Purchase Header", TempPrepmtPurchaseLine, TempPrepmtVATAmountLine, 0);
+                    PurchasePostPrepayments.BuildInvLineBuffer("Purchase Header", TempPrepmtPurchaseLine, 0, TempPrepaymentInvLineBuffer);
                     PrepmtVATAmount := TempPrepmtVATAmountLine.GetTotalVATAmount();
                     PrepmtVATBaseAmount := TempPrepmtVATAmountLine.GetTotalVATBase();
                     PrepmtTotalAmountInclVAT := TempPrepmtVATAmountLine.GetTotalAmountInclVAT();
@@ -1282,7 +1282,7 @@ report 99001504 "Subc. Dispatching List"
 
                 trigger OnPreDataItem()
                 begin
-                    if (not GeneralLedgerSetup."Print VAT specification in LCY") or
+                    if (not GLSetup."Print VAT specification in LCY") or
                        ("Purchase Header"."Currency Code" = '') or
                        (TempVATAmountLine.GetTotalVATAmount() = 0)
                     then
@@ -1290,10 +1290,10 @@ report 99001504 "Subc. Dispatching List"
 
                     SetRange(Number, 1, TempVATAmountLine.Count);
 
-                    if GeneralLedgerSetup."LCY Code" = '' then
+                    if GLSetup."LCY Code" = '' then
                         VALSpecLCYHeader := VATAmountSpecificationLbl + LocalCurrencyLbl
                     else
-                        VALSpecLCYHeader := VATAmountSpecificationLbl + Format(GeneralLedgerSetup."LCY Code");
+                        VALSpecLCYHeader := VATAmountSpecificationLbl + Format(GLSetup."LCY Code");
 
                     CurrencyExchangeRate.FindCurrency("Purchase Header"."Posting Date", "Purchase Header"."Currency Code", 1);
                     VALExchRate := StrSubstNo(ExchangeRateLbl, CurrencyExchangeRate."Relational Exch. Rate Amount", CurrencyExchangeRate."Exchange Rate Amount");
@@ -1517,8 +1517,8 @@ report 99001504 "Subc. Dispatching List"
 
                 if not SubcVATAmountLine.IsEmpty() then
                     SubcVATAmountLine.DeleteAll();
-                "PurchaseLine".CalcVATAmountLines(0, "Purchase Header", "PurchaseLine", SubcVATAmountLine);
-                "PurchaseLine".UpdateVATOnLines(0, "Purchase Header", "PurchaseLine", SubcVATAmountLine);
+                "Purchase Line".CalcVATAmountLines(0, "Purchase Header", "Purchase Line", SubcVATAmountLine);
+                "Purchase Line".UpdateVATOnLines(0, "Purchase Header", "Purchase Line", SubcVATAmountLine);
                 ShowShippingAddr := ("Purchase Header"."Buy-from Vendor No." <> "Purchase Header"."Sell-to Customer No.");
                 if not ShowShippingAddr then
                     Clear(ShipToAddr);
@@ -1616,7 +1616,7 @@ report 99001504 "Subc. Dispatching List"
     }
     trigger OnInitReport()
     begin
-        GeneralLedgerSetup.Get();
+        GLSetup.Get();
         CompanyInformation.Get();
         PurchasesPayablesSetup.Get();
         CompanyInformation.CalcFields(Picture);
@@ -1651,7 +1651,7 @@ report 99001504 "Subc. Dispatching List"
         BuyFromContact: Record Contact;
         PayToContact: Record Contact;
         CurrencyExchangeRate: Record "Currency Exchange Rate";
-        GeneralLedgerSetup: Record "General Ledger Setup";
+        GLSetup: Record "General Ledger Setup";
         PaymentTerms: Record "Payment Terms";
         PrepmtPaymentTerms: Record "Payment Terms";
         TempPrepaymentInvLineBuffer: Record "Prepayment Inv. Line Buffer" temporary;

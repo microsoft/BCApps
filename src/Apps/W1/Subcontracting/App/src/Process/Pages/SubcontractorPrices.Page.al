@@ -378,14 +378,14 @@ page 99001500 "Subcontractor Prices"
     var
         SelectedSubcontractorPrice: Record "Subcontractor Price";
         SubcontractorPrice: Record "Subcontractor Price";
-        Vendor: Record Vendor;
+        ToVendor: Record Vendor;
         WorkCenter: Record "Work Center";
         SubcontractorPrices: Page "Subcontractor Prices";
         CopyToVendorNo: Code[20];
         CopyToWorkCenterNo: Code[20];
     begin
-        Vendor.SetFilter("No.", VendNoFilter);
-        if Vendor.Count() <> 1 then
+        ToVendor.SetFilter("No.", VendNoFilter);
+        if ToVendor.Count() <> 1 then
             Error(MultipleVendorsSelectedErr);
         CopyToVendorNo := CopyStr(VendNoFilter, 1, MaxStrLen(CopyToVendorNo));
 

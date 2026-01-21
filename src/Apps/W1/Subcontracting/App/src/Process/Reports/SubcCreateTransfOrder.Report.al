@@ -66,7 +66,6 @@ report 99001501 "Subc. Create Transf. Order"
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
-        SubcontractingManagement: Codeunit "Subcontracting Management";
         PurchOrderNo: Code[20];
         LineNum: Integer;
         ComponentsDoesNotExistErr: Label 'Components to send to subcontractor do not exist.';
@@ -155,6 +154,7 @@ report 99001501 "Subc. Create Transf. Order"
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         MfgCostCalculationMgt: Codeunit "Mfg. Cost Calculation Mgt.";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
         SubcProdOrdCompRes: Codeunit "Subc. Prod. Ord. Comp. Res.";
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
         TransferFromLocationCode: Code[10];

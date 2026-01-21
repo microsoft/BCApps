@@ -22,7 +22,7 @@ codeunit 99001552 "Subc. Temp Data Initializer"
         TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
         TempProductionBOMHeader: Record "Production BOM Header" temporary;
         TempProductionBOMLine: Record "Production BOM Line" temporary;
-        TempProductionOrder: Record "Production Order" temporary;
+        TempGlobalProductionOrder: Record "Production Order" temporary;
         TempPurchaseLine: Record "Purchase Line" temporary;
         TempGlobalRoutingHeader: Record "Routing Header" temporary;
         TempGlobalRoutingLine: Record "Routing Line" temporary;
@@ -63,18 +63,18 @@ codeunit 99001552 "Subc. Temp Data Initializer"
     begin
         TempProductionBOMLine.Reset();
         TempProductionBOMLine.DeleteAll();
-        TempProductionOrder.Init();
-        TempProductionOrder.Status := "Production Order Status"::Released;
-        TempProductionOrder."No." := StrSubstNo(TempProdOrderNoLbl, CopyStr(Format(CreateGuid()), 2, 10));
-        TempProductionOrder."Source Type" := "Prod. Order Source Type"::Item;
-        TempProductionOrder."Source No." := TempPurchaseLine."No.";
+        TempGlobalProductionOrder.Init();
+        TempGlobalProductionOrder.Status := "Production Order Status"::Released;
+        TempGlobalProductionOrder."No." := StrSubstNo(TempProdOrderNoLbl, CopyStr(Format(CreateGuid()), 2, 10));
+        TempGlobalProductionOrder."Source Type" := "Prod. Order Source Type"::Item;
+        TempGlobalProductionOrder."Source No." := TempPurchaseLine."No.";
         if TempPurchaseLine."Variant Code" <> '' then
-            TempProductionOrder."Variant Code" := TempPurchaseLine."Variant Code";
-        TempProductionOrder."Due Date" := TempPurchaseLine."Expected Receipt Date";
-        TempProductionOrder.Quantity := TempPurchaseLine."Quantity (Base)";
-        TempProductionOrder."Location Code" := TempPurchaseLine."Location Code";
-        TempProductionOrder."Created from Purch. Order" := true;
-        TempProductionOrder.Insert();
+            TempGlobalProductionOrder."Variant Code" := TempPurchaseLine."Variant Code";
+        TempGlobalProductionOrder."Due Date" := TempPurchaseLine."Expected Receipt Date";
+        TempGlobalProductionOrder.Quantity := TempPurchaseLine."Quantity (Base)";
+        TempGlobalProductionOrder."Location Code" := TempPurchaseLine."Location Code";
+        TempGlobalProductionOrder."Created from Purch. Order" := true;
+        TempGlobalProductionOrder.Insert();
     end;
 
     local procedure CreateTemporaryProdOrderLine()
@@ -82,22 +82,22 @@ codeunit 99001552 "Subc. Temp Data Initializer"
         Item: Record Item;
     begin
         TempGlobalProdOrderLine.Init();
-        TempGlobalProdOrderLine.Status := TempProductionOrder.Status;
-        TempGlobalProdOrderLine."Prod. Order No." := TempProductionOrder."No.";
+        TempGlobalProdOrderLine.Status := TempGlobalProductionOrder.Status;
+        TempGlobalProdOrderLine."Prod. Order No." := TempGlobalProductionOrder."No.";
         TempGlobalProdOrderLine."Line No." := 10000;
         TempGlobalProdOrderLine."Routing Reference No." := TempGlobalProdOrderLine."Line No.";
-        TempGlobalProdOrderLine."Item No." := TempProductionOrder."Source No.";
-        TempGlobalProdOrderLine."Location Code" := TempProductionOrder."Location Code";
-        TempGlobalProdOrderLine."Variant Code" := TempProductionOrder."Variant Code";
-        TempGlobalProdOrderLine.Description := TempProductionOrder.Description;
-        TempGlobalProdOrderLine."Description 2" := TempProductionOrder."Description 2";
-        TempGlobalProdOrderLine.Quantity := TempProductionOrder.Quantity;
-        TempGlobalProdOrderLine."Due Date" := TempProductionOrder."Due Date";
-        TempGlobalProdOrderLine."Starting Date-Time" := TempProductionOrder."Starting Date-Time";
-        TempGlobalProdOrderLine."Ending Date-Time" := TempProductionOrder."Ending Date-Time";
+        TempGlobalProdOrderLine."Item No." := TempGlobalProductionOrder."Source No.";
+        TempGlobalProdOrderLine."Location Code" := TempGlobalProductionOrder."Location Code";
+        TempGlobalProdOrderLine."Variant Code" := TempGlobalProductionOrder."Variant Code";
+        TempGlobalProdOrderLine.Description := TempGlobalProductionOrder.Description;
+        TempGlobalProdOrderLine."Description 2" := TempGlobalProductionOrder."Description 2";
+        TempGlobalProdOrderLine.Quantity := TempGlobalProductionOrder.Quantity;
+        TempGlobalProdOrderLine."Due Date" := TempGlobalProductionOrder."Due Date";
+        TempGlobalProdOrderLine."Starting Date-Time" := TempGlobalProductionOrder."Starting Date-Time";
+        TempGlobalProdOrderLine."Ending Date-Time" := TempGlobalProductionOrder."Ending Date-Time";
 
         Item.SetLoadFields("Scrap %", "Inventory Posting Group");
-        Item.Get(TempProductionOrder."Source No.");
+        Item.Get(TempGlobalProductionOrder."Source No.");
         TempGlobalProdOrderLine."Scrap %" := Item."Scrap %";
         TempGlobalProdOrderLine."Inventory Posting Group" := Item."Inventory Posting Group";
 
@@ -574,7 +574,7 @@ codeunit 99001552 "Subc. Temp Data Initializer"
             end;
 
         if TempGlobalProdOrderComponent."Location Code" = '' then
-            TempGlobalProdOrderComponent.Validate("Location Code", TempProductionOrder."Location Code");
+            TempGlobalProdOrderComponent.Validate("Location Code", TempGlobalProductionOrder."Location Code");
     end;
 
     /// <summary>
@@ -629,9 +629,9 @@ codeunit 99001552 "Subc. Temp Data Initializer"
     /// <param name="TempProdOrder">The temporary production order to copy from.</param>
     procedure SetNewProdOrder(var TempProdOrder: Record "Production Order" temporary)
     begin
-        TempProductionOrder.Reset();
-        TempProductionOrder.DeleteAll();
-        TempProductionOrder.Copy(TempProdOrder, true);
+        TempGlobalProductionOrder.Reset();
+        TempGlobalProductionOrder.DeleteAll();
+        TempGlobalProductionOrder.Copy(TempProdOrder, true);
     end;
 
     /// <summary>
@@ -703,7 +703,7 @@ codeunit 99001552 "Subc. Temp Data Initializer"
     /// <param name="TempProductionOrder">The temporary production order to copy to.</param>
     procedure GetGlobalProdOrder(var TempProductionOrder: Record "Production Order" temporary)
     begin
-        TempProductionOrder.Copy(TempProductionOrder, true);
+        TempProductionOrder.Copy(TempGlobalProductionOrder, true);
     end;
 
     /// <summary>

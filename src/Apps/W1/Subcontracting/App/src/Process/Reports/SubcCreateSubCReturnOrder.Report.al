@@ -70,7 +70,6 @@ report 99001502 "Subc. Create SubCReturnOrder"
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
-        SubcontractingManagement: Codeunit "Subcontracting Management";
         PurchOrderNo: Code[20];
         LineNum: Integer;
         ComponentsDoesNotExistErr: Label 'Components to return from subcontractor do not exist.';
@@ -163,6 +162,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         MfgCostCalculationMgt: Codeunit "Mfg. Cost Calculation Mgt.";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
         QtyPerUom: Decimal;
     begin

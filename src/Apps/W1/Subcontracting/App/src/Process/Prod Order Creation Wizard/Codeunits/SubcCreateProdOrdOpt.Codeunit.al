@@ -60,13 +60,13 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     local procedure DetermineScenarioAndPrepareData(Item: Record Item; PurchLine: Record "Purchase Line") SubcScenarioType: Enum "Subc. Scenario Type"
     var
         BOMNo, RoutingNo : Code[20];
-        SubcRtngBOMSourceType: Enum "Subc. RtngBOMSourceType";
+        SubcRoutingBOMSourceType: Enum "Subc. RtngBOMSourceType";
     begin
         SubcTempDataInitializer.InitializeTemporaryProdOrder(PurchLine);
 
-        GetBOMAndRoutingFromBestSource(Item, BOMNo, RoutingNo, SubcRtngBOMSourceType);
+        GetBOMAndRoutingFromBestSource(Item, BOMNo, RoutingNo, SubcRoutingBOMSourceType);
 
-        SubcTempDataInitializer.SetRtngBOMSourceType(SubcRtngBOMSourceType);
+        SubcTempDataInitializer.SetRtngBOMSourceType(SubcRoutingBOMSourceType);
 
         SubcScenarioType := GetScenarioTypeFromBOMRouting(BOMNo, RoutingNo);
 

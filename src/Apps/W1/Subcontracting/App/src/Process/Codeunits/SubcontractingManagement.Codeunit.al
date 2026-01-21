@@ -337,11 +337,11 @@ codeunit 99001505 "Subcontracting Management"
     procedure TransferReservationEntryFromProdOrderCompToTransferOrder(TransferLine: Record "Transfer Line"; ProdOrderComponent: Record "Prod. Order Component")
     var
         ReservationEntry: Record "Reservation Entry";
-        TempReservationEntry: Record "Reservation Entry" temporary;
+        TempReservEntry: Record "Reservation Entry" temporary;
         ProdOrderCompReserve: Codeunit "Prod. Order Comp.-Reserve";
     begin
-        TempReservationEntry.Reset();
-        TempReservationEntry.DeleteAll();
+        TempReservEntry.Reset();
+        TempReservEntry.DeleteAll();
 
         if not ProdOrderCompReserve.FindReservEntry(ProdOrderComponent, ReservationEntry) then
             exit;
@@ -349,11 +349,11 @@ codeunit 99001505 "Subcontracting Management"
 
         if ReservationEntry.FindSet() then
             repeat
-                TempReservationEntry := ReservationEntry;
-                TempReservationEntry.Insert();
+                TempReservEntry := ReservationEntry;
+                TempReservEntry.Insert();
             until ReservationEntry.Next() = 0;
 
-        TempReservationEntry.Copy(TempReservationEntry, true);
+        TempReservEntry.Copy(TempReservEntry, true);
 
         ReservationEntry.TransferReservations(
          ReservationEntry,
