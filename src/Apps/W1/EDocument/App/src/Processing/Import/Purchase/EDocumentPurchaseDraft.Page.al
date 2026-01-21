@@ -33,6 +33,8 @@ page 6181 "E-Document Purchase Draft"
         {
             group(General)
             {
+                Caption = 'General';
+
                 field(Record; RecordLinkTxt)
                 {
                     Caption = 'Finalized Document';
@@ -206,6 +208,7 @@ page 6181 "E-Document Purchase Draft"
                 }
                 field("Amount Incl. VAT"; EDocumentPurchaseHeader.Total)
                 {
+                    Caption = 'Amount Incl. VAT';
                     ToolTip = 'Specifies the total amount of the electronic document including VAT.';
                     Importance = Promoted;
 
@@ -218,6 +221,7 @@ page 6181 "E-Document Purchase Draft"
                 }
                 field("Currency Code"; EDocumentPurchaseHeader."Currency Code")
                 {
+                    Caption = 'Currency Code';
                     Importance = Promoted;
                     ToolTip = 'Specifies the electronic document currency code.';
                     Editable = true;
@@ -286,18 +290,6 @@ page 6181 "E-Document Purchase Draft"
                         FinalizeEDocument(EDocImportParameters);
                     end;
                 }
-                action(LinkToExistingDocument)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Link to existing document';
-                    ToolTip = 'Link this electronic document to an existing purchase document in Business Central. Use this when you have already created the document manually and want to attach the e-document to it.';
-                    Image = Links;
-
-                    trigger OnAction()
-                    begin
-                        DoLinkToExistingDocument();
-                    end;
-                }
                 action(ResetDraftDocument)
                 {
                     ApplicationArea = Basic, Suite;
@@ -321,6 +313,19 @@ page 6181 "E-Document Purchase Draft"
                     trigger OnAction()
                     begin
                         AnalyzeEDocument();
+                    end;
+                }
+                action(LinkToExistingDocument)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Link to existing document';
+                    ToolTip = 'Link this electronic document to an existing purchase document in Business Central. Use this when you have already created the document manually and want to attach the e-document to it.';
+                    Image = Links;
+                    Visible = false;
+
+                    trigger OnAction()
+                    begin
+                        DoLinkToExistingDocument();
                     end;
                 }
             }
@@ -454,6 +459,7 @@ page 6181 "E-Document Purchase Draft"
             }
         }
     }
+
 
     trigger OnOpenPage()
     var

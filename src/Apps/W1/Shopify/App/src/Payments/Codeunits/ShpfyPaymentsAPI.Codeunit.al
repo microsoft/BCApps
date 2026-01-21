@@ -30,7 +30,7 @@ codeunit 30385 "Shpfy Payments API"
         Parameters: Dictionary of [Text, Text];
     begin
         GraphQLType := GraphQLType::GetPaymentTransactions;
-        Parameters.Add('SinceId', Format(SinceId));
+        Parameters.Add('SinceId', Format(SinceId + 1));
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
             if JsonHelper.GetJsonObject(JResponse, JPaymentsAccount, 'data.shopifyPaymentsAccount') then
@@ -96,7 +96,7 @@ codeunit 30385 "Shpfy Payments API"
         Parameters: Dictionary of [Text, Text];
     begin
         GraphQLType := GraphQLType::GetPayouts;
-        Parameters.Add('SinceId', Format(SinceId));
+        Parameters.Add('SinceId', Format(SinceId + 1));
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
             if JsonHelper.GetJsonObject(JResponse, JPaymentsAccount, 'data.shopifyPaymentsAccount') then
@@ -236,7 +236,7 @@ codeunit 30385 "Shpfy Payments API"
         Parameters: Dictionary of [Text, Text];
     begin
         GraphQLType := GraphQLType::GetDisputes;
-        Parameters.Add('SinceId', Format(SinceId));
+        Parameters.Add('SinceId', Format(SinceId + 1));
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
             if JsonHelper.GetJsonObject(JResponse, JPaymentsAccount, 'data.shopifyPaymentsAccount') then
