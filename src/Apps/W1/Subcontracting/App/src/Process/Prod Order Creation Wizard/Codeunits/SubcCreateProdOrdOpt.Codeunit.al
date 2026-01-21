@@ -30,7 +30,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         ProdCompRoutingModified: Boolean;
         ProdOrderCompRoutingCreated: Boolean;
         RoutingCreated, RoutingVersionCreated : Boolean;
-        SubcRtngBOMSourceType: Enum "Subc. RtngBOMSourceType";
+        GlobalSubcRtngBOMSourceType: Enum "Subc. RtngBOMSourceType";
 
     trigger OnRun()
     begin
@@ -250,7 +250,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     local procedure UpdateWizardResults(var SubcPurchProvisionWizard: Page "Subc. PurchProvisionWizard")
     begin
         ProdCompRoutingModified := SubcPurchProvisionWizard.GetApplyChangesComponents() or SubcPurchProvisionWizard.GetApplyChangesProdRouting();
-        SubcRtngBOMSourceType := SubcPurchProvisionWizard.GetApplyBomRtngToSource();
+        GlobalSubcRtngBOMSourceType := SubcPurchProvisionWizard.GetApplyBomRtngToSource();
     end;
 
     /// <summary>
@@ -675,15 +675,15 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// <summary>
     /// Updates item with BOM and routing from temporary data
     /// </summary>
-    local procedure UpdateItemWithBOMAndRoutingFromTemp(var PurchLine: Record "Purchase Line")
+    local procedure UpdateItemWithBOMAndRoutingFromTemp(var PurchaseLine: Record "Purchase Line")
     var
         SkipProcessBOMAndRouting: Boolean;
     begin
-        SkipProcessBOMAndRouting := CheckCreateProdOrderCompRtng() and (SubcRtngBOMSourceType = "Subc. RtngBOMSourceType"::Empty);
+        SkipProcessBOMAndRouting := CheckCreateProdOrderCompRtng() and (GlobalSubcRtngBOMSourceType = "Subc. RtngBOMSourceType"::Empty);
         if SkipProcessBOMAndRouting then
             exit;
 
-        ProcessBOMAndRoutingData(PurchLine."No.");
+        ProcessBOMAndRoutingData(PurchaseLine."No.");
     end;
 
     /// <summary>
@@ -897,15 +897,15 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         LocationCode: Code[10];
         VariantCode: Code[10];
     begin
-        case SubcRtngBOMSourceType of
-            SubcRtngBOMSourceType::Item:
+        case GlobalSubcRtngBOMSourceType of
+            GlobalSubcRtngBOMSourceType::Item:
 
                 if Item.Get(ItemNo) and ((Item."Production BOM No." <> BOMNo) or (Item."Routing No." <> RoutingNo)) then begin
                     Item."Production BOM No." := BOMNo;
                     Item."Routing No." := RoutingNo;
                     Item.Modify(true);
                 end;
-            SubcRtngBOMSourceType::StockkeepingUnit:
+            GlobalSubcRtngBOMSourceType::StockkeepingUnit:
                 begin
                     GetLocationAndVariantForStockkeepingUnit(LocationCode, VariantCode);
                     if StockkeepingUnit.Get(LocationCode, ItemNo, VariantCode) then begin
@@ -961,7 +961,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         GetSubManagementSetupCached();
         GetBOMAndRoutingInfoFromTempData(BOMNo, BOMVersionCode, RoutingNo, RoutingVersionCode);
 
-        if (SubcRtngBOMSourceType = SubcRtngBOMSourceType::Empty) then begin
+        if (GlobalSubcRtngBOMSourceType = GlobalSubcRtngBOMSourceType::Empty) then begin
             DeleteCreatedBOMIfExists(BOMNo);
             DeleteCreatedRoutingIfExists(RoutingNo);
 
