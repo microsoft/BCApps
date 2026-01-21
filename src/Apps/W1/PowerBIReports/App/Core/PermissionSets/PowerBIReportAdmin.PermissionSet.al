@@ -18,6 +18,6 @@ permissionset 36950 "PowerBI Report Admin"
         tabledata "PowerBI Flat Dim. Set Entry" = RIMD,
         tabledata "PowerBI Reports Setup" = RIMD,
         tabledata "Working Day" = RIMD,
-        tabledata "Account Category" = RIMD,
+        tabledata "Account Category" = RM,
         tabledata "PowerBI ABC Analysis Setup" = RIMD;
 }
