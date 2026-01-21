@@ -18,16 +18,20 @@ codeunit 139540 "Shpfy Item Attr As Option Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
+    TestHttpRequestPolicy = BlockOutboundRequests;
     TestPermissions = Disabled;
 
     var
         Shop: Record "Shpfy Shop";
         Any: Codeunit Any;
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        HttpHandlerParams: Codeunit "Library - Variable Storage";
+        OutboundHttpRequests: Codeunit "Library - Variable Storage";
         LibraryAssert: Codeunit "Library Assert";
         LibraryInventory: Codeunit "Library - Inventory";
         InitializeTest: Codeunit "Shpfy Initialize Test";
         IsInitialized: Boolean;
+        UnexpectedAPICallsErr: Label 'More than expected API calls to Shopify detected.';
 
     trigger OnRun()
     begin
@@ -40,6 +44,7 @@ codeunit 139540 "Shpfy Item Attr As Option Test"
     var
         ItemAttribute: Record "Item Attribute";
         FailureMessageErr: Label 'UoM as Variant is unavailable due to existing Item Attributes marked as “As Option” which are utilized for Shopify Product Options.';
+        ExpectedErrorNotRaisedErr: Label 'Expected error was not raised.';
     begin
         // [SCENARIO] Enabling 'UoM as Variant' fails when 'As Option' Item Attributes exist
 
@@ -53,7 +58,7 @@ codeunit 139540 "Shpfy Item Attr As Option Test"
         asserterror Shop.Validate("UoM as Variant", true);
 
         // [THEN] Error is raised about unavailability
-        LibraryAssert.IsTrue(GetLastErrorText().Contains(FailureMessageErr), 'Expected error was not raised.');
+        LibraryAssert.IsTrue(GetLastErrorText().Contains(FailureMessageErr), ExpectedErrorNotRaisedErr);
     end;
     #endregion
 
@@ -84,19 +89,20 @@ codeunit 139540 "Shpfy Item Attr As Option Test"
     end;
 
     [Test]
+    [HandlerFunctions('HttpSubmitHandler_GetProductOptions')]
     procedure UnitTestAddItemAsVariantToProductWithoutAsOptionAttributes()
     var
         Item: Record Item;
-        ShpfyVariant: Record "Shpfy Variant";
         CreateItemAsVariant: Codeunit "Shpfy Create Item As Variant";
-        CreateItemAsVariantSub: Codeunit "Shpfy CreateItemAsVariantSub";
         ParentProductId: BigInteger;
-        VariantId: BigInteger;
+        ProdOptionNameTok: Label 'Variant', Locked = true;
     begin
         // [SCENARIO] Adding Item as variant to product without 'As Option' attributes creates variant with 'Variant' option
 
         // [GIVEN] Shopify Shop is created
         Initialize();
+        RegisterOutboundHttpRequests();
+        HttpHandlerParams.Enqueue(ProdOptionNameTok);
 
         // [GIVEN] Product exists without As Option Attributes
         ParentProductId := CreateShopifyProductWithoutAsOptionAttributes();
@@ -105,15 +111,12 @@ codeunit 139540 "Shpfy Item Attr As Option Test"
         CreateItem(Item);
 
         // [WHEN] Add Item as Shopify Variant
-        BindSubscription(CreateItemAsVariantSub);
         CreateItemAsVariant.SetParentProduct(ParentProductId);
         CreateItemAsVariant.CheckProductAndShopSettings();
         CreateItemAsVariant.CreateVariantFromItem(Item);
-        VariantId := CreateItemAsVariantSub.GetNewVariantId();
-        UnbindSubscription(CreateItemAsVariantSub);
 
         // [THEN] New Variant is created with Option 1 Name 'Variant', Option 1 Value '<Item No.>'
-        VerifyVariantCreatedWithItemNo(ShpfyVariant, VariantId, Item."No.");
+        VerifyVariantCreatedWithItemNo(ParentProductId, Item."No.");
     end;
 
     #endregion
@@ -203,20 +206,10 @@ codeunit 139540 "Shpfy Item Attr As Option Test"
         Item := CreateItemWithAsOptionAttributes(2);
 
         // [GIVEN] Product exists with 'As Option' Attributes
-        ParentProductId := CreateShopifyProductWithAsOptionAttributesAndValues(
-                                CopyStr(LibraryVariableStorage.PeekText(2), 1, 250),
-                                CopyStr(LibraryVariableStorage.PeekText(4), 1, 250),
-                                CopyStr(LibraryVariableStorage.PeekText(6), 1, 250),
-                                CopyStr(LibraryVariableStorage.PeekText(8), 1, 250));
+        ParentProductId := CreateShopifyProductWithAsOptionAttributesAndValues(CopyStr(LibraryVariableStorage.PeekText(2), 1, 250), CopyStr(LibraryVariableStorage.PeekText(4), 1, 250), CopyStr(LibraryVariableStorage.PeekText(6), 1, 250), CopyStr(LibraryVariableStorage.PeekText(8), 1, 250));
 
         // [GIVEN] Item is created with the same 'As Option' Item Attribute values as existing variant
-        Item := CreateItemWithSpecificAsOptionAttributes(
-                                LibraryVariableStorage.PeekInteger(1),
-                                LibraryVariableStorage.PeekInteger(3),
-                                CopyStr(LibraryVariableStorage.PeekText(4), 1, 250),
-                                LibraryVariableStorage.PeekInteger(5),
-                                LibraryVariableStorage.PeekInteger(7),
-                                CopyStr(LibraryVariableStorage.PeekText(8), 1, 250));
+        Item := CreateItemWithSpecificAsOptionAttributes(LibraryVariableStorage.PeekInteger(1), LibraryVariableStorage.PeekInteger(3), CopyStr(LibraryVariableStorage.PeekText(4), 1, 250), LibraryVariableStorage.PeekInteger(5), LibraryVariableStorage.PeekInteger(7), CopyStr(LibraryVariableStorage.PeekText(8), 1, 250));
 
         // [WHEN] Validate item attributes for new variant
         TempShopifyVariant.Init();
@@ -225,6 +218,41 @@ codeunit 139540 "Shpfy Item Attr As Option Test"
         // [THEN] Returns false (variant should not be created) and skipped entry is logged
         VerifyItemAttributesValidationForNewVariantFailed(ValidationResult);
         VerifySkippedEntryExists(Item.RecordId, ExpFailureMessageErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('HttpSubmitHandler_GetProductOptions')]
+    procedure UnitTestAddItemAsVariantToProductWithAsOptionAttributes()
+    var
+        Item: Record Item;
+        ProductExport: Codeunit "Shpfy Product Export";
+        CreateItemAsVariant: Codeunit "Shpfy Create Item As Variant";
+        ParentProductId: BigInteger;
+    begin
+        // [SCENARIO] Item variant is successfully created for the product when Item attributes differs
+
+        // [GIVEN] Shopify Shop is created
+        Initialize();
+        ProductExport.SetShop(Shop);
+        RegisterOutboundHttpRequests();
+
+        // [GIVEN] Item is created without Item variants but with 2 'As Option' Item Attributes
+        Item := CreateItemWithAsOptionAttributes(2);
+        HttpHandlerParams.Enqueue(LibraryVariableStorage.PeekText(2));
+
+        // [GIVEN] Product exists with 'As Option' Attributes
+        ParentProductId := CreateShopifyProductWithAsOptionAttributesAndValues(CopyStr(LibraryVariableStorage.PeekText(2), 1, 250), CopyStr(LibraryVariableStorage.PeekText(4), 1, 250), CopyStr(LibraryVariableStorage.PeekText(6), 1, 250), CopyStr(LibraryVariableStorage.PeekText(8), 1, 250));
+
+        // [GIVEN] Item is created without Item variants and with all required 'As Option' Item Attributes
+        Item := CreateItemWithSpecificAsOptionAttributes(LibraryVariableStorage.PeekInteger(1), LibraryVariableStorage.PeekInteger(3), CopyStr(LibraryVariableStorage.PeekText(4), 1, 250), LibraryVariableStorage.PeekInteger(5), LibraryVariableStorage.PeekInteger(7), GenerateRandomAttributeValue());
+
+        // [WHEN] Add Item as Shopify Variant
+        CreateItemAsVariant.SetParentProduct(ParentProductId);
+        CreateItemAsVariant.CheckProductAndShopSettings();
+        CreateItemAsVariant.CreateVariantFromItem(Item);
+
+        // [THEN] New Variant is created with new combination of product options
+        VerifyVariantCreatedWithCorrectOptionValues(ParentProductId);
     end;
 
     #endregion
@@ -340,15 +368,25 @@ codeunit 139540 "Shpfy Item Attr As Option Test"
 
     #region Helper Procedures
     local procedure Initialize()
+    var
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        LibraryRandom: Codeunit "Library - Random";
+        AccessToken: SecretText;
     begin
         LibraryVariableStorage.Clear();
+        OutboundHttpRequests.Clear();
+        HttpHandlerParams.Clear();
         Any.SetDefaultSeed();
         if IsInitialized then
             exit;
 
         Shop := InitializeTest.CreateShop();
-        Shop."UoM as Variant" := false;
-        Shop.Modify();
+
+        // Disable Event Mocking 
+        CommunicationMgt.SetTestInProgress(false);
+        //Register Shopify Access Token
+        AccessToken := LibraryRandom.RandText(20);
+        InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
         Commit();
         IsInitialized := true;
     end;
@@ -368,8 +406,10 @@ codeunit 139540 "Shpfy Item Attr As Option Test"
     local procedure CreateItem(var Item: Record Item)
     var
         ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ItemTemplateCode: Code[20];
     begin
-        Item := ProductInitTest.CreateItem();
+        ItemTemplateCode := Shop."Item Templ. Code";
+        Item := ProductInitTest.CreateItem(ItemTemplateCode, Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 500, 2), false);
     end;
 
     local procedure CreateItemWithVariants(var Item: Record Item; NumberOfVariants: Integer)
@@ -512,58 +552,99 @@ codeunit 139540 "Shpfy Item Attr As Option Test"
     end;
 
     local procedure VerifyVariantHasNoOptions(var TempShopifyVariant: Record "Shpfy Variant" temporary)
+    var
+        EmptyOptionName1Lbl: Label 'Option 1 Name should be empty';
+        EmptyOptionName2Lbl: Label 'Option 2 Name should be empty';
+        EmptyOptionValue1Lbl: Label 'Option 1 Value should be empty';
+        EmptyOptionValue2Lbl: Label 'Option 2 Value should be empty';
     begin
         LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
-        LibraryAssert.AreEqual('', TempShopifyVariant."Option 1 Name", 'Option 1 Name should be empty');
-        LibraryAssert.AreEqual('', TempShopifyVariant."Option 1 Value", 'Option 1 Value should be empty');
-        LibraryAssert.AreEqual('', TempShopifyVariant."Option 2 Name", 'Option 2 Name should be empty');
-        LibraryAssert.AreEqual('', TempShopifyVariant."Option 2 Value", 'Option 2 Value should be empty');
+        LibraryAssert.AreEqual('', TempShopifyVariant."Option 1 Name", EmptyOptionName1Lbl);
+        LibraryAssert.AreEqual('', TempShopifyVariant."Option 1 Value", EmptyOptionValue1Lbl);
+        LibraryAssert.AreEqual('', TempShopifyVariant."Option 2 Name", EmptyOptionName2Lbl);
+        LibraryAssert.AreEqual('', TempShopifyVariant."Option 2 Value", EmptyOptionValue2Lbl);
     end;
 
-    local procedure VerifyVariantCreatedWithItemNo(var ShpfyVariant: Record "Shpfy Variant"; VariantId: BigInteger; ItemNo: Code[20])
+    local procedure VerifyVariantCreatedWithItemNo(ParentProductId: BigInteger; ItemNo: Code[20])
+    var
+        ShpfyVariant: Record "Shpfy Variant";
+        Option1NameMismatchMsg: Label 'Option 1 Name should be ''Variant''';
+        Option1ValueShouldBeItemNoMsg: Label 'Option 1 Value should be Item No.';
     begin
-        LibraryAssert.IsTrue(ShpfyVariant.Get(VariantId), 'Variant should be created');
-        LibraryAssert.AreEqual('Variant', ShpfyVariant."Option 1 Name", 'Option 1 Name should be ''Variant''');
-        LibraryAssert.AreEqual(ItemNo, ShpfyVariant."Option 1 Value", 'Option 1 Value should be Item No.');
+        ShpfyVariant.SetRange("Product Id", ParentProductId);
+        ShpfyVariant.SetRange("Shop Code", Shop.Code);
+        ShpfyVariant.FindLast();
+        LibraryAssert.AreEqual(HttpHandlerParams.PeekText(1), ShpfyVariant."Option 1 Name", Option1NameMismatchMsg);
+        LibraryAssert.AreEqual(ItemNo, ShpfyVariant."Option 1 Value", Option1ValueShouldBeItemNoMsg);
+    end;
+
+    local procedure VerifyVariantCreatedWithCorrectOptionValues(ParentProductId: BigInteger)
+    var
+        ShpfyVariant: Record "Shpfy Variant";
+        Option1NameMismatchMsg: Label 'Incorrect Option 1 Name';
+        Option1ValueMismatchMsg: Label 'Incorrect Option 1 Value';
+        Option2NameMismatchMsg: Label 'Incorrect Option 2 Name';
+        Option2ValueMismatchMsg: Label 'Incorrect Option 2 Value';
+    begin
+        ShpfyVariant.SetRange("Product Id", ParentProductId);
+        ShpfyVariant.SetRange("Shop Code", Shop.Code);
+        ShpfyVariant.FindLast();
+        LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(2), ShpfyVariant."Option 1 Name", Option1NameMismatchMsg);
+        LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(4), ShpfyVariant."Option 1 Value", Option1ValueMismatchMsg);
+        LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(6), ShpfyVariant."Option 2 Name", Option2NameMismatchMsg);
+        LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(8), ShpfyVariant."Option 2 Value", Option2ValueMismatchMsg);
     end;
 
     local procedure VerifyVariantHas2Options(var TempShopifyVariant: Record "Shpfy Variant" temporary)
+    var
+        Option1NameMismatchMsg: Label 'Incorrect Option 1 Name';
+        Option1ValueMismatchMsg: Label 'Incorrect Option 1 Value';
+        Option2NameMismatchMsg: Label 'Incorrect Option 2 Name';
+        Option2ValueMismatchMsg: Label 'Incorrect Option 2 Value';
     begin
         LibraryAssert.RecordIsNotEmpty(TempShopifyVariant);
-        LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(2), TempShopifyVariant."Option 1 Name", 'Option 1 Name should not be empty');
-        LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(4), TempShopifyVariant."Option 1 Value", 'Option 1 Value should not be empty');
-        LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(6), TempShopifyVariant."Option 2 Name", 'Option 2 Name should not be empty');
-        LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(8), TempShopifyVariant."Option 2 Value", 'Option 2 Value should not be empty');
+        LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(2), TempShopifyVariant."Option 1 Name", Option1NameMismatchMsg);
+        LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(4), TempShopifyVariant."Option 1 Value", Option1ValueMismatchMsg);
+        LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(6), TempShopifyVariant."Option 2 Name", Option2NameMismatchMsg);
+        LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(8), TempShopifyVariant."Option 2 Value", Option2ValueMismatchMsg);
     end;
 
     local procedure VerifyProductHasVariants(var TempShopifyProduct: Record "Shpfy Product" temporary)
+    var
+        ProductHasVariantsMsg: Label 'Product should be marked as having variants';
     begin
-        LibraryAssert.IsTrue(TempShopifyProduct."Has Variants", 'Product should be marked as having variants');
+        LibraryAssert.IsTrue(TempShopifyProduct."Has Variants", ProductHasVariantsMsg);
     end;
 
     local procedure VerifyItemAttributesValidationForNewVariantFailed(ValidationResult: Boolean)
+    var
+        IncorrectValidationResultMsg: Label 'Validation result was incorrect.';
     begin
-        LibraryAssert.IsFalse(ValidationResult, 'Validation result was incorrect.');
+        LibraryAssert.IsFalse(ValidationResult, IncorrectValidationResultMsg);
     end;
 
     local procedure VerifyVariantsCreatedWithOptionName(var TempShopifyVariant: Record "Shpfy Variant" temporary; ExpectedCount: Integer; ExpectedOption1Name: Text)
+    var
+        Option1ValueNotEmptyMsg: Label 'Option 1 Value should not be empty';
+        Option1NameAssertionMsg: Label 'Incorrect Option 1 Name';
+        IncorrectVariantCountMsg: Label 'Incorect count of variants has been be created';
     begin
-        LibraryAssert.AreEqual(ExpectedCount, TempShopifyVariant.Count(), Format(ExpectedCount) + ' variants should be created');
+        LibraryAssert.AreEqual(ExpectedCount, TempShopifyVariant.Count(), IncorrectVariantCountMsg);
         TempShopifyVariant.FindSet();
         repeat
-            LibraryAssert.AreEqual(ExpectedOption1Name, TempShopifyVariant."Option 1 Name", 'Option 1 Name should be ''' + ExpectedOption1Name + '''');
-            LibraryAssert.AreNotEqual('', TempShopifyVariant."Option 1 Value", 'Option 1 Value should not be empty');
+            LibraryAssert.AreEqual(ExpectedOption1Name, TempShopifyVariant."Option 1 Name", Option1NameAssertionMsg);
+            LibraryAssert.AreNotEqual('', TempShopifyVariant."Option 1 Value", Option1ValueNotEmptyMsg);
         until TempShopifyVariant.Next() = 0;
     end;
 
     local procedure VerifyVariantsCreatedWith3Options(var TempShopifyVariant: Record "Shpfy Variant" temporary; ExpectedCount: Integer)
     var
-        Option1NameMismatchLbl: Label 'Option 1 Name has incorrect value.';
-        Option1ValueMismatchLbl: Label 'Option 1 Value has incorrect value.';
-        Option2NameMismatchLbl: Label 'Option 2 Name has incorrect value.';
-        Option2ValueMismatchLbl: Label 'Option 2 Value has incorrect value.';
-        Option3NameMismatchLbl: Label 'Option 3 Name has incorrect value.';
-        Option3ValueMismatchLbl: Label 'Option 3 Value has incorrect value.';
+        Option1NameMismatchMsg: Label 'Option 1 Name has incorrect value.';
+        Option1ValueMismatchMsg: Label 'Option 1 Value has incorrect value.';
+        Option2NameMismatchMsg: Label 'Option 2 Name has incorrect value.';
+        Option2ValueMismatchMsg: Label 'Option 2 Value has incorrect value.';
+        Option3NameMismatchMsg: Label 'Option 3 Name has incorrect value.';
+        Option3ValueMismatchMsg: Label 'Option 3 Value has incorrect value.';
         ItemVariantNumber: Integer;
     begin
         LibraryAssert.AreEqual(ExpectedCount, TempShopifyVariant.Count(), Format(ExpectedCount) + ' variants should be created');
@@ -571,27 +652,29 @@ codeunit 139540 "Shpfy Item Attr As Option Test"
         repeat
             ItemVariantNumber += 1;
             if ItemVariantNumber = 1 then begin
-                LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(1), TempShopifyVariant."Option 1 Name", Option1NameMismatchLbl);
-                LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(2), TempShopifyVariant."Option 1 Value", Option1ValueMismatchLbl);
-                LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(5), TempShopifyVariant."Option 2 Name", Option2NameMismatchLbl);
-                LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(6), TempShopifyVariant."Option 2 Value", Option2ValueMismatchLbl);
-                LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(9), TempShopifyVariant."Option 3 Name", Option3NameMismatchLbl);
-                LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(10), TempShopifyVariant."Option 3 Value", Option3ValueMismatchLbl);
+                LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(1), TempShopifyVariant."Option 1 Name", Option1NameMismatchMsg);
+                LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(2), TempShopifyVariant."Option 1 Value", Option1ValueMismatchMsg);
+                LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(5), TempShopifyVariant."Option 2 Name", Option2NameMismatchMsg);
+                LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(6), TempShopifyVariant."Option 2 Value", Option2ValueMismatchMsg);
+                LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(9), TempShopifyVariant."Option 3 Name", Option3NameMismatchMsg);
+                LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(10), TempShopifyVariant."Option 3 Value", Option3ValueMismatchMsg);
             end;
             if ItemVariantNumber = 2 then begin
-                LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(3), TempShopifyVariant."Option 1 Name", Option1NameMismatchLbl);
-                LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(4), TempShopifyVariant."Option 1 Value", Option1ValueMismatchLbl);
-                LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(7), TempShopifyVariant."Option 2 Name", Option2NameMismatchLbl);
-                LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(8), TempShopifyVariant."Option 2 Value", Option2ValueMismatchLbl);
-                LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(11), TempShopifyVariant."Option 3 Name", Option3NameMismatchLbl);
-                LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(12), TempShopifyVariant."Option 3 Value", Option3ValueMismatchLbl);
+                LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(3), TempShopifyVariant."Option 1 Name", Option1NameMismatchMsg);
+                LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(4), TempShopifyVariant."Option 1 Value", Option1ValueMismatchMsg);
+                LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(7), TempShopifyVariant."Option 2 Name", Option2NameMismatchMsg);
+                LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(8), TempShopifyVariant."Option 2 Value", Option2ValueMismatchMsg);
+                LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(11), TempShopifyVariant."Option 3 Name", Option3NameMismatchMsg);
+                LibraryAssert.AreEqual(LibraryVariableStorage.PeekText(12), TempShopifyVariant."Option 3 Value", Option3ValueMismatchMsg);
             end;
         until TempShopifyVariant.Next() = 0;
     end;
 
     local procedure VerifyResultOfCompatibilityCheck(CompatibilityCheckResult: Boolean)
+    var
+        IncorrectResultMsg: Label 'Incorrect result of compatibility check.';
     begin
-        LibraryAssert.IsFalse(CompatibilityCheckResult, 'Incorrect result of compatibility check.');
+        LibraryAssert.IsFalse(CompatibilityCheckResult, IncorrectResultMsg);
     end;
 
     local procedure VerifySkippedEntryExists(ExpectedRecordId: RecordId; ExpFailureMessage: Text)
@@ -610,5 +693,38 @@ codeunit 139540 "Shpfy Item Attr As Option Test"
         LibraryInventory.CreateItemAttributeValue(ItemAttributeValue, ItemAttribute.ID, GenerateRandomAttributeValue());
         LibraryInventory.CreateItemAttributeValueMapping(Database::Item, Item."No.", ItemAttribute.ID, ItemAttributeValue.ID);
     end;
+
+    local procedure RegisterOutboundHttpRequests()
+    var
+        GqlProductOptionsLbl: Label 'GQL Product Options';
+        VariantCreatedFromItemResponseLbl: Label 'GQL Prod. Variant Creation Response';
+    begin
+        OutboundHttpRequests.Enqueue(GqlProductOptionsLbl);
+        OutboundHttpRequests.Enqueue(VariantCreatedFromItemResponseLbl);
+    end;
     #endregion
+
+    [HttpClientHandler]
+    internal procedure HttpSubmitHandler_GetProductOptions(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        ResponseText: Text;
+        ProductOptionsResponseTok: Label 'Products/ProductOptionsResponse.txt', Locked = true;
+        VariantCreatedFromItemResponseTok: Label 'Products/VariantCreatedFromItemResponse.txt', Locked = true;
+    begin
+        if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
+            exit(true);
+
+        case OutboundHttpRequests.Length() of
+            2:
+                ResponseText := StrSubstNo(NavApp.GetResourceAsText(ProductOptionsResponseTok, TextEncoding::UTF8), HttpHandlerParams.PeekText(1));
+            1:
+                ResponseText := NavApp.GetResourceAsText(VariantCreatedFromItemResponseTok, TextEncoding::UTF8);
+            0:
+                Error(UnexpectedAPICallsErr);
+        end;
+
+        Response.Content.WriteFrom(ResponseText);
+        OutboundHttpRequests.DequeueText();
+        exit(false);
+    end;
 }
