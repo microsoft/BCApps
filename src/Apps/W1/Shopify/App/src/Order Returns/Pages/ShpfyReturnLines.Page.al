@@ -42,7 +42,18 @@ page 30149 "Shpfy Return Lines"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the quantity being returned.';
                 }
+#if not CLEAN28
                 field("Return Reason"; Rec."Return Reason")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the reason for returning the item.';
+                    Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Shopify API 2025-10 deprecated returnReason. Use Return Reason Name field instead.';
+                    ObsoleteTag = '28.0';
+                }
+#endif
+                field("Return Reason Name"; Rec."Return Reason Name")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the reason for returning the item.';

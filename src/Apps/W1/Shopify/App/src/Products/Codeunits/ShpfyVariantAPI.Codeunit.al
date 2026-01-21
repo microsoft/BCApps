@@ -99,8 +99,11 @@ codeunit 30189 "Shpfy Variant API"
         JResponse: JsonToken;
         JVariants: JsonArray;
         ReturnQuery: Text;
+        VariantsInBatch: Integer;
+        MaxVariantsPerBatch: Integer;
     begin
         ReturnQuery := ']) {productVariants {legacyResourceId, createdAt, updatedAt}, userErrors {field, message}}}"}';
+        MaxVariantsPerBatch := GetMaxVariantsPerBatch();
 
         if ShopifyVariant.FindSet() then begin
             InventoryQuantities := GetInventoryQuantities();
@@ -109,13 +112,16 @@ codeunit 30189 "Shpfy Variant API"
             GraphQuery.Append('\", strategy: ');
             GraphQuery.Append(Format(Strategy));
             GraphQuery.Append(', variants: [');
+            VariantsInBatch := 0;
             repeat
                 ShopifyVariant."Product Id" := ProductId;
                 VariantGraphQuery := GetVariantGraphQuery(ShopifyVariant, InventoryQuantities);
-                if GraphQuery.Length() + VariantGraphQuery.Length() + StrLen(ReturnQuery) < CommunicationMgt.GetGraphQueryLengthThreshold() then begin
+                if (GraphQuery.Length() + VariantGraphQuery.Length() + StrLen(ReturnQuery) < CommunicationMgt.GetGraphQueryLengthThreshold()) and
+                   (VariantsInBatch < MaxVariantsPerBatch) then begin
                     GraphQuery.Append(VariantGraphQuery.ToText() + ', ');
                     TempNewShopifyVariant := ShopifyVariant;
                     TempNewShopifyVariant.Insert();
+                    VariantsInBatch += 1;
                 end else begin
                     GraphQuery.Remove(GraphQuery.Length - 1, 2);
                     GraphQuery.Append(ReturnQuery);
@@ -133,6 +139,7 @@ codeunit 30189 "Shpfy Variant API"
                     GraphQuery.Append(Format(Strategy));
                     GraphQuery.Append(', variants: [');
                     GraphQuery.Append(VariantGraphQuery.ToText() + ', ');
+                    VariantsInBatch := 1;
                 end;
             until ShopifyVariant.Next() = 0;
             GraphQuery.Remove(GraphQuery.Length - 1, 2);
@@ -166,12 +173,6 @@ codeunit 30189 "Shpfy Variant API"
         end;
         if ShopifyVariant.Taxable then
             GraphQuery.Append(', taxable: true');
-        if ShopifyVariant."Tax Code" <> xShopifyVariant."Tax Code" then begin
-            HasChange := true;
-            GraphQuery.Append(', taxCode: \"');
-            GraphQuery.Append(ShopifyVariant."Tax Code");
-            GraphQuery.Append('\"');
-        end;
         if ShopifyVariant.Price <> xShopifyVariant.Price then begin
             HasChange := true;
             GraphQuery.Append(', price: \"');
@@ -236,11 +237,6 @@ codeunit 30189 "Shpfy Variant API"
         end;
         if ShopifyVariant.Taxable then
             GraphQuery.Append(', taxable: true');
-        if ShopifyVariant."Tax Code" <> '' then begin
-            GraphQuery.Append(', taxCode: \"');
-            GraphQuery.Append(ShopifyVariant."Tax Code");
-            GraphQuery.Append('\"');
-        end;
         if ShopifyVariant.Price > 0 then begin
             GraphQuery.Append(', price: \"');
             GraphQuery.Append(Format(ShopifyVariant.Price, 0, 9));
@@ -321,6 +317,28 @@ codeunit 30189 "Shpfy Variant API"
             GraphQuery.Append(']');
         end;
         exit(GraphQuery.ToText());
+    end;
+
+    internal procedure GetDefaultLocationCount(): Integer
+    var
+        ShopLocation: Record "Shpfy Shop Location";
+    begin
+        ShopLocation.SetRange("Shop Code", Shop.Code);
+        ShopLocation.SetRange(Active, true);
+        ShopLocation.SetRange("Default Product Location", true);
+        exit(ShopLocation.Count());
+    end;
+
+    internal procedure GetMaxVariantsPerBatch(): Integer
+    var
+        LocationCount: Integer;
+        MaxInventoryQuantities: Integer;
+    begin
+        MaxInventoryQuantities := 50000;
+        LocationCount := GetDefaultLocationCount();
+        if LocationCount = 0 then
+            exit(250); // Default batch size when no inventory quantities are added
+        exit(MaxInventoryQuantities div LocationCount);
     end;
 
     local procedure CreateNewVariant(JVariant: JsonToken; var ShopifyVariant: Record "Shpfy Variant"; ProductId: BigInteger): Boolean
@@ -756,7 +774,6 @@ codeunit 30189 "Shpfy Variant API"
 #pragma warning disable AA0139
         ShopifyVariant.Barcode := JsonHelper.GetValueAsText(JVariant, 'barcode', MaxStrLen(ShopifyVariant.Barcode));
         ShopifyVariant."Display Name" := JsonHelper.GetValueAsText(JVariant, 'displayName', MaxStrLen(ShopifyVariant."Display Name"));
-        ShopifyVariant."Tax Code" := JsonHelper.GetValueAsText(JVariant, 'taxCode', MaxStrLen(ShopifyVariant."Tax Code"));
         ShopifyVariant.SKU := JsonHelper.GetValueAsText(JVariant, 'sku', MaxStrLen(ShopifyVariant.SKU));
         ShopifyVariant.Title := JsonHelper.GetValueAsText(JVariant, 'title', MaxStrLen(ShopifyVariant.Title));
 #pragma warning restore AA0139
