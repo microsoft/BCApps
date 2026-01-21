@@ -663,11 +663,11 @@ page 20438 "Qlty. Management Setup Wizard"
 
         case true of
             ShowAutoAndManual:
-                QltyManagementSetup."Show Inspection Behavior" := QltyManagementSetup."Show Inspection Behavior"::"Automatic and manually created inspections";
+                QltyManagementSetup."When to show inspections" := QltyManagementSetup."When to show inspections"::"Automatic and manually created inspections";
             ShowOnlyManual:
-                QltyManagementSetup."Show Inspection Behavior" := QltyManagementSetup."Show Inspection Behavior"::"Only manually created inspections";
+                QltyManagementSetup."When to show inspections" := QltyManagementSetup."When to show inspections"::"Only manually created inspections";
             ShowNever:
-                QltyManagementSetup."Show Inspection Behavior" := QltyManagementSetup."Show Inspection Behavior"::"Do not show created inspections";
+                QltyManagementSetup."When to show inspections" := QltyManagementSetup."When to show inspections"::"Do not show created inspections";
         end;
 
         if QltyManagementSetup.Visibility = QltyManagementSetup.Visibility::Hide then
@@ -710,9 +710,9 @@ page 20438 "Qlty. Management Setup Wizard"
                 ReceiveCreateInspectionsAutomaticallyWarehouseReceipt or
                 ReceiveCreateInspectionsAutomaticallySalesReturn);
 
-            ShowAutoAndManual := QltyManagementSetup."Show Inspection Behavior" = QltyManagementSetup."Show Inspection Behavior"::"Automatic and manually created inspections";
-            ShowOnlyManual := QltyManagementSetup."Show Inspection Behavior" = QltyManagementSetup."Show Inspection Behavior"::"Only manually created inspections";
-            ShowNever := QltyManagementSetup."Show Inspection Behavior" = QltyManagementSetup."Show Inspection Behavior"::"Do not show created inspections";
+            ShowAutoAndManual := QltyManagementSetup."When to show inspections" = QltyManagementSetup."When to show inspections"::"Automatic and manually created inspections";
+            ShowOnlyManual := QltyManagementSetup."When to show inspections" = QltyManagementSetup."When to show inspections"::"Only manually created inspections";
+            ShowNever := QltyManagementSetup."When to show inspections" = QltyManagementSetup."When to show inspections"::"Do not show created inspections";
         end
     end;
 }

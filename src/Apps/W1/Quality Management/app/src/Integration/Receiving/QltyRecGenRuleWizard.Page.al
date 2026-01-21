@@ -16,7 +16,7 @@ using Microsoft.Warehouse.Journal;
 
 page 20461 "Qlty. Rec. Gen. Rule Wizard"
 {
-    Caption = 'Receipt Quality Inspection Rule setup Guide';
+    Caption = 'Receipt Quality Inspection Rule Setup Guide';
     PageType = NavigatePage;
     UsageCategory = None;
     ApplicationArea = QualityManagement;

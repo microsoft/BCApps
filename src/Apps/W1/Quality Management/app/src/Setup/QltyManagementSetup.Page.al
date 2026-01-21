@@ -77,7 +77,6 @@ page 20400 "Qlty. Management Setup"
                     field("CoA Contact No."; Rec."Certificate Contact No.")
                     {
                         ApplicationArea = All;
-                        Caption = 'Certificate of Analysis Contact';
                         AboutTitle = 'Certificate of Analysis Contact';
                         AboutText = 'When supplied, these contact details will appear on the Certificate of Analysis report.';
                     }
@@ -85,7 +84,6 @@ page 20400 "Qlty. Management Setup"
                     {
                         Importance = Additional;
                         ApplicationArea = All;
-                        Caption = 'Maximum Rows To Fetch In Lookups';
                         ShowCaption = true;
                         AboutTitle = 'Maximum Rows To Fetch In Lookups';
                         AboutText = 'This is the maximum number of rows to fetch on data lookups. Keeping the number as low as possible will increase usability and performance.';
@@ -94,11 +92,10 @@ page 20400 "Qlty. Management Setup"
                     group(SettingsForExplainShowInspection)
                     {
                         Caption = 'When to show inspections';
-                        InstructionalText = 'Define when to show inspections. For demonstrations and training, it can be useful to show automatically created inspections immediately.  However in most production scenarios, these inspections are sent to a queue or dispatch for quality inspectors.';
-                        field("Show Inspection Behavior"; Rec."Show Inspection Behavior")
+                        InstructionalText = 'Define when to show inspections. For demonstrations and training, it can be useful to show automatically created inspections immediately. However, in most production scenarios, these inspections are sent to a queue or dispatch for quality inspectors.';
+                        field("When to show inspections"; Rec."When to show inspections")
                         {
                             ApplicationArea = All;
-                            Caption = 'When to show inspections';
                             ShowCaption = true;
                             Importance = Promoted;
                             AboutTitle = 'When To Show Inspections';

@@ -42,10 +42,10 @@ table 20400 "Qlty. Management Setup"
             TableRelation = "No. Series";
             ToolTip = 'Specifies the default number series for quality inspection documents used when there isn''t a number series defined on the quality inspection template.';
         }
-        field(3; "Show Inspection Behavior"; Enum "Qlty. When to Show Inspections")
+        field(3; "When to show inspections"; Enum "Qlty. When to Show Inspections")
         {
-            Caption = 'Show Inspection Behavior';
-            ToolTip = 'Specifies whether inspections are shown immediately or sent to a queue for quality inspectors. For demonstrations and training, it can be useful to show automatically created inspections immediately. In production scenarios, automatically created inspections are usually not shown, instead they are queued or dispatch for quality inspectors.';
+            Caption = 'When to show inspections';
+            ToolTip = 'Specifies whether inspections are shown immediately or sent to a queue for quality inspectors. For demonstrations and training, it can be useful to show automatically created inspections immediately. In production scenarios, automatically created inspections are usually not shown, instead they are queued or dispatch for quality inspections.';
         }
         field(4; "Create Inspection Behavior"; Enum "Qlty. Create Inspect. Behavior")
         {
@@ -60,7 +60,7 @@ table 20400 "Qlty. Management Setup"
         }
         field(6; "Certificate Contact No."; Code[20])
         {
-            Caption = 'Certificate of Analysis Contact No.';
+            Caption = 'Certificate of Analysis Contact';
             Description = 'When supplied, these contact details will appear on the CoA report.';
             TableRelation = Contact."No.";
             ToolTip = 'Specifies the contact details that will appear on the Certificate of Analysis report when supplied.';
@@ -307,7 +307,7 @@ table 20400 "Qlty. Management Setup"
         }
         field(91; "Max Rows Field Lookups"; Integer)
         {
-            Caption = 'Maximum Rows To Fetch on Field Lookups';
+            Caption = 'Maximum Rows To Fetch In Lookups';
             BlankZero = true;
             MinValue = 1;
             MaxValue = 1000;
