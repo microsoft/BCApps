@@ -5,6 +5,7 @@ Param(
 
 $parameters.multitenant = $false
 $parameters.RunSandboxAsOnPrem = $true
+$parameters.memoryLimit = "16G"
 if ("$env:GITHUB_RUN_ID" -eq "") {
     $parameters.includeAL = $true
     $parameters.doNotExportObjectsToText = $true
