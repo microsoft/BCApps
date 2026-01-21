@@ -63,10 +63,14 @@ page 4303 "Agent Task Log Entry List"
                 field(Description; Rec.Description)
                 {
                     Caption = 'Description';
+
+                    trigger OnDrillDown()
+                    begin
+                        Message(Rec.Description);
+                    end;
                 }
                 field(Reason; Rec.Reason)
                 {
-                    ApplicationArea = All;
                     Caption = 'Reason';
 
                     trigger OnDrillDown()
@@ -152,13 +156,16 @@ page 4303 "Agent Task Log Entry List"
                 Caption = 'Give Feedback';
                 ToolTip = 'Tell us what you think about the agent and suggest new features or improvements.';
                 Image = Comment;
-                Scope = Repeater;
-                Enabled = AgentPublisherType <> AgentPublisherType::"Third Party";
-                Visible = AgentPublisherType <> AgentPublisherType::"Third Party";
+                Enabled = IsFeedbackActionEnabled;
+                Visible = IsFeedbackActionEnabled;
 
                 trigger OnAction()
+                var
+                    AgentUserFeedback: Codeunit "Agent User Feedback";
+                    ContextProperties: Dictionary of [Text, Text];
                 begin
-                    RequestFeedback();
+                    ContextProperties := AgentUserFeedback.InitializeAgentTaskContext(Rec."Task ID");
+                    AgentUserFeedback.RequestFeedback('Agent Task Log Entries', ContextProperties);
                 end;
             }
         }
@@ -189,22 +196,14 @@ page 4303 "Agent Task Log Entry List"
                 TypeStyle := Format(PageStyle::Standard);
         end;
 
-        AgentPublisherType := AgentTaskImpl.TryGetAgentRecordFromTaskId(Rec."Task ID", Agent)
-            ? Agent."Publisher Type"
-            : AgentPublisherType::"Third Party";
-    end;
-
-    local procedure RequestFeedback()
-    var
-        AgentUserFeedback: Codeunit "Agent User Feedback";
-        ContextProperties: Dictionary of [Text, Text];
-    begin
-        ContextProperties := AgentUserFeedback.InitializeAgentTaskContext(Rec."Task ID");
-        AgentUserFeedback.RequestFeedback('Agent Task Log Entries', 'Agent', ContextProperties);
+        if AgentTaskImpl.TryGetAgentRecordFromTaskId(Rec."Task ID", Agent) then
+            IsFeedbackActionEnabled := Agent."Publisher Type" <> Agent."Publisher Type"::"Third Party"
+        else
+            IsFeedbackActionEnabled := false
     end;
 
     var
-        AgentPublisherType: Enum "Agent Publisher Type";
+        IsFeedbackActionEnabled: Boolean;
         DetailsTxt: Text;
         TypeStyle: Text;
 }

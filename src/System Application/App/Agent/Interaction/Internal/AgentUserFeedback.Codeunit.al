@@ -13,15 +13,19 @@ codeunit 4329 "Agent User Feedback"
     InherentEntitlements = X;
     InherentPermissions = X;
 
+    // The values below align with the existing feature and context properties from the timeline.
     var
-        AgentMetadataProviderTok: Label 'Copilot.Agents.AgentTypeId', Locked = true;
         AgentUserSecurityIdTok: Label 'Copilot.Agents.AgentId', Locked = true;
+        AgentMetadataProviderTok: Label 'Copilot.Agents.AgentTypeId', Locked = true;
         AgentTaskIdTok: Label 'Copilot.Agents.TaskId', Locked = true;
+        AgentFeatureAreaTok: Label 'Copilot', Locked = true;
+        AgentFeatureDisplayNameTok: Label 'Copilot', Locked = true;
+
+    // The values below are not used by the timeline.
+    var
         AgentTaskLogEntryIdTok: Label 'Copilot.Agents.TaskLogEntryId', Locked = true;
         AgentTaskLogEntryTypeTok: Label 'Copilot.Agents.TaskLogEntryType', Locked = true;
-        AgentFeatureAreaTok: Label 'Agents', Locked = true;
 
-    #region Property Tokens
 
     [Scope('OnPrem')]
     procedure GetAgentMetadataProviderTok(): Text
@@ -53,8 +57,6 @@ codeunit 4329 "Agent User Feedback"
         exit(AgentTaskLogEntryTypeTok);
     end;
 
-    #endregion
-
     [Scope('OnPrem')]
     procedure InitializeAgentContext(AgentMetadataProvider: Enum "Agent Metadata Provider"; AgentUserSecurityID: Guid) Context: Dictionary of [Text, Text]
     begin
@@ -75,12 +77,13 @@ codeunit 4329 "Agent User Feedback"
         Context.Add(AgentTaskIdTok, Format(TaskId));
     end;
 
-    procedure RequestFeedback(FeatureName: Text; FeatureDisplayName: Text; ContextProperties: Dictionary of [Text, Text])
+    [Scope('OnPrem')]
+    procedure RequestFeedback(FeatureName: Text; ContextProperties: Dictionary of [Text, Text])
     var
         MicrosoftUserFeedback: Codeunit "Microsoft User Feedback";
         EmptyContextFiles: Dictionary of [Text, Text];
     begin
         MicrosoftUserFeedback.SetIsAIFeedback(true);
-        MicrosoftUserFeedback.RequestFeedback(FeatureName, AgentFeatureAreaTok, FeatureDisplayName, EmptyContextFiles, ContextProperties);
+        MicrosoftUserFeedback.RequestFeedback(FeatureName, AgentFeatureAreaTok, AgentFeatureDisplayNameTok, EmptyContextFiles, ContextProperties);
     end;
 }
