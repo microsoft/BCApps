@@ -7270,13 +7270,13 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionGenRule.Delete();
 
         // [WHEN] Purchase return disposition is performed with item tracked quantity behavior
-        QltyDispPurchaseReturn.PerformDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Item Tracked Quantity", SpecificQty, '', '', Reason, CreditMemo);
-        QltyDispPurchaseReturn.GetCreatedPurchaseReturnBuffer(TempTrackedPurRtnBufferPurchaseHeader);
+        QltyInspectionUtility.PerformPurchaseReturnDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Item Tracked Quantity", SpecificQty, '', '', Reason, CreditMemo, TempTrackedPurRtnBufferPurchaseHeader);
+
         // [THEN] The purchase return order is created correctly for serial-tracked items
         VerifyInspectionAssertions(1, QltyInspectionHeader, TempTrackedPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
 
         // [WHEN] Purchase return disposition with specific quantity behavior is attempted on serial-tracked items
-        asserterror QltyDispPurchaseReturn.PerformDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Specific Quantity", SpecificQty, '', '', Reason, CreditMemo);
+        asserterror QltyInspectionUtility.PerformPurchaseReturnDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Specific Quantity", SpecificQty, '', '', Reason, CreditMemo, TempTrackedPurRtnBufferPurchaseHeader);
         // [THEN] An error is expected because no purchase receipt line exists for specific quantity with serial tracking
         LibraryAssert.ExpectedError(StrSubstNo(NoPurchRcptLineErr, Item."No.", QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No."));
     end;
