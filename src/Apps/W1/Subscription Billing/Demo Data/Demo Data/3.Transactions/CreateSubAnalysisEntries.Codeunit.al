@@ -28,25 +28,25 @@ codeunit 8123 "Create Sub. Analysis Entries"
 
     local procedure CreateContractAnalysisEntries(AnalysisDate: Date)
     var
-        ServiceCommitment: Record "Subscription Line";
+        SubscriptionLine: Record "Subscription Line";
     begin
-        ServiceCommitment.SetFilter("Subscription Contract No.", '<>%1', '');
-        ServiceCommitment.SetFilter("Subscription Line End Date", '%1|>=%2', 0D, AnalysisDate);
-        if ServiceCommitment.FindSet() then begin
+        SubscriptionLine.SetFilter("Subscription Contract No.", '<>%1', '');
+        SubscriptionLine.SetFilter("Subscription Line End Date", '%1|>=%2', 0D, AnalysisDate);
+        if SubscriptionLine.FindSet() then begin
             repeat
-                CreateContractAnalysisEntry(ServiceCommitment, AnalysisDate);
-            until ServiceCommitment.Next() = 0;
+                CreateContractAnalysisEntry(SubscriptionLine, AnalysisDate);
+            until SubscriptionLine.Next() = 0;
         end;
     end;
 
-    local procedure CreateContractAnalysisEntry(ServiceCommitment: Record "Subscription Line"; AnalysisDate: Date)
+    local procedure CreateContractAnalysisEntry(SubscriptionLine: Record "Subscription Line"; AnalysisDate: Date)
     var
-        ContractAnalysisEntry: Record "Sub. Contr. Analysis Entry";
+        SubContractAnalysisEntry: Record "Sub. Contr. Analysis Entry";
     begin
-        ContractAnalysisEntry.InitFromServiceCommitment(ServiceCommitment);
-        ContractAnalysisEntry."Analysis Date" := AnalysisDate;
-        ContractAnalysisEntry.CalculateMonthlyRecurringRevenue(ServiceCommitment);
-        ContractAnalysisEntry.CalculateMonthlyRecurringCost(ServiceCommitment);
-        ContractAnalysisEntry.Insert(true);
+        SubContractAnalysisEntry.InitFromServiceCommitment(SubscriptionLine);
+        SubContractAnalysisEntry."Analysis Date" := AnalysisDate;
+        SubContractAnalysisEntry.CalculateMonthlyRecurringRevenue(SubscriptionLine);
+        SubContractAnalysisEntry.CalculateMonthlyRecurringCost(SubscriptionLine);
+        SubContractAnalysisEntry.Insert(true);
     end;
 }
