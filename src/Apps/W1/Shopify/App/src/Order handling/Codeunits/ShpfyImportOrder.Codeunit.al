@@ -353,6 +353,7 @@ codeunit 30161 "Shpfy Import Order"
         CompanyId: BigInteger;
         MainContactId: BigInteger;
         LocationId: BigInteger;
+        RetailLocationId: BigInteger;
         CompanyName: Text;
         EMail: Text;
         FirstName: Text;
@@ -496,6 +497,13 @@ codeunit 30161 "Shpfy Import Order"
                 LocationId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JOrder, 'purchasingEntity.location.id'));
                 OrderHeaderRecordRef.Field(OrderHeader.FieldNo("Company Location Id")).Value := LocationId;
             end;
+        end;
+        #endregion
+        #region Retail Location
+        if JsonHelper.GetJsonObject(JOrder, JObject, 'retailLocation') then begin
+            RetailLocationId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JOrder, 'retailLocation.legacyResourceId'));
+            OrderHeaderRecordRef.Field(OrderHeader.FieldNo("Retail Location Id")).Value := RetailLocationId;
+            JsonHelper.GetValueIntoField(JOrder, 'retailLocation.name', OrderHeaderRecordRef, OrderHeader.FieldNo("Retail Location Name"));
         end;
         #endregion
         OrderHeaderRecordRef.SetTable(OrderHeader);

@@ -13,6 +13,8 @@ query 6100 "E-Doc. Line by Receipt"
 {
     Access = Internal;
     OrderBy = ascending(ReceiptNo);
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     elements
     {

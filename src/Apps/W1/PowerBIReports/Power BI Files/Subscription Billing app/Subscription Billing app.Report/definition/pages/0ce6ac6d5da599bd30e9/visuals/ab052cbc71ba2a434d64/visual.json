@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
   "name": "ab052cbc71ba2a434d64",
   "position": {
-    "x": 25.802047781569964,
-    "y": 387.03071672354952,
+    "x": 25.545041317358088,
+    "y": 380.22811499298388,
     "z": 0,
-    "height": 307,
-    "width": 1226.8259385665528,
+    "height": 313.41800693220119,
+    "width": 1227.1444848223175,
     "tabOrder": 0
   },
   "visual": {
@@ -20,6 +20,36 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Fiscal Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Year",
+              "nativeQueryRef": "Fiscal Year",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Fiscal Month Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Month Year",
+              "nativeQueryRef": "Fiscal Month Year",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
                       "Entity": "Customers"
                     }
                   },
@@ -28,7 +58,7 @@
               },
               "queryRef": "Customers.Customer Posting Group",
               "nativeQueryRef": "Customer Posting Group",
-              "active": true
+              "active": false
             },
             {
               "field": {
@@ -43,7 +73,7 @@
               },
               "queryRef": "Customers.Customer Name",
               "nativeQueryRef": "Customer Name",
-              "active": true
+              "active": false
             },
             {
               "field": {
@@ -133,6 +163,20 @@
               },
               "queryRef": "Subscription Billing KPIs.Churn",
               "nativeQueryRef": "Churn"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "Active Customers"
+                }
+              },
+              "queryRef": "Subscription Billing KPIs.Active Customers",
+              "nativeQueryRef": "Active Customers"
             }
           ]
         }
@@ -144,6 +188,32 @@
           "Rows"
         ],
         "levels": [
+          {
+            "queryRefs": [
+              "Date.Fiscal Year"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Fiscal Year"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Date.Fiscal Month Year"
+            ],
+            "isCollapsed": true,
+            "isPinned": true
+          },
           {
             "queryRefs": [
               "Customers.Customer Posting Group"
@@ -184,37 +254,7 @@
               "identityValues": [
                 {
                   "Literal": {
-                    "Value": "'INLAND'"
-                  }
-                }
-              ],
-              "isToggled": true
-            },
-            {
-              "identityValues": [
-                {
-                  "Literal": {
-                    "Value": "'AUSLAND'"
-                  }
-                }
-              ],
-              "isToggled": true
-            },
-            {
-              "identityValues": [
-                {
-                  "Literal": {
-                    "Value": "'EU'"
-                  }
-                }
-              ],
-              "isToggled": true
-            },
-            {
-              "identityValues": [
-                {
-                  "Literal": {
-                    "Value": "'DOMESTIC'"
+                    "Value": "'F 2026'"
                   }
                 }
               ],
@@ -266,6 +306,125 @@
           },
           "selector": {
             "metadata": "Subscription Billing KPIs.Churn"
+          }
+        }
+      ],
+      "values": [
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "Customer Contract Line Back Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Subscription Billing KPIs.MRR"
+          }
+        },
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "Vendor Contract Line Back Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Subscription Billing KPIs.MRC"
+          }
+        }
+      ],
+      "columnFormatting": [
+        {
+          "properties": {
+            "dataBars": {
+              "positiveColor": {
+                "solid": {
+                  "color": {
+                    "expr": {
+                      "Literal": {
+                        "Value": "'#b3d8dd'"
+                      }
+                    }
+                  }
+                }
+              },
+              "negativeColor": {
+                "solid": {
+                  "color": {
+                    "expr": {
+                      "Literal": {
+                        "Value": "'#f1c8bf'"
+                      }
+                    }
+                  }
+                }
+              },
+              "axisColor": {
+                "solid": {
+                  "color": {
+                    "expr": {
+                      "Literal": {
+                        "Value": "'#FFFFFF'"
+                      }
+                    }
+                  }
+                }
+              },
+              "reverseDirection": {
+                "expr": {
+                  "Literal": {
+                    "Value": "false"
+                  }
+                }
+              },
+              "hideText": {
+                "expr": {
+                  "Literal": {
+                    "Value": "false"
+                  }
+                }
+              },
+              "totalMatchingOption": {
+                "expr": {
+                  "Literal": {
+                    "Value": "1L"
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Subscription Billing KPIs.NMRP % of MRR"
           }
         }
       ]

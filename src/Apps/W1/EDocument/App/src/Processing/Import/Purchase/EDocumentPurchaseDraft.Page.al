@@ -10,6 +10,7 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Vendor;
 using System.Feedback;
 using System.Telemetry;
+using System.Text;
 using System.Utilities;
 
 page 6181 "E-Document Purchase Draft"
@@ -31,6 +32,8 @@ page 6181 "E-Document Purchase Draft"
         {
             group(General)
             {
+                Caption = 'General';
+
                 field(Record; RecordLinkTxt)
                 {
                     Caption = 'Finalized Document';
@@ -204,6 +207,7 @@ page 6181 "E-Document Purchase Draft"
                 }
                 field("Amount Incl. VAT"; EDocumentPurchaseHeader.Total)
                 {
+                    Caption = 'Amount Incl. VAT';
                     ToolTip = 'Specifies the total amount of the electronic document including VAT.';
                     Importance = Promoted;
 
@@ -216,6 +220,7 @@ page 6181 "E-Document Purchase Draft"
                 }
                 field("Currency Code"; EDocumentPurchaseHeader."Currency Code")
                 {
+                    Caption = 'Currency Code';
                     Importance = Promoted;
                     ToolTip = 'Specifies the electronic document currency code.';
                     Editable = true;
@@ -410,6 +415,7 @@ page 6181 "E-Document Purchase Draft"
     trigger OnOpenPage()
     var
         EDocumentsSetup: Record "E-Documents Setup";
+        EDocumentDataStorage: Record "E-Doc. Data Storage";
         EDocumentNotification: Codeunit "E-Document Notification";
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
         MatchesRemovedMsg: Label 'This e-document was matched to purchase order lines, but the matches are no longer consistent with the current data. The matches have been removed';
@@ -422,7 +428,10 @@ page 6181 "E-Document Purchase Draft"
             Message(MatchesRemovedMsg);
         end;
         CurrPage.Lines.Page.SetEDocumentPurchaseHeader(EDocumentPurchaseHeader);
-        HasPDFSource := Rec."Read into Draft Impl." = "E-Doc. Read into Draft"::ADI;
+        if Rec."Unstructured Data Entry No." <> 0 then begin
+            EDocumentDataStorage.Get(Rec."Unstructured Data Entry No.");
+            HasPDFSource := EDocumentDataStorage."File Format" = Enum::"E-Doc. File Format"::PDF;
+        end;
         EDocumentServiceStatus := Rec.GetEDocumentServiceStatus();
         HasErrorsOrWarnings := false;
         HasErrors := false;
@@ -636,11 +645,22 @@ page 6181 "E-Document Purchase Draft"
 
     local procedure ProvideFeedback()
     var
+        EDocumentDataStorage: Record "E-Doc. Data Storage";
         MicrosoftUserFeedback: Codeunit "Microsoft User Feedback";
+        Base64Convert: Codeunit "Base64 Convert";
         EDocDraftFeedback: Page "E-Doc. Draft Feedback";
+        Base64Data: Text;
+        InStream: InStream;
+        ContextFiles, ContextProperties : Dictionary of [Text, Text];
     begin
-        if EDocDraftFeedback.RunModal() = Action::Yes then
-            MicrosoftUserFeedback.SetIsAIFeedback(true).RequestFeedback('Payables Agent Draft', 'PayablesAgent', 'Payables Agent');
+        if EDocDraftFeedback.RunModal() = Action::Yes then begin
+            if EDocumentDataStorage.Get(Rec."Unstructured Data Entry No.") then begin
+                EDocumentDataStorage.GetTempBlob().CreateInStream(InStream);
+                Base64Data := Base64Convert.ToBase64(InStream);
+                ContextFiles.Add(EDocumentDataStorage.Name, Base64Data);
+            end;
+            MicrosoftUserFeedback.SetIsAIFeedback(true).RequestFeedback('Payables Agent Draft', 'PayablesAgent', 'Payables Agent', ContextFiles, ContextProperties);
+        end;
     end;
 
     var

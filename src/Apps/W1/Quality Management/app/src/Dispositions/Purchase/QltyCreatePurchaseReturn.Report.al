@@ -18,19 +18,19 @@ report 20411 "Qlty. Create Purchase Return"
     UsageCategory = Tasks;
     ProcessingOnly = true;
     AllowScheduling = false;
-    Description = 'Use this to create a Purchase Return Order from a Quality Inspection Test.';
+    Description = 'Use this to create a Purchase Return Order from a Quality Inspection.';
 
     dataset
     {
-        dataitem(CurrentTest; "Qlty. Inspection Test Header")
+        dataitem(CurrentInspection; "Qlty. Inspection Header")
         {
-            RequestFilterFields = "No.", "Retest No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Document No.", "Template Code";
+            RequestFilterFields = "No.", "Re-inspection No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Document No.", "Template Code";
 
             trigger OnAfterGetRecord()
             var
                 ReactionRetQltyDispPurchaseReturn: Codeunit "Qlty. Disp. Purchase Return";
             begin
-                ReactionRetQltyDispPurchaseReturn.PerformDisposition(CurrentTest, QltyQuantityBehavior, SpecificQuantity, FilterOfSourceLocation, FilterOfSourceBin, ReasonCode, OptionalVendorCreditMemoNo);
+                ReactionRetQltyDispPurchaseReturn.PerformDisposition(CurrentInspection, QltyQuantityBehavior, SpecificQuantity, FilterOfSourceLocation, FilterOfSourceBin, ReasonCode, OptionalVendorCreditMemoNo);
             end;
         }
     }
@@ -38,7 +38,7 @@ report 20411 "Qlty. Create Purchase Return"
     requestpage
     {
         AboutTitle = 'About Creating a Purchase Return Order';
-        AboutText = 'Use this to create a Purchase Return Order from a Quality Inspection Test.';
+        AboutText = 'Use this to create a Purchase Return Order from a Quality Inspection.';
 
         layout
         {
@@ -47,7 +47,7 @@ report 20411 "Qlty. Create Purchase Return"
                 group(SettingsForQuantity)
                 {
                     Caption = 'Quantity';
-                    InstructionalText = 'The quantity of the tested item that will be returned.';
+                    InstructionalText = 'The quantity of the inspected item that will be returned.';
 
                     field(ChooseReturnTracked; ReturnTracked)
                     {
@@ -187,7 +187,7 @@ report 20411 "Qlty. Create Purchase Return"
                 group(SettingsForSource)
                 {
                     Caption = 'Source (optional)';
-                    InstructionalText = 'Optional filters that limit where the inventory is adjusted from if the test covers more than one bin.';
+                    InstructionalText = 'Optional filters that limit where the inventory is adjusted from if the inspection covers more than one bin.';
 
                     field(ChooseSourceLocationFilter; FilterOfSourceLocation)
                     {

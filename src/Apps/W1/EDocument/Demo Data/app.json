@@ -32,8 +32,23 @@
       "publisher": "Microsoft"
     },
     {
+      "id": "d67591a4-895c-4d2e-8e94-402badd1a5c7",
+      "name": "E-Document Core Demo Data (CA)",
+      "publisher": "Microsoft"
+    },
+    {
       "id": "f3e4e6f8-2ba7-4202-834d-141ed9b89191",
       "name": "E-Document Core Demo Data (GB)",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "f3e4e6f8-2ba7-4202-834d-141ed9b89192",
+      "name": "E-Document Core Demo Data (DK)",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "f3e4e6f8-2ba7-4202-834d-141ed9b89192",
+      "name": "E-Document Core Demo Data (ES)",
       "publisher": "Microsoft"
     },
     {
@@ -45,6 +60,21 @@
       "id": "0b450a33-3524-488d-99ca-1ce1beb37bd3",
       "name": "E-Document Core Demo Data (NZ)",
       "publisher": "Microsoft"
+    },
+    {
+      "id": "f3e4e6f8-2ba7-4202-834d-141ed9b89193",
+      "name": "E-Document Core Demo Data (FR)",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "de0dddf3-9917-430d-8d20-6e7679a08501",
+      "name": "E-Document Core Demo Data IT",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "f3e4e6f8-2ba7-4202-834d-141ed9b89194",
+      "name": "E-Document Core Demo Data (DE)",
+      "publisher": "Microsoft"
     }
   ],
   "screenshots": [],
@@ -52,7 +82,7 @@
   "idRanges": [
     {
       "from": 5370,
-      "to": 5380
+      "to": 5382
     },
     {
       "from": 5391,

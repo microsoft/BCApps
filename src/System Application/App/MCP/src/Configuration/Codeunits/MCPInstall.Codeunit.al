@@ -16,5 +16,6 @@ codeunit 8352 "MCP Install"
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
     begin
         MCPConfigImplementation.CreateDefaultConfiguration();
+        MCPConfigImplementation.CreateVSCodeEntraApplication();
     end;
 }
