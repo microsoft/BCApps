@@ -590,12 +590,7 @@ codeunit 8105 "Contoso Subscription Billing"
                 exit;
 
         VendorContractLine.DeleteAll(true);
-        ServiceCommitment.SetRange("Subscription Header No.", ObjectNo);
-        ServiceCommitment.SetRange(Partner, ServiceCommitment.Partner::Vendor);
-        ServiceCommitment.FindFirst();
-        ServiceCommitment."Subscription Contract No." := ContractNo;
-        VendorContract.Get(ContractNo);
-        VendorContract.CreateVendorContractLineFromServiceCommitment(ServiceCommitment);
+        AddVendorContractLine(ContractNo, ObjectNo);
     end;
 
     procedure AddVendorContractLine(ContractNo: Code[20]; ObjectNo: Code[20])
