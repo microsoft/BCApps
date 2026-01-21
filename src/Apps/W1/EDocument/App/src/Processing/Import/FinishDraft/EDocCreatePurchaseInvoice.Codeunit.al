@@ -55,9 +55,9 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
             Error(SomeLinesNotYetReceivedErr);
 
         IEDocumentFinishPurchaseDraft := EDocImportParameters."Processing Customizations";
-        if EDocImportParameters."Link To Existing Doc. Rec. ID" <> EmptyRecordId then begin
+        if EDocImportParameters."Existing Doc. RecordId" <> EmptyRecordId then begin
             EDocImpSessionTelemetry.SetBool('LinkedToExisting', true);
-            PurchaseHeader.Get(EDocImportParameters."Link To Existing Doc. Rec. ID");
+            PurchaseHeader.Get(EDocImportParameters."Existing Doc. RecordId");
         end else
             PurchaseHeader := IEDocumentFinishPurchaseDraft.CreatePurchaseInvoice(EDocument);
 
@@ -68,7 +68,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         PurchaseHeader."Doc. Amount VAT" := EDocumentPurchaseHeader."Total VAT";
         PurchaseHeader.TestField("No.");
         PurchaseHeader."E-Document Link" := EDocument.SystemId;
-        PurchaseHeader."Created from E-Document" := EDocImportParameters."Link To Existing Doc. Rec. ID" = EmptyRecordId;
+        PurchaseHeader."Created from E-Document" := EDocImportParameters."Existing Doc. RecordId" = EmptyRecordId;
         PurchaseHeader.Modify();
 
         // Post document creation

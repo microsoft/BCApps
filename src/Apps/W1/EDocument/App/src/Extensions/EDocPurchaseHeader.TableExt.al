@@ -1,4 +1,12 @@
-#pragma warning disable AA0247
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Purchases.Document;
+
+using Microsoft.eServices.EDocument;
+using Microsoft.Utilities;
+
 tableextension 6169 "E-Doc. Purchase Header" extends "Purchase Header"
 {
 
@@ -31,6 +39,16 @@ tableextension 6169 "E-Doc. Purchase Header" extends "Purchase Header"
         {
         }
     }
+
+    internal procedure CalculateTotalAmountInclVAT(): Decimal
+    var
+        TotalPurchaseLine: Record "Purchase Line";
+        DocumentTotals: Codeunit "Document Totals";
+        VATAmount: Decimal;
+    begin
+        DocumentTotals.CalculatePurchaseTotals(TotalPurchaseLine, VATAmount, PurchLine);
+        exit(TotalPurchaseLine."Amount Including VAT");
+    end;
 
     internal procedure IsLinkedToEDoc(EDocumentToExclude: Record "E-Document"): Boolean
     begin

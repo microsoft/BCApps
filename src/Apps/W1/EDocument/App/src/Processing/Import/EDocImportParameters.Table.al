@@ -62,7 +62,7 @@ table 6106 "E-Doc. Import Parameters"
         /// Specifies an existing purchase document to link to instead of creating a new one.
         /// When set, the ApplyDraftToBC step will link the e-document to this existing document rather than creating a new purchase invoice.
         /// </summary>
-        field(10; "Link To Existing Doc. Rec. ID"; RecordId)
+        field(10; "Existing Doc. RecordId"; RecordId)
         {
         }
     }

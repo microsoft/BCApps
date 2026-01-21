@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument;
 
 using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Foundation.Reporting;
@@ -709,9 +710,20 @@ codeunit 6108 "E-Document Processing"
         if not ConfirmDialogMgt.GetResponseOrDefault(StrSubstNo(LinkToExistingDocumentQst, PurchaseHeader."Document Type", PurchaseHeader."No."), true) then
             exit(false);
 
-        EDocImportParameters."Link To Existing Doc. Rec. ID" := PurchaseHeader.RecordId();
+        EDocImportParameters."Existing Doc. RecordId" := PurchaseHeader.RecordId();
         EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
         exit(EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters));
+    end;
+
+    internal procedure ErrorIfNotAllowedToLinkToExistingDoc(EDocument: Record "E-Document"; EDocumentPurchaseHeader: Record "E-Document Purchase Header")
+    var
+        Vendor: Record Vendor;
+        NoVendorErr: Label 'Cannot link e-document to existing purchase document because vendor number is missing in e-document purchase header.';
+    begin
+        if EDocumentPurchaseHeader."[BC] Vendor No." = '' then
+            Error(NoVendorErr);
+        if Vendor.Get(EDocumentPurchaseHeader."[BC] Vendor No.") then
+            Vendor.TestField("IC Partner Code");
     end;
 
     procedure OpenPurchaseDocumentList(EDocumentType: Enum "E-Document Type"; var PurchaseHeader: Record "Purchase Header"): Boolean

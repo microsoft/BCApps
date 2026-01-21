@@ -716,13 +716,16 @@ page 6181 "E-Document Purchase Draft"
         ConfirmDialogMgt: Codeunit "Confirm Management";
         LinkToExistingDocumentQst: Label 'Do you want to link this e-document to %1 %2? This will mark the e-document as processed.', Comment = '%1 = Document Type, %2 = Document No.';
     begin
+        EDocumentProcessing.ErrorIfNotAllowedToLinkToExistingDoc(Rec, EDocumentPurchaseHeader);
+        PurchaseHeader.SetRange("Buy-from Vendor No.", EDocumentPurchaseHeader."[BC] Vendor No.");
+        PurchaseHeader.SetRange("Doc. Amount Incl. VAT", EDocumentPurchaseHeader.Total);
         if not EDocumentProcessing.OpenPurchaseDocumentList(Rec."Document Type", PurchaseHeader) then
             exit;
 
         if not ConfirmDialogMgt.GetResponseOrDefault(StrSubstNo(LinkToExistingDocumentQst, PurchaseHeader."Document Type", PurchaseHeader."No."), true) then
             exit;
 
-        EDocImportParameters."Link To Existing Doc. Rec. ID" := PurchaseHeader.RecordId();
+        EDocImportParameters."Existing Doc. RecordId" := PurchaseHeader.RecordId();
         FinalizeEDocument(EDocImportParameters);
     end;
 
