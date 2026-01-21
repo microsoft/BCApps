@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Setup.SetupWizard;
 
-using Microsoft.DemoTool;
 using Microsoft.QualityManagement.Configuration;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Document;
@@ -78,25 +77,12 @@ page 20438 "Qlty. Management Setup Wizard"
                 group(DemoDataIntroduction)
                 {
                     Caption = 'Demo data for Quality Management';
-                    InstructionalText = 'The Quality Management application includes demo data available as a Contoso Demo Tool module. Here is how to get started with it.';
+                    InstructionalText = 'The Quality Management application includes demo data available through the Contoso Coffee Demo Dataset application.';
                 }
-
                 group(DemoDataInstructions)
                 {
-                    Caption = 'How to?';
-                    InstructionalText = 'Navigate to the Contoso Demo Tool page. Then, select the Quality Management module, and click on the Generate action. This will install demo data including sample inspection templates, inspection generation rules, and quality inspections.';
-                }
-                field(LinkToContosoDemoToolPage; LinkToContosoDemoToolPageLbl)
-                {
-                    Caption = 'Navigate to Contoso Demo Tool';
-                    ShowCaption = false;
-                    Editable = false;
-                    ApplicationArea = QualityManagement;
-
-                    trigger OnDrillDown()
-                    begin
-                        Page.RunModal(Page::"Contoso Demo Tool");
-                    end;
+                    Caption = 'Install demo data';
+                    InstructionalText = 'To install demo data, go to the Contoso Demo Tool page and select the Quality Management module.';
                 }
             }
             group(SettingsFor_StepWhatAreYouMakingQltyInspectionsFor)
@@ -520,7 +506,6 @@ page 20438 "Qlty. Management Setup Wizard"
         QualityManagementTok: Label 'Quality Management', Locked = true;
         QualityInspectionsLbl: Label 'Quality Inspections', Locked = true;
         QualityInspectionGenerationRulesLbl: Label 'Quality Inspection Generation Rules', Locked = true;
-        LinkToContosoDemoToolPageLbl: Label 'Open Contoso Demo Tool', Locked = true;
 
     trigger OnInit();
     begin
