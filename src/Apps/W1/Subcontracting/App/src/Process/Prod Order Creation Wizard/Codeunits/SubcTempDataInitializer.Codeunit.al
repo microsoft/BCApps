@@ -28,10 +28,10 @@ codeunit 99001552 "Subc. Temp Data Initializer"
         TempGlobalRoutingLine: Record "Routing Line" temporary;
         TempGlobalVendor: Record Vendor temporary;
         SubManagementSetup: Record "Subc. Management Setup";
-        SingleInstance: Codeunit "Single Instance Dictionary";
+        SingleInstanceDictionary: Codeunit "Single Instance Dictionary";
         SubVersionSelectionMgmt: Codeunit "Subc. Version Mgmt.";
         HasSubManagementSetup: Boolean;
-        RtngBOMSourceType: Enum "Subc. RtngBOMSourceType";
+        SubcRtngBOMSourceType: Enum "Subc. RtngBOMSourceType";
 
     /// <summary>
     /// Initializes the temporary structure for production order processing based on a purchase line.
@@ -269,7 +269,7 @@ codeunit 99001552 "Subc. Temp Data Initializer"
         BuildTemporaryComponents();
 
         GetVendor();
-        SingleInstance.SetCode('SetSubcontractingLocationCodeFromVendor', TempGlobalVendor."Subcontr. Location Code");
+        SingleInstanceDictionary.SetCode('SetSubcontractingLocationCodeFromVendor', TempGlobalVendor."Subcontr. Location Code");
     end;
 
     local procedure BuildTemporaryComponents()
@@ -640,7 +640,7 @@ codeunit 99001552 "Subc. Temp Data Initializer"
     /// <param name="SourceType">The source type to set.</param>
     procedure SetRtngBOMSourceType(SourceType: Enum "Subc. RtngBOMSourceType")
     begin
-        RtngBOMSourceType := SourceType;
+        SubcRtngBOMSourceType := SourceType;
     end;
 
     /// <summary>
@@ -721,7 +721,7 @@ codeunit 99001552 "Subc. Temp Data Initializer"
     /// <returns>The current routing and BOM source type.</returns>
     procedure GetRtngBOMSourceType(): Enum "Subc. RtngBOMSourceType"
     begin
-        exit(RtngBOMSourceType);
+        exit(SubcRtngBOMSourceType);
     end;
 
     /// <summary>
@@ -735,7 +735,7 @@ codeunit 99001552 "Subc. Temp Data Initializer"
 
 
     [InternalEvent(false, false)]
-    local procedure OnBeforeBuildTemporaryStructureFromBOMRouting(TempDataInitializer: Codeunit "Subc. Temp Data Initializer")
+    local procedure OnBeforeBuildTemporaryStructureFromBOMRouting(SubcTempDataInitializer: Codeunit "Subc. Temp Data Initializer")
     begin
     end;
 }

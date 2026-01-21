@@ -70,14 +70,14 @@ table 99001501 "Subc. Management Setup"
             Caption = 'Component at Location';
             trigger OnValidate()
             var
-                CompanyInfo: Record "Company Information";
+                CompanyInformation: Record "Company Information";
                 ManufacturingSetup: Record "Manufacturing Setup";
             begin
                 case "Component at Location" of
                     "Components at Location"::Company:
                         begin
-                            CompanyInfo.Get();
-                            CompanyInfo.TestField("Location Code");
+                            CompanyInformation.Get();
+                            CompanyInformation.TestField("Location Code");
                         end;
                     "Components at Location"::Manufacturing:
                         begin

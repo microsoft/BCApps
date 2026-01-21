@@ -140,9 +140,9 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
     local procedure HandleItemTrackingSurplus(var TransLine3: Record "Transfer Line"; var TempItemEntryRelation: Record "Item Entry Relation" temporary)
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
-        ProdOrderComp: Record "Prod. Order Component";
+        ProdOrderComponent: Record "Prod. Order Component";
     begin
-        if not FindProdOrderComponentsForTransferLine(TransLine3, ProdOrderComp) then
+        if not FindProdOrderComponentsForTransferLine(TransLine3, ProdOrderComponent) then
             exit;
 
         // Process each Item Ledger Entry that was created
@@ -161,9 +161,9 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
                     continue;
 
                 // Check if this component needs this specific tracking
-                if ShouldCreateSurplusForComponent(ItemLedgerEntry, ProdOrderComp) then
+                if ShouldCreateSurplusForComponent(ItemLedgerEntry, ProdOrderComponent) then
                     // Create surplus entry: Item Ledger Entry → Prod. Order Component
-                    CreateSurplusEntryForProdOrderComp(ItemLedgerEntry, ProdOrderComp);
+                    CreateSurplusEntryForProdOrderComp(ItemLedgerEntry, ProdOrderComponent);
             end;
         until TempItemEntryRelation.Next() = 0;
     end;
@@ -202,7 +202,7 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
 
     local procedure CreateSurplusEntryForProdOrderComp(
     var ItemLedgerEntry: Record "Item Ledger Entry";
-    var ProdOrderComp: Record "Prod. Order Component")
+    var ProdOrderComponent: Record "Prod. Order Component")
     var
         DummyReservEntry: Record "Reservation Entry";
         FromTrackingSpecification: Record "Tracking Specification";
@@ -211,22 +211,22 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
         // Initialize dummy reservation entry for the demand side
         DummyReservEntry.Init();
         DummyReservEntry."Source Type" := Database::"Prod. Order Component";
-        DummyReservEntry."Source Subtype" := ProdOrderComp.Status.AsInteger();
-        DummyReservEntry."Source ID" := ProdOrderComp."Prod. Order No.";
-        DummyReservEntry."Source Prod. Order Line" := ProdOrderComp."Prod. Order Line No.";
-        DummyReservEntry."Source Ref. No." := ProdOrderComp."Line No.";
-        DummyReservEntry."Qty. per Unit of Measure" := ProdOrderComp."Qty. per Unit of Measure";
+        DummyReservEntry."Source Subtype" := ProdOrderComponent.Status.AsInteger();
+        DummyReservEntry."Source ID" := ProdOrderComponent."Prod. Order No.";
+        DummyReservEntry."Source Prod. Order Line" := ProdOrderComponent."Prod. Order Line No.";
+        DummyReservEntry."Source Ref. No." := ProdOrderComponent."Line No.";
+        DummyReservEntry."Qty. per Unit of Measure" := ProdOrderComponent."Qty. per Unit of Measure";
         DummyReservEntry.CopyTrackingFromItemLedgEntry(ItemLedgerEntry);
-        DummyReservEntry."Expected Receipt Date" := ProdOrderComp."Due Date";
+        DummyReservEntry."Expected Receipt Date" := ProdOrderComponent."Due Date";
 
         CreateReservEntry.CreateReservEntryFor(
             Database::"Prod. Order Component",
-            ProdOrderComp.Status.AsInteger(),
-            ProdOrderComp."Prod. Order No.",
+            ProdOrderComponent.Status.AsInteger(),
+            ProdOrderComponent."Prod. Order No.",
             '',
-            ProdOrderComp."Prod. Order Line No.",
-            ProdOrderComp."Line No.",
-            ProdOrderComp."Qty. per Unit of Measure",
+            ProdOrderComponent."Prod. Order Line No.",
+            ProdOrderComponent."Line No.",
+            ProdOrderComponent."Qty. per Unit of Measure",
             0,
             ItemLedgerEntry.Quantity,
             DummyReservEntry);
@@ -249,7 +249,7 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
             ItemLedgerEntry."Variant Code",
             ItemLedgerEntry."Location Code",
             '',
-            ProdOrderComp."Due Date",
+            ProdOrderComponent."Due Date",
             0D,
             0,
             "Reservation Status"::Surplus);
@@ -264,16 +264,16 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
         exit(not ReservEntry.IsEmpty());
     end;
 
-    local procedure FindProdOrderComponentsForTransferLine(var TransferLine: Record "Transfer Line"; var ProdOrderComp: Record "Prod. Order Component"): Boolean
+    local procedure FindProdOrderComponentsForTransferLine(var TransferLine: Record "Transfer Line"; var ProdOrderComponent: Record "Prod. Order Component"): Boolean
     begin
-        exit(ProdOrderComp.Get("Production Order Status"::Released, TransferLine."Prod. Order No.", TransferLine."Prod. Order Line No.", TransferLine."Prod. Order Comp. Line No."));
+        exit(ProdOrderComponent.Get("Production Order Status"::Released, TransferLine."Prod. Order No.", TransferLine."Prod. Order Line No.", TransferLine."Prod. Order Comp. Line No."));
     end;
 
-    local procedure ShouldCreateSurplusForComponent(var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderComp: Record "Prod. Order Component"): Boolean
+    local procedure ShouldCreateSurplusForComponent(var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderComponent: Record "Prod. Order Component"): Boolean
     begin
-        if (ProdOrderComp."Item No." <> ItemLedgerEntry."Item No.") or
-           (ProdOrderComp."Variant Code" <> ItemLedgerEntry."Variant Code") or
-           (ProdOrderComp."Location Code" <> ItemLedgerEntry."Location Code")
+        if (ProdOrderComponent."Item No." <> ItemLedgerEntry."Item No.") or
+           (ProdOrderComponent."Variant Code" <> ItemLedgerEntry."Variant Code") or
+           (ProdOrderComponent."Location Code" <> ItemLedgerEntry."Location Code")
         then
             exit(false);
 

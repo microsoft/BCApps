@@ -247,7 +247,7 @@ page 99001500 "Subcontractor Prices"
     end;
 
     var
-        Vend: Record Vendor;
+        Vendor: Record Vendor;
         IsLookupMode: Boolean;
         MultipleVendorsSelectedErr: Label 'More than one vendor uses these subcontractor prices. To copy prices, the Vendor No. Filter field must contain one vendor only.';
         MultipleWorkCenterSelectedErr: Label 'More than one work center uses these subcontractor prices. To copy prices, the Vendor No. Filter field must contain one vendor only.';
@@ -319,8 +319,8 @@ page 99001500 "Subcontractor Prices"
         else
             SourceTableName := '';
 
-        if Vend.Get(CopyStr(VendNoFilter, 1, MaxStrLen(Vend."No."))) then
-            Description := Vend.Name;
+        if Vendor.Get(CopyStr(VendNoFilter, 1, MaxStrLen(Vendor."No."))) then
+            Description := Vendor.Name;
 
         exit(StrSubstNo(PlaceholderLbl, VendNoFilter, Description, SourceTableName, ItemNoFilter));
     end;

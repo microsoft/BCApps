@@ -84,7 +84,7 @@ page 99001508 "Subc. Temp Prod Order Comp"
                         end;
 
                         if Rec."Subcontracting Type" <> Rec."Subcontracting Type"::Transfer then
-                            Rec.Validate("Location Code", CopyStr(SingleInstance.GetCode('SetSubcontractingLocationCodeFromVendor'), 1, MaxStrLen(Rec."Location Code")))
+                            Rec.Validate("Location Code", CopyStr(SingleInstanceDictionary.GetCode('SetSubcontractingLocationCodeFromVendor'), 1, MaxStrLen(Rec."Location Code")))
                         else
                             Rec.Validate("Location Code", Rec."Orig. Location Code");
                     end;
@@ -139,7 +139,7 @@ page 99001508 "Subc. Temp Prod Order Comp"
 
     var
         SubManagementSetup: Record "Subc. Management Setup";
-        SingleInstance: Codeunit "Single Instance Dictionary";
+        SingleInstanceDictionary: Codeunit "Single Instance Dictionary";
         PresetSubValues: Boolean;
         SubManagementSetupRead: Boolean;
 

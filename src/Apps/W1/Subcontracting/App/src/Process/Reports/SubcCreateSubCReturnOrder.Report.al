@@ -266,7 +266,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
 
     local procedure GetTransferToLocationCode(var TransferFromLocationCode: Code[10]; SubcontractingType: Enum "Subcontracting Type")
     var
-        CompanyInfo: Record "Company Information";
+        CompanyInformation: Record "Company Information";
         ManufacturingSetup: Record "Manufacturing Setup";
     begin
         if SubcontractingType = "Subcontracting Type"::Purchase then
@@ -281,9 +281,9 @@ report 99001502 "Subc. Create SubCReturnOrder"
                     end;
                 "Components at Location"::Company:
                     begin
-                        CompanyInfo.Get();
-                        CompanyInfo.TestField("Location Code");
-                        TransferFromLocationCode := CompanyInfo."Location Code";
+                        CompanyInformation.Get();
+                        CompanyInformation.TestField("Location Code");
+                        TransferFromLocationCode := CompanyInformation."Location Code";
                     end;
                 "Components at Location"::Manufacturing:
                     begin

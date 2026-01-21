@@ -41,7 +41,7 @@ codeunit 99001511 "Subc. Synchronize Management"
     procedure SynchronizeQuantity(var PurchLine: Record "Purchase Line"; xRecPurchLine: Record "Purchase Line")
     var
         ItemUoM: Record "Item Unit of Measure";
-        ProdOrderComp: Record "Prod. Order Component";
+        ProdOrderComponent: Record "Prod. Order Component";
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrder: Record "Production Order";
         UOMMgt: Codeunit "Unit of Measure Management";
@@ -73,15 +73,15 @@ codeunit 99001511 "Subc. Synchronize Management"
                 if ProdOrderLine.Quantity <> PurchLineBaseQuantity then begin
                     ProdOrderLine.Validate(Quantity, PurchLineBaseQuantity);
                     ProdOrderLine.Modify();
-                    ProdOrderComp.SetRange(Status, "Production Order Status"::Released);
-                    ProdOrderComp.SetRange("Prod. Order No.", PurchLine."Prod. Order No.");
-                    ProdOrderComp.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
-                    if not ProdOrderComp.IsEmpty() then begin
-                        ProdOrderComp.FindSet();
+                    ProdOrderComponent.SetRange(Status, "Production Order Status"::Released);
+                    ProdOrderComponent.SetRange("Prod. Order No.", PurchLine."Prod. Order No.");
+                    ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
+                    if not ProdOrderComponent.IsEmpty() then begin
+                        ProdOrderComponent.FindSet();
                         repeat
-                            ProdOrderComp.Validate("Quantity per");
-                            ProdOrderComp.Modify();
-                        until ProdOrderComp.Next() = 0;
+                            ProdOrderComponent.Validate("Quantity per");
+                            ProdOrderComponent.Modify();
+                        until ProdOrderComponent.Next() = 0;
                     end;
                 end;
         end;

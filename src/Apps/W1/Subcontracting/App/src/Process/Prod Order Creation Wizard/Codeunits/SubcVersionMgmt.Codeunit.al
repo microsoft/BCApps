@@ -36,14 +36,14 @@ codeunit 99001553 "Subc. Version Mgmt."
 
     procedure ShowRoutingVersionSelection(RoutingNo: Code[20]; var SelectedVersion: Code[20]): Boolean
     var
-        RoutingVersion: Record "Routing Version";
-        RoutingVersions: Page "Routing Version List";
+        RoutingVersion: Record "RoutingHeader Version";
+        RoutingVersions: Page "RoutingHeader Version List";
     begin
         if RoutingNo = '' then
             exit(false);
 
-        RoutingVersion.SetRange("Routing No.", RoutingNo);
-        RoutingVersion.SetRange(Status, "Routing Status"::Certified);
+        RoutingVersion.SetRange("RoutingHeader No.", RoutingNo);
+        RoutingVersion.SetRange(Status, "RoutingHeader Status"::Certified);
         RoutingVersions.SetTableView(RoutingVersion);
         RoutingVersions.LookupMode(true);
 
@@ -86,10 +86,10 @@ codeunit 99001553 "Subc. Version Mgmt."
 
     procedure ShowRoutingSelection(var SelectedRoutingNo: Code[20]): Boolean
     var
-        RoutingHeader: Record "Routing Header";
-        RoutingList: Page "Routing List";
+        RoutingHeader: Record "RoutingHeader Header";
+        RoutingList: Page "RoutingHeader List";
     begin
-        RoutingHeader.SetRange(Status, "Routing Status"::Certified);
+        RoutingHeader.SetRange(Status, "RoutingHeader Status"::Certified);
         RoutingList.SetTableView(RoutingHeader);
         RoutingList.LookupMode(true);
 
@@ -104,8 +104,8 @@ codeunit 99001553 "Subc. Version Mgmt."
 
     procedure CheckRoutingExists(RoutingNo: Code[20]; RoutingVersionCode: Code[20]): Boolean
     var
-        RoutingHeader: Record "Routing Header";
-        RoutingVersion: Record "Routing Version";
+        RoutingHeader: Record "RoutingHeader Header";
+        RoutingVersion: Record "RoutingHeader Version";
     begin
         if RoutingVersionCode <> '' then begin
             RoutingVersion.SetLoadFields(SystemId);
@@ -118,19 +118,19 @@ codeunit 99001553 "Subc. Version Mgmt."
 
     procedure TestRoutingCertified(RoutingNo: Code[20]; RoutingVersionCode: Code[20])
     var
-        RoutingHeader: Record "Routing Header";
-        RoutingVersion: Record "Routing Version";
+        RoutingHeader: Record "RoutingHeader Header";
+        RoutingVersion: Record "RoutingHeader Version";
     begin
         if RoutingNo = '' then
             exit;
 
         RoutingVersion.SetLoadFields(Status);
         if RoutingVersion.Get(RoutingNo, RoutingVersionCode) then
-            RoutingVersion.TestField(Status, "Routing Status"::Certified);
+            RoutingVersion.TestField(Status, "RoutingHeader Status"::Certified);
 
         RoutingHeader.SetLoadFields(Status);
         if RoutingHeader.Get(RoutingNo) then
-            RoutingHeader.TestField(Status, "Routing Status"::Certified);
+            RoutingHeader.TestField(Status, "RoutingHeader Status"::Certified);
     end;
 
     procedure CheckBOMExists(ProductionBOMNo: Code[20]; BOMVersionCode: Code[20]): Boolean
@@ -166,21 +166,21 @@ codeunit 99001553 "Subc. Version Mgmt."
 
     procedure GetBOMVersionNoSeries(ProductionBOMNo: Code[20]): Code[20]
     var
-        ProductionBOM: Record "Production BOM Header";
+        ProductionBOMHeader: Record "Production BOM Header";
     begin
-        ProductionBOM.SetLoadFields("Version Nos.");
-        ProductionBOM.Get(ProductionBOMNo);
-        ProductionBOM.TestField("Version Nos.");
-        exit(ProductionBOM."Version Nos.");
+        ProductionBOMHeader.SetLoadFields("Version Nos.");
+        ProductionBOMHeader.Get(ProductionBOMNo);
+        ProductionBOMHeader.TestField("Version Nos.");
+        exit(ProductionBOMHeader."Version Nos.");
     end;
 
     procedure GetRoutingVersionNoSeries(RoutingNo: Code[20]): Code[20]
     var
-        Routing: Record "Routing Header";
+        RoutingHeader: Record "RoutingHeader Header";
     begin
-        Routing.SetLoadFields("Version Nos.");
-        Routing.Get(RoutingNo);
-        Routing.TestField("Version Nos.");
-        exit(Routing."Version Nos.");
+        RoutingHeader.SetLoadFields("Version Nos.");
+        RoutingHeader.Get(RoutingNo);
+        RoutingHeader.TestField("Version Nos.");
+        exit(RoutingHeader."Version Nos.");
     end;
 }

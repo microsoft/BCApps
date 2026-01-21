@@ -163,7 +163,7 @@ page 99001505 "Subc. PurchProvisionWizard"
                                     LoadBOMLines();
                                 end;
                                 SetBOMRoutingEditable();
-                                TempDataInitializer.UpdateBOMVersionCode(SelectedBOMVersion);
+                                SubcTempDataInitializer.UpdateBOMVersionCode(SelectedBOMVersion);
                             end;
                         }
                     }
@@ -243,7 +243,7 @@ page 99001505 "Subc. PurchProvisionWizard"
                                     LoadRoutingLines();
                                 end;
                                 SetBOMRoutingEditable();
-                                TempDataInitializer.UpdateRoutingVersionCode(SelectedRoutingVersion);
+                                SubcTempDataInitializer.UpdateRoutingVersionCode(SelectedRoutingVersion);
                             end;
                         }
                     }
@@ -381,7 +381,7 @@ page 99001505 "Subc. PurchProvisionWizard"
     var
         MediaRepositoryStandard: Record "Media Repository";
         MediaResourcesStandard: Record "Media Resources";
-        TempDataInitializer: Codeunit "Subc. Temp Data Initializer";
+        SubcTempDataInitializer: Codeunit "Subc. Temp Data Initializer";
         VersionSelectionMgmt: Codeunit "Subc. Version Mgmt.";
         Finished: Boolean;
         BomRtngFromSource: Enum "Subc. RtngBOMSourceType";
@@ -444,7 +444,7 @@ page 99001505 "Subc. PurchProvisionWizard"
     /// <param name="NewTempDataInitializer">The temporary data initializer codeunit to use.</param>
     procedure SetTempDataInitializer(var NewTempDataInitializer: Codeunit "Subc. Temp Data Initializer")
     begin
-        TempDataInitializer := NewTempDataInitializer;
+        SubcTempDataInitializer := NewTempDataInitializer;
     end;
 
     /// <summary>
@@ -491,7 +491,7 @@ page 99001505 "Subc. PurchProvisionWizard"
         if not VersionSelectionMgmt.CheckBOMExists(SelectedBOMNo, SelectedBOMVersion) then
             exit;
 
-        TempDataInitializer.LoadBOMLines(SelectedBOMNo, SelectedBOMVersion);
+        SubcTempDataInitializer.LoadBOMLines(SelectedBOMNo, SelectedBOMVersion);
     end;
 
     local procedure LoadRoutingLines()
@@ -502,7 +502,7 @@ page 99001505 "Subc. PurchProvisionWizard"
         if not VersionSelectionMgmt.CheckRoutingExists(SelectedRoutingNo, SelectedRoutingVersion) then
             exit;
 
-        TempDataInitializer.LoadRoutingLines(SelectedRoutingNo, SelectedRoutingVersion);
+        SubcTempDataInitializer.LoadRoutingLines(SelectedRoutingNo, SelectedRoutingVersion);
     end;
 
     local procedure LoadTopBanners()
@@ -516,7 +516,7 @@ page 99001505 "Subc. PurchProvisionWizard"
     var
         TempBOMLines: Record "Production BOM Line" temporary;
     begin
-        TempDataInitializer.GetGlobalBOMLines(TempBOMLines);
+        SubcTempDataInitializer.GetGlobalBOMLines(TempBOMLines);
         CurrPage.BOMLinesPart.Page.SetTemporaryRecords(TempBOMLines);
 
         SelectedBOMNo := TempBOMLines."Production BOM No.";
@@ -527,7 +527,7 @@ page 99001505 "Subc. PurchProvisionWizard"
     var
         TempRoutingLine: Record "Routing Line" temporary;
     begin
-        TempDataInitializer.GetGlobalRoutingLines(TempRoutingLine);
+        SubcTempDataInitializer.GetGlobalRoutingLines(TempRoutingLine);
         CurrPage.RoutingLinesPart.Page.SetTemporaryRecords(TempRoutingLine);
 
         SelectedRoutingNo := TempRoutingLine."Routing No.";
@@ -539,9 +539,9 @@ page 99001505 "Subc. PurchProvisionWizard"
         TempProdOrderComponent: Record "Prod. Order Component" temporary;
         TempProdOrderRtngLine: Record "Prod. Order Routing Line" temporary;
     begin
-        TempDataInitializer.GetGlobalProdOrderComponent(TempProdOrderComponent);
+        SubcTempDataInitializer.GetGlobalProdOrderComponent(TempProdOrderComponent);
         CurrPage.ComponentsPart.Page.SetTemporaryRecords(TempProdOrderComponent);
-        TempDataInitializer.GetGlobalProdOrderRoutingLine(TempProdOrderRtngLine);
+        SubcTempDataInitializer.GetGlobalProdOrderRoutingLine(TempProdOrderRtngLine);
         CurrPage.ProdOrderRoutingPart.Page.SetTemporaryRecords(TempProdOrderRtngLine);
     end;
 
@@ -598,7 +598,7 @@ page 99001505 "Subc. PurchProvisionWizard"
             case Step of
                 Step::Components:
                     begin
-                        TempDataInitializer.BuildTemporaryStructureFromBOMRouting();
+                        SubcTempDataInitializer.BuildTemporaryStructureFromBOMRouting();
                         SetProdOrderPresetValuesInSubpages();
                     end;
             end;
@@ -686,7 +686,7 @@ page 99001505 "Subc. PurchProvisionWizard"
     var
         SetupSourceLbl: Label 'Subcontracting Management Setup';
     begin
-        BomRtngFromSource := TempDataInitializer.GetRtngBOMSourceType();
+        BomRtngFromSource := SubcTempDataInitializer.GetRtngBOMSourceType();
         case BomRtngFromSource of
             "Subc. RtngBOMSourceType"::Empty:
                 BomRtngFromSourceTxt := SetupSourceLbl;

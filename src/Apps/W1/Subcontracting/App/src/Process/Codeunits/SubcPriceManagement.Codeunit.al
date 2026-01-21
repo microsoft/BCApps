@@ -110,7 +110,7 @@ codeunit 99001508 "Subc. Price Management"
         Item: Record Item;
         MfgSetup: Record "Manufacturing Setup";
         WorkCenter: Record "Work Center";
-        CostCalculationMgt: Codeunit "Mfg. Cost Calculation Mgt.";
+        MfgCostCalculationMgt: Codeunit "Mfg. Cost Calculation Mgt.";
         SingleInstanceDictionary: Codeunit "Single Instance Dictionary";
         ItemRecordID: RecordId;
         RecRef: RecordRef;
@@ -160,7 +160,7 @@ codeunit 99001508 "Subc. Price Management"
         MfgSetup.Get();
 
         CostTime :=
-          CostCalculationMgt.CalculateCostTime(
+          MfgCostCalculationMgt.CalculateCostTime(
             MfgItemQtyBase,
             RoutingLine."Setup Time", RoutingLine."Setup Time Unit of Meas. Code",
             RoutingLine."Run Time", RoutingLine."Run Time Unit of Meas. Code", RoutingLine."Lot Size",

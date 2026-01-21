@@ -11,10 +11,10 @@ codeunit 99001527 "Subcontracting Management Ext."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Subcontracting Management", OnBeforeHandleProdOrderRtngWorkCenterWithSubcontractor, '', false, false)]
     local procedure OnBeforeHandleProdOrderRtngWorkCenterWithSubcontractor(var SubContractorWorkCenterNo: Code[20])
     var
-        SingleInstanceDict: Codeunit "Single Instance Dictionary";
+        SingleInstanceDictionary: Codeunit "Single Instance Dictionary";
         SubcontractingMgmt: Codeunit "Subcontracting Management";
     begin
         if SubContractorWorkCenterNo = '' then
-            SubContractorWorkCenterNo := CopyStr(SingleInstanceDict.GetCode(SubcontractingMgmt.GetDictionaryKey_Sub_CreateProdOrderProcess()), 1, 20);
+            SubContractorWorkCenterNo := CopyStr(SingleInstanceDictionary.GetCode(SubcontractingMgmt.GetDictionaryKey_Sub_CreateProdOrderProcess()), 1, 20);
     end;
 }
