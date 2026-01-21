@@ -43,6 +43,11 @@ table 9760 "SFTP Folder Content"
             Caption = 'Length', Locked = true;
             ToolTip = 'Specifies the size in bytes.';
         }
+        field(6; "Last Write Time"; DateTime)
+        {
+            Caption = 'Last Write Time', Locked = true;
+            ToolTip = 'Specifies the date and time when the file or directory was last modified.';
+        }
 
     }
 
