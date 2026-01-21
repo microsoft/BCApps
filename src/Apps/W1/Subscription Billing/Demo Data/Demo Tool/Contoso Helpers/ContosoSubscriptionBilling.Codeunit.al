@@ -460,6 +460,7 @@ codeunit 8105 "Contoso Subscription Billing"
     procedure InsertServiceObject(ObjectNo: Code[20]; CustomerNo: Code[20]; ItemNo: Code[20]; ProvisionStartDate: Date; ProvisionEndDate: Date; Quantity: Decimal)
     var
         ServiceObject: Record "Subscription Header";
+        ProvisionDatesErr: Label '%1 cannot be earlier than the %2.', Comment = '%1 - provision end date, %2 - provision start date';
         Exists: Boolean;
     begin
         if ServiceObject.Get(ObjectNo) then begin
@@ -477,8 +478,12 @@ codeunit 8105 "Contoso Subscription Billing"
 
         ServiceObject.Validate("End-User Customer No.", CustomerNo);
         ServiceObject.Validate("Provision Start Date", ProvisionStartDate);
-        if ProvisionEndDate <> 0D then
+        if ProvisionEndDate <> 0D then begin
+            if ProvisionEndDate < ProvisionStartDate then
+                Error(ProvisionDatesErr, ServiceObject.FieldCaption("Provision End Date"), ServiceObject.FieldCaption("Provision Start Date"));
+
             ServiceObject.Validate("Provision End Date", ProvisionEndDate);
+        end;
         ServiceObject.SkipInsertServiceCommitmentsFromStandardServCommPackages(true);
         ServiceObject.Validate(Type, Enum::"Service Object Type"::Item);
         ServiceObject.Validate("Source No.", ItemNo);
