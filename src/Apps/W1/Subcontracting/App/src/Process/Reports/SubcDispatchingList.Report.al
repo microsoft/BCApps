@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -247,7 +247,7 @@ report 99001504 "Subc. Dispatching List"
             column(SubcAmountCaptionLbl; SubAmountCaptionLbl)
             {
             }
-            column(SubcBarcodeBase; TempDummyCompanyInfoForBarcode.Picture)
+            column(SubcBarcodeBase; TempCompanyInformation.Picture)
             {
             }
             column(SubcCompanyAddress1; CompanyAddress1Footer)
@@ -280,10 +280,10 @@ report 99001504 "Subc. Dispatching List"
             column(SubcCompanyIBAN_Lbl; CompanyInfoIBANLblFooter)
             {
             }
-            column(SubcCompanyInfo1Picture; CompanyInfo1.Picture)
+            column(SubcCompanyInfo1Picture; CompanyInformation1.Picture)
             {
             }
-            column(SubcCompanyInfo2Picture; CompanyInfo2.Picture)
+            column(SubcCompanyInfo2Picture; CompanyInformation2.Picture)
             {
             }
             column(SubcCompanyInfoCourtLocation; CompanyInfoCourtLocationFooter)
@@ -310,7 +310,7 @@ report 99001504 "Subc. Dispatching List"
             column(SubcCompanyInfoPhoneNoLbl; CompanyInfoPhoneNoLblFooter)
             {
             }
-            column(SubcCompanyInfoPicture; SubCompanyInfo.Picture)
+            column(SubcCompanyInfoPicture; SubCompanyInformation.Picture)
             {
             }
             column(SubcCompanyInfoRegisterCourtNo; CompanyInfoRegisterCourtNoFooter)
@@ -1163,17 +1163,17 @@ report 99001504 "Subc. Dispatching List"
                 }
                 trigger OnAfterGetRecord()
                 var
-                    TempPrepmtPurchLine: Record "Purchase Line" temporary;
+                    TempPurchaseLine: Record "Purchase Line" temporary;
                 begin
-                    Clear(TempPurchLine);
+                    Clear(TempPurchaseLine);
                     Clear(PurchPost);
-                    if not TempPurchLine.IsEmpty() then
-                        TempPurchLine.DeleteAll();
+                    if not TempPurchaseLine.IsEmpty() then
+                        TempPurchaseLine.DeleteAll();
                     if not TempVATAmountLine.IsEmpty() then
                         TempVATAmountLine.DeleteAll();
-                    PurchPost.GetPurchLines("Purchase Header", TempPurchLine, 0);
-                    TempPurchLine.CalcVATAmountLines(0, "Purchase Header", TempPurchLine, TempVATAmountLine);
-                    TempPurchLine.UpdateVATOnLines(0, "Purchase Header", TempPurchLine, TempVATAmountLine);
+                    PurchPost.GetPurchLines("Purchase Header", TempPurchaseLine, 0);
+                    TempPurchaseLine.CalcVATAmountLines(0, "Purchase Header", TempPurchaseLine, TempVATAmountLine);
+                    TempPurchaseLine.UpdateVATOnLines(0, "Purchase Header", TempPurchaseLine, TempVATAmountLine);
                     VATAmount := TempVATAmountLine.GetTotalVATAmount();
                     VATBaseAmount := TempVATAmountLine.GetTotalVATBase();
                     VATDiscountAmount :=
@@ -1182,16 +1182,16 @@ report 99001504 "Subc. Dispatching List"
 
                     if not TempPrepaymentInvLineBuffer.IsEmpty() then
                         TempPrepaymentInvLineBuffer.DeleteAll();
-                    PurchasePostPrepayments.GetPurchLines("Purchase Header", 0, TempPrepmtPurchLine);
-                    if not TempPrepmtPurchLine.IsEmpty() then begin
-                        PurchasePostPrepayments.GetPurchLinesToDeduct("Purchase Header", TempPurchLine);
-                        if not TempPurchLine.IsEmpty() then
-                            PurchasePostPrepayments.CalcVATAmountLines("Purchase Header", TempPurchLine, TempPrePmtVATAmountLineDeduct, 1);
+                    PurchasePostPrepayments.GetPurchLines("Purchase Header", 0, TempPurchaseLine);
+                    if not TempPurchaseLine.IsEmpty() then begin
+                        PurchasePostPrepayments.GetPurchLinesToDeduct("Purchase Header", TempPurchaseLine);
+                        if not TempPurchaseLine.IsEmpty() then
+                            PurchasePostPrepayments.CalcVATAmountLines("Purchase Header", TempPurchaseLine, TempPrePmtVATAmountLineDeduct, 1);
                     end;
-                    PurchasePostPrepayments.CalcVATAmountLines("Purchase Header", TempPrepmtPurchLine, TempPrepmtVATAmountLine, 0);
+                    PurchasePostPrepayments.CalcVATAmountLines("Purchase Header", TempPurchaseLine, TempPrepmtVATAmountLine, 0);
                     TempPrepmtVATAmountLine.DeductVATAmountLine(TempPrePmtVATAmountLineDeduct);
-                    PurchasePostPrepayments.UpdateVATOnLines("Purchase Header", TempPrepmtPurchLine, TempPrepmtVATAmountLine, 0);
-                    PurchasePostPrepayments.BuildInvLineBuffer("Purchase Header", TempPrepmtPurchLine, 0, TempPrepaymentInvLineBuffer);
+                    PurchasePostPrepayments.UpdateVATOnLines("Purchase Header", TempPurchaseLine, TempPrepmtVATAmountLine, 0);
+                    PurchasePostPrepayments.BuildInvLineBuffer("Purchase Header", TempPurchaseLine, 0, TempPrepaymentInvLineBuffer);
                     PrepmtVATAmount := TempPrepmtVATAmountLine.GetTotalVATAmount();
                     PrepmtVATBaseAmount := TempPrepmtVATAmountLine.GetTotalVATBase();
                     PrepmtTotalAmountInclVAT := TempPrepmtVATAmountLine.GetTotalAmountInclVAT();
@@ -1282,7 +1282,7 @@ report 99001504 "Subc. Dispatching List"
 
                 trigger OnPreDataItem()
                 begin
-                    if (not GLSetup."Print VAT specification in LCY") or
+                    if (not GeneralLedgerSetup."Print VAT specification in LCY") or
                        ("Purchase Header"."Currency Code" = '') or
                        (TempVATAmountLine.GetTotalVATAmount() = 0)
                     then
@@ -1290,13 +1290,13 @@ report 99001504 "Subc. Dispatching List"
 
                     SetRange(Number, 1, TempVATAmountLine.Count);
 
-                    if GLSetup."LCY Code" = '' then
+                    if GeneralLedgerSetup."LCY Code" = '' then
                         VALSpecLCYHeader := VATAmountSpecificationLbl + LocalCurrencyLbl
                     else
-                        VALSpecLCYHeader := VATAmountSpecificationLbl + Format(GLSetup."LCY Code");
+                        VALSpecLCYHeader := VATAmountSpecificationLbl + Format(GeneralLedgerSetup."LCY Code");
 
-                    CurrExchRate.FindCurrency("Purchase Header"."Posting Date", "Purchase Header"."Currency Code", 1);
-                    VALExchRate := StrSubstNo(ExchangeRateLbl, CurrExchRate."Relational Exch. Rate Amount", CurrExchRate."Exchange Rate Amount");
+                    CurrencyExchangeRate.FindCurrency("Purchase Header"."Posting Date", "Purchase Header"."Currency Code", 1);
+                    VALExchRate := StrSubstNo(ExchangeRateLbl, CurrencyExchangeRate."Relational Exch. Rate Amount", CurrencyExchangeRate."Exchange Rate Amount");
                 end;
             }
             dataitem(PrepmtLoop; "Integer")
@@ -1513,7 +1513,7 @@ report 99001504 "Subc. Dispatching List"
                         ArchiveManagement.StorePurchDocument("Purchase Header", ShouldLogInteraction);
                 end;
 
-                SubFormatAddr.PurchHeaderShipTo(ShipToAddr, "Purchase Header");
+                SubFormatAddress.PurchHeaderShipTo(ShipToAddr, "Purchase Header");
 
                 if not SubcVATAmountLine.IsEmpty() then
                     SubcVATAmountLine.DeleteAll();
@@ -1540,20 +1540,20 @@ report 99001504 "Subc. Dispatching List"
         dataitem(SubcShipToAddr; Integer)
         {
             DataItemTableView = sorting(Number);
-            column(TempSUBShipToAddr__Address; TempShipToAddr.Address)
+            column(TempSUBShipToAddr__Address; TempShiptoAddress.Address)
             {
             }
             trigger OnPreDataItem()
             begin
-                SetRange(Number, 1, TempShipToAddr.Count);
+                SetRange(Number, 1, TempShiptoAddress.Count);
             end;
 
             trigger OnAfterGetRecord()
             begin
                 if Number = 1 then
-                    TempShipToAddr.Find('-')
+                    TempShiptoAddress.Find('-')
                 else
-                    TempShipToAddr.Next();
+                    TempShiptoAddress.Next();
             end;
         }
     }
@@ -1606,7 +1606,7 @@ report 99001504 "Subc. Dispatching List"
         trigger OnInit()
         begin
             LogInteractionEnable := true;
-            ShouldArchiveDocument := PurchSetup."Archive Orders";
+            ShouldArchiveDocument := PurchasesPayablesSetup."Archive Orders";
         end;
 
         trigger OnOpenPage()
@@ -1616,13 +1616,13 @@ report 99001504 "Subc. Dispatching List"
     }
     trigger OnInitReport()
     begin
-        GLSetup.Get();
+        GeneralLedgerSetup.Get();
         CompanyInformation.Get();
-        PurchSetup.Get();
+        PurchasesPayablesSetup.Get();
         CompanyInformation.CalcFields(Picture);
 
-        SalesSetup.Get();
-        SubFormatDocument.SetLogoPosition(SalesSetup."Logo Position on Documents", CompanyInfo1, CompanyInfo2, SubCompanyInfo);
+        SalesReceivablesSetup.Get();
+        SubFormatDocument.SetLogoPosition(SalesReceivablesSetup."Logo Position on Documents", CompanyInformation1, CompanyInformation2, SubCompanyInformation);
     end;
 
     trigger OnPostReport()
@@ -1644,23 +1644,23 @@ report 99001504 "Subc. Dispatching List"
 
     var
         CompanyInformation: Record "Company Information";
-        SubCompanyInfo: Record "Company Information";
-        CompanyInfo1: Record "Company Information";
-        CompanyInfo2: Record "Company Information";
-        TempDummyCompanyInfoForBarcode: Record "Company Information" temporary;
+        SubCompanyInformation: Record "Company Information";
+        CompanyInformation1: Record "Company Information";
+        CompanyInformation2: Record "Company Information";
+        TempCompanyInformation: Record "Company Information" temporary;
         BuyFromContact: Record Contact;
         PayToContact: Record Contact;
-        CurrExchRate: Record "Currency Exchange Rate";
-        GLSetup: Record "General Ledger Setup";
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        GeneralLedgerSetup: Record "General Ledger Setup";
         PaymentTerms: Record "Payment Terms";
         PrepmtPaymentTerms: Record "Payment Terms";
         TempPrepaymentInvLineBuffer: Record "Prepayment Inv. Line Buffer" temporary;
-        TempPurchLine: Record "Purchase Line" temporary;
-        PurchSetup: Record "Purchases & Payables Setup";
-        RespCenter: Record "Responsibility Center";
-        SalesSetup: Record "Sales & Receivables Setup";
+        TempPurchaseLine: Record "Purchase Line" temporary;
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        ResponsibilityCenter: Record "Responsibility Center";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
         SalespersonPurchaser: Record "Salesperson/Purchaser";
-        TempShipToAddr: Record "Ship-to Address" temporary;
+        TempShiptoAddress: Record "Ship-to Address" temporary;
         ShipmentMethod: Record "Shipment Method";
         TempPrepmtVATAmountLine: Record "VAT Amount Line" temporary;
         TempPrePmtVATAmountLineDeduct: Record "VAT Amount Line" temporary;
@@ -1668,7 +1668,7 @@ report 99001504 "Subc. Dispatching List"
         VATClause2: Record "VAT Clause";
         Vendor: Record Vendor;
         ArchiveManagement: Codeunit ArchiveManagement;
-        SubFormatAddr: Codeunit "Format Address";
+        SubFormatAddress: Codeunit "Format Address";
         FormatAddress: Codeunit "Format Address";
         SubFormatDocument: Codeunit "Format Document";
         FormatDocument: Codeunit "Format Document";
@@ -1890,7 +1890,7 @@ report 99001504 "Subc. Dispatching List"
 
     local procedure FormatAddressFields(var PurchaseHeader: Record "Purchase Header")
     begin
-        FormatAddress.GetCompanyAddr(PurchaseHeader."Responsibility Center", RespCenter, CompanyInformation, CompanyAddr);
+        FormatAddress.GetCompanyAddr(PurchaseHeader."Responsibility Center", ResponsibilityCenter, CompanyInformation, CompanyAddr);
         FormatAddress.PurchHeaderBuyFrom(BuyFromAddr, PurchaseHeader);
         if PurchaseHeader."Buy-from Vendor No." <> PurchaseHeader."Pay-to Vendor No." then
             FormatAddress.PurchHeaderPayTo(VendAddr, PurchaseHeader);

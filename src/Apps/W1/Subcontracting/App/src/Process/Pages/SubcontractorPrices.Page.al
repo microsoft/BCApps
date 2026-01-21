@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,11 +35,11 @@ page 99001500 "Subcontractor Prices"
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
-                        VendList: Page "Vendor List";
+                        VendorList: Page "Vendor List";
                     begin
-                        VendList.LookupMode := true;
-                        if VendList.RunModal() = Action::LookupOK then
-                            Text := VendList.GetSelectionFilter()
+                        VendorList.LookupMode := true;
+                        if VendorList.RunModal() = Action::LookupOK then
+                            Text := VendorList.GetSelectionFilter()
                         else
                             exit(false);
 
@@ -307,7 +307,7 @@ page 99001500 "Subcontractor Prices"
 
     local procedure GetCaption(): Text
     var
-        ObjTransl: Record "Object Translation";
+        ObjectTranslation: Record "Object Translation";
         PlaceholderLbl: Label '%1 %2 %3 %4 ', Locked = true;
         Description: Text[100];
         SourceTableName: Text[250];
@@ -315,7 +315,7 @@ page 99001500 "Subcontractor Prices"
         GetRecFilters();
 
         if ItemNoFilter <> '' then
-            SourceTableName := ObjTransl.TranslateObject(ObjTransl."Object Type"::Table, 27)
+            SourceTableName := ObjectTranslation.TranslateObject(ObjectTranslation."Object Type"::Table, 27)
         else
             SourceTableName := '';
 

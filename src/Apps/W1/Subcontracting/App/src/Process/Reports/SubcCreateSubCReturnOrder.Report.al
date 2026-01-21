@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -66,11 +66,11 @@ report 99001502 "Subc. Create SubCReturnOrder"
     end;
 
     var
-        SubcontractingMgmtSetup: Record "Subc. Management Setup";
+        SubcManagementSetup: Record "Subc. Management Setup";
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
-        SubcontractingMgt: Codeunit "Subcontracting Management";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
         PurchOrderNo: Code[20];
         LineNum: Integer;
         ComponentsDoesNotExistErr: Label 'Components to return from subcontractor do not exist.';
@@ -81,11 +81,11 @@ report 99001502 "Subc. Create SubCReturnOrder"
 
     local procedure InsertTransferHeader(SubcontractingType: Enum "Subcontracting Type"; OrigCompLineLocation: Code[10])
     var
-        SubSubcontractingMgmt: Codeunit "Subcontracting Management";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
         TransferFromLocationCode, TransferToLocationCode : Code[10];
     begin
-        if not SubcontractingMgmtSetup.Get() then
-            Clear(SubcontractingMgmtSetup);
+        if not SubcManagementSetup.Get() then
+            Clear(SubcManagementSetup);
 
         GetTransferFromLocationCode(TransferFromLocationCode);
         GetTransferToLocationCode(TransferToLocationCode, SubcontractingType);
@@ -106,8 +106,8 @@ report 99001502 "Subc. Create SubCReturnOrder"
             TransferHeader.Validate("Transfer-from Code", TransferFromLocationCode);
             TransferHeader.Validate("Transfer-to Code", OrigCompLineLocation);
 
-            if SubcontractingMgmtSetup."Direct Transfer" then begin
-                SubSubcontractingMgmt.CheckDirectTransferIsAllowedForTransferHeader(TransferHeader);
+            if SubcManagementSetup."Direct Transfer" then begin
+                SubcontractingManagement.CheckDirectTransferIsAllowedForTransferHeader(TransferHeader);
                 TransferHeader.Validate("Direct Transfer Posting", "Direct Transfer Post. Type"::"Direct Transfer");
             end;
 
@@ -139,19 +139,19 @@ report 99001502 "Subc. Create SubCReturnOrder"
 
     local procedure CheckExistComponent(): Boolean
     var
-        PurchLine: Record "Purchase Line";
+        PurchaseLine: Record "Purchase Line";
         QtyToPost: Decimal;
     begin
-        PurchLine.SetCurrentKey("Document Type", Type, "Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
-        PurchLine.SetRange("Document No.", PurchOrderNo);
-        PurchLine.SetFilter("Prod. Order No.", '<>''''');
-        PurchLine.SetFilter("Prod. Order Line No.", '<>0');
-        PurchLine.SetFilter("Operation No.", '<>0');
-        if PurchLine.FindSet() then
+        PurchaseLine.SetCurrentKey("Document Type", Type, "Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
+        PurchaseLine.SetRange("Document No.", PurchOrderNo);
+        PurchaseLine.SetFilter("Prod. Order No.", '<>''''');
+        PurchaseLine.SetFilter("Prod. Order Line No.", '<>0');
+        PurchaseLine.SetFilter("Operation No.", '<>0');
+        if PurchaseLine.FindSet() then
             repeat
-                if HandleSubcontractingForPurchLine(PurchLine, false, QtyToPost) then
+                if HandleSubcontractingForPurchLine(PurchaseLine, false, QtyToPost) then
                     exit(true);
-            until PurchLine.Next() = 0;
+            until PurchaseLine.Next() = 0;
 
         exit(false);
     end;
@@ -162,8 +162,8 @@ report 99001502 "Subc. Create SubCReturnOrder"
         ProdOrderComponent: Record "Prod. Order Component";
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
-        CostCalcMgt: Codeunit "Mfg. Cost Calculation Mgt.";
-        UOMMgt: Codeunit "Unit of Measure Management";
+        MfgCostCalculationMgt: Codeunit "Mfg. Cost Calculation Mgt.";
+        UnitofMeasureManagement: Codeunit "Unit of Measure Management";
         QtyPerUom: Decimal;
     begin
         if not ProdOrderLine.Get(ProdOrderLine.Status::Released, PurchLine."Prod. Order No.", PurchLine."Prod. Order Line No.") then
@@ -176,7 +176,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
 
         Item.SetLoadFields("Base Unit of Measure", "Rounding Precision");
         Item.Get(PurchLine."No.");
-        QtyPerUom := UOMMgt.GetQtyPerUnitOfMeasure(Item, PurchLine."Unit of Measure Code");
+        QtyPerUom := UnitofMeasureManagement.GetQtyPerUnitOfMeasure(Item, PurchLine."Unit of Measure Code");
 
         ProdOrderComponent.SetCurrentKey(Status, "Prod. Order No.", "Routing Link Code");
         ProdOrderComponent.SetRange(Status, ProdOrderComponent.Status::Released);
@@ -189,8 +189,8 @@ report 99001502 "Subc. Create SubCReturnOrder"
             CheckTransferLineExists();
             repeat
                 Item.Get(ProdOrderComponent."Item No.");
-                QtyToPost := CostCalcMgt.CalcActNeededQtyBase(ProdOrderLine, ProdOrderComponent,
-                    Round(PurchLine."Outstanding Quantity" * QtyPerUom, UOMMgt.QtyRndPrecision()));
+                QtyToPost := MfgCostCalculationMgt.CalcActNeededQtyBase(ProdOrderLine, ProdOrderComponent,
+                    Round(PurchLine."Outstanding Quantity" * QtyPerUom, UnitofMeasureManagement.QtyRndPrecision()));
                 ProdOrderComponent.CalcFields("Qty. in Transit (Base)", "Qty. transf. to Subcontr");
                 if QtyToPost > (Abs(ProdOrderComponent."Qty. in Transit (Base)") + Abs(ProdOrderComponent."Qty. transf. to Subcontr")) then
                     QtyToPost := (Abs(ProdOrderComponent."Qty. in Transit (Base)") + Abs(ProdOrderComponent."Qty. transf. to Subcontr"));
@@ -217,7 +217,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
 
                         TransferLine.Insert();
 
-                        SubcontractingMgt.TransferReservationEntryFromProdOrderCompToTransferOrder(TransferLine, ProdOrderComponent);
+                        SubcontractingManagement.TransferReservationEntryFromProdOrderCompToTransferOrder(TransferLine, ProdOrderComponent);
 
                         if ProdOrderComponent."Orig. Location Code" = '' then
                             ProdOrderComponent."Orig. Location Code" := ProdOrderComponent."Location Code";
@@ -229,7 +229,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
                         end;
                         ProdOrderComponent.Modify();
 
-                        SubcontractingMgt.CreateReservEntryForTransferReceiptToProdOrderComp(TransferLine, ProdOrderComponent);
+                        SubcontractingManagement.CreateReservEntryForTransferReceiptToProdOrderComp(TransferLine, ProdOrderComponent);
                     end else
                         exit(true);
             until ProdOrderComponent.Next() = 0;
@@ -272,8 +272,8 @@ report 99001502 "Subc. Create SubCReturnOrder"
         if SubcontractingType = "Subcontracting Type"::Purchase then
             TransferFromLocationCode := "Purchase Line"."Location Code"
         else begin
-            SubcontractingMgmtSetup.TestField("Component at Location");
-            case SubcontractingMgmtSetup."Component at Location" of
+            SubcManagementSetup.TestField("Component at Location");
+            case SubcManagementSetup."Component at Location" of
                 "Components at Location"::Purchase:
                     begin
                         "Purchase Line".TestField("Location Code");

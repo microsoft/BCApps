@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,14 +21,14 @@ using Microsoft.Purchases.Document;
 codeunit 99001508 "Subc. Price Management"
 {
     var
-        SubSetup: Record "Subc. Management Setup";
+        SubcManagementSetup: Record "Subc. Management Setup";
 
     procedure ApplySubcontractorPricingToProdOrderRouting(var ProdOrderLine: Record "Prod. Order Line"; var RoutingLine: Record "Routing Line"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         SubcontractorPrice: Record "Subcontractor Price";
         WorkCenter: Record "Work Center";
     begin
-        if not SubSetup.Get() then
+        if not SubcManagementSetup.Get() then
             exit;
 
         if ProdOrderRoutingLine.Type <> "Capacity Type Routing"::"Work Center" then
@@ -67,7 +67,7 @@ codeunit 99001508 "Subc. Price Management"
         SubcontractorPrice: Record "Subcontractor Price";
         WorkCenter: Record "Work Center";
     begin
-        if not SubSetup.Get() then
+        if not SubcManagementSetup.Get() then
             exit;
 
         if RoutingLine.Type <> "Capacity Type Routing"::"Work Center" then
@@ -108,7 +108,7 @@ codeunit 99001508 "Subc. Price Management"
     procedure CalcStandardCostOnAfterCalcRtngLineCost(RoutingLine: Record "Routing Line"; MfgItemQtyBase: Decimal; var SLSub: Decimal)
     var
         Item: Record Item;
-        MfgSetup: Record "Manufacturing Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
         WorkCenter: Record "Work Center";
         MfgCostCalculationMgt: Codeunit "Mfg. Cost Calculation Mgt.";
         SingleInstanceDictionary: Codeunit "Single Instance Dictionary";
@@ -122,7 +122,7 @@ codeunit 99001508 "Subc. Price Management"
         UnitCost: Decimal;
         UnitCostCalculationType: Enum "Unit Cost Calculation Type";
     begin
-        if not SubSetup.Get() then
+        if not SubcManagementSetup.Get() then
             exit;
 
         if RoutingLine.Type <> "Capacity Type Routing"::"Work Center" then
@@ -156,8 +156,8 @@ codeunit 99001508 "Subc. Price Management"
         UnitCost := RoutingLine."Unit Cost per";
         CalcRtngCostPerUnit(RoutingLine."No.", DirectUnitCost, IndirCostPct, OvhdRate, UnitCost, UnitCostCalculationType, Item, RoutingLine."Standard Task Code", CalculationDate);
 
-        MfgSetup.SetLoadFields("Cost Incl. Setup");
-        MfgSetup.Get();
+        ManufacturingSetup.SetLoadFields("Cost Incl. Setup");
+        ManufacturingSetup.Get();
 
         CostTime :=
           MfgCostCalculationMgt.CalculateCostTime(
@@ -165,7 +165,7 @@ codeunit 99001508 "Subc. Price Management"
             RoutingLine."Setup Time", RoutingLine."Setup Time Unit of Meas. Code",
             RoutingLine."Run Time", RoutingLine."Run Time Unit of Meas. Code", RoutingLine."Lot Size",
             RoutingLine."Scrap Factor % (Accumulated)", RoutingLine."Fixed Scrap Qty. (Accum.)",
-            RoutingLine."Work Center No.", UnitCostCalculationType, MfgSetup."Cost Incl. Setup",
+            RoutingLine."Work Center No.", UnitCostCalculationType, ManufacturingSetup."Cost Incl. Setup",
             RoutingLine."Concurrent Capacities");
         SLSub := (CostTime * DirectUnitCost);
 
@@ -258,7 +258,7 @@ codeunit 99001508 "Subc. Price Management"
 
     procedure SetRoutingPriceListCost(var InSubcPrices: Record "Subcontractor Price"; WorkCenter: Record "Work Center"; var DirUnitCost: Decimal; var IndirCostPct: Decimal; var OvhdRate: Decimal; var UnitCost: Decimal; var UnitCostCalculationType: Enum "Unit Cost Calculation Type"; QtyUoM: Decimal; ProdQtyPerUom: Decimal; QtyBase: Decimal)
     var
-        GLSetup: Record "General Ledger Setup";
+        GeneralLedgerSetup: Record "General Ledger Setup";
         SubcontractorPrice: Record "Subcontractor Price";
         PriceListUOM: Code[10];
         DirectCost: Decimal;
@@ -306,8 +306,8 @@ codeunit 99001508 "Subc. Price Management"
                 ConvertPriceToUOM(InSubcPrices."Unit of Measure Code", ProdQtyPerUom, PriceListUOM, PriceListQtyPerUOM, PriceListCost, DirectCost);
                 if SubcontractorPrice."Currency Code" <> '' then
                     ConvertPriceFromCurrency(SubcontractorPrice."Currency Code", InSubcPrices."Starting Date", DirectCost);
-                GLSetup.Get();
-                DirectCost := Round(DirectCost, GLSetup."Unit-Amount Rounding Precision");
+                GeneralLedgerSetup.Get();
+                DirectCost := Round(DirectCost, GeneralLedgerSetup."Unit-Amount Rounding Precision");
                 DirUnitCost := DirectCost;
                 UnitCost := (DirUnitCost * (1 + IndirCostPct / 100) + OvhdRate);
             end;
@@ -317,11 +317,11 @@ codeunit 99001508 "Subc. Price Management"
     local procedure GetUOMPrice(ItemNo: Code[20]; QtyBase: Decimal; SubCPrice: Record "Subcontractor Price"; var PriceListUOM: Code[10]; var PriceListQtyPerUOM: Decimal; var PriceListQty: Decimal)
     var
         Item: Record Item;
-        UOMMgt: Codeunit "Unit of Measure Management";
+        UnitofMeasureManagement: Codeunit "Unit of Measure Management";
     begin
         Item.SetLoadFields("Base Unit of Measure");
         Item.Get(ItemNo);
-        PriceListQtyPerUOM := UOMMgt.GetQtyPerUnitOfMeasure(Item, SubCPrice."Unit of Measure Code");
+        PriceListQtyPerUOM := UnitofMeasureManagement.GetQtyPerUnitOfMeasure(Item, SubCPrice."Unit of Measure Code");
 
         if (PriceListQtyPerUOM = 1) and (SubCPrice."Unit of Measure Code" = '') then
             PriceListUOM := Item."Base Unit of Measure"
@@ -355,14 +355,14 @@ codeunit 99001508 "Subc. Price Management"
     local procedure ConvertPriceToCurrency(TargetCurrencyCode: Code[10]; PriceListCurrencyCode: Code[10]; PriceListCost: Decimal; var DirectCost: Decimal)
     var
         TargetCurrency: Record Currency;
-        CurrExchRate: Record "Currency Exchange Rate";
-        GLSetup: Record "General Ledger Setup";
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        GeneralLedgerSetup: Record "General Ledger Setup";
         UnitAmtRngPrecision: Decimal;
     begin
         if TargetCurrencyCode = '' then begin
-            GLSetup.SetLoadFields("Unit-Amount Rounding Precision");
-            GLSetup.Get();
-            UnitAmtRngPrecision := GLSetup."Unit-Amount Rounding Precision";
+            GeneralLedgerSetup.SetLoadFields("Unit-Amount Rounding Precision");
+            GeneralLedgerSetup.Get();
+            UnitAmtRngPrecision := GeneralLedgerSetup."Unit-Amount Rounding Precision";
         end else begin
             TargetCurrency.SetLoadFields("Unit-Amount Rounding Precision");
             TargetCurrency.Get(TargetCurrencyCode);
@@ -374,15 +374,15 @@ codeunit 99001508 "Subc. Price Management"
             TargetCurrencyCode = PriceListCurrencyCode:
                 DirectCost := Round(DirectCost, UnitAmtRngPrecision);
             (TargetCurrencyCode <> '') and (PriceListCurrencyCode = ''):
-                DirectCost := CurrExchRate.ExchangeAmtLCYToFCY(
+                DirectCost := CurrencyExchangeRate.ExchangeAmtLCYToFCY(
                     WorkDate(), TargetCurrencyCode, PriceListCost,
-                    CurrExchRate.ExchangeRate(WorkDate(), TargetCurrencyCode));
+                    CurrencyExchangeRate.ExchangeRate(WorkDate(), TargetCurrencyCode));
             (TargetCurrencyCode = '') and (PriceListCurrencyCode <> ''):
-                DirectCost := CurrExchRate.ExchangeAmtFCYToLCY(
+                DirectCost := CurrencyExchangeRate.ExchangeAmtFCYToLCY(
                     WorkDate(), PriceListCurrencyCode, PriceListCost,
-                    CurrExchRate.ExchangeRate(WorkDate(), PriceListCurrencyCode));
+                    CurrencyExchangeRate.ExchangeRate(WorkDate(), PriceListCurrencyCode));
             (TargetCurrencyCode <> '') and (PriceListCurrencyCode <> ''):
-                DirectCost := CurrExchRate.ExchangeAmtFCYToFCY(
+                DirectCost := CurrencyExchangeRate.ExchangeAmtFCYToFCY(
                     WorkDate(), PriceListCurrencyCode, TargetCurrencyCode, PriceListCost);
         end;
 
@@ -392,12 +392,12 @@ codeunit 99001508 "Subc. Price Management"
     local procedure ConvertPriceFromCurrency(CurrencyCode: Code[10]; OrderDate: Date; var DirectCost: Decimal)
     var
         Currency: Record Currency;
-        CurrExchRate: Record "Currency Exchange Rate";
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
     begin
         Currency.Get(CurrencyCode);
-        DirectCost := CurrExchRate.ExchangeAmtFCYToLCY(
+        DirectCost := CurrencyExchangeRate.ExchangeAmtFCYToLCY(
             OrderDate, CurrencyCode, DirectCost,
-            CurrExchRate.ExchangeRate(OrderDate, CurrencyCode));
+            CurrencyExchangeRate.ExchangeRate(OrderDate, CurrencyCode));
     end;
 
     procedure GetSubcPriceForReqLine(var ReqLine: Record "Requisition Line"; FixedUOM: Code[10])
@@ -456,7 +456,7 @@ codeunit 99001508 "Subc. Price Management"
 
     procedure GetSubcPriceForPurchLine(var PurchLine: Record "Purchase Line")
     var
-        ProdOrderRtngLine: Record "Prod. Order Routing Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         SubcontractorPrice: Record "Subcontractor Price";
         PriceListUOM: Code[10];
         OrderDate: Date;
@@ -471,9 +471,9 @@ codeunit 99001508 "Subc. Price Management"
         SubcontractorPrice.SetRange("Variant Code", PurchLine."Variant Code");
         SubcontractorPrice.SetFilter("Item No.", '%1|%2', PurchLine."No.", '');
 
-        GetProdOrderRtngLine(PurchLine."Prod. Order No.", PurchLine."Routing Reference No.", PurchLine."Routing No.", PurchLine."Operation No.", ProdOrderRtngLine);
+        GetProdOrderRtngLine(PurchLine."Prod. Order No.", PurchLine."Routing Reference No.", PurchLine."Routing No.", PurchLine."Operation No.", ProdOrderRoutingLine);
 
-        SubcontractorPrice.SetFilter("Standard Task Code", '%1|%2', ProdOrderRtngLine."Standard Task Code", '');
+        SubcontractorPrice.SetFilter("Standard Task Code", '%1|%2', ProdOrderRoutingLine."Standard Task Code", '');
         SubcontractorPrice.SetRange("Starting Date", 0D, OrderDate);
         SubcontractorPrice.SetFilter("Ending Date", '>=%1|%2', OrderDate, 0D);
         SubcontractorPrice.SetFilter("Currency Code", '%1|%2', PurchLine."Currency Code", '');
@@ -490,8 +490,8 @@ codeunit 99001508 "Subc. Price Management"
             end;
         end else begin
             GetUOMPrice(PurchLine."No.", PurchLine.GetQuantityBase(), SubcontractorPrice, PriceListUOM, PriceListQtyPerUOM, PriceListQty);
-            ProdOrderRtngLine.TestField(Type, "Capacity Type"::"Work Center");
-            DirectCost := ProdOrderRtngLine."Direct Unit Cost";
+            ProdOrderRoutingLine.TestField(Type, "Capacity Type"::"Work Center");
+            DirectCost := ProdOrderRoutingLine."Direct Unit Cost";
         end;
 
         PurchLine."Direct Unit Cost" := DirectCost;
@@ -523,9 +523,9 @@ codeunit 99001508 "Subc. Price Management"
 
     local procedure GetQuantityBase(var PurchLine: Record "Purchase Line"): Decimal
     var
-        ItemUOM: Record "Item Unit of Measure";
+        ItemUnitofMeasure: Record "Item Unit of Measure";
     begin
-        ItemUOM.Get(PurchLine."No.", PurchLine."Unit of Measure Code");
-        exit(Round(PurchLine.Quantity * ItemUOM."Qty. per Unit of Measure", 0.00001));
+        ItemUnitofMeasure.Get(PurchLine."No.", PurchLine."Unit of Measure Code");
+        exit(Round(PurchLine.Quantity * ItemUnitofMeasure."Qty. per Unit of Measure", 0.00001));
     end;
 }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -47,11 +47,11 @@ codeunit 99001515 "Subc. ItemJnlPostLine Ext"
     var
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
-        ProdOrder: Record "Production Order";
+        ProductionOrder: Record "Production Order";
     begin
         if ItemJournalLine.Subcontracting then begin
-            ProdOrder.SetLoadFields("Created from Purch. Order");
-            if ProdOrder.Get(ProdOrderLine.Status, ProdOrderLine."Prod. Order No.") then
+            ProductionOrder.SetLoadFields("Created from Purch. Order");
+            if ProductionOrder.Get(ProdOrderLine.Status, ProdOrderLine."Prod. Order No.") then
                 if ProdOrderRoutingLine.Get(ProdOrderLine.Status, ProdOrderLine."Prod. Order No.", ProdOrderLine."Line No.", ProdOrderLine."Routing No.", ItemJournalLine."Operation No.") then begin
                     CapacityLedgerEntry.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
                     CapacityLedgerEntry.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -16,7 +16,7 @@ using Microsoft.Purchases.Posting;
 codeunit 99001535 "Subc. Purch. Post Ext"
 {
     var
-        SubManagementSetup: Record "Subc. Management Setup";
+        SubcManagementSetup: Record "Subc. Management Setup";
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeItemJnlPostLine, '', false, false)]
     local procedure "Purch.-Post_OnBeforeItemJnlPostLine"(var ItemJournalLine: Record "Item Journal Line"; TempItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)" temporary)
@@ -34,7 +34,7 @@ codeunit 99001535 "Subc. Purch. Post Ext"
     var
         PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
-        if not SubManagementSetup.ItemChargeToRcptSubReferenceEnabled() then
+        if not SubcManagementSetup.ItemChargeToRcptSubReferenceEnabled() then
             exit;
 
         if ItemJournalLine."Item Charge No." <> '' then
@@ -45,14 +45,14 @@ codeunit 99001535 "Subc. Purch. Post Ext"
 
     local procedure SetQuantityBaseOnSubcontractingServiceLine(PurchLine: Record "Purchase Line"; var PurchRcptLine: Record "Purch. Rcpt. Line")
     var
-        UOMMgt: Codeunit "Unit of Measure Management";
+        UnitofMeasureManagement: Codeunit "Unit of Measure Management";
     begin
-        if not SubManagementSetup.ItemChargeToRcptSubReferenceEnabled() then
+        if not SubcManagementSetup.ItemChargeToRcptSubReferenceEnabled() then
             exit;
 
         if PurchRcptLine."Quantity (Base)" = 0 then
             if PurchRcptLineHasProdOrder(PurchRcptLine) then
-                PurchRcptLine."Quantity (Base)" := UOMMgt.CalcBaseQty(
+                PurchRcptLine."Quantity (Base)" := UnitofMeasureManagement.CalcBaseQty(
                         PurchRcptLine."No.", PurchRcptLine."Variant Code", PurchRcptLine."Unit of Measure Code", PurchRcptLine.Quantity, PurchRcptLine."Qty. per Unit of Measure", PurchLine."Qty. Rounding Precision (Base)");
     end;
 

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,15 +22,15 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     TableNo = "Purchase Line";
 
     var
-        SubManagementSetup: Record "Subc. Management Setup";
+        SubcManagementSetup: Record "Subc. Management Setup";
         SubcTempDataInitializer: Codeunit "Subc. Temp Data Initializer";
-        SubVersionSelectionMgmt: Codeunit "Subc. Version Mgmt.";
+        SubcVersionMgmt: Codeunit "Subc. Version Mgmt.";
         BOMCreated, BOMVersionCreated : Boolean;
         HasSubManagementSetup: Boolean;
         ProdCompRoutingModified: Boolean;
         ProdOrderCompRoutingCreated: Boolean;
         RoutingCreated, RoutingVersionCreated : Boolean;
-        ApplyBomRtngToSource: Enum "Subc. RtngBOMSourceType";
+        SubcRtngBOMSourceType: Enum "Subc. RtngBOMSourceType";
 
     trigger OnRun()
     begin
@@ -152,13 +152,13 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     begin
         SubcTempDataInitializer.InitializeNewTemporaryBOMInformation();
         if BOMNo <> '' then begin
-            BOMVersionCode := SubVersionSelectionMgmt.GetDefaultBOMVersion(BOMNo);
+            BOMVersionCode := SubcVersionMgmt.GetDefaultBOMVersion(BOMNo);
             SubcTempDataInitializer.LoadBOMLines(BOMNo, BOMVersionCode);
         end;
 
         SubcTempDataInitializer.InitializeNewTemporaryRoutingInformation();
         if RoutingNo <> '' then begin
-            RoutingVersionCode := SubVersionSelectionMgmt.GetDefaultRoutingVersion(RoutingNo);
+            RoutingVersionCode := SubcVersionMgmt.GetDefaultRoutingVersion(RoutingNo);
             SubcTempDataInitializer.LoadRoutingLines(RoutingNo, RoutingVersionCode);
         end;
     end;
@@ -176,11 +176,11 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// </summary>
     local procedure RunBOMRoutingWizardWithUserInteraction(Item: Record Item; SubcScenarioType: Enum "Subc. Scenario Type"): Boolean
     var
-        SubTempProdOrdBind: Codeunit "Subc. TempProdOrdBind";
+        SubcTempProdOrdBind: Codeunit "Subc. TempProdOrdBind";
         BOMRoutingShowEditType: Enum "Subc. Show/Edit Type";
         ProdCompRoutingShowEditType: Enum "Subc. Show/Edit Type";
     begin
-        BindSubscription(SubTempProdOrdBind);
+        BindSubscription(SubcTempProdOrdBind);
         GetShowEditTypesForScenario(SubcScenarioType, BOMRoutingShowEditType, ProdCompRoutingShowEditType);
 
         if ShouldSkipUserInteraction(BOMRoutingShowEditType, ProdCompRoutingShowEditType) then begin
@@ -201,18 +201,18 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         case SubcScenarioType of
             SubcScenarioType::BothAvailable:
                 begin
-                    BOMRoutingShowEditType := SubManagementSetup.ShowRtngBOMSelect_Both;
-                    ProdCompRoutingShowEditType := SubManagementSetup.ShowProdRtngCompSelect_Both;
+                    BOMRoutingShowEditType := SubcManagementSetup.ShowRtngBOMSelect_Both;
+                    ProdCompRoutingShowEditType := SubcManagementSetup.ShowProdRtngCompSelect_Both;
                 end;
             SubcScenarioType::PartiallyAvailable:
                 begin
-                    BOMRoutingShowEditType := SubManagementSetup.ShowRtngBOMSelect_Partial;
-                    ProdCompRoutingShowEditType := SubManagementSetup.ShowProdRtngCompSelect_Partial;
+                    BOMRoutingShowEditType := SubcManagementSetup.ShowRtngBOMSelect_Partial;
+                    ProdCompRoutingShowEditType := SubcManagementSetup.ShowProdRtngCompSelect_Partial;
                 end;
             SubcScenarioType::NothingAvailable:
                 begin
-                    BOMRoutingShowEditType := SubManagementSetup.ShowRtngBOMSelect_Nothing;
-                    ProdCompRoutingShowEditType := SubManagementSetup.ShowProdRtngCompSelect_Nothing;
+                    BOMRoutingShowEditType := SubcManagementSetup.ShowRtngBOMSelect_Nothing;
+                    ProdCompRoutingShowEditType := SubcManagementSetup.ShowProdRtngCompSelect_Nothing;
                 end
         end;
     end;
@@ -250,7 +250,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     local procedure UpdateWizardResults(var SubcPurchProvisionWizard: Page "Subc. PurchProvisionWizard")
     begin
         ProdCompRoutingModified := SubcPurchProvisionWizard.GetApplyChangesComponents() or SubcPurchProvisionWizard.GetApplyChangesProdRouting();
-        ApplyBomRtngToSource := SubcPurchProvisionWizard.GetApplyBomRtngToSource();
+        SubcRtngBOMSourceType := SubcPurchProvisionWizard.GetApplyBomRtngToSource();
     end;
 
     /// <summary>
@@ -270,19 +270,19 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     [CommitBehavior(CommitBehavior::Ignore)]
     local procedure TransferTemporaryDataToRealTables(var PurchLine: Record "Purchase Line")
     var
-        ProdOrder: Record "Production Order";
-        SubProdOrderCreateBind: Codeunit "Subc. ProdOrderCreateBind";
+        ProductionOrder: Record "Production Order";
+        SubcProdOrderCreateBind: Codeunit "Subc. ProdOrderCreateBind";
     begin
-        BindSubscription(SubProdOrderCreateBind);
-        SubProdOrderCreateBind.SetSubcontractingPurchaseLine(PurchLine);
+        BindSubscription(SubcProdOrderCreateBind);
+        SubcProdOrderCreateBind.SetSubcontractingPurchaseLine(PurchLine);
 
         UpdateItemWithBOMAndRoutingFromTemp(PurchLine);
-        CreateReleasedProductionOrderFromTemp(ProdOrder);
-        TransferTemporaryDataToProductionOrder(ProdOrder);
-        RefreshProductionOrderWithOptimalSettings(ProdOrder);
-        FinalizeProductionOrderCreation(PurchLine, ProdOrder);
+        CreateReleasedProductionOrderFromTemp(ProductionOrder);
+        TransferTemporaryDataToProductionOrder(ProductionOrder);
+        RefreshProductionOrderWithOptimalSettings(ProductionOrder);
+        FinalizeProductionOrderCreation(PurchLine, ProductionOrder);
 
-        UnbindSubscription(SubProdOrderCreateBind);
+        UnbindSubscription(SubcProdOrderCreateBind);
     end;
 
     /// <summary>
@@ -314,13 +314,13 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// </summary>
     local procedure CreateReleasedProductionOrderFromTemp(var ProdOrder: Record "Production Order")
     var
-        TempProdOrder: Record "Production Order" temporary;
+        TempProductionOrder: Record "Production Order" temporary;
     begin
-        SubcTempDataInitializer.GetGlobalProdOrder(TempProdOrder);
+        SubcTempDataInitializer.GetGlobalProdOrder(TempProductionOrder);
 
         InitializeProductionOrder(ProdOrder);
 
-        ConfigureProductionOrderFromTemp(ProdOrder, TempProdOrder);
+        ConfigureProductionOrderFromTemp(ProdOrder, TempProductionOrder);
 
         ProdOrder."Created from Purch. Order" := true;
         ProdOrder.Modify(true);
@@ -404,14 +404,14 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// </summary>
     local procedure TransferProductionOrderRoutingLines(var ProdOrderLine: Record "Prod. Order Line")
     var
-        ProdOrderRtngLine: Record "Prod. Order Routing Line";
-        TempProdOrderRtngLine: Record "Prod. Order Routing Line" temporary;
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
     begin
-        SubcTempDataInitializer.GetGlobalProdOrderRoutingLine(TempProdOrderRtngLine);
-        if TempProdOrderRtngLine.FindSet() then
+        SubcTempDataInitializer.GetGlobalProdOrderRoutingLine(TempProdOrderRoutingLine);
+        if TempProdOrderRoutingLine.FindSet() then
             repeat
-                CreateProdOrderRoutingLineFromTemp(ProdOrderRtngLine, TempProdOrderRtngLine, ProdOrderLine);
-            until TempProdOrderRtngLine.Next() = 0;
+                CreateProdOrderRoutingLineFromTemp(ProdOrderRoutingLine, TempProdOrderRoutingLine, ProdOrderLine);
+            until TempProdOrderRoutingLine.Next() = 0;
     end;
 
     /// <summary>
@@ -458,20 +458,20 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// </summary>
     local procedure UpdatePurchLineWithRoutingInfo(var PurchLine: Record "Purchase Line"; var ProdOrderLine: Record "Prod. Order Line")
     var
-        ProdOrderRtngLine: Record "Prod. Order Routing Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         WorkCenter: Record "Work Center";
     begin
-        if not FindRoutingLinesForProdOrderLine(ProdOrderRtngLine, ProdOrderLine) then
+        if not FindRoutingLinesForProdOrderLine(ProdOrderRoutingLine, ProdOrderLine) then
             exit;
 
-        if FindMatchingWorkCenterForVendor(ProdOrderRtngLine, WorkCenter, PurchLine."Buy-from Vendor No.") or
-           FindAnySubcontractorWorkCenter(ProdOrderRtngLine, WorkCenter) then begin
-            UpdatePurchLineFromRoutingLine(PurchLine, ProdOrderRtngLine);
+        if FindMatchingWorkCenterForVendor(ProdOrderRoutingLine, WorkCenter, PurchLine."Buy-from Vendor No.") or
+           FindAnySubcontractorWorkCenter(ProdOrderRoutingLine, WorkCenter) then begin
+            UpdatePurchLineFromRoutingLine(PurchLine, ProdOrderRoutingLine);
             exit;
         end;
 
-        ProdOrderRtngLine.FindFirst();
-        UpdatePurchLineFromRoutingLine(PurchLine, ProdOrderRtngLine);
+        ProdOrderRoutingLine.FindFirst();
+        UpdatePurchLineFromRoutingLine(PurchLine, ProdOrderRoutingLine);
     end;
 
     /// <summary>
@@ -522,7 +522,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
 
     local procedure UpdatePurchLineFromRoutingLine(var PurchLine: Record "Purchase Line"; ProdOrderRtngLine: Record "Prod. Order Routing Line")
     var
-        SubcontractingPriceMgt: Codeunit "Subc. Price Management";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
     begin
         PurchLine.Description := ProdOrderRtngLine.Description;
         PurchLine."Routing No." := ProdOrderRtngLine."Routing No.";
@@ -531,7 +531,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         PurchLine."Expected Receipt Date" := ProdOrderRtngLine."Ending Date";
         PurchLine.Validate("Work Center No.", ProdOrderRtngLine."Work Center No.");
 
-        SubcontractingPriceMgt.GetSubcPriceForPurchLine(PurchLine);
+        SubcPriceManagement.GetSubcPriceForPurchLine(PurchLine);
         PurchLine.GetItemTranslation();
     end;
 
@@ -541,14 +541,14 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     local procedure TransferReservationEntryFromPurchOrderCompToProdOrderLine(PurchLine: Record "Purchase Line"; ProdOrder: Record "Production Order")
     var
         ProdOrderLine: Record "Prod. Order Line";
-        TempReservEntry: Record "Reservation Entry" temporary;
+        TempReservationEntry: Record "Reservation Entry" temporary;
         PurchLineReserve: Codeunit "Purch. Line-Reserve";
     begin
         if not FindProdOrderLineForReservation(ProdOrderLine, ProdOrder, PurchLine."No.") then
             exit;
 
-        CollectReservationEntries(PurchLine, TempReservEntry, PurchLineReserve);
-        ReassignReservationEntries(ProdOrderLine, TempReservEntry);
+        CollectReservationEntries(PurchLine, TempReservationEntry, PurchLineReserve);
+        ReassignReservationEntries(ProdOrderLine, TempReservationEntry);
     end;
 
     /// <summary>
@@ -568,15 +568,15 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// </summary>
     local procedure CollectReservationEntries(PurchLine: Record "Purchase Line"; var TempReservEntry: Record "Reservation Entry" temporary; var PurchLineReserve: Codeunit "Purch. Line-Reserve")
     var
-        ReservEntry: Record "Reservation Entry";
+        ReservationEntry: Record "Reservation Entry";
     begin
-        PurchLineReserve.FindReservEntry(PurchLine, ReservEntry);
-        if ReservEntry.FindSet() then begin
+        PurchLineReserve.FindReservEntry(PurchLine, ReservationEntry);
+        if ReservationEntry.FindSet() then begin
             repeat
-                TempReservEntry := ReservEntry;
+                TempReservEntry := ReservationEntry;
                 TempReservEntry.Insert();
-            until ReservEntry.Next() = 0;
-            ReservEntry.DeleteAll();
+            until ReservationEntry.Next() = 0;
+            ReservationEntry.DeleteAll();
         end;
     end;
 
@@ -593,23 +593,23 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
 
     local procedure ReassignSingleReservationEntry(ProdOrderLine: Record "Prod. Order Line"; var TempReservEntry: Record "Reservation Entry" temporary)
     var
-        ReservEntry2: Record "Reservation Entry";
+        ReservationEntry2: Record "Reservation Entry";
     begin
-        ReservEntry2 := TempReservEntry;
-        ReservEntry2."Source Type" := Database::"Prod. Order Line";
-        ReservEntry2."Source Subtype" := ProdOrderLine.Status.AsInteger();
-        ReservEntry2."Source ID" := ProdOrderLine."Prod. Order No.";
-        ReservEntry2."Source Ref. No." := 0;
-        ReservEntry2."Source Batch Name" := '';
-        ReservEntry2."Source Prod. Order Line" := ProdOrderLine."Line No.";
-        ReservEntry2.Insert();
+        ReservationEntry2 := TempReservEntry;
+        ReservationEntry2."Source Type" := Database::"Prod. Order Line";
+        ReservationEntry2."Source Subtype" := ProdOrderLine.Status.AsInteger();
+        ReservationEntry2."Source ID" := ProdOrderLine."Prod. Order No.";
+        ReservationEntry2."Source Ref. No." := 0;
+        ReservationEntry2."Source Batch Name" := '';
+        ReservationEntry2."Source Prod. Order Line" := ProdOrderLine."Line No.";
+        ReservationEntry2.Insert();
     end;
 
     local procedure HandleSubcontractingAfterUpdate(var PurchLine: Record "Purchase Line")
     var
         RequisitionLine: Record "Requisition Line";
-        SubcontractingMgmt: Codeunit "Subcontracting Management";
-        SubcontractingMgmtExt: Codeunit "Subcontracting Management Ext.";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
+        SubcontractingManagementExt: Codeunit "Subcontracting Management Ext.";
         NextLineNo: Integer;
     begin
         RequisitionLine."Prod. Order No." := PurchLine."Prod. Order No.";
@@ -619,9 +619,9 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         RequisitionLine."Routing Reference No." := PurchLine."Routing Reference No.";
 
         NextLineNo := PurchLine."Line No." + 10000;
-        BindSubscription(SubcontractingMgmtExt);
-        SubcontractingMgmt.TransferSubcontractingProdOrderComp(PurchLine, RequisitionLine, NextLineNo);
-        UnbindSubscription(SubcontractingMgmtExt);
+        BindSubscription(SubcontractingManagementExt);
+        SubcontractingManagement.TransferSubcontractingProdOrderComp(PurchLine, RequisitionLine, NextLineNo);
+        UnbindSubscription(SubcontractingManagementExt);
     end;
 
     /// <summary>
@@ -633,10 +633,10 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         Vendor: Record Vendor;
     begin
         GetSubManagementSetupCached();
-        SubManagementSetup.TestField("Rtng. Link Code Purch. Prov.");
-        SubManagementSetup.TestField("Component at Location");
-        SubManagementSetup.TestField("Preset Component Item No.");
-        SubManagementSetup.TestField("Common Work Center No.");
+        SubcManagementSetup.TestField("Rtng. Link Code Purch. Prov.");
+        SubcManagementSetup.TestField("Component at Location");
+        SubcManagementSetup.TestField("Preset Component Item No.");
+        SubcManagementSetup.TestField("Common Work Center No.");
 
         ManufacturingSetup.Get();
         ManufacturingSetup.TestField("Released Order Nos.");
@@ -668,7 +668,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     begin
         if HasSubManagementSetup then
             exit;
-        if SubManagementSetup.Get() then
+        if SubcManagementSetup.Get() then
             HasSubManagementSetup := true;
     end;
 
@@ -679,7 +679,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     var
         SkipProcessBOMAndRouting: Boolean;
     begin
-        SkipProcessBOMAndRouting := CheckCreateProdOrderCompRtng() and (ApplyBomRtngToSource = "Subc. RtngBOMSourceType"::Empty);
+        SkipProcessBOMAndRouting := CheckCreateProdOrderCompRtng() and (SubcRtngBOMSourceType = "Subc. RtngBOMSourceType"::Empty);
         if SkipProcessBOMAndRouting then
             exit;
 
@@ -691,19 +691,19 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// </summary>
     local procedure ProcessBOMAndRoutingData(ItemNo: Code[20])
     var
-        TempBOMHeader: Record "Production BOM Header" temporary;
-        TempBOMLine: Record "Production BOM Line" temporary;
+        TempProductionBOMHeader: Record "Production BOM Header" temporary;
+        TempProductionBOMLine: Record "Production BOM Line" temporary;
         TempRoutingHeader: Record "Routing Header" temporary;
         TempRoutingLine: Record "Routing Line" temporary;
         BOMNo, BOMVersionCode, RoutingNo, RoutingVersionCode : Code[20];
     begin
-        GetTemporaryBOMAndRoutingData(TempBOMHeader, TempBOMLine, TempRoutingHeader, TempRoutingLine);
+        GetTemporaryBOMAndRoutingData(TempProductionBOMHeader, TempProductionBOMLine, TempRoutingHeader, TempRoutingLine);
         GetBOMAndRoutingInfoFromTempData(BOMNo, BOMVersionCode, RoutingNo, RoutingVersionCode);
 
         if BOMVersionCode = '' then
-            CreateBOMIfNotExists(TempBOMHeader, TempBOMLine, BOMNo)
+            CreateBOMIfNotExists(TempProductionBOMHeader, TempProductionBOMLine, BOMNo)
         else
-            SaveBOMVersionIfRequired(TempBOMHeader, TempBOMLine, BOMNo, BOMVersionCode);
+            SaveBOMVersionIfRequired(TempProductionBOMHeader, TempProductionBOMLine, BOMNo, BOMVersionCode);
 
         if RoutingVersionCode = '' then
             CreateRoutingIfNotExists(TempRoutingHeader, TempRoutingLine, RoutingNo)
@@ -737,10 +737,10 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         if BOMVersionCode = '' then
             exit;
 
-        if SubVersionSelectionMgmt.CheckBOMExists(BomNo, BOMVersionCode) then
+        if SubcVersionMgmt.CheckBOMExists(BomNo, BOMVersionCode) then
             exit;
 
-        NewBOMVersionCode := NoSeries.GetNextNo(SubVersionSelectionMgmt.GetBOMVersionNoSeries(BomNo));
+        NewBOMVersionCode := NoSeries.GetNextNo(SubcVersionMgmt.GetBOMVersionNoSeries(BomNo));
         SubcTempDataInitializer.UpdateBOMVersionCode(NewBOMVersionCode);
 
         ProductionBOMVersion.Init();
@@ -774,10 +774,10 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         NoSeries: Codeunit "No. Series";
         NewRoutingVersionCode: Code[20];
     begin
-        if SubVersionSelectionMgmt.CheckRoutingExists(RoutingNo, RoutingVersionCode) then
+        if SubcVersionMgmt.CheckRoutingExists(RoutingNo, RoutingVersionCode) then
             exit;
 
-        NewRoutingVersionCode := NoSeries.GetNextNo(SubVersionSelectionMgmt.GetRoutingVersionNoSeries(RoutingNo));
+        NewRoutingVersionCode := NoSeries.GetNextNo(SubcVersionMgmt.GetRoutingVersionNoSeries(RoutingNo));
         SubcTempDataInitializer.UpdateRoutingVersionCode(NewRoutingVersionCode);
 
         RoutingVersion.Init();
@@ -808,7 +808,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         ProductionBOMLine: Record "Production BOM Line";
         NoSeries: Codeunit "No. Series";
     begin
-        if SubVersionSelectionMgmt.CheckBOMExists(BOMNo, '') then
+        if SubcVersionMgmt.CheckBOMExists(BOMNo, '') then
             exit;
 
         ManufacturingSetup.Get();
@@ -839,14 +839,14 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// <returns></returns>
     local procedure CheckCreateProdOrderCompRtng(): Boolean
     var
-        TempBOMLine: Record "Production BOM Line" temporary;
+        TempProductionBOMLine: Record "Production BOM Line" temporary;
         TempRoutingLine: Record "Routing Line" temporary;
         BOMRoutingExists: Boolean;
     begin
-        SubcTempDataInitializer.GetGlobalBOMLines(TempBOMLine);
+        SubcTempDataInitializer.GetGlobalBOMLines(TempProductionBOMLine);
         SubcTempDataInitializer.GetGlobalRoutingLines(TempRoutingLine);
 
-        BOMRoutingExists := SubVersionSelectionMgmt.CheckBOMExists(TempBOMLine."Production BOM No.", '') and SubVersionSelectionMgmt.CheckRoutingExists(TempRoutingLine."Routing No.", '');
+        BOMRoutingExists := SubcVersionMgmt.CheckBOMExists(TempProductionBOMLine."Production BOM No.", '') and SubcVersionMgmt.CheckRoutingExists(TempRoutingLine."Routing No.", '');
         exit(not BOMRoutingExists or ProdCompRoutingModified);
     end;
     /// <summary>
@@ -862,7 +862,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         if not TempRoutingHeader.FindFirst() then
             exit;
 
-        if SubVersionSelectionMgmt.CheckRoutingExists(RoutingNo, '') then
+        if SubcVersionMgmt.CheckRoutingExists(RoutingNo, '') then
             exit;
 
         ManufacturingSetup.Get();
@@ -888,7 +888,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     end;
 
     /// <summary>
-    /// Updates item or stockkeeping unit with BOM and routing numbers based on ApplyBomRtngToSource
+    /// Updates item or stockkeeping unit with BOM and routing numbers based on SubcRtngBOMSourceType
     /// </summary>
     local procedure UpdateSourceWithBOMRoutingNumbers(ItemNo: Code[20]; BOMNo: Code[20]; RoutingNo: Code[20])
     var
@@ -897,15 +897,15 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         LocationCode: Code[10];
         VariantCode: Code[10];
     begin
-        case ApplyBomRtngToSource of
-            ApplyBomRtngToSource::Item:
+        case SubcRtngBOMSourceType of
+            SubcRtngBOMSourceType::Item:
 
                 if Item.Get(ItemNo) and ((Item."Production BOM No." <> BOMNo) or (Item."Routing No." <> RoutingNo)) then begin
                     Item."Production BOM No." := BOMNo;
                     Item."Routing No." := RoutingNo;
                     Item.Modify(true);
                 end;
-            ApplyBomRtngToSource::StockkeepingUnit:
+            SubcRtngBOMSourceType::StockkeepingUnit:
                 begin
                     GetLocationAndVariantForStockkeepingUnit(LocationCode, VariantCode);
                     if StockkeepingUnit.Get(LocationCode, ItemNo, VariantCode) then begin
@@ -925,12 +925,12 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// </summary>
     local procedure GetLocationAndVariantForStockkeepingUnit(var LocationCode: Code[10]; var VariantCode: Code[10])
     var
-        TempPurchLine: Record "Purchase Line" temporary;
+        TempPurchaseLine: Record "Purchase Line" temporary;
     begin
-        SubcTempDataInitializer.GetGlobalPurchLine(TempPurchLine);
-        if TempPurchLine.FindFirst() then begin
-            LocationCode := TempPurchLine."Location Code";
-            VariantCode := TempPurchLine."Variant Code";
+        SubcTempDataInitializer.GetGlobalPurchLine(TempPurchaseLine);
+        if TempPurchaseLine.FindFirst() then begin
+            LocationCode := TempPurchaseLine."Location Code";
+            VariantCode := TempPurchaseLine."Variant Code";
         end;
     end;
 
@@ -961,11 +961,11 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         GetSubManagementSetupCached();
         GetBOMAndRoutingInfoFromTempData(BOMNo, BOMVersionCode, RoutingNo, RoutingVersionCode);
 
-        if (ApplyBomRtngToSource = ApplyBomRtngToSource::Empty) then begin
+        if (SubcRtngBOMSourceType = SubcRtngBOMSourceType::Empty) then begin
             DeleteCreatedBOMIfExists(BOMNo);
             DeleteCreatedRoutingIfExists(RoutingNo);
 
-            if not SubManagementSetup."Always Save Modified Versions" then begin
+            if not SubcManagementSetup."Always Save Modified Versions" then begin
                 DeleteCreatedBOMVersionIfExists(BOMNo, BOMVersionCode);
                 DeleteCreatedRoutingVersionIfExists(RoutingNo, RoutingVersionCode);
             end;
@@ -1062,7 +1062,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     local procedure CreateProdOrderLineFromTemp(var ProdOrderLine: Record "Prod. Order Line"; ProdOrder: Record "Production Order"; TempProdOrderLine: Record "Prod. Order Line" temporary)
     var
         Item: Record Item;
-        CalcProdOrder: Codeunit "Calculate Prod. Order";
+        CalculateProdOrder: Codeunit "Calculate Prod. Order";
         BOMNo, BOMVersionCode, RoutingNo, RoutingVersionCode : Code[20];
     begin
         GetBOMAndRoutingInfoFromTempData(BOMNo, BOMVersionCode, RoutingNo, RoutingVersionCode);
@@ -1094,7 +1094,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         if ProdOrder."Bin Code" <> '' then
             ProdOrderLine.Validate("Bin Code", ProdOrder."Bin Code")
         else
-            CalcProdOrder.SetProdOrderLineBinCodeFromRoute(ProdOrderLine, ProdOrderLine."Location Code", ProdOrderLine."Routing No.");
+            CalculateProdOrder.SetProdOrderLineBinCodeFromRoute(ProdOrderLine, ProdOrderLine."Location Code", ProdOrderLine."Routing No.");
 
         Item.SetLoadFields("Scrap %", "Inventory Posting Group");
         Item.Get(ProdOrder."Source No.");
@@ -1120,20 +1120,20 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// </summary>
     local procedure GetBOMAndRoutingInfoFromTempData(var BOMNo: Code[20]; var BOMVersionCode: Code[20]; var RoutingNo: Code[20]; var RoutingVersionCode: Code[20])
     var
-        TempProdBOMLine: Record "Production BOM Line" temporary;
+        TempProductionBOMLine: Record "Production BOM Line" temporary;
         TempRoutingLine: Record "Routing Line" temporary;
     begin
         SubcTempDataInitializer.GetGlobalRoutingLines(TempRoutingLine);
-        SubcTempDataInitializer.GetGlobalBOMLines(TempProdBOMLine);
+        SubcTempDataInitializer.GetGlobalBOMLines(TempProductionBOMLine);
 
         if TempRoutingLine.FindFirst() then begin
             RoutingNo := TempRoutingLine."Routing No.";
             RoutingVersionCode := TempRoutingLine."Version Code";
         end;
 
-        if TempProdBOMLine.FindFirst() then begin
-            BOMNo := TempProdBOMLine."Production BOM No.";
-            BOMVersionCode := TempProdBOMLine."Version Code";
+        if TempProductionBOMLine.FindFirst() then begin
+            BOMNo := TempProductionBOMLine."Production BOM No.";
+            BOMVersionCode := TempProductionBOMLine."Version Code";
         end;
     end;
 

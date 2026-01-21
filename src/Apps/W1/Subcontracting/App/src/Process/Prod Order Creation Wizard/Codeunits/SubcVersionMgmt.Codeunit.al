@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -15,18 +15,18 @@ codeunit 99001553 "Subc. Version Mgmt."
     procedure ShowBOMVersionSelection(ProductionBOMNo: Code[20]; var SelectedVersion: Code[20]): Boolean
     var
         ProductionBOMVersion: Record "Production BOM Version";
-        ProductionBOMVersions: Page "Prod. BOM Version List";
+        ProdBOMVersionList: Page "Prod. BOM Version List";
     begin
         if ProductionBOMNo = '' then
             exit(false);
 
         ProductionBOMVersion.SetRange("Production BOM No.", ProductionBOMNo);
         ProductionBOMVersion.SetRange(Status, "BOM Status"::Certified);
-        ProductionBOMVersions.SetTableView(ProductionBOMVersion);
-        ProductionBOMVersions.LookupMode(true);
+        ProdBOMVersionList.SetTableView(ProductionBOMVersion);
+        ProdBOMVersionList.LookupMode(true);
 
-        if ProductionBOMVersions.RunModal() = Action::LookupOK then begin
-            ProductionBOMVersions.GetRecord(ProductionBOMVersion);
+        if ProdBOMVersionList.RunModal() = Action::LookupOK then begin
+            ProdBOMVersionList.GetRecord(ProductionBOMVersion);
             SelectedVersion := ProductionBOMVersion."Version Code";
             exit(true);
         end;
@@ -36,19 +36,19 @@ codeunit 99001553 "Subc. Version Mgmt."
 
     procedure ShowRoutingVersionSelection(RoutingNo: Code[20]; var SelectedVersion: Code[20]): Boolean
     var
-        RoutingVersion: Record "RoutingHeader Version";
-        RoutingVersions: Page "RoutingHeader Version List";
+        RoutingVersion: Record "Routing Version";
+        RoutingVersionList: Page "Routing Version List";
     begin
         if RoutingNo = '' then
             exit(false);
 
-        RoutingVersion.SetRange("RoutingHeader No.", RoutingNo);
-        RoutingVersion.SetRange(Status, "RoutingHeader Status"::Certified);
-        RoutingVersions.SetTableView(RoutingVersion);
-        RoutingVersions.LookupMode(true);
+        RoutingVersion.SetRange("Routing No.", RoutingNo);
+        RoutingVersion.SetRange(Status, "Routing Status"::Certified);
+        RoutingVersionList.SetTableView(RoutingVersion);
+        RoutingVersionList.LookupMode(true);
 
-        if RoutingVersions.RunModal() = Action::LookupOK then begin
-            RoutingVersions.GetRecord(RoutingVersion);
+        if RoutingVersionList.RunModal() = Action::LookupOK then begin
+            RoutingVersionList.GetRecord(RoutingVersion);
             SelectedVersion := RoutingVersion."Version Code";
             exit(true);
         end;
@@ -86,13 +86,12 @@ codeunit 99001553 "Subc. Version Mgmt."
 
     procedure ShowRoutingSelection(var SelectedRoutingNo: Code[20]): Boolean
     var
-        RoutingHeader: Record "RoutingHeader Header";
-        RoutingList: Page "RoutingHeader List";
+        RoutingHeader: Record "Routing Header";
+        RoutingList: Page "Routing List";
     begin
-        RoutingHeader.SetRange(Status, "RoutingHeader Status"::Certified);
+        RoutingHeader.SetRange(Status, "Routing Status"::Certified);
         RoutingList.SetTableView(RoutingHeader);
         RoutingList.LookupMode(true);
-
         if RoutingList.RunModal() = Action::LookupOK then begin
             RoutingList.GetRecord(RoutingHeader);
             SelectedRoutingNo := RoutingHeader."No.";
@@ -104,8 +103,8 @@ codeunit 99001553 "Subc. Version Mgmt."
 
     procedure CheckRoutingExists(RoutingNo: Code[20]; RoutingVersionCode: Code[20]): Boolean
     var
-        RoutingHeader: Record "RoutingHeader Header";
-        RoutingVersion: Record "RoutingHeader Version";
+        RoutingHeader: Record "Routing Header";
+        RoutingVersion: Record "Routing Version";
     begin
         if RoutingVersionCode <> '' then begin
             RoutingVersion.SetLoadFields(SystemId);
@@ -118,19 +117,19 @@ codeunit 99001553 "Subc. Version Mgmt."
 
     procedure TestRoutingCertified(RoutingNo: Code[20]; RoutingVersionCode: Code[20])
     var
-        RoutingHeader: Record "RoutingHeader Header";
-        RoutingVersion: Record "RoutingHeader Version";
+        RoutingHeader: Record "Routing Header";
+        RoutingVersion: Record "Routing Version";
     begin
         if RoutingNo = '' then
             exit;
 
         RoutingVersion.SetLoadFields(Status);
         if RoutingVersion.Get(RoutingNo, RoutingVersionCode) then
-            RoutingVersion.TestField(Status, "RoutingHeader Status"::Certified);
+            RoutingVersion.TestField(Status, "Routing Status"::Certified);
 
         RoutingHeader.SetLoadFields(Status);
         if RoutingHeader.Get(RoutingNo) then
-            RoutingHeader.TestField(Status, "RoutingHeader Status"::Certified);
+            RoutingHeader.TestField(Status, "Routing Status"::Certified);
     end;
 
     procedure CheckBOMExists(ProductionBOMNo: Code[20]; BOMVersionCode: Code[20]): Boolean
@@ -176,11 +175,11 @@ codeunit 99001553 "Subc. Version Mgmt."
 
     procedure GetRoutingVersionNoSeries(RoutingNo: Code[20]): Code[20]
     var
-        RoutingHeader: Record "RoutingHeader Header";
+        Routing: Record "Routing Header";
     begin
-        RoutingHeader.SetLoadFields("Version Nos.");
-        RoutingHeader.Get(RoutingNo);
-        RoutingHeader.TestField("Version Nos.");
-        exit(RoutingHeader."Version Nos.");
+        Routing.SetLoadFields("Version Nos.");
+        Routing.Get(RoutingNo);
+        Routing.TestField("Version Nos.");
+        exit(Routing."Version Nos.");
     end;
 }

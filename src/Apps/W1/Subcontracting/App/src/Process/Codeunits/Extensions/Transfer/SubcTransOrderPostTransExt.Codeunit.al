@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -85,26 +85,26 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
     local procedure HandleReservationEntries(var TransLine3: Record "Transfer Line"; var TempItemEntryRelation: Record "Item Entry Relation" temporary)
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
-        OldReservEntry: Record "Reservation Entry";
-        OldReservEntryPair: Record "Reservation Entry";
+        OldReservationEntry: Record "Reservation Entry";
+        OldReservationEntryPair: Record "Reservation Entry";
         MatchFound: Boolean;
     begin
         // Find old reservations: Transfer Line (Inbound) → Prod. Order Component
-        OldReservEntry.SetSourceFilter(Database::"Transfer Line", 1, TransLine3."Document No.", -1, true);
-        OldReservEntry.SetRange("Source Batch Name", '');
-        OldReservEntry.SetRange("Source Prod. Order Line", TransLine3."Derived From Line No.");
-        OldReservEntry.SetRange("Reservation Status", OldReservEntry."Reservation Status"::Reservation);
+        OldReservationEntry.SetSourceFilter(Database::"Transfer Line", 1, TransLine3."Document No.", -1, true);
+        OldReservationEntry.SetRange("Source Batch Name", '');
+        OldReservationEntry.SetRange("Source Prod. Order Line", TransLine3."Derived From Line No.");
+        OldReservationEntry.SetRange("Reservation Status", OldReservationEntry."Reservation Status"::Reservation);
 
-        if not OldReservEntry.FindSet() then
+        if not OldReservationEntry.FindSet() then
             exit;
 
         // Process each old reservation entry
         repeat
             // Get the opposite side of the reservation (should be Prod. Order Component)
-            if not OldReservEntryPair.Get(OldReservEntry."Entry No.", not OldReservEntry.Positive) then
+            if not OldReservationEntryPair.Get(OldReservationEntry."Entry No.", not OldReservationEntry.Positive) then
                 continue;
 
-            if OldReservEntryPair."Source Type" <> Database::"Prod. Order Component" then
+            if OldReservationEntryPair."Source Type" <> Database::"Prod. Order Component" then
                 continue;
 
             // Find matching Item Ledger Entry based on tracking (Serial No, Lot No)
@@ -114,16 +114,16 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
                 repeat
                     if ItemLedgerEntry.Get(TempItemEntryRelation."Item Entry No.") then
                         // Check if tracking matches
-                        if (ItemLedgerEntry."Serial No." = OldReservEntry."Serial No.") and
-                           (ItemLedgerEntry."Lot No." = OldReservEntry."Lot No.") and
-                           (ItemLedgerEntry."Package No." = OldReservEntry."Package No.")
+                        if (ItemLedgerEntry."Serial No." = OldReservationEntry."Serial No.") and
+                           (ItemLedgerEntry."Lot No." = OldReservationEntry."Lot No.") and
+                           (ItemLedgerEntry."Package No." = OldReservationEntry."Package No.")
                         then begin
                             // Create new reservation: Item Ledger Entry → Prod. Order Component
                             CreateReservEntryForProdOrderComp(
                                 ItemLedgerEntry,
-                                OldReservEntryPair,
-                                OldReservEntry,
-                                OldReservEntry."Reservation Status"::Reservation);
+                                OldReservationEntryPair,
+                                OldReservationEntry,
+                                OldReservationEntry."Reservation Status"::Reservation);
 
                             MatchFound := true;
                         end;
@@ -131,10 +131,10 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
 
             // Delete the old reservation pair only if we successfully created a new one
             if MatchFound then begin
-                OldReservEntry.Delete();
-                OldReservEntryPair.Delete();
+                OldReservationEntry.Delete();
+                OldReservationEntryPair.Delete();
             end;
-        until OldReservEntry.Next() = 0;
+        until OldReservationEntry.Next() = 0;
     end;
 
     local procedure HandleItemTrackingSurplus(var TransLine3: Record "Transfer Line"; var TempItemEntryRelation: Record "Item Entry Relation" temporary)
@@ -168,8 +168,8 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
         until TempItemEntryRelation.Next() = 0;
     end;
 
-    local procedure CreateReservEntryForProdOrderComp(var ItemLedgerEntry: Record "Item Ledger Entry"; var OldReservEntryPair: Record "Reservation Entry";
-        var OldReservEntry: Record "Reservation Entry"; ReservationStatus: Enum "Reservation Status")
+    local procedure CreateReservEntryForProdOrderComp(var ItemLedgerEntry: Record "Item Ledger Entry"; var OldReservationEntryPair: Record "Reservation Entry";
+        OldReservationEntry: Record "Reservation Entry"; ReservationStatus: Enum "Reservation Status")
     var
         FromTrackingSpecification: Record "Tracking Specification";
         CreateReservEntry: Codeunit "Create Reserv. Entry";
@@ -179,12 +179,12 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
             Database::"Item Ledger Entry", 0, '', '', 0, ItemLedgerEntry."Entry No.",
             ItemLedgerEntry."Qty. per Unit of Measure",
             0, ItemLedgerEntry.Quantity,
-            OldReservEntry);
+            OldReservationEntry);
 
         // Set up the "From" side (Prod. Order Component)
-        FromTrackingSpecification.SetSourceFromReservEntry(OldReservEntryPair);
-        FromTrackingSpecification."Qty. per Unit of Measure" := OldReservEntryPair."Qty. per Unit of Measure";
-        FromTrackingSpecification.CopyTrackingFromReservEntry(OldReservEntryPair);
+        FromTrackingSpecification.SetSourceFromReservEntry(OldReservationEntryPair);
+        FromTrackingSpecification."Qty. per Unit of Measure" := OldReservationEntryPair."Qty. per Unit of Measure";
+        FromTrackingSpecification.CopyTrackingFromReservEntry(OldReservationEntryPair);
         CreateReservEntry.CreateReservEntryFrom(FromTrackingSpecification);
 
         CreateReservEntry.SetApplyFromEntryNo(ItemLedgerEntry."Entry No.");
@@ -204,20 +204,20 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
     var ItemLedgerEntry: Record "Item Ledger Entry";
     var ProdOrderComponent: Record "Prod. Order Component")
     var
-        DummyReservEntry: Record "Reservation Entry";
+        ReservationEntry: Record "Reservation Entry";
         FromTrackingSpecification: Record "Tracking Specification";
         CreateReservEntry: Codeunit "Create Reserv. Entry";
     begin
         // Initialize dummy reservation entry for the demand side
-        DummyReservEntry.Init();
-        DummyReservEntry."Source Type" := Database::"Prod. Order Component";
-        DummyReservEntry."Source Subtype" := ProdOrderComponent.Status.AsInteger();
-        DummyReservEntry."Source ID" := ProdOrderComponent."Prod. Order No.";
-        DummyReservEntry."Source Prod. Order Line" := ProdOrderComponent."Prod. Order Line No.";
-        DummyReservEntry."Source Ref. No." := ProdOrderComponent."Line No.";
-        DummyReservEntry."Qty. per Unit of Measure" := ProdOrderComponent."Qty. per Unit of Measure";
-        DummyReservEntry.CopyTrackingFromItemLedgEntry(ItemLedgerEntry);
-        DummyReservEntry."Expected Receipt Date" := ProdOrderComponent."Due Date";
+        ReservationEntry.Init();
+        ReservationEntry."Source Type" := Database::"Prod. Order Component";
+        ReservationEntry."Source Subtype" := ProdOrderComponent.Status.AsInteger();
+        ReservationEntry."Source ID" := ProdOrderComponent."Prod. Order No.";
+        ReservationEntry."Source Prod. Order Line" := ProdOrderComponent."Prod. Order Line No.";
+        ReservationEntry."Source Ref. No." := ProdOrderComponent."Line No.";
+        ReservationEntry."Qty. per Unit of Measure" := ProdOrderComponent."Qty. per Unit of Measure";
+        ReservationEntry.CopyTrackingFromItemLedgEntry(ItemLedgerEntry);
+        ReservationEntry."Expected Receipt Date" := ProdOrderComponent."Due Date";
 
         CreateReservEntry.CreateReservEntryFor(
             Database::"Prod. Order Component",
@@ -229,7 +229,7 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
             ProdOrderComponent."Qty. per Unit of Measure",
             0,
             ItemLedgerEntry.Quantity,
-            DummyReservEntry);
+            ReservationEntry);
 
         // Set up the "From" side (Item Ledger Entry - SUPPLY)
         FromTrackingSpecification.InitTrackingSpecification(
@@ -257,11 +257,11 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
 
     local procedure ItemLedgerEntryHasReservation(var ItemLedgerEntry: Record "Item Ledger Entry"): Boolean
     var
-        ReservEntry: Record "Reservation Entry";
+        ReservationEntry: Record "Reservation Entry";
     begin
-        ReservEntry.SetSourceFilter(Database::"Item Ledger Entry", 0, '', ItemLedgerEntry."Entry No.", true);
-        ReservEntry.SetRange("Reservation Status", ReservEntry."Reservation Status"::Reservation);
-        exit(not ReservEntry.IsEmpty());
+        ReservationEntry.SetSourceFilter(Database::"Item Ledger Entry", 0, '', ItemLedgerEntry."Entry No.", true);
+        ReservationEntry.SetRange("Reservation Status", ReservationEntry."Reservation Status"::Reservation);
+        exit(not ReservationEntry.IsEmpty());
     end;
 
     local procedure FindProdOrderComponentsForTransferLine(var TransferLine: Record "Transfer Line"; var ProdOrderComponent: Record "Prod. Order Component"): Boolean
