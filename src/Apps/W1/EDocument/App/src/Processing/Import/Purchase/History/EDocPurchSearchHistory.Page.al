@@ -26,7 +26,7 @@ page 6157 "E-Doc Purch. Search History"
 
                     trigger OnValidate()
                     begin
-                        SearchAndFillPart(DescriptionText);
+                        SearchAndFillPart();
                     end;
 
                 }
@@ -87,7 +87,7 @@ page 6157 "E-Doc Purch. Search History"
     trigger OnOpenPage()
     begin
         if DescriptionText <> '' then
-            SearchAndFillPart(DescriptionText);
+            SearchAndFillPart();
     end;
 
     internal procedure SetDescription(Text: Text)
@@ -95,7 +95,7 @@ page 6157 "E-Doc Purch. Search History"
         DescriptionText := Text;
     end;
 
-    local procedure SearchAndFillPart(DescriptionText: Text)
+    local procedure SearchAndFillPart()
     var
         TempPurchInvLine: Record "Purch. Inv. Line" temporary;
         PurchInvLine: Record "Purch. Inv. Line";

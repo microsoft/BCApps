@@ -17,6 +17,13 @@ tableextension 6130 "E-Doc. Purch. Inv. Line" extends "Purch. Inv. Line"
 
     }
 
+    keys
+    {
+        key(KeySearch; "Search Similarity Score")
+        {
+        }
+    }
+
     internal procedure GetStyle() Result: Text
     begin
         if Rec."Search Similarity Score" < 0.5 then
