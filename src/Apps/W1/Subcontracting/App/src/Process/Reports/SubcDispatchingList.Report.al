@@ -751,10 +751,10 @@ report 99001504 "Subc. Dispatching List"
             column(YourRef_PurchHeader; "Your Reference")
             {
             }
-            dataitem("Purchase PurchaseLine"; "Purchase PurchaseLine")
+            dataitem("PurchaseLine"; "Purchase Line")
             {
                 DataItemLink = "Document Type" = field("Document Type"), "Document No." = field("No.");
-                DataItemTableView = sorting("Document Type", "Document No.", "PurchaseLine No.") where("Prod. Order No." = filter(<> ''));
+                DataItemTableView = sorting("Document Type", "Document No.", "Line No.") where("Prod. Order No." = filter(<> ''));
                 column(AllowInvDisc_PurchLine; "Allow Invoice Disc.")
                 {
                 }
@@ -784,13 +784,13 @@ report 99001504 "Subc. Dispatching List"
                 column(ExpectedReceiptDateLbl; ExpectedReceiptDateLbl)
                 {
                 }
-                column(SubcDescriptionCaption; "Purchase PurchaseLine".FieldCaption(Description))
+                column(SubcDescriptionCaption; "PurchaseLine".FieldCaption(Description))
                 {
                 }
                 column(SubcExpectedReceiptDate; Format("Expected Receipt Date", 0, LineDateFormatExpression))
                 {
                 }
-                column(SubcLineDescription2; "Purchase PurchaseLine"."Description 2")
+                column(SubcLineDescription2; "PurchaseLine"."Description 2")
                 {
                 }
                 column(SubcLineDisc; LineDiscountPctText)
@@ -799,7 +799,7 @@ report 99001504 "Subc. Dispatching List"
                 column(SubcLineMark; LineMark)
                 {
                 }
-                column(SubcNoCaption; "Purchase PurchaseLine".FieldCaption("No."))
+                column(SubcNoCaption; "PurchaseLine".FieldCaption("No."))
                 {
                 }
                 column(SubcPosNoText; PosNoText)
@@ -808,13 +808,13 @@ report 99001504 "Subc. Dispatching List"
                 column(SubcPUoM; PricingUoMCode)
                 {
                 }
-                column(SubcPurchQty; "Purchase PurchaseLine".Quantity)
+                column(SubcPurchQty; "PurchaseLine".Quantity)
                 {
                 }
                 column(SubcPUS; PriceUnit)
                 {
                 }
-                column(SubcQuantityCaption; "Purchase PurchaseLine".FieldCaption(Quantity))
+                column(SubcQuantityCaption; "PurchaseLine".FieldCaption(Quantity))
                 {
                 }
                 column(SubcSalesLineLineAmount; LineAmount)
@@ -852,10 +852,10 @@ report 99001504 "Subc. Dispatching List"
                 column(LineAmt_PurchLine; FormattedLineAmount)
                 {
                 }
-                column(LineDisc_PurchLine; "PurchaseLine Discount %")
+                column(LineDisc_PurchLine; "Line Discount %")
                 {
                 }
-                column(LineNo_PurchLine; "PurchaseLine No.")
+                column(LineNo_PurchLine; "Line No.")
                 {
                 }
                 column(No_PurchLine; ItemNo)
@@ -876,21 +876,21 @@ report 99001504 "Subc. Dispatching List"
                 column(PromisedReceiptDateLbl; PromisedReceiptDateLbl)
                 {
                 }
-                column(Purchase_Line_Operation_No_; "Purchase PurchaseLine"."Subc. Operation No.")
+                column(Purchase_Line_Operation_No_; "PurchaseLine"."Subc. Operation No.")
                 {
                 }
-                column(Purchase_Line_Outstanding_Qty; "Purchase PurchaseLine"."Outstanding Quantity")
+                column(Purchase_Line_Outstanding_Qty; "PurchaseLine"."Outstanding Quantity")
                 { }
-                column(Purchase_Line_Prod__Order_Line_No_; "Purchase PurchaseLine"."Subc. Prod. Order PurchaseLine No.")
+                column(Purchase_Line_Prod__Order_Line_No_; "PurchaseLine"."Subc. Prod. Order Line No.")
                 {
                 }
-                column(Purchase_Line_Prod__Order_No_; "Purchase PurchaseLine"."Subc. Prod. Order No.")
+                column(Purchase_Line_Prod__Order_No_; "PurchaseLine"."Subc. Prod. Order No.")
                 {
                 }
-                column(Purchase_Line_Routing_No_; "Purchase PurchaseLine"."Subc. Routing No.")
+                column(Purchase_Line_Routing_No_; "PurchaseLine"."Subc. Routing No.")
                 {
                 }
-                column(Purchase_Line_Routing_Reference_No_; "Purchase PurchaseLine"."Subc. Rtng Reference No.")
+                column(Purchase_Line_Routing_Reference_No_; "PurchaseLine"."Subc. Rtng Reference No.")
                 {
                 }
                 column(PurchLineLineDisc_Lbl; PurchLineLineDiscCaptionLbl)
@@ -908,7 +908,7 @@ report 99001504 "Subc. Dispatching List"
                 column(RequestedReceiptDateLbl; RequestedReceiptDateLbl)
                 {
                 }
-                column(TotalInclVAT; "PurchaseLine Amount" - "Inv. Discount Amount")
+                column(TotalInclVAT; "Line Amount" - "Inv. Discount Amount")
                 {
                     AutoFormatExpression = "Purchase Header"."Currency Code";
                     AutoFormatType = 1;
@@ -943,12 +943,12 @@ report 99001504 "Subc. Dispatching List"
                 column(VendorItemNo_PurchLine; "Vendor Item No.")
                 {
                 }
-                dataitem("Prod. Order PurchaseLine"; "Prod. Order PurchaseLine")
+                dataitem("Prod. Order PurchaseLine"; "Prod. Order Line")
                 {
-                    DataItemLink = "Prod. Order No." = field("Prod. Order No."), "PurchaseLine No." = field("Prod. Order PurchaseLine No.");
-                    DataItemTableView = sorting(Status, "Prod. Order No.", "PurchaseLine No.") where(Status = const(Released));
+                    DataItemLink = "Prod. Order No." = field("Prod. Order No."), "Line No." = field("Prod. Order Line No.");
+                    DataItemTableView = sorting(Status, "Prod. Order No.", "Line No.") where(Status = const(Released));
                 }
-                dataitem("Prod. Order Routing PurchaseLine"; "Prod. Order Routing PurchaseLine")
+                dataitem("Prod. Order Routing PurchaseLine"; "Prod. Order Routing Line")
                 {
                     DataItemLink = "Prod. Order No." = field("Prod. Order No."), "Routing No." = field("Routing No."), "Routing Reference No." = field("Routing Reference No."), "Operation No." = field("Operation No.");
                     DataItemTableView = sorting(Status, "Prod. Order No.", "Routing Reference No.", "Routing No.", "Operation No.") where(Status = const(Released));
@@ -1022,8 +1022,8 @@ report 99001504 "Subc. Dispatching List"
                     { }
                     dataitem("Prod. Order Component"; "Prod. Order Component")
                     {
-                        DataItemLink = Status = field(Status), "Prod. Order No." = field("Prod. Order No."), "Prod. Order PurchaseLine No." = field("Routing Reference No."), "Routing Link Code" = field("Routing Link Code");
-                        DataItemTableView = sorting(Status, "Prod. Order No.", "Prod. Order PurchaseLine No.", "PurchaseLine No.");
+                        DataItemLink = Status = field(Status), "Prod. Order No." = field("Prod. Order No."), "Prod. Order Line No." = field("Routing Reference No."), "Routing Link Code" = field("Routing Link Code");
+                        DataItemTableView = sorting(Status, "Prod. Order No.", "Prod. Order Line No.", "Line No.");
                         column(Expected_Qty___Base______Qty__transf__to_Subcontractor______Qty__in_Transit__Base__; "Expected Qty. (Base)" - "Qty. transf. to Subcontr" - "Qty. in Transit (Base)")
                         {
                             DecimalPlaces = 0 : 5;
@@ -1052,10 +1052,10 @@ report 99001504 "Subc. Dispatching List"
                         column(Prod__Order_Component_Description; Description)
                         {
                         }
-                        column(Prod__Order_Component_Line_No_; "PurchaseLine No.")
+                        column(Prod__Order_Component_Line_No_; "Line No.")
                         {
                         }
-                        column(Prod__Order_Component_Prod__Order_Line_No_; "Prod. Order PurchaseLine No.")
+                        column(Prod__Order_Component_Prod__Order_Line_No_; "Prod. Order Line No.")
                         {
                         }
                         column(Prod__Order_Component_Prod__Order_No_; "Prod. Order No.")
@@ -1076,7 +1076,7 @@ report 99001504 "Subc. Dispatching List"
                 trigger OnAfterGetRecord()
                 begin
                     AllowInvDisctxt := Format("Allow Invoice Disc.");
-                    TotalSubTotal += "PurchaseLine Amount";
+                    TotalSubTotal += "Line Amount";
                     TotalInvoiceDiscountAmount -= "Inv. Discount Amount";
                     TotalAmount += Amount;
 
@@ -1088,9 +1088,9 @@ report 99001504 "Subc. Dispatching List"
                     if "Item Reference No." <> '' then
                         ItemNo := "Item Reference No.";
 
-                    FormatDocument.SetPurchaseLine("Purchase PurchaseLine", FormattedQuanitity, FormattedDirectUnitCost, FormattedVATPct, FormattedLineAmount);
+                    FormatDocument.SetPurchaseLine("PurchaseLine", FormattedQuanitity, FormattedDirectUnitCost, FormattedVATPct, FormattedLineAmount);
 
-                    BlankZero("Purchase PurchaseLine");
+                    BlankZero("PurchaseLine");
                 end;
             }
             dataitem(Totals; "Integer")
@@ -1163,7 +1163,7 @@ report 99001504 "Subc. Dispatching List"
                 }
                 trigger OnAfterGetRecord()
                 var
-                    TempPrepmtPurchLine: Record "Purchase PurchaseLine" temporary;
+                    TempPrepmtPurchLine: Record "Purchase Line" temporary;
                 begin
                     Clear(TempPurchLine);
                     Clear(PurchPost);
@@ -1218,7 +1218,7 @@ report 99001504 "Subc. Dispatching List"
                     AutoFormatExpression = "Purchase Header"."Currency Code";
                     AutoFormatType = 1;
                 }
-                column(VATAmtLineLineAmt; TempVATAmountLine."PurchaseLine Amount")
+                column(VATAmtLineLineAmt; TempVATAmountLine."Line Amount")
                 {
                     AutoFormatExpression = "Purchase Header"."Currency Code";
                     AutoFormatType = 1;
@@ -1369,7 +1369,7 @@ report 99001504 "Subc. Dispatching List"
             dataitem(PrepmtVATCounter; "Integer")
             {
                 DataItemTableView = sorting(Number);
-                column(PrepmtVATAmtLineLineAmt; TempPrepmtVATAmountLine."PurchaseLine Amount")
+                column(PrepmtVATAmtLineLineAmt; TempPrepmtVATAmountLine."Line Amount")
                 {
                     AutoFormatExpression = "Purchase Header"."Currency Code";
                     AutoFormatType = 1;
@@ -1417,7 +1417,7 @@ report 99001504 "Subc. Dispatching List"
                 {
                 }
             }
-            dataitem(SubcVATAmountLine; "VAT Amount PurchaseLine")
+            dataitem(SubcVATAmountLine; "VAT Amount Line")
             {
                 DataItemTableView = sorting("VAT Identifier", "VAT Calculation Type", "Tax Group Code", "Use Tax", Positive);
                 UseTemporary = true;
@@ -1437,12 +1437,12 @@ report 99001504 "Subc. Dispatching List"
                 column(SubcInvoiceDiscountBaseAmount_VATAmountLine_Lbl; FieldCaption("Inv. Disc. Base Amount"))
                 {
                 }
-                column(SubcLineAmount_VatAmountLine; "PurchaseLine Amount")
+                column(SubcLineAmount_VatAmountLine; "Line Amount")
                 {
                     AutoFormatExpression = "Purchase Header"."Currency Code";
                     AutoFormatType = 1;
                 }
-                column(SubcLineAmount_VatAmountLine_Lbl; FieldCaption("PurchaseLine Amount"))
+                column(SubcLineAmount_VatAmountLine_Lbl; FieldCaption("Line Amount"))
                 {
                 }
                 column(SubcNoOfVATIdentifiers; Count)
@@ -1517,8 +1517,8 @@ report 99001504 "Subc. Dispatching List"
 
                 if not SubcVATAmountLine.IsEmpty() then
                     SubcVATAmountLine.DeleteAll();
-                "Purchase PurchaseLine".CalcVATAmountLines(0, "Purchase Header", "Purchase PurchaseLine", SubcVATAmountLine);
-                "Purchase PurchaseLine".UpdateVATOnLines(0, "Purchase Header", "Purchase PurchaseLine", SubcVATAmountLine);
+                "PurchaseLine".CalcVATAmountLines(0, "Purchase Header", "PurchaseLine", SubcVATAmountLine);
+                "PurchaseLine".UpdateVATOnLines(0, "Purchase Header", "PurchaseLine", SubcVATAmountLine);
                 ShowShippingAddr := ("Purchase Header"."Buy-from Vendor No." <> "Purchase Header"."Sell-to Customer No.");
                 if not ShowShippingAddr then
                     Clear(ShipToAddr);
@@ -1654,17 +1654,17 @@ report 99001504 "Subc. Dispatching List"
         GLSetup: Record "General Ledger Setup";
         PaymentTerms: Record "Payment Terms";
         PrepmtPaymentTerms: Record "Payment Terms";
-        TempPrepaymentInvLineBuffer: Record "Prepayment Inv. PurchaseLine Buffer" temporary;
-        TempPurchLine: Record "Purchase PurchaseLine" temporary;
+        TempPrepaymentInvLineBuffer: Record "Prepayment Inv. Line Buffer" temporary;
+        TempPurchLine: Record "Purchase Line" temporary;
         PurchSetup: Record "Purchases & Payables Setup";
         RespCenter: Record "Responsibility Center";
         SalesSetup: Record "Sales & Receivables Setup";
         SalespersonPurchaser: Record "Salesperson/Purchaser";
         TempShipToAddr: Record "Ship-to Address" temporary;
         ShipmentMethod: Record "Shipment Method";
-        TempPrepmtVATAmountLine: Record "VAT Amount PurchaseLine" temporary;
-        TempPrePmtVATAmountLineDeduct: Record "VAT Amount PurchaseLine" temporary;
-        TempVATAmountLine: Record "VAT Amount PurchaseLine" temporary;
+        TempPrepmtVATAmountLine: Record "VAT Amount Line" temporary;
+        TempPrePmtVATAmountLineDeduct: Record "VAT Amount Line" temporary;
+        TempVATAmountLine: Record "VAT Amount Line" temporary;
         VATClause2: Record "VAT Clause";
         Vendor: Record Vendor;
         ArchiveManagement: Codeunit ArchiveManagement;
@@ -1914,20 +1914,20 @@ report 99001504 "Subc. Dispatching List"
         ShouldLogInteraction := SegManagement.FindInteractionTemplateCode("Interaction Log Entry Document Type"::"Purch. Ord.") <> '';
     end;
 
-    local procedure BlankZero(PurchaseLine: Record "Purchase PurchaseLine")
+    local procedure BlankZero(PurchaseLine: Record "Purchase Line")
     var
         LineDiscountPctPlaceholderLbl: Label '%1%',
             Locked = true;
     begin
-        if PurchaseLine."PurchaseLine Discount %" = 0 then
+        if PurchaseLine."Line Discount %" = 0 then
             LineDiscountPctText := ''
         else
-            LineDiscountPctText := StrSubstNo(LineDiscountPctPlaceholderLbl, Round(PurchaseLine."PurchaseLine Discount %", 0.1));
+            LineDiscountPctText := StrSubstNo(LineDiscountPctPlaceholderLbl, Round(PurchaseLine."Line Discount %", 0.1));
 
-        if PurchaseLine."PurchaseLine Amount" = 0 then
+        if PurchaseLine."Line Amount" = 0 then
             LineAmount := ''
         else
-            LineAmount := Format(PurchaseLine."PurchaseLine Amount", 0, DecimalAmountFormatExpression);
+            LineAmount := Format(PurchaseLine."Line Amount", 0, DecimalAmountFormatExpression);
 
         if PurchaseLine."Unit Cost" = 0 then
             UnitCost := ''
