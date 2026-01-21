@@ -1,3 +1,12 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
+
+using Microsoft.Purchases.History;
+using System.Search;
+
 page 6157 "E-Doc Purch. Search History"
 {
     PageType = List;
@@ -118,20 +127,6 @@ page 6157 "E-Doc Purch. Search History"
                 if Rec.Insert() then;
             until TempResultTable.Next() = 0;
 
-        // SetLines(TempPurchInvLine);
     end;
-
-    // local procedure SetLines(var PurchInvLine: Record "Purch. Inv. Line")
-    // begin
-    //     Rec.DeleteAll();
-    //     if PurchInvLine.FindSet() then
-    //         repeat
-    //             Rec := PurchInvLine;
-    //             if Rec.Insert() then;
-    //         until PurchInvLine.Next() = 0;
-    //     if Rec.FindSet() then;
-    // end;
-
-
 
 }

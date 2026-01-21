@@ -10,6 +10,8 @@ tableextension 6130 "E-Doc. Purch. Inv. Line" extends "Purch. Inv. Line"
     {
         field(6101; "Search Similarity Score"; Decimal)
         {
+            AutoFormatExpression = '';
+            AutoFormatType = 1;
             Caption = 'Search Similarity Score';
             Editable = false;
             DataClassification = SystemMetadata;
