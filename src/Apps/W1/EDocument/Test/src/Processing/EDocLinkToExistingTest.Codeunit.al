@@ -415,7 +415,7 @@ codeunit 139886 "E-Doc Link To Existing Test"
 
     [Test]
     [HandlerFunctions('PurchaseInvoicesModalPageHandler,ConfirmHandler,PIModalPageHandler')]
-    procedure LinkToExisting_UnlinksDocumentCreatedFromEDoc()
+    procedure LinkToExisting_DeletesDocumentCreatedFromEDoc()
     var
         EDocument: Record "E-Document";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
@@ -426,10 +426,9 @@ codeunit 139886 "E-Doc Link To Existing Test"
         EDocImport: Codeunit "E-Doc. Import";
         EDocPurchaseDraftTestPage: TestPage "E-Document Purchase Draft";
         CreatedDocNo: Code[20];
-        EmptyGuid: Guid;
     begin
         // [SCENARIO] When linking to an existing document after a PI was already created from e-doc:
-        // - The originally created PI (created from e-doc) is unlinked but not deleted
+        // - The originally created PI (created from e-doc) is deleted
         // - The existing document is linked
         Initialize();
         SetupICPartner(ICPartner);
@@ -466,9 +465,8 @@ codeunit 139886 "E-Doc Link To Existing Test"
         EDocPurchaseDraftTestPage.LinkToExistingDocument.Invoke();
         EDocPurchaseDraftTestPage.Close();
 
-        // [THEN] The originally created PI is unlinked but still exists
-        Assert.IsTrue(CreatedPurchaseHeader.Get(CreatedPurchaseHeader."Document Type"::Invoice, CreatedDocNo), 'The PI created from e-doc should still exist');
-        Assert.AreEqual(EmptyGuid, CreatedPurchaseHeader."E-Document Link", 'The PI created from e-doc should be unlinked');
+        // [THEN] The originally created PI is deleted
+        Assert.IsFalse(CreatedPurchaseHeader.Get(CreatedPurchaseHeader."Document Type"::Invoice, CreatedDocNo), 'The PI created from e-doc should be deleted');
 
         // [THEN] The existing document is now linked
         ExistingPurchaseHeader.Get(ExistingPurchaseHeader."Document Type", ExistingPurchaseHeader."No.");

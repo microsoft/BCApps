@@ -355,7 +355,6 @@ codeunit 139883 "E-Doc Process Test"
         Assert.AreEqual(Enum::"Purchase Document Type"::Order, PurchaseDocType, 'Purchase Order should map to Order');
     end;
 
-    #endregion
 
     #region HistoricalMatchingTest
 

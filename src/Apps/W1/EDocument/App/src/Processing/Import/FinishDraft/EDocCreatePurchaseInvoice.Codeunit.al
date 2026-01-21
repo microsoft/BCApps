@@ -97,7 +97,11 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
 
         PurchaseHeader.TestField("Document Type", "Purchase Document Type"::Invoice);
         Clear(PurchaseHeader."E-Document Link");
-        PurchaseHeader.Modify();
+
+        if PurchaseHeader."Created from E-Document" then
+            PurchaseHeader.Delete(true)
+        else
+            PurchaseHeader.Modify();
     end;
 
     procedure CreatePurchaseInvoice(EDocument: Record "E-Document"): Record "Purchase Header"
@@ -271,5 +275,4 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         if PurchaseLine.FindLast() then
             exit(PurchaseLine."Line No.");
     end;
-
 }
