@@ -18,7 +18,7 @@ codeunit 30386 "Shpfy GQL PaymentTransactions" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Text.</returns>
     procedure GetGraphQL(): Text
     begin
-        exit('{"query":"{ shopifyPaymentsAccount { balanceTransactions(first: 100, query: \"id:>{{SinceId}}\") { edges { node { id test associatedPayout { id } amount { amount currencyCode } fee { amount currencyCode } net { amount currencyCode } sourceId sourceOrderTransactionId transactionDate type associatedOrder { id } } cursor } pageInfo { hasNextPage } } } }"}');
+        exit('{"query":"{ shopifyPaymentsAccount { balanceTransactions(first: 100, query: \"id:>={{SinceId}}\") { edges { node { id test associatedPayout { id } amount { amount currencyCode } fee { amount currencyCode } net { amount currencyCode } sourceId sourceOrderTransactionId transactionDate type associatedOrder { id } } cursor } pageInfo { hasNextPage } } } }"}');
     end;
 
     /// <summary>

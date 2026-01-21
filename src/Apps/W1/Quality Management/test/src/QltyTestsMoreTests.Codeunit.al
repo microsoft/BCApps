@@ -1091,7 +1091,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         JobQueueEntries.Trap();
 
         // [WHEN] Lookup is invoked on the Schedule Group field
-        QltyInspectionGenRules."Schedule Group".Lookup();
+        QltyInspectionGenRules."Schedule Group".Drilldown();
         JobQueueEntries.Close();
         QltyInspectionGenRules.Close();
 
