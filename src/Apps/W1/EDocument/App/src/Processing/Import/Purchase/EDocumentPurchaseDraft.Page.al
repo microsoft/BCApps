@@ -289,7 +289,7 @@ page 6181 "E-Document Purchase Draft"
                 action(CreateDocument)
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Create purchase document';
+                    Caption = 'Finalize draft';
                     ToolTip = 'Process the electronic document into a business central document';
                     Image = CreateDocument;
                     Visible = ShowFinalizeDraftAction;
@@ -431,6 +431,7 @@ page 6181 "E-Document Purchase Draft"
                 Caption = 'Process';
                 actionref(Promoted_CreateDocument; CreateDocument)
                 {
+                    Visible = false;
                 }
                 actionref(Promoted_AnalyseDocument; AnalyzeDocument)
                 {
