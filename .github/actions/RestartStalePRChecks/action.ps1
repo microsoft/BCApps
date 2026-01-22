@@ -12,7 +12,7 @@ Set-StrictMode -Version 2.0
 Write-Host "Fetching open pull requests..."
 
 # Get all open pull requests
-$prs = gh pr list --state open --json number,headRefName,title,url --limit 1000 | ConvertFrom-Json
+$prs = gh pr list --state open --json number,title,url --limit 1000 | ConvertFrom-Json
 
 Write-Host "Found $($prs.Count) open pull requests"
 
@@ -47,16 +47,11 @@ foreach ($pr in $prs) {
         continue
     }
 
-    Write-Host "  Check state: $($statusCheck.state), Bucket: $($statusCheck.bucket)"
+    Write-Host "  Check state: $($statusCheck.state)"
 
     # Check if the check is completed and successful
     if ($statusCheck.state -ne "SUCCESS") {
         Write-Host "  Check state is '$($statusCheck.state)', not 'SUCCESS', skipping"
-        continue
-    }
-
-    if ($statusCheck.bucket -ne "pass") {
-        Write-Host "  Check bucket is '$($statusCheck.bucket)', not 'pass', skipping"
         continue
     }
 
