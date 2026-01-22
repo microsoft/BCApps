@@ -190,4 +190,24 @@ codeunit 8350 "MCP Config"
     begin
         MCPConfigImplementation.AllowBoundActions(ToolSystemId, Allow);
     end;
+
+    /// <summary>
+    /// Creates a new MCP Entra Application with the specified name, description, and client ID.
+    /// </summary>
+    /// <param name="Name">The friendly name for the Entra application registration.</param>
+    /// <param name="Description">The description for the Entra application registration.</param>
+    /// <param name="ClientId">The Entra application (client) ID.</param>
+    procedure CreateEntraApplication(Name: Text[100]; Description: Text[250]; ClientId: Guid)
+    begin
+        MCPConfigImplementation.CreateEntraApplication(Name, Description, ClientId);
+    end;
+
+    /// <summary>
+    /// Deletes the specified MCP Entra Application.
+    /// </summary>
+    /// <param name="EntraApplicationId">The SystemId (GUID) of the Entra application to delete.</param>
+    procedure DeleteEntraApplication(EntraApplicationId: Guid)
+    begin
+        MCPConfigImplementation.DeleteEntraApplication(EntraApplicationId);
+    end;
 }
