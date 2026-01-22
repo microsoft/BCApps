@@ -68,7 +68,6 @@ foreach ($pr in $prs) {
     Write-Host "  Status check is older than $thresholdHours hours, requesting rerun..."
 
     # Try to rerequest the check with retries
-    $success = $false
     for ($retry = 0; $retry -lt $maxRetries; $retry++) {
         try {
             if ($retry -gt 0) {
@@ -87,7 +86,6 @@ foreach ($pr in $prs) {
                     gh run rerun $runId -R $env:GITHUB_REPOSITORY | Out-Null
                     Write-Host "  ✓ Successfully triggered re-run of workflow (run ID: $runId)"
                     $restarted++
-                    $success = $true
                     break
                 }
                 else {
@@ -125,3 +123,9 @@ Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "## PR Status Check Restart Su
 Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ""
 Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- ✓ Successfully restarted: **$restarted** workflow run(s)"
 Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- ✗ Failed attempts: **$failed**"
+
+# Exit with error if there were any failures
+if ($failed -gt 0) {
+    Write-Host "::error::Failed to process $failed PR(s)"
+    exit 1
+}
