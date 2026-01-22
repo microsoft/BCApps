@@ -26,7 +26,6 @@ using System.Utilities;
 
 codeunit 6108 "E-Document Processing"
 {
-    Access = Internal;
     Permissions = tabledata "E-Document Service Status" = rim,
                 tabledata "E-Document" = m;
 

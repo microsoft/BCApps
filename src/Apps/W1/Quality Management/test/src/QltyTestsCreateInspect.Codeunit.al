@@ -2348,7 +2348,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionUtility.EnsureSetupExists();
         // [GIVEN] The quality management setup is configured to show Automatic and manually created inspections
         QltyManagementSetup.Get();
-        QltyManagementSetup."Show Inspection Behavior" := QltyManagementSetup."Show Inspection Behavior"::"Automatic and manually created inspections";
+        QltyManagementSetup."When to show inspections" := QltyManagementSetup."When to show inspections"::"Automatic and manually created inspections";
         QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::OnProductionOutputPost;
         QltyManagementSetup.Modify();
         // [GIVEN] A quality inspection template with 3 inspections and a prioritized generation rule for Prod. Order Routing Line are created
@@ -2378,7 +2378,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         AfterCount := QltyInspectionHeader.Count();
 
         QltyInspectionGenRule.Delete();
-        QltyManagementSetup."Show Inspection Behavior" := QltyManagementSetup."Show Inspection Behavior"::"Do not show created inspections";
+        QltyManagementSetup."When to show inspections" := QltyManagementSetup."When to show inspections"::"Do not show created inspections";
         QltyManagementSetup.Modify();
 
         // [THEN] 3 inspections are created (one for each production order)
@@ -2414,7 +2414,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionUtility.EnsureSetupExists();
         // [GIVEN] The quality management setup is configured to show Automatic and manually created inspections
         QltyManagementSetup.Get();
-        QltyManagementSetup."Show Inspection Behavior" := QltyManagementSetup."Show Inspection Behavior"::"Automatic and manually created inspections";
+        QltyManagementSetup."When to show inspections" := QltyManagementSetup."When to show inspections"::"Automatic and manually created inspections";
         QltyManagementSetup.Modify();
         // [GIVEN] A quality inspection template with 3 inspections and a prioritized generation rule for Prod. Order Routing Line are created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -2442,7 +2442,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         AfterCount := QltyInspectionHeader.Count();
 
         QltyInspectionGenRule.Delete();
-        QltyManagementSetup."Show Inspection Behavior" := QltyManagementSetup."Show Inspection Behavior"::"Do not show created inspections";
+        QltyManagementSetup."When to show inspections" := QltyManagementSetup."When to show inspections"::"Do not show created inspections";
         QltyManagementSetup.Modify();
 
         // [THEN] 1 inspection is created
