@@ -15,7 +15,7 @@ enum 30179 "Shpfy Incl. in Product Sync"
 
     value(0; " ")
     {
-        Caption = ' ';
+        Caption = ' ', Locked = true;
     }
     value(1; "As Option")
     {

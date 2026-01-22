@@ -1247,7 +1247,7 @@ codeunit 30178 "Shpfy Product Export"
         ItemWithoutRequiredAttributeErr: Label 'Item %1 cannot be added as a product variant because it does not have required attributes.', Comment = '%1 = Item No.';
         ItemWithoutRequiredAttributeValueErr: Label 'Item %1 cannot be added as a product variant because it does not have a value for the required attributes.', Comment = '%1 = Item No.';
         ItemVariantWithoutRequiredAttributeErr: Label 'Item Variant %1 cannot be added as a product variant because it does not have required attributes.', Comment = '%1 = Item No.';
-        ItemVariantWithoutRequiredAttributeValueErr: Label 'Item Variant%1 cannot be added as a product variant because it does not have a value for the required attributes.', Comment = '%1 = Item No.';
+        ItemVariantWithoutRequiredAttributeValueErr: Label 'Item Variant %1 cannot be added as a product variant because it does not have a value for the required attributes.', Comment = '%1 = Item No.';
     begin
         ItemVariant.SetRange("Item No.", Item."No.");
         ItemVariant.SetRange("Code", ItemVariantCode);
