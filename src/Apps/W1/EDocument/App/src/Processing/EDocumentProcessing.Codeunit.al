@@ -688,18 +688,6 @@ codeunit 6108 "E-Document Processing"
         exit(RecCaption);
     end;
 
-    procedure GetPurchaseDocTypeFilter(EDocumentType: Enum "E-Document Type") PurchaseDocType: Enum "Purchase Document Type"
-    begin
-        case EDocumentType of
-            EDocumentType::"Purchase Invoice":
-                exit(PurchaseDocType::Invoice);
-            EDocumentType::"Purchase Credit Memo":
-                exit(PurchaseDocType::"Credit Memo");
-            EDocumentType::"Purchase Order":
-                exit(PurchaseDocType::Order);
-        end;
-    end;
-
     internal procedure ErrorIfNotAllowedToLinkToExistingDoc(EDocument: Record "E-Document"; EDocumentPurchaseHeader: Record "E-Document Purchase Header")
     var
         Vendor: Record Vendor;

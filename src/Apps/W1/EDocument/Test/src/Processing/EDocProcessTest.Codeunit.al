@@ -332,30 +332,6 @@ codeunit 139883 "E-Doc Process Test"
         Assert.RecordIsEmpty(PurchaseHeader);
     end;
 
-
-    [Test]
-    procedure GetPurchaseDocTypeFilterReturnsCorrectType()
-    var
-        EDocumentProcessing: Codeunit "E-Document Processing";
-        PurchaseDocType: Enum "Purchase Document Type";
-    begin
-        // [SCENARIO] GetPurchaseDocTypeFilter correctly maps E-Document types to Purchase Document types
-        Initialize(Enum::"Service Integration"::"Mock");
-
-        // [WHEN/THEN] Purchase Invoice maps to Invoice
-        PurchaseDocType := EDocumentProcessing.GetPurchaseDocTypeFilter(Enum::"E-Document Type"::"Purchase Invoice");
-        Assert.AreEqual(Enum::"Purchase Document Type"::Invoice, PurchaseDocType, 'Purchase Invoice should map to Invoice');
-
-        // [WHEN/THEN] Purchase Credit Memo maps to Credit Memo
-        PurchaseDocType := EDocumentProcessing.GetPurchaseDocTypeFilter(Enum::"E-Document Type"::"Purchase Credit Memo");
-        Assert.AreEqual(Enum::"Purchase Document Type"::"Credit Memo", PurchaseDocType, 'Purchase Credit Memo should map to Credit Memo');
-
-        // [WHEN/THEN] Purchase Order maps to Order
-        PurchaseDocType := EDocumentProcessing.GetPurchaseDocTypeFilter(Enum::"E-Document Type"::"Purchase Order");
-        Assert.AreEqual(Enum::"Purchase Document Type"::Order, PurchaseDocType, 'Purchase Order should map to Order');
-    end;
-
-
     #region HistoricalMatchingTest
 
     [Test]
