@@ -36,7 +36,7 @@ page 6181 "E-Document Purchase Draft"
 
                 field(Record; RecordLinkTxt)
                 {
-                    Caption = 'Finalized Document';
+                    Caption = 'Purchase Document';
                     Editable = false;
                     Importance = Promoted;
                     ToolTip = 'Specifies the record, document, journal line, or ledger entry, that is linked to the electronic document.';
