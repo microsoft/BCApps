@@ -77,12 +77,12 @@ page 20438 "Qlty. Management Setup Wizard"
                 group(DemoDataIntroduction)
                 {
                     Caption = 'Demo data for Quality Management';
-                    InstructionalText = 'The Quality Management application includes demo data available through the Contoso Coffee Demo Dataset application.';
+                    InstructionalText = 'Follow the instructions below to install demo data for Quality Management. Use this data to explore quality inspection templates, inspection rules, and sample inspections';
                 }
                 group(DemoDataInstructions)
                 {
                     Caption = 'Install demo data';
-                    InstructionalText = 'To install demo data, go to the Contoso Demo Tool page and select the Quality Management module.';
+                    InstructionalText = 'To use the demo data, make sure the Quality Management Demo Data application is installed.';
                 }
             }
             group(SettingsFor_StepWhatAreYouMakingQltyInspectionsFor)
