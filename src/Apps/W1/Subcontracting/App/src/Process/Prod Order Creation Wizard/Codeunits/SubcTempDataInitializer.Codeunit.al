@@ -485,8 +485,8 @@ codeunit 99001552 "Subc. Temp Data Initializer"
         TempProductionBOMLine: Record "Production BOM Line" temporary;
         TempProductionBOMLine2: Record "Production BOM Line" temporary;
     begin
-        TempProductionBOMLine.Copy(TempProductionBOMLine, true);
-        TempProductionBOMLine2.Copy(TempProductionBOMLine, true);
+        TempProductionBOMLine.Copy(TempGlobalProductionBOMLine, true);
+        TempProductionBOMLine2.Copy(TempGlobalProductionBOMLine, true);
 
         TempProductionBOMLine.SetFilter("Version Code", '<>%1', NewVersionCode);
         if TempProductionBOMLine.FindSet(true) then

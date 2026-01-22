@@ -1585,13 +1585,13 @@ report 99001504 "Subc. Dispatching List"
                     field(SubcPrintAddressLine; PrintAddressLine)
                     {
                         ApplicationArea = Manufacturing;
-                        Caption = 'Show Address PurchaseLine';
+                        Caption = 'Show Address Line';
                         ToolTip = 'Specifies if the address line is shown.';
                     }
                     field(SubcPrintFooterLine; PrintFooterLine)
                     {
                         ApplicationArea = Manufacturing;
-                        Caption = 'Show Footer PurchaseLine';
+                        Caption = 'Show Footer Line';
                         ToolTip = 'Specifies if the footer line is shown.';
                     }
                     field(SubcPrintBarCode; PrintBarCode)
@@ -1756,7 +1756,7 @@ report 99001504 "Subc. Dispatching List"
         InvDiscCaptionLbl: Label 'Invoice Discount:';
         ItemDescriptionCaptionLbl: Label 'Description';
         ItemLbl: Label 'Item';
-        ItemLineAmountCaptionLbl: Label 'PurchaseLine Amount';
+        ItemLineAmountCaptionLbl: Label 'Line Amount';
         ItemNumberCaptionLbl: Label 'Item No.';
         ItemQuantityCaptionLbl: Label 'Quantity';
         ItemUnitCaptionLbl: Label 'Unit';
@@ -1813,7 +1813,7 @@ report 99001504 "Subc. Dispatching List"
         VALVATBaseLCYCaptionLbl: Label 'VAT Base';
         VATAmountSpecificationLbl: Label 'VAT Amount Specification in ';
         VATAmtLineInvDiscBaseAmtCaptionLbl: Label 'Invoice Discount Base Amount';
-        VATAmtLineLineAmtCaptionLbl: Label 'PurchaseLine Amount';
+        VATAmtLineLineAmtCaptionLbl: Label 'Line Amount';
         VATAmtLineVATAmtCaptionLbl: Label 'VAT Amount';
         VATAmtLineVATCaptionLbl: Label 'VAT %';
         VATAmtSpecCaptionLbl: Label 'VAT Amount Specification';
