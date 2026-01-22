@@ -730,7 +730,7 @@ codeunit 99001552 "Subc. Temp Data Initializer"
     /// <param name="TempPurchaseLine">The temporary purchase line to copy to.</param>
     procedure GetGlobalPurchLine(var TempPurchaseLine: Record "Purchase Line" temporary)
     begin
-        TempPurchaseLine.Copy(TempPurchaseLine, true);
+        TempPurchaseLine.Copy(TempGlobalPurchaseLine, true);
     end;
 
 
