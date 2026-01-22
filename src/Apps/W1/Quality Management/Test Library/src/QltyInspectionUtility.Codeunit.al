@@ -54,7 +54,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     begin
         QltyAutoConfigure.EnsureBasicSetupExists(false);
         QltyManagementSetup.Get();
-        QltyManagementSetup."Show Inspection Behavior" := QltyManagementSetup."Show Inspection Behavior"::"Do not show created inspections";
+        QltyManagementSetup."When to show inspections" := QltyManagementSetup."When to show inspections"::"Do not show created inspections";
         QltyManagementSetup.Modify();
 
         UserPermissionsLibrary.AssignPermissionSetToUser(UserSecurityId(), 'QltyGeneral');
