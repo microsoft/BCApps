@@ -89,7 +89,7 @@ foreach ($pr in $prs) {
                 $runId = $matches[1]
                 # Validate run ID is a positive integer
                 if ([int]$runId -gt 0) {
-                    gh api --method POST "/repos/$env:GITHUB_REPOSITORY/actions/runs/$runId/rerun" | Out-Null
+                    gh run rerun $runId -R $env:GITHUB_REPOSITORY | Out-Null
                     Write-Host "  ✓ Successfully triggered re-run of workflow (run ID: $runId)"
                     $restarted++
                     $success = $true
