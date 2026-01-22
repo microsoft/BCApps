@@ -126,6 +126,7 @@ codeunit 30238 "Shpfy Fulfillment Orders API"
                         FulfillmentOrderLine."Shopify Order Id" := FulfillmentOrderHeader."Shopify Order Id";
                         FulfillmentOrderLine."Shopify Location Id" := FulfillmentOrderHeader."Shopify Location Id";
                         FulfillmentOrderLine."Delivery Method Type" := FulfillmentOrderHeader."Delivery Method Type";
+                        FulfillmentOrderLine."Line Item Id" := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JNode, 'lineItem.id'));
                         FulfillmentOrderLine."Shopify Product Id" := JsonHelper.GetValueAsBigInteger(JNode, 'lineItem.product.legacyResourceId');
                         FulfillmentOrderLine."Shopify Variant Id" := JsonHelper.GetValueAsBigInteger(JNode, 'lineItem.variant.legacyResourceId');
                         FulfillmentOrderLine."Total Quantity" := JsonHelper.GetValueAsDecimal(JNode, 'totalQuantity');
@@ -142,6 +143,10 @@ codeunit 30238 "Shpfy Fulfillment Orders API"
                         if FulfillmentOrderLine."Shopify Location Id" <> FulfillmentOrderHeader."Shopify Location Id" then begin
                             Modified := true;
                             FulfillmentOrderLine."Shopify Location Id" := FulfillmentOrderHeader."Shopify Location Id";
+                        end;
+                        if FulfillmentOrderLine."Line Item Id" <> CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JNode, 'lineItem.id')) then begin
+                            Modified := true;
+                            FulfillmentOrderLine."Line Item Id" := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JNode, 'lineItem.id'));
                         end;
                         if FulfillmentOrderLine."Delivery Method Type" <> FulfillmentOrderHeader."Delivery Method Type" then begin
                             Modified := true;
