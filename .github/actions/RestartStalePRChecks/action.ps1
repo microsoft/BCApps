@@ -68,6 +68,7 @@ foreach ($pr in $prs) {
     Write-Host "  Status check is older than $thresholdHours hours, requesting rerun..."
 
     # Try to rerequest the check with retries
+    $prFailed = $false
     for ($retry = 0; $retry -lt $maxRetries; $retry++) {
         try {
             if ($retry -gt 0) {
@@ -90,13 +91,13 @@ foreach ($pr in $prs) {
                 }
                 else {
                     Write-Host "  ✗ Invalid run ID extracted: $runId"
-                    $failed++
+                    $prFailed = $true
                     break
                 }
             }
             else {
                 Write-Host "  ✗ Could not extract run ID from link: $($statusCheck.link)"
-                $failed++
+                $prFailed = $true
                 break
             }
         }
@@ -104,12 +105,17 @@ foreach ($pr in $prs) {
             $errorMsg = $_.Exception.Message
             if ($retry -eq $maxRetries - 1) {
                 Write-Host "  ✗ Failed to restart workflow after $maxRetries attempts: $errorMsg"
-                $failed++
+                $prFailed = $true
             }
             else {
                 Write-Host "  ⚠ Attempt $($retry + 1) failed: $errorMsg"
             }
         }
+    }
+
+    # Increment failed counter once per PR if any attempt failed
+    if ($prFailed) {
+        $failed++
     }
 }
 
