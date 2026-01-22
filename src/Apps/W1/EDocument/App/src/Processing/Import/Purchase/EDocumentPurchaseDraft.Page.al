@@ -120,6 +120,19 @@ page 6181 "E-Document Purchase Draft"
                             CurrPage.Update();
                         end;
                     }
+                    field("Posting Description"; EDocumentPurchaseHeader."Posting Description")
+                    {
+                        Importance = Promoted;
+                        Caption = 'Posting Description';
+                        ToolTip = 'Specifies the extracted posting description for the document.';
+                        Editable = true;
+
+                        trigger OnValidate()
+                        begin
+                            EDocumentPurchaseHeader.Modify();
+                            CurrPage.Update();
+                        end;
+                    }
                     field("Document Date"; EDocumentPurchaseHeader."Document Date")
                     {
                         Caption = 'Document Date';
@@ -276,7 +289,7 @@ page 6181 "E-Document Purchase Draft"
                 action(CreateDocument)
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Finalize draft';
+                    Caption = 'Create purchase document';
                     ToolTip = 'Process the electronic document into a business central document';
                     Image = CreateDocument;
                     Visible = ShowFinalizeDraftAction;
