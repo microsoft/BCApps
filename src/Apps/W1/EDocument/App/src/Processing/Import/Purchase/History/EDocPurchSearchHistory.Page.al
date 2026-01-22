@@ -59,10 +59,6 @@ page 6157 "E-Doc Purch. Search History"
                 {
                     ToolTip = 'Specifies the description of the purchase invoice line.';
                 }
-                field(Quantity; Rec.Quantity)
-                {
-                    ToolTip = 'Specifies the quantity of the purchase invoice line.';
-                }
                 field("Unit of Measure"; Rec."Unit of Measure")
                 {
                     ToolTip = 'Specifies the unit of measure of the purchase invoice line.';
