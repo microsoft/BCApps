@@ -715,7 +715,7 @@ page 6181 "E-Document Purchase Draft"
         EDocImportParameters: Record "E-Doc. Import Parameters";
         ConfirmDialogMgt: Codeunit "Confirm Management";
         LinkToExistingDocumentQst: Label 'Do you want to link this e-document to %1 %2?', Comment = '%1 = Document Type, %2 = Document No.';
-        RelinkToExistingDocumentQst: Label 'This e-document is already linked to a document. Linking to %1 %2 will unlink the currently linked document. If it was created from this e-document, it will be deleted. Do you want to continue?', Comment = '%1 = Document Type, %2 = Document No.';
+        RelinkToExistingDocumentQst: Label 'This e-document is already linked to a document. Linking to %1 %2 will unlink the currently linked document. You will need to manually clean up that document. Do you want to continue?', Comment = '%1 = Document Type, %2 = Document No.';
         ConfirmQst: Text;
     begin
         EDocumentProcessing.ErrorIfNotAllowedToLinkToExistingDoc(Rec, EDocumentPurchaseHeader);

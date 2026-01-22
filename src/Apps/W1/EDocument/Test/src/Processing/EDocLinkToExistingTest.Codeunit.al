@@ -337,9 +337,6 @@ codeunit 139886 "E-Doc Link To Existing Test"
         // [THEN] Doc amounts are transferred to purchase document
         Assert.AreEqual(1500, PurchaseHeader."Doc. Amount Incl. VAT", 'Doc. Amount Incl. VAT should be set from e-document');
         Assert.AreEqual(300, PurchaseHeader."Doc. Amount VAT", 'Doc. Amount VAT should be set from e-document');
-
-        // [THEN] Created from E-Document is false (document existed before linking)
-        Assert.IsFalse(PurchaseHeader."Created from E-Document", 'Created from E-Document should be false since document was not created from e-doc');
     end;
 
     [Test]
@@ -401,12 +398,10 @@ codeunit 139886 "E-Doc Link To Existing Test"
         // [THEN] Document A is unlinked (E-Document Link is cleared)
         PurchaseHeaderA.Get(PurchaseHeaderA."Document Type", PurchaseHeaderA."No.");
         Assert.AreEqual(EmptyGuid, PurchaseHeaderA."E-Document Link", 'Document A should be unlinked after relinking to B');
-        Assert.IsFalse(PurchaseHeaderA."Created from E-Document", 'Document A Created from E-Document should remain false');
 
         // [THEN] Document B is now linked
         PurchaseHeaderB.Get(PurchaseHeaderB."Document Type", PurchaseHeaderB."No.");
         Assert.AreEqual(EDocument.SystemId, PurchaseHeaderB."E-Document Link", 'Document B should now be linked to e-document');
-        Assert.IsFalse(PurchaseHeaderB."Created from E-Document", 'Document B Created from E-Document should be false');
 
         // [THEN] Both documents still exist (neither was deleted)
         Assert.IsTrue(PurchaseHeaderA.Get(PurchaseHeaderA."Document Type", PurchaseHeaderA."No."), 'Document A should still exist');
@@ -415,7 +410,7 @@ codeunit 139886 "E-Doc Link To Existing Test"
 
     [Test]
     [HandlerFunctions('PurchaseInvoicesModalPageHandler,ConfirmHandler,PIModalPageHandler')]
-    procedure LinkToExisting_DeletesDocumentCreatedFromEDoc()
+    procedure LinkToExisting_UnlinksDocumentCreatedFromEDoc()
     var
         EDocument: Record "E-Document";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
@@ -426,9 +421,10 @@ codeunit 139886 "E-Doc Link To Existing Test"
         EDocImport: Codeunit "E-Doc. Import";
         EDocPurchaseDraftTestPage: TestPage "E-Document Purchase Draft";
         CreatedDocNo: Code[20];
+        EmptyGuid: Guid;
     begin
         // [SCENARIO] When linking to an existing document after a PI was already created from e-doc:
-        // - The originally created PI (created from e-doc) is deleted
+        // - The originally created PI is unlinked but NOT deleted (user must clean up manually)
         // - The existing document is linked
         Initialize();
         SetupICPartner(ICPartner);
@@ -450,7 +446,6 @@ codeunit 139886 "E-Doc Link To Existing Test"
         CreatedPurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
         CreatedPurchaseHeader.FindFirst();
         CreatedDocNo := CreatedPurchaseHeader."No.";
-        Assert.IsTrue(CreatedPurchaseHeader."Created from E-Document", 'Created PI should have Created from E-Document = true');
 
         // [GIVEN] An existing purchase invoice (not created from e-doc)
         LibraryPurchase.CreatePurchHeader(ExistingPurchaseHeader, ExistingPurchaseHeader."Document Type"::Invoice, Vendor."No.");
@@ -465,13 +460,13 @@ codeunit 139886 "E-Doc Link To Existing Test"
         EDocPurchaseDraftTestPage.LinkToExistingDocument.Invoke();
         EDocPurchaseDraftTestPage.Close();
 
-        // [THEN] The originally created PI is deleted
-        Assert.IsFalse(CreatedPurchaseHeader.Get(CreatedPurchaseHeader."Document Type"::Invoice, CreatedDocNo), 'The PI created from e-doc should be deleted');
+        // [THEN] The originally created PI is unlinked but still exists (user must clean up manually)
+        Assert.IsTrue(CreatedPurchaseHeader.Get(CreatedPurchaseHeader."Document Type"::Invoice, CreatedDocNo), 'The PI created from e-doc should still exist');
+        Assert.AreEqual(EmptyGuid, CreatedPurchaseHeader."E-Document Link", 'The PI created from e-doc should be unlinked');
 
         // [THEN] The existing document is now linked
         ExistingPurchaseHeader.Get(ExistingPurchaseHeader."Document Type", ExistingPurchaseHeader."No.");
         Assert.AreEqual(EDocument.SystemId, ExistingPurchaseHeader."E-Document Link", 'Existing document should be linked');
-        Assert.IsFalse(ExistingPurchaseHeader."Created from E-Document", 'Existing document Created from E-Document should be false');
     end;
 
     #endregion

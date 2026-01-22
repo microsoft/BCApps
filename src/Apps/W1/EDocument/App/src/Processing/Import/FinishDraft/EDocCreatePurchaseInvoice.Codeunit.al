@@ -68,7 +68,6 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         PurchaseHeader."Doc. Amount VAT" := EDocumentPurchaseHeader."Total VAT";
         PurchaseHeader.TestField("No.");
         PurchaseHeader."E-Document Link" := EDocument.SystemId;
-        PurchaseHeader."Created from E-Document" := EDocImportParameters."Existing Doc. RecordId" = EmptyRecordId;
         PurchaseHeader.Modify();
 
         // Post document creation
@@ -97,11 +96,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
 
         PurchaseHeader.TestField("Document Type", "Purchase Document Type"::Invoice);
         Clear(PurchaseHeader."E-Document Link");
-
-        if PurchaseHeader."Created from E-Document" then
-            PurchaseHeader.Delete(true)
-        else
-            PurchaseHeader.Modify();
+        PurchaseHeader.Modify();
     end;
 
     procedure CreatePurchaseInvoice(EDocument: Record "E-Document"): Record "Purchase Header"

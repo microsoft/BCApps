@@ -26,11 +26,6 @@ tableextension 6169 "E-Doc. Purchase Header" extends "Purchase Header"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
         }
-        field(6102; "Created from E-Document"; Boolean)
-        {
-            DataClassification = SystemMetadata;
-            Editable = false;
-        }
     }
     keys
     {
