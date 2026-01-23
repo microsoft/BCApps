@@ -169,11 +169,15 @@ codeunit 37310 "PEPPOL30 BE" implements "PEPPOL Party Info Provider"
     var
         CountryRegion: Record "Country/Region";
     begin
+        // Remove all whitespace characters from the enterprise number
         EnterpriseNo := DelChr(EnterpriseNo);
 
+        // Check if enterprise number already contains alphabetic characters (country prefix)
+        // If it does, return as-is to avoid double-prefixing
         if DelChr(EnterpriseNo, '=', DelChr(UpperCase(EnterpriseNo), '=', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')) <> '' then
             exit(EnterpriseNo);
 
+        // Prepend the ISO country code to the enterprise number
         if CountryRegion.Get(CountryCode) and (CountryRegion."ISO Code" <> '') then
             EnterpriseNo := CountryRegion."ISO Code" + EnterpriseNo;
 
