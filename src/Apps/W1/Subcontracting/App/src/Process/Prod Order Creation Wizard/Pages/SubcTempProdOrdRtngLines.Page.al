@@ -137,9 +137,9 @@ page 99001509 "Subc. TempProdOrdRtngLines"
         exit(LinesChanged);
     end;
 
-    procedure SetTemporaryRecords(var TempProdOrderRtngLine: Record "Prod. Order Routing Line" temporary)
+    procedure SetTemporaryRecords(var TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary)
     begin
-        Rec.Copy(TempProdOrderRtngLine, true);
+        Rec.Copy(TempProdOrderRoutingLine, true);
         if Rec.FindFirst() then;
     end;
 
