@@ -26,6 +26,4 @@ jobs:
       - name: Restart Stale PR Status Checks
         uses: ./.github/actions/RestartStalePRChecks
         with:
-          thresholdHours: 72
-          maxRetries: 3
           token: ${{ github.token }}

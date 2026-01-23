@@ -9,10 +9,13 @@ $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 Set-StrictMode -Version 2.0
 
+# Import EnlistmentHelperFunctions module
+Import-Module "$PSScriptRoot\..\..\..\build\scripts\EnlistmentHelperFunctions.psm1" -DisableNameChecking
+
 Write-Host "Fetching open pull requests..."
 
-# Get all open pull requests
-$prs = gh pr list --state open --json number,title,url --limit 1000 | ConvertFrom-Json
+# Get all open pull requests with mergeable state
+$prs = gh pr list --state open --json number,title,url,mergeable --limit 1000 | ConvertFrom-Json
 
 Write-Host "Found $($prs.Count) open pull requests"
 
@@ -29,9 +32,18 @@ foreach ($pr in $prs) {
     Write-Host ""
     Write-Host "Checking PR #$($pr.number): $($pr.title)"
 
-    # Get checks for this PR
+    # Check if PR is mergeable
+    if ($pr.mergeable -ne "MERGEABLE") {
+        Write-Host "  PR is not in MERGEABLE state (current: $($pr.mergeable)), skipping"
+        continue
+    }
+
+    # Get checks for this PR with retry
+    $checks = $null
     try {
-        $checks = gh pr checks $pr.number --json name,state,bucket,completedAt,link | ConvertFrom-Json
+        $checks = Invoke-CommandWithRetry -ScriptBlock {
+            gh pr checks $pr.number --json name,state,bucket,completedAt,link | ConvertFrom-Json
+        } -RetryCount $maxRetries -FirstDelay 2 -MaxWaitBetweenRetries 8
     }
     catch {
         Write-Host "  ✗ Failed to get checks for PR: $_"
@@ -67,50 +79,33 @@ foreach ($pr in $prs) {
 
     Write-Host "  Status check is older than $thresholdHours hours, requesting rerun..."
 
-    # Try to rerequest the check with retries
+    # Try to rerequest the check with retries using Invoke-CommandWithRetry
     $prFailed = $false
-    for ($retry = 0; $retry -lt $maxRetries; $retry++) {
-        try {
-            if ($retry -gt 0) {
-                # Exponential backoff: 2s, 4s, 8s
-                $delaySeconds = 2 * [Math]::Pow(2, $retry - 1)
-                Write-Host "  Retry attempt $($retry + 1)/$maxRetries (waiting $delaySeconds seconds)..."
-                Start-Sleep -Seconds $delaySeconds
-            }
-
-            # Rerequest the check by re-running the workflow
-            # First, get the workflow run ID from the check link
-            if ($statusCheck.link -match '/runs/(\d+)') {
-                $runId = $matches[1]
-                # Validate run ID is a positive integer
-                if ([int]$runId -gt 0) {
+    try {
+        # Extract run ID from the check link
+        if ($statusCheck.link -match '/runs/(\d+)') {
+            $runId = $matches[1]
+            # Validate run ID is a positive integer
+            if ([int]$runId -gt 0) {
+                Invoke-CommandWithRetry -ScriptBlock {
                     gh run rerun $runId -R $env:GITHUB_REPOSITORY | Out-Null
-                    Write-Host "  ✓ Successfully triggered re-run of workflow (run ID: $runId)"
-                    $restarted++
-                    break
-                }
-                else {
-                    Write-Host "  ✗ Invalid run ID extracted: $runId"
-                    $prFailed = $true
-                    break
-                }
+                } -RetryCount $maxRetries -FirstDelay 2 -MaxWaitBetweenRetries 8
+                Write-Host "  ✓ Successfully triggered re-run of workflow (run ID: $runId)"
+                $restarted++
             }
             else {
-                Write-Host "  ✗ Could not extract run ID from link: $($statusCheck.link)"
-                $prFailed = $true
-                break
-            }
-        }
-        catch {
-            $errorMsg = $_.Exception.Message
-            if ($retry -eq $maxRetries - 1) {
-                Write-Host "  ✗ Failed to restart workflow after $maxRetries attempts: $errorMsg"
+                Write-Host "  ✗ Invalid run ID extracted: $runId"
                 $prFailed = $true
             }
-            else {
-                Write-Host "  ⚠ Attempt $($retry + 1) failed: $errorMsg"
-            }
         }
+        else {
+            Write-Host "  ✗ Could not extract run ID from link: $($statusCheck.link)"
+            $prFailed = $true
+        }
+    }
+    catch {
+        Write-Host "  ✗ Failed to restart workflow: $_"
+        $prFailed = $true
     }
 
     # Increment failed counter once per PR if any attempt failed
