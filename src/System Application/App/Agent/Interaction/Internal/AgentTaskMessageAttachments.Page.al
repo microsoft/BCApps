@@ -83,15 +83,12 @@ page 4309 "Agent Task Message Attachments"
         AgentTaskFile.SetAutoCalcFields(Content);
 
         repeat
-            if not AgentTaskFile.Get(AgentTaskMessageAttachment."Task ID", AgentTaskMessageAttachment."File ID") then
-                exit;
-
-            if not Rec.Get(AgentTaskMessageAttachment."Task ID", AgentTaskMessageAttachment."File ID") then begin
-                Rec.Init();
-                Rec.TransferFields(AgentTaskFile, true);
-                Rec.Content := AgentTaskFile.Content;
-                Rec.Insert();
-            end;
+            if not Rec.Get(AgentTaskMessageAttachment."Task ID", AgentTaskMessageAttachment."File ID") then
+                if AgentTaskFile.Get(AgentTaskMessageAttachment."Task ID", AgentTaskMessageAttachment."File ID") then begin
+                    Rec.TransferFields(AgentTaskFile, true);
+                    Rec.Content := AgentTaskFile.Content;
+                    Rec.Insert();
+                end;
         until AgentTaskMessageAttachment.Next() = 0;
     end;
 
