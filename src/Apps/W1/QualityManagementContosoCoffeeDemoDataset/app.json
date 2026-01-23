@@ -1,5 +1,5 @@
 {
-  "id": "a0673989-48a4-48a0-9517-499c9f4037d3",
+  "id": "40bf2bab-2a57-4c34-9002-c11d23fcbff6",
   "name": "Quality Management Contoso Coffee Demo Dataset",
   "publisher": "Microsoft",
   "version": "28.0.0.0",
@@ -30,8 +30,8 @@
   "application": "28.0.0.0",
   "idRanges": [
     {
-      "from": 5212,
-      "to": 5800
+      "from": 5592,
+      "to": 5713
     }
   ],
   "resourceExposurePolicy": {

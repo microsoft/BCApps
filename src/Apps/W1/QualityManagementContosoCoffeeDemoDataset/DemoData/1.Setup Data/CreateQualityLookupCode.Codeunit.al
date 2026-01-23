@@ -6,7 +6,7 @@ namespace Microsoft.DemoData.QualityManagement;
 
 using Microsoft.DemoTool.Helpers;
 
-codeunit 5215 "Create Quality Lookup Code"
+codeunit 5594 "Create Quality Lookup Code"
 {
     InherentEntitlements = X;
     InherentPermissions = X;

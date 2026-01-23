@@ -6,9 +6,9 @@ namespace Microsoft.DemoTool;
 
 using Microsoft.DemoData.QualityManagement;
 
-enumextension 5213 "Qlty. Contoso Demo Data Module" extends "Contoso Demo Data Module"
+enumextension 5712 "Qlty. Contoso Demo Data Module" extends "Contoso Demo Data Module"
 {
-    value(5213; "Quality Management")
+    value(5712; "Quality Management")
     {
         Implementation = "Contoso Demo Data Module" = "Quality Management Module";
         Caption = 'Quality Management';
