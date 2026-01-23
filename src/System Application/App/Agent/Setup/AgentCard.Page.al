@@ -130,6 +130,7 @@ page 4315 "Agent Card"
                 Caption = 'Setup';
                 ToolTip = 'Set up agent';
                 Image = SetupLines;
+                Enabled = Rec."Can Curr. User Configure Agent";
 
                 trigger OnAction()
                 begin
