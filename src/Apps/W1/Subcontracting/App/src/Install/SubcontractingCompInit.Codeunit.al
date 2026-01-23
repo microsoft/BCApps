@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -16,15 +16,15 @@ codeunit 99001503 "Subcontracting Comp. Init."
 
     local procedure CreateSubcontractingManagementSetup()
     var
-        SubcontractingManagementSetup: Record "Subc. Management Setup";
+        SubcManagementSetup: Record "Subc. Management Setup";
     begin
-        if not SubcontractingManagementSetup.Get() then begin
-            SubcontractingManagementSetup.Init();
-            CreateLaborReqWkshTemplateAndNameAndUpdateSetup(SubcontractingManagementSetup);
-            SubcontractingManagementSetup."Direct Transfer" := true;
-            SubcontractingManagementSetup."Create Prod. Order Info Line" := true;
-            Evaluate(SubcontractingManagementSetup."Subc. Inb. Whse. Handling Time", GetDefaultInboundWhseHandlingTime());
-            SubcontractingManagementSetup.Insert(true);
+        if not SubcManagementSetup.Get() then begin
+            SubcManagementSetup.Init();
+            CreateLaborReqWkshTemplateAndNameAndUpdateSetup(SubcManagementSetup);
+            SubcManagementSetup."Direct Transfer" := true;
+            SubcManagementSetup."Create Prod. Order Info Line" := true;
+            Evaluate(SubcManagementSetup."Subc. Inb. Whse. Handling Time", GetDefaultInboundWhseHandlingTime());
+            SubcManagementSetup.Insert(true);
         end;
     end;
 

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -13,12 +13,12 @@ codeunit 99001517 "Subc. Calc. Prod. Order Ext."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calculate Prod. Order", OnAfterTransferRoutingLine, '', false, false)]
     local procedure OnAfterTransferRoutingLine(var ProdOrderLine: Record "Prod. Order Line"; var RoutingLine: Record "Routing Line"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
-        SubPricingMgmt: Codeunit "Subc. Price Management";
-        SubSubcontractingMgmt: Codeunit "Subcontracting Management";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
-        SubSubcontractingMgmt.UpdateLinkedComponentsAfterRoutingTransfer(ProdOrderLine, RoutingLine, ProdOrderRoutingLine);
+        SubcontractingManagement.UpdateLinkedComponentsAfterRoutingTransfer(ProdOrderLine, RoutingLine, ProdOrderRoutingLine);
 
-        SubPricingMgmt.ApplySubcontractorPricingToProdOrderRouting(ProdOrderLine, RoutingLine, ProdOrderRoutingLine);
+        SubcPriceManagement.ApplySubcontractorPricingToProdOrderRouting(ProdOrderLine, RoutingLine, ProdOrderRoutingLine);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calculate Prod. Order", OnAfterTransferBOMComponent, '', false, false)]

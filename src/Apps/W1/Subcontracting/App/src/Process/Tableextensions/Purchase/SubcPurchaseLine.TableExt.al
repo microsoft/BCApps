@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -62,17 +62,17 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
     }
     procedure GetQuantityPerUOM(): Decimal
     var
-        ItemUOM: Record "Item Unit of Measure";
+        ItemUnitofMeasure: Record "Item Unit of Measure";
     begin
-        ItemUOM.Get("No.", "Unit of Measure Code");
-        exit(ItemUOM."Qty. per Unit of Measure");
+        ItemUnitofMeasure.Get("No.", "Unit of Measure Code");
+        exit(ItemUnitofMeasure."Qty. per Unit of Measure");
     end;
 
     procedure GetQuantityBase(): Decimal
     var
-        ItemUOM: Record "Item Unit of Measure";
+        ItemUnitofMeasure: Record "Item Unit of Measure";
     begin
-        ItemUOM.Get("No.", "Unit of Measure Code");
-        exit(Round(Quantity * ItemUOM."Qty. per Unit of Measure", 0.00001));
+        ItemUnitofMeasure.Get("No.", "Unit of Measure Code");
+        exit(Round(Quantity * ItemUnitofMeasure."Qty. per Unit of Measure", 0.00001));
     end;
 }

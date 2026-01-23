@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -80,7 +80,7 @@ page 99001507 "Subc. Temp Routing Lines"
         Rec."Routing No." := xRec."Routing No.";
         Rec."Version Code" := xRec."Version Code";
         if Rec."Version Code" = '' then
-            Rec."Routing Link Code" := SubManagementSetup."Rtng. Link Code Purch. Prov.";
+            Rec."Routing Link Code" := SubcManagementSetup."Rtng. Link Code Purch. Prov.";
     end;
 
     procedure SetTemporaryRecords(var TempRoutingLine: Record "Routing Line" temporary)
@@ -89,5 +89,5 @@ page 99001507 "Subc. Temp Routing Lines"
     end;
 
     var
-        SubManagementSetup: Record "Subc. Management Setup";
+        SubcManagementSetup: Record "Subc. Management Setup";
 }
