@@ -132,15 +132,17 @@ Write-Host "  ✓ Successfully restarted: $restarted workflow run(s)"
 Write-Host "  ✗ Failed attempts: $failed"
 
 # Add GitHub Actions job summary
-$summaryTitle = if ($WhatIf) { "## PR Status Check Restart Summary (WhatIf Mode)" } else { "## PR Status Check Restart Summary" }
-Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value $summaryTitle
-Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ""
-if ($WhatIf) {
-    Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- ℹ️ Running in **WhatIf mode** - no workflows were actually rerun"
+if ($env:GITHUB_STEP_SUMMARY) {
+    $summaryTitle = if ($WhatIf) { "## PR Status Check Restart Summary (WhatIf Mode)" } else { "## PR Status Check Restart Summary" }
+    Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value $summaryTitle
     Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ""
+    if ($WhatIf) {
+        Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- ℹ️ Running in **WhatIf mode** - no workflows were actually rerun"
+        Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ""
+    }
+    Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- ✓ Successfully restarted: **$restarted** workflow run(s)"
+    Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- ✗ Failed attempts: **$failed**"
 }
-Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- ✓ Successfully restarted: **$restarted** workflow run(s)"
-Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- ✗ Failed attempts: **$failed**"
 
 # Exit with error if there were any failures (not in WhatIf mode)
 if ($failed -gt 0 -and -not $WhatIf) {
