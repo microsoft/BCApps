@@ -17,9 +17,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
     - name: Restart Stale PR Checks
       shell: pwsh
       env:
