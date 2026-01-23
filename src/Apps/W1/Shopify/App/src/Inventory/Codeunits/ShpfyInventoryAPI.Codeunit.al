@@ -24,11 +24,6 @@ codeunit 30195 "Shpfy Inventory API"
         JsonHelper: Codeunit "Shpfy Json Helper";
         InventoryIds: List of [Guid];
 
-    /// <summary> 
-    /// Get Stock.
-    /// </summary>
-    /// <param name="ShopInventory">Parameter of type Record "Shopify Shop Inventory".</param>
-    /// <returns>Return variable "Stock" of type Decimal.</returns>
     internal procedure GetStock(ShopInventory: Record "Shpfy Shop Inventory") Stock: Decimal
     var
         Item: Record Item;
@@ -78,11 +73,6 @@ codeunit 30195 "Shpfy Inventory API"
         end;
     end;
 
-    /// <summary> 
-    /// Get Id.
-    /// </summary>
-    /// <param name="JObject">Parameter of type JsonObject.</param>
-    /// <returns>Return variable "Result" of type BigInteger.</returns>
     local procedure GetId(JObject: JsonObject) Result: BigInteger
     var
         JValue: JsonValue;
@@ -97,12 +87,6 @@ codeunit 30195 "Shpfy Inventory API"
         end;
     end;
 
-    /// <summary> 
-    /// Get Inventory Levels.
-    /// </summary>
-    /// <param name="JObject">Parameter of type JsonObject.</param>
-    /// <param name="JResult">Parameter of type JsonObject.</param>
-    /// <returns>Return value of type Boolean.</returns>
     local procedure GetInventoryLevels(JObject: JsonObject; var JResult: JsonObject): Boolean;
     var
         JData: JsonObject;
@@ -181,7 +165,7 @@ codeunit 30195 "Shpfy Inventory API"
         ErrorCode: Text;
         JError: JsonToken;
     begin
-        MaxRetries := 1;
+        MaxRetries := 3;
         RetryAttempt := 0;
 
         repeat
@@ -260,11 +244,6 @@ codeunit 30195 "Shpfy Inventory API"
                 end;
     end;
 
-    /// <summary> 
-    /// Has Next Results.
-    /// </summary>
-    /// <param name="JObject">Parameter of type JsonObject.</param>
-    /// <returns>Return value of type Boolean.</returns>
     local procedure HasNextResults(JObject: JsonObject): Boolean
     var
         JPageInfo: JsonObject;
@@ -346,10 +325,6 @@ codeunit 30195 "Shpfy Inventory API"
         end;
     end;
 
-    /// <summary> 
-    /// Import Stock.
-    /// </summary>
-    /// <param name="ShopLocation">Parameter of type Record "Shopify Shop Location".</param>
     internal procedure ImportStock(ShopLocation: Record "Shpfy Shop Location")
     var
         Parameters: Dictionary of [Text, Text];
@@ -366,10 +341,6 @@ codeunit 30195 "Shpfy Inventory API"
         until not HasNextResults(JInventoryLevels);
     end;
 
-    /// <summary> 
-    /// Set Shop.
-    /// </summary>
-    /// <param name="ShopCode">Parameter of type Code[20].</param>
     internal procedure SetShop(ShopCode: Code[20])
     begin
         if ShopifyShop.Code <> ShopCode then begin
