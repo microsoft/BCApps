@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -129,11 +129,11 @@ codeunit 99001546 "Subc. Whse Direct Posting"
 
     local procedure PostRelatedInboundTransfer(var TransferHeader: Record "Transfer Header")
     var
-        TransferPostReceipt: Codeunit "TransferOrder-Post Receipt";
+        TransferOrderPostReceipt: Codeunit "TransferOrder-Post Receipt";
     begin
-        TransferPostReceipt.SetSuppressCommit(true);
-        TransferPostReceipt.SetHideValidationDialog(true);
-        TransferPostReceipt.Run(TransferHeader);
+        TransferOrderPostReceipt.SetSuppressCommit(true);
+        TransferOrderPostReceipt.SetHideValidationDialog(true);
+        TransferOrderPostReceipt.Run(TransferHeader);
     end;
 
     local procedure WhseActYesNoQuestion(var WhseActivLine: Record "Warehouse Activity Line"; var Result: Boolean; var IsHandled: Boolean)

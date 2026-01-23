@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -123,25 +123,25 @@ pageextension 99001529 "Subc. Trans. Order Sub." extends "Transfer Order Subform
         }
     }
     var
-        SubcontractingFactboxMgmt: Codeunit "Subc. Factbox Mgmt.";
+        SubcFactboxMgmt: Codeunit "Subc. Factbox Mgmt.";
 
     local procedure ShowProductionOrder(RecRelatedVariant: Variant)
     begin
-        SubcontractingFactboxMgmt.ShowProductionOrder(RecRelatedVariant);
+        SubcFactboxMgmt.ShowProductionOrder(RecRelatedVariant);
     end;
 
     local procedure ShowProductionOrderRouting(RecRelatedVariant: Variant)
     begin
-        SubcontractingFactboxMgmt.ShowProductionOrderRouting(RecRelatedVariant)
+        SubcFactboxMgmt.ShowProductionOrderRouting(RecRelatedVariant)
     end;
 
     local procedure ShowProductionOrderComponents(RecRelatedVariant: Variant)
     begin
-        SubcontractingFactboxMgmt.ShowProductionOrderComponents(RecRelatedVariant);
+        SubcFactboxMgmt.ShowProductionOrderComponents(RecRelatedVariant);
     end;
 
     local procedure ShowPurchaseOrder(RecRelatedVariant: Variant)
     begin
-        SubcontractingFactboxMgmt.ShowPurchaseOrder(RecRelatedVariant);
+        SubcFactboxMgmt.ShowPurchaseOrder(RecRelatedVariant);
     end;
 }

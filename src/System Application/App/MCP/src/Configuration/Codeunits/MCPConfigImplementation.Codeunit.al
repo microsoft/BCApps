@@ -37,6 +37,8 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfigurationAuditCreatedLbl: Label 'MCP Configuration %1 created by user %2 in company %3', Comment = '%1 - configuration name, %2 - user security ID, %3 - company name', Locked = true;
         MCPConfigurationAuditModifiedLbl: Label 'MCP Configuration %1 modified by user %2 in company %3', Comment = '%1 - configuration name, %2 - user security ID, %3 - company name', Locked = true;
         MCPConfigurationAuditDeletedLbl: Label 'MCP Configuration %1 deleted by user %2 in company %3', Comment = '%1 - configuration name, %2 - user security ID, %3 - company name', Locked = true;
+        InvalidConfigurationWarningLbl: Label 'The configuration is invalid and may not work as expected. Do you want to review warnings before activating?';
+        ConfigValidLbl: Label 'No warnings found. The configuration is valid.';
         ConnectionStringLbl: Label '%1 Connection String', Comment = '%1 - configuration name';
         MCPUrlProdLbl: Label 'https://mcp.businesscentral.dynamics.com', Locked = true;
         MCPUrlTIELbl: Label 'https://mcp.businesscentral.dynamics-tie.com', Locked = true;
@@ -265,6 +267,90 @@ codeunit 8351 "MCP Config Implementation"
     internal procedure IsDefaultConfiguration(MCPConfiguration: Record "MCP Configuration"): Boolean
     begin
         exit(MCPConfiguration.Name = '');
+    end;
+
+    internal procedure IsConfigurationActive(ConfigId: Guid): Boolean
+    var
+        MCPConfiguration: Record "MCP Configuration";
+    begin
+        if MCPConfiguration.GetBySystemId(ConfigId) then
+            exit(MCPConfiguration.Active);
+        exit(false);
+    end;
+
+    internal procedure ValidateConfiguration(var MCPConfiguration: Record "MCP Configuration"; OnActivate: Boolean)
+    var
+        MCPConfigurationWarning: Record "MCP Config Warning";
+    begin
+        // Raise warning if any issues found
+        if not FindWarningsForConfiguration(MCPConfiguration.SystemId, MCPConfigurationWarning) then begin
+            if not OnActivate then
+                Message(ConfigValidLbl);
+            exit;
+        end;
+
+        if OnActivate then
+            if not Confirm(InvalidConfigurationWarningLbl) then
+                exit;
+
+        MCPConfiguration.Active := false;
+        Page.Run(Page::"MCP Config Warning List", MCPConfigurationWarning);
+    end;
+
+    internal procedure FindWarningsForConfiguration(ConfigId: Guid; var MCPConfigurationWarning: Record "MCP Config Warning"): Boolean
+    var
+        IMCPConfigWarning: Interface "MCP Config Warning";
+        MCPConfigWarningType: Enum "MCP Config Warning Type";
+        WarningImplementations: List of [Integer];
+        WarningImplementation: Integer;
+        EntryNo: Integer;
+    begin
+        if MCPConfigurationWarning.FindLast() then
+            EntryNo := MCPConfigurationWarning."Entry No." + 1
+        else
+            EntryNo := 1;
+
+        WarningImplementations := MCPConfigWarningType.Ordinals();
+        foreach WarningImplementation in WarningImplementations do begin
+            IMCPConfigWarning := "MCP Config Warning Type".FromInteger(WarningImplementation);
+            IMCPConfigWarning.CheckForWarnings(ConfigId, MCPConfigurationWarning, EntryNo);
+        end;
+
+        exit(not MCPConfigurationWarning.IsEmpty());
+    end;
+
+    internal procedure GetWarningMessage(MCPConfigWarning: Record "MCP Config Warning"): Text
+    var
+        IMCPConfigWarning: Interface "MCP Config Warning";
+    begin
+        IMCPConfigWarning := MCPConfigWarning."Warning Type";
+        exit(IMCPConfigWarning.WarningMessage(MCPConfigWarning));
+    end;
+
+    internal procedure GetRecommendedAction(MCPConfigWarning: Record "MCP Config Warning"): Text
+    var
+        IMCPConfigWarning: Interface "MCP Config Warning";
+    begin
+        IMCPConfigWarning := MCPConfigWarning."Warning Type";
+        exit(IMCPConfigWarning.RecommendedAction(MCPConfigWarning));
+    end;
+
+    internal procedure ApplyRecommendedActions(var MCPConfigWarning: Record "MCP Config Warning")
+    begin
+        if not MCPConfigWarning.FindSet() then
+            exit;
+
+        repeat
+            ApplyRecommendedAction(MCPConfigWarning);
+        until MCPConfigWarning.Next() = 0;
+    end;
+
+    internal procedure ApplyRecommendedAction(var MCPConfigWarning: Record "MCP Config Warning")
+    var
+        IMCPConfigWarning: Interface "MCP Config Warning";
+    begin
+        IMCPConfigWarning := MCPConfigWarning."Warning Type";
+        IMCPConfigWarning.ApplyRecommendedAction(MCPConfigWarning);
     end;
     #endregion
 
@@ -503,7 +589,7 @@ codeunit 8351 "MCP Config Implementation"
         until PageMetadata.Next() = 0;
     end;
 
-    local procedure CheckAPIToolExists(ConfigId: Guid; PageId: Integer): Boolean
+    internal procedure CheckAPIToolExists(ConfigId: Guid; PageId: Integer): Boolean
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
     begin
@@ -528,6 +614,27 @@ codeunit 8351 "MCP Config Implementation"
         if AllObjWithCaption.Get(ObjectType, MCPConfigurationTool."Object ID") then
             exit(CopyStr(AllObjWithCaption."Object Name", 1, 100));
         exit('');
+    end;
+
+    internal procedure LoadSystemTools(var MCPSystemTool: Record "MCP System Tool")
+    var
+        MCPUtilities: Codeunit "MCP Utilities";
+        SystemTools: Dictionary of [Text, Text];
+        ToolName: Text;
+    begin
+        MCPSystemTool.Reset();
+        MCPSystemTool.DeleteAll();
+
+        SystemTools := MCPUtilities.GetSystemToolsInDynamicMode();
+        foreach ToolName in SystemTools.Keys() do
+            InsertSystemTool(MCPSystemTool, CopyStr(ToolName, 1, MaxStrLen(MCPSystemTool."Tool Name")), CopyStr(SystemTools.Get(ToolName), 1, MaxStrLen(MCPSystemTool."Tool Description")));
+    end;
+
+    local procedure InsertSystemTool(var MCPSystemTool: Record "MCP System Tool"; ToolName: Text[100]; ToolDescription: Text[250])
+    begin
+        MCPSystemTool."Tool Name" := ToolName;
+        MCPSystemTool."Tool Description" := ToolDescription;
+        MCPSystemTool.Insert();
     end;
     #endregion
 

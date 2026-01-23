@@ -36,7 +36,7 @@ page 6181 "E-Document Purchase Draft"
 
                 field(Record; RecordLinkTxt)
                 {
-                    Caption = 'Finalized Document';
+                    Caption = 'Purchase Document';
                     Editable = false;
                     Importance = Promoted;
                     ToolTip = 'Specifies the record, document, journal line, or ledger entry, that is linked to the electronic document.';
@@ -112,6 +112,19 @@ page 6181 "E-Document Purchase Draft"
                         Importance = Promoted;
                         Caption = 'Document No.';
                         ToolTip = 'Specifies the extracted ID for this specific document.';
+                        Editable = true;
+
+                        trigger OnValidate()
+                        begin
+                            EDocumentPurchaseHeader.Modify();
+                            CurrPage.Update();
+                        end;
+                    }
+                    field("Posting Description"; EDocumentPurchaseHeader."Posting Description")
+                    {
+                        Importance = Promoted;
+                        Caption = 'Posting Description';
+                        ToolTip = 'Specifies the extracted posting description for the document.';
                         Editable = true;
 
                         trigger OnValidate()
@@ -418,6 +431,7 @@ page 6181 "E-Document Purchase Draft"
                 Caption = 'Process';
                 actionref(Promoted_CreateDocument; CreateDocument)
                 {
+                    Visible = false;
                 }
                 actionref(Promoted_AnalyseDocument; AnalyzeDocument)
                 {
