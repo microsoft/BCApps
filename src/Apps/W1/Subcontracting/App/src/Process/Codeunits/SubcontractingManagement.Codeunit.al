@@ -33,7 +33,7 @@ codeunit 99001505 "Subcontracting Management"
 {
     var
         SubcManagementSetup: Record "Subc. Management Setup";
-        TempReservationEntry: Record "Reservation Entry" temporary;
+        TempGlobalReservationEntry: Record "Reservation Entry" temporary;
         PageManagement: Codeunit "Page Management";
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
         HasSubManagementSetup: Boolean;
@@ -337,23 +337,22 @@ codeunit 99001505 "Subcontracting Management"
     procedure TransferReservationEntryFromProdOrderCompToTransferOrder(TransferLine: Record "Transfer Line"; ProdOrderComponent: Record "Prod. Order Component")
     var
         ReservationEntry: Record "Reservation Entry";
-        TempReservEntry: Record "Reservation Entry" temporary;
+        TempReservationEntry: Record "Reservation Entry" temporary;
         ProdOrderCompReserve: Codeunit "Prod. Order Comp.-Reserve";
     begin
-        TempReservEntry.Reset();
-        TempReservEntry.DeleteAll();
+        TempGlobalReservationEntry.Reset();
+        TempGlobalReservationEntry.DeleteAll();
 
         if not ProdOrderCompReserve.FindReservEntry(ProdOrderComponent, ReservationEntry) then
             exit;
 
-
         if ReservationEntry.FindSet() then
             repeat
-                TempReservEntry := ReservationEntry;
-                TempReservEntry.Insert();
+                TempGlobalReservationEntry := ReservationEntry;
+                TempGlobalReservationEntry.Insert();
             until ReservationEntry.Next() = 0;
 
-        TempReservEntry.Copy(TempReservEntry, true);
+        TempReservationEntry.Copy(TempGlobalReservationEntry, true);
 
         ReservationEntry.TransferReservations(
          ReservationEntry,
@@ -379,14 +378,14 @@ codeunit 99001505 "Subcontracting Management"
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         CreateReservEntry: Codeunit "Create Reserv. Entry";
     begin
-        TempReservationEntry.SetRange("Reservation Status", TempReservationEntry."Reservation Status"::Reservation);
-        if not TempReservationEntry.FindSet() then
+        TempGlobalReservationEntry.SetRange("Reservation Status", TempGlobalReservationEntry."Reservation Status"::Reservation);
+        if not TempGlobalReservationEntry.FindSet() then
             exit;
 
         repeat
-            if TempReservationEntry.GetItemTrackingEntryType() <> "Item Tracking Entry Type"::None then
-                if Item.Get(TempReservationEntry."Item No.") then begin
-                    TempReservationEntry."Location Code" := ProdOrderComponent."Location Code";
+            if TempGlobalReservationEntry.GetItemTrackingEntryType() <> "Item Tracking Entry Type"::None then
+                if Item.Get(TempGlobalReservationEntry."Item No.") then begin
+                    TempGlobalReservationEntry."Location Code" := ProdOrderComponent."Location Code";
                     CreateReservEntry.CreateReservEntryFor(
                         Database::"Transfer Line",
                         1,  // Direction::Inbound
@@ -395,9 +394,9 @@ codeunit 99001505 "Subcontracting Management"
                         TransferLine."Derived From Line No.",
                         TransferLine."Line No.",
                         TransferLine."Qty. per Unit of Measure",
-                        Abs(TempReservationEntry.Quantity),
-                        Abs(TempReservationEntry."Quantity (Base)"),
-                        TempReservationEntry);
+                        Abs(TempGlobalReservationEntry.Quantity),
+                        Abs(TempGlobalReservationEntry."Quantity (Base)"),
+                        TempGlobalReservationEntry);
 
                     TempTrackingSpecification.Init();
                     TempTrackingSpecification.SetSource(
@@ -408,21 +407,21 @@ codeunit 99001505 "Subcontracting Management"
                         '',
                         ProdOrderComponent."Prod. Order Line No.");
                     TempTrackingSpecification."Qty. per Unit of Measure" := ProdOrderComponent."Qty. per Unit of Measure";
-                    TempTrackingSpecification.CopyTrackingFromReservEntry(TempReservationEntry);
+                    TempTrackingSpecification.CopyTrackingFromReservEntry(TempGlobalReservationEntry);
 
                     CreateReservEntry.CreateReservEntryFrom(TempTrackingSpecification);
 
                     CreateReservEntry.CreateEntry(
-                        TempReservationEntry."Item No.",
-                        TempReservationEntry."Variant Code",
+                        TempGlobalReservationEntry."Item No.",
+                        TempGlobalReservationEntry."Variant Code",
                         TransferLine."Transfer-to Code",
-                        TempReservationEntry.Description,
+                        TempGlobalReservationEntry.Description,
                         TransferLine."Receipt Date",
                         ProdOrderComponent."Due Date",
                         0,
-                        TempReservationEntry."Reservation Status");
+                        TempGlobalReservationEntry."Reservation Status");
                 end;
-        until TempReservationEntry.Next() = 0;
+        until TempGlobalReservationEntry.Next() = 0;
     end;
 
     procedure TransferReservationEntryFromPstTransferLineToProdOrderComp(var TransferReceiptLine: Record "Transfer Receipt Line")
