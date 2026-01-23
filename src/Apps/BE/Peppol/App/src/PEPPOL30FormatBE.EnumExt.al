@@ -12,14 +12,14 @@ enumextension 37310 "PEPPOL 3.0 Format BE" extends "PEPPOL 3.0 Format"
     {
         Caption = 'PEPPOL 3.0 - BE Sales';
         Implementation = "PEPPOL Party Info Provider" = "PEPPOL30 BE",
-                        "PEPPOL30 Validation" = "PEPPOL30 Sales Validation",
+                        "PEPPOL30 Validation" = "PEPPOL30 BE Sales Validation",
                         "PEPPOL Posted Document Iterator" = "PEPPOL30 Sales Iterator";
     }
     value(37311; "PEPPOL 3.0 - BE Service")
     {
         Caption = 'PEPPOL 3.0 - BE Service';
         Implementation = "PEPPOL Party Info Provider" = "PEPPOL30 BE",
-                        "PEPPOL30 Validation" = "PEPPOL30 Service Validation",
+                        "PEPPOL30 Validation" = "PEPPOL30 BE Serv. Validation",
                         "PEPPOL Posted Document Iterator" = "PEPPOL30 Services Iterator";
     }
 }
