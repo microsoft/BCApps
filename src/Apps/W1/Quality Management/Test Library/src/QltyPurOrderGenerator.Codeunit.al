@@ -15,7 +15,7 @@ using Microsoft.QualityManagement.Document;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Document;
 
-codeunit 139981 "Qlty. Pur. Order Generator"
+codeunit 139941 "Qlty. Pur. Order Generator"
 {
     var
         LibraryPurchase: Codeunit "Library - Purchase";

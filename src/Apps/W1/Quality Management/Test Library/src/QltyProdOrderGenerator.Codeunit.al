@@ -23,7 +23,7 @@ using Microsoft.Sales.Document;
 /// <summary>
 /// Generates random Prod. Orders and all related records for use with automated testing.
 /// </summary>
-codeunit 139982 "Qlty. Prod. Order Generator"
+codeunit 139942 "Qlty. Prod. Order Generator"
 {
     TableNo = "Production Order";
     EventSubscriberInstance = Manual;

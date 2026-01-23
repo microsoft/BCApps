@@ -38,7 +38,7 @@ using System.Reflection;
 using System.TestLibraries.Security.AccessControl;
 using System.TestLibraries.Utilities;
 
-codeunit 139980 "Qlty. Inspection Utility"
+codeunit 139940 "Qlty. Inspection Utility"
 {
     var
         LibraryAssert: Codeunit "Library Assert";
