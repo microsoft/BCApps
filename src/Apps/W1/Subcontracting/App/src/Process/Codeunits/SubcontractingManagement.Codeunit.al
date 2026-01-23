@@ -479,7 +479,7 @@ codeunit 99001505 "Subcontracting Management"
         end;
     end;
 
-    procedure TransferSubcontractingProdOrderComp(var PurchOrderLine: Record "Purchase Line"; var RequisitionLine: Record "Requisition Line"; var NextLineNo: Integer)
+    procedure TransferSubcontractingProdOrderComp(var PurchaseLine: Record "Purchase Line"; var RequisitionLine: Record "Requisition Line"; var NextLineNo: Integer)
     var
         ProdOrderComponent: Record "Prod. Order Component";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
@@ -498,7 +498,7 @@ codeunit 99001505 "Subcontracting Management"
                 SubContractorWorkCenterNo := WorkCenter."No.";
                 OnBeforeHandleProdOrderRtngWorkCenterWithSubcontractor(SubContractorWorkCenterNo);
                 if SubContractorWorkCenterNo <> '' then begin
-                    PurchaseHeader.Get(PurchOrderLine."Document Type", PurchOrderLine."Document No.");
+                    PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
                     ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
                     ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
                     ProdOrderComponent.SetRange("Prod. Order Line No.", RequisitionLine."Prod. Order Line No.");
@@ -506,36 +506,36 @@ codeunit 99001505 "Subcontracting Management"
                     ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
                     if ProdOrderComponent.FindSet() then
                         repeat
-                            InitPurchOrderLine(PurchOrderLine, PurchaseHeader, RequisitionLine, ProdOrderComponent, NextLineNo);
+                            InitPurchOrderLine(PurchaseLine, PurchaseHeader, RequisitionLine, ProdOrderComponent, NextLineNo);
 
-                            PurchOrderLine."Drop Shipment" := RequisitionLine."Sales Order Line No." <> 0;
+                            PurchaseLine."Drop Shipment" := RequisitionLine."Sales Order Line No." <> 0;
 
                             if PurchasingCode.Get(RequisitionLine."Purchasing Code") then
-                                if PurchOrderLine."Special Order" then begin
-                                    PurchOrderLine."Special Order Sales No." := RequisitionLine."Sales Order No.";
-                                    PurchOrderLine."Special Order Sales Line No." := RequisitionLine."Sales Order Line No.";
-                                    PurchOrderLine."Special Order" := true;
-                                    PurchOrderLine."Drop Shipment" := false;
-                                    PurchOrderLine."Sales Order No." := '';
-                                    PurchOrderLine."Sales Order Line No." := 0;
-                                    PurchOrderLine.UpdateUnitCost();
+                                if PurchaseLine."Special Order" then begin
+                                    PurchaseLine."Special Order Sales No." := RequisitionLine."Sales Order No.";
+                                    PurchaseLine."Special Order Sales Line No." := RequisitionLine."Sales Order Line No.";
+                                    PurchaseLine."Special Order" := true;
+                                    PurchaseLine."Drop Shipment" := false;
+                                    PurchaseLine."Sales Order No." := '';
+                                    PurchaseLine."Sales Order Line No." := 0;
+                                    PurchaseLine.UpdateUnitCost();
                                 end;
 
                             DimensionSetIDArr[1] := ProdOrderComponent."Dimension Set ID";
-                            DimensionSetIDArr[2] := PurchOrderLine."Dimension Set ID";
-                            PurchOrderLine."Dimension Set ID" :=
+                            DimensionSetIDArr[2] := PurchaseLine."Dimension Set ID";
+                            PurchaseLine."Dimension Set ID" :=
                                 DimensionManagement.GetCombinedDimensionSetID(
-                                    DimensionSetIDArr, PurchOrderLine."Shortcut Dimension 1 Code", PurchOrderLine."Shortcut Dimension 2 Code");
-                            PurchOrderLine."Order Date" := WorkDate();
+                                    DimensionSetIDArr, PurchaseLine."Shortcut Dimension 1 Code", PurchaseLine."Shortcut Dimension 2 Code");
+                            PurchaseLine."Order Date" := WorkDate();
 
-                            PurchOrderLine."Subc. Prod. Order No." := ProdOrderRoutingLine."Prod. Order No.";
-                            PurchOrderLine."Subc. Prod. Order Line No." := ProdOrderRoutingLine."Routing Reference No.";
-                            PurchOrderLine."Subc. Routing No." := ProdOrderRoutingLine."Routing No.";
-                            PurchOrderLine."Subc. Rtng Reference No." := ProdOrderRoutingLine."Routing Reference No.";
-                            PurchOrderLine."Subc. Operation No." := ProdOrderRoutingLine."Operation No.";
-                            PurchOrderLine."Subc. Work Center No." := ProdOrderRoutingLine."Work Center No.";
+                            PurchaseLine."Subc. Prod. Order No." := ProdOrderRoutingLine."Prod. Order No.";
+                            PurchaseLine."Subc. Prod. Order Line No." := ProdOrderRoutingLine."Routing Reference No.";
+                            PurchaseLine."Subc. Routing No." := ProdOrderRoutingLine."Routing No.";
+                            PurchaseLine."Subc. Rtng Reference No." := ProdOrderRoutingLine."Routing Reference No.";
+                            PurchaseLine."Subc. Operation No." := ProdOrderRoutingLine."Operation No.";
+                            PurchaseLine."Subc. Work Center No." := ProdOrderRoutingLine."Work Center No.";
 
-                            PurchOrderLine.Insert();
+                            PurchaseLine.Insert();
                         until ProdOrderComponent.Next() = 0;
                 end;
             end

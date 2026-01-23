@@ -82,7 +82,7 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
         HandleItemTrackingSurplus(TransLine3, TempItemEntryRelation);
     end;
 
-    local procedure HandleReservationEntries(var TransLine3: Record "Transfer Line"; var TempItemEntryRelation: Record "Item Entry Relation" temporary)
+    local procedure HandleReservationEntries(var TransferLine: Record "Transfer Line"; var TempItemEntryRelation: Record "Item Entry Relation" temporary)
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
         OldReservationEntry: Record "Reservation Entry";
@@ -90,9 +90,9 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
         MatchFound: Boolean;
     begin
         // Find old reservations: Transfer Line (Inbound) → Prod. Order Component
-        OldReservationEntry.SetSourceFilter(Database::"Transfer Line", 1, TransLine3."Document No.", -1, true);
+        OldReservationEntry.SetSourceFilter(Database::"Transfer Line", 1, TransferLine."Document No.", -1, true);
         OldReservationEntry.SetRange("Source Batch Name", '');
-        OldReservationEntry.SetRange("Source Prod. Order Line", TransLine3."Derived From Line No.");
+        OldReservationEntry.SetRange("Source Prod. Order Line", TransferLine."Derived From Line No.");
         OldReservationEntry.SetRange("Reservation Status", OldReservationEntry."Reservation Status"::Reservation);
 
         if not OldReservationEntry.FindSet() then
@@ -137,12 +137,12 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
         until OldReservationEntry.Next() = 0;
     end;
 
-    local procedure HandleItemTrackingSurplus(var TransLine3: Record "Transfer Line"; var TempItemEntryRelation: Record "Item Entry Relation" temporary)
+    local procedure HandleItemTrackingSurplus(var TransferLine: Record "Transfer Line"; var TempItemEntryRelation: Record "Item Entry Relation" temporary)
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
         ProdOrderComponent: Record "Prod. Order Component";
     begin
-        if not FindProdOrderComponentsForTransferLine(TransLine3, ProdOrderComponent) then
+        if not FindProdOrderComponentsForTransferLine(TransferLine, ProdOrderComponent) then
             exit;
 
         // Process each Item Ledger Entry that was created

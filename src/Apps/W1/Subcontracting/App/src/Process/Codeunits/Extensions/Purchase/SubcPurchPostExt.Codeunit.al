@@ -43,7 +43,7 @@ codeunit 99001535 "Subc. Purch. Post Ext"
                     CopySubcontractingProdOrderFieldsToItemJnlLine(ItemJournalLine, PurchRcptLine);
     end;
 
-    local procedure SetQuantityBaseOnSubcontractingServiceLine(PurchLine: Record "Purchase Line"; var PurchRcptLine: Record "Purch. Rcpt. Line")
+    local procedure SetQuantityBaseOnSubcontractingServiceLine(PurchaseLine: Record "Purchase Line"; var PurchRcptLine: Record "Purch. Rcpt. Line")
     var
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
     begin
@@ -53,7 +53,7 @@ codeunit 99001535 "Subc. Purch. Post Ext"
         if PurchRcptLine."Quantity (Base)" = 0 then
             if PurchRcptLineHasProdOrder(PurchRcptLine) then
                 PurchRcptLine."Quantity (Base)" := UnitofMeasureManagement.CalcBaseQty(
-                        PurchRcptLine."No.", PurchRcptLine."Variant Code", PurchRcptLine."Unit of Measure Code", PurchRcptLine.Quantity, PurchRcptLine."Qty. per Unit of Measure", PurchLine."Qty. Rounding Precision (Base)");
+                        PurchRcptLine."No.", PurchRcptLine."Variant Code", PurchRcptLine."Unit of Measure Code", PurchRcptLine.Quantity, PurchRcptLine."Qty. per Unit of Measure", PurchaseLine."Qty. Rounding Precision (Base)");
     end;
 
     local procedure PurchRcptLineHasProdOrder(PurchRcptLine: Record "Purch. Rcpt. Line") HasProdOrder: Boolean
