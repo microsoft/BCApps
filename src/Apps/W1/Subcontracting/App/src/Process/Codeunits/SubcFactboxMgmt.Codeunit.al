@@ -858,10 +858,10 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         ProdOrderRoutingLine.FindFirst();
     end;
 
-    procedure CalcNoOfPurchasePrices(var PurchLine: Record "Purchase Line"): Integer
+    procedure CalcNoOfPurchasePrices(var PurchaseLine: Record "Purchase Line"): Integer
     begin
-        if IsItemLine(PurchLine) then
-            exit(CountPriceOnPurchItemLine(PurchLine));
+        if IsItemLine(PurchaseLine) then
+            exit(CountPriceOnPurchItemLine(PurchaseLine));
     end;
 
     local procedure CountPriceOnPurchItemLine(PurchaseLine: Record "Purchase Line"): Decimal
@@ -873,9 +873,9 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         exit(SubcontractorPrice.Count());
     end;
 
-    local procedure IsItemLine(PurchLine: Record "Purchase Line"): Boolean
+    local procedure IsItemLine(PurchaseLine: Record "Purchase Line"): Boolean
     begin
-        if (PurchLine.Type <> PurchLine.Type::Item) or (PurchLine."No." = '') then
+        if (PurchaseLine.Type <> PurchaseLine.Type::Item) or (PurchaseLine."No." = '') then
             exit(false);
         exit(true);
     end;

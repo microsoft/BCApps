@@ -28,15 +28,15 @@ codeunit 99001503 "Subcontracting Comp. Init."
         end;
     end;
 
-    procedure CreateLaborReqWkshTemplateAndNameAndUpdateSetup(var SubMgmtSetup: Record "Subc. Management Setup")
+    procedure CreateLaborReqWkshTemplateAndNameAndUpdateSetup(var SubcManagementSetup: Record "Subc. Management Setup")
     var
         ReqWkshTemplate: Record "Req. Wksh. Template";
         RequisitionWkshName: Record "Requisition Wksh. Name";
     begin
         CreateReqWkshTemplate(ReqWkshTemplate, false);
         CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplate.Name);
-        SubMgmtSetup."Subcontracting Template Name" := ReqWkshTemplate.Name;
-        SubMgmtSetup."Subcontracting Batch Name" := RequisitionWkshName.Name;
+        SubcManagementSetup."Subcontracting Template Name" := ReqWkshTemplate.Name;
+        SubcManagementSetup."Subcontracting Batch Name" := RequisitionWkshName.Name;
     end;
 
     procedure CreateReqWkshTemplate(var ReqWkshTemplate: Record "Req. Wksh. Template"; Recurring: Boolean)

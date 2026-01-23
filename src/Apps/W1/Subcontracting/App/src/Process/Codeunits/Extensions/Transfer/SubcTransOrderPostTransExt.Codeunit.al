@@ -67,7 +67,7 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
         HandleDirectTransferReservationAndTracking(TransferLine3, ItemJnlPostLine);
     end;
 
-    local procedure HandleDirectTransferReservationAndTracking(var TransLine3: Record "Transfer Line"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line")
+    local procedure HandleDirectTransferReservationAndTracking(var TransferLine: Record "Transfer Line"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line")
     var
         TempItemEntryRelation: Record "Item Entry Relation" temporary;
     begin
@@ -77,9 +77,9 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
         if not TempItemEntryRelation.FindSet() then
             exit;
 
-        HandleReservationEntries(TransLine3, TempItemEntryRelation);
+        HandleReservationEntries(TransferLine, TempItemEntryRelation);
 
-        HandleItemTrackingSurplus(TransLine3, TempItemEntryRelation);
+        HandleItemTrackingSurplus(TransferLine, TempItemEntryRelation);
     end;
 
     local procedure HandleReservationEntries(var TransferLine: Record "Transfer Line"; var TempItemEntryRelation: Record "Item Entry Relation" temporary)
