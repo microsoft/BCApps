@@ -10,6 +10,10 @@ inputs:
     description: Maximum number of retry attempts
     required: false
     default: '3'
+  whatIf:
+    description: If true, only performs read operations without triggering any reruns (for testing)
+    required: false
+    default: 'false'
   token:
     description: The GitHub token running the action
     required: false
@@ -26,7 +30,8 @@ runs:
         GH_TOKEN: ${{ inputs.token }}
         GITHUB_REPOSITORY: ${{ github.repository }}
       run: |
-        ${{ github.action_path }}/action.ps1 -thresholdHours ${{ inputs.thresholdHours }} -maxRetries ${{ inputs.maxRetries }}
+        $whatIfSwitch = if ('${{ inputs.whatIf }}' -eq 'true') { '-WhatIf' } else { '' }
+        & ${{ github.action_path }}/action.ps1 -thresholdHours ${{ inputs.thresholdHours }} -maxRetries ${{ inputs.maxRetries }} $whatIfSwitch
 branding:
   icon: rotate-cw
   color: blue
