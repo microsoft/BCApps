@@ -47,22 +47,12 @@ table 30141 "Shpfy Return Line"
             DataClassification = SystemMetadata;
             Editable = false;
         }
-#if not CLEANSCHEMA31
         field(6; "Return Reason"; Enum "Shpfy Return Reason")
         {
-            Caption = 'Return Reason';
+            Caption = 'Return Reason (deprecated)';
             DataClassification = SystemMetadata;
             Editable = false;
-            ObsoleteReason = 'Replaced by Return Reason Name and Return Reason Handle fields. Shopify API 2026-01 deprecated returnReason in favor of returnReasonDefinition.';
-#if not CLEAN28
-            ObsoleteState = Pending;
-            ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Removed;
-            ObsoleteTag = '31.0';
-#endif
         }
-#endif
         field(7; "Return Reason Note"; Blob)
         {
             Caption = 'Return Reason Note';
