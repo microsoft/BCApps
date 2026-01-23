@@ -335,38 +335,21 @@ codeunit 37311 "PEPPOL30 BE Sales Validation" implements "PEPPOL30 Validation"
 
     local procedure GetEnterpriseNo(CompanyInfo: Record "Company Information"): Text
     begin
-        // Enterprise No. is a field specific to Belgium localization
-        exit(GetFieldValueIfExists(CompanyInfo, 'Enterprise No.'));
+        exit(GetRecordFieldValueByName(CompanyInfo, 'Enterprise No.'));
     end;
 
     local procedure GetCustomerEnterpriseNo(Customer: Record Customer): Text
     begin
-        // Enterprise No. is a field specific to Belgium localization
-        exit(GetCustomerFieldValueIfExists(Customer, 'Enterprise No.'));
+        exit(GetRecordFieldValueByName(Customer, 'Enterprise No.'));
     end;
 
-    local procedure GetFieldValueIfExists(CompanyInfo: Record "Company Information"; FieldName: Text): Text
+    local procedure GetRecordFieldValueByName(RecordVariant: Variant; FieldName: Text): Text
     var
         RecRef: RecordRef;
         FieldRef: FieldRef;
         FieldIndex: Integer;
     begin
-        RecRef.GetTable(CompanyInfo);
-        for FieldIndex := 1 to RecRef.FieldCount() do begin
-            FieldRef := RecRef.FieldIndex(FieldIndex);
-            if FieldRef.Name = FieldName then
-                exit(Format(FieldRef.Value));
-        end;
-        exit('');
-    end;
-
-    local procedure GetCustomerFieldValueIfExists(Customer: Record Customer; FieldName: Text): Text
-    var
-        RecRef: RecordRef;
-        FieldRef: FieldRef;
-        FieldIndex: Integer;
-    begin
-        RecRef.GetTable(Customer);
+        RecRef.GetTable(RecordVariant);
         for FieldIndex := 1 to RecRef.FieldCount() do begin
             FieldRef := RecRef.FieldIndex(FieldIndex);
             if FieldRef.Name = FieldName then
