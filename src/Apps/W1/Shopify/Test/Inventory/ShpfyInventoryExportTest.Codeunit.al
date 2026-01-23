@@ -11,10 +11,10 @@ using Microsoft.Inventory.Journal;
 using System.TestLibraries.Utilities;
 
 /// <summary>
-/// Codeunit Shpfy Inventory Export Test (ID 139619).
+/// Codeunit Shpfy Inventory Export Test (ID 139501).
 /// Tests for inventory export functionality including idempotency and retry logic.
 /// </summary>
-codeunit 139619 "Shpfy Inventory Export Test"
+codeunit 139594 "Shpfy Inventory Export Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
@@ -25,6 +25,7 @@ codeunit 139619 "Shpfy Inventory Export Test"
         LibraryAssert: Codeunit "Library Assert";
         LibraryInventory: Codeunit "Library - Inventory";
         IsInitialized: Boolean;
+        NextId: BigInteger;
 
     local procedure Initialize()
     begin
@@ -55,7 +56,7 @@ codeunit 139619 "Shpfy Inventory Export Test"
         CreateShopLocation(ShopLocation, Shop.Code, StockCalculate::"Projected Available Balance Today");
         CreateItem(Item);
         UpdateItemInventory(Item, 10);
-        CreateShpfyProduct(ShopifyProduct, ShopInventory, Item.SystemId, Shop.Code, ShopLocation.Id);
+        CreateShopifyProduct(ShopifyProduct, ShopInventory, Item.SystemId, Shop.Code, ShopLocation.Id);
         ShopInventory."Shopify Stock" := 5; // Different from calculated stock to trigger export
         ShopInventory.Modify();
 
@@ -94,7 +95,7 @@ codeunit 139619 "Shpfy Inventory Export Test"
         CreateShopLocation(ShopLocation, Shop.Code, StockCalculate::"Projected Available Balance Today");
         CreateItem(Item);
         UpdateItemInventory(Item, 15);
-        CreateShpfyProduct(ShopifyProduct, ShopInventory, Item.SystemId, Shop.Code, ShopLocation.Id);
+        CreateShopifyProduct(ShopifyProduct, ShopInventory, Item.SystemId, Shop.Code, ShopLocation.Id);
         ShopInventory."Shopify Stock" := 5;
         ShopInventory.Modify();
 
@@ -136,7 +137,7 @@ codeunit 139619 "Shpfy Inventory Export Test"
         CreateShopLocation(ShopLocation, Shop.Code, StockCalculate::"Projected Available Balance Today");
         CreateItem(Item);
         UpdateItemInventory(Item, 20);
-        CreateShpfyProduct(ShopifyProduct, ShopInventory, Item.SystemId, Shop.Code, ShopLocation.Id);
+        CreateShopifyProduct(ShopifyProduct, ShopInventory, Item.SystemId, Shop.Code, ShopLocation.Id);
         ShopInventory."Shopify Stock" := 10;
         ShopInventory.Modify();
 
@@ -181,7 +182,7 @@ codeunit 139619 "Shpfy Inventory Export Test"
         CreateShopLocation(ShopLocation, Shop.Code, StockCalculate::"Projected Available Balance Today");
         CreateItem(Item);
         UpdateItemInventory(Item, 25);
-        CreateShpfyProduct(ShopifyProduct, ShopInventory, Item.SystemId, Shop.Code, ShopLocation.Id);
+        CreateShopifyProduct(ShopifyProduct, ShopInventory, Item.SystemId, Shop.Code, ShopLocation.Id);
         ShopInventory."Shopify Stock" := 15;
         ShopInventory.Modify();
 
@@ -203,8 +204,8 @@ codeunit 139619 "Shpfy Inventory Export Test"
         SkippedCountAfter := SkippedRecord.Count();
         LibraryAssert.IsTrue(SkippedCountAfter > SkippedCountBefore, 'Expected a skipped record to be logged after max retries');
 
-        // [THEN] The mutation was retried max times (2 calls: 1 initial + 1 retry)
-        LibraryAssert.AreEqual(2, InventorySubscriber.GetCallCount(), 'Expected 2 GraphQL calls (1 initial + 1 retry)');
+        // [THEN] The mutation was retried max times (4 calls: 1 initial + 3 retry)
+        LibraryAssert.AreEqual(4, InventorySubscriber.GetCallCount(), 'Expected 4 GraphQL calls (1 initial + 3 retry)');
 
         UnbindSubscription(InventorySubscriber);
     end;
@@ -231,7 +232,7 @@ codeunit 139619 "Shpfy Inventory Export Test"
         CreateShopLocation(ShopLocation, Shop.Code, StockCalculate::"Projected Available Balance Today");
         CreateItem(Item);
         UpdateItemInventory(Item, 30);
-        CreateShpfyProduct(ShopifyProduct, ShopInventory, Item.SystemId, Shop.Code, ShopLocation.Id);
+        CreateShopifyProduct(ShopifyProduct, ShopInventory, Item.SystemId, Shop.Code, ShopLocation.Id);
         ShopInventory."Shopify Stock" := 20;
         ShopInventory.Modify();
 
@@ -274,7 +275,7 @@ codeunit 139619 "Shpfy Inventory Export Test"
         CreateShopLocation(ShopLocation, Shop.Code, StockCalculate::"Projected Available Balance Today");
         CreateItem(Item);
         UpdateItemInventory(Item, 35);
-        CreateShpfyProduct(ShopifyProduct, ShopInventory, Item.SystemId, Shop.Code, ShopLocation.Id);
+        CreateShopifyProduct(ShopifyProduct, ShopInventory, Item.SystemId, Shop.Code, ShopLocation.Id);
         ShopInventory."Shopify Stock" := 25;
         ShopInventory.Modify();
 
@@ -300,25 +301,32 @@ codeunit 139619 "Shpfy Inventory Export Test"
         LibraryInventory.CreateItemWithoutVAT(Item);
     end;
 
-    local procedure CreateShpfyProduct(var ShopifyProduct: Record "Shpfy Product"; var ShopInventory: Record "Shpfy Shop Inventory"; ItemSystemId: Guid; ShopCode: Code[20]; ShopLocationId: BigInteger)
+    local procedure CreateShopifyProduct(var ShopifyProduct: Record "Shpfy Product"; var ShopInventory: Record "Shpfy Shop Inventory"; ItemSystemId: Guid; ShopCode: Code[20]; ShopLocationId: BigInteger)
     var
         ShopifyVariant: Record "Shpfy Variant";
+        ProductId: BigInteger;
+        VariantId: BigInteger;
+        InventoryItemId: BigInteger;
     begin
+        ProductId := GetNextId();
+        VariantId := GetNextId();
+        InventoryItemId := GetNextId();
+
         ShopifyProduct.Init();
-        ShopifyProduct.Id := Any.IntegerInRange(10000, 999999);
+        ShopifyProduct.Id := ProductId;
         ShopifyProduct."Item SystemId" := ItemSystemId;
         ShopifyProduct."Shop Code" := ShopCode;
         ShopifyProduct.Insert();
 
         ShopifyVariant.Init();
-        ShopifyVariant.Id := Any.IntegerInRange(10000, 999999);
+        ShopifyVariant.Id := VariantId;
         ShopifyVariant."Product Id" := ShopifyProduct.Id;
         ShopifyVariant."Item SystemId" := ItemSystemId;
         ShopifyVariant."Shop Code" := ShopCode;
         ShopifyVariant.Insert();
 
         ShopInventory.Init();
-        ShopInventory."Inventory Item Id" := Any.IntegerInRange(10000, 999999);
+        ShopInventory."Inventory Item Id" := InventoryItemId;
         ShopInventory."Shop Code" := ShopCode;
         ShopInventory."Location Id" := ShopLocationId;
         ShopInventory."Product Id" := ShopifyProduct.Id;
@@ -326,8 +334,23 @@ codeunit 139619 "Shpfy Inventory Export Test"
         ShopInventory.Insert();
     end;
 
+    local procedure GetNextId(): BigInteger
+    begin
+        NextId += 1;
+        exit(NextId);
+    end;
+
     local procedure CreateShopLocation(var ShopLocation: Record "Shpfy Shop Location"; ShopCode: Code[20]; StockCalculation: Enum "Shpfy Stock Calculation")
     begin
+        ShopLocation.SetRange("Shop Code", ShopCode);
+        ShopLocation.SetRange(Active, true);
+        if ShopLocation.FindFirst() then begin
+            ShopLocation."Stock Calculation" := StockCalculation;
+            ShopLocation."Default Product Location" := true;
+            ShopLocation.Modify();
+            exit;
+        end;
+
         ShopLocation.Init();
         ShopLocation."Shop Code" := ShopCode;
         ShopLocation.Id := Any.IntegerInRange(10000, 999999);

@@ -8,10 +8,10 @@ namespace Microsoft.Integration.Shopify.Test;
 using Microsoft.Integration.Shopify;
 
 /// <summary>
-/// Codeunit Shpfy Inventory Subscriber (ID 139618).
+/// Codeunit Shpfy Inventory Subscriber (ID 139593).
 /// Mock subscriber for inventory API tests to simulate GraphQL responses.
 /// </summary>
-codeunit 139618 "Shpfy Inventory Subscriber"
+codeunit 139593 "Shpfy Inventory Subscriber"
 {
     SingleInstance = true;
     EventSubscriberInstance = Manual;

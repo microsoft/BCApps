@@ -73,7 +73,7 @@ codeunit 139615 "Shpfy Bulk Op. Subscriber"
                             if GraphQLQuery.StartsWith(BulkMutationGQLTxt) then
                                 HttpResponseMessage := GetBulkMutationResponse();
                             if GraphQLQuery.StartsWith(BulkOperationGQLTxt) then
-                                HttpResponseMessage := GetBulkOperationCompletedResult();
+                                HttpResponseMessage := GetBulkOperation();
                         end;
                 end;
         end;
@@ -132,7 +132,7 @@ codeunit 139615 "Shpfy Bulk Op. Subscriber"
         exit(HttpResponseMessage);
     end;
 
-    local procedure GetBulkOperationCompletedResult(): HttpResponseMessage
+    local procedure GetBulkOperation(): HttpResponseMessage
     var
         HttpResponseMessage: HttpResponseMessage;
         Body: Text;
@@ -140,6 +140,10 @@ codeunit 139615 "Shpfy Bulk Op. Subscriber"
     begin
         NavApp.GetResource('Bulk Operations/BulkOperationCompletedResult.txt', ResInStream, TextEncoding::UTF8);
         ResInStream.ReadText(Body);
+        if BulkOperationRunning then
+            Body := StrSubstNo(Body, 'RUNNING')
+        else
+            Body := StrSubstNo(Body, 'COMPLETED');
         HttpResponseMessage.Content.WriteFrom(Body);
         exit(HttpResponseMessage);
     end;
