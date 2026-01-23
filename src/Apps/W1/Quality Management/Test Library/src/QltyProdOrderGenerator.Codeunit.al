@@ -23,7 +23,7 @@ using Microsoft.Sales.Document;
 /// <summary>
 /// Generates random Prod. Orders and all related records for use with automated testing.
 /// </summary>
-codeunit 139952 "Qlty. Prod. Order Generator"
+codeunit 139982 "Qlty. Prod. Order Generator"
 {
     TableNo = "Production Order";
     EventSubscriberInstance = Manual;
@@ -55,7 +55,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
     /// </summary>
     /// <param name="Seed">A seed for the random number generator. Using the same seed should give 
     /// the same results every time for stable testing.</param>
-    procedure Init(Seed: Integer)
+    internal procedure Init(Seed: Integer)
     var
         UnitOfMeasure: Record "Unit of Measure";
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -91,7 +91,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
         LibrarySales.SetOrderNoSeriesInSetup();
     end;
 
-    procedure CreatePurchaseOrder(var PurchaseHeader: Record "Purchase Header"; var Vendor: Record vendor; var Item: Record Item)
+    internal procedure CreatePurchaseOrder(var PurchaseHeader: Record "Purchase Header"; var Vendor: Record vendor; var Item: Record Item)
     var
         PurchaseLine: Record "Purchase Line";
         LibraryPurchase: Codeunit "Library - Purchase";
@@ -109,7 +109,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
     /// <param name="OutItem"></param>
     /// <param name="OutProdProductionOrder"></param>
     /// <param name="OutProdOrderRoutingLine"></param>
-    procedure CreateItemAndProductionOrder(var OutItem: Record Item; var OutProdProductionOrder: Record "Production Order"; var OutProdOrderRoutingLine: Record "Prod. Order Routing Line")
+    internal procedure CreateItemAndProductionOrder(var OutItem: Record Item; var OutProdProductionOrder: Record "Production Order"; var OutProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
@@ -135,7 +135,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
     /// </summary>
     /// <param name="Quantity">The number of production orders to generate.</param>
     /// <param name="OutOrdersList">Returns the list of generated production order codes.</param>
-    procedure GenerateItemSourceProdOrders(Quantity: Integer; var OutOrdersList: List of [Code[20]])
+    internal procedure GenerateItemSourceProdOrders(Quantity: Integer; var OutOrdersList: List of [Code[20]])
     var
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
     begin
@@ -151,7 +151,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
     /// <param name="OutItem"></param>
     /// <param name="OutProdProductionOrder"></param>
     /// <param name="OutProdOrderRoutingLine"></param>
-    procedure CreateLotTrackedItemAndProductionOrder(var OutItem: Record Item; var OutProdProductionOrder: Record "Production Order"; var OutProdOrderRoutingLine: Record "Prod. Order Routing Line")
+    internal procedure CreateLotTrackedItemAndProductionOrder(var OutItem: Record Item; var OutProdProductionOrder: Record "Production Order"; var OutProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
     begin
@@ -164,7 +164,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
     /// <param name="OutItem"></param>
     /// <param name="OutProdProductionOrder"></param>
     /// <param name="OutProdOrderRoutingLine"></param>
-    procedure CreateLotTrackedItemAndProductionOrder(ProdOrderStatusToCreate: Enum "Production Order Status"; var OutItem: Record Item; var OutProdProductionOrder: Record "Production Order"; var OutProdOrderRoutingLine: Record "Prod. Order Routing Line")
+    internal procedure CreateLotTrackedItemAndProductionOrder(ProdOrderStatusToCreate: Enum "Production Order Status"; var OutItem: Record Item; var OutProdProductionOrder: Record "Production Order"; var OutProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
     begin
@@ -180,12 +180,12 @@ codeunit 139952 "Qlty. Prod. Order Generator"
         OutItem.Get(OutProdProductionOrder."Source No.");
     end;
 
-    procedure CreateProdOrderLine(var ProdProductionOrder: Record "Production Order"; var Item: Record Item; Qty: Decimal; var OutProdOrderLine: Record "Prod. Order Line")
+    internal procedure CreateProdOrderLine(var ProdProductionOrder: Record "Production Order"; var Item: Record Item; Qty: Decimal; var OutProdOrderLine: Record "Prod. Order Line")
     begin
         LibraryManufacturing.CreateProdOrderLine(OutProdOrderLine, ProdProductionOrder.Status, ProdProductionOrder."No.", Item."No.", '', '', Qty);
     end;
 
-    procedure CreateOutputJournal(var Item: Record Item; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalBatch: Record "Item Journal Batch"; var OutItemJournalLine: Record "Item Journal Line"; OutputQty: Decimal)
+    internal procedure CreateOutputJournal(var Item: Record Item; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalBatch: Record "Item Journal Batch"; var OutItemJournalLine: Record "Item Journal Line"; OutputQty: Decimal)
     var
         ItemJournalTemplate: Record "Item Journal Template";
     begin
@@ -258,7 +258,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
     /// </summary>
     /// <param name="Type">The Prod. Order Source Type to toggle.</param>
     /// <param name="Value">A boolean to enable/disable the type.</param>
-    procedure ToggleSourceType(Type: Enum "Prod. Order Source Type"; Value: Boolean)
+    internal procedure ToggleSourceType(Type: Enum "Prod. Order Source Type"; Value: Boolean)
     begin
         Sources.Set(Type, Value);
     end;
@@ -267,7 +267,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
     /// Toggles all Prod. Order Source Types used by the generator to the given value.
     /// </summary>
     /// <param name="Value">A boolean to enable/disable all types.</param>
-    procedure ToggleAllSources(Value: Boolean)
+    internal procedure ToggleAllSources(Value: Boolean)
     var
         Type: Enum "Prod. Order Source Type";
     begin
@@ -282,7 +282,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
     /// </summary>
     /// <param name="Quantity">The quantity of Prod. Orders of each source type to create.</param>
     /// <param name="pliOutOrders">A list of the Prod. Order No's generated.</param>
-    procedure Generate(Quantity: Integer; var pliOutOrders: List of [Code[20]])
+    internal procedure Generate(Quantity: Integer; var pliOutOrders: List of [Code[20]])
     var
         ProductionOrder: Record "Production Order";
         Type: Enum "Prod. Order Source Type";
@@ -312,7 +312,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
         end;
     end;
 
-    procedure CreateItem(var Item: Record "Item")
+    internal procedure CreateItem(var Item: Record "Item")
     var
         RoutingHeader: Record "Routing Header";
     begin
@@ -328,7 +328,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
         SetupVAT();
     end;
 
-    procedure CreateLotTrackedItem(var Item: Record "Item")
+    internal procedure CreateLotTrackedItem(var Item: Record "Item")
     var
         RoutingHeader: Record "Routing Header";
     begin
@@ -436,7 +436,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
         RoutingLine.Modify();
     end;
 
-    procedure SetQuantity(Quantity: Decimal)
+    internal procedure SetQuantity(Quantity: Decimal)
     begin
         QuantityToCreate := Quantity;
     end;

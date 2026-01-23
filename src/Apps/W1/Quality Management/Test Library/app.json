@@ -37,8 +37,8 @@
     "target": "OnPrem",
     "idRanges": [
         {
-            "from": 139950,
-            "to": 139954
+            "from": 139980,
+            "to": 139984
         }
     ],
     "resourceExposurePolicy": {
@@ -46,6 +46,13 @@
         "allowDownloadingSource": true,
         "includeSourceInSymbolFile": true
     },
+    "internalsVisibleTo": [
+        {
+            "id": "aa5fc5d3-ef4e-4b03-8512-9c584cdc1ceb",
+            "name": "Quality Management-Tests",
+            "publisher": "Microsoft"
+        }
+    ],
     "features": [
         "NoImplicitWith",
         "TranslationFile"

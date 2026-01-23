@@ -38,7 +38,7 @@ using System.Reflection;
 using System.TestLibraries.Security.AccessControl;
 using System.TestLibraries.Utilities;
 
-codeunit 139950 "Qlty. Inspection Utility"
+codeunit 139980 "Qlty. Inspection Utility"
 {
     var
         LibraryAssert: Codeunit "Library Assert";
@@ -46,7 +46,7 @@ codeunit 139950 "Qlty. Inspection Utility"
         NoSeriesCodeunit: Codeunit "No. Series";
         DefaultResult2PassCodeLbl: Label 'PASS', Locked = true;
 
-    procedure EnsureSetupExists()
+    internal procedure EnsureSetupExists()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
@@ -60,7 +60,7 @@ codeunit 139950 "Qlty. Inspection Utility"
         UserPermissionsLibrary.AssignPermissionSetToUser(UserSecurityId(), 'QltyGeneral');
     end;
 
-    procedure CreateABasicTemplateAndInstanceOfAInspection(var OutCreatedQltyInspectionHeader: Record "Qlty. Inspection Header"; var OutQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.")
+    internal procedure CreateABasicTemplateAndInstanceOfAInspection(var OutCreatedQltyInspectionHeader: Record "Qlty. Inspection Header"; var OutQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.")
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
@@ -105,7 +105,7 @@ codeunit 139950 "Qlty. Inspection Utility"
         QltyInspectionCreate.GetCreatedInspection(OutCreatedQltyInspectionHeader);
     end;
 
-    procedure CreateTemplate(var OutQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; HowManyFields: Integer)
+    internal procedure CreateTemplate(var OutQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; HowManyFields: Integer)
     var
         IgnoredQltyTest: Record "Qlty. Test";
         ToTemplateRecordRef: RecordRef;
@@ -123,7 +123,7 @@ codeunit 139950 "Qlty. Inspection Utility"
                 CreateTestAndAddToTemplate(OutQltyInspectionTemplateHdr, IgnoredQltyTest, "Qlty. Test Value Type"::"Value Type Text")
     end;
 
-    procedure CreateTestAndAddToTemplate(InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; QltyTestValueType: Enum "Qlty. Test Value Type")
+    internal procedure CreateTestAndAddToTemplate(InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; QltyTestValueType: Enum "Qlty. Test Value Type")
     var
         IgnoredQltyTest: Record "Qlty. Test";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
@@ -137,7 +137,7 @@ codeunit 139950 "Qlty. Inspection Utility"
         QltyInspectionTemplateLine.Insert(true);
     end;
 
-    procedure CreateTestAndAddToTemplate(InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; var OutQltyTest: Record "Qlty. Test"; QltyTestValueType: Enum "Qlty. Test Value Type")
+    internal procedure CreateTestAndAddToTemplate(InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; var OutQltyTest: Record "Qlty. Test"; QltyTestValueType: Enum "Qlty. Test Value Type")
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
     begin
@@ -150,7 +150,7 @@ codeunit 139950 "Qlty. Inspection Utility"
         QltyInspectionTemplateLine.Insert(true);
     end;
 
-    procedure CreateTestAndAddToTemplate(InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; QltyTestValueType: Enum "Qlty. Test Value Type"; var QltyTest: Record "Qlty. Test"; var OutQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line")
+    internal procedure CreateTestAndAddToTemplate(InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; QltyTestValueType: Enum "Qlty. Test Value Type"; var QltyTest: Record "Qlty. Test"; var OutQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line")
     begin
         Clear(OutQltyInspectionTemplateLine);
         CreateTest(QltyTest, QltyTestValueType);
@@ -161,7 +161,7 @@ codeunit 139950 "Qlty. Inspection Utility"
         OutQltyInspectionTemplateLine.Insert(true);
     end;
 
-    procedure CreateTest(var QltyTest: Record "Qlty. Test"; QltyTestValueType: Enum "Qlty. Test Value Type")
+    internal procedure CreateTest(var QltyTest: Record "Qlty. Test"; QltyTestValueType: Enum "Qlty. Test Value Type")
     var
         QltyInspectionResult: Record "Qlty. Inspection Result";
         ToFieldRecordRef: RecordRef;
@@ -186,14 +186,14 @@ codeunit 139950 "Qlty. Inspection Utility"
             end;
     end;
 
-    procedure CreatePrioritizedRule(InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; SourceTableNo: Integer)
+    internal procedure CreatePrioritizedRule(InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; SourceTableNo: Integer)
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
         CreatePrioritizedRule(InExistingQltyInspectionTemplateHdr, SourceTableNo, QltyInspectionGenRule);
     end;
 
-    procedure CreatePrioritizedRule(var InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; SourceTableNo: Integer; var OutQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
+    internal procedure CreatePrioritizedRule(var InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; SourceTableNo: Integer; var OutQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
     var
         FindLowestQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
@@ -214,7 +214,7 @@ codeunit 139950 "Qlty. Inspection Utility"
         OutQltyInspectionGenRule.Insert(true);
     end;
 
-    procedure CreateItemJournalTemplateAndBatch(TemplateType: Enum "Item Journal Entry Type"; var OutItemJournalBatch: Record "Item Journal Batch")
+    internal procedure CreateItemJournalTemplateAndBatch(TemplateType: Enum "Item Journal Entry Type"; var OutItemJournalBatch: Record "Item Journal Batch")
     var
         ItemJournalTemplate: Record "Item Journal Template";
         LibraryInventory: Codeunit "Library - Inventory";
@@ -288,7 +288,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// </summary>
     /// <param name="NumberOfCharacters"></param>
     /// <param name="Out"></param>
-    procedure GenerateRandomCharacters(NumberOfCharacters: Integer; var Out: Text)
+    internal procedure GenerateRandomCharacters(NumberOfCharacters: Integer; var Out: Text)
     var
         LibraryRandom: Codeunit "Library - Random";
         CharSet: Text[36];
@@ -307,7 +307,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// Creates a lot no. series and a lot-tracked item
     /// </summary>
     /// <param name="OutItem"></param>
-    procedure CreateLotTrackedItem(var OutItem: Record Item)
+    internal procedure CreateLotTrackedItem(var OutItem: Record Item)
     var
         NoSeries: Record "No. Series";
     begin
@@ -318,7 +318,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// Creates a lot no. series and a lot-tracked item
     /// </summary>
     /// <param name="OutItem"></param>
-    procedure CreateLotTrackedItem(var OutItem: Record Item; var OutLotNoSeries: Record "No. Series")
+    internal procedure CreateLotTrackedItem(var OutItem: Record Item; var OutLotNoSeries: Record "No. Series")
     var
         InventorySetup: Record "Inventory Setup";
         ItemNoSeries: Record "No. Series";
@@ -357,7 +357,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// Creates a serial no. series and a serial-tracked item
     /// </summary>
     /// <param name="OutItem"></param>
-    procedure CreateSerialTrackedItem(var OutItem: Record Item)
+    internal procedure CreateSerialTrackedItem(var OutItem: Record Item)
     var
         NoSeries: Record "No. Series";
     begin
@@ -368,7 +368,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// Creates a serial no. series and a serial-tracked item
     /// </summary>
     /// <param name="OutItem"></param>
-    procedure CreateSerialTrackedItem(var OutItem: Record Item; var OutSerialNoSeries: Record "No. Series")
+    internal procedure CreateSerialTrackedItem(var OutItem: Record Item; var OutSerialNoSeries: Record "No. Series")
     var
         InventorySetup: Record "Inventory Setup";
         ItemNoSeries: Record "No. Series";
@@ -408,7 +408,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// Creates a package no. series and a package-tracked item
     /// </summary>
     /// <param name="OutItem"></param>
-    procedure CreatePackageTrackedItemWithNoSeries(var OutItem: Record Item; var OutPackageNoSeries: Record "No. Series")
+    internal procedure CreatePackageTrackedItemWithNoSeries(var OutItem: Record Item; var OutPackageNoSeries: Record "No. Series")
     var
         InventorySetup: Record "Inventory Setup";
         PackageNoSeriesLine: Record "No. Series Line";
@@ -445,7 +445,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// Sets user as warehouse employee for location
     /// </summary>
     /// <param name="Location"></param>
-    procedure SetCurrLocationWhseEmployee(Location: Code[10])
+    internal procedure SetCurrLocationWhseEmployee(Location: Code[10])
     var
         WhseWarehouseEmployee: Record "Warehouse Employee";
     begin
@@ -461,7 +461,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <param name="PurOrdPurchaseLine"></param>
     /// <param name="ReservationEntry"></param>
     /// <param name="OutQltyInspectionHeader"></param>
-    procedure CreateInspectionWithPurchaseLineAndTracking(PurOrdPurchaseLine: Record "Purchase Line"; ReservationEntry: Record "Reservation Entry"; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
+    internal procedure CreateInspectionWithPurchaseLineAndTracking(PurOrdPurchaseLine: Record "Purchase Line"; ReservationEntry: Record "Reservation Entry"; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         SpecTrackingSpecification: Record "Tracking Specification";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
@@ -485,7 +485,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <param name="WarehouseEntry"></param>
     /// <param name="ReservationEntry"></param>
     /// <param name="OutQltyInspectionHeader"></param>
-    procedure CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry: Record "Warehouse Entry"; ReservationEntry: Record "Reservation Entry"; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
+    internal procedure CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry: Record "Warehouse Entry"; ReservationEntry: Record "Reservation Entry"; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         SpecTrackingSpecification: Record "Tracking Specification";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
@@ -509,7 +509,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <param name="PurOrdPurchaseLine"></param>
     /// <param name="SpecificTemplate">The specific template to use.</param>
     /// <param name="OutQltyInspectionHeader"></param>
-    procedure CreateInspectionWithPurchaseLine(PurOrdPurchaseLine: Record "Purchase Line"; SpecificTemplate: Code[20]; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
+    internal procedure CreateInspectionWithPurchaseLine(PurOrdPurchaseLine: Record "Purchase Line"; SpecificTemplate: Code[20]; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         PurchaseLineRecordRef: RecordRef;
@@ -528,7 +528,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// </summary>
     /// <param name="WarehouseEntry"></param>
     /// <param name="OutQltyInspectionHeader"></param>
-    procedure CreateInspectionWithWarehouseEntry(WarehouseEntry: Record "Warehouse Entry"; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
+    internal procedure CreateInspectionWithWarehouseEntry(WarehouseEntry: Record "Warehouse Entry"; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         RecordRef: RecordRef;
@@ -550,7 +550,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <param name="PreventDisplaying">If true, prevents displaying inspection even if configured.</param>
     /// <param name="RaiseErrorIfNoRuleFound">If true, raises an error when no matching rule is found.</param>
     /// <param name="OutQltyInspectionHeader">The created inspection header.</param>
-    procedure CreateInspectionWithPreventDisplaying(SourceRecordRef: RecordRef; PreventDisplaying: Boolean; RaiseErrorIfNoRuleFound: Boolean; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
+    internal procedure CreateInspectionWithPreventDisplaying(SourceRecordRef: RecordRef; PreventDisplaying: Boolean; RaiseErrorIfNoRuleFound: Boolean; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
     begin
@@ -572,7 +572,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <param name="EntryType"></param>
     /// <param name="ItemNo"></param>
     /// <param name="NewQuantity"></param>
-    procedure CreateReclassWhseJournalLine(var ReclassWarehouseJournalLine: Record "Warehouse Journal Line"; JournalTemplateName: Code[10]; JournalBatchName: Code[10]; LocationCode: Code[10]; ZoneCode: Code[10]; BinCode: Code[20]; EntryType: Option; ItemNo: Code[20]; NewQuantity: Decimal)
+    internal procedure CreateReclassWhseJournalLine(var ReclassWarehouseJournalLine: Record "Warehouse Journal Line"; JournalTemplateName: Code[10]; JournalBatchName: Code[10]; LocationCode: Code[10]; ZoneCode: Code[10]; BinCode: Code[20]; EntryType: Option; ItemNo: Code[20]; NewQuantity: Decimal)
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         BatchNoSeries: Record "No. Series";
@@ -616,7 +616,7 @@ codeunit 139950 "Qlty. Inspection Utility"
         ReclassWarehouseJournalLine.Modify(true);
     end;
 
-    procedure ClearResultLotSettings(var QltyInspectionResult: Record "Qlty. Inspection Result")
+    internal procedure ClearResultLotSettings(var QltyInspectionResult: Record "Qlty. Inspection Result")
     begin
         QltyInspectionResult."Lot Allow Sales" := QltyInspectionResult."Lot Allow Sales"::Allow;
         QltyInspectionResult."Lot Allow Assembly Consumption" := QltyInspectionResult."Lot Allow Assembly Consumption"::Allow;
@@ -634,7 +634,7 @@ codeunit 139950 "Qlty. Inspection Utility"
         QltyInspectionResult.Modify();
     end;
 
-    procedure ClearSetupTriggerDefaults(var QltyManagementSetup: Record "Qlty. Management Setup")
+    internal procedure ClearSetupTriggerDefaults(var QltyManagementSetup: Record "Qlty. Management Setup")
     begin
         QltyManagementSetup."Purchase Trigger" := QltyManagementSetup."Purchase Trigger"::NoTrigger;
         QltyManagementSetup."Sales Return Trigger" := QltyManagementSetup."Sales Return Trigger"::NoTrigger;
@@ -646,7 +646,7 @@ codeunit 139950 "Qlty. Inspection Utility"
         QltyManagementSetup.Modify();
     end;
 
-    procedure CreatePackageTracking(var PackageNoSeries: Record "No. Series"; var PackageNoSeriesLine: Record "No. Series Line"; var PackageItemTrackingCode: Record "Item Tracking Code")
+    internal procedure CreatePackageTracking(var PackageNoSeries: Record "No. Series"; var PackageNoSeriesLine: Record "No. Series Line"; var PackageItemTrackingCode: Record "Item Tracking Code")
     var
         InventorySetup: Record "Inventory Setup";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
@@ -666,7 +666,7 @@ codeunit 139950 "Qlty. Inspection Utility"
         LibraryItemTracking.CreateItemTrackingCode(PackageItemTrackingCode, false, false, true);
     end;
 
-    procedure CreateLotTrackedItemWithVariant(var LotTrackedItem: Record Item; var OutOptionalItemVariant: Code[10])
+    internal procedure CreateLotTrackedItemWithVariant(var LotTrackedItem: Record Item; var OutOptionalItemVariant: Code[10])
     var
         ItemVariant: Record "Item Variant";
         LibraryInventory: Codeunit "Library - Inventory";
@@ -676,7 +676,7 @@ codeunit 139950 "Qlty. Inspection Utility"
         LotTrackedItem.Modify(true);
     end;
 
-    procedure CreateSerialTrackedItemWithVariant(var SerialTrackedItem: Record Item; var OutOptionalItemVariant: Code[10])
+    internal procedure CreateSerialTrackedItemWithVariant(var SerialTrackedItem: Record Item; var OutOptionalItemVariant: Code[10])
     var
         ItemVariant: Record "Item Variant";
         LibraryInventory: Codeunit "Library - Inventory";
@@ -686,7 +686,7 @@ codeunit 139950 "Qlty. Inspection Utility"
         SerialTrackedItem.Modify(true);
     end;
 
-    procedure CreateSerialTrackedItemWithVariant(var SerialTrackedItem: Record Item; SerialNoSeries: Code[20]; SerialTrackingCode: Code[10]; UnitCost: Decimal; var OutOptionalItemVariant: Code[10])
+    internal procedure CreateSerialTrackedItemWithVariant(var SerialTrackedItem: Record Item; SerialNoSeries: Code[20]; SerialTrackingCode: Code[10]; UnitCost: Decimal; var OutOptionalItemVariant: Code[10])
     var
         ItemVariant: Record "Item Variant";
         LibraryInventory: Codeunit "Library - Inventory";
@@ -695,7 +695,7 @@ codeunit 139950 "Qlty. Inspection Utility"
         OutOptionalItemVariant := LibraryInventory.CreateItemVariant(ItemVariant, SerialTrackedItem."No.");
     end;
 
-    procedure CreatePackageTrackedItem(var PackageTrackedItem: Record Item; PackageTrackingCode: Code[10]; UnitCost: Decimal; var OutOptionalItemVariant: Code[10])
+    internal procedure CreatePackageTrackedItem(var PackageTrackedItem: Record Item; PackageTrackingCode: Code[10]; UnitCost: Decimal; var OutOptionalItemVariant: Code[10])
     var
         ItemVariant: Record "Item Variant";
         LibraryInventory: Codeunit "Library - Inventory";
@@ -707,7 +707,7 @@ codeunit 139950 "Qlty. Inspection Utility"
         PackageTrackedItem.Modify(true);
     end;
 
-    procedure CreateUntrackedItem(var UntrackedItem: Record Item; UnitCost: Decimal; var OutOptionalItemVariant: Code[10])
+    internal procedure CreateUntrackedItem(var UntrackedItem: Record Item; UnitCost: Decimal; var OutOptionalItemVariant: Code[10])
     var
         ItemVariant: Record "Item Variant";
         LibraryInventory: Codeunit "Library - Inventory";
@@ -718,7 +718,7 @@ codeunit 139950 "Qlty. Inspection Utility"
         UntrackedItem.Modify(true);
     end;
 
-    procedure GetCode20NoSeries(InPrefix: Text; var OutStart: Code[20]; var OutEnd: Code[20])
+    internal procedure GetCode20NoSeries(InPrefix: Text; var OutStart: Code[20]; var OutEnd: Code[20])
     var
         Temp: Text;
     begin
@@ -759,12 +759,12 @@ codeunit 139950 "Qlty. Inspection Utility"
         Out := Out.PadLeft(PadSize, '0');
     end;
 
-    procedure CreateWarehouseReceiptSetup(var CreatedQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"; var OutPurchaseLine: Record "Purchase Line"; var OutReservationEntry: Record "Reservation Entry")
+    internal procedure CreateWarehouseReceiptSetup(var CreatedQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"; var OutPurchaseLine: Record "Purchase Line"; var OutReservationEntry: Record "Reservation Entry")
     begin
         CreateWarehouseReceiptSetup(CreatedQltyInspectionGenRule, OutPurchaseLine, OutReservationEntry, 123);
     end;
 
-    procedure CreateWarehouseReceiptSetup(var CreatedQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"; var OutPurchaseLine: Record "Purchase Line"; var OutReservationEntry: Record "Reservation Entry"; Quantity: Decimal)
+    internal procedure CreateWarehouseReceiptSetup(var CreatedQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"; var OutPurchaseLine: Record "Purchase Line"; var OutReservationEntry: Record "Reservation Entry"; Quantity: Decimal)
     var
         Item: Record Item;
         Location: Record Location;
@@ -796,7 +796,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// Wrapper for internal procedure IsQualityManagementApplicationAreaEnabled from Qlty. Application Area Mgmt. codeunit.
     /// </summary>
     /// <returns>True if Quality Management application area is enabled.</returns>
-    procedure IsQualityManagementApplicationAreaEnabled(): Boolean
+    internal procedure IsQualityManagementApplicationAreaEnabled(): Boolean
     var
         QltyApplicationAreaMgmt: Codeunit "Qlty. Application Area Mgmt.";
     begin
@@ -810,7 +810,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// Ensures that basic quality management setup exists.
     /// </summary>
     /// <param name="ShowUI">Whether to show UI during setup.</param>
-    procedure EnsureBasicSetupExists(ShowUI: Boolean)
+    internal procedure EnsureBasicSetupExists(ShowUI: Boolean)
     var
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
     begin
@@ -822,7 +822,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// Returns the default PASS result code.
     /// </summary>
     /// <returns>The default PASS result code.</returns>
-    procedure GetDefaultPassResult(): Code[20]
+    internal procedure GetDefaultPassResult(): Code[20]
     var
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
         ResultCode: Code[20];
@@ -841,7 +841,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <param name="ValueToCheck">The value to check.</param>
     /// <param name="AcceptableValue">The acceptable value condition.</param>
     /// <returns>True if the value matches the condition, false otherwise.</returns>
-    procedure CheckIfValueIsDecimal(ValueToCheck: Text; AcceptableValue: Text): Boolean
+    internal procedure CheckIfValueIsDecimal(ValueToCheck: Text; AcceptableValue: Text): Boolean
     var
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
     begin
@@ -854,7 +854,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <param name="ValueToCheck">The value to check.</param>
     /// <param name="AcceptableValue">The acceptable value condition.</param>
     /// <returns>True if the value matches the condition, false otherwise.</returns>
-    procedure CheckIfValueIsInteger(ValueToCheck: Text; AcceptableValue: Text): Boolean
+    internal procedure CheckIfValueIsInteger(ValueToCheck: Text; AcceptableValue: Text): Boolean
     var
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
     begin
@@ -868,7 +868,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <param name="ValueToCheck">The value to check.</param>
     /// <param name="AcceptableValue">The acceptable value condition.</param>
     /// <returns>True if the value matches the condition, false otherwise.</returns>
-    procedure CheckIfValueIsString(ValueToCheck: Text; AcceptableValue: Text): Boolean
+    internal procedure CheckIfValueIsString(ValueToCheck: Text; AcceptableValue: Text): Boolean
     var
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
     begin
@@ -882,7 +882,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <param name="AcceptableValue">The acceptable value condition.</param>
     /// <param name="QltyCaseSensitivity">The case sensitivity option.</param>
     /// <returns>True if the value matches the condition, false otherwise.</returns>
-    procedure CheckIfValueIsString(ValueToCheck: Text; AcceptableValue: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity"): Boolean
+    internal procedure CheckIfValueIsString(ValueToCheck: Text; AcceptableValue: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity"): Boolean
     var
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
     begin
@@ -894,7 +894,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// Validates an inspection line using the single-parameter internal signature.
     /// </summary>
     /// <param name="QltyInspectionLine">The inspection line to validate.</param>
-    procedure ValidateQltyInspectionLine(var QltyInspectionLine: Record "Qlty. Inspection Line")
+    internal procedure ValidateQltyInspectionLine(var QltyInspectionLine: Record "Qlty. Inspection Line")
     var
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
     begin
@@ -907,7 +907,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// </summary>
     /// <param name="QltyTest">The test record to validate.</param>
     /// <param name="QltyInspectionHeader">The inspection header context.</param>
-    procedure ValidateAllowableValuesOnTest(var QltyTest: Record "Qlty. Test"; var QltyInspectionHeader: Record "Qlty. Inspection Header")
+    internal procedure ValidateAllowableValuesOnTest(var QltyTest: Record "Qlty. Test"; var QltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
@@ -925,7 +925,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <param name="Value">The value to evaluate.</param>
     /// <param name="QltyCaseSensitivity">The case sensitivity option.</param>
     /// <returns>The result code.</returns>
-    procedure EvaluateResult(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf."; QltyTestValueType: Enum "Qlty. Test Value Type"; Value: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity"): Code[20]
+    internal procedure EvaluateResult(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf."; QltyTestValueType: Enum "Qlty. Test Value Type"; Value: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity"): Code[20]
     var
         QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
@@ -941,7 +941,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// Wrapper for internal procedure NotifyDoYouWantToAssignToYourself from Qlty. Notification Mgmt. codeunit.
     /// </summary>
     /// <param name="QltyInspectionHeader">The inspection header record.</param>
-    procedure NotifyDoYouWantToAssignToYourself(QltyInspectionHeader: Record "Qlty. Inspection Header")
+    internal procedure NotifyDoYouWantToAssignToYourself(QltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
     begin
@@ -952,7 +952,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// Wrapper for internal procedure HandleOpenDocument from Qlty. Notification Mgmt. codeunit.
     /// </summary>
     /// <param name="NotificationToShow">The notification that triggered the action.</param>
-    procedure HandleOpenDocument(NotificationToShow: Notification)
+    internal procedure HandleOpenDocument(NotificationToShow: Notification)
     var
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
     begin
@@ -963,7 +963,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// Wrapper for internal procedure HandleNotificationActionAssignToSelf from Qlty. Notification Mgmt. codeunit.
     /// </summary>
     /// <param name="NotificationToShow">The notification that triggered the action.</param>
-    procedure HandleNotificationActionAssignToSelf(NotificationToShow: Notification)
+    internal procedure HandleNotificationActionAssignToSelf(NotificationToShow: Notification)
     var
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
     begin
@@ -974,7 +974,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// Wrapper for internal procedure HandleNotificationActionIgnore from Qlty. Notification Mgmt. codeunit.
     /// </summary>
     /// <param name="NotificationToShow">The notification that triggered the action.</param>
-    procedure HandleNotificationActionIgnore(NotificationToShow: Notification)
+    internal procedure HandleNotificationActionIgnore(NotificationToShow: Notification)
     var
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
     begin
@@ -996,7 +996,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <param name="OptionalVariant4">Optional fourth variant.</param>
     /// <param name="QltyInspectionHeader">The found inspection header.</param>
     /// <returns>True if an existing inspection was found.</returns>
-    procedure FindExistingInspectionWithMultipleVariants(RaiseErrorIfNoRuleIsFound: Boolean; ReferenceVariant: Variant; OptionalVariant2: Variant; OptionalVariant3: Variant; OptionalVariant4: Variant; var QltyInspectionHeader: Record "Qlty. Inspection Header"): Boolean
+    internal procedure FindExistingInspectionWithMultipleVariants(RaiseErrorIfNoRuleIsFound: Boolean; ReferenceVariant: Variant; OptionalVariant2: Variant; OptionalVariant3: Variant; OptionalVariant4: Variant; var QltyInspectionHeader: Record "Qlty. Inspection Header"): Boolean
     var
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
     begin
@@ -1014,7 +1014,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <param name="Optional4RecordRef">Optional fourth RecordRef.</param>
     /// <param name="QltyInspectionHeader">The found inspection header.</param>
     /// <returns>True if an existing inspection was found.</returns>
-    procedure FindExistingInspection(RaiseErrorIfNoRuleIsFound: Boolean; TargetRecordRef: RecordRef; Optional2RecordRef: RecordRef; Optional3RecordRef: RecordRef; Optional4RecordRef: RecordRef; var QltyInspectionHeader: Record "Qlty. Inspection Header"): Boolean
+    internal procedure FindExistingInspection(RaiseErrorIfNoRuleIsFound: Boolean; TargetRecordRef: RecordRef; Optional2RecordRef: RecordRef; Optional3RecordRef: RecordRef; Optional4RecordRef: RecordRef; var QltyInspectionHeader: Record "Qlty. Inspection Header"): Boolean
     var
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
     begin
@@ -1035,7 +1035,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <param name="Optional3Variant">Third optional variant to search.</param>
     /// <param name="Optional4Variant">Fourth optional variant to search.</param>
     /// <returns>True if an Item was found; False otherwise.</returns>
-    procedure FindRelatedItem(var Item: Record Item; TargetRecordRef: RecordRef; Optional2Variant: Variant; Optional3Variant: Variant; Optional4Variant: Variant): Boolean
+    internal procedure FindRelatedItem(var Item: Record Item; TargetRecordRef: RecordRef; Optional2Variant: Variant; Optional3Variant: Variant; Optional4Variant: Variant): Boolean
     var
         QltyTraversal: Codeunit "Qlty. Traversal";
     begin
@@ -1053,7 +1053,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <param name="Optional4Variant">Fourth optional variant to search.</param>
     /// <param name="Optional5Variant">Fifth optional variant to search.</param>
     /// <returns>True if an Item was found; False otherwise.</returns>
-    procedure FindRelatedItem(var Item: Record Item; TargetRecordRef: RecordRef; Optional2Variant: Variant; Optional3Variant: Variant; Optional4Variant: Variant; Optional5Variant: Variant): Boolean
+    internal procedure FindRelatedItem(var Item: Record Item; TargetRecordRef: RecordRef; Optional2Variant: Variant; Optional3Variant: Variant; Optional4Variant: Variant; Optional5Variant: Variant): Boolean
     var
         QltyTraversal: Codeunit "Qlty. Traversal";
     begin
@@ -1072,7 +1072,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <param name="FromTableNo">The source table number.</param>
     /// <param name="ToType">The target type (Chained table, Inspection, or Item Tracking only).</param>
     /// <param name="ToTableNo">The target table number.</param>
-    procedure CreateSourceConfig(var QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config."; FromTableNo: Integer; ToType: Enum "Qlty. Target Type"; ToTableNo: Integer)
+    internal procedure CreateSourceConfig(var QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config."; FromTableNo: Integer; ToType: Enum "Qlty. Target Type"; ToTableNo: Integer)
     var
         ConfigCode: Text;
     begin
@@ -1095,7 +1095,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// Detects if the source configuration has interesting (potentially problematic) table configurations.
     /// </summary>
     /// <param name="QltyInspectSourceConfig">The source configuration record to check.</param>
-    procedure DetectInterestingConfiguration(var QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.")
+    internal procedure DetectInterestingConfiguration(var QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.")
     begin
         QltyInspectSourceConfig.DetectInterestingConfiguration();
     end;
@@ -1115,7 +1115,8 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <param name="ToType">The target type (Chained table, Inspection, or Item Tracking only).</param>
     /// <param name="ToTableNo">The target table number.</param>
     /// <param name="ToFieldNo">The target field number.</param>
-    procedure CreateSourceFieldConfig(SourceConfigCode: Code[20]; FromTableNo: Integer; FromFieldNo: Integer; ToType: Enum "Qlty. Target Type"; ToTableNo: Integer; ToFieldNo: Integer)
+    internal procedure CreateSourceFieldConfig(SourceConfigCode: Code[20]; FromTableNo: Integer; FromFieldNo: Integer; ToType: Enum "Qlty. Target Type"; ToTableNo: Integer;
+                                                                                                                          ToFieldNo: Integer)
     var
         QltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
     begin
@@ -1139,7 +1140,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <param name="TableNo">The table number for both source and target (used for field name resolution).</param>
     /// <param name="ToType">The target type (Chained table, Inspection, or Item Tracking only).</param>
     /// <param name="FieldName">The field name to resolve to a field number.</param>
-    procedure CreateSourceFieldConfigByName(SourceConfigCode: Code[20]; TableNo: Integer; ToType: Enum "Qlty. Target Type"; FieldName: Text)
+    internal procedure CreateSourceFieldConfigByName(SourceConfigCode: Code[20]; TableNo: Integer; ToType: Enum "Qlty. Target Type"; FieldName: Text)
     var
         FieldRec: Record Field;
     begin
@@ -1160,7 +1161,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <param name="ItemNo">The item number to check.</param>
     /// <param name="TempItemTrackingSetup">Temporary item tracking setup record that will contain the tracking information.</param>
     /// <returns>True if item tracking is used for the item.</returns>
-    procedure IsItemTrackingUsed(ItemNo: Code[20]; var TempItemTrackingSetup: Record "Item Tracking Setup" temporary): Boolean
+    internal procedure IsItemTrackingUsed(ItemNo: Code[20]; var TempItemTrackingSetup: Record "Item Tracking Setup" temporary): Boolean
     var
         QltyItemTracking: Codeunit "Qlty. Item Tracking";
     begin
@@ -1174,7 +1175,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <param name="QltyInspectionHeader">The inspection header containing item tracking info.</param>
     /// <param name="ReturnOrderPurchaseLine">The purchase return order line.</param>
     /// <param name="QtyToReturn">The quantity to return.</param>
-    procedure DeleteAndRecreatePurchaseReturnOrderLineTracking(QltyInspectionHeader: Record "Qlty. Inspection Header"; ReturnOrderPurchaseLine: Record "Purchase Line"; QtyToReturn: Decimal)
+    internal procedure DeleteAndRecreatePurchaseReturnOrderLineTracking(QltyInspectionHeader: Record "Qlty. Inspection Header"; ReturnOrderPurchaseLine: Record "Purchase Line"; QtyToReturn: Decimal)
     var
         QltyItemTrackingMgmt: Codeunit "Qlty. Item Tracking Mgmt.";
     begin
@@ -1191,7 +1192,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// </summary>
     /// <param name="QltyManagementSetup">The setup record to get the video link from.</param>
     /// <returns>The setup video link text.</returns>
-    procedure GetSetupVideoLink(var QltyManagementSetup: Record "Qlty. Management Setup"): Text
+    internal procedure GetSetupVideoLink(var QltyManagementSetup: Record "Qlty. Management Setup"): Text
     begin
         exit(QltyManagementSetup.GetSetupVideoLink());
     end;
@@ -1201,7 +1202,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// Retrieves and updates the brick header values in the setup record.
     /// </summary>
     /// <param name="QltyManagementSetup">The setup record to update with brick headers.</param>
-    procedure GetBrickHeaders(var QltyManagementSetup: Record "Qlty. Management Setup")
+    internal procedure GetBrickHeaders(var QltyManagementSetup: Record "Qlty. Management Setup")
     begin
         QltyManagementSetup.GetBrickHeaders(
             QltyManagementSetup."Brick Top Left Header",
@@ -1217,7 +1218,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// </summary>
     /// <param name="QltyManagementSetup">The setup record.</param>
     /// <returns>The application GUID.</returns>
-    procedure GetAppGuid(var QltyManagementSetup: Record "Qlty. Management Setup"): Guid
+    internal procedure GetAppGuid(var QltyManagementSetup: Record "Qlty. Management Setup"): Guid
     begin
         exit(QltyManagementSetup.GetAppGuid());
     end;
@@ -1228,7 +1229,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// </summary>
     /// <param name="QltyManagementSetup">The setup record.</param>
     /// <returns>The version text.</returns>
-    procedure GetVersion(var QltyManagementSetup: Record "Qlty. Management Setup"): Text
+    internal procedure GetVersion(var QltyManagementSetup: Record "Qlty. Management Setup"): Text
     begin
         exit(QltyManagementSetup.GetVersion());
     end;
@@ -1242,7 +1243,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// Use this with Marked records.
     /// </summary>
     /// <param name="TempTrackingSpecification">You must mark your records as a pre-requisite.</param>
-    procedure CreateMultipleInspectionsForMarkedTrackingSpecification(var TempTrackingSpecification: Record "Tracking Specification" temporary)
+    internal procedure CreateMultipleInspectionsForMarkedTrackingSpecification(var TempTrackingSpecification: Record "Tracking Specification" temporary)
     var
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
     begin
@@ -1255,7 +1256,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// </summary>
     /// <param name="SetOfRecordsRecordRef">RecordRef containing the records to create inspections for.</param>
     /// <param name="IsManualCreation">Whether this is a manual creation (affects display behavior).</param>
-    procedure CreateMultipleInspectionsForMultipleRecords(var SetOfRecordsRecordRef: RecordRef; IsManualCreation: Boolean)
+    internal procedure CreateMultipleInspectionsForMultipleRecords(var SetOfRecordsRecordRef: RecordRef; IsManualCreation: Boolean)
     var
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
     begin
@@ -1270,7 +1271,11 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// Wrapper for internal QltyDispPurchaseReturn.PerformDisposition (7-argument version) and GetCreatedPurchaseReturnBuffer.
     /// Performs disposition and returns the created purchase return buffer.
     /// </summary>
-    procedure PerformPurchaseReturnDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSpecificQuantity: Decimal; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; ReasonCode: Code[10]; ExternalDocumentNo: Code[35]; var TempCreatedBufferPurchaseHeader: Record "Purchase Header" temporary): Boolean
+    internal procedure PerformPurchaseReturnDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSpecificQuantity: Decimal;
+                                                                                                                                     OptionalSourceLocationFilter: Text;
+                                                                                                                                     OptionalSourceBinFilter: Text;
+                                                                                                                                     ReasonCode: Code[10];
+                                                                                                                                     ExternalDocumentNo: Code[35]; var TempCreatedBufferPurchaseHeader: Record "Purchase Header" temporary): Boolean
     var
         QltyDispPurchaseReturn: Codeunit "Qlty. Disp. Purchase Return";
         Result: Boolean;
@@ -1283,7 +1288,10 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <summary>
     /// Wrapper for internal QltyDispNegAdjustInv.PerformDisposition (7-argument version).
     /// </summary>
-    procedure PerformNegAdjustInvDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; PostingBehavior: Enum "Qlty. Item Adj. Post Behavior"; Reason: Code[10]): Boolean
+    internal procedure PerformNegAdjustInvDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSourceLocationFilter: Text;
+                                                                                                                                                                      OptionalSourceBinFilter: Text;
+                                                                                                                                                                      PostingBehavior: Enum "Qlty. Item Adj. Post Behavior";
+                                                                                                                                                                      Reason: Code[10]): Boolean
     var
         QltyDispNegAdjustInv: Codeunit "Qlty. Disp. Neg. Adjust Inv.";
     begin
@@ -1293,7 +1301,10 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <summary>
     /// Wrapper for internal QltyDispTransfer.PerformDisposition (7-argument version).
     /// </summary>
-    procedure PerformTransferDisposition(QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; DestinationLocationCode: Code[10]; OptionalInTransitLocationCode: Code[10]): Boolean
+    internal procedure PerformTransferDisposition(QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSourceLocationFilter: Text;
+                                                                                                                                                              OptionalSourceBinFilter: Text;
+                                                                                                                                                              DestinationLocationCode: Code[10];
+                                                                                                                                                              OptionalInTransitLocationCode: Code[10]): Boolean
     var
         QltyDispTransfer: Codeunit "Qlty. Disp. Transfer";
     begin
@@ -1303,7 +1314,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <summary>
     /// Wrapper for internal QltyDispMoveAutoChoose.MoveInventory.
     /// </summary>
-    procedure MoveInventory(QltyInspectionHeader: Record "Qlty. Inspection Header"; TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; UseMovement: Boolean): Boolean
+    internal procedure MoveInventory(QltyInspectionHeader: Record "Qlty. Inspection Header"; TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; UseMovement: Boolean): Boolean
     var
         QltyDispMoveAutoChoose: Codeunit "Qlty. Disp. Move Auto Choose";
     begin
@@ -1313,7 +1324,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <summary>
     /// Wrapper for internal QltyDispInternalPutAway.PerformDisposition (6-argument version).
     /// </summary>
-    procedure PerformInternalPutAwayDisposition(QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; ReleaseImmediately: Boolean; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"): Boolean
+    internal procedure PerformInternalPutAwayDisposition(QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; ReleaseImmediately: Boolean; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"): Boolean
     var
         QltyDispInternalPutAway: Codeunit "Qlty. Disp. Internal Put-away";
     begin
@@ -1323,7 +1334,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <summary>
     /// Wrapper for internal QltyDispWarehousePutAway.PerformDisposition (5-argument version).
     /// </summary>
-    procedure PerformWarehousePutAwayDisposition(QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"): Boolean
+    internal procedure PerformWarehousePutAwayDisposition(QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"): Boolean
     var
         QltyDispWarehousePutAway: Codeunit "Qlty. Disp. Warehouse Put-away";
     begin
@@ -1333,7 +1344,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <summary>
     /// Wrapper for internal QltyAutoConfigure.EnsureAtLeastOneSourceConfigurationExist.
     /// </summary>
-    procedure EnsureAtLeastOneSourceConfigurationExist(ForceAll: Boolean)
+    internal procedure EnsureAtLeastOneSourceConfigurationExist(ForceAll: Boolean)
     var
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
     begin
@@ -1343,7 +1354,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <summary>
     /// Wrapper for internal QltyInspectionHeader.IsItemTrackingUsed (no parameters).
     /// </summary>
-    procedure IsInspectionItemTrackingUsed(QltyInspectionHeader: Record "Qlty. Inspection Header"): Boolean
+    internal procedure IsInspectionItemTrackingUsed(QltyInspectionHeader: Record "Qlty. Inspection Header"): Boolean
     begin
         exit(QltyInspectionHeader.IsItemTrackingUsed());
     end;
@@ -1355,7 +1366,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <summary>
     /// Wrapper for internal QltyFilterHelpers.BuildFilter.
     /// </summary>
-    procedure BuildFilter(TableNo: Integer; IncludeWhereText: Boolean; var Value: Text): Boolean
+    internal procedure BuildFilter(TableNo: Integer; IncludeWhereText: Boolean; var Value: Text): Boolean
     var
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
     begin
@@ -1365,7 +1376,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <summary>
     /// Wrapper for internal QltyFilterHelpers.BuildItemAttributeFilter.
     /// </summary>
-    procedure BuildItemAttributeFilter(var ItemAttributeFilter: Text)
+    internal procedure BuildItemAttributeFilter(var ItemAttributeFilter: Text)
     var
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
     begin
@@ -1379,7 +1390,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <summary>
     /// Wrapper for internal QltyUtilitiesIntegration.InternalHandleOnAfterGetPageSummary.
     /// </summary>
-    procedure HandleOnAfterGetPageSummary(PageId: Integer; RecId: RecordId; var JsonArray: JsonArray)
+    internal procedure HandleOnAfterGetPageSummary(PageId: Integer; RecId: RecordId; var JsonArray: JsonArray)
     var
         QltyUtilitiesIntegration: Codeunit "Qlty. Utilities Integration";
     begin
@@ -1394,7 +1405,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// Wrapper for internal QltyInspecGenRuleMgmt.SetFilterToApplicableTemplates.
     /// Sets the filter on the target configuration to sources that could match the supplied template.
     /// </summary>
-    procedure SetFilterToApplicableTemplates(TemplateCode: Code[20]; var QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.")
+    internal procedure SetFilterToApplicableTemplates(TemplateCode: Code[20]; var QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.")
     var
         QltyInspecGenRuleMgmt: Codeunit "Qlty. Inspec. Gen. Rule Mgmt.";
     begin
@@ -1405,7 +1416,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// Wrapper for internal QltyInspecGenRuleMgmt.GetFilterForAvailableConfigurations.
     /// Returns the filter for available source configurations.
     /// </summary>
-    procedure GetFilterForAvailableConfigurations(): Text
+    internal procedure GetFilterForAvailableConfigurations(): Text
     var
         QltyInspecGenRuleMgmt: Codeunit "Qlty. Inspec. Gen. Rule Mgmt.";
     begin
@@ -1416,7 +1427,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// Wrapper for internal QltyInspectionGenRule.SetEntryNo.
     /// Sets the entry number for the generation rule record.
     /// </summary>
-    procedure SetEntryNo(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
+    internal procedure SetEntryNo(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
     begin
         QltyInspectionGenRule.SetEntryNo();
     end;
@@ -1431,7 +1442,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// </summary>
     /// <param name="QltyInspectionHeader">The inspection header record.</param>
     /// <returns>The reference record's SystemId.</returns>
-    procedure GetReferenceRecordId(var QltyInspectionHeader: Record "Qlty. Inspection Header"): Guid
+    internal procedure GetReferenceRecordId(var QltyInspectionHeader: Record "Qlty. Inspection Header"): Guid
     begin
         exit(QltyInspectionHeader.GetReferenceRecordId());
     end;
@@ -1441,7 +1452,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// Verifies that item tracking (lot/serial/package) is properly set before finishing an inspection.
     /// </summary>
     /// <param name="QltyInspectionHeader">The inspection header record.</param>
-    procedure VerifyTrackingBeforeFinish(var QltyInspectionHeader: Record "Qlty. Inspection Header")
+    internal procedure VerifyTrackingBeforeFinish(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
         QltyInspectionHeader.VerifyTrackingBeforeFinish();
     end;
@@ -1452,7 +1463,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// </summary>
     /// <param name="QltyInspectionHeader">The inspection header record.</param>
     /// <param name="Input">The input text (field name).</param>
-    procedure DetermineControlInformation(var QltyInspectionHeader: Record "Qlty. Inspection Header"; Input: Text)
+    internal procedure DetermineControlInformation(var QltyInspectionHeader: Record "Qlty. Inspection Header"; Input: Text)
     begin
         QltyInspectionHeader.DetermineControlInformation(Input);
     end;
@@ -1464,7 +1475,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <param name="QltyInspectionHeader">The inspection header record.</param>
     /// <param name="Input">The input text (field name).</param>
     /// <returns>The caption text.</returns>
-    procedure GetControlCaptionClass(var QltyInspectionHeader: Record "Qlty. Inspection Header"; Input: Text): Text
+    internal procedure GetControlCaptionClass(var QltyInspectionHeader: Record "Qlty. Inspection Header"; Input: Text): Text
     begin
         exit(QltyInspectionHeader.GetControlCaptionClass(Input));
     end;
@@ -1476,7 +1487,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <param name="QltyInspectionHeader">The inspection header record.</param>
     /// <param name="Input">The input text (field name).</param>
     /// <returns>True if the control should be visible.</returns>
-    procedure GetControlVisibleState(var QltyInspectionHeader: Record "Qlty. Inspection Header"; Input: Text): Boolean
+    internal procedure GetControlVisibleState(var QltyInspectionHeader: Record "Qlty. Inspection Header"; Input: Text): Boolean
     begin
         exit(QltyInspectionHeader.GetControlVisibleState(Input));
     end;
@@ -1492,7 +1503,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <param name="QltyTest">The test record.</param>
     /// <param name="InputDescription">The description to generate a code from.</param>
     /// <param name="SuggestionCode">The suggested test code (output).</param>
-    procedure SuggestUnusedTestCodeFromDescription(var QltyTest: Record "Qlty. Test"; InputDescription: Text; var SuggestionCode: Code[20])
+    internal procedure SuggestUnusedTestCodeFromDescription(var QltyTest: Record "Qlty. Test"; InputDescription: Text; var SuggestionCode: Code[20])
     begin
         QltyTest.SuggestUnusedTestCodeFromDescription(InputDescription, SuggestionCode);
     end;
@@ -1507,7 +1518,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// </summary>
     /// <param name="Input">The text to check.</param>
     /// <returns>True if the text is numeric.</returns>
-    procedure IsNumericText(Input: Text): Boolean
+    internal procedure IsNumericText(Input: Text): Boolean
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
     begin
@@ -1522,7 +1533,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <param name="MinValueInRange">Output: The minimum value from the range.</param>
     /// <param name="MaxValueInRange">Output: The maximum value from the range.</param>
     /// <returns>True if successfully parsed as a simple range.</returns>
-    procedure AttemptSplitSimpleRangeIntoMinMax(InputText: Text; var MinValueInRange: Decimal; var MaxValueInRange: Decimal): Boolean
+    internal procedure AttemptSplitSimpleRangeIntoMinMax(InputText: Text; var MinValueInRange: Decimal; var MaxValueInRange: Decimal): Boolean
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
     begin
@@ -1534,7 +1545,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// Returns the maximum recursion depth limit for traversing multi-level table relationships.
     /// </summary>
     /// <returns>The maximum recursion depth allowed (currently 20 levels).</returns>
-    procedure GetArbitraryMaximumRecursion(): Integer
+    internal procedure GetArbitraryMaximumRecursion(): Integer
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
     begin
@@ -1550,7 +1561,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <param name="ChoiceField">The field number whose values should be extracted.</param>
     /// <param name="TableFilter">Optional filter to apply to the table (AL filter syntax).</param>
     /// <returns>Comma-separated string of field values (up to system maximum records).</returns>
-    procedure GetCSVOfValuesFromRecord(CurrentTable: Integer; ChoiceField: Integer; TableFilter: Text): Text
+    internal procedure GetCSVOfValuesFromRecord(CurrentTable: Integer; ChoiceField: Integer; TableFilter: Text): Text
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
     begin
@@ -1564,7 +1575,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// <param name="QltyTest">The quality field configuration defining lookup table and filters.</param>
     /// <param name="OptionalContextQltyInspectionHeader">Inspection header providing context for filter expression evaluation.</param>
     /// <param name="TempBufferQltyLookupCode">Output: Temporary buffer populated with lookup values.</param>
-    procedure GetRecordsForTableField(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
+    internal procedure GetRecordsForTableField(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
     begin
@@ -1576,7 +1587,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// Returns the configured maximum rows for field lookups from Quality Management Setup.
     /// </summary>
     /// <returns>Maximum rows to fetch for field lookups (default 100 if not configured).</returns>
-    procedure GetDefaultMaximumRowsFieldLookup(): Integer
+    internal procedure GetDefaultMaximumRowsFieldLookup(): Integer
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
     begin
@@ -1589,7 +1600,7 @@ codeunit 139950 "Qlty. Inspection Utility"
     /// Pre-fills search criteria with test source information including item, document number, and tracking.
     /// </summary>
     /// <param name="QltyInspectionHeader">The Inspection whose related entries should be found.</param>
-    procedure NavigateToFindEntries(var QltyInspectionHeader: Record "Qlty. Inspection Header")
+    internal procedure NavigateToFindEntries(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
     begin
