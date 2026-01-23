@@ -15,6 +15,7 @@ page 4308 "Agent Task Message Card"
     DeleteAllowed = false;
     Caption = 'Agent Task Message';
     DataCaptionExpression = '';
+    Extensible = false;
     InherentEntitlements = X;
     InherentPermissions = X;
 
