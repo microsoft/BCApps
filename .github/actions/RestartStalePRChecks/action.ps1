@@ -92,7 +92,7 @@ foreach ($pr in $prs) {
         if ($statusCheck.link -match '/runs/(\d+)') {
             $runId = $matches[1]
             # Validate run ID is a positive integer
-            if ([int]$runId -gt 0) {
+            if ([int64]$runId -gt 0) {
                 if ($WhatIf) {
                     Write-Host "  [WhatIf] Would trigger re-run of workflow (run ID: $runId)"
                     $restarted++
