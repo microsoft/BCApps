@@ -7,7 +7,7 @@ namespace System.TestTools.AITestToolkit;
 using System.TestTools.TestRunner;
 
 /// <summary>
-/// Exposes functions that can be used by the AI tests.
+/// Exposes functions that can be used by the AI evals.
 /// </summary>
 codeunit 149044 "AIT Test Context"
 {
@@ -32,7 +32,7 @@ codeunit 149044 "AIT Test Context"
     /// <summary>
     /// Returns the Test Input value as Test Input Json Codeunit from the input dataset for the current iteration.
     /// </summary>
-    /// <returns>Test Input Json for the current test.</returns>
+    /// <returns>Test Input Json for the current eval.</returns>
     procedure GetInput(): Codeunit "Test Input Json"
     begin
         exit(AITTestContextImpl.GetInput());
@@ -76,7 +76,7 @@ codeunit 149044 "AIT Test Context"
 
     /// <summary>
     /// Get the Expected Data value as text from the input dataset for the current iteration.
-    /// Expected data is used for internal validation if the test was successful.
+    /// Expected data is used for internal validation if the eval was successful.
     /// </summary>
     /// <returns>Test Input Json for the expected data</returns>
     procedure GetExpectedData(): Codeunit "Test Input Json"
@@ -117,8 +117,8 @@ codeunit 149044 "AIT Test Context"
     end;
 
     /// <summary>
-    /// Adds a message to the current test iteration.
-    /// This is used for multi-turn tests to add messages to the output.
+    /// Adds a message to the current eval iteration.
+    /// This is used for multi-turn evals to add messages to the output.
     /// </summary>
     /// <param name="Content">The content of the message.</param>
     /// <param name="Role">The role of the message (e.g., 'user', 'assistant').</param>
@@ -129,8 +129,8 @@ codeunit 149044 "AIT Test Context"
     end;
 
     /// <summary>
-    /// Adds a message to the current test iteration.
-    /// This is used for multi-turn tests to add messages to the output.
+    /// Adds a message to the current eval iteration.
+    /// This is used for multi-turn evals to add messages to the output.
     /// </summary>
     /// <param name="Content">The content of the message.</param>
     /// <param name="Role">The role of the message (e.g., 'user', 'assistant').</param>
@@ -178,7 +178,7 @@ codeunit 149044 "AIT Test Context"
     end;
 
     /// <summary>
-    /// Sets the accuracy of the test.
+    /// Sets the accuracy of the eval.
     /// </summary>
     /// <param name="Accuracy">The accuracy as a decimal between 0 and 1.</param>
     procedure SetAccuracy(Accuracy: Decimal)
@@ -205,11 +205,11 @@ codeunit 149044 "AIT Test Context"
     end;
 
     /// <summary>
-    /// Integration event that is raised after a test run is completed.
+    /// Integration event that is raised after an eval run is completed.
     /// </summary>
-    /// <param name="Code">The code of the test run.</param>
-    /// <param name="Version">The version of the test run.</param>
-    /// <param name="Tag">The tag of the test run.</param>
+    /// <param name="Code">The code of the eval run.</param>
+    /// <param name="Version">The version of the eval run.</param>
+    /// <param name="Tag">The tag of the eval run.</param>
     [IntegrationEvent(false, false)]
     internal procedure OnAfterRunComplete(Code: Code[10]; Version: Integer; Tag: Text[20])
     begin

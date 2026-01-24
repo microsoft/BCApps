@@ -16,8 +16,8 @@ table 149039 "AIT Evaluator"
     {
         field(1; "Test Suite Code"; Code[10])
         {
-            Caption = 'Test Suite Code';
-            ToolTip = 'Specifies the code of the test suite.';
+            Caption = 'Eval Suite Code';
+            ToolTip = 'Specifies the code of the eval suite.';
             DataClassification = SystemMetadata;
             TableRelation = "AIT Test Suite".Code;
             ValidateTableRelation = true;
@@ -25,8 +25,8 @@ table 149039 "AIT Evaluator"
 
         field(2; "Test Method Line"; Integer)
         {
-            Caption = 'Test Method Line';
-            ToolTip = 'Specifies the line number of the test method.';
+            Caption = 'Eval Method Line';
+            ToolTip = 'Specifies the line number of the eval method.';
             DataClassification = SystemMetadata;
             TableRelation = "AIT Test Method Line"."Line No.";
             ValidateTableRelation = true;
@@ -43,7 +43,7 @@ table 149039 "AIT Evaluator"
         {
             DataClassification = SystemMetadata;
             Caption = 'Evaluator';
-            ToolTip = 'Specifies the evaluator to use in the test suite.';
+            ToolTip = 'Specifies the evaluator to use in the eval suite.';
         }
 
     }

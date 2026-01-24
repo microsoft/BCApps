@@ -7,7 +7,7 @@ namespace System.TestTools.AITestToolkit;
 
 page 149037 "AIT Test Method Lines Lookup"
 {
-    Caption = 'Test Method Lines';
+    Caption = 'Eval Method Lines';
     PageType = List;
     ApplicationArea = All;
     SourceTable = "AIT Test Method Line";

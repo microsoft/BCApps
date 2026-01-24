@@ -9,7 +9,7 @@ using System.Globalization;
 
 table 149035 "AIT Test Suite Language"
 {
-    Caption = 'AI Test Suite Language';
+    Caption = 'AI Eval Suite Language';
     DataClassification = SystemMetadata;
     ReplicateData = false;
     Access = Public;
@@ -18,14 +18,14 @@ table 149035 "AIT Test Suite Language"
     {
         field(1; "Test Suite Code"; Code[10])
         {
-            Caption = 'Test Suite Code';
+            Caption = 'Eval Suite Code';
             TableRelation = "AIT Test Suite".Code;
             ValidateTableRelation = true;
         }
         field(2; "Language ID"; Integer)
         {
             Caption = 'Language ID';
-            ToolTip = 'Specifies the Windows Language ID for the test suite language.';
+            ToolTip = 'Specifies the Windows Language ID for the eval suite language.';
             TableRelation = "Windows Language"."Language ID";
             ValidateTableRelation = true;
         }
@@ -48,7 +48,7 @@ table 149035 "AIT Test Suite Language"
         field(20; "Run Frequency"; Enum "AIT Run Frequency")
         {
             Caption = 'Run Frequency';
-            ToolTip = 'Specifies how frequently the test suite should be run for this language.';
+            ToolTip = 'Specifies how frequently the eval suite should be run for this language.';
         }
         field(21; Validation; Boolean)
         {

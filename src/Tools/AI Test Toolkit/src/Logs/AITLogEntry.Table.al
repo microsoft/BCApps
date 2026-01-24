@@ -10,7 +10,7 @@ using System.TestTools.TestRunner;
 
 table 149034 "AIT Log Entry"
 {
-    Caption = 'AI Log Entry';
+    Caption = 'AI Eval Log Entry';
     DataClassification = SystemMetadata;
     DrillDownPageId = "AIT Log Entries";
     LookupPageId = "AIT Log Entries";
@@ -29,10 +29,10 @@ table 149034 "AIT Log Entry"
         }
         field(2; "Test Suite Code"; Code[100])
         {
-            Caption = 'Test Suite Code';
+            Caption = 'Eval Suite Code';
             NotBlank = true;
             TableRelation = "AIT Test Suite";
-            ToolTip = 'Specifies the Test Suite Code.';
+            ToolTip = 'Specifies the Eval Suite Code.';
         }
         field(3; "Test Method Line No."; Integer)
         {
@@ -55,7 +55,7 @@ table 149034 "AIT Log Entry"
         field(7; "Codeunit ID"; Integer)
         {
             Caption = 'Codeunit ID';
-            ToolTip = 'Specifies the test codeunit id.';
+            ToolTip = 'Specifies the eval codeunit id.';
         }
         field(8; "Codeunit Name"; Text[250])
         {
@@ -63,7 +63,7 @@ table 149034 "AIT Log Entry"
             FieldClass = FlowField;
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Codeunit), "Object ID" = field("Codeunit ID")));
             Editable = false;
-            ToolTip = 'Specifies the test codeunit name.';
+            ToolTip = 'Specifies the eval codeunit name.';
         }
         field(9; "Duration (ms)"; Integer)
         {
@@ -83,13 +83,13 @@ table 149034 "AIT Log Entry"
         field(13; Version; Integer)
         {
             Caption = 'Version';
-            ToolTip = 'Specifies the Version No. of the test run.';
+            ToolTip = 'Specifies the Version No. of the eval run.';
         }
         field(15; Tag; Text[20])
         {
             DataClassification = CustomerContent;
             Caption = 'Tag';
-            ToolTip = 'Specifies the Tag that we entered in the AI Test Suite.';
+            ToolTip = 'Specifies the Tag that we entered in the AI Eval Suite.';
         }
         field(16; "Error Call Stack"; Blob)
         {
@@ -116,13 +116,13 @@ table 149034 "AIT Log Entry"
         {
             Caption = 'Original Status';
             OptionMembers = Success,Error;
-            ToolTip = 'Specifies the original status of the test if any event subscribers modifies the status of the test';
+            ToolTip = 'Specifies the original status of the eval if any event subscribers modifies the status of the eval';
         }
         field(22; "Original Message"; Text[250])
         {
             DataClassification = CustomerContent;
             Caption = 'Original Message';
-            ToolTip = 'Specifies the original message of the test if any event subscribers modifies the message of the test';
+            ToolTip = 'Specifies the original message of the eval if any event subscribers modifies the message of the eval';
         }
         field(23; "Log was Modified"; Boolean)
         {
@@ -133,7 +133,7 @@ table 149034 "AIT Log Entry"
         {
             Caption = 'Test Input Group Code';
             TableRelation = "Test Input Group".Code;
-            ToolTip = 'Specifies the dataset that is used by the test.';
+            ToolTip = 'Specifies the dataset that is used by the eval.';
         }
         field(25; "Test Input Code"; Code[100])
         {
@@ -171,15 +171,15 @@ table 149034 "AIT Log Entry"
         }
         field(45; "Test Method Line Accuracy"; Decimal)
         {
-            Caption = 'Test Method Line Accuracy';
-            ToolTip = 'Specifies the accuracy of the test line. The accuracy is calculated as the percentage of turns that passed or can be set manually in the test.';
+            Caption = 'Eval Method Line Accuracy';
+            ToolTip = 'Specifies the accuracy of the eval line. The accuracy is calculated as the percentage of turns that passed or can be set manually in the eval.';
             AutoFormatType = 0;
 
         }
         field(50; "Tokens Consumed"; Integer)
         {
             Caption = 'Total Tokens Consumed';
-            ToolTip = 'Specifies the aggregated number of tokens consumed by the test. This is applicable only when using Microsoft AI Module.';
+            ToolTip = 'Specifies the aggregated number of tokens consumed by the eval. This is applicable only when using Microsoft AI Module.';
         }
     }
 
