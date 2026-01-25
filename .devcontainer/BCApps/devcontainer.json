@@ -34,7 +34,7 @@
           "${CodeCop}",
           "${UICop}"
         ],
-        "al.useInteractiveLogin": false,
+        "al.useVsCodeAuthentication": true,
         "github.copilot.enable": {
           "enabled": true
         },

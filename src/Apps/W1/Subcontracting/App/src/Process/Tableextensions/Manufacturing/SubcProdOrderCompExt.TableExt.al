@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,9 +23,9 @@ tableextension 99001502 "Subc. Prod Order Comp Ext." extends "Prod. Order Compon
             ToolTip = 'Specifies the Type of Subcontracting that is assigned to the Production Order Component.';
             trigger OnValidate()
             var
-                SubSubcontractingMgmt: Codeunit "Subcontracting Management";
+                SubcontractingManagement: Codeunit "Subcontracting Management";
             begin
-                SubSubcontractingMgmt.UpdateSubcontractingTypeForProdOrderComponent(Rec);
+                SubcontractingManagement.UpdateSubcontractingTypeForProdOrderComponent(Rec);
             end;
         }
         field(99001523; "Orig. Location Code"; Code[10])

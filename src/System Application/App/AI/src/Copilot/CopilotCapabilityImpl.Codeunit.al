@@ -524,9 +524,10 @@ codeunit 7774 "Copilot Capability Impl"
     var
         AzureOpenAI: Codeunit "Azure OpenAI";
         CopilotCapability: Enum "Copilot Capability";
-        LearnMoreUrlLbl: Label 'learnMoreUrl', Locked = true;
+        BillingTypeLbl: Label 'billingType', Locked = true;
         IsEnabledLbl: Label 'isEnabled', Locked = true;
         IsPreviewLbl: Label 'isPreview', Locked = true;
+        LearnMoreUrlLbl: Label 'learnMoreUrl', Locked = true;
     begin
         CopilotCapability := Enum::"Copilot Capability".FromInteger(Capability);
         CapabilityInfo.Add(IsEnabledLbl, AzureOpenAI.IsEnabled(CopilotCapability, true, AppId));
@@ -534,8 +535,10 @@ codeunit 7774 "Copilot Capability Impl"
         CopilotSettings.ReadIsolation(IsolationLevel::ReadCommitted);
         if not CopilotSettings.Get(CopilotCapability, AppId) then
             exit;
+
         CapabilityInfo.Add(LearnMoreUrlLbl, CopilotSettings."Learn More Url");
         CapabilityInfo.Add(IsPreviewLbl, CopilotSettings.Availability <> Enum::"Copilot Availability"::"Generally Available");
+        CapabilityInfo.Add(BillingTypeLbl, CopilotSettings."Billing Type".AsInteger());
     end;
 
     procedure IsPublisherMicrosoft(CallerModuleInfo: ModuleInfo): Boolean

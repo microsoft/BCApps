@@ -2882,6 +2882,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         if IsInitialized then
             exit;
         LibraryERMCountryData.CreateVATData();
+        LibraryERMCountryData.UpdateGeneralPostingSetup();
         IsInitialized := true;
     end;
 
