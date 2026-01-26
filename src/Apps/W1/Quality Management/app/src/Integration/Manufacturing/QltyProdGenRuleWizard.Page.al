@@ -15,7 +15,7 @@ using Microsoft.QualityManagement.Utilities;
 
 page 20462 "Qlty. Prod. Gen. Rule Wizard"
 {
-    Caption = 'Quality Management - Production and Assembly Quality Inspection Generation Rule Wizard';
+    Caption = 'Production and Assembly Quality Inspection Rule Setup Guide';
     PageType = NavigatePage;
     UsageCategory = None;
     ApplicationArea = QualityManagement;
@@ -46,7 +46,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                 field(ChoosechooseTemplate; TemplateCode)
                 {
                     ApplicationArea = All;
-                    Caption = 'Choose Template';
+                    Caption = 'Choose template';
                     ToolTip = 'Specifies which Quality Inspection template do you want to use?';
                     ShowMandatory = true;
 
@@ -813,7 +813,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
             QltyInspectionGenRule."Assembly Trigger" := QltyAssemblyTrigger;
             QltyManagementSetup."Assembly Trigger" := QltyAssemblyTrigger;
         end;
-        if QltyManagementSetup.Modify(false) then;
+        QltyManagementSetup.Modify(false);
         QltyInspectionGenRule."Item Filter" := ItemRuleFilter;
         QltyInspectionGenRule.Modify();
 

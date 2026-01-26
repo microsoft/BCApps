@@ -395,6 +395,17 @@ codeunit 30177 "Shpfy Product Events"
     end;
 
     /// <summary> 
+    /// Raised After Modify Item Variant Picture.
+    /// </summary>
+    /// <param name="ItemVariant">Parameter of type Record "Item Variant".</param>
+    /// <param name="ImageUrl">Parameter of type Text.</param>
+    /// <param name="InStream">Parameter of type InStream.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnAfterUpdateItemVariantPicture(var ItemVariant: Record "Item Variant"; ImageUrl: Text; InStream: InStream)
+    begin
+    end;
+
+    /// <summary> 
     /// Raised After Shopify Product fields are filled from Business Central Item. These fields are sent to Shopify when creating or updating a product.
     /// </summary>
     /// <param name="Item">Parameter of type Record Item.</param>
@@ -412,6 +423,33 @@ codeunit 30177 "Shpfy Product Events"
     /// <param name="OnlyUpdatePrice">Parameter of type Boolean.</param>
     [IntegrationEvent(false, false)]
     internal procedure OnAfterProductsToSynchronizeFiltersSet(var ShopifyProduct: Record "Shpfy Product"; Shop: Record "Shpfy Shop"; OnlyUpdatePrice: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after the product variant data has been filled from Business Central Item, Item Variant, and Item Unit of Measure.
+    /// This event allows customization of the Shopify variant after all standard fields are set, but only when an Item Variant is present.
+    /// </summary>
+    /// <param name="ShopifyVariant">The Shopify variant record to be customized.</param>
+    /// <param name="Item">The source Item record.</param>
+    /// <param name="ItemVariant">The source Item Variant record.</param>
+    /// <param name="ItemUnitofMeasure">The source Item Unit of Measure record.</param>
+    /// <param name="Shop">The Shopify shop context.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnAfterFillInProductVariantDataFromVariant(var ShopifyVariant: Record "Shpfy Variant"; Item: Record Item; ItemVariant: Record "Item Variant"; ItemUnitofMeasure: Record "Item Unit of Measure"; Shop: Record "Shpfy Shop")
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after the product variant data has been filled from Business Central Item and Item Variant (without Unit of Measure).
+    /// This event allows customization of the Shopify variant after all standard fields are set.
+    /// </summary>
+    /// <param name="ShopifyVariant">The Shopify variant record to be customized.</param>
+    /// <param name="Item">The source Item record.</param>
+    /// <param name="ItemVariant">The source Item Variant record.</param>
+    /// <param name="Shop">The Shopify shop context.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnAfterFillInProductVariantData(var ShopifyVariant: Record "Shpfy Variant"; Item: Record Item; ItemVariant: Record "Item Variant"; Shop: Record "Shpfy Shop")
     begin
     end;
 }

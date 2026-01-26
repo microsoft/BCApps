@@ -596,7 +596,6 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         DummyReservationEntry: Record "Reservation Entry";
         ToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         RecordRef: RecordRef;
         UnusedVariant: Code[10];
         TestCode: Text;
@@ -634,9 +633,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         UnusedVariant := '';
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, UnusedVariant, PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
         RecordRef.GetTable(PurOrdPurchaseLine);
-        QltyInspectionCreate.SetPreventDisplayingInspectionEvenIfConfigured(true);
-        QltyInspectionCreate.CreateInspection(RecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithPreventDisplaying(RecordRef, true, false, QltyInspectionHeader);
 
         // [WHEN] Result conditions are copied from the template line to the inspection
         CondManagementQltyResultConditionMgmt.CopyResultConditionsFromTemplateToInspection(ConfigurationToLoadQltyInspectionTemplateLine, QltyInspectionLine);

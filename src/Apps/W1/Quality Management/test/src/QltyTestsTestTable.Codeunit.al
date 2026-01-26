@@ -17,7 +17,6 @@ using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
-using Microsoft.QualityManagement.Configuration;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
@@ -110,11 +109,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
 
         // [GIVEN] Control information is determined for Source Custom field
-        QltyInspectionHeader.DetermineControlInformation(SourceCustomTok);
+        QltyInspectionUtility.DetermineControlInformation(QltyInspectionHeader, SourceCustomTok);
 
         // [WHEN] GetControlCaptionClass is called for Source Custom field
         // [THEN] The method returns "Status" as the caption
-        LibraryAssert.AreEqual(StatusTok, QltyInspectionHeader.GetControlCaptionClass(SourceCustomTok), 'Should have returned "Status".');
+        LibraryAssert.AreEqual(StatusTok, QltyInspectionUtility.GetControlCaptionClass(QltyInspectionHeader, SourceCustomTok), 'Should have returned "Status".');
 
         QltyInspectionGenRule.DeleteAll();
     end;
@@ -134,11 +133,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, ConfigurationToLoadQltyInspectionTemplateHdr);
 
         // [GIVEN] Control information is determined for Source Custom field
-        QltyInspectionHeader.DetermineControlInformation(SourceCustomTok);
+        QltyInspectionUtility.DetermineControlInformation(QltyInspectionHeader, SourceCustomTok);
 
         // [WHEN] GetControlVisibleState is called for Source Custom field
         // [THEN] The method returns true indicating the control should be visible
-        LibraryAssert.IsTrue(QltyInspectionHeader.GetControlVisibleState(SourceCustomTok), 'Should show Custom 1 (Status).');
+        LibraryAssert.IsTrue(QltyInspectionUtility.GetControlVisibleState(QltyInspectionHeader, SourceCustomTok), 'Should show Custom 1 (Status).');
 
         QltyInspectionGenRule.DeleteAll();
     end;
@@ -1296,7 +1295,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [WHEN] VerifyTrackingBeforeFinish is called
         // [THEN] Error is thrown indicating lot number is required
-        asserterror QltyInspectionHeader.VerifyTrackingBeforeFinish();
+        asserterror QltyInspectionUtility.VerifyTrackingBeforeFinish(QltyInspectionHeader);
         LibraryAssert.ExpectedError(StrSubstNo(ItemIsTrackingErr, QltyInspectionHeader."Source Item No.", LotTok));
     end;
 
@@ -1328,7 +1327,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [WHEN] VerifyTrackingBeforeFinish is called
-        asserterror QltyInspectionHeader.VerifyTrackingBeforeFinish();
+        asserterror QltyInspectionUtility.VerifyTrackingBeforeFinish(QltyInspectionHeader);
 
         // [THEN] Error is thrown indicating missing serial number
         LibraryAssert.ExpectedError(StrSubstNo(ItemIsTrackingErr, QltyInspectionHeader."Source Item No.", SerialTok));
@@ -1362,7 +1361,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [WHEN] VerifyTrackingBeforeFinish is called
-        asserterror QltyInspectionHeader.VerifyTrackingBeforeFinish();
+        asserterror QltyInspectionUtility.VerifyTrackingBeforeFinish(QltyInspectionHeader);
 
         // [THEN] Error is thrown indicating missing package number
         LibraryAssert.ExpectedError(StrSubstNo(ItemIsTrackingErr, QltyInspectionHeader."Source Item No.", PackageTok));
@@ -1426,7 +1425,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [WHEN] VerifyTrackingBeforeFinish is called
-        asserterror QltyInspectionHeader.VerifyTrackingBeforeFinish();
+        asserterror QltyInspectionUtility.VerifyTrackingBeforeFinish(QltyInspectionHeader);
 
         // [THEN] Error is thrown indicating insufficient posted lot quantity
         LibraryAssert.ExpectedError(StrSubstNo(ItemInsufficientPostedErr, QltyInspectionHeader."Source Item No.", LotTok, ReservationEntry."Lot No.", 0));
@@ -1490,7 +1489,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [WHEN] VerifyTrackingBeforeFinish is called
-        asserterror QltyInspectionHeader.VerifyTrackingBeforeFinish();
+        asserterror QltyInspectionUtility.VerifyTrackingBeforeFinish(QltyInspectionHeader);
 
         // [THEN] Error is thrown indicating insufficient posted serial quantity
         LibraryAssert.ExpectedError(StrSubstNo(ItemInsufficientPostedErr, QltyInspectionHeader."Source Item No.", SerialTok, ReservationEntry."Serial No.", 0));
@@ -1554,7 +1553,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [WHEN] VerifyTrackingBeforeFinish is called
-        asserterror QltyInspectionHeader.VerifyTrackingBeforeFinish();
+        asserterror QltyInspectionUtility.VerifyTrackingBeforeFinish(QltyInspectionHeader);
 
         // [THEN] Error is thrown indicating insufficient posted package quantity
         LibraryAssert.ExpectedError(StrSubstNo(ItemInsufficientPostedErr, QltyInspectionHeader."Source Item No.", PackageTok, ReservationEntry."Package No.", 0));
@@ -1588,7 +1587,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionHeader."Source Lot No." := LotTok;
 
         // [WHEN] VerifyTrackingBeforeFinish is called
-        asserterror QltyInspectionHeader.VerifyTrackingBeforeFinish();
+        asserterror QltyInspectionUtility.VerifyTrackingBeforeFinish(QltyInspectionHeader);
 
         // [THEN] Error is thrown indicating insufficient reserved or posted lot quantity
         LibraryAssert.ExpectedError(StrSubstNo(ItemInsufficientPostedOrUnpostedErr, QltyInspectionHeader."Source Item No.", LotTok, QltyInspectionHeader."Source Lot No.", 0));
@@ -1622,7 +1621,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionHeader."Source Serial No." := SerialTok;
 
         // [WHEN] VerifyTrackingBeforeFinish is called
-        asserterror QltyInspectionHeader.VerifyTrackingBeforeFinish();
+        asserterror QltyInspectionUtility.VerifyTrackingBeforeFinish(QltyInspectionHeader);
 
         // [THEN] Error is thrown indicating insufficient reserved or posted serial quantity
         LibraryAssert.ExpectedError(StrSubstNo(ItemInsufficientPostedOrUnpostedErr, QltyInspectionHeader."Source Item No.", SerialTok, QltyInspectionHeader."Source Serial No.", 0));
@@ -1656,7 +1655,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionHeader."Source Package No." := PackageTok;
 
         // [WHEN] VerifyTrackingBeforeFinish is called
-        asserterror QltyInspectionHeader.VerifyTrackingBeforeFinish();
+        asserterror QltyInspectionUtility.VerifyTrackingBeforeFinish(QltyInspectionHeader);
 
         // [THEN] Error is thrown indicating insufficient reserved or posted package quantity
         LibraryAssert.ExpectedError(StrSubstNo(ItemInsufficientPostedOrUnpostedErr, QltyInspectionHeader."Source Item No.", PackageTok, QltyInspectionHeader."Source Package No.", 0));
@@ -1732,7 +1731,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [WHEN] GetReferenceRecordId is called
         // [THEN] The purchase line's SystemId is returned
-        LibraryAssert.AreEqual(PurchaseLine.SystemId, QltyInspectionHeader.GetReferenceRecordId(), 'Should be the same record id.');
+        LibraryAssert.AreEqual(PurchaseLine.SystemId, QltyInspectionUtility.GetReferenceRecordId(QltyInspectionHeader), 'Should be the same record id.');
     end;
 
     [Test]
@@ -1772,7 +1771,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [WHEN] GetReferenceRecordId is called
         // [THEN] The purchase line's SystemId is returned
-        LibraryAssert.AreEqual(PurchaseLine.SystemId, QltyInspectionHeader.GetReferenceRecordId(), 'Should be the same record id.');
+        LibraryAssert.AreEqual(PurchaseLine.SystemId, QltyInspectionUtility.GetReferenceRecordId(QltyInspectionHeader), 'Should be the same record id.');
     end;
 
     [Test]
@@ -1812,7 +1811,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [WHEN] GetReferenceRecordId is called
         // [THEN] The purchase line's SystemId is returned
-        LibraryAssert.AreEqual(PurchaseLine.SystemId, QltyInspectionHeader.GetReferenceRecordId(), 'Should be the same record id.');
+        LibraryAssert.AreEqual(PurchaseLine.SystemId, QltyInspectionUtility.GetReferenceRecordId(QltyInspectionHeader), 'Should be the same record id.');
     end;
 
     [Test]
@@ -1852,7 +1851,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [WHEN] GetReferenceRecordId is called
         // [THEN] The purchase line's SystemId is returned
-        LibraryAssert.AreEqual(PurchaseLine.SystemId, QltyInspectionHeader.GetReferenceRecordId(), 'Should be the same record id.');
+        LibraryAssert.AreEqual(PurchaseLine.SystemId, QltyInspectionUtility.GetReferenceRecordId(QltyInspectionHeader), 'Should be the same record id.');
     end;
 
     [Test]
@@ -1892,7 +1891,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [WHEN] GetReferenceRecordId is called
         // [THEN] The purchase line's SystemId is returned
-        LibraryAssert.AreEqual(PurchaseLine.SystemId, QltyInspectionHeader.GetReferenceRecordId(), 'Should be the same record id.');
+        LibraryAssert.AreEqual(PurchaseLine.SystemId, QltyInspectionUtility.GetReferenceRecordId(QltyInspectionHeader), 'Should be the same record id.');
     end;
 
     [Test]
@@ -2544,7 +2543,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
             ToLoadQltyTest.DeleteAll();
 
         // [WHEN] SuggestUnusedTestCodeFromDescription is called with description
-        ToLoadQltyTest.SuggestUnusedTestCodeFromDescription(DescriptionTxt, TestCode);
+        QltyInspectionUtility.SuggestUnusedTestCodeFromDescription(ToLoadQltyTest, DescriptionTxt, TestCode);
 
         // [THEN] Suggested code matches expected value
         LibraryAssert.AreEqual(SuggestedCodeTxtTestValueTxt, TestCode, 'Suggested code should match');
@@ -2566,7 +2565,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
             ToLoadQltyTest.DeleteAll();
 
         // [WHEN] SuggestUnusedTestCodeFromDescription is called with description
-        ToLoadQltyTest.SuggestUnusedTestCodeFromDescription(DescriptionTxt, TestCode);
+        QltyInspectionUtility.SuggestUnusedTestCodeFromDescription(ToLoadQltyTest, DescriptionTxt, TestCode);
 
         // [THEN] Suggested code matches expected value
         LibraryAssert.AreEqual(SuggestedCodeTxtTestValueTxt, TestCode, 'Suggested code should match');
@@ -2588,7 +2587,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
             ToLoadQltyTest.DeleteAll();
 
         // [WHEN] SuggestUnusedTestCodeFromDescription is called with long description with special characters
-        ToLoadQltyTest.SuggestUnusedTestCodeFromDescription(Description2Txt, TestCode);
+        QltyInspectionUtility.SuggestUnusedTestCodeFromDescription(ToLoadQltyTest, Description2Txt, TestCode);
 
         // [THEN] Suggested code matches expected value (truncated and sanitized)
         LibraryAssert.AreEqual(SuggestedCodeTxtTestValue2Txt, TestCode, 'Suggested code should match');
@@ -2618,7 +2617,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
             ToLoadQltyTest.Insert();
 
             // [WHEN] SuggestUnusedTestCodeFromDescription is called
-            ToLoadQltyTest.SuggestUnusedTestCodeFromDescription(DescriptionTxt, TestCode);
+            QltyInspectionUtility.SuggestUnusedTestCodeFromDescription(ToLoadQltyTest, DescriptionTxt, TestCode);
 
             // [THEN] Suggested code is incremented with suffix
             LibraryAssert.AreEqual(SuggestedCodeTxtTestValueTxt + '0002', TestCode, 'Suggested code should match');
@@ -2662,7 +2661,6 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ToLoadQltyTest: Record "Qlty. Test";
         ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         ToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
         QltyTestCard: TestPage "Qlty. Test Card";
         TestCodeTxt: Text;
     begin
@@ -2703,7 +2701,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyTestCard.Field1_Desc.AssistEdit();
 
         // [GIVEN] Default pass result is retrieved
-        ToLoadQltyInspectionResult.Get(QltyAutoConfigure.GetDefaultPassResult());
+        ToLoadQltyInspectionResult.Get(QltyInspectionUtility.GetDefaultPassResult());
 
         // [GIVEN] Result condition configuration for test is retrieved
         ToLoadQltyIResultConditConf.SetRange("Test Code", ToLoadQltyTest.Code);
@@ -3571,8 +3569,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Get();
 
         // [WHEN] GetVersion is called and installed app record exists
-        if NAVAppInstalledApp.Get(QltyManagementSetup.GetAppGuid()) then begin
-            ReturnedVersion := QltyManagementSetup.GetVersion();
+        if NAVAppInstalledApp.Get(QltyInspectionUtility.GetAppGuid(QltyManagementSetup)) then begin
+            ReturnedVersion := QltyInspectionUtility.GetVersion(QltyManagementSetup);
 
             // [THEN] Returned version contains major version number
             LibraryAssert.IsTrue(ReturnedVersion.Contains(Format(NAVAppInstalledApp."Version Major")), 'Returned version should have major version');
