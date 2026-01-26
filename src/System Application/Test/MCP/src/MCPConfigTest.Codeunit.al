@@ -247,6 +247,56 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
+    procedure TestCreateAPIToolSetsAPIVersion()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration is created
+        ConfigId := CreateMCPConfig(false, true, true, false);
+
+        // [WHEN] Create API tool is called with a multi-version API page
+        ToolId := MCPConfig.CreateAPITool(ConfigId, Page::"Mock API Multi Version");
+
+        // [THEN] API tool is created with the highest API version
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        Assert.AreEqual('v2.0', MCPConfigurationTool."API Version", 'API Version should be the highest version');
+    end;
+
+    [Test]
+    procedure TestGetHighestAPIVersionSingleVersion()
+    var
+        PageMetadata: Record "Page Metadata";
+        HighestVersion: Text[30];
+    begin
+        // [GIVEN] A page metadata with single API version
+        PageMetadata.Get(Page::"Mock API");
+
+        // [WHEN] GetHighestAPIVersion is called
+        HighestVersion := MCPConfigTestLibrary.GetHighestAPIVersion(PageMetadata);
+
+        // [THEN] The single version is returned
+        Assert.AreEqual('v0.1', HighestVersion, 'Should return the single version');
+    end;
+
+    [Test]
+    procedure TestGetHighestAPIVersionMultipleVersions()
+    var
+        PageMetadata: Record "Page Metadata";
+        HighestVersion: Text[30];
+    begin
+        // [GIVEN] A page metadata with multiple API versions (v1.0,v2.0,beta)
+        PageMetadata.Get(Page::"Mock API Multi Version");
+
+        // [WHEN] GetHighestAPIVersion is called
+        HighestVersion := MCPConfigTestLibrary.GetHighestAPIVersion(PageMetadata);
+
+        // [THEN] The highest version is returned
+        Assert.AreEqual('v2.0', HighestVersion, 'Should return v2.0 as highest version');
+    end;
+
+    [Test]
     procedure TestAllowRead()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
