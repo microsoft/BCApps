@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ page 99001518 "Subc. Purchase Line Factbox"
                 trigger OnDrillDown()
                 var
                 begin
-                    SubcontractingFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
+                    SubcFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
                 end;
             }
             field(NoOfTransOrder; GetNoOfTransferOrders(Rec))
@@ -45,7 +45,7 @@ page 99001518 "Subc. Purchase Line Factbox"
                 trigger OnDrillDown()
                 var
                 begin
-                    SubcontractingFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
+                    SubcFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
                 end;
             }
             field(ShowReturnTransOrder; GetReturnTransferOrderNo(Rec))
@@ -55,7 +55,7 @@ page 99001518 "Subc. Purchase Line Factbox"
                 trigger OnDrillDown()
                 var
                 begin
-                    SubcontractingFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, true);
+                    SubcFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, true);
                 end;
             }
             field(ShowProdOrderRouting; GetNoOfProductionOrderRoutings(Rec))
@@ -79,7 +79,7 @@ page 99001518 "Subc. Purchase Line Factbox"
                     ShowProductionOrderComponents(Rec);
                 end;
             }
-            field(SubcontractingPrices; StrSubstNo(PlaceholderLbl, SubcontractingFactboxMgmt.CalcNoOfPurchasePrices(Rec)))
+            field(SubcontractingPrices; StrSubstNo(PlaceholderLbl, SubcFactboxMgmt.CalcNoOfPurchasePrices(Rec)))
             {
                 Caption = 'Subcontractor Prices';
                 DrillDown = true;
@@ -94,51 +94,51 @@ page 99001518 "Subc. Purchase Line Factbox"
         }
     }
     var
-        SubcontractingFactboxMgmt: Codeunit "Subc. Factbox Mgmt.";
+        SubcFactboxMgmt: Codeunit "Subc. Factbox Mgmt.";
 
     local procedure GetNoOfProductionComponents(RecRelatedVariant: Variant): Integer
     begin
-        exit(SubcontractingFactboxMgmt.CalcNoOfProductionOrderComponents(RecRelatedVariant))
+        exit(SubcFactboxMgmt.CalcNoOfProductionOrderComponents(RecRelatedVariant))
     end;
 
     local procedure GetNoOfProductionOrderRoutings(RecRelatedVariant: Variant): Integer
     begin
-        exit(SubcontractingFactboxMgmt.CalcNoOfProductionOrderRoutings(RecRelatedVariant))
+        exit(SubcFactboxMgmt.CalcNoOfProductionOrderRoutings(RecRelatedVariant))
     end;
 
     local procedure GetTransferOrderNo(RecRelatedVariant: Variant): Code[20]
     begin
-        exit(SubcontractingFactboxMgmt.GetTransferOrderNo(RecRelatedVariant))
+        exit(SubcFactboxMgmt.GetTransferOrderNo(RecRelatedVariant))
     end;
 
     local procedure GetReturnTransferOrderNo(RecRelatedVariant: Variant): Code[20]
     begin
-        exit(SubcontractingFactboxMgmt.GetReturnTransferOrderNo(RecRelatedVariant))
+        exit(SubcFactboxMgmt.GetReturnTransferOrderNo(RecRelatedVariant))
     end;
 
     local procedure ShowProductionOrderComponents(RecRelatedVariant: Variant)
     begin
-        SubcontractingFactboxMgmt.ShowProductionOrderComponents(RecRelatedVariant);
+        SubcFactboxMgmt.ShowProductionOrderComponents(RecRelatedVariant);
     end;
 
     local procedure ShowSubcontractorPrices()
     begin
-        SubcontractingFactboxMgmt.ShowSubcontractorPrices(Rec);
+        SubcFactboxMgmt.ShowSubcontractorPrices(Rec);
     end;
 
     local procedure ShowProductionOrderRouting(RecRelatedVariant: Variant)
     begin
-        SubcontractingFactboxMgmt.ShowProductionOrderRouting(RecRelatedVariant);
+        SubcFactboxMgmt.ShowProductionOrderRouting(RecRelatedVariant);
     end;
 
     local procedure ShowProductionOrder(RecRelatedVariant: Variant)
     begin
-        SubcontractingFactboxMgmt.ShowProductionOrder(RecRelatedVariant);
+        SubcFactboxMgmt.ShowProductionOrder(RecRelatedVariant);
     end;
 
     local procedure GetNoOfTransferOrders(RecRelatedVariant: Variant): Integer
     begin
-        exit(SubcontractingFactboxMgmt.GetNoOfTransferOrders(RecRelatedVariant))
+        exit(SubcFactboxMgmt.GetNoOfTransferOrders(RecRelatedVariant))
     end;
 
     var

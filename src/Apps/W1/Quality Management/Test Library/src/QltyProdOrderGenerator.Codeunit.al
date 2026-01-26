@@ -23,7 +23,7 @@ using Microsoft.Sales.Document;
 /// <summary>
 /// Generates random Prod. Orders and all related records for use with automated testing.
 /// </summary>
-codeunit 139952 "Qlty. Prod. Order Generator"
+codeunit 139942 "Qlty. Prod. Order Generator"
 {
     TableNo = "Production Order";
     EventSubscriberInstance = Manual;
@@ -91,7 +91,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
         LibrarySales.SetOrderNoSeriesInSetup();
     end;
 
-    procedure CreatePurchaseOrder(var PurchaseHeader: Record "Purchase Header"; var Vendor: Record vendor; var Item: Record Item)
+    internal procedure CreatePurchaseOrder(var PurchaseHeader: Record "Purchase Header"; var Vendor: Record vendor; var Item: Record Item)
     var
         PurchaseLine: Record "Purchase Line";
         LibraryPurchase: Codeunit "Library - Purchase";
@@ -109,7 +109,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
     /// <param name="OutItem"></param>
     /// <param name="OutProdProductionOrder"></param>
     /// <param name="OutProdOrderRoutingLine"></param>
-    procedure CreateItemAndProductionOrder(var OutItem: Record Item; var OutProdProductionOrder: Record "Production Order"; var OutProdOrderRoutingLine: Record "Prod. Order Routing Line")
+    internal procedure CreateItemAndProductionOrder(var OutItem: Record Item; var OutProdProductionOrder: Record "Production Order"; var OutProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         OrdersList: List of [Code[20]];
@@ -129,12 +129,29 @@ codeunit 139952 "Qlty. Prod. Order Generator"
     end;
 
     /// <summary>
+    /// Generates production orders from Item source type and returns the list of created order codes.
+    /// This is a convenience wrapper that initializes the generator, configures it for Item source type,
+    /// and generates the specified quantity of orders.
+    /// </summary>
+    /// <param name="Quantity">The number of production orders to generate.</param>
+    /// <param name="OutOrdersList">Returns the list of generated production order codes.</param>
+    internal procedure GenerateItemSourceProdOrders(Quantity: Integer; var OutOrdersList: List of [Code[20]])
+    var
+        QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
+    begin
+        QltyProdOrderGenerator.Init(100);
+        QltyProdOrderGenerator.ToggleAllSources(false);
+        QltyProdOrderGenerator.ToggleSourceType("Prod. Order Source Type"::Item, true);
+        QltyProdOrderGenerator.Generate(Quantity, OutOrdersList);
+    end;
+
+    /// <summary>
     /// Creates Lot-Tracked Item and Production Order
     /// </summary>
     /// <param name="OutItem"></param>
     /// <param name="OutProdProductionOrder"></param>
     /// <param name="OutProdOrderRoutingLine"></param>
-    procedure CreateLotTrackedItemAndProductionOrder(var OutItem: Record Item; var OutProdProductionOrder: Record "Production Order"; var OutProdOrderRoutingLine: Record "Prod. Order Routing Line")
+    internal procedure CreateLotTrackedItemAndProductionOrder(var OutItem: Record Item; var OutProdProductionOrder: Record "Production Order"; var OutProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
     begin
@@ -147,7 +164,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
     /// <param name="OutItem"></param>
     /// <param name="OutProdProductionOrder"></param>
     /// <param name="OutProdOrderRoutingLine"></param>
-    procedure CreateLotTrackedItemAndProductionOrder(ProdOrderStatusToCreate: Enum "Production Order Status"; var OutItem: Record Item; var OutProdProductionOrder: Record "Production Order"; var OutProdOrderRoutingLine: Record "Prod. Order Routing Line")
+    internal procedure CreateLotTrackedItemAndProductionOrder(ProdOrderStatusToCreate: Enum "Production Order Status"; var OutItem: Record Item; var OutProdProductionOrder: Record "Production Order"; var OutProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
     begin
@@ -163,12 +180,12 @@ codeunit 139952 "Qlty. Prod. Order Generator"
         OutItem.Get(OutProdProductionOrder."Source No.");
     end;
 
-    procedure CreateProdOrderLine(var ProdProductionOrder: Record "Production Order"; var Item: Record Item; Qty: Decimal; var OutProdOrderLine: Record "Prod. Order Line")
+    internal procedure CreateProdOrderLine(var ProdProductionOrder: Record "Production Order"; var Item: Record Item; Qty: Decimal; var OutProdOrderLine: Record "Prod. Order Line")
     begin
         LibraryManufacturing.CreateProdOrderLine(OutProdOrderLine, ProdProductionOrder.Status, ProdProductionOrder."No.", Item."No.", '', '', Qty);
     end;
 
-    procedure CreateOutputJournal(var Item: Record Item; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalBatch: Record "Item Journal Batch"; var OutItemJournalLine: Record "Item Journal Line"; OutputQty: Decimal)
+    internal procedure CreateOutputJournal(var Item: Record Item; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalBatch: Record "Item Journal Batch"; var OutItemJournalLine: Record "Item Journal Line"; OutputQty: Decimal)
     var
         ItemJournalTemplate: Record "Item Journal Template";
     begin
@@ -295,7 +312,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
         end;
     end;
 
-    procedure CreateItem(var Item: Record "Item")
+    internal procedure CreateItem(var Item: Record "Item")
     var
         RoutingHeader: Record "Routing Header";
     begin
@@ -311,7 +328,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
         SetupVAT();
     end;
 
-    procedure CreateLotTrackedItem(var Item: Record "Item")
+    internal procedure CreateLotTrackedItem(var Item: Record "Item")
     var
         RoutingHeader: Record "Routing Header";
     begin
@@ -419,7 +436,7 @@ codeunit 139952 "Qlty. Prod. Order Generator"
         RoutingLine.Modify();
     end;
 
-    procedure SetQuantity(Quantity: Decimal)
+    internal procedure SetQuantity(Quantity: Decimal)
     begin
         QuantityToCreate := Quantity;
     end;

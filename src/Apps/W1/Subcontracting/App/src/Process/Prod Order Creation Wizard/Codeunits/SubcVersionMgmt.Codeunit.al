@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -15,18 +15,18 @@ codeunit 99001553 "Subc. Version Mgmt."
     procedure ShowBOMVersionSelection(ProductionBOMNo: Code[20]; var SelectedVersion: Code[20]): Boolean
     var
         ProductionBOMVersion: Record "Production BOM Version";
-        ProductionBOMVersions: Page "Prod. BOM Version List";
+        ProdBOMVersionList: Page "Prod. BOM Version List";
     begin
         if ProductionBOMNo = '' then
             exit(false);
 
         ProductionBOMVersion.SetRange("Production BOM No.", ProductionBOMNo);
         ProductionBOMVersion.SetRange(Status, "BOM Status"::Certified);
-        ProductionBOMVersions.SetTableView(ProductionBOMVersion);
-        ProductionBOMVersions.LookupMode(true);
+        ProdBOMVersionList.SetTableView(ProductionBOMVersion);
+        ProdBOMVersionList.LookupMode(true);
 
-        if ProductionBOMVersions.RunModal() = Action::LookupOK then begin
-            ProductionBOMVersions.GetRecord(ProductionBOMVersion);
+        if ProdBOMVersionList.RunModal() = Action::LookupOK then begin
+            ProdBOMVersionList.GetRecord(ProductionBOMVersion);
             SelectedVersion := ProductionBOMVersion."Version Code";
             exit(true);
         end;
@@ -37,18 +37,18 @@ codeunit 99001553 "Subc. Version Mgmt."
     procedure ShowRoutingVersionSelection(RoutingNo: Code[20]; var SelectedVersion: Code[20]): Boolean
     var
         RoutingVersion: Record "Routing Version";
-        RoutingVersions: Page "Routing Version List";
+        RoutingVersionList: Page "Routing Version List";
     begin
         if RoutingNo = '' then
             exit(false);
 
         RoutingVersion.SetRange("Routing No.", RoutingNo);
         RoutingVersion.SetRange(Status, "Routing Status"::Certified);
-        RoutingVersions.SetTableView(RoutingVersion);
-        RoutingVersions.LookupMode(true);
+        RoutingVersionList.SetTableView(RoutingVersion);
+        RoutingVersionList.LookupMode(true);
 
-        if RoutingVersions.RunModal() = Action::LookupOK then begin
-            RoutingVersions.GetRecord(RoutingVersion);
+        if RoutingVersionList.RunModal() = Action::LookupOK then begin
+            RoutingVersionList.GetRecord(RoutingVersion);
             SelectedVersion := RoutingVersion."Version Code";
             exit(true);
         end;
@@ -92,7 +92,6 @@ codeunit 99001553 "Subc. Version Mgmt."
         RoutingHeader.SetRange(Status, "Routing Status"::Certified);
         RoutingList.SetTableView(RoutingHeader);
         RoutingList.LookupMode(true);
-
         if RoutingList.RunModal() = Action::LookupOK then begin
             RoutingList.GetRecord(RoutingHeader);
             SelectedRoutingNo := RoutingHeader."No.";
@@ -166,21 +165,21 @@ codeunit 99001553 "Subc. Version Mgmt."
 
     procedure GetBOMVersionNoSeries(ProductionBOMNo: Code[20]): Code[20]
     var
-        ProductionBOM: Record "Production BOM Header";
+        ProductionBOMHeader: Record "Production BOM Header";
     begin
-        ProductionBOM.SetLoadFields("Version Nos.");
-        ProductionBOM.Get(ProductionBOMNo);
-        ProductionBOM.TestField("Version Nos.");
-        exit(ProductionBOM."Version Nos.");
+        ProductionBOMHeader.SetLoadFields("Version Nos.");
+        ProductionBOMHeader.Get(ProductionBOMNo);
+        ProductionBOMHeader.TestField("Version Nos.");
+        exit(ProductionBOMHeader."Version Nos.");
     end;
 
     procedure GetRoutingVersionNoSeries(RoutingNo: Code[20]): Code[20]
     var
-        Routing: Record "Routing Header";
+        RoutingHeader: Record "Routing Header";
     begin
-        Routing.SetLoadFields("Version Nos.");
-        Routing.Get(RoutingNo);
-        Routing.TestField("Version Nos.");
-        exit(Routing."Version Nos.");
+        RoutingHeader.SetLoadFields("Version Nos.");
+        RoutingHeader.Get(RoutingNo);
+        RoutingHeader.TestField("Version Nos.");
+        exit(RoutingHeader."Version Nos.");
     end;
 }
