@@ -32,7 +32,6 @@ using Microsoft.Warehouse.Structure;
 using Microsoft.Warehouse.Tracking;
 using Microsoft.Warehouse.Worksheet;
 using System.Automation;
-using System.Reflection;
 using System.Security.User;
 using System.TestLibraries.Utilities;
 
@@ -146,13 +145,8 @@ codeunit 139969 "Qlty. Tests - Workflows"
         PurchaseLine: Record "Purchase Line";
         ReservationEntry: Record "Reservation Entry";
         SpecificQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
-        SpecificQltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
-        ToLoadField: Record Field;
         Workflow: Record Workflow;
         QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
-        TestSourceConfigLineFieldNames: List of [Text];
-        FieldName: Text;
-        SourceConfig: Text;
         BeforeCount: Integer;
     begin
         // [SCENARIO] Test-to-test source configuration is applied from a create test workflow when source inspection was filtered by status
@@ -169,36 +163,17 @@ codeunit 139969 "Qlty. Tests - Workflows"
         ReUsableQltyPurOrderGenerator.CreateInspectionFromPurchaseWithLotTrackedItem(Location, 100, PurchaseHeader, PurchaseLine, OriginalQltyInspectionHeader, ReservationEntry);
 
         // [GIVEN] An inspection-to-inspection source configuration with field mappings
-        QltyInspectionUtility.GenerateRandomCharacters(20, SourceConfig);
-        SpecificQltyInspectSourceConfig.Init();
-        SpecificQltyInspectSourceConfig.Code := CopyStr(SourceConfig, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
-        SpecificQltyInspectSourceConfig.Description := CopyStr(SourceConfig, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
-        SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Qlty. Inspection Header");
-        SpecificQltyInspectSourceConfig.Validate("To Table No.", Database::"Qlty. Inspection Header");
-        SpecificQltyInspectSourceConfig.Insert();
+        QltyInspectionUtility.CreateSourceConfig(
+            SpecificQltyInspectSourceConfig,
+            Database::"Qlty. Inspection Header",
+            Enum::"Qlty. Target Type"::Inspection,
+            Database::"Qlty. Inspection Header");
 
-        TestSourceConfigLineFieldNames.Add('Source Document No.');
-        TestSourceConfigLineFieldNames.Add('Source Document Line No.');
-        TestSourceConfigLineFieldNames.Add('Source Item No.');
-        TestSourceConfigLineFieldNames.Add('Source Quantity (Base)');
-        TestSourceConfigLineFieldNames.Add('Source Lot No.');
-
-        foreach FieldName in TestSourceConfigLineFieldNames do begin
-            Clear(SpecificQltyInspectSrcFldConf);
-            SpecificQltyInspectSrcFldConf.Init();
-            SpecificQltyInspectSrcFldConf.Code := SpecificQltyInspectSourceConfig.Code;
-            SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
-            SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
-            SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
-            SpecificQltyInspectSrcFldConf."To Table No." := SpecificQltyInspectSourceConfig."To Table No.";
-            Clear(ToLoadField);
-            ToLoadField.SetRange(TableNo, Database::"Qlty. Inspection Header");
-            ToLoadField.SetRange(FieldName, FieldName);
-            ToLoadField.FindFirst();
-            SpecificQltyInspectSrcFldConf."From Field No." := ToLoadField."No.";
-            SpecificQltyInspectSrcFldConf."To Field No." := ToLoadField."No.";
-            SpecificQltyInspectSrcFldConf.Insert();
-        end;
+        QltyInspectionUtility.CreateSourceFieldConfigByName(SpecificQltyInspectSourceConfig.Code, Database::"Qlty. Inspection Header", Enum::"Qlty. Target Type"::Inspection, 'Source Document No.');
+        QltyInspectionUtility.CreateSourceFieldConfigByName(SpecificQltyInspectSourceConfig.Code, Database::"Qlty. Inspection Header", Enum::"Qlty. Target Type"::Inspection, 'Source Document Line No.');
+        QltyInspectionUtility.CreateSourceFieldConfigByName(SpecificQltyInspectSourceConfig.Code, Database::"Qlty. Inspection Header", Enum::"Qlty. Target Type"::Inspection, 'Source Item No.');
+        QltyInspectionUtility.CreateSourceFieldConfigByName(SpecificQltyInspectSourceConfig.Code, Database::"Qlty. Inspection Header", Enum::"Qlty. Target Type"::Inspection, 'Source Quantity (Base)');
+        QltyInspectionUtility.CreateSourceFieldConfigByName(SpecificQltyInspectSourceConfig.Code, Database::"Qlty. Inspection Header", Enum::"Qlty. Target Type"::Inspection, 'Source Lot No.');
 
         // [GIVEN] A workflow configured to create new inspection from existing inspection
         QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Qlty. Inspection Header");
@@ -1870,27 +1845,20 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         PurchaseHeader: Record "Purchase Header";
         SpecificQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
-        SpecificQltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
-        ConfigCode: Text;
     begin
-        SpecificQltyInspectSourceConfig.Init();
-        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
-        SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
-        SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
-        SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Purchase Header");
-        SpecificQltyInspectSourceConfig."To Type" := SpecificQltyInspectSourceConfig."To Type"::Inspection;
-        SpecificQltyInspectSourceConfig.Validate("To Table No.", Database::"Qlty. Inspection Header");
-        SpecificQltyInspectSourceConfig.Insert();
+        QltyInspectionUtility.CreateSourceConfig(
+            SpecificQltyInspectSourceConfig,
+            Database::"Purchase Header",
+            Enum::"Qlty. Target Type"::Inspection,
+            Database::"Qlty. Inspection Header");
 
-        SpecificQltyInspectSrcFldConf.Init();
-        SpecificQltyInspectSrcFldConf.Code := SpecificQltyInspectSourceConfig.Code;
-        SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
-        SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
-        SpecificQltyInspectSrcFldConf."From Field No." := PurchaseHeader.FieldNo("No.");
-        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
-        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
-        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Document No.");
-        SpecificQltyInspectSrcFldConf.Insert();
+        QltyInspectionUtility.CreateSourceFieldConfig(
+            SpecificQltyInspectSourceConfig.Code,
+            Database::"Purchase Header",
+            PurchaseHeader.FieldNo("No."),
+            Enum::"Qlty. Target Type"::Inspection,
+            Database::"Qlty. Inspection Header",
+            QltyInspectionHeader.FieldNo("Source Document No."));
     end;
 
     [ConfirmHandler]
