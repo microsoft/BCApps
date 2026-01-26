@@ -7,8 +7,8 @@ namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Location;
-using System.Utilities;
 using Microsoft.Purchases.Vendor;
+using System.Utilities;
 
 /// <summary>
 /// Report for generating sample purchase invoice PDFs
@@ -16,8 +16,7 @@ using Microsoft.Purchases.Vendor;
 report 6102 "E-Doc Sample Purchase Invoice"
 {
     Caption = 'E-Doc Sample Purchase Invoice';
-    DefaultLayout = Word;
-    WordLayout = './src/SampleInvoice/EDocSamplePurchInvoice.docx';
+    DefaultRenderingLayout = SampleInvoiceLayout1;
 
     dataset
     {
@@ -237,6 +236,31 @@ report 6102 "E-Doc Sample Purchase Invoice"
                 VATAmount := Header."Total VAT";
                 TotalAmtInclVAT += VATAmount;
             end;
+        }
+    }
+
+    rendering
+    {
+        layout(SampleInvoiceLayout1)
+        {
+            Type = Word;
+            Caption = 'First sample invoice layout';
+            Summary = 'First sample invoice layout';
+            LayoutFile = './src/SampleInvoice/EDocSamplePurchInvoice.docx';
+        }
+        layout(SampleInvoiceLayout2)
+        {
+            Type = Word;
+            Caption = 'Second sample invoice layout';
+            Summary = 'Second sample invoice layout';
+            LayoutFile = './src/SampleInvoice/EDocSamplePurchInvoice2.docx';
+        }
+        layout(SampleInvoiceLayout3)
+        {
+            Type = Word;
+            Caption = 'Third sample invoice layout';
+            Summary = 'Third sample invoice layout';
+            LayoutFile = './src/SampleInvoice/EDocSamplePurchInvoice3.docx';
         }
     }
 

@@ -4,16 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 
-using Microsoft.Purchases.Document;
-using System.Utilities;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Inventory.Item;
 using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Foundation.Period;
-using Microsoft.Foundation.UOM;
-using Microsoft.Foundation.Company;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Period;
+using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Item;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
+using System.Reflection;
+using System.Utilities;
 
 /// <summary>
 /// The purpose of the codeunit is to generate sample purchase invoices in PDF format.
@@ -26,6 +27,8 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
     var
         TempEDocPurchHeader: Record "E-Document Purchase Header" temporary;
         TempEDocPurchLine: Record "E-Document Purchase Line" temporary;
+        ReportLayoutList: Record "Report Layout List";
+        MixLayoutsForPDFGeneration: Boolean;
 
     /// <summary>
     /// Gets the posting date for the sample invoice.
@@ -66,6 +69,14 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
         SamplePurchInvFile.Scenario := Scenario;
         SamplePurchInvFile."Vendor Name" := TempEDocPurchHeader."Vendor Company Name";
         SamplePurchInvFile.Insert();
+    end;
+
+    /// <summary>
+    /// Sets the flag to mix layouts for PDF generation.
+    /// </summary>
+    procedure SetMixLayoutsForPDFGeneration()
+    begin
+        MixLayoutsForPDFGeneration := true;
     end;
 
     /// <summary>
@@ -119,23 +130,7 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
     /// Adds a sample purchase invoice line to the current temporary header.
     /// </summary>
     procedure AddLine(LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]; Quantity: Decimal; DirectUnitCost: Decimal; DeferralCode: Code[10]; UnitOfMeasureCode: Code[10])
-    var
-        Item: Record Item;
-        GLAccount: Record "G/L Account";
     begin
-        if Description = '' then
-            case LineType of
-                Enum::"Purchase Line Type"::Item:
-                    begin
-                        Item.Get(No);
-                        Description := Item.Description;
-                    end;
-                Enum::"Purchase Line Type"::"G/L Account":
-                    begin
-                        GLAccount.Get(No);
-                        Description := GLAccount.Name;
-                    end;
-            end;
         AddLine(TempEDocPurchLine, TempEDocPurchHeader, LineType, No, Description, Quantity, DirectUnitCost, DeferralCode, UnitOfMeasureCode);
     end;
 
@@ -166,7 +161,7 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
         EDocPurchaseLine."[BC] Purchase Line Type" := LineType;
         EDocPurchaseLine."[BC] Purchase Type No." := No;
         EDocPurchaseLine."Product Code" := No;
-        EDocPurchaseLine.Description := Description;
+        EDocPurchaseLine.Description := GetLineDescription(LineType, No, Description);
         EDocPurchaseLine.Quantity := Quantity;
         if UnitOfMeasureCode <> '' then
             UnitOfMeasure.Get(UnitOfMeasureCode)
@@ -193,6 +188,7 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
         GeneratedPdfIsEmptyErr: Label 'Generated PDF is empty';
     begin
         TempEDocPurchHeader.TestField("[BC] Vendor No.");
+        SetLayout(SamplePurchInvPDF);
         TempBlob := SamplePurchInvPDF.GeneratePDF(TempEDocPurchHeader, TempEDocPurchLine);
         if TempBlob.Length() = 0 then
             error(GeneratedPdfIsEmptyErr);
@@ -208,6 +204,41 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
     var
         SamplePurchInvFile: Record "E-Doc Sample Purch. Inv File";
     begin
-        exit(CopyStr(TempEDocPurchHeader."Sales Invoice No.", 1, MaxStrLen(SamplePurchInvFile."File Name")))
+        exit(CopyStr(TempEDocPurchHeader."Sales Invoice No." + '.pdf', 1, MaxStrLen(SamplePurchInvFile."File Name")))
+    end;
+
+    local procedure GetLineDescription(LineType: Enum "Purchase Line Type"; No: Code[20]; Description: Text[100]): Text[100]
+    var
+        Item: Record Item;
+        GLAccount: Record "G/L Account";
+    begin
+        if Description <> '' then
+            exit(Description);
+        case LineType of
+            Enum::"Purchase Line Type"::Item:
+                begin
+                    Item.Get(No);
+                    exit(Item.Description);
+                end;
+            Enum::"Purchase Line Type"::"G/L Account":
+                begin
+                    GLAccount.Get(No);
+                    exit(GLAccount.Name);
+                end;
+        end;
+        exit('');
+    end;
+
+    local procedure SetLayout(var SamplePurchInvPDF: Codeunit "E-Doc Sample Purch.Inv. PDF")
+    begin
+        if not MixLayoutsForPDFGeneration then
+            exit;
+        if ReportLayoutList."Report ID" = 0 then begin
+            ReportLayoutList.SetRange("Report ID", Report::"E-Doc Sample Purchase Invoice");
+            ReportLayoutList.FindSet();
+        end;
+        SamplePurchInvPDF.SetSamplePurchInvoiceLayout(ReportLayoutList.Name);
+        if ReportLayoutList.Next() = 0 then
+            ReportLayoutList.FindSet();
     end;
 }

@@ -16,7 +16,7 @@ using Microsoft.Warehouse.Journal;
 
 page 20461 "Qlty. Rec. Gen. Rule Wizard"
 {
-    Caption = 'Quality Management - Receipt Quality Inspection Generation Rule Wizard';
+    Caption = 'Receipt Quality Inspection Rule Setup Guide';
     PageType = NavigatePage;
     UsageCategory = None;
     ApplicationArea = QualityManagement;
@@ -47,7 +47,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                 field(ChoosechooseTemplate; TemplateCode)
                 {
                     ApplicationArea = All;
-                    Caption = 'Choose Template';
+                    Caption = 'Choose template';
                     ToolTip = 'Specifies which Quality Inspection template do you want to use?';
                     ShowMandatory = true;
 
@@ -923,7 +923,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                 end;
         end;
 
-        if QltyManagementSetup.Modify(false) then;
+        QltyManagementSetup.Modify(false);
         QltyInspectionGenRule.SetItemFilter(ItemRule);
         QltyInspectionGenRule.Modify();
 

@@ -5,11 +5,14 @@
 namespace Microsoft.QualityManagement.Setup.SetupWizard;
 
 using Microsoft.QualityManagement.Configuration;
+using Microsoft.QualityManagement.Configuration.GenerationRule;
+using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Telemetry;
+using System.Utilities;
 
 /// <summary>
 /// This setup wizard is used to help configure the system initially.
@@ -31,6 +34,30 @@ page 20438 "Qlty. Management Setup Wizard"
                 ShowCaption = false;
                 Visible = false;
             }
+            group(StandardBanner)
+            {
+                Caption = '';
+                Editable = false;
+                Visible = TopBannerVisible and not (StepDone = CurrentStepCounter);
+                field(MediaResourcesStd; MediaResourcesStandard."Media Reference")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    ShowCaption = false;
+                }
+            }
+            group(FinishedBanner)
+            {
+                Caption = '';
+                Editable = false;
+                Visible = TopBannerVisible and (StepDone = CurrentStepCounter);
+                field(MediaResourcesDone; MediaResourcesDone."Media Reference")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    ShowCaption = false;
+                }
+            }
             group(SettingsFor_StepWelcome)
             {
                 Visible = (CurrentStepCounter = StepWelcome);
@@ -42,25 +69,20 @@ page 20438 "Qlty. Management Setup Wizard"
                     InstructionalText = 'This wizard will guide you through the initial setup required to perform quality inspections.';
                 }
             }
-            group(SettingsFor_StepGettingStarted)
+            group(DemoData)
             {
-                Caption = 'Apply Getting Started Data?';
-                Visible = (StepGettingStarted = CurrentStepCounter);
-                InstructionalText = 'Would you like to apply getting started data?';
+                Caption = 'Demo data for Quality Management';
+                Visible = (StepDemoData = CurrentStepCounter);
 
-                group(SettingsFor_ApplyConfigurationPackage)
+                group(DemoDataIntroduction)
                 {
-                    Caption = 'What Is Getting Started Data?';
-                    InstructionalText = 'Getting started data for Quality Management will include basic setup data and also some useful examples or other demonstration data. Getting Started data can help you get running quickly, or help you with evaluating if the application is a fit more quickly. Very basic setup data for common integration scenarios will still be applied if you choose not to apply the getting started data. If you do not want this data, or if you have been previously set up then do not apply this configuration.';
-
-                    field(ChooseApplyConfigurationPackage; ApplyConfigurationPackage)
-                    {
-                        ApplicationArea = Basic, Suite;
-                        OptionCaption = 'Apply Getting Started Data,Do Not Apply Configuration';
-                        Caption = 'Getting Started Data?';
-                        ShowCaption = false;
-                        ToolTip = 'Specifies a configuration package of getting-started data is available to automatically apply.';
-                    }
+                    Caption = 'Demo data for Quality Management';
+                    InstructionalText = 'The Quality Management application includes demo data available through the Contoso Coffee Demo Dataset application.';
+                }
+                group(DemoDataInstructions)
+                {
+                    Caption = 'Install demo data';
+                    InstructionalText = 'To install demo data, go to the Contoso Demo Tool page and select the Quality Management module.';
                 }
             }
             group(SettingsFor_StepWhatAreYouMakingQltyInspectionsFor)
@@ -352,9 +374,41 @@ page 20438 "Qlty. Management Setup Wizard"
 
                 group(SettingsFor_StepDone_Header_ExpressOnly)
                 {
-                    ShowCaption = false;
+                    Caption = 'You''re all set!';
                     Visible = ShowHTMLHeader;
-                    InstructionalText = 'Thank you for installing Quality Management. Get started by navigating to Quality Inspection Templates and Inspection Generation Rules.';
+                    InstructionalText = 'Thank you for installing Quality Management.';
+                }
+
+                group(Control18)
+                {
+                    Caption = 'Get Started';
+                    InstructionalText = 'Get started by navigating to Quality Inspections and Quality Inspection Generation Rules.';
+                    ShowCaption = false;
+
+                    field(QualityInspections; QualityInspectionsLbl)
+                    {
+                        Caption = 'Quality Inspections';
+                        ShowCaption = false;
+                        Editable = false;
+                        ApplicationArea = All;
+
+                        trigger OnDrillDown()
+                        begin
+                            Page.RunModal(Page::"Qlty. Inspection List");
+                        end;
+                    }
+                    field(QualityInspectionGenerationRulesLbl; QualityInspectionGenerationRulesLbl)
+                    {
+                        Caption = 'Quality Inspection Generation Rules';
+                        ShowCaption = false;
+                        Editable = false;
+                        ApplicationArea = All;
+
+                        trigger OnDrillDown()
+                        begin
+                            Page.RunModal(Page::"Qlty. Inspection Gen. Rules");
+                        end;
+                    }
                 }
             }
         }
@@ -412,6 +466,10 @@ page 20438 "Qlty. Management Setup Wizard"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         TempRecPreviousQltyManagementSetup: Record "Qlty. Management Setup" temporary;
+        MediaRepositoryDone: Record "Media Repository";
+        MediaRepositoryStandard: Record "Media Repository";
+        MediaResourcesDone: Record "Media Resources";
+        MediaResourcesStandard: Record "Media Resources";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         CurrentStepCounter: Integer;
@@ -434,26 +492,29 @@ page 20438 "Qlty. Management Setup Wizard"
         ShowNever: Boolean;
         ShowHTMLHeader: Boolean;
         IsPremiumExperienceEnabled: Boolean;
+        TopBannerVisible: Boolean;
         StepWelcome: Integer;
-        StepGettingStarted: Integer;
+        StepDemoData: Integer;
         StepReceivingConfig: Integer;
         StepWhatAreYouMakingQltyInspectionsFor: Integer;
         StepProductionConfig: Integer;
         StepShowInspections: Integer;
         StepDone: Integer;
         MaxStep: Integer;
-        ApplyConfigurationPackage: Option "Apply Getting Started Data","Do Not Apply Configuration.";
         ReRunThisWizardWithMorePermissionErr: Label 'It looks like you need more permissions to run this wizard successfully. Please ask your Business Central administrator to grant more permission.';
         FinishWizardLbl: Label 'Finish wizard.', Locked = true;
         QualityManagementTok: Label 'Quality Management', Locked = true;
+        QualityInspectionsLbl: Label 'Quality Inspections', Locked = true;
+        QualityInspectionGenerationRulesLbl: Label 'Quality Inspection Generation Rules', Locked = true;
 
     trigger OnInit();
     begin
+        LoadTopBanners();
         ShowHTMLHeader := true;
         CopyPreviousSetup();
 
         StepWelcome := 1;
-        StepGettingStarted := 2;
+        StepDemoData := 2;
         StepWhatAreYouMakingQltyInspectionsFor := 3;
         StepProductionConfig := 4;
         StepReceivingConfig := 5;
@@ -488,8 +549,6 @@ page 20438 "Qlty. Management Setup Wizard"
     end;
 
     local procedure ChangeToStep(Step: Integer);
-    var
-        GuidedExperience: Codeunit "Guided Experience";
     begin
         if Step < 1 then
             Step := 1;
@@ -513,13 +572,6 @@ page 20438 "Qlty. Management Setup Wizard"
                     Commit();
 
                     QltyAutoConfigure.EnsureBasicSetupExists(false);
-                    if GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"Qlty. Management Setup Wizard") or
-                       QltyAutoConfigure.GuessDoesAppearToBeSetup() or
-                       QltyAutoConfigure.GuessDoesAppearToBeUsed()
-                    then
-                        ApplyConfigurationPackage := ApplyConfigurationPackage::"Do Not Apply Configuration."
-                    else
-                        ApplyConfigurationPackage := ApplyConfigurationPackage::"Apply Getting Started Data";
                 end;
             StepWhatAreYouMakingQltyInspectionsFor:
                 begin
@@ -563,13 +615,9 @@ page 20438 "Qlty. Management Setup Wizard"
         case LeavingThisStep of
             StepWelcome:
                 Commit();
-            StepGettingStarted:
+            StepDemoData:
                 begin
                     GetLatestSetupRecord(true, true);
-                    if ApplyConfigurationPackage = ApplyConfigurationPackage::"Apply Getting Started Data" then begin
-                        QltyAutoConfigure.ApplyGettingStartedData(true);
-                        Commit();
-                    end;
                     Commit();
                     GetLatestSetupRecord(false, true);
                 end;
@@ -663,11 +711,11 @@ page 20438 "Qlty. Management Setup Wizard"
 
         case true of
             ShowAutoAndManual:
-                QltyManagementSetup."Show Inspection Behavior" := QltyManagementSetup."Show Inspection Behavior"::"Automatic and manually created inspections";
+                QltyManagementSetup."When to show inspections" := QltyManagementSetup."When to show inspections"::"Automatic and manually created inspections";
             ShowOnlyManual:
-                QltyManagementSetup."Show Inspection Behavior" := QltyManagementSetup."Show Inspection Behavior"::"Only manually created inspections";
+                QltyManagementSetup."When to show inspections" := QltyManagementSetup."When to show inspections"::"Only manually created inspections";
             ShowNever:
-                QltyManagementSetup."Show Inspection Behavior" := QltyManagementSetup."Show Inspection Behavior"::"Do not show created inspections";
+                QltyManagementSetup."When to show inspections" := QltyManagementSetup."When to show inspections"::"Do not show created inspections";
         end;
 
         if QltyManagementSetup.Visibility = QltyManagementSetup.Visibility::Hide then
@@ -710,9 +758,22 @@ page 20438 "Qlty. Management Setup Wizard"
                 ReceiveCreateInspectionsAutomaticallyWarehouseReceipt or
                 ReceiveCreateInspectionsAutomaticallySalesReturn);
 
-            ShowAutoAndManual := QltyManagementSetup."Show Inspection Behavior" = QltyManagementSetup."Show Inspection Behavior"::"Automatic and manually created inspections";
-            ShowOnlyManual := QltyManagementSetup."Show Inspection Behavior" = QltyManagementSetup."Show Inspection Behavior"::"Only manually created inspections";
-            ShowNever := QltyManagementSetup."Show Inspection Behavior" = QltyManagementSetup."Show Inspection Behavior"::"Do not show created inspections";
+            ShowAutoAndManual := QltyManagementSetup."When to show inspections" = QltyManagementSetup."When to show inspections"::"Automatic and manually created inspections";
+            ShowOnlyManual := QltyManagementSetup."When to show inspections" = QltyManagementSetup."When to show inspections"::"Only manually created inspections";
+            ShowNever := QltyManagementSetup."When to show inspections" = QltyManagementSetup."When to show inspections"::"Do not show created inspections";
         end
+    end;
+
+    local procedure LoadTopBanners()
+    begin
+        if MediaRepositoryStandard.Get('AssistedSetup-NoText-400px.png',
+           Format(CurrentClientType())) and
+           MediaRepositoryDone.Get('AssistedSetupDone-NoText-400px.png',
+           Format(CurrentClientType()))
+        then
+            if MediaResourcesStandard.Get(MediaRepositoryStandard."Media Resources Ref") and
+               MediaResourcesDone.Get(MediaRepositoryDone."Media Resources Ref")
+            then
+                TopBannerVisible := MediaResourcesDone."Media Reference".HasValue();
     end;
 }

@@ -173,7 +173,7 @@ codeunit 20410 "Qlty. Result Evaluation"
         ValidateInspectionLineWithAllowableValues(QltyInspectionLine, OptionalQltyInspectionHeader, true, Modify);
     end;
 
-    procedure ValidateInspectionLineWithAllowableValues(var QltyInspectionLine: Record "Qlty. Inspection Line"; var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; CheckForAllowableValues: Boolean; Modify: Boolean)
+    procedure ValidateInspectionLineWithAllowableValues(var QltyInspectionLine: Record "Qlty. Inspection Line"; var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; CheckForAllowableValues: Boolean; UpdateHeader: Boolean)
     var
         QltyTest: Record "Qlty. Test";
         QltyInspectionResult: Record "Qlty. Inspection Result";
@@ -203,13 +203,13 @@ codeunit 20410 "Qlty. Result Evaluation"
 
         QltyInspectionLine.Validate("Result Code", Result);
 
-        if Modify then
+        if UpdateHeader then
             QltyInspectionLine.Modify(true);
 
         if (not QltyInspectionLine.IsTemporary()) and (OptionalQltyInspectionHeader."No." <> '') and (QltyInspectionLine."Inspection No." <> '') then begin
             OptionalQltyInspectionHeader.UpdateResultFromLines();
             OptionalQltyInspectionHeader.Validate("Result Code");
-            if Modify then
+            if UpdateHeader and not IsNullGuid(OptionalQltyInspectionHeader.SystemId) then
                 if OptionalQltyInspectionHeader.Modify(true) then;
         end;
     end;

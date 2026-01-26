@@ -860,6 +860,18 @@ table 30118 "Shpfy Order Header"
             Caption = 'Shipping Agent Service Code';
             TableRelation = "Shipping Agent Services".Code where("Shipping Agent Code" = field("Shipping Agent Code"));
         }
+        field(1023; "Retail Location Id"; BigInteger)
+        {
+            Caption = 'Retail Location Id';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(1024; "Retail Location Name"; Text[250])
+        {
+            Caption = 'Retail Location Name';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
         field(1030; "Payment Terms Type"; Code[20])
         {
             DataClassification = CustomerContent;

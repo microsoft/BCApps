@@ -108,12 +108,11 @@ page 4315 "Agent Card"
             }
             part(Permissions; "View Agent Permissions")
             {
-                Editable = false;
                 ApplicationArea = Basic, Suite;
                 Caption = 'Agent Permissions';
                 SubPageLink = "User Security ID" = field("User Security ID");
             }
-            part(UserAccess; "Agent Access Control")
+            part(UserAccess; "View Agent Access Control")
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'User Access';
@@ -131,6 +130,7 @@ page 4315 "Agent Card"
                 Caption = 'Setup';
                 ToolTip = 'Set up agent';
                 Image = SetupLines;
+                Enabled = Rec."Can Curr. User Configure Agent";
 
                 trigger OnAction()
                 begin

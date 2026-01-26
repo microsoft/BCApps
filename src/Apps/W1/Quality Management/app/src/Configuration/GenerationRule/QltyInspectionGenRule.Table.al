@@ -70,20 +70,6 @@ table 20404 "Qlty. Inspection Gen. Rule"
                     end else
                         QltyJobQueueManagement.DeleteJobQueueIfNothingElseIsUsingThisGroup(Rec, xRec."Schedule Group");
             end;
-
-            trigger OnLookup()
-            var
-                QltyJobQueueManagement: Codeunit "Qlty. Job Queue Management";
-            begin
-                QltyJobQueueManagement.CheckIfGenerationRuleCanBeScheduled(Rec);
-                if GuiAllowed() then
-                    if Rec."Schedule Group" = '' then begin
-                        Rec."Schedule Group" := DefaultScheduleGroupLbl;
-                        Rec.Modify(false);
-                        QltyJobQueueManagement.PromptCreateJobQueueEntryIfMissing(Rec."Schedule Group");
-                    end else
-                        QltyJobQueueManagement.RunPageLookupJobQueueEntriesForScheduleGroup(Rec."Schedule Group")
-            end;
         }
         field(10; "Template Code"; Code[20])
         {
@@ -282,7 +268,6 @@ table 20404 "Qlty. Inspection Gen. Rule"
     var
         TriggerNotActiveConfirmQst: Label 'You have set an automatic trigger but the inspection generation rule activation is set to "%1". Do you want to update the activation trigger to "%2?"', Comment = '%1=current activation trigger,%2=proposed activation trigger';
         RuleCurrentlyDisabledLbl: Label 'The generation rule Sort Order %1, Template Code %2 is currently disabled. It will need to have an activation trigger of "Automatic Only" or "Manual or Automatic" before it will be triggered by "%3"', Comment = '%1=generation rule sort order,%2=generation rule template code,%3=auto trigger';
-        DefaultScheduleGroupLbl: Label 'QM', Locked = true;
         ChooseTemplateFirstErr: Label 'Please choose the template first.';
 
     trigger OnInsert()
@@ -323,7 +308,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
         end;
     end;
 
-    internal procedure HandleOnLookupSourceTable()
+    internal procedure HandleOnAssistEditSourceTable()
     var
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
         QltyInspecGenRuleMgmt: Codeunit "Qlty. Inspec. Gen. Rule Mgmt.";
@@ -332,7 +317,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
         if Rec."Template Code" = '' then
             Error(ChooseTemplateFirstErr);
         if IsNullGuid(Rec.SystemId) and not Rec.IsTemporary() then
-            if Rec.Insert() then;
+            Rec.Insert();
         Filter := QltyInspecGenRuleMgmt.GetFilterForAvailableConfigurations();
         QltyFilterHelpers.RunModalLookupTable(Rec."Source Table No.", Filter);
         Rec.CalcFields("Table Caption");

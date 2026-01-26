@@ -207,7 +207,7 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
                 Clear(TemporaryInspectionMatchRecordRef);
                 TemporaryInspectionMatchRecordRef.Open(TargetRecordRef.Number(), true);
                 TemporaryInspectionMatchRecordRef.Copy(TargetRecordRef);
-                if TemporaryInspectionMatchRecordRef.Insert(false) then;
+                TemporaryInspectionMatchRecordRef.Insert(false);
                 TemporaryInspectionMatchRecordRef.Reset();
                 if QltyInspectionGenRule.HasConditionFilter() then
                     TemporaryInspectionMatchRecordRef.SetView(QltyInspectionGenRule.GetConditionFilter());
@@ -246,7 +246,7 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
                     TempAlreadySearchedsQltyInspectSourceConfig.Reset();
                     if not TempAlreadySearchedsQltyInspectSourceConfig.Get(TempAvailableQltyInspectSourceConfig.Code) then begin
                         TempAlreadySearchedsQltyInspectSourceConfig := TempAvailableQltyInspectSourceConfig;
-                        if TempAlreadySearchedsQltyInspectSourceConfig.Insert() then;
+                        TempAlreadySearchedsQltyInspectSourceConfig.Insert();
                         if QltyTraversal.FindFromTableLinkedRecordWithToTable(true, false, TempAvailableQltyInspectSourceConfig, TargetRecordRef, FoundLinkRecordRef) then
                             if FindFirstGenerationRuleAndRecordBasedOnRecursive(CurrentRecursionDepth, UseActivationFilter, IsManualCreation, FoundLinkRecordRef, OptionalItem, TempAvailableQltyInspectSourceConfig, TempAlreadySearchedsQltyInspectSourceConfig, OptionalSpecificTemplate, TempQltyInspectionGenRule) then begin
                                 Found := true;

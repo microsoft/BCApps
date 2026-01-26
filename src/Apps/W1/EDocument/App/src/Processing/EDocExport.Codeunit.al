@@ -465,7 +465,7 @@ codeunit 6102 "E-Doc. Export"
         Telemetry.LogMessage('0000LBI', EDocTelemetryCreateBatchScopeEndLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All);
     end;
 
-    local procedure IsDocumentTypeSupported(EDocService: Record "E-Document Service"; EDocumentType: Enum "E-Document Type"): Boolean
+    procedure IsDocumentTypeSupported(EDocService: Record "E-Document Service"; EDocumentType: Enum "E-Document Type"): Boolean
     var
         EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
         EDocSourceType: Enum "E-Document Type";

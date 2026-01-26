@@ -22,6 +22,6 @@ codeunit 30298 "Shpfy GQL UpdateCatalogPrices" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(204);
+        exit(11);
     end;
 }

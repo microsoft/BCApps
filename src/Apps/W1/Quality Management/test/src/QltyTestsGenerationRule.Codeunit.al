@@ -302,7 +302,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
 
         // [WHEN] Filters are set to applicable templates without any generation rule
         // [THEN] An error is raised indicating no compatible generation rules found
-        asserterror QltyInspecGenRuleMgmt.SetFilterToApplicableTemplates(QltyInspectionTemplateHdr.Code, SpecificQltyInspectSourceConfig);
+        asserterror QltyInspectionUtility.SetFilterToApplicableTemplates(QltyInspectionTemplateHdr.Code, SpecificQltyInspectSourceConfig);
         LibraryAssert.ExpectedError(StrSubstNo(CouldNotFindGenerationRuleErr, QltyInspectionTemplateHdr.Code));
     end;
 
@@ -332,7 +332,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         RecordRef.GetTable(Customer);
 
         // [THEN] An error is raised indicating no source configuration found for the table
-        asserterror QltyInspecGenRuleMgmt.SetFilterToApplicableTemplates(QltyInspectionTemplateHdr.Code, SpecificQltyInspectSourceConfig);
+        asserterror QltyInspectionUtility.SetFilterToApplicableTemplates(QltyInspectionTemplateHdr.Code, SpecificQltyInspectSourceConfig);
         LibraryAssert.ExpectedError(StrSubstNo(CouldNotFindSourceErr, QltyInspectionTemplateHdr.Code, Database::Customer));
     end;
 
@@ -357,12 +357,12 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [WHEN] Filters are set to applicable templates
-        QltyInspecGenRuleMgmt.SetFilterToApplicableTemplates(QltyInspectionTemplateHdr.Code, SpecificQltyInspectSourceConfig);
+        QltyInspectionUtility.SetFilterToApplicableTemplates(QltyInspectionTemplateHdr.Code, SpecificQltyInspectSourceConfig);
 
         // [THEN] The source configuration record is filtered to the Purchase Line table
         RecordRef.GetTable(SpecificQltyInspectSourceConfig);
         Filter := RecordRef.GetFilters();
-        LibraryAssert.IsTrue(Filter.Contains('39'), 'Filter should have Purchase Line table.');
+        LibraryAssert.IsTrue(Filter.Contains(Format(Database::"Purchase Line")), 'Filter should have Purchase Line table.');
     end;
 
     [Test]
@@ -383,7 +383,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         SpecificQltyInspectSourceConfig.Insert();
 
         // [WHEN] Filter for available configurations is retrieved
-        Filters := QltyInspecGenRuleMgmt.GetFilterForAvailableConfigurations();
+        Filters := QltyInspectionUtility.GetFilterForAvailableConfigurations();
 
         // [THEN] The filter contains the Purchase Line table number
         LibraryAssert.IsTrue(Filters.Contains(Format(Database::"Purchase Line")), 'Should contain table no.');
@@ -395,7 +395,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     begin
         QltyInspectionGenRule.DeleteAll();
         QltyInspectionGenRule.Init();
-        QltyInspectionGenRule.SetEntryNo();
+        QltyInspectionUtility.SetEntryNo(QltyInspectionGenRule);
         QltyInspectionGenRule.Insert();
         QltyInspectionGenRule."Source Table No." := Database::"Purchase Line";
         QltyInspectionGenRule."Template Code" := TemplateCode;
