@@ -991,7 +991,6 @@ codeunit 148204 "Continia Reg. Integr. Tests"
         ExtConnectionSetup: TestPage "Continia Ext. Connection Setup";
         OnboardingGuide: TestPage "Continia Onboarding Guide";
         Participations: TestPage "Continia Participations";
-        NetworkProfileList: TestPage "Continia Network Profile List";
     begin
         Initialize();
 
