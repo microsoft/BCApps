@@ -138,5 +138,6 @@
       "Automation"
     ]
   },
-  "runNumberOffset": 60000
+  "runNumberOffset": 60000,
+  "containerHelperFolder": "C:/ProgramData/BcContainerHelper2"
 }
