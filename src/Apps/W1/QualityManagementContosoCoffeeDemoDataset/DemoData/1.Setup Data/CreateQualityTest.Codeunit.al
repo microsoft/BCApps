@@ -7,7 +7,7 @@ namespace Microsoft.DemoData.QualityManagement;
 using Microsoft.DemoTool.Helpers;
 using Microsoft.QualityManagement.Configuration.Template.Test;
 
-codeunit 5214 "Create Quality Test"
+codeunit 5593 "Create Quality Test"
 {
     InherentEntitlements = X;
     InherentPermissions = X;

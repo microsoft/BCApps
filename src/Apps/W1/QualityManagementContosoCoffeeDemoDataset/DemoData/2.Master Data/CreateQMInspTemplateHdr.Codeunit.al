@@ -6,7 +6,7 @@ namespace Microsoft.DemoData.QualityManagement;
 
 using Microsoft.DemoTool.Helpers;
 
-codeunit 5217 "Create QM Insp. Template Hdr"
+codeunit 5596 "Create QM Insp. Template Hdr"
 {
     InherentEntitlements = X;
     InherentPermissions = X;
