@@ -1326,7 +1326,9 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         CreateServiceLineWithVAT(ServiceLine, ServiceHeader, VATPostingSetup."VAT Prod. Posting Group", 100.01);
         CreateServiceLineWithVAT(ServiceLine, ServiceHeader, VATPostingSetup."VAT Prod. Posting Group", 100.01);
         LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
+#pragma warning disable AA0210
         ServiceInvoiceHeader.SetRange("Pre-Assigned No.", ServiceHeader."No.");
+#pragma warning restore AA0210
         ServiceInvoiceHeader.FindFirst();
 
         // [WHEN] Export Service Invoice with PEPPOL BIS3
@@ -1363,7 +1365,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         SalesInvoiceHeader.Get(
           CreatePostSalesDoc(Customer."No.", SalesHeader."Document Type"::Invoice));
         SalesInvoiceHeader."External Document No." := LibraryUtility.GenerateGUID();
-        SalesInvoiceHeader."Your Reference" := LibraryRandom.RandText(35);
+        SalesInvoiceHeader."Your Reference" := CopyStr(LibraryRandom.RandText(35), 1, 35);
         SalesInvoiceHeader.Modify();
         MockTextSalesInvoiceLine(SalesInvoiceHeader."No.");
         ExpectedClientFileName := CopyStr(
