@@ -7,7 +7,8 @@ Param(
 
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 Import-Module $PSScriptRoot\AppExtensionsHelper.psm1
-
+Write-Host "Config folder"
+Write-Host "$($bccontainerHelperConfig.containerHelperFolder)"
 $appBuildMode = Get-BuildMode
 
 if($appType -eq 'app')
