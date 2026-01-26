@@ -4,9 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Peppol.BE;
 
-using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Location;
 using Microsoft.Peppol;
@@ -25,8 +23,6 @@ codeunit 37311 "PEPPOL30 BE Sales Validation" implements "PEPPOL30 Validation"
         PEPPOL30SalesValidation: Codeunit "PEPPOL30 Sales Validation";
         MissingCompInfGLNOrVATRegNoOrEnterpNoErr: Label 'You must specify either GLN, VAT Registration No. or Enterprise No. in %1.', Comment = '%1=Company Information';
         MissingCustGLNOrVATRegNoOrEnterpNoErr: Label 'You must specify either GLN, VAT Registration No. or Enterprise No. for Customer %1.', Comment = '%1 = Customer No.';
-        WrongLengthErr: Label 'should be %1 characters long', Comment = '%1 - field length';
-        IsHandled: Boolean;
 
     trigger OnRun()
     begin
@@ -98,11 +94,12 @@ codeunit 37311 "PEPPOL30 BE Sales Validation" implements "PEPPOL30 Validation"
         Customer: Record Customer;
         GLSetup: Record "General Ledger Setup";
         ResponsibilityCenter: Record "Responsibility Center";
+        PEPPOL30SalesValidation: Codeunit "PEPPOL30 Sales Validation";
     begin
         CompanyInfo.Get();
         GLSetup.Get();
 
-        CheckCurrencyCode(SalesHeader."Currency Code");
+        PEPPOL30SalesValidation.CheckCurrencyCode(SalesHeader."Currency Code");
 
         if SalesHeader."Responsibility Center" <> '' then begin
             ResponsibilityCenter.Get(SalesHeader."Responsibility Center");
@@ -119,29 +116,26 @@ codeunit 37311 "PEPPOL30 BE Sales Validation" implements "PEPPOL30 Validation"
         end;
 
         CompanyInfo.TestField("Country/Region Code");
-        CheckCountryRegionCode(CompanyInfo."Country/Region Code");
+        PEPPOL30SalesValidation.CheckCountryRegionCode(CompanyInfo."Country/Region Code");
 
         // BE-specific: Include Enterprise No. in the check
-        OnCheckSalesDocumentOnBeforeCheckCompanyVATRegNo(SalesHeader, CompanyInfo, IsHandled);
-        if not IsHandled then
-            if CompanyInfo.GLN + CompanyInfo."VAT Registration No." + GetFieldValueByName(CompanyInfo, 'Enterprise No.') = '' then
-                Error(MissingCompInfGLNOrVATRegNoOrEnterpNoErr, CompanyInfo.TableCaption());
+        if CompanyInfo.GLN + CompanyInfo."VAT Registration No." + CompanyInfo."Enterprise No." = '' then
+            Error(MissingCompInfGLNOrVATRegNoOrEnterpNoErr, CompanyInfo.TableCaption());
 
         SalesHeader.TestField("Bill-to Name");
         SalesHeader.TestField("Bill-to Address");
         SalesHeader.TestField("Bill-to City");
         SalesHeader.TestField("Bill-to Post Code");
         SalesHeader.TestField("Bill-to Country/Region Code");
-        CheckCountryRegionCode(SalesHeader."Bill-to Country/Region Code");
+        PEPPOL30SalesValidation.CheckCountryRegionCode(SalesHeader."Bill-to Country/Region Code");
 
         // BE-specific: Include Enterprise No. in the check
-        OnCheckSalesDocumentOnBeforeCheckCustomerVATRegNo(SalesHeader, Customer, IsHandled);
-        if not IsHandled then
-            if (SalesHeader."Document Type" in [SalesHeader."Document Type"::Invoice, SalesHeader."Document Type"::Order, SalesHeader."Document Type"::"Credit Memo"]) and
-               Customer.Get(SalesHeader."Bill-to Customer No.")
-            then
-                if (Customer.GLN + Customer."VAT Registration No." + GetFieldValueByName(Customer, 'Enterprise No.')) = '' then
-                    Error(MissingCustGLNOrVATRegNoOrEnterpNoErr, Customer."No.");
+
+        if (SalesHeader."Document Type" in [SalesHeader."Document Type"::Invoice, SalesHeader."Document Type"::Order, SalesHeader."Document Type"::"Credit Memo"]) and
+           Customer.Get(SalesHeader."Bill-to Customer No.")
+        then
+            if (Customer.GLN + Customer."VAT Registration No." + Customer."Enterprise No.") = '' then
+                Error(MissingCustGLNOrVATRegNoOrEnterpNoErr, Customer."No.");
 
         if SalesHeader."Document Type" = SalesHeader."Document Type"::"Credit Memo" then
             if SalesHeader."Applies-to Doc. Type" = SalesHeader."Applies-to Doc. Type"::Invoice then
@@ -152,90 +146,12 @@ codeunit 37311 "PEPPOL30 BE Sales Validation" implements "PEPPOL30 Validation"
 
         SalesHeader.TestField("Your Reference");
 
-        CheckShipToAddress(SalesHeader);
+        PEPPOL30SalesValidation.CheckShipToAddress(SalesHeader);
         SalesHeader.TestField("Due Date");
 
         if CompanyInfo.IBAN = '' then
             CompanyInfo.TestField("Bank Account No.");
         CompanyInfo.TestField("Bank Branch No.");
         CompanyInfo.TestField("SWIFT Code");
-    end;
-
-    local procedure CheckCurrencyCode(CurrencyCode: Code[10])
-    var
-        Currency: Record Currency;
-        GLSetup: Record "General Ledger Setup";
-        MaxCurrencyCodeLength: Integer;
-    begin
-        MaxCurrencyCodeLength := 3;
-
-        if CurrencyCode = '' then begin
-            GLSetup.Get();
-            GLSetup.TestField("LCY Code");
-            CurrencyCode := GLSetup."LCY Code";
-        end;
-
-        if not Currency.Get(CurrencyCode) then begin
-            if StrLen(CurrencyCode) <> MaxCurrencyCodeLength then
-                GLSetup.FieldError("LCY Code", StrSubstNo(WrongLengthErr, MaxCurrencyCodeLength));
-            exit;
-        end;
-
-        if StrLen(Currency.Code) <> MaxCurrencyCodeLength then
-            Currency.FieldError(Code, StrSubstNo(WrongLengthErr, MaxCurrencyCodeLength));
-    end;
-
-    local procedure CheckCountryRegionCode(CountryRegionCode: Code[10])
-    var
-        CompanyInfo: Record "Company Information";
-        CountryRegion: Record "Country/Region";
-        MaxCountryCodeLength: Integer;
-    begin
-        MaxCountryCodeLength := 2;
-
-        if CountryRegionCode = '' then begin
-            CompanyInfo.Get();
-            CompanyInfo.TestField("Country/Region Code");
-            CountryRegionCode := CompanyInfo."Country/Region Code";
-        end;
-
-        CountryRegion.Get(CountryRegionCode);
-        CountryRegion.TestField("ISO Code");
-        if StrLen(CountryRegion."ISO Code") <> MaxCountryCodeLength then
-            CountryRegion.FieldError("ISO Code", StrSubstNo(WrongLengthErr, MaxCountryCodeLength));
-    end;
-
-    local procedure CheckShipToAddress(SalesHeader: Record "Sales Header")
-    begin
-        SalesHeader.TestField("Ship-to Address");
-        SalesHeader.TestField("Ship-to City");
-        SalesHeader.TestField("Ship-to Post Code");
-        SalesHeader.TestField("Ship-to Country/Region Code");
-        CheckCountryRegionCode(SalesHeader."Ship-to Country/Region Code");
-    end;
-
-    local procedure GetFieldValueByName(RecordVariant: Variant; FieldName: Text): Text
-    var
-        RecRef: RecordRef;
-        FieldRef: FieldRef;
-        FieldIndex: Integer;
-    begin
-        RecRef.GetTable(RecordVariant);
-        for FieldIndex := 1 to RecRef.FieldCount() do begin
-            FieldRef := RecRef.FieldIndex(FieldIndex);
-            if FieldRef.Name = FieldName then
-                exit(Format(FieldRef.Value));
-        end;
-        exit('');
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnCheckSalesDocumentOnBeforeCheckCompanyVATRegNo(SalesHeader: Record "Sales Header"; CompanyInfo: Record "Company Information"; var IsHandled: Boolean)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnCheckSalesDocumentOnBeforeCheckCustomerVATRegNo(SalesHeader: Record "Sales Header"; Customer: Record Customer; var IsHandled: Boolean)
-    begin
     end;
 }
