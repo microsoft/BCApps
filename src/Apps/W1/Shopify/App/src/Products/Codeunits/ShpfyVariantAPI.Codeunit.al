@@ -99,11 +99,15 @@ codeunit 30189 "Shpfy Variant API"
         JResponse: JsonToken;
         JVariants: JsonArray;
         ReturnQuery: Text;
+        LocationCount: Integer;
+        InventoryQuantitiesCount: Integer;
     begin
         ReturnQuery := ']) {productVariants {legacyResourceId, createdAt, updatedAt}, userErrors {field, message}}}"}';
 
         if ShopifyVariant.FindSet() then begin
             InventoryQuantities := GetInventoryQuantities();
+            LocationCount := GetLocationCount();
+            InventoryQuantitiesCount := 0;
             GraphQuery.Append('{"query":"mutation { productVariantsBulkCreate(productId: \"gid://shopify/Product/');
             GraphQuery.Append(Format(ProductId));
             GraphQuery.Append('\", strategy: ');
@@ -112,10 +116,12 @@ codeunit 30189 "Shpfy Variant API"
             repeat
                 ShopifyVariant."Product Id" := ProductId;
                 VariantGraphQuery := GetVariantGraphQuery(ShopifyVariant, InventoryQuantities);
-                if GraphQuery.Length() + VariantGraphQuery.Length() + StrLen(ReturnQuery) < CommunicationMgt.GetGraphQueryLengthThreshold() then begin
+                if (GraphQuery.Length() + VariantGraphQuery.Length() + StrLen(ReturnQuery) < CommunicationMgt.GetGraphQueryLengthThreshold()) and
+                   (InventoryQuantitiesCount + LocationCount <= GetInventoryQuantitiesLimit()) then begin
                     GraphQuery.Append(VariantGraphQuery.ToText() + ', ');
                     TempNewShopifyVariant := ShopifyVariant;
                     TempNewShopifyVariant.Insert();
+                    InventoryQuantitiesCount += LocationCount;
                 end else begin
                     GraphQuery.Remove(GraphQuery.Length - 1, 2);
                     GraphQuery.Append(ReturnQuery);
@@ -133,6 +139,7 @@ codeunit 30189 "Shpfy Variant API"
                     GraphQuery.Append(Format(Strategy));
                     GraphQuery.Append(', variants: [');
                     GraphQuery.Append(VariantGraphQuery.ToText() + ', ');
+                    InventoryQuantitiesCount := LocationCount;
                 end;
             until ShopifyVariant.Next() = 0;
             GraphQuery.Remove(GraphQuery.Length - 1, 2);
@@ -300,7 +307,7 @@ codeunit 30189 "Shpfy Variant API"
         ShopLocation.SetRange(Active, true);
         ShopLocation.SetRange("Default Product Location", true);
         if ShopLocation.FindSet(false) then begin
-            GraphQuery.Append(', inventoryQuantities: ['); // TODONAT: There is hard limit of 50000 nodes (inventory quantities) in a single GraphQL query
+            GraphQuery.Append(', inventoryQuantities: [');
             repeat
                 GraphQuery.Append('{availableQuantity: 0, locationId: \"gid://shopify/Location/');
                 GraphQuery.Append(Format(ShopLocation.Id));
@@ -310,6 +317,21 @@ codeunit 30189 "Shpfy Variant API"
             GraphQuery.Append(']');
         end;
         exit(GraphQuery.ToText());
+    end;
+
+    local procedure GetLocationCount(): Integer
+    var
+        ShopLocation: Record "Shpfy Shop Location";
+    begin
+        ShopLocation.SetRange("Shop Code", Shop.Code);
+        ShopLocation.SetRange(Active, true);
+        ShopLocation.SetRange("Default Product Location", true);
+        exit(ShopLocation.Count());
+    end;
+
+    local procedure GetInventoryQuantitiesLimit(): Integer
+    begin
+        exit(50000);
     end;
 
     local procedure CreateNewVariant(JVariant: JsonToken; var ShopifyVariant: Record "Shpfy Variant"; ProductId: BigInteger): Boolean
