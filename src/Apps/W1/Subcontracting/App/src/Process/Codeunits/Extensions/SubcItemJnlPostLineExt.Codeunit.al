@@ -65,25 +65,25 @@ codeunit 99001515 "Subc. ItemJnlPostLine Ext"
         end;
     end;
 
-    local procedure UpdateNewItemLedgerEntry(var NewItemLedgEntry: Record "Item Ledger Entry"; var ItemJournalLine: Record "Item Journal Line")
+    local procedure UpdateNewItemLedgerEntry(var NewItemLedgerEntry: Record "Item Ledger Entry"; var ItemJournalLine: Record "Item Journal Line")
     begin
-        NewItemLedgEntry."Prod. Order No." := ItemJournalLine."Prod. Order No.";
-        NewItemLedgEntry."Prod. Order Line No." := ItemJournalLine."Prod. Order Line No.";
-        NewItemLedgEntry."Subcontr. Purch. Order No." := ItemJournalLine."Subcontr. Purch. Order No.";
-        NewItemLedgEntry."Subcontr. PO Line No." := ItemJournalLine."Subcontr. PO Line No.";
-        NewItemLedgEntry."Operation No." := ItemJournalLine."Subc. Operation No.";
+        NewItemLedgerEntry."Prod. Order No." := ItemJournalLine."Prod. Order No.";
+        NewItemLedgerEntry."Prod. Order Line No." := ItemJournalLine."Prod. Order Line No.";
+        NewItemLedgerEntry."Subcontr. Purch. Order No." := ItemJournalLine."Subcontr. Purch. Order No.";
+        NewItemLedgerEntry."Subcontr. PO Line No." := ItemJournalLine."Subcontr. PO Line No.";
+        NewItemLedgerEntry."Operation No." := ItemJournalLine."Subc. Operation No.";
     end;
 
-    local procedure UpdateCapLedgerEntry(var CapLedgEntry: Record "Capacity Ledger Entry"; var ItemJournalLine: Record "Item Journal Line")
+    local procedure UpdateCapLedgerEntry(var CapacityLedgerEntry: Record "Capacity Ledger Entry"; var ItemJournalLine: Record "Item Journal Line")
     begin
-        CapLedgEntry."Subcontractor No." := ItemJournalLine."Source No.";
-        CapLedgEntry."Subcontr. Purch. Order No." := ItemJournalLine."Subcontr. Purch. Order No.";
-        CapLedgEntry."Subcontr. PO Line No." := ItemJournalLine."Subcontr. PO Line No.";
+        CapacityLedgerEntry."Subcontractor No." := ItemJournalLine."Source No.";
+        CapacityLedgerEntry."Subcontr. Purch. Order No." := ItemJournalLine."Subcontr. Purch. Order No.";
+        CapacityLedgerEntry."Subcontr. PO Line No." := ItemJournalLine."Subcontr. PO Line No.";
     end;
 
-    local procedure ClearInvoicedQuantityForItemChargeSubAssign(var ValueEntry: Record "Value Entry"; var ItemJnlLine: Record "Item Journal Line")
+    local procedure ClearInvoicedQuantityForItemChargeSubAssign(var ValueEntry: Record "Value Entry"; var ItemJournalLine: Record "Item Journal Line")
     begin
-        if ItemJnlLine."Item Charge Sub. Assign." and (ValueEntry."Entry Type" = "Cost Entry Type"::"Direct Cost") then
+        if ItemJournalLine."Item Charge Sub. Assign." and (ValueEntry."Entry Type" = "Cost Entry Type"::"Direct Cost") then
             ValueEntry."Invoiced Quantity" := 0;
     end;
 }

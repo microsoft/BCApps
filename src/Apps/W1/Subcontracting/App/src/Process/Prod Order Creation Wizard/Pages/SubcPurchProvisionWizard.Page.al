@@ -423,28 +423,28 @@ page 99001505 "Subc. PurchProvisionWizard"
     /// <summary>
     /// Sets the display and editing behavior for BOM and Routing selection steps.
     /// </summary>
-    /// <param name="ShowEditType">The show/edit type to control BOM and Routing step behavior.</param>
-    procedure SetBOMRoutingShowEditType(ShowEditType: Enum "Subc. Show/Edit Type")
+    /// <param name="SubcShowEditType">The show/edit type to control BOM and Routing step behavior.</param>
+    procedure SetBOMRoutingShowEditType(SubcShowEditType: Enum "Subc. Show/Edit Type")
     begin
-        BOMRoutingShowEditType := ShowEditType;
+        BOMRoutingShowEditType := SubcShowEditType;
     end;
 
     /// <summary>
     /// Sets the display and editing behavior for Production Order Components and Routing preview steps.
     /// </summary>
-    /// <param name="ShowEditType">The show/edit type to control component and routing preview behavior.</param>
-    procedure SetProdCompRoutingShowEditType(ShowEditType: Enum "Subc. Show/Edit Type")
+    /// <param name="SubcShowEditType">The show/edit type to control component and routing preview behavior.</param>
+    procedure SetProdCompRoutingShowEditType(SubcShowEditType: Enum "Subc. Show/Edit Type")
     begin
-        ProdCompRoutingShowEditType := ShowEditType;
+        ProdCompRoutingShowEditType := SubcShowEditType;
     end;
 
     /// <summary>
     /// Sets the temporary data initializer codeunit for managing temporary production order data.
     /// </summary>
-    /// <param name="NewTempDataInitializer">The temporary data initializer codeunit to use.</param>
-    procedure SetTempDataInitializer(var NewTempDataInitializer: Codeunit "Subc. Temp Data Initializer")
+    /// <param name="NewSubcTempDataInitializer">The temporary data initializer codeunit to use.</param>
+    procedure SetTempDataInitializer(var NewSubcTempDataInitializer: Codeunit "Subc. Temp Data Initializer")
     begin
-        SubcTempDataInitializer := NewTempDataInitializer;
+        SubcTempDataInitializer := NewSubcTempDataInitializer;
     end;
 
     /// <summary>

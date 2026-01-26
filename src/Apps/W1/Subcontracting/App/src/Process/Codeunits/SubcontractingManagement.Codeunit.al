@@ -33,7 +33,7 @@ codeunit 99001505 "Subcontracting Management"
 {
     var
         SubcManagementSetup: Record "Subc. Management Setup";
-        TempReservationEntry: Record "Reservation Entry" temporary;
+        TempGlobalReservationEntry: Record "Reservation Entry" temporary;
         PageManagement: Codeunit "Page Management";
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
         HasSubManagementSetup: Boolean;
@@ -135,7 +135,7 @@ codeunit 99001505 "Subcontracting Management"
         RoutingLine.Insert();
     end;
 
-    procedure CreateSubcontractingPurchaseOrderFromRoutingLine(ProdOrderRtngLine: Record "Prod. Order Routing Line") NoOfCreatedPurchOrder: Integer
+    procedure CreateSubcontractingPurchaseOrderFromRoutingLine(ProdOrderRoutingLine: Record "Prod. Order Routing Line") NoOfCreatedPurchOrder: Integer
     var
         ProdOrderLine: Record "Prod. Order Line";
         BaseQtyToPurch: Decimal;
@@ -145,15 +145,15 @@ codeunit 99001505 "Subcontracting Management"
         SubcManagementSetup.TestField("Subcontracting Template Name");
         SubcManagementSetup.TestField("Subcontracting Batch Name");
 
-        CheckProdOrderRtngLine(ProdOrderRtngLine, ProdOrderLine);
+        CheckProdOrderRtngLine(ProdOrderRoutingLine, ProdOrderLine);
 
         ProdOrderLine.SetLoadFields("Quantity (Base)", "Scrap %", "Qty. per Unit of Measure", "Item No.", "Variant Code", "Unit of Measure Code", "Total Exp. Oper. Output (Qty.)", "Location Code", "Bin Code");
         ProdOrderLine.FindSet();
         repeat
-            BaseQtyToPurch := GetBaseQtyToPurchase(ProdOrderRtngLine, ProdOrderLine);
+            BaseQtyToPurch := GetBaseQtyToPurchase(ProdOrderRoutingLine, ProdOrderLine);
             QtyToPurch := Round(BaseQtyToPurch / ProdOrderLine."Qty. per Unit of Measure", UnitofMeasureManagement.QtyRndPrecision());
             if QtyToPurch > 0 then
-                CreateSubcontractingPurchase(ProdOrderRtngLine,
+                CreateSubcontractingPurchase(ProdOrderRoutingLine,
                   ProdOrderLine,
                   QtyToPurch,
                   NoOfCreatedPurchOrder);
@@ -162,7 +162,7 @@ codeunit 99001505 "Subcontracting Management"
         exit(NoOfCreatedPurchOrder);
     end;
 
-    procedure DelLocationLinkedComponents(ProdOrdRoutingLine: Record "Prod. Order Routing Line"; ShowMsg: Boolean)
+    procedure DelLocationLinkedComponents(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ShowMsg: Boolean)
     var
         ProdOrderComponent: Record "Prod. Order Component";
         ProdOrderLine: Record "Prod. Order Line";
@@ -174,18 +174,18 @@ codeunit 99001505 "Subcontracting Management"
         UpdateIsCancelledErr: Label 'Update cancelled.';
     begin
 
-        ProdOrderComponent.SetRange(Status, ProdOrdRoutingLine.Status);
-        ProdOrderComponent.SetRange("Prod. Order No.", ProdOrdRoutingLine."Prod. Order No.");
-        ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrdRoutingLine."Routing Reference No.");
-        ProdOrderComponent.SetRange("Routing Link Code", ProdOrdRoutingLine."Routing Link Code");
+        ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
         if not ProdOrderComponent.IsEmpty() then begin
             ProdOrderComponent.FindSet();
             if ShowMsg then
-                if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(RoutingLinkUpdConfQst, ProdOrdRoutingLine."Routing Link Code"), true) then
+                if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(RoutingLinkUpdConfQst, ProdOrderRoutingLine."Routing Link Code"), true) then
                     Error(UpdateIsCancelledErr);
 
             ProdOrderLine.SetLoadFields("Item No.", "Variant Code", "Location Code");
-            ProdOrderLine.Get(ProdOrdRoutingLine.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.");
+            ProdOrderLine.Get(ProdOrderRoutingLine.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.");
             PlanningGetParameters.AtSKU(
               StockkeepingUnit,
               ProdOrderLine."Item No.",
@@ -229,13 +229,13 @@ codeunit 99001505 "Subcontracting Management"
         exit(false);
     end;
 
-    procedure HandleCommonWorkCenter(ItemJnlLine: Record "Item Journal Line"): Boolean
+    procedure HandleCommonWorkCenter(ItemJournalLine: Record "Item Journal Line"): Boolean
     var
     begin
-        if ItemJnlLine."Work Center No." = '' then
+        if ItemJournalLine."Work Center No." = '' then
             exit(false);
         GetSubmanagementSetup();
-        if SubcManagementSetup."Common Work Center No." = ItemJnlLine."Work Center No." then
+        if SubcManagementSetup."Common Work Center No." = ItemJournalLine."Work Center No." then
             exit(true);
 
         exit(false);
@@ -337,23 +337,22 @@ codeunit 99001505 "Subcontracting Management"
     procedure TransferReservationEntryFromProdOrderCompToTransferOrder(TransferLine: Record "Transfer Line"; ProdOrderComponent: Record "Prod. Order Component")
     var
         ReservationEntry: Record "Reservation Entry";
-        TempReservEntry: Record "Reservation Entry" temporary;
+        TempReservationEntry: Record "Reservation Entry" temporary;
         ProdOrderCompReserve: Codeunit "Prod. Order Comp.-Reserve";
     begin
-        TempReservEntry.Reset();
-        TempReservEntry.DeleteAll();
+        TempGlobalReservationEntry.Reset();
+        TempGlobalReservationEntry.DeleteAll();
 
         if not ProdOrderCompReserve.FindReservEntry(ProdOrderComponent, ReservationEntry) then
             exit;
 
-
         if ReservationEntry.FindSet() then
             repeat
-                TempReservEntry := ReservationEntry;
-                TempReservEntry.Insert();
+                TempGlobalReservationEntry := ReservationEntry;
+                TempGlobalReservationEntry.Insert();
             until ReservationEntry.Next() = 0;
 
-        TempReservEntry.Copy(TempReservEntry, true);
+        TempReservationEntry.Copy(TempGlobalReservationEntry, true);
 
         ReservationEntry.TransferReservations(
          ReservationEntry,
@@ -379,14 +378,14 @@ codeunit 99001505 "Subcontracting Management"
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         CreateReservEntry: Codeunit "Create Reserv. Entry";
     begin
-        TempReservationEntry.SetRange("Reservation Status", TempReservationEntry."Reservation Status"::Reservation);
-        if not TempReservationEntry.FindSet() then
+        TempGlobalReservationEntry.SetRange("Reservation Status", TempGlobalReservationEntry."Reservation Status"::Reservation);
+        if not TempGlobalReservationEntry.FindSet() then
             exit;
 
         repeat
-            if TempReservationEntry.GetItemTrackingEntryType() <> "Item Tracking Entry Type"::None then
-                if Item.Get(TempReservationEntry."Item No.") then begin
-                    TempReservationEntry."Location Code" := ProdOrderComponent."Location Code";
+            if TempGlobalReservationEntry.GetItemTrackingEntryType() <> "Item Tracking Entry Type"::None then
+                if Item.Get(TempGlobalReservationEntry."Item No.") then begin
+                    TempGlobalReservationEntry."Location Code" := ProdOrderComponent."Location Code";
                     CreateReservEntry.CreateReservEntryFor(
                         Database::"Transfer Line",
                         1,  // Direction::Inbound
@@ -395,9 +394,9 @@ codeunit 99001505 "Subcontracting Management"
                         TransferLine."Derived From Line No.",
                         TransferLine."Line No.",
                         TransferLine."Qty. per Unit of Measure",
-                        Abs(TempReservationEntry.Quantity),
-                        Abs(TempReservationEntry."Quantity (Base)"),
-                        TempReservationEntry);
+                        Abs(TempGlobalReservationEntry.Quantity),
+                        Abs(TempGlobalReservationEntry."Quantity (Base)"),
+                        TempGlobalReservationEntry);
 
                     TempTrackingSpecification.Init();
                     TempTrackingSpecification.SetSource(
@@ -408,21 +407,21 @@ codeunit 99001505 "Subcontracting Management"
                         '',
                         ProdOrderComponent."Prod. Order Line No.");
                     TempTrackingSpecification."Qty. per Unit of Measure" := ProdOrderComponent."Qty. per Unit of Measure";
-                    TempTrackingSpecification.CopyTrackingFromReservEntry(TempReservationEntry);
+                    TempTrackingSpecification.CopyTrackingFromReservEntry(TempGlobalReservationEntry);
 
                     CreateReservEntry.CreateReservEntryFrom(TempTrackingSpecification);
 
                     CreateReservEntry.CreateEntry(
-                        TempReservationEntry."Item No.",
-                        TempReservationEntry."Variant Code",
+                        TempGlobalReservationEntry."Item No.",
+                        TempGlobalReservationEntry."Variant Code",
                         TransferLine."Transfer-to Code",
-                        TempReservationEntry.Description,
+                        TempGlobalReservationEntry.Description,
                         TransferLine."Receipt Date",
                         ProdOrderComponent."Due Date",
                         0,
-                        TempReservationEntry."Reservation Status");
+                        TempGlobalReservationEntry."Reservation Status");
                 end;
-        until TempReservationEntry.Next() = 0;
+        until TempGlobalReservationEntry.Next() = 0;
     end;
 
     procedure TransferReservationEntryFromPstTransferLineToProdOrderComp(var TransferReceiptLine: Record "Transfer Receipt Line")
@@ -479,12 +478,12 @@ codeunit 99001505 "Subcontracting Management"
         end;
     end;
 
-    procedure TransferSubcontractingProdOrderComp(var PurchOrderLine: Record "Purchase Line"; var RequisitionLine: Record "Requisition Line"; var NextLineNo: Integer)
+    procedure TransferSubcontractingProdOrderComp(var PurchaseLine: Record "Purchase Line"; var RequisitionLine: Record "Requisition Line"; var NextLineNo: Integer)
     var
         ProdOrderComponent: Record "Prod. Order Component";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PurchaseHeader: Record "Purchase Header";
-        PurchasingCode: Record Purchasing;
+        Purchasing: Record Purchasing;
         WorkCenter: Record "Work Center";
         DimensionManagement: Codeunit DimensionManagement;
         SubContractorWorkCenterNo: Code[20];
@@ -498,7 +497,7 @@ codeunit 99001505 "Subcontracting Management"
                 SubContractorWorkCenterNo := WorkCenter."No.";
                 OnBeforeHandleProdOrderRtngWorkCenterWithSubcontractor(SubContractorWorkCenterNo);
                 if SubContractorWorkCenterNo <> '' then begin
-                    PurchaseHeader.Get(PurchOrderLine."Document Type", PurchOrderLine."Document No.");
+                    PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
                     ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
                     ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
                     ProdOrderComponent.SetRange("Prod. Order Line No.", RequisitionLine."Prod. Order Line No.");
@@ -506,36 +505,36 @@ codeunit 99001505 "Subcontracting Management"
                     ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
                     if ProdOrderComponent.FindSet() then
                         repeat
-                            InitPurchOrderLine(PurchOrderLine, PurchaseHeader, RequisitionLine, ProdOrderComponent, NextLineNo);
+                            InitPurchOrderLine(PurchaseLine, PurchaseHeader, RequisitionLine, ProdOrderComponent, NextLineNo);
 
-                            PurchOrderLine."Drop Shipment" := RequisitionLine."Sales Order Line No." <> 0;
+                            PurchaseLine."Drop Shipment" := RequisitionLine."Sales Order Line No." <> 0;
 
-                            if PurchasingCode.Get(RequisitionLine."Purchasing Code") then
-                                if PurchOrderLine."Special Order" then begin
-                                    PurchOrderLine."Special Order Sales No." := RequisitionLine."Sales Order No.";
-                                    PurchOrderLine."Special Order Sales Line No." := RequisitionLine."Sales Order Line No.";
-                                    PurchOrderLine."Special Order" := true;
-                                    PurchOrderLine."Drop Shipment" := false;
-                                    PurchOrderLine."Sales Order No." := '';
-                                    PurchOrderLine."Sales Order Line No." := 0;
-                                    PurchOrderLine.UpdateUnitCost();
+                            if Purchasing.Get(RequisitionLine."Purchasing Code") then
+                                if PurchaseLine."Special Order" then begin
+                                    PurchaseLine."Special Order Sales No." := RequisitionLine."Sales Order No.";
+                                    PurchaseLine."Special Order Sales Line No." := RequisitionLine."Sales Order Line No.";
+                                    PurchaseLine."Special Order" := true;
+                                    PurchaseLine."Drop Shipment" := false;
+                                    PurchaseLine."Sales Order No." := '';
+                                    PurchaseLine."Sales Order Line No." := 0;
+                                    PurchaseLine.UpdateUnitCost();
                                 end;
 
                             DimensionSetIDArr[1] := ProdOrderComponent."Dimension Set ID";
-                            DimensionSetIDArr[2] := PurchOrderLine."Dimension Set ID";
-                            PurchOrderLine."Dimension Set ID" :=
+                            DimensionSetIDArr[2] := PurchaseLine."Dimension Set ID";
+                            PurchaseLine."Dimension Set ID" :=
                                 DimensionManagement.GetCombinedDimensionSetID(
-                                    DimensionSetIDArr, PurchOrderLine."Shortcut Dimension 1 Code", PurchOrderLine."Shortcut Dimension 2 Code");
-                            PurchOrderLine."Order Date" := WorkDate();
+                                    DimensionSetIDArr, PurchaseLine."Shortcut Dimension 1 Code", PurchaseLine."Shortcut Dimension 2 Code");
+                            PurchaseLine."Order Date" := WorkDate();
 
-                            PurchOrderLine."Subc. Prod. Order No." := ProdOrderRoutingLine."Prod. Order No.";
-                            PurchOrderLine."Subc. Prod. Order Line No." := ProdOrderRoutingLine."Routing Reference No.";
-                            PurchOrderLine."Subc. Routing No." := ProdOrderRoutingLine."Routing No.";
-                            PurchOrderLine."Subc. Rtng Reference No." := ProdOrderRoutingLine."Routing Reference No.";
-                            PurchOrderLine."Subc. Operation No." := ProdOrderRoutingLine."Operation No.";
-                            PurchOrderLine."Subc. Work Center No." := ProdOrderRoutingLine."Work Center No.";
+                            PurchaseLine."Subc. Prod. Order No." := ProdOrderRoutingLine."Prod. Order No.";
+                            PurchaseLine."Subc. Prod. Order Line No." := ProdOrderRoutingLine."Routing Reference No.";
+                            PurchaseLine."Subc. Routing No." := ProdOrderRoutingLine."Routing No.";
+                            PurchaseLine."Subc. Rtng Reference No." := ProdOrderRoutingLine."Routing Reference No.";
+                            PurchaseLine."Subc. Operation No." := ProdOrderRoutingLine."Operation No.";
+                            PurchaseLine."Subc. Work Center No." := ProdOrderRoutingLine."Work Center No.";
 
-                            PurchOrderLine.Insert();
+                            PurchaseLine.Insert();
                         until ProdOrderComponent.Next() = 0;
                 end;
             end
@@ -590,7 +589,7 @@ codeunit 99001505 "Subcontracting Management"
         end;
     end;
 
-    procedure UpdateSubcontractingTypeForProdOrderComponent(var ProdOrderComp: Record "Prod. Order Component")
+    procedure UpdateSubcontractingTypeForProdOrderComponent(var ProdOrderComponent: Record "Prod. Order Component")
     var
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
@@ -603,17 +602,17 @@ codeunit 99001505 "Subcontracting Management"
         PurchOrderNo: Code[20];
         PurchOrderExistErr: Label 'The currently selected component %1 is already used in Purchase Order %2. Therefore, it is not permitted to change the %3 field.', Comment = '%1=Item No, %2=Purchase Order No, %3=Field Caption';
     begin
-        if ProdOrderComp."Routing Link Code" = '' then
+        if ProdOrderComponent."Routing Link Code" = '' then
             exit;
 
         ProdOrderLine.SetLoadFields("Routing Reference No.", "Routing No.");
-        ProdOrderLine.Get(ProdOrderComp.Status, ProdOrderComp."Prod. Order No.", ProdOrderComp."Prod. Order Line No.");
+        ProdOrderLine.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.");
 
-        ProdOrderRoutingLine.SetRange(Status, ProdOrderComp.Status);
-        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderComp."Prod. Order No.");
+        ProdOrderRoutingLine.SetRange(Status, ProdOrderComponent.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
         ProdOrderRoutingLine.SetRange("Routing No.", ProdOrderLine."Routing No.");
         ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLine."Routing Reference No.");
-        ProdOrderRoutingLine.SetRange("Routing Link Code", ProdOrderComp."Routing Link Code");
+        ProdOrderRoutingLine.SetRange("Routing Link Code", ProdOrderComponent."Routing Link Code");
         ProdOrderRoutingLine.SetLoadFields("Prod. Order No.", Type, "No.");
         if ProdOrderRoutingLine.FindFirst() then begin
             PurchaseLine.SetRange("Document Type", "Purchase Document Type"::Order);
@@ -626,31 +625,31 @@ codeunit 99001505 "Subcontracting Management"
                         PurchaseLine2.SetRange("Document Type", PurchaseLine."Document Type");
                         PurchaseLine2.SetRange("Document No.", PurchaseLine."Document No.");
                         PurchaseLine2.SetRange(Type, "Purchase Line Type"::Item);
-                        PurchaseLine2.SetRange("No.", ProdOrderComp."Item No.");
+                        PurchaseLine2.SetRange("No.", ProdOrderComponent."Item No.");
                         ProdOrderCompFound := not PurchaseLine2.IsEmpty();
                     end;
                 until (PurchaseLine.Next() = 0) or ProdOrderCompFound;
             if ProdOrderCompFound then
-                Error(PurchOrderExistErr, ProdOrderComp."Item No.", PurchOrderNo, ProdOrderComp.FieldCaption(ProdOrderComp."Subcontracting Type"));
+                Error(PurchOrderExistErr, ProdOrderComponent."Item No.", PurchOrderNo, ProdOrderComponent.FieldCaption(ProdOrderComponent."Subcontracting Type"));
 
             if ProdOrderRoutingLine.Type = "Capacity Type"::"Work Center" then begin
                 if not GetSubcontractor(ProdOrderRoutingLine."No.", Vendor) then
                     Clear(Vendor);
 
                 VendorSubcontractingLocationCode := Vendor."Subcontr. Location Code";
-                if ProdOrderComp."Subcontracting Type" in ["Subcontracting Type"::InventoryByVendor, "Subcontracting Type"::Purchase] = false then
+                if ProdOrderComponent."Subcontracting Type" in ["Subcontracting Type"::InventoryByVendor, "Subcontracting Type"::Purchase] = false then
                     Clear(VendorSubcontractingLocationCode);
-                OrigLocationCode := ProdOrderComp."Orig. Location Code";
-                OrigBinCode := ProdOrderComp."Orig. Bin Code";
+                OrigLocationCode := ProdOrderComponent."Orig. Location Code";
+                OrigBinCode := ProdOrderComponent."Orig. Bin Code";
 
-                ChangeLocation_OnProdOrderComponent(ProdOrderComp, VendorSubcontractingLocationCode, OrigLocationCode, OrigBinCode);
+                ChangeLocation_OnProdOrderComponent(ProdOrderComponent, VendorSubcontractingLocationCode, OrigLocationCode, OrigBinCode);
 
-                ProdOrderComp.Modify();
+                ProdOrderComponent.Modify();
             end;
         end;
     end;
 
-    procedure UpdLinkedComponents(ProdOrdRoutingLine: Record "Prod. Order Routing Line"; ShowMsg: Boolean)
+    procedure UpdLinkedComponents(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ShowMsg: Boolean)
     var
         ProdOrderComponent: Record "Prod. Order Component";
         Vendor: Record Vendor;
@@ -662,18 +661,18 @@ codeunit 99001505 "Subcontracting Management"
         SuccessfullyUpdatedMsg: Label 'Successfully updated.';
         UpdateIsCancelledErr: Label 'The update is canceled.';
     begin
-        ProdOrderComponent.SetRange(Status, ProdOrdRoutingLine.Status);
-        ProdOrderComponent.SetRange("Prod. Order No.", ProdOrdRoutingLine."Prod. Order No.");
-        ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrdRoutingLine."Routing Reference No.");
-        ProdOrderComponent.SetRange("Routing Link Code", ProdOrdRoutingLine."Routing Link Code");
+        ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
         if ProdOrderComponent.FindSet() then begin
-            if ProdOrdRoutingLine.Type = "Capacity Type"::"Work Center" then
-                Subcontracting := GetSubcontractor(ProdOrdRoutingLine."No.", Vendor);
+            if ProdOrderRoutingLine.Type = "Capacity Type"::"Work Center" then
+                Subcontracting := GetSubcontractor(ProdOrderRoutingLine."No.", Vendor);
 
             if Subcontracting then begin
                 VendorSubcontractingLocationCode := Vendor."Subcontr. Location Code";
                 if ShowMsg then
-                    if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(RoutingLinkUpdConfQst, ProdOrdRoutingLine."Routing Link Code"), true) then
+                    if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(RoutingLinkUpdConfQst, ProdOrderRoutingLine."Routing Link Code"), true) then
                         Error(UpdateIsCancelledErr);
                 repeat
                     if ProdOrderComponent."Subcontracting Type" in ["Subcontracting Type"::InventoryByVendor, "Subcontracting Type"::Purchase] = false then
@@ -741,7 +740,7 @@ codeunit 99001505 "Subcontracting Management"
         Clear(OperationNo);
     end;
 
-    local procedure CheckProdOrderRtngLine(ProdOrderRtngLine: Record "Prod. Order Routing Line"; var ProdOrderLine: Record "Prod. Order Line")
+    local procedure CheckProdOrderRtngLine(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ProdOrderLine: Record "Prod. Order Line")
     var
         GenProductPostingGroup: Record "Gen. Product Posting Group";
         PurchaseHeader: Record "Purchase Header";
@@ -752,20 +751,20 @@ codeunit 99001505 "Subcontracting Management"
         NoProdOrderLineWithRemQtyErr: Label 'No Prod. Order Line with Remaining Quantity.';
         PurchOrderCreatedTxt: Label 'Already Purchase Order(s) created.\\Do you want to view them?';
     begin
-        if ProdOrderRtngLine.Status <> "Production Order Status"::Released then
-            Error(CreationOfSubcontractingOrderIsNotAllowedErr, ProdOrderRtngLine."Prod. Order No.");
+        if ProdOrderRoutingLine.Status <> "Production Order Status"::Released then
+            Error(CreationOfSubcontractingOrderIsNotAllowedErr, ProdOrderRoutingLine."Prod. Order No.");
 
         ProdOrderLine.SetCurrentKey(Status, "Prod. Order No.", "Routing No.", "Routing Reference No.");
-        ProdOrderLine.SetRange(Status, ProdOrderRtngLine.Status);
-        ProdOrderLine.SetRange("Prod. Order No.", ProdOrderRtngLine."Prod. Order No.");
-        ProdOrderLine.SetRange("Routing No.", ProdOrderRtngLine."Routing No.");
-        ProdOrderLine.SetRange("Routing Reference No.", ProdOrderRtngLine."Routing Reference No.");
+        ProdOrderLine.SetRange(Status, ProdOrderRoutingLine.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        ProdOrderLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
+        ProdOrderLine.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
         ProdOrderLine.SetFilter("Remaining Quantity", '<>%1', 0);
         if ProdOrderLine.IsEmpty() then
             Error(NoProdOrderLineWithRemQtyErr);
 
         WorkCenter.SetLoadFields("Gen. Prod. Posting Group", "Subcontractor No.");
-        WorkCenter.Get(ProdOrderRtngLine."Work Center No.");
+        WorkCenter.Get(ProdOrderRoutingLine."Work Center No.");
         WorkCenter.TestField("Subcontractor No.");
         WorkCenter.TestField("Gen. Prod. Posting Group");
 
@@ -778,8 +777,8 @@ codeunit 99001505 "Subcontracting Management"
         PurchaseLine.SetRange("Document Type", "Purchase Document Type"::Order);
         PurchaseLine.SetRange(Type, "Purchase Line Type"::Item);
         PurchaseLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
-        PurchaseLine.SetRange("Routing No.", ProdOrderRtngLine."Routing No.");
-        PurchaseLine.SetRange("Operation No.", ProdOrderRtngLine."Operation No.");
+        PurchaseLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
+        PurchaseLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
         if not PurchaseLine.IsEmpty() then
             if ConfirmManagement.GetResponseOrDefault(PurchOrderCreatedTxt, false) then
                 if PurchaseLine.Count() > 1 then
@@ -791,7 +790,7 @@ codeunit 99001505 "Subcontracting Management"
                 end;
     end;
 
-    local procedure CreateSubcontractingPurchase(ProdOrderRtngLine: Record "Prod. Order Routing Line"; ProdOrderLine: Record "Prod. Order Line"; QtyToPurch: Decimal; var NoOfCreatedPurchOrder: Integer)
+    local procedure CreateSubcontractingPurchase(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ProdOrderLine: Record "Prod. Order Line"; QtyToPurch: Decimal; var NoOfCreatedPurchOrder: Integer)
     var
         RequisitionLine: Record "Requisition Line";
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
@@ -800,11 +799,11 @@ codeunit 99001505 "Subcontracting Management"
 
         RequisitionLine.SetRange("Worksheet Template Name", SubcManagementSetup."Subcontracting Template Name");
         RequisitionLine.SetRange("Journal Batch Name", SubcManagementSetup."Subcontracting Batch Name");
-        FilterReqLineWithProdOrderAndRtngLine(RequisitionLine, ProdOrderLine, ProdOrderRtngLine);
+        FilterReqLineWithProdOrderAndRtngLine(RequisitionLine, ProdOrderLine, ProdOrderRoutingLine);
         if RequisitionLine.FindFirst() then
             RequisitionLine.Delete();
 
-        InsertReqWkshLine(ProdOrderRtngLine, ProdOrderLine, SubcManagementSetup."Subcontracting Template Name", SubcManagementSetup."Subcontracting Batch Name", QtyToPurch);
+        InsertReqWkshLine(ProdOrderRoutingLine, ProdOrderLine, SubcManagementSetup."Subcontracting Template Name", SubcManagementSetup."Subcontracting Batch Name", QtyToPurch);
 
         if RequisitionLine.FindFirst() then begin
             CarryOutActionMsgReq.UseRequestPage(false);
@@ -816,18 +815,18 @@ codeunit 99001505 "Subcontracting Management"
         end;
     end;
 
-    local procedure FilterReqLineWithProdOrderAndRtngLine(var ReqLine: Record "Requisition Line"; ProdOrderLine: Record "Prod. Order Line"; ProdOrderRtngLine: Record "Prod. Order Routing Line")
+    local procedure FilterReqLineWithProdOrderAndRtngLine(var RequisitionLine: Record "Requisition Line"; ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     begin
-        ReqLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
-        ReqLine.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
+        RequisitionLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
+        RequisitionLine.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
 
-        ReqLine.SetRange("Routing No.", ProdOrderRtngLine."Routing No.");
-        ReqLine.SetRange("Operation No.", ProdOrderRtngLine."Operation No.");
-        ReqLine.SetRange("Work Center No.", ProdOrderRtngLine."Work Center No.");
-        ReqLine.SetRange("Routing Reference No.", ProdOrderRtngLine."Routing Reference No.");
+        RequisitionLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
+        RequisitionLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        RequisitionLine.SetRange("Work Center No.", ProdOrderRoutingLine."Work Center No.");
+        RequisitionLine.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
     end;
 
-    local procedure GetBaseQtyToPurchase(ProdOrderRtngLine: Record "Prod. Order Routing Line"; ProdOrderLine: Record "Prod. Order Line") BaseQuantityToPurch: Decimal
+    local procedure GetBaseQtyToPurchase(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ProdOrderLine: Record "Prod. Order Line") BaseQuantityToPurch: Decimal
     var
         MfgCostCalculationMgt: Codeunit "Mfg. Cost Calculation Mgt.";
         ActOutputQtyBase: Decimal;
@@ -837,11 +836,11 @@ codeunit 99001505 "Subcontracting Management"
     begin
         QtyAdjForBomScrap := MfgCostCalculationMgt.CalcQtyAdjdForBOMScrap(ProdOrderLine."Quantity (Base)", ProdOrderLine."Scrap %");
 
-        QtyAdjdForRoutingScrap := MfgCostCalculationMgt.CalcQtyAdjdForRoutingScrap(QtyAdjForBomScrap, ProdOrderRtngLine."Scrap Factor % (Accumulated)", ProdOrderRtngLine."Fixed Scrap Qty. (Accum.)");
+        QtyAdjdForRoutingScrap := MfgCostCalculationMgt.CalcQtyAdjdForRoutingScrap(QtyAdjForBomScrap, ProdOrderRoutingLine."Scrap Factor % (Accumulated)", ProdOrderRoutingLine."Fixed Scrap Qty. (Accum.)");
 
-        OutputQtyBaseOnPurchOrder := MfgCostCalculationMgt.CalcOutputQtyBaseOnPurchOrder(ProdOrderLine, ProdOrderRtngLine);
+        OutputQtyBaseOnPurchOrder := MfgCostCalculationMgt.CalcOutputQtyBaseOnPurchOrder(ProdOrderLine, ProdOrderRoutingLine);
 
-        ActOutputQtyBase := MfgCostCalculationMgt.CalcActOutputQtyBase(ProdOrderLine, ProdOrderRtngLine);
+        ActOutputQtyBase := MfgCostCalculationMgt.CalcActOutputQtyBase(ProdOrderLine, ProdOrderRoutingLine);
 
         BaseQuantityToPurch := QtyAdjdForRoutingScrap - (OutputQtyBaseOnPurchOrder + ActOutputQtyBase);
 
@@ -856,45 +855,45 @@ codeunit 99001505 "Subcontracting Management"
             HasSubManagementSetup := true;
     end;
 
-    local procedure GetLineNoBeforeInsertedLineNo(PurchLine: Record "Purchase Line") BeforeLineNo: Integer
+    local procedure GetLineNoBeforeInsertedLineNo(PurchaseLine: Record "Purchase Line") BeforeLineNo: Integer
     var
         ToPurchaseLine: Record "Purchase Line";
         LineSpacing: Integer;
         NotEnoughSpaceErr: Label 'There is not enough space to insert the subcontracting info line.';
     begin
         ToPurchaseLine.Reset();
-        ToPurchaseLine.SetRange("Document Type", PurchLine."Document Type");
-        ToPurchaseLine.SetRange("Document No.", PurchLine."Document No.");
-        ToPurchaseLine := PurchLine;
+        ToPurchaseLine.SetRange("Document Type", PurchaseLine."Document Type");
+        ToPurchaseLine.SetRange("Document No.", PurchaseLine."Document No.");
+        ToPurchaseLine := PurchaseLine;
 #pragma warning disable AA0181
         if ToPurchaseLine.Find('<') then begin
 #pragma warning restore AA0181
             LineSpacing :=
-              (PurchLine."Line No." - ToPurchaseLine."Line No.") div 2;
+              (PurchaseLine."Line No." - ToPurchaseLine."Line No.") div 2;
             if LineSpacing = 0 then
                 Error(NotEnoughSpaceErr);
         end else
             LineSpacing := 5000;
 
-        BeforeLineNo := PurchLine."Line No." - LineSpacing;
+        BeforeLineNo := PurchaseLine."Line No." - LineSpacing;
     end;
 
-    local procedure GetNextReqLineNo(ReqLine: Record "Requisition Line"): Integer
+    local procedure GetNextReqLineNo(RequisitionLine: Record "Requisition Line"): Integer
     var
-        RequisitionLine: Record "Requisition Line";
+        RequisitionLine2: Record "Requisition Line";
         NextLineNo: Integer;
     begin
-        RequisitionLine.SetRange(RequisitionLine."Worksheet Template Name", ReqLine."Worksheet Template Name");
-        RequisitionLine.SetRange(RequisitionLine."Journal Batch Name", ReqLine."Journal Batch Name");
-        RequisitionLine.SetLoadFields("Line No.");
-        if RequisitionLine.FindLast() then
-            NextLineNo := RequisitionLine."Line No." + 10000
+        RequisitionLine2.SetRange(RequisitionLine2."Worksheet Template Name", RequisitionLine."Worksheet Template Name");
+        RequisitionLine2.SetRange(RequisitionLine2."Journal Batch Name", RequisitionLine."Journal Batch Name");
+        RequisitionLine2.SetLoadFields("Line No.");
+        if RequisitionLine2.FindLast() then
+            NextLineNo := RequisitionLine2."Line No." + 10000
         else
             NextLineNo += 10000;
         exit(NextLineNo);
     end;
 
-    local procedure InitPurchOrderLine(var PurchOrderLine: Record "Purchase Line"; PurchOrderHeader: Record "Purchase Header"; RequisitionLine: Record "Requisition Line"; ProdOrderComponent: Record "Prod. Order Component"; var NextLineNo: Integer)
+    local procedure InitPurchOrderLine(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; RequisitionLine: Record "Requisition Line"; ProdOrderComponent: Record "Prod. Order Component"; var NextLineNo: Integer)
     var
         Item: Record Item;
     begin
@@ -903,52 +902,52 @@ codeunit 99001505 "Subcontracting Management"
         Item.SetLoadFields("Item Category Code", "Description 2");
         Item.Get(ProdOrderComponent."Item No.");
 
-        PurchOrderLine.Init();
-        PurchOrderLine.BlockDynamicTracking(true);
-        PurchOrderLine."Document Type" := "Purchase Document Type"::Order;
-        PurchOrderLine."Buy-from Vendor No." := RequisitionLine."Vendor No.";
-        PurchOrderLine."Document No." := PurchOrderHeader."No.";
+        PurchaseLine.Init();
+        PurchaseLine.BlockDynamicTracking(true);
+        PurchaseLine."Document Type" := "Purchase Document Type"::Order;
+        PurchaseLine."Buy-from Vendor No." := RequisitionLine."Vendor No.";
+        PurchaseLine."Document No." := PurchaseHeader."No.";
         NextLineNo := NextLineNo + 10000;
-        PurchOrderLine."Line No." := NextLineNo;
+        PurchaseLine."Line No." := NextLineNo;
 
-        PurchOrderLine.Validate(Type, "Purchase Line Type"::Item);
+        PurchaseLine.Validate(Type, "Purchase Line Type"::Item);
 
-        PurchOrderLine.Validate("No.", ProdOrderComponent."Item No.");
+        PurchaseLine.Validate("No.", ProdOrderComponent."Item No.");
 
-        PurchOrderLine.Validate("Variant Code", ProdOrderComponent."Variant Code");
+        PurchaseLine.Validate("Variant Code", ProdOrderComponent."Variant Code");
 
-        PurchOrderLine.Validate("Location Code", ProdOrderComponent."Location Code");
+        PurchaseLine.Validate("Location Code", ProdOrderComponent."Location Code");
         if ProdOrderComponent."Bin Code" <> '' then
-            PurchOrderLine.Validate("Bin Code", ProdOrderComponent."Bin Code");
-        PurchOrderLine.Validate("Unit of Measure Code", ProdOrderComponent."Unit of Measure Code");
-        PurchOrderLine."Qty. per Unit of Measure" := ProdOrderComponent."Qty. per Unit of Measure";
+            PurchaseLine.Validate("Bin Code", ProdOrderComponent."Bin Code");
+        PurchaseLine.Validate("Unit of Measure Code", ProdOrderComponent."Unit of Measure Code");
+        PurchaseLine."Qty. per Unit of Measure" := ProdOrderComponent."Qty. per Unit of Measure";
 
-        PurchOrderLine.Validate(Quantity, ProdOrderComponent."Remaining Quantity");
+        PurchaseLine.Validate(Quantity, ProdOrderComponent."Remaining Quantity");
 
         if SubcManagementSetup."Component Direct Unit Cost" <> SubcManagementSetup."Component Direct Unit Cost"::Standard then begin
-            if PurchOrderHeader."Prices Including VAT" then
-                PurchOrderLine.Validate("Direct Unit Cost", ProdOrderComponent."Direct Unit Cost" * (1 + PurchOrderLine."VAT %" / 100))
+            if PurchaseHeader."Prices Including VAT" then
+                PurchaseLine.Validate("Direct Unit Cost", ProdOrderComponent."Direct Unit Cost" * (1 + PurchaseLine."VAT %" / 100))
             else
-                PurchOrderLine.Validate("Direct Unit Cost", ProdOrderComponent."Direct Unit Cost");
-            PurchOrderLine.Validate("Line Discount %", RequisitionLine."Line Discount %");
+                PurchaseLine.Validate("Direct Unit Cost", ProdOrderComponent."Direct Unit Cost");
+            PurchaseLine.Validate("Line Discount %", RequisitionLine."Line Discount %");
         end;
 
-        PurchOrderLine.Description := ProdOrderComponent.Description;
-        PurchOrderLine."Description 2" := Item."Description 2";
+        PurchaseLine.Description := ProdOrderComponent.Description;
+        PurchaseLine."Description 2" := Item."Description 2";
 
-        PurchOrderLine."Sales Order No." := RequisitionLine."Sales Order No.";
-        PurchOrderLine."Sales Order Line No." := RequisitionLine."Sales Order Line No.";
+        PurchaseLine."Sales Order No." := RequisitionLine."Sales Order No.";
+        PurchaseLine."Sales Order Line No." := RequisitionLine."Sales Order Line No.";
 
-        PurchOrderLine."Item Category Code" := Item."Item Category Code";
-        PurchOrderLine.Validate("Purchasing Code", RequisitionLine."Purchasing Code");
+        PurchaseLine."Item Category Code" := Item."Item Category Code";
+        PurchaseLine.Validate("Purchasing Code", RequisitionLine."Purchasing Code");
 
         if RequisitionLine."Due Date" <> 0D then begin
-            PurchOrderLine.Validate("Expected Receipt Date", RequisitionLine."Due Date");
-            PurchOrderLine."Requested Receipt Date" := PurchOrderLine."Planned Receipt Date";
+            PurchaseLine.Validate("Expected Receipt Date", RequisitionLine."Due Date");
+            PurchaseLine."Requested Receipt Date" := PurchaseLine."Planned Receipt Date";
         end;
     end;
 
-    local procedure InsertReqWkshLine(ProdOrderRtngLine: Record "Prod. Order Routing Line"; ProdOrderLine: Record "Prod. Order Line"; ReqWkshTemplateName: Code[10]; WkshName: Code[10]; QtyToPurch: Decimal)
+    local procedure InsertReqWkshLine(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ProdOrderLine: Record "Prod. Order Line"; ReqWkshTemplateName: Code[10]; WkshName: Code[10]; QtyToPurch: Decimal)
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
         PurchaseLine: Record "Purchase Line";
@@ -956,7 +955,7 @@ codeunit 99001505 "Subcontracting Management"
         WorkCenter: Record "Work Center";
     begin
         WorkCenter.SetLoadFields("Subcontractor No.", "Unit Cost Calculation", "Location Code", "Open Shop Floor Bin Code");
-        WorkCenter.Get(ProdOrderRtngLine."Work Center No.");
+        WorkCenter.Get(ProdOrderRoutingLine."Work Center No.");
         RequisitionLine.GetProdOrderLine(ProdOrderLine);
 
         ProdOrderLine.CalcFields("Total Exp. Oper. Output (Qty.)");
@@ -982,13 +981,13 @@ codeunit 99001505 "Subcontracting Management"
                 RequisitionLine.Validate(
                     RequisitionLine."Direct Unit Cost",
                     Round(
-                        ProdOrderRtngLine."Direct Unit Cost" * ProdOrderLine."Qty. per Unit of Measure",
+                        ProdOrderRoutingLine."Direct Unit Cost" * ProdOrderLine."Qty. per Unit of Measure",
                         GeneralLedgerSetup."Unit-Amount Rounding Precision"))
             else
                 RequisitionLine.Validate(
                     RequisitionLine."Direct Unit Cost",
                     Round(
-                        (ProdOrderRtngLine."Expected Operation Cost Amt." - ProdOrderRtngLine."Expected Capacity Ovhd. Cost") /
+                        (ProdOrderRoutingLine."Expected Operation Cost Amt." - ProdOrderRoutingLine."Expected Capacity Ovhd. Cost") /
                         ProdOrderLine."Total Exp. Oper. Output (Qty.)",
                         GeneralLedgerSetup."Unit-Amount Rounding Precision"))
         end else
@@ -1000,7 +999,7 @@ codeunit 99001505 "Subcontracting Management"
         RequisitionLine."Qty. Rounding Precision (Base)" := ProdOrderLine."Qty. Rounding Precision (Base)";
         RequisitionLine."Prod. Order No." := ProdOrderLine."Prod. Order No.";
         RequisitionLine."Prod. Order Line No." := ProdOrderLine."Line No.";
-        RequisitionLine."Due Date" := ProdOrderRtngLine."Ending Date";
+        RequisitionLine."Due Date" := ProdOrderRoutingLine."Ending Date";
         RequisitionLine."Requester ID" := CopyStr(UserId(), 1, MaxStrLen(RequisitionLine."Requester ID"));
 
         if WorkCenter."Location Code" <> '' then begin
@@ -1011,19 +1010,19 @@ codeunit 99001505 "Subcontracting Management"
             RequisitionLine."Bin Code" := ProdOrderLine."Bin Code";
         end;
 
-        RequisitionLine."Routing Reference No." := ProdOrderRtngLine."Routing Reference No.";
-        RequisitionLine."Routing No." := ProdOrderRtngLine."Routing No.";
-        RequisitionLine."Operation No." := ProdOrderRtngLine."Operation No.";
-        RequisitionLine."Work Center No." := ProdOrderRtngLine."Work Center No.";
+        RequisitionLine."Routing Reference No." := ProdOrderRoutingLine."Routing Reference No.";
+        RequisitionLine."Routing No." := ProdOrderRoutingLine."Routing No.";
+        RequisitionLine."Operation No." := ProdOrderRoutingLine."Operation No.";
+        RequisitionLine."Work Center No." := ProdOrderRoutingLine."Work Center No.";
         RequisitionLine."Variant Code" := ProdOrderLine."Variant Code";
 
         RequisitionLine.Validate("Vendor No.", WorkCenter."Subcontractor No.");
 
-        RequisitionLine.Description := ProdOrderRtngLine.Description;
+        RequisitionLine.Description := ProdOrderRoutingLine.Description;
         RequisitionLine."Description 2" := '';
         SetVendorItemNo(RequisitionLine);
 
-        if PurchLineExists(PurchaseLine, ProdOrderLine, ProdOrderRtngLine) then begin
+        if PurchLineExists(PurchaseLine, ProdOrderLine, ProdOrderRoutingLine) then begin
             RequisitionLine.Validate(Quantity, RequisitionLine.Quantity + PurchaseLine."Outstanding Quantity");
             RequisitionLine."Quantity (Base)" := 0;
             RequisitionLine."Replenishment System" := "Replenishment System"::Purchase;
@@ -1053,24 +1052,24 @@ codeunit 99001505 "Subcontracting Management"
         RequisitionLine.Insert();
     end;
 
-    local procedure SetVendorItemNo(var ReqLine: Record "Requisition Line")
+    local procedure SetVendorItemNo(var RequisitionLine: Record "Requisition Line")
     var
         Item: Record Item;
         ItemVendor: Record "Item Vendor";
     begin
-        if ReqLine."No." = '' then
+        if RequisitionLine."No." = '' then
             exit;
 
-        if Item."No." <> ReqLine."No." then begin
+        if Item."No." <> RequisitionLine."No." then begin
             Item.SetLoadFields("No.");
-            Item.Get(ReqLine."No.");
+            Item.Get(RequisitionLine."No.");
         end;
 
         ItemVendor.Init();
-        ItemVendor."Vendor No." := ReqLine."Vendor No.";
-        ItemVendor."Variant Code" := ReqLine."Variant Code";
-        Item.FindItemVend(ItemVendor, ReqLine."Location Code");
-        ReqLine.Validate("Vendor Item No.", ItemVendor."Vendor Item No.");
+        ItemVendor."Vendor No." := RequisitionLine."Vendor No.";
+        ItemVendor."Variant Code" := RequisitionLine."Variant Code";
+        Item.FindItemVend(ItemVendor, RequisitionLine."Location Code");
+        RequisitionLine.Validate("Vendor Item No.", ItemVendor."Vendor Item No.");
     end;
 
     local procedure IsSubcontracting(WorkCenterNo: Code[20]): Boolean
@@ -1082,18 +1081,18 @@ codeunit 99001505 "Subcontracting Management"
             exit(WorkCenter."Subcontractor No." <> '')
     end;
 
-    local procedure PurchLineExists(var PurchLine: Record "Purchase Line"; ProdOrderLine: Record "Prod. Order Line"; ProdOrderRtngLine: Record "Prod. Order Routing Line"): Boolean
+    local procedure PurchLineExists(var PurchaseLine: Record "Purchase Line"; ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Boolean
     begin
-        PurchLine.SetCurrentKey("Document Type", Type, "Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
-        PurchLine.SetRange("Document Type", "Purchase Document Type"::Order);
-        PurchLine.SetRange(Type, "Purchase Line Type"::Item);
-        PurchLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
-        PurchLine.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
-        PurchLine.SetRange("Routing No.", ProdOrderRtngLine."Routing No.");
-        PurchLine.SetRange("Operation No.", ProdOrderRtngLine."Operation No.");
-        PurchLine.SetRange("Planning Flexibility", "Reservation Planning Flexibility"::Unlimited);
-        PurchLine.SetRange("Quantity Received", 0);
-        exit(PurchLine.FindFirst());
+        PurchaseLine.SetCurrentKey("Document Type", Type, "Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
+        PurchaseLine.SetRange("Document Type", "Purchase Document Type"::Order);
+        PurchaseLine.SetRange(Type, "Purchase Line Type"::Item);
+        PurchaseLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
+        PurchaseLine.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
+        PurchaseLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
+        PurchaseLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        PurchaseLine.SetRange("Planning Flexibility", "Reservation Planning Flexibility"::Unlimited);
+        PurchaseLine.SetRange("Quantity Received", 0);
+        exit(PurchaseLine.FindFirst());
     end;
 
     [InternalEvent(false, false)]

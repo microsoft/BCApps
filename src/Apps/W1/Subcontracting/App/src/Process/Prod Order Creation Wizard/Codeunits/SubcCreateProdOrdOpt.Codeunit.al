@@ -40,33 +40,33 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// <summary>
     /// Main orchestration method for creating production orders with temporary data handling
     /// </summary>
-    local procedure CreateProductionOrderWithTemporaryData(var PurchLine: Record "Purchase Line")
+    local procedure CreateProductionOrderWithTemporaryData(var PurchaseLine: Record "Purchase Line")
     var
         Item: Record Item;
         SubcScenarioType: Enum "Subc. Scenario Type";
     begin
-        ValidateAndPrepareCreation(PurchLine, Item);
-        SubcScenarioType := DetermineScenarioAndPrepareData(Item, PurchLine);
+        ValidateAndPrepareCreation(PurchaseLine, Item);
+        SubcScenarioType := DetermineScenarioAndPrepareData(Item, PurchaseLine);
 
         if not ExecuteBOMRoutingWizardProcess(Item, SubcScenarioType) then
             Error('');
 
-        TransferTemporaryDataToRealTables(PurchLine);
+        TransferTemporaryDataToRealTables(PurchaseLine);
     end;
 
     /// <summary>
     /// Determines the scenario type based on existing BOM and Routing data from best source
     /// </summary>
-    local procedure DetermineScenarioAndPrepareData(Item: Record Item; PurchLine: Record "Purchase Line") SubcScenarioType: Enum "Subc. Scenario Type"
+    local procedure DetermineScenarioAndPrepareData(Item: Record Item; PurchaseLine: Record "Purchase Line") SubcScenarioType: Enum "Subc. Scenario Type"
     var
         BOMNo, RoutingNo : Code[20];
-        SubcRoutingBOMSourceType: Enum "Subc. RtngBOMSourceType";
+        SubcRtngBOMSourceType: Enum "Subc. RtngBOMSourceType";
     begin
-        SubcTempDataInitializer.InitializeTemporaryProdOrder(PurchLine);
+        SubcTempDataInitializer.InitializeTemporaryProdOrder(PurchaseLine);
 
-        GetBOMAndRoutingFromBestSource(Item, BOMNo, RoutingNo, SubcRoutingBOMSourceType);
+        GetBOMAndRoutingFromBestSource(Item, BOMNo, RoutingNo, SubcRtngBOMSourceType);
 
-        SubcTempDataInitializer.SetRtngBOMSourceType(SubcRoutingBOMSourceType);
+        SubcTempDataInitializer.SetRtngBOMSourceType(SubcRtngBOMSourceType);
 
         SubcScenarioType := GetScenarioTypeFromBOMRouting(BOMNo, RoutingNo);
 
@@ -136,11 +136,11 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// <summary>
     /// Validates purchase line and prepares item data
     /// </summary>
-    local procedure ValidateAndPrepareCreation(var PurchLine: Record "Purchase Line"; var Item: Record Item)
+    local procedure ValidateAndPrepareCreation(var PurchaseLine: Record "Purchase Line"; var Item: Record Item)
     begin
-        ValidateMandatoryFields(PurchLine);
+        ValidateMandatoryFields(PurchaseLine);
         Item.SetLoadFields("Production BOM No.", "Routing No.", "Scrap %", "Inventory Posting Group");
-        Item.Get(PurchLine."No.");
+        Item.Get(PurchaseLine."No.");
     end;
 
     /// <summary>
@@ -268,19 +268,19 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// Main method for transferring temporary data to real tables with transaction safety
     /// </summary>
     [CommitBehavior(CommitBehavior::Ignore)]
-    local procedure TransferTemporaryDataToRealTables(var PurchLine: Record "Purchase Line")
+    local procedure TransferTemporaryDataToRealTables(var PurchaseLine: Record "Purchase Line")
     var
         ProductionOrder: Record "Production Order";
         SubcProdOrderCreateBind: Codeunit "Subc. ProdOrderCreateBind";
     begin
         BindSubscription(SubcProdOrderCreateBind);
-        SubcProdOrderCreateBind.SetSubcontractingPurchaseLine(PurchLine);
+        SubcProdOrderCreateBind.SetSubcontractingPurchaseLine(PurchaseLine);
 
-        UpdateItemWithBOMAndRoutingFromTemp(PurchLine);
+        UpdateItemWithBOMAndRoutingFromTemp(PurchaseLine);
         CreateReleasedProductionOrderFromTemp(ProductionOrder);
         TransferTemporaryDataToProductionOrder(ProductionOrder);
         RefreshProductionOrderWithOptimalSettings(ProductionOrder);
-        FinalizeProductionOrderCreation(PurchLine, ProductionOrder);
+        FinalizeProductionOrderCreation(PurchaseLine, ProductionOrder);
 
         UnbindSubscription(SubcProdOrderCreateBind);
     end;
@@ -288,76 +288,76 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// <summary>
     /// Refreshes production order based on modification state
     /// </summary>
-    local procedure RefreshProductionOrderWithOptimalSettings(var ProdOrder: Record "Production Order")
+    local procedure RefreshProductionOrderWithOptimalSettings(var ProductionOrder: Record "Production Order")
     var
         Direction: Option Forward,Backward;
     begin
         if ProdOrderCompRoutingCreated then
-            RefreshProductionOrderAfterUpdate(ProdOrder, Direction::Backward, false, false, false)
+            RefreshProductionOrderAfterUpdate(ProductionOrder, Direction::Backward, false, false, false)
         else
-            RefreshProductionOrderAfterUpdate(ProdOrder, Direction::Backward, true, true, false);
+            RefreshProductionOrderAfterUpdate(ProductionOrder, Direction::Backward, true, true, false);
     end;
 
     /// <summary>
     /// Finalizes production order creation with all related operations
     /// </summary>
-    local procedure FinalizeProductionOrderCreation(var PurchLine: Record "Purchase Line"; var ProdOrder: Record "Production Order")
+    local procedure FinalizeProductionOrderCreation(var PurchaseLine: Record "Purchase Line"; var ProductionOrder: Record "Production Order")
     begin
-        TransferReservationEntryFromPurchOrderCompToProdOrderLine(PurchLine, ProdOrder);
-        UpdatePurchaseLineWithProdOrder(PurchLine, ProdOrder);
+        TransferReservationEntryFromPurchOrderCompToProdOrderLine(PurchaseLine, ProductionOrder);
+        UpdatePurchaseLineWithProdOrder(PurchaseLine, ProductionOrder);
         CleanupTemporaryBOMAndRoutingIfNotNeeded();
-        HandleSubcontractingAfterUpdate(PurchLine);
+        HandleSubcontractingAfterUpdate(PurchaseLine);
     end;
 
     /// <summary>
     /// Creates released production order from temporary data
     /// </summary>
-    local procedure CreateReleasedProductionOrderFromTemp(var ProdOrder: Record "Production Order")
+    local procedure CreateReleasedProductionOrderFromTemp(var ProductionOrder: Record "Production Order")
     var
         TempProductionOrder: Record "Production Order" temporary;
     begin
         SubcTempDataInitializer.GetGlobalProdOrder(TempProductionOrder);
 
-        InitializeProductionOrder(ProdOrder);
+        InitializeProductionOrder(ProductionOrder);
 
-        ConfigureProductionOrderFromTemp(ProdOrder, TempProductionOrder);
+        ConfigureProductionOrderFromTemp(ProductionOrder, TempProductionOrder);
 
-        ProdOrder."Created from Purch. Order" := true;
-        ProdOrder.Modify(true);
+        ProductionOrder."Created from Purch. Order" := true;
+        ProductionOrder.Modify(true);
     end;
 
     /// <summary>
     /// Initializes production order with basic settings
     /// </summary>
-    local procedure InitializeProductionOrder(var ProdOrder: Record "Production Order")
+    local procedure InitializeProductionOrder(var ProductionOrder: Record "Production Order")
     begin
-        Clear(ProdOrder);
-        ProdOrder.Init();
-        ProdOrder.Validate(Status, "Production Order Status"::Released);
-        ProdOrder.Insert(true);
+        Clear(ProductionOrder);
+        ProductionOrder.Init();
+        ProductionOrder.Validate(Status, "Production Order Status"::Released);
+        ProductionOrder.Insert(true);
 
     end;
 
     /// <summary>
     /// Configures production order with data from temporary record
     /// </summary>
-    local procedure ConfigureProductionOrderFromTemp(var ProdOrder: Record "Production Order"; var TempProdOrder: Record "Production Order" temporary)
+    local procedure ConfigureProductionOrderFromTemp(var ProductionOrder: Record "Production Order"; var TempProductionOrder: Record "Production Order" temporary)
     begin
-        ProdOrder."Source Type" := TempProdOrder."Source Type";
-        ProdOrder.Validate("Source No.", TempProdOrder."Source No.");
+        ProductionOrder."Source Type" := TempProductionOrder."Source Type";
+        ProductionOrder.Validate("Source No.", TempProductionOrder."Source No.");
 
-        if TempProdOrder."Variant Code" <> '' then
-            ProdOrder.Validate("Variant Code", TempProdOrder."Variant Code");
+        if TempProductionOrder."Variant Code" <> '' then
+            ProductionOrder.Validate("Variant Code", TempProductionOrder."Variant Code");
 
-        ProdOrder.Validate("Due Date", TempProdOrder."Due Date");
-        ProdOrder.Validate(Quantity, TempProdOrder.Quantity);
-        ProdOrder.Validate("Location Code", TempProdOrder."Location Code");
+        ProductionOrder.Validate("Due Date", TempProductionOrder."Due Date");
+        ProductionOrder.Validate(Quantity, TempProductionOrder.Quantity);
+        ProductionOrder.Validate("Location Code", TempProductionOrder."Location Code");
     end;
 
     /// <summary>
     /// Transfers temporary data to production order
     /// </summary>
-    local procedure TransferTemporaryDataToProductionOrder(ProdOrder: Record "Production Order")
+    local procedure TransferTemporaryDataToProductionOrder(ProductionOrder: Record "Production Order")
     var
         ProdOrderLine: Record "Prod. Order Line";
         TempProdOrderLine: Record "Prod. Order Line" temporary;
@@ -366,7 +366,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         if not TempProdOrderLine.FindFirst() then
             exit;
 
-        CreateProdOrderLineFromTemp(ProdOrderLine, ProdOrder, TempProdOrderLine);
+        CreateProdOrderLineFromTemp(ProdOrderLine, ProductionOrder, TempProdOrderLine);
         TransferComponentsAndRoutingLines(ProdOrderLine);
     end;
 
@@ -417,46 +417,46 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// <summary>
     /// Updates purchase line with production order information
     /// </summary>
-    local procedure UpdatePurchaseLineWithProdOrder(var PurchLine: Record "Purchase Line"; ProdOrder: Record "Production Order")
+    local procedure UpdatePurchaseLineWithProdOrder(var PurchaseLine: Record "Purchase Line"; ProductionOrder: Record "Production Order")
     var
         ProdOrderLine: Record "Prod. Order Line";
     begin
-        InitializePurchaseLineFields(PurchLine, ProdOrder);
-        FindAndSetProdOrderLineNo(PurchLine, ProdOrder, ProdOrderLine);
-        UpdatePurchLineWithRoutingInfo(PurchLine, ProdOrderLine);
-        PurchLine.Modify(true);
+        InitializePurchaseLineFields(PurchaseLine, ProductionOrder);
+        FindAndSetProdOrderLineNo(PurchaseLine, ProductionOrder, ProdOrderLine);
+        UpdatePurchLineWithRoutingInfo(PurchaseLine, ProdOrderLine);
+        PurchaseLine.Modify(true);
     end;
 
     /// <summary>
     /// Initializes basic purchase line fields
     /// </summary>
-    local procedure InitializePurchaseLineFields(var PurchLine: Record "Purchase Line"; ProdOrder: Record "Production Order")
+    local procedure InitializePurchaseLineFields(var PurchaseLine: Record "Purchase Line"; ProductionOrder: Record "Production Order")
     begin
-        PurchLine."Prod. Order No." := ProdOrder."No.";
-        PurchLine."Qty. per Unit of Measure" := 0;
-        PurchLine."Quantity (Base)" := 0;
-        PurchLine."Qty. to Invoice (Base)" := 0;
-        PurchLine."Qty. to Receive (Base)" := 0;
-        PurchLine."Outstanding Qty. (Base)" := 0;
+        PurchaseLine."Prod. Order No." := ProductionOrder."No.";
+        PurchaseLine."Qty. per Unit of Measure" := 0;
+        PurchaseLine."Quantity (Base)" := 0;
+        PurchaseLine."Qty. to Invoice (Base)" := 0;
+        PurchaseLine."Qty. to Receive (Base)" := 0;
+        PurchaseLine."Outstanding Qty. (Base)" := 0;
     end;
 
     /// <summary>
     /// Finds and sets production order line number
     /// </summary>
-    local procedure FindAndSetProdOrderLineNo(var PurchLine: Record "Purchase Line"; ProdOrder: Record "Production Order"; var ProdOrderLine: Record "Prod. Order Line")
+    local procedure FindAndSetProdOrderLineNo(var PurchaseLine: Record "Purchase Line"; ProductionOrder: Record "Production Order"; var ProdOrderLine: Record "Prod. Order Line")
     begin
         ProdOrderLine.SetLoadFields("Line No.");
-        ProdOrderLine.SetRange(Status, ProdOrder.Status);
-        ProdOrderLine.SetRange("Prod. Order No.", ProdOrder."No.");
-        ProdOrderLine.SetRange("Item No.", PurchLine."No.");
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.SetRange("Item No.", PurchaseLine."No.");
         if ProdOrderLine.FindFirst() then
-            PurchLine."Prod. Order Line No." := ProdOrderLine."Line No.";
+            PurchaseLine."Prod. Order Line No." := ProdOrderLine."Line No.";
     end;
 
     /// <summary>
     /// Updates purchase line with routing information
     /// </summary>
-    local procedure UpdatePurchLineWithRoutingInfo(var PurchLine: Record "Purchase Line"; var ProdOrderLine: Record "Prod. Order Line")
+    local procedure UpdatePurchLineWithRoutingInfo(var PurchaseLine: Record "Purchase Line"; var ProdOrderLine: Record "Prod. Order Line")
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         WorkCenter: Record "Work Center";
@@ -464,101 +464,101 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         if not FindRoutingLinesForProdOrderLine(ProdOrderRoutingLine, ProdOrderLine) then
             exit;
 
-        if FindMatchingWorkCenterForVendor(ProdOrderRoutingLine, WorkCenter, PurchLine."Buy-from Vendor No.") or
+        if FindMatchingWorkCenterForVendor(ProdOrderRoutingLine, WorkCenter, PurchaseLine."Buy-from Vendor No.") or
            FindAnySubcontractorWorkCenter(ProdOrderRoutingLine, WorkCenter) then begin
-            UpdatePurchLineFromRoutingLine(PurchLine, ProdOrderRoutingLine);
+            UpdatePurchLineFromRoutingLine(PurchaseLine, ProdOrderRoutingLine);
             exit;
         end;
 
         ProdOrderRoutingLine.FindFirst();
-        UpdatePurchLineFromRoutingLine(PurchLine, ProdOrderRoutingLine);
+        UpdatePurchLineFromRoutingLine(PurchaseLine, ProdOrderRoutingLine);
     end;
 
     /// <summary>
     /// Finds routing lines for production order line
     /// </summary>
-    local procedure FindRoutingLinesForProdOrderLine(var ProdOrderRtngLine: Record "Prod. Order Routing Line"; var ProdOrderLine: Record "Prod. Order Line"): Boolean
+    local procedure FindRoutingLinesForProdOrderLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ProdOrderLine: Record "Prod. Order Line"): Boolean
     begin
-        ProdOrderRtngLine.SetLoadFields("Work Center No.", "Operation No.", Description, "Routing No.", "Routing Reference No.");
-        ProdOrderRtngLine.SetRange(Status, ProdOrderLine.Status);
-        ProdOrderRtngLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
-        ProdOrderRtngLine.SetRange("Routing No.", ProdOrderLine."Routing No.");
-        ProdOrderRtngLine.SetRange("Routing Reference No.", ProdOrderLine."Line No.");
-        ProdOrderRtngLine.SetRange(Type, "Capacity Type"::"Work Center");
-        exit(not ProdOrderRtngLine.IsEmpty());
+        ProdOrderRoutingLine.SetLoadFields("Work Center No.", "Operation No.", Description, "Routing No.", "Routing Reference No.");
+        ProdOrderRoutingLine.SetRange(Status, ProdOrderLine.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
+        ProdOrderRoutingLine.SetRange("Routing No.", ProdOrderLine."Routing No.");
+        ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLine."Line No.");
+        ProdOrderRoutingLine.SetRange(Type, "Capacity Type"::"Work Center");
+        exit(not ProdOrderRoutingLine.IsEmpty());
     end;
 
     /// <summary>
     /// Finds work center matching specific vendor
     /// </summary>
-    local procedure FindMatchingWorkCenterForVendor(var ProdOrderRtngLine: Record "Prod. Order Routing Line"; var WorkCenter: Record "Work Center"; VendorNo: Code[20]): Boolean
+    local procedure FindMatchingWorkCenterForVendor(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var WorkCenter: Record "Work Center"; VendorNo: Code[20]): Boolean
     begin
-        if ProdOrderRtngLine.FindSet() then
+        if ProdOrderRoutingLine.FindSet() then
             repeat
                 WorkCenter.SetLoadFields("Gen. Prod. Posting Group");
-                WorkCenter.SetRange("No.", ProdOrderRtngLine."Work Center No.");
+                WorkCenter.SetRange("No.", ProdOrderRoutingLine."Work Center No.");
                 WorkCenter.SetRange("Subcontractor No.", VendorNo);
                 if WorkCenter.FindFirst() then
                     exit(true);
-            until ProdOrderRtngLine.Next() = 0;
+            until ProdOrderRoutingLine.Next() = 0;
         exit(false);
     end;
 
     /// <summary>
     /// Finds any work center with subcontractor
     /// </summary>
-    local procedure FindAnySubcontractorWorkCenter(var ProdOrderRtngLine: Record "Prod. Order Routing Line"; var WorkCenter: Record "Work Center"): Boolean
+    local procedure FindAnySubcontractorWorkCenter(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var WorkCenter: Record "Work Center"): Boolean
     begin
-        ProdOrderRtngLine.FindSet();
+        ProdOrderRoutingLine.FindSet();
         repeat
             WorkCenter.SetLoadFields("Gen. Prod. Posting Group");
-            WorkCenter.SetRange("No.", ProdOrderRtngLine."Work Center No.");
+            WorkCenter.SetRange("No.", ProdOrderRoutingLine."Work Center No.");
             WorkCenter.SetFilter("Subcontractor No.", '<>%1', '');
             if WorkCenter.FindFirst() then
                 exit(true);
-        until ProdOrderRtngLine.Next() = 0;
+        until ProdOrderRoutingLine.Next() = 0;
         exit(false);
     end;
 
-    local procedure UpdatePurchLineFromRoutingLine(var PurchLine: Record "Purchase Line"; ProdOrderRtngLine: Record "Prod. Order Routing Line")
+    local procedure UpdatePurchLineFromRoutingLine(var PurchaseLine: Record "Purchase Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         SubcPriceManagement: Codeunit "Subc. Price Management";
     begin
-        PurchLine.Description := ProdOrderRtngLine.Description;
-        PurchLine."Routing No." := ProdOrderRtngLine."Routing No.";
-        PurchLine."Routing Reference No." := ProdOrderRtngLine."Routing Reference No.";
-        PurchLine."Operation No." := ProdOrderRtngLine."Operation No.";
-        PurchLine."Expected Receipt Date" := ProdOrderRtngLine."Ending Date";
-        PurchLine.Validate("Work Center No.", ProdOrderRtngLine."Work Center No.");
+        PurchaseLine.Description := ProdOrderRoutingLine.Description;
+        PurchaseLine."Routing No." := ProdOrderRoutingLine."Routing No.";
+        PurchaseLine."Routing Reference No." := ProdOrderRoutingLine."Routing Reference No.";
+        PurchaseLine."Operation No." := ProdOrderRoutingLine."Operation No.";
+        PurchaseLine."Expected Receipt Date" := ProdOrderRoutingLine."Ending Date";
+        PurchaseLine.Validate("Work Center No.", ProdOrderRoutingLine."Work Center No.");
 
-        SubcPriceManagement.GetSubcPriceForPurchLine(PurchLine);
-        PurchLine.GetItemTranslation();
+        SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
+        PurchaseLine.GetItemTranslation();
     end;
 
     /// <summary>
     /// Transfers reservation entries
     /// </summary>
-    local procedure TransferReservationEntryFromPurchOrderCompToProdOrderLine(PurchLine: Record "Purchase Line"; ProdOrder: Record "Production Order")
+    local procedure TransferReservationEntryFromPurchOrderCompToProdOrderLine(PurchaseLine: Record "Purchase Line"; ProductionOrder: Record "Production Order")
     var
         ProdOrderLine: Record "Prod. Order Line";
         TempReservationEntry: Record "Reservation Entry" temporary;
         PurchLineReserve: Codeunit "Purch. Line-Reserve";
     begin
-        if not FindProdOrderLineForReservation(ProdOrderLine, ProdOrder, PurchLine."No.") then
+        if not FindProdOrderLineForReservation(ProdOrderLine, ProductionOrder, PurchaseLine."No.") then
             exit;
 
-        CollectReservationEntries(PurchLine, TempReservationEntry, PurchLineReserve);
+        CollectReservationEntries(PurchaseLine, TempReservationEntry, PurchLineReserve);
         ReassignReservationEntries(ProdOrderLine, TempReservationEntry);
     end;
 
     /// <summary>
     /// Finds production order line for reservation transfer
     /// </summary>
-    local procedure FindProdOrderLineForReservation(var ProdOrderLine: Record "Prod. Order Line"; ProdOrder: Record "Production Order"; ItemNo: Code[20]): Boolean
+    local procedure FindProdOrderLineForReservation(var ProdOrderLine: Record "Prod. Order Line"; ProductionOrder: Record "Production Order"; ItemNo: Code[20]): Boolean
     begin
         ProdOrderLine.SetLoadFields("Line No.");
         ProdOrderLine.SetRange(Status, "Production Order Status"::Released);
-        ProdOrderLine.SetRange("Prod. Order No.", ProdOrder."No.");
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
         ProdOrderLine.SetRange("Item No.", ItemNo);
         exit(ProdOrderLine.FindFirst());
     end;
@@ -566,15 +566,15 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// <summary>
     /// Collects reservation entries into temporary table
     /// </summary>
-    local procedure CollectReservationEntries(PurchLine: Record "Purchase Line"; var TempReservEntry: Record "Reservation Entry" temporary; var PurchLineReserve: Codeunit "Purch. Line-Reserve")
+    local procedure CollectReservationEntries(PurchaseLine: Record "Purchase Line"; var TempReservationEntry: Record "Reservation Entry" temporary; var PurchLineReserve: Codeunit "Purch. Line-Reserve")
     var
         ReservationEntry: Record "Reservation Entry";
     begin
-        PurchLineReserve.FindReservEntry(PurchLine, ReservationEntry);
+        PurchLineReserve.FindReservEntry(PurchaseLine, ReservationEntry);
         if ReservationEntry.FindSet() then begin
             repeat
-                TempReservEntry := ReservationEntry;
-                TempReservEntry.Insert();
+                TempReservationEntry := ReservationEntry;
+                TempReservationEntry.Insert();
             until ReservationEntry.Next() = 0;
             ReservationEntry.DeleteAll();
         end;
@@ -583,19 +583,19 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// <summary>
     /// Reassigns reservation entries to production order line
     /// </summary>
-    local procedure ReassignReservationEntries(ProdOrderLine: Record "Prod. Order Line"; var TempReservEntry: Record "Reservation Entry" temporary)
+    local procedure ReassignReservationEntries(ProdOrderLine: Record "Prod. Order Line"; var TempReservationEntry: Record "Reservation Entry" temporary)
     begin
-        if TempReservEntry.FindSet() then
+        if TempReservationEntry.FindSet() then
             repeat
-                ReassignSingleReservationEntry(ProdOrderLine, TempReservEntry);
-            until TempReservEntry.Next() = 0;
+                ReassignSingleReservationEntry(ProdOrderLine, TempReservationEntry);
+            until TempReservationEntry.Next() = 0;
     end;
 
-    local procedure ReassignSingleReservationEntry(ProdOrderLine: Record "Prod. Order Line"; var TempReservEntry: Record "Reservation Entry" temporary)
+    local procedure ReassignSingleReservationEntry(ProdOrderLine: Record "Prod. Order Line"; var TempReservationEntry: Record "Reservation Entry" temporary)
     var
         ReservationEntry2: Record "Reservation Entry";
     begin
-        ReservationEntry2 := TempReservEntry;
+        ReservationEntry2 := TempReservationEntry;
         ReservationEntry2."Source Type" := Database::"Prod. Order Line";
         ReservationEntry2."Source Subtype" := ProdOrderLine.Status.AsInteger();
         ReservationEntry2."Source ID" := ProdOrderLine."Prod. Order No.";
@@ -605,29 +605,29 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         ReservationEntry2.Insert();
     end;
 
-    local procedure HandleSubcontractingAfterUpdate(var PurchLine: Record "Purchase Line")
+    local procedure HandleSubcontractingAfterUpdate(var PurchaseLine: Record "Purchase Line")
     var
         RequisitionLine: Record "Requisition Line";
         SubcontractingManagement: Codeunit "Subcontracting Management";
         SubcontractingManagementExt: Codeunit "Subcontracting Management Ext.";
         NextLineNo: Integer;
     begin
-        RequisitionLine."Prod. Order No." := PurchLine."Prod. Order No.";
-        RequisitionLine."Prod. Order Line No." := PurchLine."Prod. Order Line No.";
-        RequisitionLine."Operation No." := PurchLine."Operation No.";
-        RequisitionLine."Routing No." := PurchLine."Routing No.";
-        RequisitionLine."Routing Reference No." := PurchLine."Routing Reference No.";
+        RequisitionLine."Prod. Order No." := PurchaseLine."Prod. Order No.";
+        RequisitionLine."Prod. Order Line No." := PurchaseLine."Prod. Order Line No.";
+        RequisitionLine."Operation No." := PurchaseLine."Operation No.";
+        RequisitionLine."Routing No." := PurchaseLine."Routing No.";
+        RequisitionLine."Routing Reference No." := PurchaseLine."Routing Reference No.";
 
-        NextLineNo := PurchLine."Line No." + 10000;
+        NextLineNo := PurchaseLine."Line No." + 10000;
         BindSubscription(SubcontractingManagementExt);
-        SubcontractingManagement.TransferSubcontractingProdOrderComp(PurchLine, RequisitionLine, NextLineNo);
+        SubcontractingManagement.TransferSubcontractingProdOrderComp(PurchaseLine, RequisitionLine, NextLineNo);
         UnbindSubscription(SubcontractingManagementExt);
     end;
 
     /// <summary>
     /// Validates mandatory fields
     /// </summary>
-    local procedure ValidateMandatoryFields(PurchLine: Record "Purchase Line")
+    local procedure ValidateMandatoryFields(PurchaseLine: Record "Purchase Line")
     var
         ManufacturingSetup: Record "Manufacturing Setup";
         Vendor: Record Vendor;
@@ -644,21 +644,21 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         ManufacturingSetup.TestField("Production BOM Nos.");
         ManufacturingSetup.TestField("Routing Nos.");
 
-        Vendor.Get(PurchLine."Buy-from Vendor No.");
+        Vendor.Get(PurchaseLine."Buy-from Vendor No.");
         Vendor.TestField("Subcontr. Location Code");
 
-        PurchLine.TestField(Type, "Purchase Line Type"::Item);
-        PurchLine.TestField("Prod. Order No.", '');
-        PurchLine.TestField("Prod. Order Line No.", 0);
-        PurchLine.TestField(Quantity);
-        PurchLine.TestField("Location Code");
-        PurchLine.TestField("Expected Receipt Date");
-        PurchLine.TestField("Qty. Assigned", 0);
-        PurchLine.TestField("Qty. Rcd. Not Invoiced", 0);
-        PurchLine.TestField("Drop Shipment", false);
-        PurchLine.TestField("Special Order", false);
+        PurchaseLine.TestField(Type, "Purchase Line Type"::Item);
+        PurchaseLine.TestField("Prod. Order No.", '');
+        PurchaseLine.TestField("Prod. Order Line No.", 0);
+        PurchaseLine.TestField(Quantity);
+        PurchaseLine.TestField("Location Code");
+        PurchaseLine.TestField("Expected Receipt Date");
+        PurchaseLine.TestField("Qty. Assigned", 0);
+        PurchaseLine.TestField("Qty. Rcd. Not Invoiced", 0);
+        PurchaseLine.TestField("Drop Shipment", false);
+        PurchaseLine.TestField("Special Order", false);
 
-        PurchLine.TestStatusOpen();
+        PurchaseLine.TestStatusOpen();
     end;
 
     /// <summary>
@@ -716,10 +716,10 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// <summary>
     /// Gets temporary BOM and routing data
     /// </summary>
-    local procedure GetTemporaryBOMAndRoutingData(var TempBOMHeader: Record "Production BOM Header" temporary; var TempBOMLine: Record "Production BOM Line" temporary; var TempRoutingHeader: Record "Routing Header" temporary; var TempRoutingLine: Record "Routing Line" temporary)
+    local procedure GetTemporaryBOMAndRoutingData(var TempProductionBOMHeader: Record "Production BOM Header" temporary; var TempProductionBOMLine: Record "Production BOM Line" temporary; var TempRoutingHeader: Record "Routing Header" temporary; var TempRoutingLine: Record "Routing Line" temporary)
     begin
-        SubcTempDataInitializer.GetGlobalBOMHeader(TempBOMHeader);
-        SubcTempDataInitializer.GetGlobalBOMLines(TempBOMLine);
+        SubcTempDataInitializer.GetGlobalBOMHeader(TempProductionBOMHeader);
+        SubcTempDataInitializer.GetGlobalBOMLines(TempProductionBOMLine);
         SubcTempDataInitializer.GetGlobalRoutingHeader(TempRoutingHeader);
         SubcTempDataInitializer.GetGlobalRoutingLines(TempRoutingLine);
     end;
@@ -727,7 +727,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// <summary>
     /// Saves BOM version if required
     /// </summary>
-    local procedure SaveBOMVersionIfRequired(var TempBOMHeader: Record "Production BOM Header" temporary; var TempBOMLine: Record "Production BOM Line" temporary; BomNo: Code[20]; BOMVersionCode: Code[20])
+    local procedure SaveBOMVersionIfRequired(var TempProductionBOMHeader: Record "Production BOM Header" temporary; var TempProductionBOMLine: Record "Production BOM Line" temporary; BomNo: Code[20]; BOMVersionCode: Code[20])
     var
         ProductionBOMLine: Record "Production BOM Line";
         ProductionBOMVersion: Record "Production BOM Version";
@@ -747,18 +747,18 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         ProductionBOMVersion."Production BOM No." := BomNo;
         ProductionBOMVersion."Version Code" := NewBOMVersionCode;
         ProductionBOMVersion.Status := "BOM Status"::Certified;
-        ProductionBOMVersion.Description := TempBOMHeader.Description;
-        ProductionBOMVersion."Unit of Measure Code" := TempBOMHeader."Unit of Measure Code";
+        ProductionBOMVersion.Description := TempProductionBOMHeader.Description;
+        ProductionBOMVersion."Unit of Measure Code" := TempProductionBOMHeader."Unit of Measure Code";
         ProductionBOMVersion."Starting Date" := WorkDate();
-        ProductionBOMVersion.Status := TempBOMHeader.Status;
+        ProductionBOMVersion.Status := TempProductionBOMHeader.Status;
         ProductionBOMVersion.Insert(true);
         BOMVersionCreated := true;
 
-        if TempBOMLine.FindSet() then
+        if TempProductionBOMLine.FindSet() then
             repeat
-                ProductionBOMLine := TempBOMLine;
+                ProductionBOMLine := TempProductionBOMLine;
                 ProductionBOMLine.Insert(true);
-            until TempBOMLine.Next() = 0;
+            until TempProductionBOMLine.Next() = 0;
         ProductionBOMVersion.Validate(Status, "BOM Status"::Certified);
         ProductionBOMVersion.Modify(true);
 
@@ -801,7 +801,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// <summary>
     /// Creates BOM if it doesn't exist
     /// </summary>
-    local procedure CreateBOMIfNotExists(var TempBOMHeader: Record "Production BOM Header" temporary; var TempBOMLine: Record "Production BOM Line" temporary; var BOMNo: Code[20])
+    local procedure CreateBOMIfNotExists(var TempProductionBOMHeader: Record "Production BOM Header" temporary; var TempProductionBOMLine: Record "Production BOM Line" temporary; var BOMNo: Code[20])
     var
         ManufacturingSetup: Record "Manufacturing Setup";
         ProductionBOMHeader: Record "Production BOM Header";
@@ -816,18 +816,18 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
 
         ProductionBOMHeader.Init();
         ProductionBOMHeader."No." := BOMNo;
-        ProductionBOMHeader.Description := TempBOMHeader.Description;
-        ProductionBOMHeader.Validate("Unit of Measure Code", TempBOMHeader."Unit of Measure Code");
+        ProductionBOMHeader.Description := TempProductionBOMHeader.Description;
+        ProductionBOMHeader.Validate("Unit of Measure Code", TempProductionBOMHeader."Unit of Measure Code");
         ProductionBOMHeader.Insert(true);
         BOMCreated := true;
 
-        if TempBOMLine.FindSet() then
+        if TempProductionBOMLine.FindSet() then
             repeat
-                ProductionBOMLine := TempBOMLine;
+                ProductionBOMLine := TempProductionBOMLine;
                 ProductionBOMLine."Production BOM No." := BOMNo;
                 ProductionBOMLine."Version Code" := '';
                 ProductionBOMLine.Insert(true);
-            until TempBOMLine.Next() = 0;
+            until TempProductionBOMLine.Next() = 0;
         ProductionBOMHeader.Status := "BOM Status"::Certified;
         ProductionBOMHeader.Modify(true);
         SubcTempDataInitializer.LoadBOMLines(BOMNo, '');
@@ -1043,14 +1043,14 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// <summary>
     /// Refreshes production order after update
     /// </summary>
-    local procedure RefreshProductionOrderAfterUpdate(var ProdOrder: Record "Production Order"; NewDirection: Option; CalcRoutings: Boolean; CalcComponents: Boolean; DeleteRelations: Boolean)
+    local procedure RefreshProductionOrderAfterUpdate(var ProductionOrder: Record "Production Order"; NewDirection: Option; CalcRoutings: Boolean; CalcComponents: Boolean; DeleteRelations: Boolean)
     var
         ProdOrderLine: Record "Prod. Order Line";
         CalculateProdOrder: Codeunit "Calculate Prod. Order";
     begin
         ProdOrderLine.SetLoadFields("Prod. Order No.", Status);
-        ProdOrderLine.SetRange("Prod. Order No.", ProdOrder."No.");
-        ProdOrderLine.SetRange(Status, ProdOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
         if not ProdOrderLine.FindFirst() then
             exit;
         CalculateProdOrder.Calculate(ProdOrderLine, NewDirection, CalcRoutings, CalcComponents, DeleteRelations, true);
@@ -1059,7 +1059,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// <summary>
     /// Creates production order line from temporary data
     /// </summary>
-    local procedure CreateProdOrderLineFromTemp(var ProdOrderLine: Record "Prod. Order Line"; ProdOrder: Record "Production Order"; TempProdOrderLine: Record "Prod. Order Line" temporary)
+    local procedure CreateProdOrderLineFromTemp(var ProdOrderLine: Record "Prod. Order Line"; ProductionOrder: Record "Production Order"; TempProdOrderLine: Record "Prod. Order Line" temporary)
     var
         Item: Record Item;
         CalculateProdOrder: Codeunit "Calculate Prod. Order";
@@ -1069,14 +1069,14 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
 
         ProdOrderLine.Init();
         ProdOrderLine.SetIgnoreErrors();
-        ProdOrderLine.Status := ProdOrder.Status;
-        ProdOrderLine."Prod. Order No." := ProdOrder."No.";
+        ProdOrderLine.Status := ProductionOrder.Status;
+        ProdOrderLine."Prod. Order No." := ProductionOrder."No.";
         ProdOrderLine."Line No." := TempProdOrderLine."Line No.";
         ProdOrderLine."Routing Reference No." := ProdOrderLine."Line No.";
 
-        ProdOrderLine.Validate("Item No.", ProdOrder."Source No.");
-        ProdOrderLine."Location Code" := ProdOrder."Location Code";
-        ProdOrderLine.Validate("Variant Code", ProdOrder."Variant Code");
+        ProdOrderLine.Validate("Item No.", ProductionOrder."Source No.");
+        ProdOrderLine."Location Code" := ProductionOrder."Location Code";
+        ProdOrderLine.Validate("Variant Code", ProductionOrder."Variant Code");
 
         if not CheckCreateProdOrderCompRtng() then begin
             if BOMNo <> '' then begin
@@ -1091,26 +1091,26 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         end else
             ProdOrderLine."Routing No." := TempProdOrderLine."Routing No.";
 
-        if ProdOrder."Bin Code" <> '' then
-            ProdOrderLine.Validate("Bin Code", ProdOrder."Bin Code")
+        if ProductionOrder."Bin Code" <> '' then
+            ProdOrderLine.Validate("Bin Code", ProductionOrder."Bin Code")
         else
             CalculateProdOrder.SetProdOrderLineBinCodeFromRoute(ProdOrderLine, ProdOrderLine."Location Code", ProdOrderLine."Routing No.");
 
         Item.SetLoadFields("Scrap %", "Inventory Posting Group");
-        Item.Get(ProdOrder."Source No.");
+        Item.Get(ProductionOrder."Source No.");
         ProdOrderLine."Scrap %" := Item."Scrap %";
 
-        ProdOrderLine."Due Date" := ProdOrder."Due Date";
-        ProdOrderLine."Starting Date-Time" := ProdOrder."Starting Date-Time";
-        ProdOrderLine."Ending Date-Time" := ProdOrder."Ending Date-Time";
+        ProdOrderLine."Due Date" := ProductionOrder."Due Date";
+        ProdOrderLine."Starting Date-Time" := ProductionOrder."Starting Date-Time";
+        ProdOrderLine."Ending Date-Time" := ProductionOrder."Ending Date-Time";
         ProdOrderLine."Planning Level Code" := 0;
         ProdOrderLine."Inventory Posting Group" := Item."Inventory Posting Group";
         ProdOrderLine.UpdateDatetime();
         ProdOrderLine.Validate("Unit Cost");
 
-        ProdOrderLine.Description := ProdOrder.Description;
-        ProdOrderLine."Description 2" := ProdOrder."Description 2";
-        ProdOrderLine.Validate(Quantity, ProdOrder.Quantity);
+        ProdOrderLine.Description := ProductionOrder.Description;
+        ProdOrderLine."Description 2" := ProductionOrder."Description 2";
+        ProdOrderLine.Validate(Quantity, ProductionOrder.Quantity);
         ProdOrderLine.UpdateDatetime();
         ProdOrderLine.Insert();
     end;
@@ -1171,28 +1171,28 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// <summary>
     /// Creates production order routing line from temporary data
     /// </summary>
-    local procedure CreateProdOrderRoutingLineFromTemp(var ProdOrderRtngLine: Record "Prod. Order Routing Line"; TempProdOrderRtngLine: Record "Prod. Order Routing Line" temporary; var ProdOrderLine: Record "Prod. Order Line")
+    local procedure CreateProdOrderRoutingLineFromTemp(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary; var ProdOrderLine: Record "Prod. Order Line")
     begin
-        ProdOrderRtngLine.Init();
-        ProdOrderRtngLine.Validate(Status, ProdOrderLine.Status);
-        ProdOrderRtngLine.Validate("Prod. Order No.", ProdOrderLine."Prod. Order No.");
-        ProdOrderRtngLine.Validate("Routing Reference No.", ProdOrderLine."Line No.");
-        ProdOrderRtngLine."Routing No." := ProdOrderLine."Routing No.";
-        ProdOrderRtngLine.Validate("Operation No.", TempProdOrderRtngLine."Operation No.");
-        ProdOrderRtngLine.Insert(true);
+        ProdOrderRoutingLine.Init();
+        ProdOrderRoutingLine.Validate(Status, ProdOrderLine.Status);
+        ProdOrderRoutingLine.Validate("Prod. Order No.", ProdOrderLine."Prod. Order No.");
+        ProdOrderRoutingLine.Validate("Routing Reference No.", ProdOrderLine."Line No.");
+        ProdOrderRoutingLine."Routing No." := ProdOrderLine."Routing No.";
+        ProdOrderRoutingLine.Validate("Operation No.", TempProdOrderRoutingLine."Operation No.");
+        ProdOrderRoutingLine.Insert(true);
 
-        ProdOrderRtngLine."Vendor No. Subc. Price" := TempProdOrderRtngLine."Vendor No. Subc. Price";
-        ProdOrderRtngLine.Validate(Type, TempProdOrderRtngLine.Type);
-        ProdOrderRtngLine.Validate("No.", TempProdOrderRtngLine."No.");
-        ProdOrderRtngLine.Description := TempProdOrderRtngLine.Description;
-        ProdOrderRtngLine."Setup Time" := TempProdOrderRtngLine."Setup Time";
-        ProdOrderRtngLine."Run Time" := TempProdOrderRtngLine."Run Time";
-        ProdOrderRtngLine."Wait Time" := TempProdOrderRtngLine."Wait Time";
-        ProdOrderRtngLine."Move Time" := TempProdOrderRtngLine."Move Time";
-        ProdOrderRtngLine."Ending Date" := TempProdOrderRtngLine."Ending Date";
-        ProdOrderRtngLine."Ending Time" := TempProdOrderRtngLine."Ending Time";
-        ProdOrderRtngLine.UpdateDatetime();
-        ProdOrderRtngLine."Routing Link Code" := TempProdOrderRtngLine."Routing Link Code";
-        ProdOrderRtngLine.Modify(true);
+        ProdOrderRoutingLine."Vendor No. Subc. Price" := TempProdOrderRoutingLine."Vendor No. Subc. Price";
+        ProdOrderRoutingLine.Validate(Type, TempProdOrderRoutingLine.Type);
+        ProdOrderRoutingLine.Validate("No.", TempProdOrderRoutingLine."No.");
+        ProdOrderRoutingLine.Description := TempProdOrderRoutingLine.Description;
+        ProdOrderRoutingLine."Setup Time" := TempProdOrderRoutingLine."Setup Time";
+        ProdOrderRoutingLine."Run Time" := TempProdOrderRoutingLine."Run Time";
+        ProdOrderRoutingLine."Wait Time" := TempProdOrderRoutingLine."Wait Time";
+        ProdOrderRoutingLine."Move Time" := TempProdOrderRoutingLine."Move Time";
+        ProdOrderRoutingLine."Ending Date" := TempProdOrderRoutingLine."Ending Date";
+        ProdOrderRoutingLine."Ending Time" := TempProdOrderRoutingLine."Ending Time";
+        ProdOrderRoutingLine.UpdateDatetime();
+        ProdOrderRoutingLine."Routing Link Code" := TempProdOrderRoutingLine."Routing Link Code";
+        ProdOrderRoutingLine.Modify(true);
     end;
 }

@@ -61,11 +61,11 @@ codeunit 99001534 "Subc. Purchase Line Ext"
             Error(ChangeVariantNoNotAllowedErr, PurchaseLine.FieldCaption(PurchaseLine."Variant Code"), PurchaseLine."Prod. Order No.");
     end;
 
-    local procedure GetSubcontractingPrice(var PurchLine: Record "Purchase Line")
+    local procedure GetSubcontractingPrice(var PurchaseLine: Record "Purchase Line")
     var
         SubcPriceManagement: Codeunit "Subc. Price Management";
     begin
-        if (PurchLine.Type = PurchLine.Type::Item) and (PurchLine."No." <> '') and (PurchLine."Prod. Order No." <> '') and (PurchLine."Operation No." <> '') then
-            SubcPriceManagement.GetSubcPriceForPurchLine(PurchLine);
+        if (PurchaseLine.Type = PurchaseLine.Type::Item) and (PurchaseLine."No." <> '') and (PurchaseLine."Prod. Order No." <> '') and (PurchaseLine."Operation No." <> '') then
+            SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
     end;
 }
