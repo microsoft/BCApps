@@ -17,6 +17,7 @@ codeunit 37312 "PEPPOL30 BE Serv. Validation" implements "PEPPOL30 Validation"
 
     var
         PEPPOL30BESalesValidation: Codeunit "PEPPOL30 BE Sales Validation";
+        PEPPOL30ServiceValidation: Codeunit "PEPPOL30 Service Validation";
 
     procedure ValidateDocument(RecordVariant: Variant)
     var
@@ -24,6 +25,7 @@ codeunit 37312 "PEPPOL30 BE Serv. Validation" implements "PEPPOL30 Validation"
         ServiceHeader: Record "Service Header";
         PEPPOL30Management: Codeunit "PEPPOL30";
     begin
+        // BE-specific: Use BE sales validation for document header (includes Enterprise No. check)
         ServiceHeader := RecordVariant;
         PEPPOL30Management.TransferHeaderToSalesHeader(ServiceHeader, SalesHeader);
         SalesHeader."Shipment Date" := SalesHeader."Posting Date";
@@ -31,97 +33,58 @@ codeunit 37312 "PEPPOL30 BE Serv. Validation" implements "PEPPOL30 Validation"
     end;
 
     procedure ValidateDocumentLines(RecordVariant: Variant)
-    var
-        ServiceHeader: Record "Service Header";
-        ServiceLine: Record "Service Line";
     begin
-        ServiceHeader := RecordVariant;
-        ServiceLine.SetRange("Document Type", ServiceHeader."Document Type");
-        ServiceLine.SetRange("Document No.", ServiceHeader."No.");
-        if ServiceLine.FindSet() then
-            repeat
-                ValidateDocumentLine(ServiceLine)
-            until ServiceLine.Next() = 0;
+        // Delegate to W1 - no BE-specific line validation needed
+        PEPPOL30ServiceValidation.ValidateDocumentLines(RecordVariant);
     end;
 
     procedure ValidateDocumentLine(RecordVariant: Variant)
-    var
-        SalesLine: Record "Sales Line";
-        ServiceLine: Record "Service Line";
-        PEPPOL30Management: Codeunit "PEPPOL30";
     begin
-        ServiceLine := RecordVariant;
-        PEPPOL30Management.TransferLineToSalesLine(ServiceLine, SalesLine);
-        PEPPOL30BESalesValidation.ValidateDocumentLine(SalesLine);
+        // Delegate to W1 - no BE-specific line validation needed
+        PEPPOL30ServiceValidation.ValidateDocumentLine(RecordVariant);
     end;
 
     procedure ValidatePostedDocument(RecordVariant: Variant)
     var
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        SalesHeader: Record "Sales Header";
         DataTypeMgt: Codeunit "Data Type Management";
+        PEPPOL30Management: Codeunit "PEPPOL30";
         RecordRef: RecordRef;
         UnsupportedDocumentErr: Label 'The posted service document type is not supported for PEPPOL 3.0 validation.';
     begin
         if not DataTypeMgt.GetRecordRef(RecordVariant, RecordRef) then
             exit;
 
+        // BE-specific: Validate document header with Enterprise No. check, then delegate line validation to W1
         case RecordRef.Number() of
             Database::"Service Invoice Header":
-                CheckServiceInvoice(RecordVariant);
+                begin
+                    ServiceInvoiceHeader := RecordVariant;
+                    PEPPOL30Management.TransferHeaderToSalesHeader(ServiceInvoiceHeader, SalesHeader);
+                    SalesHeader."Document Type" := SalesHeader."Document Type"::Invoice;
+                    SalesHeader."Shipment Date" := SalesHeader."Posting Date";
+                    PEPPOL30BESalesValidation.ValidateDocument(SalesHeader);
+                    PEPPOL30BESalesValidation.ValidateDocumentLines(SalesHeader);
+                end;
             Database::"Service Cr.Memo Header":
-                CheckServiceCreditMemo(RecordVariant);
+                begin
+                    ServiceCrMemoHeader := RecordVariant;
+                    PEPPOL30Management.TransferHeaderToSalesHeader(ServiceCrMemoHeader, SalesHeader);
+                    SalesHeader."Document Type" := SalesHeader."Document Type"::"Credit Memo";
+                    SalesHeader."Shipment Date" := SalesHeader."Posting Date";
+                    PEPPOL30BESalesValidation.ValidateDocument(SalesHeader);
+                    PEPPOL30BESalesValidation.ValidateDocumentLines(SalesHeader);
+                end;
             else
                 Error(UnsupportedDocumentErr);
         end;
     end;
 
     procedure ValidateLineTypeAndDescription(RecordVariant: Variant): Boolean
-    var
-        SalesLine: Record "Sales Line";
-        ServiceLine: Record "Service Line";
-        PEPPOL30Management: Codeunit "PEPPOL30";
     begin
-        ServiceLine := RecordVariant;
-        PEPPOL30Management.TransferLineToSalesLine(ServiceLine, SalesLine);
-        exit(PEPPOL30BESalesValidation.ValidateLineTypeAndDescription(SalesLine));
-    end;
-
-    local procedure CheckServiceInvoice(ServiceInvoiceHeader: Record "Service Invoice Header")
-    var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        ServiceInvoiceLine: Record "Service Invoice Line";
-        PEPPOL30Management: Codeunit "PEPPOL30";
-    begin
-        PEPPOL30Management.TransferHeaderToSalesHeader(ServiceInvoiceHeader, SalesHeader);
-        SalesHeader."Document Type" := SalesHeader."Document Type"::Invoice;
-        SalesHeader."Shipment Date" := SalesHeader."Posting Date";
-        PEPPOL30BESalesValidation.ValidateDocument(SalesHeader);
-        ServiceInvoiceLine.SetRange("Document No.", ServiceInvoiceHeader."No.");
-        if ServiceInvoiceLine.FindSet() then
-            repeat
-                PEPPOL30Management.TransferLineToSalesLine(ServiceInvoiceLine, SalesLine);
-                SalesLine."Document Type" := SalesLine."Document Type"::Invoice;
-                PEPPOL30BESalesValidation.ValidateDocumentLine(SalesLine);
-            until ServiceInvoiceLine.Next() = 0;
-    end;
-
-    local procedure CheckServiceCreditMemo(ServiceCrMemoHeader: Record "Service Cr.Memo Header")
-    var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        ServiceCrMemoLine: Record "Service Cr.Memo Line";
-        PEPPOL30Management: Codeunit "PEPPOL30";
-    begin
-        PEPPOL30Management.TransferHeaderToSalesHeader(ServiceCrMemoHeader, SalesHeader);
-        SalesHeader."Document Type" := SalesHeader."Document Type"::"Credit Memo";
-        SalesHeader."Shipment Date" := SalesHeader."Posting Date";
-        PEPPOL30BESalesValidation.ValidateDocument(SalesHeader);
-        ServiceCrMemoLine.SetRange("Document No.", ServiceCrMemoHeader."No.");
-        if ServiceCrMemoLine.FindSet() then
-            repeat
-                PEPPOL30Management.TransferLineToSalesLine(ServiceCrMemoLine, SalesLine);
-                SalesLine."Document Type" := SalesLine."Document Type"::"Credit Memo";
-                PEPPOL30BESalesValidation.ValidateDocumentLine(SalesLine);
-            until ServiceCrMemoLine.Next() = 0;
+        // Delegate to W1 - no BE-specific line validation needed
+        exit(PEPPOL30ServiceValidation.ValidateLineTypeAndDescription(RecordVariant));
     end;
 }
