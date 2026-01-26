@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,14 +21,14 @@ using Microsoft.Purchases.Document;
 codeunit 99001508 "Subc. Price Management"
 {
     var
-        SubSetup: Record "Subc. Management Setup";
+        SubcManagementSetup: Record "Subc. Management Setup";
 
     procedure ApplySubcontractorPricingToProdOrderRouting(var ProdOrderLine: Record "Prod. Order Line"; var RoutingLine: Record "Routing Line"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         SubcontractorPrice: Record "Subcontractor Price";
         WorkCenter: Record "Work Center";
     begin
-        if not SubSetup.Get() then
+        if not SubcManagementSetup.Get() then
             exit;
 
         if ProdOrderRoutingLine.Type <> "Capacity Type Routing"::"Work Center" then
@@ -62,12 +62,12 @@ codeunit 99001508 "Subc. Price Management"
           ProdOrderLine."Quantity (Base)");
     end;
 
-    procedure ApplySubcontractorPricingToPlanningRouting(var ReqLine: Record "Requisition Line"; var RoutingLine: Record "Routing Line"; var PlanningRoutingLine: Record "Planning Routing Line")
+    procedure ApplySubcontractorPricingToPlanningRouting(var RequisitionLine: Record "Requisition Line"; var RoutingLine: Record "Routing Line"; var PlanningRoutingLine: Record "Planning Routing Line")
     var
         SubcontractorPrice: Record "Subcontractor Price";
         WorkCenter: Record "Work Center";
     begin
-        if not SubSetup.Get() then
+        if not SubcManagementSetup.Get() then
             exit;
 
         if RoutingLine.Type <> "Capacity Type Routing"::"Work Center" then
@@ -81,12 +81,12 @@ codeunit 99001508 "Subc. Price Management"
         SetSubcontractorPriceForPriceCalculation(
             SubcontractorPrice,
             WorkCenter."Subcontractor No.",
-            ReqLine."No.",
-            ReqLine."Variant Code",
+            RequisitionLine."No.",
+            RequisitionLine."Variant Code",
             PlanningRoutingLine."Standard Task Code",
             WorkCenter."No.",
-            ReqLine."Unit of Measure Code",
-            ReqLine."Order Date");
+            RequisitionLine."Unit of Measure Code",
+            RequisitionLine."Order Date");
 
         SetRoutingPriceListCost(
           SubcontractorPrice,
@@ -96,9 +96,9 @@ codeunit 99001508 "Subc. Price Management"
           PlanningRoutingLine."Overhead Rate",
           PlanningRoutingLine."Unit Cost per",
           PlanningRoutingLine."Unit Cost Calculation",
-          ReqLine.Quantity,
-          ReqLine."Qty. per Unit of Measure",
-          ReqLine."Quantity (Base)");
+          RequisitionLine.Quantity,
+          RequisitionLine."Qty. per Unit of Measure",
+          RequisitionLine."Quantity (Base)");
 
         PlanningRoutingLine.Validate(PlanningRoutingLine."Direct Unit Cost");
 
@@ -108,9 +108,9 @@ codeunit 99001508 "Subc. Price Management"
     procedure CalcStandardCostOnAfterCalcRtngLineCost(RoutingLine: Record "Routing Line"; MfgItemQtyBase: Decimal; var SLSub: Decimal)
     var
         Item: Record Item;
-        MfgSetup: Record "Manufacturing Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
         WorkCenter: Record "Work Center";
-        CostCalculationMgt: Codeunit "Mfg. Cost Calculation Mgt.";
+        MfgCostCalculationMgt: Codeunit "Mfg. Cost Calculation Mgt.";
         SingleInstanceDictionary: Codeunit "Single Instance Dictionary";
         ItemRecordID: RecordId;
         RecRef: RecordRef;
@@ -122,7 +122,7 @@ codeunit 99001508 "Subc. Price Management"
         UnitCost: Decimal;
         UnitCostCalculationType: Enum "Unit Cost Calculation Type";
     begin
-        if not SubSetup.Get() then
+        if not SubcManagementSetup.Get() then
             exit;
 
         if RoutingLine.Type <> "Capacity Type Routing"::"Work Center" then
@@ -156,16 +156,16 @@ codeunit 99001508 "Subc. Price Management"
         UnitCost := RoutingLine."Unit Cost per";
         CalcRtngCostPerUnit(RoutingLine."No.", DirectUnitCost, IndirCostPct, OvhdRate, UnitCost, UnitCostCalculationType, Item, RoutingLine."Standard Task Code", CalculationDate);
 
-        MfgSetup.SetLoadFields("Cost Incl. Setup");
-        MfgSetup.Get();
+        ManufacturingSetup.SetLoadFields("Cost Incl. Setup");
+        ManufacturingSetup.Get();
 
         CostTime :=
-          CostCalculationMgt.CalculateCostTime(
+          MfgCostCalculationMgt.CalculateCostTime(
             MfgItemQtyBase,
             RoutingLine."Setup Time", RoutingLine."Setup Time Unit of Meas. Code",
             RoutingLine."Run Time", RoutingLine."Run Time Unit of Meas. Code", RoutingLine."Lot Size",
             RoutingLine."Scrap Factor % (Accumulated)", RoutingLine."Fixed Scrap Qty. (Accum.)",
-            RoutingLine."Work Center No.", UnitCostCalculationType, MfgSetup."Cost Incl. Setup",
+            RoutingLine."Work Center No.", UnitCostCalculationType, ManufacturingSetup."Cost Incl. Setup",
             RoutingLine."Concurrent Capacities");
         SLSub := (CostTime * DirectUnitCost);
 
@@ -203,33 +203,33 @@ codeunit 99001508 "Subc. Price Management"
             1);
     end;
 
-    procedure GetSubcPriceList(var ProdOrderRtngLine: Record "Prod. Order Routing Line")
+    procedure GetSubcPriceList(var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         ProdOrderLine: Record "Prod. Order Line";
         SubcontractorPrice: Record "Subcontractor Price";
         WorkCenter: Record "Work Center";
         VendorNo: Code[20];
     begin
-        if (ProdOrderRtngLine.Type <> "Capacity Type"::"Work Center") then
+        if (ProdOrderRoutingLine.Type <> "Capacity Type"::"Work Center") then
             exit;
 
-        WorkCenter.Get(ProdOrderRtngLine."No.");
+        WorkCenter.Get(ProdOrderRoutingLine."No.");
 
-        if (WorkCenter."Subcontractor No." = '') and (ProdOrderRtngLine."Vendor No. Subc. Price" = '') then
+        if (WorkCenter."Subcontractor No." = '') and (ProdOrderRoutingLine."Vendor No. Subc. Price" = '') then
             exit;
 
         VendorNo := WorkCenter."Subcontractor No.";
-        if ProdOrderRtngLine."Vendor No. Subc. Price" <> '' then
-            VendorNo := ProdOrderRtngLine."Vendor No. Subc. Price";
+        if ProdOrderRoutingLine."Vendor No. Subc. Price" <> '' then
+            VendorNo := ProdOrderRoutingLine."Vendor No. Subc. Price";
 
-        GetLine(ProdOrderLine, ProdOrderRtngLine);
+        GetLine(ProdOrderLine, ProdOrderRoutingLine);
 
         SetSubcontractorPriceForPriceCalculation(
             SubcontractorPrice,
             VendorNo,
             ProdOrderLine."Item No.",
             ProdOrderLine."Variant Code",
-            ProdOrderRtngLine."Standard Task Code",
+            ProdOrderRoutingLine."Standard Task Code",
             WorkCenter."No.",
             ProdOrderLine."Unit of Measure Code",
             WorkDate());
@@ -237,28 +237,28 @@ codeunit 99001508 "Subc. Price Management"
         SetRoutingPriceListCost(
             SubcontractorPrice,
             WorkCenter,
-            ProdOrderRtngLine."Direct Unit Cost",
-            ProdOrderRtngLine."Indirect Cost %",
-            ProdOrderRtngLine."Overhead Rate",
-            ProdOrderRtngLine."Unit Cost per",
-            ProdOrderRtngLine."Unit Cost Calculation",
+            ProdOrderRoutingLine."Direct Unit Cost",
+            ProdOrderRoutingLine."Indirect Cost %",
+            ProdOrderRoutingLine."Overhead Rate",
+            ProdOrderRoutingLine."Unit Cost per",
+            ProdOrderRoutingLine."Unit Cost Calculation",
             ProdOrderLine.Quantity,
             ProdOrderLine."Qty. per Unit of Measure",
             ProdOrderLine."Quantity (Base)");
     end;
 
-    local procedure GetLine(var ProdOrderLine: Record "Prod. Order Line"; ProdOrderRtngLine: Record "Prod. Order Routing Line")
+    local procedure GetLine(var ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     begin
-        ProdOrderLine.SetRange(Status, ProdOrderRtngLine.Status);
-        ProdOrderLine.SetRange("Prod. Order No.", ProdOrderRtngLine."Prod. Order No.");
-        ProdOrderLine.SetRange("Routing No.", ProdOrderRtngLine."Routing No.");
-        ProdOrderLine.SetRange("Routing Reference No.", ProdOrderRtngLine."Routing Reference No.");
+        ProdOrderLine.SetRange(Status, ProdOrderRoutingLine.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        ProdOrderLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
+        ProdOrderLine.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
         ProdOrderLine.FindFirst();
     end;
 
-    procedure SetRoutingPriceListCost(var InSubcPrices: Record "Subcontractor Price"; WorkCenter: Record "Work Center"; var DirUnitCost: Decimal; var IndirCostPct: Decimal; var OvhdRate: Decimal; var UnitCost: Decimal; var UnitCostCalculationType: Enum "Unit Cost Calculation Type"; QtyUoM: Decimal; ProdQtyPerUom: Decimal; QtyBase: Decimal)
+    procedure SetRoutingPriceListCost(var InSubcontractorPrice: Record "Subcontractor Price"; WorkCenter: Record "Work Center"; var DirUnitCost: Decimal; var IndirCostPct: Decimal; var OvhdRate: Decimal; var UnitCost: Decimal; var UnitCostCalculationType: Enum "Unit Cost Calculation Type"; QtyUoM: Decimal; ProdQtyPerUom: Decimal; QtyBase: Decimal)
     var
-        GLSetup: Record "General Ledger Setup";
+        GeneralLedgerSetup: Record "General Ledger Setup";
         SubcontractorPrice: Record "Subcontractor Price";
         PriceListUOM: Code[10];
         DirectCost: Decimal;
@@ -282,64 +282,64 @@ codeunit 99001508 "Subc. Price Management"
             UnitCost := WorkCenter."Unit Cost";
         end;
 
-        if InSubcPrices."Starting Date" = 0D then
-            InSubcPrices."Starting Date" := WorkDate();
+        if InSubcontractorPrice."Starting Date" = 0D then
+            InSubcontractorPrice."Starting Date" := WorkDate();
 
         SubcontractorPrice.Reset();
-        SubcontractorPrice.SetRange("Vendor No.", InSubcPrices."Vendor No.");
-        SubcontractorPrice.SetFilter("Work Center No.", '%1|%2', InSubcPrices."Work Center No.", '');
-        SubcontractorPrice.SetRange("Standard Task Code", InSubcPrices."Standard Task Code");
-        SubcontractorPrice.SetFilter("Item No.", '%1|%2', InSubcPrices."Item No.", '');
-        SubcontractorPrice.SetFilter("Variant Code", '%1|%2', InSubcPrices."Variant Code", '');
-        SubcontractorPrice.SetRange("Starting Date", 0D, InSubcPrices."Starting Date");
-        SubcontractorPrice.SetFilter("Ending Date", '>=%1|%2', InSubcPrices."Starting Date", 0D);
+        SubcontractorPrice.SetRange("Vendor No.", InSubcontractorPrice."Vendor No.");
+        SubcontractorPrice.SetFilter("Work Center No.", '%1|%2', InSubcontractorPrice."Work Center No.", '');
+        SubcontractorPrice.SetRange("Standard Task Code", InSubcontractorPrice."Standard Task Code");
+        SubcontractorPrice.SetFilter("Item No.", '%1|%2', InSubcontractorPrice."Item No.", '');
+        SubcontractorPrice.SetFilter("Variant Code", '%1|%2', InSubcontractorPrice."Variant Code", '');
+        SubcontractorPrice.SetRange("Starting Date", 0D, InSubcontractorPrice."Starting Date");
+        SubcontractorPrice.SetFilter("Ending Date", '>=%1|%2', InSubcontractorPrice."Starting Date", 0D);
         if SubcontractorPrice.FindLast() then begin
-            if SubcontractorPrice."Unit of Measure Code" = InSubcPrices."Unit of Measure Code" then begin
+            if SubcontractorPrice."Unit of Measure Code" = InSubcontractorPrice."Unit of Measure Code" then begin
                 PriceListQtyPerUOM := ProdQtyPerUom;
                 PriceListQty := QtyUoM;
                 PriceListUOM := SubcontractorPrice."Unit of Measure Code";
             end else
-                GetUOMPrice(InSubcPrices."Item No.", QtyBase, SubcontractorPrice, PriceListUOM, PriceListQtyPerUOM, PriceListQty);
+                GetUOMPrice(InSubcontractorPrice."Item No.", QtyBase, SubcontractorPrice, PriceListUOM, PriceListQtyPerUOM, PriceListQty);
 
             GetPriceByUOM(SubcontractorPrice, PriceListQty, PriceListCost);
             if PriceListCost <> 0 then begin
-                ConvertPriceToUOM(InSubcPrices."Unit of Measure Code", ProdQtyPerUom, PriceListUOM, PriceListQtyPerUOM, PriceListCost, DirectCost);
+                ConvertPriceToUOM(InSubcontractorPrice."Unit of Measure Code", ProdQtyPerUom, PriceListUOM, PriceListQtyPerUOM, PriceListCost, DirectCost);
                 if SubcontractorPrice."Currency Code" <> '' then
-                    ConvertPriceFromCurrency(SubcontractorPrice."Currency Code", InSubcPrices."Starting Date", DirectCost);
-                GLSetup.Get();
-                DirectCost := Round(DirectCost, GLSetup."Unit-Amount Rounding Precision");
+                    ConvertPriceFromCurrency(SubcontractorPrice."Currency Code", InSubcontractorPrice."Starting Date", DirectCost);
+                GeneralLedgerSetup.Get();
+                DirectCost := Round(DirectCost, GeneralLedgerSetup."Unit-Amount Rounding Precision");
                 DirUnitCost := DirectCost;
                 UnitCost := (DirUnitCost * (1 + IndirCostPct / 100) + OvhdRate);
             end;
         end;
     end;
 
-    local procedure GetUOMPrice(ItemNo: Code[20]; QtyBase: Decimal; SubCPrice: Record "Subcontractor Price"; var PriceListUOM: Code[10]; var PriceListQtyPerUOM: Decimal; var PriceListQty: Decimal)
+    local procedure GetUOMPrice(ItemNo: Code[20]; QtyBase: Decimal; SubcontractorPrice: Record "Subcontractor Price"; var PriceListUOM: Code[10]; var PriceListQtyPerUOM: Decimal; var PriceListQty: Decimal)
     var
         Item: Record Item;
-        UOMMgt: Codeunit "Unit of Measure Management";
+        UnitofMeasureManagement: Codeunit "Unit of Measure Management";
     begin
         Item.SetLoadFields("Base Unit of Measure");
         Item.Get(ItemNo);
-        PriceListQtyPerUOM := UOMMgt.GetQtyPerUnitOfMeasure(Item, SubCPrice."Unit of Measure Code");
+        PriceListQtyPerUOM := UnitofMeasureManagement.GetQtyPerUnitOfMeasure(Item, SubcontractorPrice."Unit of Measure Code");
 
-        if (PriceListQtyPerUOM = 1) and (SubCPrice."Unit of Measure Code" = '') then
+        if (PriceListQtyPerUOM = 1) and (SubcontractorPrice."Unit of Measure Code" = '') then
             PriceListUOM := Item."Base Unit of Measure"
         else
-            PriceListUOM := SubCPrice."Unit of Measure Code";
+            PriceListUOM := SubcontractorPrice."Unit of Measure Code";
 
         PriceListQty := QtyBase / PriceListQtyPerUOM;
     end;
 
-    local procedure GetPriceByUOM(var SubCPrice: Record "Subcontractor Price"; PriceListQty: Decimal; var PriceListCost: Decimal)
+    local procedure GetPriceByUOM(var SubcontractorPrice: Record "Subcontractor Price"; PriceListQty: Decimal; var PriceListCost: Decimal)
     begin
-        SubCPrice.SetRange(SubCPrice."Minimum Quantity", 0, PriceListQty);
-        SubCPrice.SetRange(SubCPrice."Unit of Measure Code", SubCPrice."Unit of Measure Code");
-        if SubCPrice.FindLast() then begin
-            PriceListCost := SubCPrice."Direct Unit Cost";
+        SubcontractorPrice.SetRange(SubcontractorPrice."Minimum Quantity", 0, PriceListQty);
+        SubcontractorPrice.SetRange(SubcontractorPrice."Unit of Measure Code", SubcontractorPrice."Unit of Measure Code");
+        if SubcontractorPrice.FindLast() then begin
+            PriceListCost := SubcontractorPrice."Direct Unit Cost";
             if PriceListCost <> 0 then
-                if (PriceListCost * PriceListQty) < SubCPrice."Minimum Amount" then
-                    PriceListCost := SubCPrice."Minimum Amount" / PriceListQty;
+                if (PriceListCost * PriceListQty) < SubcontractorPrice."Minimum Amount" then
+                    PriceListCost := SubcontractorPrice."Minimum Amount" / PriceListQty;
         end;
     end;
 
@@ -354,35 +354,35 @@ codeunit 99001508 "Subc. Price Management"
 
     local procedure ConvertPriceToCurrency(TargetCurrencyCode: Code[10]; PriceListCurrencyCode: Code[10]; PriceListCost: Decimal; var DirectCost: Decimal)
     var
-        TargetCurrency: Record Currency;
-        CurrExchRate: Record "Currency Exchange Rate";
-        GLSetup: Record "General Ledger Setup";
+        Currency: Record Currency;
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        GeneralLedgerSetup: Record "General Ledger Setup";
         UnitAmtRngPrecision: Decimal;
     begin
         if TargetCurrencyCode = '' then begin
-            GLSetup.SetLoadFields("Unit-Amount Rounding Precision");
-            GLSetup.Get();
-            UnitAmtRngPrecision := GLSetup."Unit-Amount Rounding Precision";
+            GeneralLedgerSetup.SetLoadFields("Unit-Amount Rounding Precision");
+            GeneralLedgerSetup.Get();
+            UnitAmtRngPrecision := GeneralLedgerSetup."Unit-Amount Rounding Precision";
         end else begin
-            TargetCurrency.SetLoadFields("Unit-Amount Rounding Precision");
-            TargetCurrency.Get(TargetCurrencyCode);
-            TargetCurrency.TestField("Unit-Amount Rounding Precision");
-            UnitAmtRngPrecision := TargetCurrency."Unit-Amount Rounding Precision";
+            Currency.SetLoadFields("Unit-Amount Rounding Precision");
+            Currency.Get(TargetCurrencyCode);
+            Currency.TestField("Unit-Amount Rounding Precision");
+            UnitAmtRngPrecision := Currency."Unit-Amount Rounding Precision";
         end;
 
         case true of
             TargetCurrencyCode = PriceListCurrencyCode:
                 DirectCost := Round(DirectCost, UnitAmtRngPrecision);
             (TargetCurrencyCode <> '') and (PriceListCurrencyCode = ''):
-                DirectCost := CurrExchRate.ExchangeAmtLCYToFCY(
+                DirectCost := CurrencyExchangeRate.ExchangeAmtLCYToFCY(
                     WorkDate(), TargetCurrencyCode, PriceListCost,
-                    CurrExchRate.ExchangeRate(WorkDate(), TargetCurrencyCode));
+                    CurrencyExchangeRate.ExchangeRate(WorkDate(), TargetCurrencyCode));
             (TargetCurrencyCode = '') and (PriceListCurrencyCode <> ''):
-                DirectCost := CurrExchRate.ExchangeAmtFCYToLCY(
+                DirectCost := CurrencyExchangeRate.ExchangeAmtFCYToLCY(
                     WorkDate(), PriceListCurrencyCode, PriceListCost,
-                    CurrExchRate.ExchangeRate(WorkDate(), PriceListCurrencyCode));
+                    CurrencyExchangeRate.ExchangeRate(WorkDate(), PriceListCurrencyCode));
             (TargetCurrencyCode <> '') and (PriceListCurrencyCode <> ''):
-                DirectCost := CurrExchRate.ExchangeAmtFCYToFCY(
+                DirectCost := CurrencyExchangeRate.ExchangeAmtFCYToFCY(
                     WorkDate(), PriceListCurrencyCode, TargetCurrencyCode, PriceListCost);
         end;
 
@@ -392,15 +392,15 @@ codeunit 99001508 "Subc. Price Management"
     local procedure ConvertPriceFromCurrency(CurrencyCode: Code[10]; OrderDate: Date; var DirectCost: Decimal)
     var
         Currency: Record Currency;
-        CurrExchRate: Record "Currency Exchange Rate";
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
     begin
         Currency.Get(CurrencyCode);
-        DirectCost := CurrExchRate.ExchangeAmtFCYToLCY(
+        DirectCost := CurrencyExchangeRate.ExchangeAmtFCYToLCY(
             OrderDate, CurrencyCode, DirectCost,
-            CurrExchRate.ExchangeRate(OrderDate, CurrencyCode));
+            CurrencyExchangeRate.ExchangeRate(OrderDate, CurrencyCode));
     end;
 
-    procedure GetSubcPriceForReqLine(var ReqLine: Record "Requisition Line"; FixedUOM: Code[10])
+    procedure GetSubcPriceForReqLine(var RequisitionLine: Record "Requisition Line"; FixedUOM: Code[10])
     var
         SubcontractorPrice: Record "Subcontractor Price";
         PriceListUOM: Code[10];
@@ -410,103 +410,103 @@ codeunit 99001508 "Subc. Price Management"
         PriceListQty: Decimal;
         PriceListQtyPerUOM: Decimal;
     begin
-        OrderDate := ReqLine."Order Date";
+        OrderDate := RequisitionLine."Order Date";
         if OrderDate = 0D then
             OrderDate := WorkDate();
 
-        SubcontractorPrice.SetRange("Vendor No.", ReqLine."Vendor No.");
-        SubcontractorPrice.SetFilter("Work Center No.", '%1|%2', ReqLine."Work Center No.", '');
-        SubcontractorPrice.SetRange("Standard Task Code", ReqLine."Standard Task Code");
-        SubcontractorPrice.SetRange("Variant Code", ReqLine."Variant Code");
-        SubcontractorPrice.SetFilter("Item No.", '%1|%2', ReqLine."No.", '');
+        SubcontractorPrice.SetRange("Vendor No.", RequisitionLine."Vendor No.");
+        SubcontractorPrice.SetFilter("Work Center No.", '%1|%2', RequisitionLine."Work Center No.", '');
+        SubcontractorPrice.SetRange("Standard Task Code", RequisitionLine."Standard Task Code");
+        SubcontractorPrice.SetRange("Variant Code", RequisitionLine."Variant Code");
+        SubcontractorPrice.SetFilter("Item No.", '%1|%2', RequisitionLine."No.", '');
         SubcontractorPrice.SetRange("Starting Date", 0D, OrderDate);
         SubcontractorPrice.SetFilter("Ending Date", '>=%1|%2', OrderDate, 0D);
-        SubcontractorPrice.SetFilter("Currency Code", '%1|%2', ReqLine."Currency Code", '');
+        SubcontractorPrice.SetFilter("Currency Code", '%1|%2', RequisitionLine."Currency Code", '');
 
         if FixedUOM <> '' then
             SubcontractorPrice.SetRange("Unit of Measure Code", FixedUOM);
 
         if SubcontractorPrice.FindLast() then begin
-            if SubcontractorPrice."Unit of Measure Code" = ReqLine."Unit of Measure Code" then begin
-                PriceListQtyPerUOM := ReqLine.GetQuantityForUOM();
-                PriceListQty := ReqLine.Quantity;
-                PriceListUOM := ReqLine."Unit of Measure Code";
+            if SubcontractorPrice."Unit of Measure Code" = RequisitionLine."Unit of Measure Code" then begin
+                PriceListQtyPerUOM := RequisitionLine.GetQuantityForUOM();
+                PriceListQty := RequisitionLine.Quantity;
+                PriceListUOM := RequisitionLine."Unit of Measure Code";
             end else
-                GetUOMPrice(ReqLine."No.", ReqLine.GetQuantityBase(), SubcontractorPrice, PriceListUOM, PriceListQtyPerUOM, PriceListQty);
+                GetUOMPrice(RequisitionLine."No.", RequisitionLine.GetQuantityBase(), SubcontractorPrice, PriceListUOM, PriceListQtyPerUOM, PriceListQty);
 
             GetPriceByUOM(SubcontractorPrice, PriceListQty, PriceListCost);
             if PriceListCost <> 0 then begin
-                ConvertPriceToUOM(ReqLine."Unit of Measure Code", ReqLine.GetQuantityBase(), PriceListUOM, PriceListQtyPerUOM, PriceListCost, DirectCost);
-                ConvertPriceToCurrency(ReqLine."Currency Code", SubcontractorPrice."Currency Code", PriceListCost, DirectCost);
+                ConvertPriceToUOM(RequisitionLine."Unit of Measure Code", RequisitionLine.GetQuantityBase(), PriceListUOM, PriceListQtyPerUOM, PriceListCost, DirectCost);
+                ConvertPriceToCurrency(RequisitionLine."Currency Code", SubcontractorPrice."Currency Code", PriceListCost, DirectCost);
             end;
-            ReqLine."Direct Unit Cost" := DirectCost;
-            ReqLine."Pricelist Cost" := PriceListCost;
-            ReqLine."UoM for Pricelist" := PriceListUOM;
-            ReqLine."Base UM Qty/PL UM Qty" := PriceListQtyPerUOM;
-            if ReqLine."Base UM Qty/PL UM Qty" = 0 then
-                ReqLine."Base UM Qty/PL UM Qty" := 1;
-            if ReqLine."Unit of Measure Code" = ReqLine."UoM for Pricelist" then
-                ReqLine."PL UM Qty/Base UM Qty" := ReqLine.Quantity
+            RequisitionLine."Direct Unit Cost" := DirectCost;
+            RequisitionLine."Pricelist Cost" := PriceListCost;
+            RequisitionLine."UoM for Pricelist" := PriceListUOM;
+            RequisitionLine."Base UM Qty/PL UM Qty" := PriceListQtyPerUOM;
+            if RequisitionLine."Base UM Qty/PL UM Qty" = 0 then
+                RequisitionLine."Base UM Qty/PL UM Qty" := 1;
+            if RequisitionLine."Unit of Measure Code" = RequisitionLine."UoM for Pricelist" then
+                RequisitionLine."PL UM Qty/Base UM Qty" := RequisitionLine.Quantity
             else
-                ReqLine."PL UM Qty/Base UM Qty" := ReqLine.GetQuantityBase() / ReqLine."Base UM Qty/PL UM Qty";
-            if ReqLine."PL UM Qty/Base UM Qty" = 0 then
-                ReqLine."PL UM Qty/Base UM Qty" := 1;
+                RequisitionLine."PL UM Qty/Base UM Qty" := RequisitionLine.GetQuantityBase() / RequisitionLine."Base UM Qty/PL UM Qty";
+            if RequisitionLine."PL UM Qty/Base UM Qty" = 0 then
+                RequisitionLine."PL UM Qty/Base UM Qty" := 1;
         end;
     end;
 
-    procedure GetSubcPriceForPurchLine(var PurchLine: Record "Purchase Line")
+    procedure GetSubcPriceForPurchLine(var PurchaseLine: Record "Purchase Line")
     var
-        ProdOrderRtngLine: Record "Prod. Order Routing Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         SubcontractorPrice: Record "Subcontractor Price";
         PriceListUOM: Code[10];
         OrderDate: Date;
         DirectCost, PriceListCost, PriceListQty, PriceListQtyPerUOM : Decimal;
     begin
-        OrderDate := PurchLine."Order Date";
+        OrderDate := PurchaseLine."Order Date";
         if OrderDate = 0D then
             OrderDate := WorkDate();
 
-        SubcontractorPrice.SetRange("Vendor No.", PurchLine."Buy-from Vendor No.");
-        SubcontractorPrice.SetFilter("Work Center No.", '%1|%2', PurchLine."Work Center No.", '');
-        SubcontractorPrice.SetRange("Variant Code", PurchLine."Variant Code");
-        SubcontractorPrice.SetFilter("Item No.", '%1|%2', PurchLine."No.", '');
+        SubcontractorPrice.SetRange("Vendor No.", PurchaseLine."Buy-from Vendor No.");
+        SubcontractorPrice.SetFilter("Work Center No.", '%1|%2', PurchaseLine."Work Center No.", '');
+        SubcontractorPrice.SetRange("Variant Code", PurchaseLine."Variant Code");
+        SubcontractorPrice.SetFilter("Item No.", '%1|%2', PurchaseLine."No.", '');
 
-        GetProdOrderRtngLine(PurchLine."Prod. Order No.", PurchLine."Routing Reference No.", PurchLine."Routing No.", PurchLine."Operation No.", ProdOrderRtngLine);
+        GetProdOrderRtngLine(PurchaseLine."Prod. Order No.", PurchaseLine."Routing Reference No.", PurchaseLine."Routing No.", PurchaseLine."Operation No.", ProdOrderRoutingLine);
 
-        SubcontractorPrice.SetFilter("Standard Task Code", '%1|%2', ProdOrderRtngLine."Standard Task Code", '');
+        SubcontractorPrice.SetFilter("Standard Task Code", '%1|%2', ProdOrderRoutingLine."Standard Task Code", '');
         SubcontractorPrice.SetRange("Starting Date", 0D, OrderDate);
         SubcontractorPrice.SetFilter("Ending Date", '>=%1|%2', OrderDate, 0D);
-        SubcontractorPrice.SetFilter("Currency Code", '%1|%2', PurchLine."Currency Code", '');
-        SubcontractorPrice.SetFilter("Unit of Measure Code", '%1|%2', PurchLine."Unit of Measure Code", '');
+        SubcontractorPrice.SetFilter("Currency Code", '%1|%2', PurchaseLine."Currency Code", '');
+        SubcontractorPrice.SetFilter("Unit of Measure Code", '%1|%2', PurchaseLine."Unit of Measure Code", '');
 
         if SubcontractorPrice.FindLast() then begin
-            if SubcontractorPrice."Unit of Measure Code" = PurchLine."Unit of Measure Code" then
+            if SubcontractorPrice."Unit of Measure Code" = PurchaseLine."Unit of Measure Code" then
                 PriceListUOM := SubcontractorPrice."Unit of Measure Code";
-            GetUOMPrice(PurchLine."No.", GetQuantityBase(PurchLine), SubcontractorPrice, PriceListUOM, PriceListQtyPerUOM, PriceListQty);
+            GetUOMPrice(PurchaseLine."No.", GetQuantityBase(PurchaseLine), SubcontractorPrice, PriceListUOM, PriceListQtyPerUOM, PriceListQty);
             GetPriceByUOM(SubcontractorPrice, PriceListQty, PriceListCost);
             if PriceListCost <> 0 then begin
-                ConvertPriceToUOM(PurchLine."Unit of Measure Code", PurchLine.GetQuantityPerUOM(), PriceListUOM, PriceListQtyPerUOM, PriceListCost, DirectCost);
-                ConvertPriceToCurrency(PurchLine."Currency Code", SubcontractorPrice."Currency Code", PriceListCost, DirectCost)
+                ConvertPriceToUOM(PurchaseLine."Unit of Measure Code", PurchaseLine.GetQuantityPerUOM(), PriceListUOM, PriceListQtyPerUOM, PriceListCost, DirectCost);
+                ConvertPriceToCurrency(PurchaseLine."Currency Code", SubcontractorPrice."Currency Code", PriceListCost, DirectCost)
             end;
         end else begin
-            GetUOMPrice(PurchLine."No.", PurchLine.GetQuantityBase(), SubcontractorPrice, PriceListUOM, PriceListQtyPerUOM, PriceListQty);
-            ProdOrderRtngLine.TestField(Type, "Capacity Type"::"Work Center");
-            DirectCost := ProdOrderRtngLine."Direct Unit Cost";
+            GetUOMPrice(PurchaseLine."No.", PurchaseLine.GetQuantityBase(), SubcontractorPrice, PriceListUOM, PriceListQtyPerUOM, PriceListQty);
+            ProdOrderRoutingLine.TestField(Type, "Capacity Type"::"Work Center");
+            DirectCost := ProdOrderRoutingLine."Direct Unit Cost";
         end;
 
-        PurchLine."Direct Unit Cost" := DirectCost;
-        PurchLine.Validate("Line Discount %");
+        PurchaseLine."Direct Unit Cost" := DirectCost;
+        PurchaseLine.Validate("Line Discount %");
     end;
 
-    local procedure GetProdOrderRtngLine(ProdOrderNo: Code[20]; RtngRefNo: Integer; RoutingNo: Code[20]; OperationNo: Code[10]; var ProdOrderRtngLine: Record "Prod. Order Routing Line")
+    local procedure GetProdOrderRtngLine(ProdOrderNo: Code[20]; RtngRefNo: Integer; RoutingNo: Code[20]; OperationNo: Code[10]; var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     begin
-        ProdOrderRtngLine.SetFilter(Status, '%1|%2', ProdOrderRtngLine.Status::Released, ProdOrderRtngLine.Status::Finished);
-        ProdOrderRtngLine.SetRange("Prod. Order No.", ProdOrderNo);
-        ProdOrderRtngLine.SetRange("Routing Reference No.", RtngRefNo);
-        ProdOrderRtngLine.SetRange("Routing No.", RoutingNo);
-        ProdOrderRtngLine.SetRange("Operation No.", OperationNo);
+        ProdOrderRoutingLine.SetFilter(Status, '%1|%2', ProdOrderRoutingLine.Status::Released, ProdOrderRoutingLine.Status::Finished);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderNo);
+        ProdOrderRoutingLine.SetRange("Routing Reference No.", RtngRefNo);
+        ProdOrderRoutingLine.SetRange("Routing No.", RoutingNo);
+        ProdOrderRoutingLine.SetRange("Operation No.", OperationNo);
 
-        ProdOrderRtngLine.FindFirst();
+        ProdOrderRoutingLine.FindFirst();
     end;
 
     local procedure SetSubcontractorPriceForPriceCalculation(var SubcontractorPrice: Record "Subcontractor Price"; VendorNo: Code[20]; ItemNo: Code[20]; VariantCode: Code[10]; StandardTaskCode: Code[10]; WorkCenterNo: Code[20]; UoM: Code[10]; StartingDate: Date)
@@ -521,11 +521,11 @@ codeunit 99001508 "Subc. Price Management"
         SubcontractorPrice."Currency Code" := '';
     end;
 
-    local procedure GetQuantityBase(var PurchLine: Record "Purchase Line"): Decimal
+    local procedure GetQuantityBase(var PurchaseLine: Record "Purchase Line"): Decimal
     var
-        ItemUOM: Record "Item Unit of Measure";
+        ItemUnitofMeasure: Record "Item Unit of Measure";
     begin
-        ItemUOM.Get(PurchLine."No.", PurchLine."Unit of Measure Code");
-        exit(Round(PurchLine.Quantity * ItemUOM."Qty. per Unit of Measure", 0.00001));
+        ItemUnitofMeasure.Get(PurchaseLine."No.", PurchaseLine."Unit of Measure Code");
+        exit(Round(PurchaseLine.Quantity * ItemUnitofMeasure."Qty. per Unit of Measure", 0.00001));
     end;
 }

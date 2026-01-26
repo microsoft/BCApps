@@ -78,12 +78,27 @@ codeunit 4329 "Agent User Feedback"
     end;
 
     [Scope('OnPrem')]
-    procedure RequestFeedback(FeatureName: Text; ContextProperties: Dictionary of [Text, Text])
+    procedure RequestFeedback(FeatureName: Text; Context: Dictionary of [Text, Text])
     var
         MicrosoftUserFeedback: Codeunit "Microsoft User Feedback";
         EmptyContextFiles: Dictionary of [Text, Text];
+        FeedbackType: Text;
+        CopilotThumbsUpTok: Label 'Copilot.ThumbsUp', Locked = true;
+        CopilotThumbsDownTok: Label 'Copilot.ThumbsDown', Locked = true;
+        FeedbackTypeTok: Label 'Feedback.Type', Locked = true;
     begin
         MicrosoftUserFeedback.SetIsAIFeedback(true);
-        MicrosoftUserFeedback.RequestFeedback(FeatureName, AgentFeatureAreaTok, AgentFeatureDisplayNameTok, EmptyContextFiles, ContextProperties);
+
+        if Context.ContainsKey(FeedbackTypeTok) then
+            FeedbackType := Context.Get(FeedbackTypeTok);
+
+        case FeedbackType of
+            CopilotThumbsUpTok:
+                MicrosoftUserFeedback.RequestLikeFeedback(FeatureName, AgentFeatureAreaTok, AgentFeatureDisplayNameTok, EmptyContextFiles, Context);
+            CopilotThumbsDownTok:
+                MicrosoftUserFeedback.RequestDislikeFeedback(FeatureName, AgentFeatureAreaTok, AgentFeatureDisplayNameTok, EmptyContextFiles, Context);
+            else
+                MicrosoftUserFeedback.RequestFeedback(FeatureName, AgentFeatureAreaTok, AgentFeatureDisplayNameTok, EmptyContextFiles, Context);
+        end;
     end;
 }

@@ -219,6 +219,11 @@ table 6100 "E-Document Purchase Header"
             Caption = 'Vendor Contact Name';
             DataClassification = CustomerContent;
         }
+        field(38; "Posting Description"; Text[100])
+        {
+            Caption = 'Posting Description';
+            DataClassification = CustomerContent;
+        }
         #endregion Purchase fields
 
         #region Business Central Data - Validated fields [101-200]

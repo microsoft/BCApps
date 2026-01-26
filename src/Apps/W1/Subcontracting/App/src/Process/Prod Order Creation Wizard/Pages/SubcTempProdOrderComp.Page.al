@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -80,11 +80,11 @@ page 99001508 "Subc. Temp Prod Order Comp"
 
                         if (Rec."Routing Link Code" = '') and (Rec."Subcontracting Type" <> Rec."Subcontracting Type"::Empty) then begin
                             GetSubManagementSetup();
-                            Rec."Routing Link Code" := SubManagementSetup."Rtng. Link Code Purch. Prov.";
+                            Rec."Routing Link Code" := SubcManagementSetup."Rtng. Link Code Purch. Prov.";
                         end;
 
                         if Rec."Subcontracting Type" <> Rec."Subcontracting Type"::Transfer then
-                            Rec.Validate("Location Code", CopyStr(SingleInstance.GetCode('SetSubcontractingLocationCodeFromVendor'), 1, MaxStrLen(Rec."Location Code")))
+                            Rec.Validate("Location Code", CopyStr(SingleInstanceDictionary.GetCode('SetSubcontractingLocationCodeFromVendor'), 1, MaxStrLen(Rec."Location Code")))
                         else
                             Rec.Validate("Location Code", Rec."Orig. Location Code");
                     end;
@@ -109,8 +109,8 @@ page 99001508 "Subc. Temp Prod Order Comp"
 
         if PresetSubValues then begin
             GetSubManagementSetup();
-            Rec."Routing Link Code" := SubManagementSetup."Rtng. Link Code Purch. Prov.";
-            Rec."Flushing Method" := SubManagementSetup."Def. provision flushing method";
+            Rec."Routing Link Code" := SubcManagementSetup."Rtng. Link Code Purch. Prov.";
+            Rec."Flushing Method" := SubcManagementSetup."Def. provision flushing method";
         end;
     end;
 
@@ -138,8 +138,8 @@ page 99001508 "Subc. Temp Prod Order Comp"
         LinesChanged: Boolean;
 
     var
-        SubManagementSetup: Record "Subc. Management Setup";
-        SingleInstance: Codeunit "Single Instance Dictionary";
+        SubcManagementSetup: Record "Subc. Management Setup";
+        SingleInstanceDictionary: Codeunit "Single Instance Dictionary";
         PresetSubValues: Boolean;
         SubManagementSetupRead: Boolean;
 
@@ -162,8 +162,8 @@ page 99001508 "Subc. Temp Prod Order Comp"
     local procedure GetSubManagementSetup()
     begin
         if not SubManagementSetupRead then begin
-            SubManagementSetup.SetLoadFields("Rtng. Link Code Purch. Prov.", "Def. provision flushing method");
-            SubManagementSetup.Get();
+            SubcManagementSetup.SetLoadFields("Rtng. Link Code Purch. Prov.", "Def. provision flushing method");
+            SubcManagementSetup.Get();
             SubManagementSetupRead := true;
         end;
     end;

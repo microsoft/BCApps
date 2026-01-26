@@ -394,6 +394,8 @@ codeunit 6103 "E-Document Subscribers"
         EDocImportParameters."Step to Run / Desired Status" := EDocImportParameters."Step to Run / Desired Status"::"Desired E-Document Status";
         EDocImportParameters."Desired E-Document Status" := "Import E-Doc. Proc. Status"::"Draft Ready";
         EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Data Classification Eval. Data", 'OnCreateEvaluationDataOnAfterClassifyTablesToNormal', '', false, false)]
