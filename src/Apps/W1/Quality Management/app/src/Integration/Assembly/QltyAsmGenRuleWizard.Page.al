@@ -314,40 +314,29 @@ page 20464 "Qlty. Asm. Gen. Rule Wizard"
         CurrentStepCounter: Integer;
         LocationCodeFilter: Code[20];
         TemplateCode: Code[20];
-        SpecificNoFilter: Code[20];
-        WorkCenterNo: Code[20];
-        FromBinCodeFilter: Code[20];
         ToBinCodeFilter: Code[20];
-        OperationNo: Code[20];
         DescriptionPattern: Text[100];
         ItemNoFilter: Code[20];
         CategoryCodeFilter: Code[20];
         InventoryPostingGroupCode: Code[20];
         QltyAssemblyTrigger: Enum "Qlty. Assembly Trigger";
-        ProdOrderRoutingLineRuleFilter: Text[400];
         PostedAssemblyOrderRuleFilter: Text[400];
         ItemRuleFilter: Text[400];
         IsBackEnabledd: Boolean;
         IsNextEnabledd: Boolean;
         IsFinishEnabledd: Boolean;
         IsMovingForward: Boolean;
-        IsMovingBackward: Boolean;
         StepWhichTemplateCounter: Integer;
         StepWhichItemFilterCounter: Integer;
         StepWhichAssemblyOrderCounter: Integer;
         StepDoneCounter: Integer;
         MaxStep: Integer;
         LocationFilterErr: Label 'This Location filter needs an adjustment. Location codes are no more than 10 characters. %1', Comment = '%1 = Text of the original error message';
-        FromBinFilterErr: Label 'This From Bin filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
         ToBinFilterErr: Label 'This To Bin filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
-        RoutingNoFilterErr: Label 'This Routing No. filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
-        OperationNoErr: Label 'This Operation No. filter needs an adjustment. Operation Nos. are no more than 10 characters. %1', Comment = '%1 = Text of the original error message';
-        MachineNoFilterErr: Label 'This Machine No. filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
         ItemFilterErr: Label 'This Item filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
         ItemCategoryFilterErr: Label 'This Item Category filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
         InventoryPostingGroupErr: Label 'This Inventory Posting Group filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
         YouMustChooseATemplateFirstMsg: Label 'Please choose a template before proceeding.';
-        WorkCenterNoErr: Label 'This Work Center No. filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
         RuleAlreadyThereQst: Label 'You already have at least one rule with these same conditions. Are you sure you want to proceed?';
         FilterLengthErr: Label 'This filter is too long and must be less than %1 characters.', Comment = '%1=filter string maximum length';
 
@@ -400,7 +389,6 @@ page 20464 "Qlty. Asm. Gen. Rule Wizard"
             Step := MaxStep;
 
         IsMovingForward := Step > CurrentStepCounter;
-        IsMovingBackward := Step < CurrentStepCounter;
 
         if IsMovingForward then
             LeavingStepMovingForward(CurrentStepCounter, Step);
@@ -541,9 +529,8 @@ page 20464 "Qlty. Asm. Gen. Rule Wizard"
         Clear(TempPostedAssemblyHeader);
         Clear(TempItem);
 
-        if QltyInspectionGenRule."Source Table No." = Database::"Posted Assembly Header" then begin
+        if QltyInspectionGenRule."Source Table No." = Database::"Posted Assembly Header" then
             TempPostedAssemblyHeader.SetView(TempQltyInspectionGenRule."Condition Filter");
-        end;
 
         TempItem.SetView(TempQltyInspectionGenRule."Item Filter");
         UpdateTableVariablesFromRecordFilters();

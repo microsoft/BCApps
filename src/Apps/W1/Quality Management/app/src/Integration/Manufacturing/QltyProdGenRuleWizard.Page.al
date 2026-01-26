@@ -421,13 +421,11 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
         InventoryPostingGroupCode: Code[20];
         QltyProductionTrigger: Enum "Qlty. Production Trigger";
         ProdOrderRoutingLineRuleFilter: Text[400];
-        PostedAssemblyOrderRuleFilter: Text[400];
         ItemRuleFilter: Text[400];
         IsBackEnabledd: Boolean;
         IsNextEnabledd: Boolean;
         IsFinishEnabledd: Boolean;
         IsMovingForward: Boolean;
-        IsMovingBackward: Boolean;
         StepWhichTemplateCounter: Integer;
         StepWhichLineCounter: Integer;
         StepWhichItemFilterCounter: Integer;
@@ -496,7 +494,6 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
             Step := MaxStep;
 
         IsMovingForward := Step > CurrentStepCounter;
-        IsMovingBackward := Step < CurrentStepCounter;
 
         if IsMovingForward then
             LeavingStepMovingForward(CurrentStepCounter, Step);
