@@ -50,8 +50,6 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         ObjectIdFilterTok: Label '0|32|83|5406|5409|39|37';
         InputWhereClauseTok: Label 'Lorem ipsum dolor sit amet, WHERE consectetuer adipiscing elit';
         CorrectOutputTok: Label 'WHERE consectetuer adipiscing elit';
-        InputWhereClause2Tok: Label 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.';
-        InputWhereClause250Tok: Label 'WHERE Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec.';
         InputWhereClause400Tok: Label 'WHERE Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibu';
         ViewTok: Label 'VERSION(1) SORTING("No.") WHERE("No."=FILTER(%1))', Comment = '%1=item no.';
 
