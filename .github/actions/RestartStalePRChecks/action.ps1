@@ -129,7 +129,7 @@ foreach ($pr in $prs) {
 Write-Host ""
 Write-Host "Summary:"
 Write-Host "  ✓ Successfully restarted: $restarted workflow run(s)"
-Write-Host "  ✗ Failed attempts: $failed"
+Write-Host "  ✗ Failed to process: $failed PR(s)"
 
 # Add GitHub Actions job summary
 if ($env:GITHUB_STEP_SUMMARY) {
@@ -141,7 +141,7 @@ if ($env:GITHUB_STEP_SUMMARY) {
         Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ""
     }
     Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- ✓ Successfully restarted: **$restarted** workflow run(s)"
-    Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- ✗ Failed attempts: **$failed**"
+    Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- ✗ Failed to process: **$failed** PR(s)"
 }
 
 # Exit with error if there were any failures (not in WhatIf mode)
