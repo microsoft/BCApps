@@ -245,6 +245,7 @@ codeunit 30178 "Shpfy Product Export"
     local procedure CreateProductVariant(ProductId: BigInteger; Item: Record Item; ItemVariant: Record "Item Variant"; TempShopifyProduct: Record "Shpfy Product" temporary)
     var
         TempShopifyVariant: Record "Shpfy Variant" temporary;
+        ItemAttributeIds: List of [Integer];
     begin
         if ItemVariant.Blocked or ItemVariant."Sales Blocked" then begin
             SkippedRecord.LogSkippedRecord(ItemVariant.RecordId, ItemVariantIsBlockedLbl, Shop);
@@ -256,8 +257,10 @@ codeunit 30178 "Shpfy Product Export"
         Clear(TempShopifyVariant);
         FillInProductVariantData(TempShopifyVariant, Item, ItemVariant);
 
-        if not ValidateItemAttributesAsProductOptionsForNewVariant(TempShopifyVariant, Item, ItemVariant.Code, TempShopifyProduct.Id) then
-            exit;
+        GetItemAttributeIDsMarkedAsOption(Item, ItemAttributeIds);
+        if ItemAttributeIds.Count() > 0 then
+            if not ValidateItemAttributesAsProductOptionsForNewVariant(TempShopifyVariant, Item, ItemVariant.Code, TempShopifyProduct.Id) then
+                exit;
 
         TempShopifyVariant.Insert(false);
         VariantApi.AddProductVariant(TempShopifyVariant, ProductId, "Shpfy Variant Create Strategy"::DEFAULT);
@@ -1162,17 +1165,11 @@ codeunit 30178 "Shpfy Product Export"
     /// <param name="ShopifyProductId">Parameter of type BigInteger.</param>
     internal procedure ValidateItemAttributesAsProductOptionsForNewVariant(var TempShopifyVariant: Record "Shpfy Variant" temporary; Item: Record Item; ItemVariantCode: Code[10]; ShopifyProductId: BigInteger): Boolean
     var
-        ItemAttributeIds: List of [Integer];
         ProductOptions: Dictionary of [Integer, Text];
         ExistingProductOptionValues: Dictionary of [Text, Text];
         ProductOptionIndex: Integer;
     begin
         if Shop."UoM as Variant" then
-            exit(true);
-
-        GetItemAttributeIDsMarkedAsOption(Item, ItemAttributeIds);
-
-        if ItemAttributeIds.Count() = 0 then
             exit(true);
 
         CollectExistingProductVariantOptionValues(ProductOptions, ExistingProductOptionValues, ShopifyProductId);
