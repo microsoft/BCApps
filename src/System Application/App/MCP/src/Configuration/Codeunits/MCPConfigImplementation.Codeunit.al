@@ -713,11 +713,11 @@ codeunit 8351 "MCP Config Implementation"
         MCPEntraApplication.Insert();
     end;
 
-    internal procedure DeleteEntraApplication(EntraApplicationId: Guid)
+    internal procedure DeleteEntraApplication(Name: Text[100])
     var
         MCPEntraApplication: Record "MCP Entra Application";
     begin
-        if not MCPEntraApplication.GetBySystemId(EntraApplicationId) then
+        if not MCPEntraApplication.Get(Name) then
             exit;
 
         MCPEntraApplication.Delete();
