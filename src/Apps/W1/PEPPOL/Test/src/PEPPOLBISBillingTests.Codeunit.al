@@ -28,6 +28,7 @@ using System.Utilities;
 codeunit 139236 "PEPPOL BIS BillingTests"
 {
     Subtype = Test;
+    TestType = IntegrationTest;
     TestPermissions = Disabled;
 
     trigger OnRun()
