@@ -101,7 +101,7 @@ table 20400 "Qlty. Management Setup"
         {
             Description = 'Whether to require item tracking before finishing an inspection.';
             Caption = 'Item Tracking Before Finishing';
-            ToolTip = 'Specifies whether to require item tracking before finishing an inspection.';
+            ToolTip = 'Specifies when lot or serial numbers are required for inspections, including whether missing values are allowed, only posted tracking is accepted, reserved (unposted) tracking is permitted, or any non-empty lot/serial value is valid.';
         }
         field(26; "Scheduler Template Code"; Code[20])
         {
@@ -109,10 +109,10 @@ table 20400 "Qlty. Management Setup"
             TableRelation = "Qlty. Inspection Template Hdr.".Code;
             Caption = 'Scheduler Template Code';
         }
-        field(27; "Picture Upload Behavior"; Enum "Qlty. Picture Upload Behavior")
+        field(27; "Additional Picture Handling"; Enum "Qlty. Add. Picture Handling")
         {
             Description = 'When a picture has been taken, this value defines what to do with that picture.';
-            Caption = 'Picture Upload Behavior';
+            Caption = 'Additional Picture Handling';
             ToolTip = 'Specifies what to do with a picture after it has been taken.';
 
             trigger OnValidate()
@@ -564,7 +564,7 @@ table 20400 "Qlty. Management Setup"
     var
         DocumentServiceManagement: Codeunit "Document Service Management";
     begin
-        if Rec."Picture Upload Behavior" <> Rec."Picture Upload Behavior"::"Attach and upload to OneDrive" then
+        if Rec."Additional Picture Handling" <> Rec."Additional Picture Handling"::"Save as attachment and upload to OneDrive" then
             exit;
 
         if not DocumentServiceManagement.IsConfigured() then

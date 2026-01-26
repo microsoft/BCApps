@@ -312,14 +312,14 @@ page 20438 "Qlty. Management Setup Wizard"
 
                 group(SettingsFor__Show_AutoAndManual)
                 {
-                    Caption = 'Show Automatic and manually created inspections';
+                    Caption = 'Show Always';
                     InstructionalText = 'Use this when you want an inspection shown to the person who triggered the inspection. For example if you are creating inspections automatically when posting then the inspection would show to the person who posted. Do not use this option if the person doing the activity triggering the inspection is not the person recording the data.';
 
                     field(ChooseShow_AutoAndManual; ShowAutoAndManual)
                     {
                         ApplicationArea = All;
                         ShowCaption = false;
-                        Caption = 'Show Automatic and manually created inspections';
+                        Caption = 'Show Always';
                         ToolTip = 'Use this when you want an inspection shown to the person who triggered the inspection. For example if you are creating inspections automatically when posting then the inspection would show to the person who posted. Do not use this option if the person doing the activity triggering the inspection is not the person recording the data.';
 
                         trigger OnValidate()
@@ -711,11 +711,11 @@ page 20438 "Qlty. Management Setup Wizard"
 
         case true of
             ShowAutoAndManual:
-                QltyManagementSetup."When to show inspections" := QltyManagementSetup."When to show inspections"::"Automatic and manually created inspections";
+                QltyManagementSetup."When to show inspections" := QltyManagementSetup."When to show inspections"::"Always";
             ShowOnlyManual:
                 QltyManagementSetup."When to show inspections" := QltyManagementSetup."When to show inspections"::"Only manually created inspections";
             ShowNever:
-                QltyManagementSetup."When to show inspections" := QltyManagementSetup."When to show inspections"::"Do not show created inspections";
+                QltyManagementSetup."When to show inspections" := QltyManagementSetup."When to show inspections"::"Never";
         end;
 
         if QltyManagementSetup.Visibility = QltyManagementSetup.Visibility::Hide then
@@ -758,9 +758,9 @@ page 20438 "Qlty. Management Setup Wizard"
                 ReceiveCreateInspectionsAutomaticallyWarehouseReceipt or
                 ReceiveCreateInspectionsAutomaticallySalesReturn);
 
-            ShowAutoAndManual := QltyManagementSetup."When to show inspections" = QltyManagementSetup."When to show inspections"::"Automatic and manually created inspections";
+            ShowAutoAndManual := QltyManagementSetup."When to show inspections" = QltyManagementSetup."When to show inspections"::"Always";
             ShowOnlyManual := QltyManagementSetup."When to show inspections" = QltyManagementSetup."When to show inspections"::"Only manually created inspections";
-            ShowNever := QltyManagementSetup."When to show inspections" = QltyManagementSetup."When to show inspections"::"Do not show created inspections";
+            ShowNever := QltyManagementSetup."When to show inspections" = QltyManagementSetup."When to show inspections"::"Never";
         end
     end;
 

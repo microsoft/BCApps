@@ -8,9 +8,6 @@ using Microsoft.QualityManagement.Configuration;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Integration.Manufacturing;
-using Microsoft.QualityManagement.Integration.Receiving;
-using Microsoft.QualityManagement.Integration.Warehouse;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
 using System.Telemetry;
 
@@ -91,8 +88,6 @@ page 20400 "Qlty. Management Setup"
                     }
                     group(SettingsForExplainShowInspection)
                     {
-                        Caption = 'When to show inspections';
-                        InstructionalText = 'Define when to show inspections. For demonstrations and training, it can be useful to show automatically created inspections immediately. However, in most production scenarios, these inspections are sent to a queue or dispatch for quality inspectors.';
                         field("When to show inspections"; Rec."When to show inspections")
                         {
                             ApplicationArea = All;
@@ -102,27 +97,14 @@ page 20400 "Qlty. Management Setup"
                             AboutText = 'Specifies whether inspections are shown immediately or sent to a queue for quality inspectors. For demonstrations and training, it can be useful to show automatically created inspections immediately. In production scenarios, automatically created inspections are usually not shown, instead they are queued or dispatch for quality inspectors.';
                         }
                     }
-                    field("Picture Upload Behavior"; Rec."Picture Upload Behavior")
+                    field("Additional Picture Handling"; Rec."Additional Picture Handling")
                     {
                         ApplicationArea = All;
-                        Caption = 'Picture Upload Behavior';
+                        Caption = 'Additional Picture Handling';
                         ShowCaption = true;
-                        AboutTitle = 'Picture Upload Behavior';
+                        AboutTitle = 'Additional Picture Handling';
                         AboutText = 'When a picture has been taken, this value defines what to do with that picture.';
                     }
-                    group(Workflow)
-                    {
-                        Caption = 'Workflow and Approval Requests';
-                        field("Workflow Integration Enabled"; Rec."Workflow Integration Enabled")
-                        {
-                            Importance = Additional;
-                            ApplicationArea = All;
-                            Caption = 'Workflow Integration';
-                            AboutTitle = 'Business Central Workflow integration.';
-                            AboutText = 'Workflows can be used to trigger dispositions, such as negative adjustments, transfers, moves, and more.';
-                        }
-                    }
-
                 }
             }
             group(SettingsForReceiving)
@@ -156,20 +138,6 @@ page 20400 "Qlty. Management Setup"
                     {
                         ApplicationArea = All;
                         Caption = 'Transfer Orders';
-                    }
-                    field(ChooseCreateNewRule_Receiving; 'Create receipt inspection rule')
-                    {
-                        ShowCaption = false;
-                        ApplicationArea = All;
-
-                        trigger OnDrillDown()
-                        var
-                            QltyRecGenRuleWizard: Page "Qlty. Rec. Gen. Rule Wizard";
-                        begin
-                            CurrPage.Update(true);
-                            QltyRecGenRuleWizard.RunModal();
-                            CurrPage.Update(false);
-                        end;
                     }
                     field("Receive Update Control"; Rec."Receive Update Control")
                     {
@@ -219,20 +187,6 @@ page 20400 "Qlty. Management Setup"
                         AboutTitle = 'Assembly related trigger';
                         AboutText = 'Optionally choose an assembly-related trigger to try and create an inspection.';
                     }
-                    field(ChooseCreateNewRule_Production; 'Create production inspection rule')
-                    {
-                        ShowCaption = false;
-                        ApplicationArea = Assembly, Manufacturing;
-
-                        trigger OnDrillDown()
-                        var
-                            QltyProdGenRuleWizard: Page "Qlty. Prod. Gen. Rule Wizard";
-                        begin
-                            CurrPage.Update(true);
-                            QltyProdGenRuleWizard.RunModal();
-                            CurrPage.Update(false);
-                        end;
-                    }
                     field("Production Update Control"; Rec."Production Update Control")
                     {
                         ApplicationArea = Manufacturing;
@@ -268,20 +222,6 @@ page 20400 "Qlty. Management Setup"
                     {
                         Caption = 'Related Generation Rules';
                         ApplicationArea = All;
-                    }
-                    field(ChooseCreateNewRule_WhseMovement; 'Create warehouse inspection rule')
-                    {
-                        ShowCaption = false;
-                        ApplicationArea = All;
-
-                        trigger OnDrillDown()
-                        var
-                            QltyWhseGenRuleWizard: Page "Qlty. Whse. Gen. Rule Wizard";
-                        begin
-                            CurrPage.Update(true);
-                            QltyWhseGenRuleWizard.RunModal();
-                            CurrPage.Update(false);
-                        end;
                     }
                 }
                 group(SettingsForBinMovements)
@@ -335,33 +275,13 @@ page 20400 "Qlty. Management Setup"
             group(SettingsForTracking)
             {
                 Caption = 'Item Tracking';
-                InstructionalText = 'Will your lot numbers always be posted when performing quality inspections?';
+                InstructionalText = 'Will your item tracking numbers always be posted when performing quality inspections?';
 
                 field("Tracking Before Finishing"; Rec."Item Tracking Before Finishing")
                 {
                     ApplicationArea = All;
                     AboutTitle = 'Item Tracking';
                     AboutText = 'Will your lot numbers always be posted when performing quality inspections?';
-                }
-                group(SettingsForTrackingInstruction1)
-                {
-                    Caption = 'Allow Missing Item Tracking';
-                    InstructionalText = 'Use this if you do not use lot or serial numbers, or if you use them but have processes that will have inspections that will not have known lot or serial numbers. For example if you have inspections created in production that prevents the product from being produced then there may not be a lot/serial. Inspections with no lot/serial will be permitted.';
-                }
-                group(SettingsForTrackingInstruction2)
-                {
-                    Caption = 'Posted Item Tracking Only';
-                    InstructionalText = 'Use this if all lot/serial numbers must be posted in the system before an inspection can be finished. For example if you are doing inspections on finished goods then the lot/serial should exist, or if you are doing inspections when lots are moved to a bin then the lot/serial must exist.';
-                }
-                group(SettingsForTrackingInstruction3)
-                {
-                    Caption = 'Reservation or Posted';
-                    InstructionalText = 'Use this if lot/serial numbers need to be in the system, but might not yet be posted. An example could be lots that are being received or being produced, have not yet been received or produced yet, but do exist on your item tracking lines.';
-                }
-                group(SettingsForTrackingInstruction4)
-                {
-                    Caption = 'Any Non Empty Value';
-                    InstructionalText = 'Use this if you want to track lot/serial numbers that do not enter the system but need inspections to document why they did not enter the system. For example if you reject a lot during the receiving process and a failed lot is never put-away. Alternatively if you are producing and know the intended lot/serial but the in-progress item is discarded before it is posted to inventory. Inspections with lot/serials that are not in your inventory will be permitted.';
                 }
             }
             group(SettingsForMobileAndBricks)

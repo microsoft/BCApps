@@ -533,59 +533,59 @@ codeunit 139965 "Qlty. Tests - More Tests"
     end;
 
     [Test]
-    procedure SetupTable_ValidatePictureUploadBehavior()
+    procedure SetupTable_ValidateAdditionalPictureHandling()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
     begin
-        // [SCENARIO] Picture Upload Behavior can be validated and changed to "Attach document"
+        // [SCENARIO] Additional Picture Handling can be validated and changed to "Save as attachment"
         Initialize();
 
         // [GIVEN] Quality Management setup exists
         QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] The setup record is retrieved and Picture Upload Behavior is set to "Do nothing"
+        // [GIVEN] The setup record is retrieved and Additional Picture Handling is set to "None"
         QltyManagementSetup.Get();
-        QltyManagementSetup."Picture Upload Behavior" := QltyManagementSetup."Picture Upload Behavior"::"Do nothing";
+        QltyManagementSetup."Additional Picture Handling" := QltyManagementSetup."Additional Picture Handling"::None;
         QltyManagementSetup.Modify();
 
-        // [WHEN] Picture Upload Behavior is validated and set to "Attach document"
-        QltyManagementSetup.Validate("Picture Upload Behavior", QltyManagementSetup."Picture Upload Behavior"::"Attach document");
+        // [WHEN] Additional Picture Handling is validated and set to "Save as attachment"
+        QltyManagementSetup.Validate("Additional Picture Handling", QltyManagementSetup."Additional Picture Handling"::"Save as attachment");
 
-        // [THEN] The Picture Upload Behavior is successfully updated to "Attach document"
-        LibraryAssert.IsTrue(QltyManagementSetup."Picture Upload Behavior" = QltyManagementSetup."Picture Upload Behavior"::"Attach document", 'Picture upload behavior should be valid and updated')
+        // [THEN] The Additional Picture Handling is successfully updated to "Save as attachment"
+        LibraryAssert.IsTrue(QltyManagementSetup."Additional Picture Handling" = QltyManagementSetup."Additional Picture Handling"::"Save as attachment", 'Additional picture handling should be valid and updated')
     end;
 
     [Test]
-    procedure SetupTable_ValidatePictureUploadBehavior_StoreInOneDrive()
+    procedure SetupTable_ValidateAdditionalPictureHandling_StoreInOneDrive()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         DocumentServiceManagement: Codeunit "Document Service Management";
 
     begin
-        // [SCENARIO] Setting Picture Upload Behavior to "Attach and upload to OneDrive" requires OneDrive configuration
+        // [SCENARIO] Setting Additional Picture Handling to "Save as attachment and upload to OneDrive" requires OneDrive configuration
         Initialize();
 
         // [GIVEN] Quality Management setup exists
         QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] The setup record is retrieved and Picture Upload Behavior is set to "Do nothing"
+        // [GIVEN] The setup record is retrieved and Additional Picture Handling is set to "None"
         QltyManagementSetup.Get();
-        QltyManagementSetup."Picture Upload Behavior" := QltyManagementSetup."Picture Upload Behavior"::"Do nothing";
+        QltyManagementSetup."Additional Picture Handling" := QltyManagementSetup."Additional Picture Handling"::None;
         QltyManagementSetup.Modify();
 
         // [WHEN] OneDrive is not configured
         if not DocumentServiceManagement.IsConfigured() then begin
-            // [WHEN] Attempting to set Picture Upload Behavior to "Attach and upload to OneDrive"
-            asserterror QltyManagementSetup.Validate("Picture Upload Behavior", QltyManagementSetup."Picture Upload Behavior"::"Attach and upload to OneDrive");
+            // [WHEN] Attempting to set Additional Picture Handling to "Save as attachment and upload to OneDrive"
+            asserterror QltyManagementSetup.Validate("Additional Picture Handling", QltyManagementSetup."Additional Picture Handling"::"Save as attachment and upload to OneDrive");
 
             // [THEN] An error is raised indicating OneDrive must be configured first
             LibraryAssert.ExpectedError(OneDriveIntegrationNotConfiguredErr);
         end else begin
-            // [WHEN] OneDrive is configured and Picture Upload Behavior is set to "Attach and upload to OneDrive"
-            QltyManagementSetup.Validate("Picture Upload Behavior", QltyManagementSetup."Picture Upload Behavior"::"Attach and upload to OneDrive");
+            // [WHEN] OneDrive is configured and Additional Picture Handling is set to "Save as attachment and upload to OneDrive"
+            QltyManagementSetup.Validate("Additional Picture Handling", QltyManagementSetup."Additional Picture Handling"::"Save as attachment and upload to OneDrive");
 
-            // [THEN] The Picture Upload Behavior is successfully updated
-            LibraryAssert.IsTrue(QltyManagementSetup."Picture Upload Behavior" = QltyManagementSetup."Picture Upload Behavior"::"Attach and upload to OneDrive", 'Picture upload behavior should be valid and updated')
+            // [THEN] The Additional Picture Handling is successfully updated
+            LibraryAssert.IsTrue(QltyManagementSetup."Additional Picture Handling" = QltyManagementSetup."Additional Picture Handling"::"Save as attachment and upload to OneDrive", 'Additional picture handling should be valid and updated')
         end;
     end;
 

@@ -1413,13 +1413,13 @@ table 20405 "Qlty. Inspection Header"
         Rec.Modify(true);
 
         QltyManagementSetup.Get();
-        if QltyManagementSetup."Picture Upload Behavior" in [QltyManagementSetup."Picture Upload Behavior"::"Attach document", QltyManagementSetup."Picture Upload Behavior"::"Attach and upload to OneDrive"] then begin
+        if QltyManagementSetup."Additional Picture Handling" in [QltyManagementSetup."Additional Picture Handling"::"Save as attachment", QltyManagementSetup."Additional Picture Handling"::"Save as attachment and upload to OneDrive"] then begin
             RecordRefToInspection.GetTable(Rec);
             DocumentAttachment.SaveAttachmentFromStream(PictureInStream, RecordRefToInspection, FullFileNameWithExtension);
             RecordRefToInspection.Modify(true);
         end;
 
-        if QltyManagementSetup."Picture Upload Behavior" = QltyManagementSetup."Picture Upload Behavior"::"Attach and upload to OneDrive" then
+        if QltyManagementSetup."Additional Picture Handling" = QltyManagementSetup."Additional Picture Handling"::"Save as attachment and upload to OneDrive" then
             if DocumentServiceManagement.IsConfigured() then
                 DocumentServiceManagement.ShareWithOneDrive(PictureName, FileExtension, PictureInStream);
 

@@ -366,7 +366,7 @@ codeunit 20404 "Qlty. Inspection - Create"
 
             if GuiAllowed() then
                 if (not PreventShowingGeneratedInspectionEvenIfConfigured) and
-                   ((QltyManagementSetup."When to show inspections" = QltyManagementSetup."When to show inspections"::"Automatic and manually created inspections") or
+                   ((QltyManagementSetup."When to show inspections" = QltyManagementSetup."When to show inspections"::"Always") or
                    (IsManualCreation and (QltyManagementSetup."When to show inspections" = QltyManagementSetup."When to show inspections"::"Only manually created inspections")))
                 then
                     Page.Run(Page::"Qlty. Inspection", QltyInspectionHeader);
@@ -735,7 +735,7 @@ codeunit 20404 "Qlty. Inspection - Create"
         LastCreatedQltyInspectionHeader := CreatedReinspectionQltyInspectionHeader;
 
         if GuiAllowed() then
-            if QltyManagementSetup."When to show inspections" in [QltyManagementSetup."When to show inspections"::"Automatic and manually created inspections", QltyManagementSetup."When to show inspections"::"Only manually created inspections"] then
+            if QltyManagementSetup."When to show inspections" in [QltyManagementSetup."When to show inspections"::"Always", QltyManagementSetup."When to show inspections"::"Only manually created inspections"] then
                 Page.Run(Page::"Qlty. Inspection", CreatedReinspectionQltyInspectionHeader);
 
         OnAfterCreateReinspection(FromThisQltyInspectionHeader, CreatedReinspectionQltyInspectionHeader);
@@ -848,7 +848,7 @@ codeunit 20404 "Qlty. Inspection - Create"
         QltyManagementSetup.Get();
 
         if GuiAllowed() and
-           ((QltyManagementSetup."When to show inspections" in [QltyManagementSetup."When to show inspections"::"Automatic and manually created inspections"]) or
+           ((QltyManagementSetup."When to show inspections" in [QltyManagementSetup."When to show inspections"::"Always"]) or
            (IsManualCreation and (QltyManagementSetup."When to show inspections" in [QltyManagementSetup."When to show inspections"::"Only manually created inspections"])))
         then begin
             foreach InspectionNo in CreatedQltyInspectionIds do

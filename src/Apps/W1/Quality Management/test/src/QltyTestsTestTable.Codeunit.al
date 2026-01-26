@@ -1913,9 +1913,9 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Quality management setup is configured
         QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] Picture upload behavior is set to attach document
+        // [GIVEN] Additional picture handling is set to save as attachment
         QltyManagementSetup.Get();
-        QltyManagementSetup."Picture Upload Behavior" := QltyManagementSetup."Picture Upload Behavior"::"Attach document";
+        QltyManagementSetup."Additional Picture Handling" := QltyManagementSetup."Additional Picture Handling"::"Save as attachment";
         QltyManagementSetup.Modify();
 
         // [GIVEN] A basic template and inspection instance are created
