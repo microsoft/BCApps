@@ -1,0 +1,22 @@
+{
+  "id": "3f63a3de-6597-4097-9f34-b0ff7f92e6b0",
+  "name": "DemoTool",
+  "publisher": "Microsoft",
+  "version": "$(app_currentVersion)",
+  "platform": "$(app_platformVersion)",
+  "target": "OnPrem",
+  "dependencies": [
+    {
+      "id": "275032ba-04a6-457f-bc79-1ffe6cb63596",
+      "name": "SE Core",
+      "publisher": "Microsoft",
+      "version": "$(app_minimumVersion)"
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "application": "$(app_minimumVersion)"
+}

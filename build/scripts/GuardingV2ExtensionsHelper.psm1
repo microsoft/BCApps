@@ -11,6 +11,8 @@
     Local AppProject folder
 .Parameter BuildMode
     Build mode
+.Parameter CountryCode
+    Country code for the baseline. Default is "W1"
 #>
 function Enable-BreakingChangesCheck {
     Param(
@@ -19,7 +21,9 @@ function Enable-BreakingChangesCheck {
         [Parameter(Mandatory = $true)]
         [string] $AppProjectFolder,
         [Parameter(Mandatory = $true)]
-        [string] $BuildMode
+        [string] $BuildMode,
+        [Parameter(Mandatory = $false)]
+        [string] $CountryCode = "W1"
     )
 
     # Load the app.json
@@ -48,17 +52,17 @@ function Enable-BreakingChangesCheck {
             Import-Module -Name $PSScriptRoot\EnlistmentHelperFunctions.psm1
 
             $majorMinor = Get-ConfigValue -Key "repoVersion" -ConfigType "AL-GO"
-            $strictModeVersion = ((Get-BCArtifactUrl -type Sandbox -country W1 -version $majorMinor -select Latest) -split "/")[-2]
+            $strictModeVersion = ((Get-BCArtifactUrl -type Sandbox -country $CountryCode -version $majorMinor -select Latest) -split "/")[-2]
 
             if (-not $strictModeVersion) {
                 Write-Host "::Warning:: Unable to find baseline version for Strict Mode"
                 break
             }
 
-            $baselineVersion = Restore-BaselinesFromArtifacts -TargetFolder $AppSymbolsFolder -AppName $appName -BaselineVersion $strictModeVersion
+            $baselineVersion = Restore-BaselinesFromArtifacts -TargetFolder $AppSymbolsFolder -AppName $appName -BaselineVersion $strictModeVersion -CountryCode $CountryCode
         }
         Default {
-            $baselineVersion = Restore-BaselinesFromArtifacts -TargetFolder $AppSymbolsFolder -AppName $appName
+            $baselineVersion = Restore-BaselinesFromArtifacts -TargetFolder $AppSymbolsFolder -AppName $appName -CountryCode $CountryCode
         }
     }
 
@@ -78,6 +82,10 @@ function Enable-BreakingChangesCheck {
     Name of the app
 .Parameter TargetFolder
     Folder where to restore the baseline
+.Parameter BaselineVersion
+    Version of the baseline to restore. If not provided, it will be read from Packages.json
+.Parameter CountryCode
+    Country code for the baseline. Default is "W1"
 .Returns
     The version of the baseline that was restored. If no baseline was restored, returns null
 #>
@@ -88,7 +96,9 @@ function Restore-BaselinesFromArtifacts {
         [Parameter(Mandatory = $true)]
         [string] $TargetFolder,
         [Parameter(Mandatory = $false)]
-        [string] $BaselineVersion
+        [string] $BaselineVersion,
+        [Parameter(Mandatory = $false)]
+        [string] $CountryCode = "W1"
     )
     Import-Module -Name $PSScriptRoot\EnlistmentHelperFunctions.psm1
 
@@ -109,12 +119,12 @@ function Restore-BaselinesFromArtifacts {
     $baselineFolder = Join-Path (Get-BaseFolder) "out/baselineartifacts/$BaselineVersion"
 
     if (-not (Test-Path $baselineFolder)) {
-        $baselineURL = Get-BCArtifactUrl -type Sandbox -country W1 -version $BaselineVersion
+        $baselineURL = Get-BCArtifactUrl -type Sandbox -country $CountryCode -version $BaselineVersion
 
         # TODO: temporary workaround for baselines not being available in bcartifacts
         if(-not $baselineURL) {
             #Fallback to bcinsider
-            $baselineURL = Get-BCArtifactUrl -type Sandbox -country W1 -version $BaselineVersion -storageAccount bcinsider -accept_insiderEula
+            $baselineURL = Get-BCArtifactUrl -type Sandbox -country $CountryCode -version $BaselineVersion -storageAccount bcinsider -accept_insiderEula
         }
 
         if (-not $baselineURL) {
@@ -124,7 +134,7 @@ function Restore-BaselinesFromArtifacts {
         Download-Artifacts -artifactUrl $baselineURL -basePath $baselineFolder | Out-Null
 
         # Copy all the files from the sandbox folder to the baseline folder
-        Get-ChildItem -Path "$baselineFolder/sandbox/$BaselineVersion/W1/Extensions" -Filter "*_$($BaselineVersion).app" -Recurse | ForEach-Object {
+        Get-ChildItem -Path "$baselineFolder/sandbox/$BaselineVersion/$CountryCode/Extensions" -Filter "*_$($BaselineVersion).app" -Recurse | ForEach-Object {
             Write-Host "Copying $($_.FullName) to $TargetFolder"
             Copy-Item -Path $_.FullName -Destination $TargetFolder -Force | Out-Null
         }

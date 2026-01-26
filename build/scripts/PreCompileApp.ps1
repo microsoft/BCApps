@@ -2,11 +2,26 @@ Param(
     [ValidateSet('app', 'testApp', 'bcptApp')]
     [string] $appType = 'app',
     [ref] $parameters,
-    [string[]] $recompileDependencies = @()
+    [string[]] $recompileDependencies = @(),
+    [switch] $GDLDevelopment,
+    [string] $countryCode = "W1"
 )
 
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 Import-Module $PSScriptRoot\AppExtensionsHelper.psm1
+
+if($GDLDevelopment) {
+    Import-Module $PSScriptRoot\GDLDevelopment\GDLDevelopment.psm1
+
+    New-GDLView -CountryCode $countryCode -skipSetupDevelopmentSettings
+
+    # The view folder for GDL Development is under 'Views\<country>': this is the folder that contains the app project for compilation for the specified country
+    # replace '\Layers\W1' with '\Views\$countryCode' in the appProjectFolder path
+    $appProjectFolder = $parameters.Value["appProjectFolder"].Replace("\Layers\W1", "\Views\$countryCode") # TODO: make it a bit smarter
+
+    Write-Host "Using GDL Development view folder for app project: $appProjectFolder"
+    $parameters.Value["appProjectFolder"] = $appProjectFolder
+}
 
 $appBuildMode = Get-BuildMode
 
@@ -101,7 +116,7 @@ if($appType -eq 'app')
                 }
             }
 
-            Enable-BreakingChangesCheck -AppSymbolsFolder $parameters.Value["appSymbolsFolder"] -AppProjectFolder $parameters.Value["appProjectFolder"] -BuildMode $appBuildMode | Out-Null
+            Enable-BreakingChangesCheck -AppSymbolsFolder $parameters.Value["appSymbolsFolder"] -AppProjectFolder $parameters.Value["appProjectFolder"] -BuildMode $appBuildMode -CountryCode $countryCode | Out-Null
         }
     }
 }

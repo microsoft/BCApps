@@ -1,0 +1,38 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/18fe3d5d4fb9940564d80d87201f56992b6ebdff/Actions/.Modules/settings.schema.json",
+  "projectName": "Apps GB",
+  "appFolders": [
+    "../../../src/System Application/App",
+    "../../../src/Business Foundation/App",
+    "../../../src/Tools/AI Test Toolkit",
+    "../../../src/Tools/Performance Toolkit/App",
+    "../../../src/Tools/Test Framework/Test Libraries/*",
+    "../../../src/Tools/Test Framework/Test Runner",
+    "../../../src/Tools/Test Framework/Test Stability Tools/Prevent Metadata Updates",
+    "../../../src/Layers/W1/Application",
+    "../../../src/Layers/W1/BaseApp"
+  ],
+  "testFolders": [
+    "../../../src/System Application/Test Library",
+    "../../../src/Business Foundation/Test Library",
+    "../../../src/System Application/Test",
+    "../../../src/Business Foundation/Test",
+    "../../../src/Tools/Performance Toolkit/Test",
+    "../../../src/Layers/W1/Tests/*"
+  ],
+  "doNotRunTests": true,
+  "useCompilerFolder": true,
+  "doNotPublishApps": true,
+  "ConditionalSettings": [
+    {
+      "branches": [
+        "releases/*.[0-5]"
+      ],
+      "settings": {
+        "buildModes": [
+          "Strict"
+        ]
+      }
+    }
+  ]
+}

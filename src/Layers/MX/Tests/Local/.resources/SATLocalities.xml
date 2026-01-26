@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<data-set-c_Localidad xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<Localidad>
+		<Code>01</Code>
+		<State>AGU</State>
+		<Descripcion>Aguascalientes</Descripcion>
+	</Localidad>
+	<Localidad>
+		<Code>01</Code>
+		<State>BCN</State>
+		<Descripcion>Ensenada</Descripcion>
+	</Localidad>
+	<Localidad>
+		<Code>01</Code>
+		<State>BCS</State>
+		<Descripcion>Ciudad Constitución</Descripcion>
+	</Localidad>
+	<Localidad>
+		<Code>01</Code>
+		<State>CAM</State>
+		<Descripcion>San Francisco de Campeche</Descripcion>
+	</Localidad>
+	<Localidad>
+		<Code>01</Code>
+		<State>COA</State>
+		<Descripcion>Ciudad Acuña</Descripcion>
+	</Localidad>
+	<Localidad>
+		<Code>01</Code>
+		<State>COL</State>
+		<Descripcion>Colima</Descripcion>
+	</Localidad>
+	<Localidad>
+		<Code>01</Code>
+		<State>CHH</State>
+		<Descripcion>Santa Rosalía de Camargo</Descripcion>
+	</Localidad>
+	<Localidad>
+		<Code>01</Code>
+		<State>CHP</State>
+		<Descripcion>Comitán de Domínguez</Descripcion>
+	</Localidad>
+	<Localidad>
+		<Code>01</Code>
+		<State>DIF</State>
+		<Descripcion>Ciudad de México</Descripcion>
+	</Localidad>
+	<Localidad>
+		<Code>66</Code>
+		<State>VER</State>
+		<Descripcion>Sihuapan</Descripcion>
+	</Localidad>
+	<Localidad>
+		<Code>67</Code>
+		<State>VER</State>
+		<Descripcion>El Higo</Descripcion>
+	</Localidad>
+	<Localidad>
+		<Code>68</Code>
+		<State>VER</State>
+		<Descripcion>Paso del Macho</Descripcion>
+	</Localidad>
+	<Localidad>
+		<Code>69</Code>
+		<State>VER</State>
+		<Descripcion>Tlapacoyan</Descripcion>
+	</Localidad>
+</data-set-c_Localidad>

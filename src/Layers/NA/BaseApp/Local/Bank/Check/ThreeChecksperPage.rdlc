@@ -1,0 +1,2639 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <AutoRefresh>0</AutoRefresh>
+  <DataSources>
+    <DataSource Name="DataSource">
+      <ConnectionProperties>
+        <DataProvider>SQL</DataProvider>
+        <ConnectString />
+      </ConnectionProperties>
+      <rd:DataSourceID>ac1bb36c-7b28-449e-aa5f-8da3f87729d0</rd:DataSourceID>
+    </DataSource>
+  </DataSources>
+  <ReportSections>
+    <ReportSection>
+      <Body>
+        <ReportItems>
+          <Tablix Name="Tablix4">
+            <TablixBody>
+              <TablixColumns>
+                <TablixColumn>
+                  <Width>8.31402in</Width>
+                </TablixColumn>
+              </TablixColumns>
+              <TablixRows>
+                <TablixRow>
+                  <Height>3.4in</Height>
+                  <TablixCells>
+                    <TablixCell>
+                      <CellContents>
+                        <Rectangle Name="Rectangle1">
+                          <ReportItems>
+                            <Textbox Name="DescriptionLine1">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(7,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.36701in</Top>
+                              <Left>0.18724in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>6.81264in</Width>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177))) = 1, false, true)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="DescriptionLine2">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(8,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.54607in</Top>
+                              <Left>0.18724in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>6.81264in</Width>
+                              <ZIndex>1</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177))) = 1, false, true)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="DescriptionLine3">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(7,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.37951in</Top>
+                              <Left>0.18724in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>6.81264in</Width>
+                              <ZIndex>2</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177))) = 2, false, true)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="DescriptionLine4">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(8,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.55857in</Top>
+                              <Left>0.18724in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>6.81264in</Width>
+                              <ZIndex>3</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177))) = 2, false, true)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="BankCurrencyCode2">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(16,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.37812in</Top>
+                              <Left>6.91866in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>1.20391in</Width>
+                              <ZIndex>4</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>2pt</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckAmountText2">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(15,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style>
+                                    <TextAlign>Right</TextAlign>
+                                  </Style>
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.17417in</Top>
+                              <Left>6.85251in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>1.27006in</Width>
+                              <ZIndex>5</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177))) = 2, false, true)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <PaddingLeft>2pt</PaddingLeft>
+                                <PaddingRight>2pt</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CompanyAddresses">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Last(Fields!CompanyAddr1.Value) + chr(177)
++Last(Fields!CompanyAddr2.Value) + chr(177)
++Last(Fields!CompanyAddr3.Value) + chr(177)
++Last(Fields!CompanyAddr4.Value) + chr(177)
++Last(Fields!CompanyAddr5.Value) + chr(177)
++Last(Fields!CompanyAddr6.Value) + chr(177)
++Last(Fields!CommentLine11.Value)+chr(177)
++Last(Fields!CommentLine21.Value)+chr(177)
++Last(Fields!CheckToAddr01.Value)+chr(177)
++Last(Fields!CheckToAddr2.Value)+chr(177)
++Last(Fields!CheckToAddr3.Value)+chr(177)
++Last(Fields!CheckToAddr4.Value)+chr(177)
++Last(Fields!CheckToAddr5.Value)+chr(177)
++Last(Fields!CheckDateTxt2.Value)+chr(177)
++CStr(last(Fields!CheckAmtTxt.Value))+chr(177)
++Last(Fields!BankCurrencyCode.Value)+chr(177)
++Cstr(last(Fields!VoidTxt.Value))+chr(177)
++cstr(Last(Fields!DateIndicator.Value))+chr(177)
++Cstr(last(Fields!CheckStyleIndex.Value))+chr(177)
++Last(Fields!TotalTxt.Value)+chr(177)
++Last(Fields!CheckNoText_PrintCheck.Value)+chr(177)
++Last(Fields!TotalLineAmountFormat.Value)+chr(177)
++CStr(Last(Fields!TotalLineAmount.Value))</Value>
+                                      <Style>
+                                        <FontSize>7pt</FontSize>
+                                        <Color>Red</Color>
+                                      </Style>
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>0.46696in</Top>
+                              <Left>6.85251in</Left>
+                              <Height>0.03125in</Height>
+                              <Width>0.96457in</Width>
+                              <ZIndex>6</ZIndex>
+                              <Visibility>
+                                <Hidden>true</Hidden>
+                              </Visibility>
+                              <Style>
+                                <PaddingLeft>2pt</PaddingLeft>
+                                <PaddingRight>2pt</PaddingRight>
+                                <PaddingTop>2pt</PaddingTop>
+                                <PaddingBottom>2pt</PaddingBottom>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr2">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(9,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.99863in</Top>
+                              <Left>0.64535in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>7</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177))) = 1, false, true)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr3">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(10,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.16519in</Top>
+                              <Left>0.64535in</Left>
+                              <Height>0.16689in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>8</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177))) = 1, false, true)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr4">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(11,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.33174in</Top>
+                              <Left>0.64535in</Left>
+                              <Height>0.16678in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>9</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177))) = 1, false, true)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr5">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(12,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.4983in</Top>
+                              <Left>0.64396in</Left>
+                              <Height>0.16667in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>10</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177))) = 1, false, true)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr6">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(13,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.66486in</Top>
+                              <Left>0.64396in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>11</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177))) = 1, false, true)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckDateText2">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(14,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style>
+                                    <TextAlign>Left</TextAlign>
+                                  </Style>
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>0.65515in</Top>
+                              <Left>6.85251in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>1.38443in</Width>
+                              <ZIndex>12</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177))) = 1, false, true)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckAmountText1">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(15,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style>
+                                    <TextAlign>Right</TextAlign>
+                                  </Style>
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.18517in</Top>
+                              <Left>6.85251in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>1.27006in</Width>
+                              <ZIndex>13</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177))) = 1, false, true)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <PaddingLeft>2pt</PaddingLeft>
+                                <PaddingRight>2pt</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="VoidText2">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(17,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177)))</Value>
+                                      <Style>
+                                        <FontWeight>Bold</FontWeight>
+                                      </Style>
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.74124in</Top>
+                              <Left>4.93191in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>1.8189in</Width>
+                              <ZIndex>14</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177))) = 1, false, true)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="VoidText1">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(17,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177)))</Value>
+                                      <Style>
+                                        <FontWeight>Bold</FontWeight>
+                                      </Style>
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.48106in</Top>
+                              <Left>4.93191in</Left>
+                              <Height>0.16391in</Height>
+                              <Width>1.8189in</Width>
+                              <ZIndex>15</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177))) = 2, false, true)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="BankCurrencyCode1">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(16,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177)))</Value>
+                                      <Style>
+                                        <Format>******** #,##0.00</Format>
+                                      </Style>
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.36295in</Top>
+                              <Left>7.37818in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>0.74439in</Width>
+                              <ZIndex>16</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177))) = 1, false, true)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>2pt</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr17">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(9,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.16851in</Top>
+                              <Left>0.8201in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>17</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177))) = 1, false, true)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckDateText5">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(14,Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style>
+                                    <TextAlign>Left</TextAlign>
+                                  </Style>
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>0.65515in</Top>
+                              <Left>6.85251in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>1.38443in</Width>
+                              <ZIndex>18</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177))) = 2, false, true)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr20">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(9,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.17714in</Top>
+                              <Left>0.7451in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>19</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177))) = 2, false, true)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr21">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(9,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.89841in</Top>
+                              <Left>0.69649in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>20</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr22">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(10,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.06497in</Top>
+                              <Left>0.69649in</Left>
+                              <Height>0.16689in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>21</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr23">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(11,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.23152in</Top>
+                              <Left>0.69649in</Left>
+                              <Height>0.16678in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>22</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr24">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(12,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.39808in</Top>
+                              <Left>0.6951in</Left>
+                              <Height>0.16667in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>23</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr25">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(13,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.56464in</Top>
+                              <Left>0.69649in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>24</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                          </ReportItems>
+                          <KeepTogether>true</KeepTogether>
+                          <ZIndex>1</ZIndex>
+                          <Style>
+                            <Border>
+                              <Style>None</Style>
+                            </Border>
+                          </Style>
+                        </Rectangle>
+                      </CellContents>
+                    </TablixCell>
+                  </TablixCells>
+                </TablixRow>
+                <TablixRow>
+                  <Height>3.5in</Height>
+                  <TablixCells>
+                    <TablixCell>
+                      <CellContents>
+                        <Rectangle Name="Rectangle2">
+                          <ReportItems>
+                            <Textbox Name="DescriptionLine5">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(7, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.61907in</Top>
+                              <Left>0.18724in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>6.81264in</Width>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 1, False, True)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="DescriptionLine6">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(8, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.82397in</Top>
+                              <Left>0.18724in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>6.81264in</Width>
+                              <ZIndex>1</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 1, False, True)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="DescriptionLine7">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(7, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.58435in</Top>
+                              <Left>0.18724in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>6.81264in</Width>
+                              <ZIndex>2</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="DescriptionLine8">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(8, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.75369in</Top>
+                              <Left>0.18724in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>6.81264in</Width>
+                              <ZIndex>3</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="BankCurrencyCode3">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(16, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.59213in</Top>
+                              <Left>6.91866in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>1.20391in</Width>
+                              <ZIndex>4</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>2pt</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckAmountText3">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(15, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style>
+                                    <TextAlign>Right</TextAlign>
+                                  </Style>
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.39984in</Top>
+                              <Left>6.85251in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>1.27006in</Width>
+                              <ZIndex>5</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <PaddingLeft>2pt</PaddingLeft>
+                                <PaddingRight>2pt</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CompanyAddresses2">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Last(Fields!CompanyAddr1.Value) + chr(177) + Last(Fields!CompanyAddr2.Value) + chr(177) + Last(Fields!CompanyAddr3.Value) + chr(177) + Last(Fields!CompanyAddr4.Value) + chr(177) + Last(Fields!CompanyAddr5.Value) + chr(177) + Last(Fields!CompanyAddr6.Value) + chr(177) + Last(Fields!CommentLine11.Value) + chr(177) + Last(Fields!CommentLine21.Value) + chr(177) + Last(Fields!CheckToAddr01.Value) + chr(177) + Last(Fields!CheckToAddr2.Value) + chr(177) + Last(Fields!CheckToAddr3.Value) + chr(177) + Last(Fields!CheckToAddr4.Value) + chr(177) + Last(Fields!CheckToAddr5.Value) + chr(177) + Last(Fields!CheckDateTxt2.Value) + chr(177) + CStr(Last(Fields!CheckAmtTxt.Value)) + chr(177) + Last(Fields!BankCurrencyCode.Value) + chr(177) + Cstr(Last(Fields!VoidTxt.Value)) + chr(177) + cstr(Last(Fields!DateIndicator.Value)) + chr(177) + Cstr(Last(Fields!CheckStyleIndex.Value)) + chr(177) + Last(Fields!TotalTxt.Value) + chr(177) + Last(Fields!CheckNoText_PrintCheck.Value) + chr(177) + Last(Fields!TotalLineAmountFormat.Value) + chr(177) + CStr(Last(Fields!TotalLineAmount.Value))</Value>
+                                      <Style>
+                                        <FontSize>7pt</FontSize>
+                                        <Color>Red</Color>
+                                      </Style>
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>0.56208in</Top>
+                              <Left>6.85251in</Left>
+                              <Height>0.03125in</Height>
+                              <Width>0.96457in</Width>
+                              <ZIndex>6</ZIndex>
+                              <Visibility>
+                                <Hidden>true</Hidden>
+                              </Visibility>
+                              <Style>
+                                <PaddingLeft>2pt</PaddingLeft>
+                                <PaddingRight>2pt</PaddingRight>
+                                <PaddingTop>2pt</PaddingTop>
+                                <PaddingBottom>2pt</PaddingBottom>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckDateText3">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(14, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style>
+                                    <TextAlign>Left</TextAlign>
+                                  </Style>
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>0.78777in</Top>
+                              <Left>6.85251in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>1.38443in</Width>
+                              <ZIndex>7</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 1, False, True)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckAmountText4">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(15, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style>
+                                    <TextAlign>Right</TextAlign>
+                                  </Style>
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.39984in</Top>
+                              <Left>6.85251in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>1.27006in</Width>
+                              <ZIndex>8</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 1, False, True)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <PaddingLeft>2pt</PaddingLeft>
+                                <PaddingRight>2pt</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="VoidText3">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(17, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177)))</Value>
+                                      <Style>
+                                        <FontWeight>Bold</FontWeight>
+                                      </Style>
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.82386in</Top>
+                              <Left>4.82175in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>1.8189in</Width>
+                              <ZIndex>9</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 1, False, True)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="VoidText4">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(17, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177)))</Value>
+                                      <Style>
+                                        <FontWeight>Bold</FontWeight>
+                                      </Style>
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.56368in</Top>
+                              <Left>4.82175in</Left>
+                              <Height>0.16391in</Height>
+                              <Width>1.8189in</Width>
+                              <ZIndex>10</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="BankCurrencyCode4">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(16, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177)))</Value>
+                                      <Style>
+                                        <Format>******** #,##0.00</Format>
+                                      </Style>
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.61779in</Top>
+                              <Left>7.37818in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>0.74439in</Width>
+                              <ZIndex>11</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 1, False, True)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>2pt</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr18">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(9, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.41223in</Top>
+                              <Left>0.8201in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>12</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177))) = 1, false, true)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckDateText6">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(14, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style>
+                                    <TextAlign>Left</TextAlign>
+                                  </Style>
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>0.91277in</Top>
+                              <Left>6.85251in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>1.38443in</Width>
+                              <ZIndex>13</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr26">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(9, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.37527in</Top>
+                              <Left>0.75019in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>14</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr7">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(9, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.20069in</Top>
+                              <Left>0.64257in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>15</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177))) = 1, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr8">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(10, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.36725in</Top>
+                              <Left>0.64535in</Left>
+                              <Height>0.16689in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>16</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177))) = 1, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr9">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(11, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.55996in</Top>
+                              <Left>0.64257in</Left>
+                              <Height>0.16678in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>17</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177))) = 1, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr10">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(12, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.72674in</Top>
+                              <Left>0.64535in</Left>
+                              <Height>0.16667in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>18</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177))) = 1, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr11">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(13, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.89319in</Top>
+                              <Left>0.64257in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>19</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177))) = 1, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr28">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(9, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.10741in</Top>
+                              <Left>0.64535in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>20</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr29">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(10, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.24781in</Top>
+                              <Left>0.64535in</Left>
+                              <Height>0.16689in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>21</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr30">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(11, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.44052in</Top>
+                              <Left>0.64396in</Left>
+                              <Height>0.16678in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>22</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr31">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(12, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.60708in</Top>
+                              <Left>0.64257in</Left>
+                              <Height>0.16667in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>23</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr32">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(13, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.77364in</Top>
+                              <Left>0.64396in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>24</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                          </ReportItems>
+                          <KeepTogether>true</KeepTogether>
+                          <Style>
+                            <Border>
+                              <Style>None</Style>
+                            </Border>
+                          </Style>
+                        </Rectangle>
+                      </CellContents>
+                    </TablixCell>
+                  </TablixCells>
+                </TablixRow>
+                <TablixRow>
+                  <Height>3.5in</Height>
+                  <TablixCells>
+                    <TablixCell>
+                      <CellContents>
+                        <Rectangle Name="Rectangle3">
+                          <ReportItems>
+                            <Textbox Name="DescriptionLine9">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(7, Split(Cstr(ReportItems!CompanyAddresses3.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.69213in</Top>
+                              <Left>0.18724in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>6.81264in</Width>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses3.Value), Chr(177))) = 1, False, True)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="DescriptionLine10">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(8, Split(Cstr(ReportItems!CompanyAddresses3.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.88219in</Top>
+                              <Left>0.18724in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>6.81264in</Width>
+                              <ZIndex>1</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses3.Value), Chr(177))) = 1, False, True)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="DescriptionLine11">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(7, Split(Cstr(ReportItems!CompanyAddresses3.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.76574in</Top>
+                              <Left>0.18724in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>6.81264in</Width>
+                              <ZIndex>2</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses3.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="DescriptionLine12">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(8, Split(Cstr(ReportItems!CompanyAddresses3.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.9323in</Top>
+                              <Left>0.18724in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>6.81264in</Width>
+                              <ZIndex>3</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses3.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="BankCurrencyCode5">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(16, Split(Cstr(ReportItems!CompanyAddresses3.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.77685in</Top>
+                              <Left>6.91866in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>1.20391in</Width>
+                              <ZIndex>4</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>2pt</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckAmountText5">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(15, Split(Cstr(ReportItems!CompanyAddresses3.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style>
+                                    <TextAlign>Right</TextAlign>
+                                  </Style>
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.56029in</Top>
+                              <Left>6.85251in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>1.27006in</Width>
+                              <ZIndex>5</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses3.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <PaddingLeft>2pt</PaddingLeft>
+                                <PaddingRight>2pt</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CompanyAddresses3">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Last(Fields!CompanyAddr1.Value) + chr(177) + Last(Fields!CompanyAddr2.Value) + chr(177) + Last(Fields!CompanyAddr3.Value) + chr(177) + Last(Fields!CompanyAddr4.Value) + chr(177) + Last(Fields!CompanyAddr5.Value) + chr(177) + Last(Fields!CompanyAddr6.Value) + chr(177) + Last(Fields!CommentLine11.Value) + chr(177) + Last(Fields!CommentLine21.Value) + chr(177) + Last(Fields!CheckToAddr01.Value) + chr(177) + Last(Fields!CheckToAddr2.Value) + chr(177) + Last(Fields!CheckToAddr3.Value) + chr(177) + Last(Fields!CheckToAddr4.Value) + chr(177) + Last(Fields!CheckToAddr5.Value) + chr(177) + Last(Fields!CheckDateTxt2.Value) + chr(177) + CStr(Last(Fields!CheckAmtTxt.Value)) + chr(177) + Last(Fields!BankCurrencyCode.Value) + chr(177) + Cstr(Last(Fields!VoidTxt.Value)) + chr(177) + cstr(Last(Fields!DateIndicator.Value)) + chr(177) + Cstr(Last(Fields!CheckStyleIndex.Value)) + chr(177) + Last(Fields!TotalTxt.Value) + chr(177) + Last(Fields!CheckNoText_PrintCheck.Value) + chr(177) + Last(Fields!TotalLineAmountFormat.Value) + chr(177) + CStr(Last(Fields!TotalLineAmount.Value))</Value>
+                                      <Style>
+                                        <FontSize>7pt</FontSize>
+                                        <Color>Red</Color>
+                                      </Style>
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>0.57808in</Top>
+                              <Left>6.85251in</Left>
+                              <Height>0.03125in</Height>
+                              <Width>0.96457in</Width>
+                              <ZIndex>6</ZIndex>
+                              <Visibility>
+                                <Hidden>true</Hidden>
+                              </Visibility>
+                              <Style>
+                                <PaddingLeft>2pt</PaddingLeft>
+                                <PaddingRight>2pt</PaddingRight>
+                                <PaddingTop>2pt</PaddingTop>
+                                <PaddingBottom>2pt</PaddingBottom>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckDateText4">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(14, Split(Cstr(ReportItems!CompanyAddresses3.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style>
+                                    <TextAlign>Left</TextAlign>
+                                  </Style>
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>0.96627in</Top>
+                              <Left>6.85251in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>1.38443in</Width>
+                              <ZIndex>7</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses3.Value), Chr(177))) = 1, False, True)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckAmountText6">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(15, Split(Cstr(ReportItems!CompanyAddresses3.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style>
+                                    <TextAlign>Right</TextAlign>
+                                  </Style>
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.48529in</Top>
+                              <Left>6.85251in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>1.27006in</Width>
+                              <ZIndex>8</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses3.Value), Chr(177))) = 1, False, True)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <PaddingLeft>2pt</PaddingLeft>
+                                <PaddingRight>2pt</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="VoidText5">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(17, Split(Cstr(ReportItems!CompanyAddresses3.Value), Chr(177)))</Value>
+                                      <Style>
+                                        <FontWeight>Bold</FontWeight>
+                                      </Style>
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.85236in</Top>
+                              <Left>4.82175in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>1.8189in</Width>
+                              <ZIndex>9</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses3.Value), Chr(177))) = 1, False, True)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="VoidText6">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(17, Split(Cstr(ReportItems!CompanyAddresses3.Value), Chr(177)))</Value>
+                                      <Style>
+                                        <FontWeight>Bold</FontWeight>
+                                      </Style>
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.59218in</Top>
+                              <Left>4.82175in</Left>
+                              <Height>0.16391in</Height>
+                              <Width>1.8189in</Width>
+                              <ZIndex>10</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses3.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="BankCurrencyCode6">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(16, Split(Cstr(ReportItems!CompanyAddresses3.Value), Chr(177)))</Value>
+                                      <Style>
+                                        <Format>******** #,##0.00</Format>
+                                      </Style>
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.65185in</Top>
+                              <Left>7.37818in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>0.74439in</Width>
+                              <ZIndex>11</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses3.Value), Chr(177))) = 1, False, True)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>2pt</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr19">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(9, Split(Cstr(ReportItems!CompanyAddresses3.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.47001in</Top>
+                              <Left>0.8201in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>12</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19,Split(Cstr(ReportItems!CompanyAddresses.Value),Chr(177))) = 1, false, true)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckDateText7">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(14, Split(Cstr(ReportItems!CompanyAddresses3.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style>
+                                    <TextAlign>Left</TextAlign>
+                                  </Style>
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.04127in</Top>
+                              <Left>6.85251in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>1.38443in</Width>
+                              <ZIndex>13</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses3.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <DataElementOutput>NoOutput</DataElementOutput>
+                              <Style>
+                                <Border />
+                                <BackgroundColor>White</BackgroundColor>
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>0.04134in</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr27">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(9, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>1.53755in</Top>
+                              <Left>0.75019in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>14</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr12">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(9, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.28475in</Top>
+                              <Left>0.64535in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>15</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177))) = 1, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr13">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(10, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.45131in</Top>
+                              <Left>0.64257in</Left>
+                              <Height>0.16689in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>16</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177))) = 1, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr14">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(11, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.61786in</Top>
+                              <Left>0.64535in</Left>
+                              <Height>0.16678in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>17</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177))) = 1, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr15">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(12, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.78442in</Top>
+                              <Left>0.64535in</Left>
+                              <Height>0.16667in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>18</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177))) = 1, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr16">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(13, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.95098in</Top>
+                              <Left>0.64257in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>19</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177))) = 1, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr33">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(9, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.21091in</Top>
+                              <Left>0.6951in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>20</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr34">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(10, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.37747in</Top>
+                              <Left>0.69927in</Left>
+                              <Height>0.16689in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>21</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr35">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(11, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.54402in</Top>
+                              <Left>0.69788in</Left>
+                              <Height>0.16678in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>22</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr36">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(12, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.71058in</Top>
+                              <Left>0.69927in</Left>
+                              <Height>0.16667in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>23</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                            <Textbox Name="CheckToAddr37">
+                              <KeepTogether>true</KeepTogether>
+                              <Paragraphs>
+                                <Paragraph>
+                                  <TextRuns>
+                                    <TextRun>
+                                      <Value EvaluationMode="Auto">=Choose(13, Split(Cstr(ReportItems!CompanyAddresses.Value), Chr(177)))</Value>
+                                      <Style />
+                                    </TextRun>
+                                  </TextRuns>
+                                  <Style />
+                                </Paragraph>
+                              </Paragraphs>
+                              <Top>2.87714in</Top>
+                              <Left>0.69927in</Left>
+                              <Height>0.16656in</Height>
+                              <Width>2.48031in</Width>
+                              <ZIndex>24</ZIndex>
+                              <Visibility>
+                                <Hidden>=iif(Choose(19, Split(Cstr(ReportItems!CompanyAddresses2.Value), Chr(177))) = 2, False, True)</Hidden>
+                              </Visibility>
+                              <Style>
+                                <Border />
+                                <VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>=iif(Last(Fields!CheckStyleIndex.Value, "DataSet_Result") = 1, "0.105cm", "0.5cm")</PaddingLeft>
+                                <PaddingRight>0.04134in</PaddingRight>
+                              </Style>
+                            </Textbox>
+                          </ReportItems>
+                          <KeepTogether>true</KeepTogether>
+                          <Style>
+                            <Border>
+                              <Style>None</Style>
+                            </Border>
+                          </Style>
+                        </Rectangle>
+                        <rd:Selected>true</rd:Selected>
+                      </CellContents>
+                    </TablixCell>
+                  </TablixCells>
+                </TablixRow>
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy>
+              <TablixMembers>
+                <TablixMember />
+              </TablixMembers>
+            </TablixColumnHierarchy>
+            <TablixRowHierarchy>
+              <TablixMembers>
+                <TablixMember>
+                  <Group Name="Details" />
+                  <TablixMembers>
+                    <TablixMember>
+                      <Visibility>
+                        <Hidden>=Fields!CheckIteration.Value&lt;&gt;1</Hidden>
+                      </Visibility>
+                    </TablixMember>
+                    <TablixMember>
+                      <Visibility>
+                        <Hidden>=Fields!CheckIteration.Value&lt;&gt;2</Hidden>
+                      </Visibility>
+                    </TablixMember>
+                    <TablixMember>
+                      <Visibility>
+                        <Hidden>=Fields!CheckIteration.Value&lt;&gt;3</Hidden>
+                      </Visibility>
+                    </TablixMember>
+                  </TablixMembers>
+                </TablixMember>
+              </TablixMembers>
+            </TablixRowHierarchy>
+            <DataSetName>DataSet_Result</DataSetName>
+            <Left>0.02848in</Left>
+            <Height>10.4in</Height>
+            <Width>8.31402in</Width>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+            </Style>
+          </Tablix>
+        </ReportItems>
+        <Height>10.5in</Height>
+        <Style />
+      </Body>
+      <Width>8.3425in</Width>
+      <Page>
+        <InteractiveHeight>11in</InteractiveHeight>
+        <InteractiveWidth>8.5in</InteractiveWidth>
+        <LeftMargin>0.05in</LeftMargin>
+        <RightMargin>0.05in</RightMargin>
+        <TopMargin>0.05in</TopMargin>
+        <BottomMargin>0.25in</BottomMargin>
+        <Style />
+      </Page>
+    </ReportSection>
+  </ReportSections>
+  <Code>Public Function BlankZero(ByVal Value As Decimal)
+    if Value = 0 then
+        Return ""
+    end if
+    Return Value
+End Function
+
+Public Function BlankPos(ByVal Value As Decimal)
+    if Value &gt; 0 then
+        Return ""
+    end if
+    Return Value
+End Function
+
+Public Function BlankZeroAndPos(ByVal Value As Decimal)
+    if Value &gt;= 0 then
+        Return ""
+    end if
+    Return Value
+End Function
+
+Public Function BlankNeg(ByVal Value As Decimal)
+    if Value &lt; 0 then
+        Return ""
+    end if
+    Return Value
+End Function
+
+Public Function BlankNegAndZero(ByVal Value As Decimal)
+    if Value &lt;= 0 then
+        Return ""
+    end if
+    Return Value
+End Function
+</Code>
+  <Language>=User!Language</Language>
+  <ConsumeContainerWhitespace>true</ConsumeContainerWhitespace>
+  <rd:ReportUnitType>Inch</rd:ReportUnitType>
+  <rd:ReportID>65fac6f4-eda5-4b03-9009-3a3cdbf9e25b</rd:ReportID>
+  <DataSets>
+    <DataSet Name="DataSet_Result">
+      <Fields>
+        <Field Name="JnlTemplateName_GenJnlLine">
+          <DataField>JnlTemplateName_GenJnlLine</DataField>
+        </Field>
+        <Field Name="JnlBatchName_GenJnlLine">
+          <DataField>JnlBatchName_GenJnlLine</DataField>
+        </Field>
+        <Field Name="LineNo_GenJnlLine">
+          <DataField>LineNo_GenJnlLine</DataField>
+        </Field>
+        <Field Name="CheckToAddr1">
+          <DataField>CheckToAddr1</DataField>
+        </Field>
+        <Field Name="CheckDateTxt">
+          <DataField>CheckDateTxt</DataField>
+        </Field>
+        <Field Name="CheckNoTxt">
+          <DataField>CheckNoTxt</DataField>
+        </Field>
+        <Field Name="CheckNoTextCaption">
+          <DataField>CheckNoTextCaption</DataField>
+        </Field>
+        <Field Name="LineAmt">
+          <DataField>LineAmt</DataField>
+        </Field>
+        <Field Name="LineAmtFormat">
+          <DataField>LineAmtFormat</DataField>
+        </Field>
+        <Field Name="LineDisc">
+          <DataField>LineDisc</DataField>
+        </Field>
+        <Field Name="LineDiscFormat">
+          <DataField>LineDiscFormat</DataField>
+        </Field>
+        <Field Name="LineAmtLineDisc">
+          <DataField>LineAmtLineDisc</DataField>
+        </Field>
+        <Field Name="LineAmtLineDiscFormat">
+          <DataField>LineAmtLineDiscFormat</DataField>
+        </Field>
+        <Field Name="DocNo">
+          <DataField>DocNo</DataField>
+        </Field>
+        <Field Name="DocDate">
+          <DataField>DocDate</DataField>
+        </Field>
+        <Field Name="PostingDesc">
+          <DataField>PostingDesc</DataField>
+        </Field>
+        <Field Name="PageNo">
+          <DataField>PageNo</DataField>
+        </Field>
+        <Field Name="NetAmount">
+          <DataField>NetAmount</DataField>
+        </Field>
+        <Field Name="LineDiscountCaption">
+          <DataField>LineDiscountCaption</DataField>
+        </Field>
+        <Field Name="AmountCaption">
+          <DataField>AmountCaption</DataField>
+        </Field>
+        <Field Name="DocNoCaption">
+          <DataField>DocNoCaption</DataField>
+        </Field>
+        <Field Name="DocDateCaption">
+          <DataField>DocDateCaption</DataField>
+        </Field>
+        <Field Name="PostingDescriptionCaption">
+          <DataField>PostingDescriptionCaption</DataField>
+        </Field>
+        <Field Name="PrnChkCheckDateTextCheckStyleUS">
+          <DataField>PrnChkCheckDateTextCheckStyleUS</DataField>
+        </Field>
+        <Field Name="CommentLine1">
+          <DataField>CommentLine1</DataField>
+        </Field>
+        <Field Name="PrnChkCheckToAddrCheckStyleUS2">
+          <DataField>PrnChkCheckToAddrCheckStyleUS2</DataField>
+        </Field>
+        <Field Name="PrnChkCheckToAddrCheckStyleUS3">
+          <DataField>PrnChkCheckToAddrCheckStyleUS3</DataField>
+        </Field>
+        <Field Name="PrnChkCompanyAddrCheckStyleUS4">
+          <DataField>PrnChkCompanyAddrCheckStyleUS4</DataField>
+        </Field>
+        <Field Name="PrnChkCompanyAddrCheckStyleUS5">
+          <DataField>PrnChkCompanyAddrCheckStyleUS5</DataField>
+        </Field>
+        <Field Name="PrnChkCheckNoTextCheckStyleUS">
+          <DataField>PrnChkCheckNoTextCheckStyleUS</DataField>
+        </Field>
+        <Field Name="PrnChkCompanyAddrCheckStyleUS1">
+          <DataField>PrnChkCompanyAddrCheckStyleUS1</DataField>
+        </Field>
+        <Field Name="TotalLineAmount">
+          <DataField>TotalLineAmount</DataField>
+        </Field>
+        <Field Name="TotalLineAmountFormat">
+          <DataField>TotalLineAmountFormat</DataField>
+        </Field>
+        <Field Name="TotalTxt">
+          <DataField>TotalTxt</DataField>
+        </Field>
+        <Field Name="PrnChkCompanyAddrCheckStyleCA1">
+          <DataField>PrnChkCompanyAddrCheckStyleCA1</DataField>
+        </Field>
+        <Field Name="PrnChkCompanyAddrCheckStyleCA3">
+          <DataField>PrnChkCompanyAddrCheckStyleCA3</DataField>
+        </Field>
+        <Field Name="PrnChkCompanyAddrCheckStyleCA5">
+          <DataField>PrnChkCompanyAddrCheckStyleCA5</DataField>
+        </Field>
+        <Field Name="PrnChkCommentLineCheckStyleCA1">
+          <DataField>PrnChkCommentLineCheckStyleCA1</DataField>
+        </Field>
+        <Field Name="PrnChkCheckToAddrCheckStyleCA1">
+          <DataField>PrnChkCheckToAddrCheckStyleCA1</DataField>
+        </Field>
+        <Field Name="PrnChkCheckToAddrCheckStyleCA3">
+          <DataField>PrnChkCheckToAddrCheckStyleCA3</DataField>
+        </Field>
+        <Field Name="PrnChkCheckToAddrCheckStyleCA5">
+          <DataField>PrnChkCheckToAddrCheckStyleCA5</DataField>
+        </Field>
+        <Field Name="PrnChkDateIndicatorCheckStyleCA">
+          <DataField>PrnChkDateIndicatorCheckStyleCA</DataField>
+        </Field>
+        <Field Name="PrnChkVoidTxtCheckStyleCA">
+          <DataField>PrnChkVoidTxtCheckStyleCA</DataField>
+        </Field>
+        <Field Name="PrnChkCurrencyCodeCheckStyleUS">
+          <DataField>PrnChkCurrencyCodeCheckStyleUS</DataField>
+        </Field>
+        <Field Name="CompanyAddr1">
+          <DataField>CompanyAddr1</DataField>
+        </Field>
+        <Field Name="CompanyAddr2">
+          <DataField>CompanyAddr2</DataField>
+        </Field>
+        <Field Name="CompanyAddr3">
+          <DataField>CompanyAddr3</DataField>
+        </Field>
+        <Field Name="CompanyAddr4">
+          <DataField>CompanyAddr4</DataField>
+        </Field>
+        <Field Name="CompanyAddr5">
+          <DataField>CompanyAddr5</DataField>
+        </Field>
+        <Field Name="CompanyAddr6">
+          <DataField>CompanyAddr6</DataField>
+        </Field>
+        <Field Name="CheckNoText_PrintCheck">
+          <DataField>CheckNoText_PrintCheck</DataField>
+        </Field>
+        <Field Name="CheckDateTxt2">
+          <DataField>CheckDateTxt2</DataField>
+        </Field>
+        <Field Name="DateIndicator">
+          <DataField>DateIndicator</DataField>
+        </Field>
+        <Field Name="CommentLine11">
+          <DataField>CommentLine11</DataField>
+        </Field>
+        <Field Name="CommentLine21">
+          <DataField>CommentLine21</DataField>
+        </Field>
+        <Field Name="CheckAmtTxt">
+          <DataField>CheckAmtTxt</DataField>
+        </Field>
+        <Field Name="CurrencyCode">
+          <DataField>CurrencyCode</DataField>
+        </Field>
+        <Field Name="CheckToAddr01">
+          <DataField>CheckToAddr01</DataField>
+        </Field>
+        <Field Name="CheckToAddr2">
+          <DataField>CheckToAddr2</DataField>
+        </Field>
+        <Field Name="CheckToAddr3">
+          <DataField>CheckToAddr3</DataField>
+        </Field>
+        <Field Name="CheckToAddr4">
+          <DataField>CheckToAddr4</DataField>
+        </Field>
+        <Field Name="CheckToAddr5">
+          <DataField>CheckToAddr5</DataField>
+        </Field>
+        <Field Name="VoidTxt">
+          <DataField>VoidTxt</DataField>
+        </Field>
+        <Field Name="CheckStyleIndex">
+          <DataField>CheckStyleIndex</DataField>
+        </Field>
+        <Field Name="BankCurrencyCode">
+          <DataField>BankCurrencyCode</DataField>
+        </Field>
+        <Field Name="PageNo_PrintCheck">
+          <DataField>PageNo_PrintCheck</DataField>
+        </Field>
+        <Field Name="BPrnChkCheckNoTextCheckStyleUS">
+          <DataField>BPrnChkCheckNoTextCheckStyleUS</DataField>
+        </Field>
+        <Field Name="BCheckNoText_PrintCheck">
+          <DataField>BCheckNoText_PrintCheck</DataField>
+        </Field>
+        <Field Name="BPageNo_PrintCheck">
+          <DataField>BPageNo_PrintCheck</DataField>
+        </Field>
+        <Field Name="CPrnChkCheckNoTextCheckStyleUS">
+          <DataField>CPrnChkCheckNoTextCheckStyleUS</DataField>
+        </Field>
+        <Field Name="CCheckNoText_PrintCheck">
+          <DataField>CCheckNoText_PrintCheck</DataField>
+        </Field>
+        <Field Name="CPageNo_PrintCheck">
+          <DataField>CPageNo_PrintCheck</DataField>
+        </Field>
+        <Field Name="CheckIteration">
+          <DataField>CheckIteration</DataField>
+        </Field>
+      </Fields>
+      <Query>
+        <DataSourceName>DataSource</DataSourceName>
+        <CommandText />
+      </Query>
+    </DataSet>
+  </DataSets>
+</Report>

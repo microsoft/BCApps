@@ -1,0 +1,420 @@
+codeunit 166502 "Create BAS Setup"
+{
+
+    trigger OnRun()
+    begin
+        DemoDataSetup.Get();
+        LineNo := 0;
+        GenJnlLine.Reset();
+        InsertBASJournal(XGENERAL, XDEFAULT, 20080125D, 2, '200', '42425', 2, '10000', 0, '', '', '', '', -654);
+        InsertBASJournal(XGENERAL, XDEFAULT, 20080125D, 2, '200', '', 0, '8110', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.MiscCode(), DemoDataSetup.DomesticCode(), DemoDataSetup.ServicesVATCode(), 654);
+        InsertBASJournal(XGENERAL, XDEFAULT, 20080125D, 2, '201', '857384574', 2, '40000', 0, '', '', '', '', -65.5);
+        InsertBASJournal(XGENERAL, XDEFAULT, 20080125D, 2, '201', '', 0, '8130', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.MiscCode(), DemoDataSetup.DomesticCode(), DemoDataSetup.NoVATCode(), 65.5);
+        InsertBASJournal(XGENERAL, XDEFAULT, 20080125D, 2, '204', '87465', 2, '40000', 0, '', '', '', '', -100);
+        InsertBASJournal(XGENERAL, XDEFAULT, 20080125D, 2, '204', '', 0, '8130', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.MiscCode(), DemoDataSetup.DomesticCode(), DemoDataSetup.InputTaxCode(), 100);
+        CODEUNIT.Run(CODEUNIT::"Gen. Jnl.-Post Batch", GenJnlLine);
+
+        LineNo := 0;
+        GenJnlLine.Reset();
+        InsertBASJournal(XGENERAL, XDEFAULT, 20080125D, 2, '1000', '', 1, '20000', 0, '', '', '', '', 568);
+        InsertBASJournal(XGENERAL, XDEFAULT, 20080125D, 2, '1000', '', 0, '6112', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.RawMatCode(), DemoDataSetup.DomesticCode(), DemoDataSetup.ServicesVATCode(), -568);
+        InsertBASJournal(XGENERAL, XDEFAULT, 20080125D, 2, '1002', '', 1, '30000', 0, '', '', '', '', 325);
+        InsertBASJournal(XGENERAL, XDEFAULT, 20080125D, 2, '1002', '', 0, '6113', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.RawMatCode(), DemoDataSetup.DomesticCode(), DemoDataSetup.NoVATCode(), -325);
+        CODEUNIT.Run(CODEUNIT::"Gen. Jnl.-Post Batch", GenJnlLine);
+
+        InsertBASJournal(XPURCH, XDEFAULT, 20080125D, 2, 'G03001', StrSubstNo(XPurchaseDesc, '10001'), 2, '50000', 0, '', '', '', '', -1100);
+        CODEUNIT.Run(CODEUNIT::"Gen. Jnl.-Post Batch", GenJnlLine);
+
+        InsertBASSetupName(XDEFAULT, XDEFAULT);
+
+        LineNo := 0;
+        InsertBASSetup(XDEFAULT, 7, '10000', '10', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.AssetCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 7, '10001', '10', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.NoVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 7, '10002', '10', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.ServicesVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 7, '10003', '10', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.GoodsVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 7, '10004', '10', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.InputTaxCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 7, '10005', '10', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.AssetCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 7, '10006', '10', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.NoVATCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 7, '10007', '10', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.ServicesVATCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 7, '10008', '10', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.GoodsVATCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 7, '10009', '10', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.InputTaxCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 7, '10010', '1000', 2, '', 0, '', '', '10', 0, 0, false, 0, true);
+        InsertBASSetup(XDEFAULT, 18, '10011', '20', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.AssetCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 18, '10012', '20', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.NoVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 18, '10013', '20', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.ServicesVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 18, '10014', '20', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.GoodsVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 18, '10015', '20', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.InputTaxCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 18, '10016', '20', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.AssetCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 18, '10017', '20', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.NoVATCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 18, '10018', '20', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.ServicesVATCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 18, '10019', '20', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.GoodsVATCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 18, '10020', '20', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.InputTaxCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 18, '10021', '2000', 2, '', 0, '', '', '20', 0, 0, false, 0, true);
+        InsertBASSetup(XDEFAULT, 26, '10022', '30', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.AssetCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 26, '10023', '30', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.AssetCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 26, '10024', '30', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.NoVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 26, '10025', '30', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.NoVATCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 26, '10026', '30', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.ServicesVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 26, '10027', '30', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.ServicesVATCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 26, '10028', '30', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.GoodsVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 26, '10029', '30', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.GoodsVATCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 26, '10030', '30', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.InputTaxCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 26, '10031', '30', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.InputTaxCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 26, '10032', '30', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.AssetCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 26, '10033', '30', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.AssetCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 26, '10034', '30', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.NoVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 26, '10035', '30', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.NoVATCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 26, '10036', '30', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.ServicesVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 26, '10037', '30', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.ServicesVATCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 26, '10038', '30', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.GoodsVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 26, '10039', '30', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.GoodsVATCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 26, '10040', '30', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.InputTaxCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 26, '10041', '30', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.InputTaxCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 26, '10042', '3000', 2, '', 0, '', '', '30', 0, 0, false, 0, true);
+        InsertBASSetup(XDEFAULT, 27, '10043', '40', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.NoVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 27, '10044', '40', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.NoVATCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 27, '10045', '40', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.ServicesVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 27, '10046', '40', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.ServicesVATCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 27, '10047', '40', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.GoodsVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 27, '10048', '40', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.GoodsVATCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 27, '10049', '40', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.InputTaxCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 27, '10050', '40', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.InputTaxCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 27, '10051', '40', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.AssetCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 27, '10052', '40', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.AssetCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 27, '10053', '4000', 2, '', 0, '', '', '40', 0, 0, false, 0, true);
+        InsertBASSetup(XDEFAULT, 28, '10054', '50', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.NoVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 28, '10055', '50', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.NoVATCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 28, '10056', '5000', 2, '', 0, '', '', '50', 0, 0, false, 0, true);
+        InsertBASSetup(XDEFAULT, 29, '10057', '60', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.InputTaxCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 29, '10058', '60', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.InputTaxCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 29, '10059', '6000', 2, '', 0, '', '', '60', 0, 0, false, 0, true);
+        InsertBASSetup(XDEFAULT, 32, '10060', '70', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.NoVATCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 32, '10061', '70', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.NoVATCode(), '', 2, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 32, '10062', '70', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.ServicesVATCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 32, '10063', '70', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.ServicesVATCode(), '', 2, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 32, '10064', '70', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.GoodsVATCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 32, '10065', '70', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.GoodsVATCode(), '', 2, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 32, '10066', '70', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.InputTaxCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 32, '10067', '70', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.InputTaxCode(), '', 2, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 32, '10068', '70', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.AssetCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 32, '10069', '70', 1, '', 2, DemoDataSetup.DomesticCode(), DemoDataSetup.AssetCode(), '', 2, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 32, '10070', '70', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.NoVATCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 32, '10071', '70', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.NoVATCode(), '', 2, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 32, '10072', '70', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.ServicesVATCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 32, '10073', '70', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.ServicesVATCode(), '', 2, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 32, '10074', '70', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.GoodsVATCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 32, '10075', '70', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.GoodsVATCode(), '', 2, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 32, '10076', '70', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.InputTaxCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 32, '10077', '70', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.InputTaxCode(), '', 2, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 32, '10078', '70', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.AssetCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 32, '10079', '70', 1, '', 2, DemoDataSetup.ExportCode(), DemoDataSetup.AssetCode(), '', 2, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 32, '10080', '7000', 2, '', 0, '', '', '70', 0, 0, false, 0, true);
+        InsertBASSetup(XDEFAULT, 41, '10081', '80', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.AssetCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 41, '10082', '80', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.AssetCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 41, '10083', '80', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.AssetCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 41, '10084', '80', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.AssetCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 41, '10085', '8000', 2, '', 0, '', '', '80', 0, 0, false, 0, true);
+        InsertBASSetup(XDEFAULT, 42, '10086', '90', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.NoVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 42, '10087', '90', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.NoVATCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 42, '10088', '90', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.ServicesVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 42, '10089', '90', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.ServicesVATCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 42, '10090', '90', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.GoodsVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 42, '10091', '90', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.GoodsVATCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 42, '10092', '90', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.InputTaxCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 42, '10093', '90', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.InputTaxCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 42, '10094', '90', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.NoVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 42, '10095', '90', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.NoVATCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 42, '10096', '90', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.ServicesVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 42, '10097', '90', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.ServicesVATCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 42, '10098', '90', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.GoodsVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 42, '10099', '90', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.GoodsVATCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 42, '10100', '90', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.InputTaxCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 42, '10101', '90', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.InputTaxCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 42, '10102', '9000', 2, '', 0, '', '', '90', 0, 0, false, 0, true);
+        InsertBASSetup(XDEFAULT, 44, '10103', '100', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.InputTaxCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 44, '10104', '100', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.InputTaxCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 44, '10105', '10000', 2, '', 0, '', '', '100', 0, 0, false, 0, true);
+        InsertBASSetup(XDEFAULT, 45, '10106', '110', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.NoVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 45, '10107', '110', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.NoVATCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 45, '10108', '110', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.AssetCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 45, '10109', '110', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.AssetCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 45, '10110', '110', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.NoVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 45, '10111', '110', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.NoVATCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 45, '10112', '110', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.ServicesVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 45, '10113', '110', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.ServicesVATCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 45, '10114', '110', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.GoodsVATCode(), '', 1, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 45, '10115', '110', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.GoodsVATCode(), '', 2, 0, false, 0, false);
+        InsertBASSetup(XDEFAULT, 45, '10116', '11000', 2, '', 0, '', '', '110', 0, 0, false, 0, true);
+        InsertBASSetup(XDEFAULT, 49, '10117', '120', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.AssetCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 49, '10118', '120', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.AssetCode(), '', 2, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 49, '10119', '120', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.AssetCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 49, '10120', '120', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.AssetCode(), '', 2, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 49, '10121', '120', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.NoVATCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 49, '10122', '120', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.NoVATCode(), '', 2, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 49, '10123', '120', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.ServicesVATCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 49, '10124', '120', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.ServicesVATCode(), '', 2, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 49, '10125', '120', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.GoodsVATCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 49, '10126', '120', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.GoodsVATCode(), '', 2, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 49, '10127', '120', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.InputTaxCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 49, '10128', '120', 1, '', 1, DemoDataSetup.DomesticCode(), DemoDataSetup.InputTaxCode(), '', 2, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 49, '10129', '120', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.NoVATCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 49, '10130', '120', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.NoVATCode(), '', 2, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 49, '10131', '120', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.ServicesVATCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 49, '10132', '120', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.ServicesVATCode(), '', 2, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 49, '10133', '120', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.GoodsVATCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 49, '10134', '120', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.GoodsVATCode(), '', 2, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 49, '10135', '120', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.InputTaxCode(), '', 1, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 49, '10136', '120', 1, '', 1, DemoDataSetup.ExportCode(), DemoDataSetup.InputTaxCode(), '', 2, 0, true, 0, false);
+        InsertBASSetup(XDEFAULT, 49, '10137', '12000', 2, '', 0, '', '', '120', 0, 0, true, 0, true);
+        InsertBASSetup(XDEFAULT, 35, '10138', '13000', 0, '8710..8740', 0, '', '', '', 1, 0, false, 0, true);
+        InsertBASSetup(XDEFAULT, 36, '10139', '14000', 0, '5810', 0, '', '', '', 1, 0, false, 0, true);
+        InsertBASSetup(XDEFAULT, 53, '10140', '15000', 0, '5670', 0, '', '', '', 1, 0, false, 0, true);
+
+        // Insert BAS-XML Field ID's
+        CreateBASXMLFieldIDSetup();
+
+        // Create BAS Calc. Sheet
+        BASCalcSheet.Init();
+        BASCalcSheet.A1 := '12123123124';
+        BASCalcSheet."BAS Version" := 1;
+        BASCalcSheet.A2 := CompanyInfo.ABN;
+        BASCalcSheet.A2a := CompanyInfo."ABN Division Part No.";
+        BASCalcSheet.A3 := 20110101D;
+        BASCalcSheet.A4 := 20110131D;
+        BASCalcSheet.A5 := 20110128D;
+        BASCalcSheet.A6 := 20110128D;
+        BASCalcSheet.T2 := 170;
+        GLSetup.Get();
+        BASCalcSheet."BAS GST Division Factor" := GLSetup."BAS GST Division Factor";
+        BASCalcSheet."BAS Setup Name" := XDEFAULT;
+        BASCalcSheet.Insert();
+    end;
+
+    var
+        BASCalcSheet: Record "BAS Calculation Sheet";
+        DemoDataSetup: Record "Demo Data Setup";
+        CompanyInfo: Record "Company Information";
+        GLSetup: Record "General Ledger Setup";
+        GenJnlBatch: Record "Gen. Journal Batch";
+        GenJnlLine: Record "Gen. Journal Line";
+        LineNo: Integer;
+        XGENERAL: Label 'GENERAL';
+        XDEFAULT: Label 'DEFAULT';
+        XABN: Label 'ABN';
+        XATOCALCULATEDAMOUNT: Label 'ATO_CALCULATED_AMOUNT';
+        XATOGSTINSTALMENTAMOUNT: Label 'ATO_GST_INSTALMENT_AMOUNT';
+        XCALCULATEDINSTALMENTAMOUNT: Label 'CALCULATED_INSTALMENT_AMOUNT';
+        XCALG12: Label 'CAL_G12';
+        XCALG13: Label 'CAL_G13';
+        XCALG14: Label 'CAL_G14';
+        XCALG15: Label 'CAL_G15';
+        XCALG16: Label 'CAL_G16';
+        XCALG17: Label 'CAL_G17';
+        XCALG18: Label 'CAL_G18';
+        XCALG19: Label 'CAL_G19';
+        XCALG20: Label 'CAL_G20';
+        XCALG4: Label 'CAL_G4';
+        XCALG5: Label 'CAL_G5';
+        XCALG6: Label 'CAL_G6';
+        XCALG7: Label 'CAL_G7';
+        XCALG8: Label 'CAL_G8';
+        XCALG9: Label 'CAL_G9';
+        XCAPITALPURCHASES: Label 'CAPITAL_PURCHASES';
+        XCOMMISSIONERSINSTALMENTRATE: Label 'COMMISSIONERS_INSTALMENT_RATE';
+        XCREFRREDUCEDFBTINSTALMENTS: Label 'CREDIT_FROM_REDUCED_FBT_INSTALMENTS';
+        XCREFRREDUCEDPAYGINSTALMENTS: Label 'CREDIT_FROM_REDUCED_PAYG_INSTALMENTS';
+        XDIN: Label 'DIN';
+        XESTIMATEDFBTTAX: Label 'ESTIMATED_FBT_TAX';
+        XESTIMATEDGSTFORYEAR: Label 'ESTIMATED_GST_FOR_YEAR';
+        XESTIMATEDYEARINCOMETAX: Label 'ESTIMATED_YEAR_INCOME_TAX';
+        XEXPORTS: Label 'EXPORTS';
+        XFBTINSTALMENT: Label 'FBT_INSTALMENT';
+        XFORMDUEON: Label 'FORM_DUE_ON';
+        XGSTINSTALMENTS: Label 'GST_INSTALMENTS';
+        XGSTREASONFORVARIATION: Label 'GST_REASON_FOR_VARIATION';
+        XGSTREFUND: Label 'GST_REFUND';
+        XGSTTAX: Label 'GST_TAX';
+        XGSTTOTALSALES: Label 'GST_TOTAL_SALES';
+        XINSTALMENTINCOME: Label 'INSTALMENT_INCOME';
+        XLUXURYCARTAXPAYABLE: Label 'LUXURY_CAR_TAX_PAYABLE';
+        XLUXURYCARTAXREFUNDABLE: Label 'LUXURY_CAR_TAX_REFUNDABLE';
+        XNETAMOUNTFORTHISSTATEMENT: Label 'NET_AMOUNT_FOR_THIS_STATEMENT';
+        XNONCAPITALPURCHASES: Label 'NON_CAPITAL_PURCHASES';
+        XOTHERGSTFREESUPPLIES: Label 'OTHER_GST_FREE_SUPPLIES';
+        XPAYGIOPTION1: Label 'PAYGI_OPTION_1';
+        XPAYGIOPTION2: Label 'PAYGI_OPTION_2';
+        XPAYGINSTALMENT: Label 'PAYG_INSTALMENT';
+        XPAYGWITHHOLDING: Label 'PAYG_WITHHOLDING';
+        XPAYMENTDUEON: Label 'PAYMENT_DUE_ON';
+        XPERIODDATEFROM: Label 'PERIOD_DATE_FROM';
+        XPERIODDATETO: Label 'PERIOD_DATE_TO';
+        XREASONFORFBTVARIATION: Label 'REASON_FOR_FBT_VARIATION';
+        XREASONVARIATION: Label 'REASON_VARIATION';
+        XTOTALCREDITS: Label 'TOTAL_CREDITS';
+        XTOTALPAYMENTSWITHHOLDINGAMT: Label 'TOTAL_PAYMENTS_WITHHOLDING_AMOUNT';
+        XTOTALDEBITS: Label 'TOTAL_DEBITS';
+        XTOTALWITHHELDAMOUNT: Label 'TOTAL_WITHHELD_AMOUNT';
+        XVARIEDFBTINSTALMENT: Label 'VARIED_FBT_INSTALMENT';
+        XVARIEDGSTINSTALMENT: Label 'VARIED_GST_INSTALMENT';
+        XVARIEDINSTALMENT: Label 'VARIED_INSTALMENT';
+        XVARIEDINSTALMENTRATE: Label 'VARIED_INSTALMENT_RATE';
+        XWINEEQUALISATIONTAXPAYABLE: Label 'WINE_EQUALISATION_TAX_PAYABLE';
+        XWINEEQUALISATIONTAXREFUNDABLE: Label 'WINE_EQUALISATION_TAX_REFUNDABLE';
+        XWITHHELDFRINVESTMENTDISTAMT: Label 'WITHHELD_FROM_INVESTMENT_DISTRIBUTIONS_AMOUNT';
+        XWITHHELDFROMINVOICESNOABN: Label 'WITHHELD_FROM_INVOICES_NO_ABN';
+        XWITHHELDFROMSALARYAMOUNT: Label 'WITHHELD_FROM_SALARY_AMOUNT';
+        XPURCH: Label 'PURCH', Comment = 'PURCH stands for Purchases.';
+        XPurchaseDesc: Label 'Purchase %1';
+        XPURCHJNL: Label 'PURCHJNL', Comment = 'PURCHJNL stands for Purchase Journal.';
+        XGENJNL: Label 'GENJNL', Comment = 'GENJNL stands for General Journal.';
+
+    procedure CreateBASXMLFieldIDSetup()
+    begin
+        InsertBASXMLFieldIDs(XABN, 2);
+        InsertBASXMLFieldIDs(XATOCALCULATEDAMOUNT, 66);
+        InsertBASXMLFieldIDs(XATOGSTINSTALMENTAMOUNT, 60);
+        InsertBASXMLFieldIDs(XCALCULATEDINSTALMENTAMOUNT, 69);
+        InsertBASXMLFieldIDs(XCALG12, 43);
+        InsertBASXMLFieldIDs(XCALG13, 44);
+        InsertBASXMLFieldIDs(XCALG14, 45);
+        InsertBASXMLFieldIDs(XCALG15, 46);
+        InsertBASXMLFieldIDs(XCALG16, 47);
+        InsertBASXMLFieldIDs(XCALG17, 48);
+        InsertBASXMLFieldIDs(XCALG18, 49);
+        InsertBASXMLFieldIDs(XCALG19, 50);
+        InsertBASXMLFieldIDs(XCALG20, 51);
+        InsertBASXMLFieldIDs(XCALG4, 29);
+        InsertBASXMLFieldIDs(XCALG5, 30);
+        InsertBASXMLFieldIDs(XCALG6, 31);
+        InsertBASXMLFieldIDs(XCALG7, 32);
+        InsertBASXMLFieldIDs(XCALG8, 33);
+        InsertBASXMLFieldIDs(XCALG9, 34);
+        InsertBASXMLFieldIDs(XCAPITALPURCHASES, 41);
+        InsertBASXMLFieldIDs(XCOMMISSIONERSINSTALMENTRATE, 54);
+        InsertBASXMLFieldIDs(XCREFRREDUCEDFBTINSTALMENTS, 24);
+        InsertBASXMLFieldIDs(XCREFRREDUCEDPAYGINSTALMENTS, 23);
+        InsertBASXMLFieldIDs(XDIN, 1);
+        InsertBASXMLFieldIDs(XESTIMATEDFBTTAX, 40);
+        InsertBASXMLFieldIDs(XESTIMATEDGSTFORYEAR, 61);
+        InsertBASXMLFieldIDs(XESTIMATEDYEARINCOMETAX, 67);
+        InsertBASXMLFieldIDs(XEXPORTS, 27);
+        InsertBASXMLFieldIDs(XFBTINSTALMENT, 14);
+        InsertBASXMLFieldIDs(XFORMDUEON, 5);
+        InsertBASXMLFieldIDs(XGSTINSTALMENTS, 64);
+        InsertBASXMLFieldIDs(XGSTREASONFORVARIATION, 63);
+        InsertBASXMLFieldIDs(XGSTREFUND, 18);
+        InsertBASXMLFieldIDs(XGSTTAX, 7);
+        InsertBASXMLFieldIDs(XGSTTOTALSALES, 26);
+        InsertBASXMLFieldIDs(XINSTALMENTINCOME, 37);
+        InsertBASXMLFieldIDs(XLUXURYCARTAXPAYABLE, 9);
+        InsertBASXMLFieldIDs(XLUXURYCARTAXREFUNDABLE, 20);
+        InsertBASXMLFieldIDs(XNETAMOUNTFORTHISSTATEMENT, 17);
+        InsertBASXMLFieldIDs(XNONCAPITALPURCHASES, 42);
+        InsertBASXMLFieldIDs(XOTHERGSTFREESUPPLIES, 28);
+        InsertBASXMLFieldIDs(XPAYGIOPTION1, 70);
+        InsertBASXMLFieldIDs(XPAYGIOPTION2, 71);
+        InsertBASXMLFieldIDs(XPAYGINSTALMENT, 13);
+        InsertBASXMLFieldIDs(XPAYGWITHHOLDING, 12);
+        InsertBASXMLFieldIDs(XPAYMENTDUEON, 6);
+        InsertBASXMLFieldIDs(XPERIODDATEFROM, 3);
+        InsertBASXMLFieldIDs(XPERIODDATETO, 4);
+        InsertBASXMLFieldIDs(XREASONFORFBTVARIATION, 57);
+        InsertBASXMLFieldIDs(XREASONVARIATION, 55);
+        InsertBASXMLFieldIDs(XTOTALCREDITS, 25);
+        InsertBASXMLFieldIDs(XTOTALDEBITS, 16);
+        InsertBASXMLFieldIDs(XTOTALPAYMENTSWITHHOLDINGAMT, 36);
+        InsertBASXMLFieldIDs(XTOTALWITHHELDAMOUNT, 65);
+        InsertBASXMLFieldIDs(XVARIEDFBTINSTALMENT, 56);
+        InsertBASXMLFieldIDs(XVARIEDGSTINSTALMENT, 62);
+        InsertBASXMLFieldIDs(XVARIEDINSTALMENT, 68);
+        InsertBASXMLFieldIDs(XVARIEDINSTALMENTRATE, 38);
+        InsertBASXMLFieldIDs(XWINEEQUALISATIONTAXPAYABLE, 8);
+        InsertBASXMLFieldIDs(XWINEEQUALISATIONTAXREFUNDABLE, 19);
+        InsertBASXMLFieldIDs(XWITHHELDFRINVESTMENTDISTAMT, 52);
+        InsertBASXMLFieldIDs(XWITHHELDFROMINVOICESNOABN, 53);
+        InsertBASXMLFieldIDs(XWITHHELDFROMSALARYAMOUNT, 35);
+    end;
+
+    procedure InsertBASBatch("Journal Template Name": Code[10]; Name: Code[10]; "No. Series": Code[10])
+    begin
+        GenJnlBatch.Init();
+        GenJnlBatch."Journal Template Name" := "Journal Template Name";
+        GenJnlBatch.Name := Name;
+        GenJnlBatch."No. Series" := "No. Series";
+        GenJnlBatch.Insert();
+    end;
+
+    procedure InsertBASJournal("Journal Template Name": Code[10]; "Journal Batch Name": Code[10]; "Posting Date": Date; "Document Type": Integer; "Document No.": Code[20]; "External Document No.": Code[20]; "Account Type": Integer; "Account No.": Code[20]; "Gen. Posting Type": Integer; "Gen. Bus. Posting Group": Code[20]; "Gen. Prod. Posting Group": Code[20]; "GST Bus. Posting Group": Code[20]; "GST Prod. Posting Group": Code[20]; Amount: Decimal)
+    begin
+        LineNo += 10000;
+        GenJnlLine.Init();
+        GenJnlLine.Validate("Journal Template Name", "Journal Template Name");
+        GenJnlLine.Validate("Journal Batch Name", "Journal Batch Name");
+        GenJnlLine."Line No." := LineNo;
+        GenJnlLine.Validate("Posting Date", "Posting Date");
+        GenJnlLine.Validate("Document Type", "Document Type");
+        GenJnlLine.Validate("Document No.", "Document No.");
+        GenJnlLine.Validate("External Document No.", "External Document No.");
+        GenJnlLine.Validate("Account Type", "Account Type");
+        GenJnlLine.Validate("Account No.", "Account No.");
+        GenJnlLine.Validate("Gen. Posting Type", "Gen. Posting Type");
+        GenJnlLine.Validate("Gen. Bus. Posting Group", "Gen. Bus. Posting Group");
+        GenJnlLine.Validate("Gen. Prod. Posting Group", "Gen. Prod. Posting Group");
+        GenJnlLine.Validate("VAT Bus. Posting Group", "GST Bus. Posting Group");
+        GenJnlLine.Validate("VAT Prod. Posting Group", "GST Prod. Posting Group");
+        GenJnlLine.Validate(Amount, Amount);
+        if "Journal Template Name" = XPURCH then begin
+            GenJnlLine.Validate(GenJnlLine."Source Code", XPURCHJNL);
+            GenJnlLine.Validate("Bal. Account Type", 0);
+            GenJnlLine.Validate("Bal. Account No.", '8320');
+        end else
+            GenJnlLine.Validate(GenJnlLine."Source Code", XGENJNL);
+
+        GenJnlLine.Insert();
+    end;
+
+    procedure InsertBASSetupName(Name: Code[10]; Description: Text[30])
+    var
+        BASSetupName: Record "BAS Setup Name";
+    begin
+        BASSetupName.Init();
+        BASSetupName.Name := Name;
+        BASSetupName.Description := Description;
+        BASSetupName.Insert();
+    end;
+
+    procedure InsertBASSetup("Setup Name": Code[20]; "Field No.": Integer; "Line No.": Code[10]; "Row No.": Code[10]; Type: Integer; "Account Totaling": Text[80]; "Gen. Posting Type": Integer; "GST Bus. Posting Group": Code[20]; "GST Prod. Posting Group": Code[20]; "Row Totaling": Text[80]; "Amount Type": Integer; "Calculate With": Integer; "BAS Adjustment": Boolean; "Print with": Integer; Print: Boolean)
+    var
+        BASSetup: Record "BAS Setup";
+    begin
+        LineNo += 10000;
+        BASSetup.Init();
+        BASSetup."Setup Name" := "Setup Name";
+        BASSetup."Field No." := "Field No.";
+        BASSetup."Line No." := LineNo;
+        BASSetup."Row No." := "Row No.";
+        BASSetup.Type := Type;
+        BASSetup."Account Totaling" := "Account Totaling";
+        BASSetup."Gen. Posting Type" := "Gen. Posting Type";
+        BASSetup."GST Bus. Posting Group" := "GST Bus. Posting Group";
+        BASSetup."GST Prod. Posting Group" := "GST Prod. Posting Group";
+        BASSetup."Row Totaling" := "Row Totaling";
+        BASSetup."Amount Type" := "Amount Type";
+        BASSetup."Calculate with" := "Calculate With";
+        BASSetup."BAS Adjustment" := "BAS Adjustment";
+        BASSetup."Print with" := "Print with";
+        BASSetup.Print := Print;
+        BASSetup.Insert();
+    end;
+
+    procedure InsertBASXMLFieldIDs("XML Field ID": Text[80]; "Field No.": Integer)
+    var
+        BASXMLFieldID: Record "BAS XML Field ID";
+    begin
+        BASXMLFieldID.Init();
+        BASXMLFieldID."XML Field ID" := "XML Field ID";
+        BASXMLFieldID.Validate("Field No.", "Field No.");
+        BASXMLFieldID.Insert();
+    end;
+}
+
