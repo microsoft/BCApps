@@ -88,7 +88,7 @@ codeunit 36957 "PowerBI Upgrade"
 
     local procedure InitializeABCAnalysisSetupUpgradeTag(): Code[250]
     begin
-        exit('MS-TEMP-POWERBI-ABC-ANALYSIS-SETUP-20251216'); //TODO: To be confirmed with Microsoft team.
+        exit('MS-606229-PowerBIABCAnalysisSetup-20251216');
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]
