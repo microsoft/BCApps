@@ -7,7 +7,7 @@
     },
     {
         "FeatureName": "Post purchase invoices for drop shipments independently of related sales invoices",
-        "Description": "This feature lets you post purchase invoices for drop shipment orders even if the related sales invoice hasn’t been posted yet, supporting workflows where vendor invoicing and customer billing happen at different times. To use it, open the Purchase Order with drop shipmnet lines and post the invoice directly. You can also use the \"Get receipt lines\" action in the purchase invoice to invoice received drop shipment lines.",
+        "Description": "This feature lets you post purchase invoices for drop shipment orders even if the related sales invoice hasn't been posted yet, supporting workflows where vendor invoicing and customer billing happen at different times. To use it, open the Purchase Order with drop shipmnet lines and post the invoice directly. You can also use the \"Get receipt lines\" action in the purchase invoice to invoice received drop shipment lines.",
         "HelpURL": "",
         "VideoURL": ""
     },
@@ -25,7 +25,7 @@
     },
     {
       "FeatureName": "Assign custom collections to items exported to Shopify",
-      "Description": "Synchronize Shopify custom collections with Business Central to streamline product organization and support tax‑override scenarios. Start on the \"Shopify Custom Product Collections\" page to import collections from Shopify and choose which ones should be added when exporting items to Shopify. You can specify advanced conditions to define when specific item is added to collection during export.",
+      "Description": "Synchronize Shopify custom collections with Business Central to streamline product organization and support tax-override scenarios. Start on the \"Shopify Custom Product Collections\" page to import collections from Shopify and choose which ones should be added when exporting items to Shopify. You can specify advanced conditions to define when specific item is added to collection during export.",
       "HelpURL": "",
       "VideoURL": ""
     },
@@ -61,7 +61,7 @@
     },
     {
       "FeatureName": "Use checkout currency when creating sales documents from Shopify orders",
-      "Description": "This feature lets you choose whether Business Central creates sales documents using the shop currency or the customer’s checkout (presentment) currency, helping you avoid unnecessary conversions and match exactly what customers paid. To get started, open the \"Shopify Shop Card\" and review the new \"Currency Handling\" setting. When set to Presentment currency, imported Shopify orders, sales documents, and Suggest Payments will use checkout currency amounts. Explore Shopify Orders, Order Lines, and Transactions pages to see both presentment and shop currency values.",
+      "Description": "This feature lets you choose whether Business Central creates sales documents using the shop currency or the customer's checkout (presentment) currency, helping you avoid unnecessary conversions and match exactly what customers paid. To get started, open the \"Shopify Shop Card\" and review the new \"Currency Handling\" setting. When set to Presentment currency, imported Shopify orders, sales documents, and Suggest Payments will use checkout currency amounts. Explore Shopify Orders, Order Lines, and Transactions pages to see both presentment and shop currency values.",
       "HelpURL": "",
       "VideoURL": ""
     }
