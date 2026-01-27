@@ -413,6 +413,11 @@ page 6105 "Inbound E-Documents"
 #endif
     end;
 
+    trigger OnAfterGetCurrRecord()
+    begin
+        PopulateTaskInfo();
+    end;
+
     local procedure PopulateDocumentNameTxt()
     var
         CaptionBuilder: TextBuilder;
@@ -435,7 +440,7 @@ page 6105 "Inbound E-Documents"
     begin
         AgentTask.SetRange("Company Name", CompanyName());
         AgentTask.SetRange("External ID", Format(Rec."Entry No"));
-        if not AgentTask.IsEmpty() then
+        if not AgentTask.FindFirst() then
             Clear(AgentTask);
     end;
 
