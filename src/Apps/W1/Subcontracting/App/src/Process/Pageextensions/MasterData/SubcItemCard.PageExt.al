@@ -30,12 +30,12 @@ pageextension 99001518 "Subc. Item Card" extends "Item Card"
                 ToolTip = 'Create Production BOM and/or Routing BOM with purchase provision options.';
                 trigger OnAction()
                 var
-                    CreateProdRtngExt: Codeunit "Subc. Create Prod. Rtng. Ext.";
+                    SubcCreateProdRtngExt: Codeunit "Subc. Create Prod. Rtng. Ext.";
                 begin
                     Rec.SetRecFilter();
-                    BindSubscription(CreateProdRtngExt);
+                    BindSubscription(SubcCreateProdRtngExt);
                     Report.Run(Report::"Subc. Create Prod. Routing", true, true, Rec);
-                    UnbindSubscription(CreateProdRtngExt);
+                    UnbindSubscription(SubcCreateProdRtngExt);
                 end;
             }
         }

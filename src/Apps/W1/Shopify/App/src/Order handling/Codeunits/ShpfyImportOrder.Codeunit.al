@@ -912,9 +912,9 @@ codeunit 30161 "Shpfy Import Order"
     begin
         FulfillmentOrderLine.Reset();
         FulfillmentOrderLine.SetRange("Shopify Order Id", OrderLine."Shopify Order Id");
-        FulfillmentOrderLine.SetRange("Shopify Variant Id", OrderLine."Shopify Variant Id");
+        FulfillmentOrderLine.SetRange("Line Item Id", OrderLine."Line Id");
         FulfillmentOrderLine.SetFilter("Fulfillment Status", '<>%1', 'CLOSED');
-        if FulfillmentOrderLine.FindSet() then
+        if not FulfillmentOrderLine.IsEmpty() then
             UpdateLocationIdAndDeliveryMethodOnOrderLines(OrderLine, FulfillmentOrderLine)
         else begin
             FulfillmentOrderLine.SetRange("Fulfillment Status");

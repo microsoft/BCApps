@@ -63,6 +63,20 @@ page 4303 "Agent Task Log Entry List"
                 field(Description; Rec.Description)
                 {
                     Caption = 'Description';
+
+                    trigger OnDrillDown()
+                    begin
+                        Message(Rec.Description);
+                    end;
+                }
+                field(Reason; Rec.Reason)
+                {
+                    Caption = 'Reason';
+
+                    trigger OnDrillDown()
+                    begin
+                        Message(Rec.Reason);
+                    end;
                 }
                 field(Details; DetailsTxt)
                 {
@@ -75,6 +89,40 @@ page 4303 "Agent Task Log Entry List"
                     end;
                 }
             }
+            fixed(DisclaimerGroup)
+            {
+                group(Left)
+                {
+                    ShowCaption = false;
+                    label(Empty)
+                    {
+                        ApplicationArea = All;
+                        Caption = '', Locked = true;
+                    }
+                }
+                group(Right)
+                {
+                    ShowCaption = false;
+                    label(Disclaimer)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'AI-generated content may be incorrect.';
+                        Style = Subordinate;
+                    }
+                }
+            }
+        }
+
+        area(FactBoxes)
+        {
+            part(TaskContext; "Agent Task Context Part")
+            {
+                ApplicationArea = All;
+                Caption = 'Task context';
+                AboutTitle = 'Context information about the task and agent';
+                AboutText = 'Shows context information such as the agent name, task ID, and company name.';
+                SubPageLink = ID = field("Task ID");
+            }
         }
     }
 
@@ -83,6 +131,9 @@ page 4303 "Agent Task Log Entry List"
         area(Promoted)
         {
             actionref(Refresh_Promoted; Refresh)
+            {
+            }
+            actionref(Feedback_Promoted; Feedback)
             {
             }
         }
@@ -97,6 +148,24 @@ page 4303 "Agent Task Log Entry List"
                 trigger OnAction()
                 begin
                     CurrPage.Update(false);
+                end;
+            }
+            action(Feedback)
+            {
+                ApplicationArea = All;
+                Caption = 'Give Feedback';
+                ToolTip = 'Tell us what you think about the agent and suggest new features or improvements.';
+                Image = Comment;
+                Enabled = IsFeedbackActionEnabled;
+                Visible = IsFeedbackActionEnabled;
+
+                trigger OnAction()
+                var
+                    AgentUserFeedback: Codeunit "Agent User Feedback";
+                    ContextProperties: Dictionary of [Text, Text];
+                begin
+                    ContextProperties := AgentUserFeedback.InitializeAgentTaskContext(Rec."Task ID");
+                    AgentUserFeedback.RequestFeedback('Agent Task Log Entries', ContextProperties);
                 end;
             }
         }
@@ -114,20 +183,27 @@ page 4303 "Agent Task Log Entry List"
 
     local procedure UpdateControls()
     var
+        Agent: Record Agent;
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
         DetailsTxt := AgentTaskImpl.GetDetailsForAgentTaskLogEntry(Rec);
         case Rec.Level of
             Rec.Level::Error:
-                TypeStyle := 'Unfavorable';
+                TypeStyle := Format(PageStyle::Unfavorable);
             Rec.Level::Warning:
-                TypeStyle := 'Ambiguous';
+                TypeStyle := Format(PageStyle::Ambiguous);
             else
-                TypeStyle := 'Standard';
+                TypeStyle := Format(PageStyle::Standard);
         end;
+
+        if AgentTaskImpl.TryGetAgentRecordFromTaskId(Rec."Task ID", Agent) then
+            IsFeedbackActionEnabled := Agent."Publisher Type" <> Agent."Publisher Type"::"Third Party"
+        else
+            IsFeedbackActionEnabled := false
     end;
 
     var
+        IsFeedbackActionEnabled: Boolean;
         DetailsTxt: Text;
         TypeStyle: Text;
 }

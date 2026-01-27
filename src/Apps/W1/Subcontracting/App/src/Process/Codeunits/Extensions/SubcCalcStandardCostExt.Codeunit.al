@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -13,9 +13,9 @@ codeunit 99001514 "Subc. Calc.StandardCost Ext."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calculate Standard Cost", OnAfterCalcRtngLineCost, '', false, false)]
     local procedure OnAfterCalcRtngLineCost(RoutingLine: Record "Routing Line"; MfgItemQtyBase: Decimal; var SLSub: Decimal)
     var
-        SubPriceManagement: Codeunit "Subc. Price Management";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
     begin
-        SubPriceManagement.CalcStandardCostOnAfterCalcRtngLineCost(RoutingLine, MfgItemQtyBase, SLSub);
+        SubcPriceManagement.CalcStandardCostOnAfterCalcRtngLineCost(RoutingLine, MfgItemQtyBase, SLSub);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calculate Standard Cost", OnCalcMfgItemOnBeforeCalcRtngCost, '', false, false)]

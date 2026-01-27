@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,26 +33,26 @@ pageextension 99001522 "Subc. ItemChargeAss.(Purch)" extends "Item Charge Assign
         }
     }
     var
-        SubManagementSetup: Record "Subc. Management Setup";
+        SubcManagementSetup: Record "Subc. Management Setup";
         GetReceiptLinesSubcontractingVisible: Boolean;
 
     local procedure OpenPurchaseReceiptLinesSubcontracting()
     var
-        ItemChargeAssgntPurch: Record "Item Charge Assignment (Purch)";
+        ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)";
         PurchReceiptLines: Page "Purch. Receipt Lines";
     begin
         PurchLine2.TestField("Qty. to Invoice");
 
-        ItemChargeAssgntPurch.SetRange("Document Type", Rec."Document Type");
-        ItemChargeAssgntPurch.SetRange("Document No.", Rec."Document No.");
-        ItemChargeAssgntPurch.SetRange("Document Line No.", Rec."Document Line No.");
+        ItemChargeAssignmentPurch.SetRange("Document Type", Rec."Document Type");
+        ItemChargeAssignmentPurch.SetRange("Document No.", Rec."Document No.");
+        ItemChargeAssignmentPurch.SetRange("Document Line No.", Rec."Document Line No.");
         PurchRcptLine.SetFilter("Prod. Order No.", '<>%1', '');
         PurchRcptLine.SetFilter("Routing No.", '<>%1', '');
         PurchRcptLine.SetFilter("Operation No.", '<>%1', '');
 
         PurchReceiptLines.SetTableView(PurchRcptLine);
-        if ItemChargeAssgntPurch.FindLast() then
-            PurchReceiptLines.Initialize(ItemChargeAssgntPurch, PurchLine2."Unit Cost")
+        if ItemChargeAssignmentPurch.FindLast() then
+            PurchReceiptLines.Initialize(ItemChargeAssignmentPurch, PurchLine2."Unit Cost")
         else
             PurchReceiptLines.Initialize(Rec, PurchLine2."Unit Cost");
         PurchReceiptLines.LookupMode(true);
@@ -64,6 +64,6 @@ pageextension 99001522 "Subc. ItemChargeAss.(Purch)" extends "Item Charge Assign
 
     trigger OnOpenPage()
     begin
-        GetReceiptLinesSubcontractingVisible := SubManagementSetup.ItemChargeToRcptSubReferenceEnabled();
+        GetReceiptLinesSubcontractingVisible := SubcManagementSetup.ItemChargeToRcptSubReferenceEnabled();
     end;
 }

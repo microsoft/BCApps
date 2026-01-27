@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,11 +32,11 @@ pageextension 99001525 "Subc. PurchOrderList" extends "Purchase Order List"
 
                 trigger OnAction()
                 var
-                    PurchHeader: Record "Purchase Header";
+                    PurchaseHeader: Record "Purchase Header";
                 begin
-                    PurchHeader := Rec;
-                    PurchHeader.SetRecFilter();
-                    Report.Run(Report::"Subc. Create Transf. Order", false, false, PurchHeader);
+                    PurchaseHeader := Rec;
+                    PurchaseHeader.SetRecFilter();
+                    Report.Run(Report::"Subc. Create Transf. Order", false, false, PurchaseHeader);
                 end;
             }
             action(CreateReturnFromSubcontractor)
@@ -48,11 +48,11 @@ pageextension 99001525 "Subc. PurchOrderList" extends "Purchase Order List"
 
                 trigger OnAction()
                 var
-                    PurchHeader: Record "Purchase Header";
+                    PurchaseHeader: Record "Purchase Header";
                 begin
-                    PurchHeader := Rec;
-                    PurchHeader.SetRecFilter();
-                    Report.Run(Report::"Subc. Create SubCReturnOrder", false, false, PurchHeader);
+                    PurchaseHeader := Rec;
+                    PurchaseHeader.SetRecFilter();
+                    Report.Run(Report::"Subc. Create SubCReturnOrder", false, false, PurchaseHeader);
                 end;
             }
             action(PrintSubcDispatchingList)
@@ -64,11 +64,11 @@ pageextension 99001525 "Subc. PurchOrderList" extends "Purchase Order List"
 
                 trigger OnAction()
                 var
-                    PurchHeader: Record "Purchase Header";
+                    PurchaseHeader: Record "Purchase Header";
                 begin
-                    PurchHeader := Rec;
-                    PurchHeader.SetRecFilter();
-                    Report.Run(Report::"Subc. Dispatching List", true, false, PurchHeader);
+                    PurchaseHeader := Rec;
+                    PurchaseHeader.SetRecFilter();
+                    Report.Run(Report::"Subc. Dispatching List", true, false, PurchaseHeader);
                 end;
             }
         }

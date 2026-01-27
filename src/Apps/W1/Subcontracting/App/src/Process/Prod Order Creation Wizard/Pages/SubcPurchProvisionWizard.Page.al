@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -157,13 +157,13 @@ page 99001505 "Subc. PurchProvisionWizard"
                             begin
                                 if CreateBOMVersion then begin
                                     SelectedBOMVersion := 'TEMP-VERSION-' + CopyStr(Format(CreateGuid()), 2, 7);
-                                    VersionSelectionMgmt.GetBOMVersionNoSeries(SelectedBOMNo)
+                                    SubcVersionMgmt.GetBOMVersionNoSeries(SelectedBOMNo)
                                 end else begin
                                     SelectedBOMVersion := '';
                                     LoadBOMLines();
                                 end;
                                 SetBOMRoutingEditable();
-                                TempDataInitializer.UpdateBOMVersionCode(SelectedBOMVersion);
+                                SubcTempDataInitializer.UpdateBOMVersionCode(SelectedBOMVersion);
                             end;
                         }
                     }
@@ -178,7 +178,7 @@ page 99001505 "Subc. PurchProvisionWizard"
                             NewBOMNo: Code[20];
                         begin
                             NewBOMNo := SelectedBOMNo;
-                            if VersionSelectionMgmt.ShowBOMSelection(NewBOMNo) then
+                            if SubcVersionMgmt.ShowBOMSelection(NewBOMNo) then
                                 if NewBOMNo <> SelectedBOMNo then begin
                                     SelectedBOMNo := NewBOMNo;
                                     SelectedBOMVersion := '';
@@ -195,7 +195,7 @@ page 99001505 "Subc. PurchProvisionWizard"
 
                         trigger OnAssistEdit()
                         begin
-                            if VersionSelectionMgmt.ShowBOMVersionSelection(SelectedBOMNo, SelectedBOMVersion) then
+                            if SubcVersionMgmt.ShowBOMVersionSelection(SelectedBOMNo, SelectedBOMVersion) then
                                 LoadBOMLines();
                         end;
                     }
@@ -237,13 +237,13 @@ page 99001505 "Subc. PurchProvisionWizard"
                             begin
                                 if CreateRoutingVersion then begin
                                     SelectedRoutingVersion := 'TEMP-VER-' + CopyStr(Format(CreateGuid()), 2, 7);
-                                    VersionSelectionMgmt.GetRoutingVersionNoSeries(SelectedRoutingNo)
+                                    SubcVersionMgmt.GetRoutingVersionNoSeries(SelectedRoutingNo)
                                 end else begin
                                     SelectedRoutingVersion := '';
                                     LoadRoutingLines();
                                 end;
                                 SetBOMRoutingEditable();
-                                TempDataInitializer.UpdateRoutingVersionCode(SelectedRoutingVersion);
+                                SubcTempDataInitializer.UpdateRoutingVersionCode(SelectedRoutingVersion);
                             end;
                         }
                     }
@@ -258,7 +258,7 @@ page 99001505 "Subc. PurchProvisionWizard"
                             NewRoutingNo: Code[20];
                         begin
                             NewRoutingNo := SelectedRoutingNo;
-                            if VersionSelectionMgmt.ShowRoutingSelection(NewRoutingNo) then
+                            if SubcVersionMgmt.ShowRoutingSelection(NewRoutingNo) then
                                 if NewRoutingNo <> SelectedRoutingNo then begin
                                     SelectedRoutingNo := NewRoutingNo;
                                     SelectedRoutingVersion := '';
@@ -275,7 +275,7 @@ page 99001505 "Subc. PurchProvisionWizard"
 
                         trigger OnAssistEdit()
                         begin
-                            if VersionSelectionMgmt.ShowRoutingVersionSelection(SelectedRoutingNo, SelectedRoutingVersion) then
+                            if SubcVersionMgmt.ShowRoutingVersionSelection(SelectedRoutingNo, SelectedRoutingVersion) then
                                 LoadRoutingLines();
                         end;
                     }
@@ -381,8 +381,8 @@ page 99001505 "Subc. PurchProvisionWizard"
     var
         MediaRepositoryStandard: Record "Media Repository";
         MediaResourcesStandard: Record "Media Resources";
-        TempDataInitializer: Codeunit "Subc. Temp Data Initializer";
-        VersionSelectionMgmt: Codeunit "Subc. Version Mgmt.";
+        SubcTempDataInitializer: Codeunit "Subc. Temp Data Initializer";
+        SubcVersionMgmt: Codeunit "Subc. Version Mgmt.";
         Finished: Boolean;
         BomRtngFromSource: Enum "Subc. RtngBOMSourceType";
         BomRtngFromSourceTxt: Text;
@@ -423,28 +423,28 @@ page 99001505 "Subc. PurchProvisionWizard"
     /// <summary>
     /// Sets the display and editing behavior for BOM and Routing selection steps.
     /// </summary>
-    /// <param name="ShowEditType">The show/edit type to control BOM and Routing step behavior.</param>
-    procedure SetBOMRoutingShowEditType(ShowEditType: Enum "Subc. Show/Edit Type")
+    /// <param name="SubcShowEditType">The show/edit type to control BOM and Routing step behavior.</param>
+    procedure SetBOMRoutingShowEditType(SubcShowEditType: Enum "Subc. Show/Edit Type")
     begin
-        BOMRoutingShowEditType := ShowEditType;
+        BOMRoutingShowEditType := SubcShowEditType;
     end;
 
     /// <summary>
     /// Sets the display and editing behavior for Production Order Components and Routing preview steps.
     /// </summary>
-    /// <param name="ShowEditType">The show/edit type to control component and routing preview behavior.</param>
-    procedure SetProdCompRoutingShowEditType(ShowEditType: Enum "Subc. Show/Edit Type")
+    /// <param name="SubcShowEditType">The show/edit type to control component and routing preview behavior.</param>
+    procedure SetProdCompRoutingShowEditType(SubcShowEditType: Enum "Subc. Show/Edit Type")
     begin
-        ProdCompRoutingShowEditType := ShowEditType;
+        ProdCompRoutingShowEditType := SubcShowEditType;
     end;
 
     /// <summary>
     /// Sets the temporary data initializer codeunit for managing temporary production order data.
     /// </summary>
-    /// <param name="NewTempDataInitializer">The temporary data initializer codeunit to use.</param>
-    procedure SetTempDataInitializer(var NewTempDataInitializer: Codeunit "Subc. Temp Data Initializer")
+    /// <param name="NewSubcTempDataInitializer">The temporary data initializer codeunit to use.</param>
+    procedure SetTempDataInitializer(var NewSubcTempDataInitializer: Codeunit "Subc. Temp Data Initializer")
     begin
-        TempDataInitializer := NewTempDataInitializer;
+        SubcTempDataInitializer := NewSubcTempDataInitializer;
     end;
 
     /// <summary>
@@ -488,10 +488,10 @@ page 99001505 "Subc. PurchProvisionWizard"
         if SelectedBOMNo = '' then
             exit;
 
-        if not VersionSelectionMgmt.CheckBOMExists(SelectedBOMNo, SelectedBOMVersion) then
+        if not SubcVersionMgmt.CheckBOMExists(SelectedBOMNo, SelectedBOMVersion) then
             exit;
 
-        TempDataInitializer.LoadBOMLines(SelectedBOMNo, SelectedBOMVersion);
+        SubcTempDataInitializer.LoadBOMLines(SelectedBOMNo, SelectedBOMVersion);
     end;
 
     local procedure LoadRoutingLines()
@@ -499,10 +499,10 @@ page 99001505 "Subc. PurchProvisionWizard"
         if SelectedRoutingNo = '' then
             exit;
 
-        if not VersionSelectionMgmt.CheckRoutingExists(SelectedRoutingNo, SelectedRoutingVersion) then
+        if not SubcVersionMgmt.CheckRoutingExists(SelectedRoutingNo, SelectedRoutingVersion) then
             exit;
 
-        TempDataInitializer.LoadRoutingLines(SelectedRoutingNo, SelectedRoutingVersion);
+        SubcTempDataInitializer.LoadRoutingLines(SelectedRoutingNo, SelectedRoutingVersion);
     end;
 
     local procedure LoadTopBanners()
@@ -514,20 +514,20 @@ page 99001505 "Subc. PurchProvisionWizard"
 
     local procedure SetBOMDataReference()
     var
-        TempBOMLines: Record "Production BOM Line" temporary;
+        TempProductionBOMLine: Record "Production BOM Line" temporary;
     begin
-        TempDataInitializer.GetGlobalBOMLines(TempBOMLines);
-        CurrPage.BOMLinesPart.Page.SetTemporaryRecords(TempBOMLines);
+        SubcTempDataInitializer.GetGlobalBOMLines(TempProductionBOMLine);
+        CurrPage.BOMLinesPart.Page.SetTemporaryRecords(TempProductionBOMLine);
 
-        SelectedBOMNo := TempBOMLines."Production BOM No.";
-        SelectedBOMVersion := TempBOMLines."Version Code";
+        SelectedBOMNo := TempProductionBOMLine."Production BOM No.";
+        SelectedBOMVersion := TempProductionBOMLine."Version Code";
     end;
 
     local procedure SetRoutingDataReference()
     var
         TempRoutingLine: Record "Routing Line" temporary;
     begin
-        TempDataInitializer.GetGlobalRoutingLines(TempRoutingLine);
+        SubcTempDataInitializer.GetGlobalRoutingLines(TempRoutingLine);
         CurrPage.RoutingLinesPart.Page.SetTemporaryRecords(TempRoutingLine);
 
         SelectedRoutingNo := TempRoutingLine."Routing No.";
@@ -537,38 +537,38 @@ page 99001505 "Subc. PurchProvisionWizard"
     local procedure SetProdOrderDataReference()
     var
         TempProdOrderComponent: Record "Prod. Order Component" temporary;
-        TempProdOrderRtngLine: Record "Prod. Order Routing Line" temporary;
+        TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
     begin
-        TempDataInitializer.GetGlobalProdOrderComponent(TempProdOrderComponent);
+        SubcTempDataInitializer.GetGlobalProdOrderComponent(TempProdOrderComponent);
         CurrPage.ComponentsPart.Page.SetTemporaryRecords(TempProdOrderComponent);
-        TempDataInitializer.GetGlobalProdOrderRoutingLine(TempProdOrderRtngLine);
-        CurrPage.ProdOrderRoutingPart.Page.SetTemporaryRecords(TempProdOrderRtngLine);
+        SubcTempDataInitializer.GetGlobalProdOrderRoutingLine(TempProdOrderRoutingLine);
+        CurrPage.ProdOrderRoutingPart.Page.SetTemporaryRecords(TempProdOrderRoutingLine);
     end;
 
     local procedure SetBOMRoutingEditable()
     begin
-        EditBOMLines := not VersionSelectionMgmt.CheckBOMExists(SelectedBOMNo, SelectedBOMVersion) and (BOMRoutingShowEditType = BOMRoutingShowEditType::Edit);
-        EditRoutingLines := not VersionSelectionMgmt.CheckRoutingExists(SelectedRoutingNo, SelectedRoutingVersion) and (BOMRoutingShowEditType = BOMRoutingShowEditType::Edit);
+        EditBOMLines := not SubcVersionMgmt.CheckBOMExists(SelectedBOMNo, SelectedBOMVersion) and (BOMRoutingShowEditType = BOMRoutingShowEditType::Edit);
+        EditRoutingLines := not SubcVersionMgmt.CheckRoutingExists(SelectedRoutingNo, SelectedRoutingVersion) and (BOMRoutingShowEditType = BOMRoutingShowEditType::Edit);
 
-        CreateBOMVersionVisible := VersionSelectionMgmt.CheckBOMExists(SelectedBOMNo, '') and (BOMRoutingShowEditType = BOMRoutingShowEditType::Edit);
-        CreateRoutingVersionVisible := VersionSelectionMgmt.CheckRoutingExists(SelectedRoutingNo, '') and (BOMRoutingShowEditType = BOMRoutingShowEditType::Edit);
+        CreateBOMVersionVisible := SubcVersionMgmt.CheckBOMExists(SelectedBOMNo, '') and (BOMRoutingShowEditType = BOMRoutingShowEditType::Edit);
+        CreateRoutingVersionVisible := SubcVersionMgmt.CheckRoutingExists(SelectedRoutingNo, '') and (BOMRoutingShowEditType = BOMRoutingShowEditType::Edit);
     end;
 
     local procedure SetShowEditOptionsEnabled()
     var
-        SubManagementSetup: Record "Subc. Management Setup";
+        SubcManagementSetup: Record "Subc. Management Setup";
     begin
-        SubManagementSetup.SetLoadFields(AllowEditUISelection);
-        SubManagementSetup.Get();
-        ShowEditOptionsEnabled := SubManagementSetup.AllowEditUISelection;
+        SubcManagementSetup.SetLoadFields(AllowEditUISelection);
+        SubcManagementSetup.Get();
+        ShowEditOptionsEnabled := SubcManagementSetup.AllowEditUISelection;
     end;
 
     local procedure SetProdOrderPresetValuesInSubpages()
     var
         PresetBOMValues, PresetRoutingValues : Boolean;
     begin
-        PresetBOMValues := not VersionSelectionMgmt.CheckBOMExists(SelectedBOMNo, '');
-        PresetRoutingValues := not VersionSelectionMgmt.CheckRoutingExists(SelectedRoutingNo, '');
+        PresetBOMValues := not SubcVersionMgmt.CheckBOMExists(SelectedBOMNo, '');
+        PresetRoutingValues := not SubcVersionMgmt.CheckRoutingExists(SelectedRoutingNo, '');
         CurrPage.ComponentsPart.Page.SetPresetSubValues(PresetBOMValues);
         CurrPage.ProdOrderRoutingPart.Page.SetPresetSubValues(PresetRoutingValues);
     end;
@@ -598,7 +598,7 @@ page 99001505 "Subc. PurchProvisionWizard"
             case Step of
                 Step::Components:
                     begin
-                        TempDataInitializer.BuildTemporaryStructureFromBOMRouting();
+                        SubcTempDataInitializer.BuildTemporaryStructureFromBOMRouting();
                         SetProdOrderPresetValuesInSubpages();
                     end;
             end;
@@ -686,7 +686,7 @@ page 99001505 "Subc. PurchProvisionWizard"
     var
         SetupSourceLbl: Label 'Subcontracting Management Setup';
     begin
-        BomRtngFromSource := TempDataInitializer.GetRtngBOMSourceType();
+        BomRtngFromSource := SubcTempDataInitializer.GetRtngBOMSourceType();
         case BomRtngFromSource of
             "Subc. RtngBOMSourceType"::Empty:
                 BomRtngFromSourceTxt := SetupSourceLbl;

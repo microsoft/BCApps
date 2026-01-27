@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -99,8 +99,8 @@ page 99001509 "Subc. TempProdOrdRtngLines"
 
         if PresetSubValues then begin
             GetSubManagementSetup();
-            Rec."Routing Link Code" := SubManagementSetup."Rtng. Link Code Purch. Prov.";
-            Rec."Flushing Method" := SubManagementSetup."Def. provision flushing method";
+            Rec."Routing Link Code" := SubcManagementSetup."Rtng. Link Code Purch. Prov.";
+            Rec."Flushing Method" := SubcManagementSetup."Def. provision flushing method";
         end;
     end;
 
@@ -108,7 +108,7 @@ page 99001509 "Subc. TempProdOrdRtngLines"
         LinesChanged: Boolean;
 
     var
-        SubManagementSetup: Record "Subc. Management Setup";
+        SubcManagementSetup: Record "Subc. Management Setup";
         PresetSubValues: Boolean;
         SubManagementSetupRead: Boolean;
 
@@ -137,9 +137,9 @@ page 99001509 "Subc. TempProdOrdRtngLines"
         exit(LinesChanged);
     end;
 
-    procedure SetTemporaryRecords(var TempProdOrderRtngLine: Record "Prod. Order Routing Line" temporary)
+    procedure SetTemporaryRecords(var TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary)
     begin
-        Rec.Copy(TempProdOrderRtngLine, true);
+        Rec.Copy(TempProdOrderRoutingLine, true);
         if Rec.FindFirst() then;
     end;
 
@@ -151,8 +151,8 @@ page 99001509 "Subc. TempProdOrdRtngLines"
     local procedure GetSubManagementSetup()
     begin
         if not SubManagementSetupRead then begin
-            SubManagementSetup.SetLoadFields("Rtng. Link Code Purch. Prov.", "Def. provision flushing method");
-            SubManagementSetup.Get();
+            SubcManagementSetup.SetLoadFields("Rtng. Link Code Purch. Prov.", "Def. provision flushing method");
+            SubcManagementSetup.Get();
             SubManagementSetupRead := true;
         end;
     end;
