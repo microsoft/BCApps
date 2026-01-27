@@ -2097,14 +2097,16 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
             var
                 PEPPOLDocumentProcessor: Interface "PEPPOL Document Processor";
                 IPEPPOLDocumentInfoProvider: Interface "PEPPOL Document Info Provider";
+                CurrentFormat: Enum "PEPPOL 3.0 Format";
             begin
                 if not PostedHeaderIterator.GetNextPostedHeaderAsSalesHeader(PostedSourceRecRef, SalesHeader) then
                     currXMLport.Break();
 
-                PEPPOLDocumentProcessor := GetFormat();
-                PEPPOLDocumentProcessor.GetTotals(PostedSourceRecRef, PostedSourceLineRecRef, TempVATAmtLine, TempVATProductPostingGroup, GetFormat());
+                CurrentFormat := GetFormat();
+                PEPPOLDocumentProcessor := CurrentFormat;
+                PEPPOLDocumentProcessor.GetTotals(PostedSourceRecRef, PostedSourceLineRecRef, TempVATAmtLine, TempVATProductPostingGroup, CurrentFormat);
 
-                IPEPPOLDocumentInfoProvider := GetFormat();
+                IPEPPOLDocumentInfoProvider := CurrentFormat;
                 IPEPPOLDocumentInfoProvider.GetGeneralInfoBIS(
                   SalesHeader,
                   ID,
@@ -2193,16 +2195,18 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
     var
         PEPPOLDocumentProcessor: Interface "PEPPOL Document Processor";
         DocumentAttachmentMgt: Codeunit "Document Attachment Mgmt";
+        CurrentFormat: Enum "PEPPOL 3.0 Format";
     begin
         SetFormat(Format);
         PostedSourceRecRef.GetTable(DocVariant);
         if PostedSourceRecRef.Number <> 0 then begin
             DocumentAttachmentMgt.SetDocumentAttachmentFiltersForRecRef(DocumentAttachments, PostedSourceRecRef);
-            PEPPOLDocumentProcessor := GetFormat();
-            PEPPOLDocumentProcessor.GetInvoiceRoundingLine(PostedSourceRecRef, TempSalesLineRounding, GetFormat());
+            CurrentFormat := GetFormat();
+            PEPPOLDocumentProcessor := CurrentFormat;
+            PEPPOLDocumentProcessor.GetInvoiceRoundingLine(PostedSourceRecRef, TempSalesLineRounding, CurrentFormat);
             PEPPOLDocumentProcessor.SetFilters(PostedSourceRecRef, PostedSourceLineRecRef, TempSalesLineRounding);
 
-            PostedHeaderIterator := GetFormat();
+            PostedHeaderIterator := CurrentFormat;
             PostedLineIterator := GetFormat();
         end;
     end;
