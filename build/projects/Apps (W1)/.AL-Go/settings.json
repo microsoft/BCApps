@@ -6,12 +6,7 @@
     "../../../src/Apps/W1/*/*/App"
   ],
   "testFolders": [
-    "../../../src/Apps/W1/*/Test",
-    "../../../src/Apps/W1/*/Test Library",
-    "../../../src/Apps/W1/*/Demo Data",
-    "../../../src/Apps/W1/*/*/Test",
-    "../../../src/Apps/W1/*/*/Test Library",
-    "../../../src/Apps/W1/*/*/Demo Data"
+    "../../../src/Apps/W1/PEPPOL/Test"
   ],
   "installOnlyReferencedApps": false,
   "doNotRunPageScriptingTests": true,
