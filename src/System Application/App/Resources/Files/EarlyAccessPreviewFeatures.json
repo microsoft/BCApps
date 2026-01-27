@@ -52,5 +52,12 @@
       "Description": "This feature gives you more accurate and flexible product information by letting you specify and adjust attribute values for each item variant while still inheriting attributes from the item. Start from the \"Item Variants List\" or \"Item Variant Card\" to review or edit variant‑specific attribute values. When adding a new variant, attributes from the item are copied automatically, and you can update or remove inherited values. You can also use the \"Update Variant Attributes\" action on the \"Item Card\" to sync attributes from the item to all variants.",
       "HelpURL": "",
       "VideoURL": ""
+    },
+    {
+      "FeatureName": "Description 2 is now available on Production and Planning pages",
+      "Description": "Explore the \"Description 2\" field on pages such as Production BOM Lines, Routing Lines, Prod. Order Components, and Planning Components. You can now view, edit, and use Description 2 consistently during planning and production order creation. Start by opening any of the listed pages and adding the Description 2 field through personalization.",
+      "HelpURL": "",
+      "VideoURL": ""
     }
+
 ]
