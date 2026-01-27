@@ -2188,13 +2188,14 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
 
             trigger OnAfterGetRecord()
             var
-                PEPPOL30Common: Codeunit "PEPPOL30 Common";
+                PEPPOLDocumentProcessor: Interface "PEPPOL Document Processor";
                 IPEPPOLDocumentInfoProvider: Interface "PEPPOL Document Info Provider";
             begin
                 if not PostedHeaderIterator.GetNextPostedHeaderAsSalesHeader(PostedSourceRecRef, SalesHeader) then
                     currXMLport.Break();
 
-                PEPPOL30Common.GetTotals(PostedSourceRecRef, PostedSourceLineRecRef, TempVATAmtLine, TempVATProductPostingGroup, GetFormat());
+                PEPPOLDocumentProcessor := GetFormat();
+                PEPPOLDocumentProcessor.GetTotals(PostedSourceRecRef, PostedSourceLineRecRef, TempVATAmtLine, TempVATProductPostingGroup, GetFormat());
 
                 IPEPPOLDocumentInfoProvider := GetFormat();
                 IPEPPOLDocumentInfoProvider.GetGeneralInfoBIS(
@@ -2288,15 +2289,16 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
 
     procedure Initialize(DocVariant: Variant; Format: Enum "PEPPOL 3.0 Format")
     var
-        PEPPOL30Common: Codeunit "PEPPOL30 Common";
+        PEPPOLDocumentProcessor: Interface "PEPPOL Document Processor";
         DocumentAttachmentMgt: Codeunit "Document Attachment Mgmt";
     begin
         SetFormat(Format);
         PostedSourceRecRef.GetTable(DocVariant);
         if PostedSourceRecRef.Number <> 0 then begin
             DocumentAttachmentMgt.SetDocumentAttachmentFiltersForRecRef(DocumentAttachments, PostedSourceRecRef);
-            PEPPOL30Common.GetInvoiceRoundingLine(PostedSourceRecRef, TempSalesLineRounding, GetFormat());
-            PEPPOL30Common.SetFilters(PostedSourceRecRef, PostedSourceLineRecRef, TempSalesLineRounding);
+            PEPPOLDocumentProcessor := GetFormat();
+            PEPPOLDocumentProcessor.GetInvoiceRoundingLine(PostedSourceRecRef, TempSalesLineRounding, GetFormat());
+            PEPPOLDocumentProcessor.SetFilters(PostedSourceRecRef, PostedSourceLineRecRef, TempSalesLineRounding);
 
             PostedHeaderIterator := GetFormat();
             PostedLineIterator := GetFormat();

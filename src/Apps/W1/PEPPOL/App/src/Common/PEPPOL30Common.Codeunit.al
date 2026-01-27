@@ -15,7 +15,7 @@ using Microsoft.Service.History;
 /// Provides conversion utilities for transforming posted document records into Sales Header/Line buffers.
 /// Used by the PEPPOL Posted Document Iterator implementations to normalize different document types.
 /// </summary>
-codeunit 37218 "PEPPOL30 Common"
+codeunit 37218 "PEPPOL30 Common" implements "PEPPOL Document Processor"
 {
     Access = Internal;
     InherentEntitlements = X;

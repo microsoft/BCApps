@@ -13,7 +13,8 @@ enum 37200 "PEPPOL 3.0 Format" implements "PEPPOL Attachment Provider",
                                             "PEPPOL Payment Info Provider",
                                             "PEPPOL Posted Document Iterator",
                                             "PEPPOL Tax Info Provider",
-                                            "PEPPOL30 Validation"
+                                            "PEPPOL30 Validation",
+                                            "PEPPOL Document Processor"
 {
     DefaultImplementation = "PEPPOL Attachment Provider" = "PEPPOL30",
                             "PEPPOL Delivery Info Provider" = "PEPPOL30",
@@ -22,7 +23,8 @@ enum 37200 "PEPPOL 3.0 Format" implements "PEPPOL Attachment Provider",
                             "PEPPOL Monetary Info Provider" = "PEPPOL30",
                             "PEPPOL Party Info Provider" = "PEPPOL30",
                             "PEPPOL Payment Info Provider" = "PEPPOL30",
-                            "PEPPOL Tax Info Provider" = "PEPPOL30";
+                            "PEPPOL Tax Info Provider" = "PEPPOL30",
+                            "PEPPOL Document Processor" = "PEPPOL30 Common";
     Extensible = true;
 
     value(0; "PEPPOL 3.0 - Sales")
