@@ -58,6 +58,11 @@
       "Description": "Explore the \"Description 2\" field on pages such as Production BOM Lines, Routing Lines, Prod. Order Components, and Planning Components. You can now view, edit, and use Description 2 consistently during planning and production order creation. Start by opening any of the listed pages and adding the Description 2 field through personalization.",
       "HelpURL": "",
       "VideoURL": ""
+    },
+    {
+      "FeatureName": "Use checkout currency when creating sales documents from Shopify orders",
+      "Description": "This feature lets you choose whether Business Central creates sales documents using the shop currency or the customer’s checkout (presentment) currency, helping you avoid unnecessary conversions and match exactly what customers paid. To get started, open the \"Shopify Shop Card\" and review the new \"Currency Handling\" setting. When set to Presentment currency, imported Shopify orders, sales documents, and Suggest Payments will use checkout currency amounts. Explore Shopify Orders, Order Lines, and Transactions pages to see both presentment and shop currency values.",
+      "HelpURL": "",
+      "VideoURL": ""
     }
-
 ]
