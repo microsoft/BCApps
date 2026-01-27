@@ -413,11 +413,6 @@ page 6105 "Inbound E-Documents"
 #endif
     end;
 
-    trigger OnAfterGetCurrRecord()
-    begin
-        PopulateTaskInfo();
-    end;
-
     local procedure PopulateDocumentNameTxt()
     var
         CaptionBuilder: TextBuilder;
