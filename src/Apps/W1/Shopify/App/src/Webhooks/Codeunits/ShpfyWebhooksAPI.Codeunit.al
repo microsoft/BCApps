@@ -57,6 +57,12 @@ codeunit 30251 "Shpfy Webhooks API"
         exit(false);
     end;
 
+    [TryFunction]
+    internal procedure TryDeleteWebhookSubscription(var Shop: Record "Shpfy Shop"; SubscriptionId: Text)
+    begin
+        DeleteWebhookSubscription(Shop, SubscriptionId);
+    end;
+
     internal procedure DeleteWebhookSubscription(var Shop: Record "Shpfy Shop"; SubscriptionId: Text)
     var
         GraphQLType: Enum "Shpfy GraphQL Type";
