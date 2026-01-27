@@ -202,6 +202,3 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
     begin
     end;
 }
-
-
-

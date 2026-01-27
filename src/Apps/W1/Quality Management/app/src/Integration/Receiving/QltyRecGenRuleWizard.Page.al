@@ -1071,6 +1071,3 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
         InventoryPostingGroupCode := CopyStr(TempItem.GetFilter("Inventory Posting Group"), 1, MaxStrLen(InventoryPostingGroupCode));
     end;
 }
-
-
-

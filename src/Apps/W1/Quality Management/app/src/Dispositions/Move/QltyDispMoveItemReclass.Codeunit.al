@@ -137,4 +137,3 @@ codeunit 20452 "Qlty. Disp. Move Item Reclass." implements "Qlty. Disposition"
     begin
     end;
 }
-

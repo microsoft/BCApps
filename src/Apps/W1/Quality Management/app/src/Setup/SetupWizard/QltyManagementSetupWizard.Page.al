@@ -777,5 +777,3 @@ page 20438 "Qlty. Management Setup Wizard"
                 TopBannerVisible := MediaResourcesDone."Media Reference".HasValue();
     end;
 }
-
-

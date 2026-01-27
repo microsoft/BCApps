@@ -1609,5 +1609,3 @@ codeunit 139940 "Qlty. Inspection Utility"
 
     #endregion Qlty. Misc Helpers Wrappers
 }
-
-

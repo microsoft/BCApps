@@ -261,7 +261,3 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
     begin
     end;
 }
-
-
-
-

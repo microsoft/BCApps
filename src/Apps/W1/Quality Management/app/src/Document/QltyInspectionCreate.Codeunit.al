@@ -1181,5 +1181,3 @@ codeunit 20404 "Qlty. Inspection - Create"
     begin
     end;
 }
-
-

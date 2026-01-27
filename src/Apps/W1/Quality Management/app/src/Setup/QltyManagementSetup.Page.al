@@ -428,11 +428,3 @@ page 20400 "Qlty. Management Setup"
         QltyApplicationAreaMgmt.RefreshExperienceTierCurrentCompany();
     end;
 }
-
-
-
-
-
-
-
-

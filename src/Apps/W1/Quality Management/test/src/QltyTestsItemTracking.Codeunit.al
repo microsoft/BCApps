@@ -3125,10 +3125,3 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
     begin
     end;
 }
-
-
-
-
-
-
-

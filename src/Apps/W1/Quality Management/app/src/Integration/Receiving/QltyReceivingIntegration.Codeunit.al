@@ -542,6 +542,3 @@ codeunit 20411 "Qlty. Receiving Integration"
     begin
     end;
 }
-
-
-

@@ -126,4 +126,3 @@ report 20412 "Qlty. Schedule Inspection"
             QltyInspectionCreate.CreateMultipleInspectionsWithoutDisplaying(SourceRecordRef, GuiAllowed(), QltyInspectionGenRule, CreatedQltyInspectionIds);
     end;
 }
-

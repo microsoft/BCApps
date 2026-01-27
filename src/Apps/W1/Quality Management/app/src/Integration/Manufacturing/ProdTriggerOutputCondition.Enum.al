@@ -9,7 +9,7 @@ namespace Microsoft.QualityManagement.Integration.Manufacturing;
 /// </summary>
 enum 20442 "Prod. Trigger Output Condition"
 {
-    Caption = 'Quality Automatic Production Trigger';
+    Caption = 'Production Trigger Output Condition';
 
     value(0; OnAnyOutput)
     {

@@ -483,4 +483,3 @@ codeunit 20415 "Qlty. Tracking Integration"
     begin
     end;
 }
-

@@ -706,10 +706,3 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     begin
     end;
 }
-
-
-
-
-
-
-

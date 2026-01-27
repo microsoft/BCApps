@@ -645,5 +645,3 @@ page 20405 "Qlty. Inspection Gen. Rules"
                 until QltyInspectionGenRule.Next() = 0;
     end;
 }
-
-

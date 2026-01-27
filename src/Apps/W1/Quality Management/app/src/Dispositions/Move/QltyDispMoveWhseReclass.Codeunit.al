@@ -124,5 +124,3 @@ codeunit 20449 "Qlty. Disp. Move Whse.Reclass." implements "Qlty. Disposition"
     begin
     end;
 }
-
-

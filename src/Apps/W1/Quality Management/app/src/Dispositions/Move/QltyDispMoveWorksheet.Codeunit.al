@@ -222,5 +222,3 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
     begin
     end;
 }
-
-
