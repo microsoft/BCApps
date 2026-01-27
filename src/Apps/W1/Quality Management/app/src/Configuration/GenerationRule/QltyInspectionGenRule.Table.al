@@ -741,6 +741,3 @@ table 20404 "Qlty. Inspection Gen. Rule"
         exit((TriggerCount = 1) and IntentSet);
     end;
 }
-
-
-
