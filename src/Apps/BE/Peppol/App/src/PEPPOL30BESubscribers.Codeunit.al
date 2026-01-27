@@ -19,6 +19,7 @@ codeunit 37314 "PEPPOL30 BE Subscribers"
             exit;
 
         Rec."PEPPOL 3.0 Sales Format" := Rec."PEPPOL 3.0 Sales Format"::"PEPPOL 3.0 - BE Sales";
+        Rec."PEPPOL 3.0 Service Format" := Rec."PEPPOL 3.0 Service Format"::"PEPPOL 3.0 - BE Service";
         Rec.Modify();
     end;
 }
