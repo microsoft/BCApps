@@ -85,8 +85,6 @@ page 8352 "MCP Config Tool List"
                     begin
                         MCPConfigImplementation.ValidateAPIVersion(Rec."Object Id", Rec."API Version");
                     end;
-
-                    // TODONAT: Upgrade
                 }
                 field("Allow Read"; Rec."Allow Read") { }
                 field("Allow Create"; Rec."Allow Create")
