@@ -2207,7 +2207,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
             PEPPOLDocumentProcessor.SetFilters(PostedSourceRecRef, PostedSourceLineRecRef, TempSalesLineRounding);
 
             PostedHeaderIterator := CurrentFormat;
-            PostedLineIterator := GetFormat();
+            PostedLineIterator := CurrentFormat;
         end;
     end;
 
