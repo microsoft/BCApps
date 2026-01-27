@@ -41,10 +41,10 @@ codeunit 37205 "Exp. Sales CrM. PEPPOL30"
     /// <param name="OutStr">The output stream to write the XML data to.</param>
     procedure GenerateXMLFile(VariantRec: Variant; var OutStr: OutStream; Format: Enum "PEPPOL 3.0 Format")
     var
-        SalesCrMemoPEPPOLBIS30: XMLport "Sales Cr.Memo - PEPPOL30";
+        PEPPOLXMLExporter: Interface "PEPPOL XML Exporter";
+        PEPPOLSalesCrMemoExporter: Codeunit "PEPPOL Sales CrMemo Exporter";
     begin
-        SalesCrMemoPEPPOLBIS30.Initialize(VariantRec, Format);
-        SalesCrMemoPEPPOLBIS30.SetDestination(OutStr);
-        SalesCrMemoPEPPOLBIS30.Export();
+        PEPPOLXMLExporter := PEPPOLSalesCrMemoExporter;
+        PEPPOLXMLExporter.GenerateXMLFile(VariantRec, OutStr, Format);
     end;
 }
