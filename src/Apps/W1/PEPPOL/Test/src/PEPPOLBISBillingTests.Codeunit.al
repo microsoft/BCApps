@@ -1531,7 +1531,10 @@ codeunit 139236 "PEPPOL BIS BillingTests"
 
         if not IsInitialized then begin
             LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"PEPPOL BIS BillingTests");
-            CompanyInfo.Get();
+            if not CompanyInfo.Get() then begin
+                CompanyInfo.Init();
+                CompanyInfo.Insert();
+            end;
             CompanyInfo.Validate(IBAN, 'GB29NWBK60161331926819');
             CompanyInfo.Validate("SWIFT Code", 'MIDLGB22Z0K');
             CompanyInfo.Validate("Bank Branch No.", '1234');
