@@ -541,27 +541,9 @@ page 20479 "Qlty. Test Card"
                 end;
             }
         }
-        area(Creation)
-        {
-            action(NewTest)
-            {
-                Image = Default;
-                Caption = 'Add a Test';
-                ToolTip = 'Add a new Test.';
-                Scope = Repeater;
-                AboutTitle = 'Add test(s)';
-                AboutText = 'Add a new test or add existing tests to this template.';
-                trigger OnAction()
-                begin
-                    AddTestWizard();
-                end;
-            }
-        }
+
         area(Promoted)
         {
-            actionref(NewTest_Promoted; NewTest)
-            {
-            }
             actionref(DeleteRecordSafe_Promoted; DeleteRecordSafe)
             {
             }
@@ -717,23 +699,5 @@ page 20479 "Qlty. Test Card"
             MatrixArrayConditionDescriptionCellData[Matrix] := CopyStr(Expression, 1, MaxStrLen(QltyIResultConditConf.Condition));
             UpdateMatrixDataConditionDescription(Matrix);
         end;
-    end;
-
-    /// <summary>
-    /// Use a wizard to add a new test.
-    /// </summary>
-    procedure AddTestWizard()
-    var
-        QltyTestWizard: Page "Qlty. Test Wizard";
-        OfFieldsToAddFromWizard: List of [Code[20]];
-    begin
-        QltyTestWizard.RunModalForTest();
-        if QltyTestWizard.GetFieldsToAdd(OfFieldsToAddFromWizard) then
-            if OfFieldsToAddFromWizard.Count() > 0 then begin
-                Rec.Get(OfFieldsToAddFromWizard.Get(1));
-                Rec.SetRecFilter();
-            end;
-
-        CurrPage.Update(false);
     end;
 }
