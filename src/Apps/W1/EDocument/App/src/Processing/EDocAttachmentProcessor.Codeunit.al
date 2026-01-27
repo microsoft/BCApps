@@ -155,14 +155,15 @@ codeunit 6169 "E-Doc. Attachment Processor"
     local procedure OnAfterGetRefTableForEDocs(var RecRef: RecordRef; DocumentAttachment: Record "Document Attachment")
     var
         EDocument: Record "E-Document";
+        EntryNo: Integer;
     begin
         case DocumentAttachment."Table ID" of
             Database::"E-Document":
-                begin
-                    RecRef.Open(Database::"E-Document");
-                    if EDocument.Get(DocumentAttachment."No.") then
+                if Evaluate(EntryNo, DocumentAttachment."No.") then
+                    if EDocument.Get(EntryNo) then begin
+                        RecRef.Open(Database::"E-Document");
                         RecRef.GetTable(EDocument);
-                end;
+                    end;
         end;
     end;
 
