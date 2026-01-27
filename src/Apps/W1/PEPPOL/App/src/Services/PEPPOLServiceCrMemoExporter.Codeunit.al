@@ -10,7 +10,7 @@ using System.IO;
 /// Implementation of PEPPOL XML Exporter interface for Service Credit Memos.
 /// Wraps the Sales Cr.Memo XMLport to provide proper abstraction for service documents.
 /// </summary>
-codeunit 37223 "PEPPOL Service CrMemo Exporter" implements "PEPPOL XML Exporter"
+codeunit 37227 "PEPPOL Service CrMemo Exporter" implements "PEPPOL XML Exporter"
 {
     InherentEntitlements = X;
     InherentPermissions = X;

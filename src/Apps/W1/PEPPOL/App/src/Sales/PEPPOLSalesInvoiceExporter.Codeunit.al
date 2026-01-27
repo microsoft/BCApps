@@ -10,7 +10,7 @@ using System.IO;
 /// Implementation of PEPPOL XML Exporter interface for Sales Invoices.
 /// Wraps the Sales Invoice XMLport to provide proper abstraction.
 /// </summary>
-codeunit 37220 "PEPPOL Sales Invoice Exporter" implements "PEPPOL XML Exporter"
+codeunit 37224 "PEPPOL Sales Invoice Exporter" implements "PEPPOL XML Exporter"
 {
     InherentEntitlements = X;
     InherentPermissions = X;
