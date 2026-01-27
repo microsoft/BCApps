@@ -41,30 +41,24 @@ page 20400 "Qlty. Management Setup"
                         AboutText = 'The default number series for quality inspection documents is used when there isn''t a number series defined on the quality inspection template.';
                     }
                 }
-                group(SettingsForBehaviors)
+                group(SettingsForInspections)
                 {
                     Caption = 'Creating and finding inspections';
 
-                    field("Create Inspection Behavior"; Rec."Create Inspection Behavior")
+                    field("Inspection Creation Option"; Rec."Inspection Creation Option")
                     {
                         ApplicationArea = All;
                         ShowCaption = true;
-                        AboutTitle = 'Create Inspection Behavior';
-                        AboutText = 'Defines the behavior of when to create a new Quality Inspection when existing inspections occur.';
+                        AboutTitle = 'Inspection Creation Option';
+                        AboutText = 'Specifies whether and how a new quality inspection is created if existing inspections are found.';
+
                     }
-                    field("Find Existing Behavior"; Rec."Find Existing Behavior")
+                    field("Inspection Search Criteria"; Rec."Inspection Search Criteria")
                     {
                         ApplicationArea = All;
                         ShowCaption = true;
-                        AboutTitle = 'Find Existing Inspection Behavior';
-                        AboutText = 'When looking for existing inspections, this defines what it looks for.';
-                    }
-                    field("Conditional Lot Find Behavior"; Rec."Conditional Lot Find Behavior")
-                    {
-                        ApplicationArea = All;
-                        ShowCaption = true;
-                        AboutTitle = 'Which inspections to inspect when analyzing document specific lot blocking.';
-                        AboutText = 'When evaluating if a document specific transactions are blocked, this determines which inspection(s) are considered.';
+                        AboutTitle = 'Inspection Search Criteria';
+                        AboutText = 'Specifies the criteria the system uses to search for existing inspections.';
                     }
                 }
                 group(SettingsForMiscellaneous)
@@ -86,16 +80,13 @@ page 20400 "Qlty. Management Setup"
                         AboutText = 'This is the maximum number of rows to fetch on data lookups. Keeping the number as low as possible will increase usability and performance.';
 
                     }
-                    group(SettingsForExplainShowInspection)
+                    field("When to show inspections"; Rec."When to show inspections")
                     {
-                        field("When to show inspections"; Rec."When to show inspections")
-                        {
-                            ApplicationArea = All;
-                            ShowCaption = true;
-                            Importance = Promoted;
-                            AboutTitle = 'When To Show Inspections';
-                            AboutText = 'Specifies whether inspections are shown immediately or sent to a queue for quality inspectors. For demonstrations and training, it can be useful to show automatically created inspections immediately. In production scenarios, automatically created inspections are usually not shown, instead they are queued or dispatch for quality inspectors.';
-                        }
+                        ApplicationArea = All;
+                        ShowCaption = true;
+                        Importance = Promoted;
+                        AboutTitle = 'When To Show Inspections';
+                        AboutText = 'Specifies whether inspections are shown immediately or sent to a queue for quality inspectors. For demonstrations and training, it can be useful to show automatically created inspections immediately. In production scenarios, automatically created inspections are usually not shown, instead they are queued or dispatch for quality inspectors.';
                     }
                     field("Additional Picture Handling"; Rec."Additional Picture Handling")
                     {
@@ -107,81 +98,63 @@ page 20400 "Qlty. Management Setup"
                     }
                 }
             }
-            group(SettingsForReceiving)
+            group(GenerationRuleTriggerDefaults)
             {
-                Caption = 'Receiving';
-                InstructionalText = 'Manage receiving options here, such as automatically creating inspections when receipts are posted.';
+                Caption = 'Generation Rule Trigger Defaults';
+                InstructionalText = 'Manage receiving, production, and warehousing options here, such as automatically creating inspections when receipts or output are posted, and defining default automation and trigger settings for inspection generation rules.';
 
                 group(SettingsForReceiveAutomation)
                 {
-                    Caption = 'Automation';
-                    InstructionalText = 'Set up default automation for creating inspections from receipt tasks. Create inspection generation rules to choose templates and adjust triggers as needed.';
+                    Caption = 'Receiving';
                     AboutTitle = 'Receiving Related Automation Settings';
                     AboutText = 'Receiving related settings are configured in this group. For example, you can choose to automatically create an inspection when a receipt is posted.';
 
-                    field("Warehouse Receive Trigger"; Rec."Warehouse Receive Trigger")
+                    field("Warehouse Receipt Trigger"; Rec."Warehouse Receipt Trigger")
                     {
                         ApplicationArea = All;
-                        Caption = 'Warehouse Receipts';
+                        Caption = 'Warehouse Receipts Trigger';
                     }
-                    field("Purchase Trigger"; Rec."Purchase Trigger")
+                    field("Purchase Order Trigger"; Rec."Purchase Order Trigger")
                     {
                         ApplicationArea = All;
-                        Caption = 'Purchase Orders';
+                        Caption = 'Purchase Orders Trigger';
                     }
                     field("Sales Return Trigger"; Rec."Sales Return Trigger")
                     {
                         ApplicationArea = All;
-                        Caption = 'Sales Returns';
+                        Caption = 'Sales Returns Trigger';
                     }
-                    field("Transfer Trigger"; Rec."Transfer Trigger")
+                    field("Transfer Order Trigger"; Rec."Transfer Order Trigger")
                     {
                         ApplicationArea = All;
-                        Caption = 'Transfer Orders';
-                    }
-                    field("Receive Update Control"; Rec."Receive Update Control")
-                    {
-                        ApplicationArea = All;
-                        ShowCaption = true;
-                        Caption = 'Control Source';
-                        Importance = Additional;
-                        Visible = false;
-                        AboutTitle = 'When to update on receiving related changes.';
-                        AboutText = 'Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Purchase Order is posted). Set to "Do Not Update" to prevent updating the original source that created the inspection.';
+                        Caption = 'Transfer Orders Trigger';
                     }
                 }
-            }
-            group(SettingsForProduction)
-            {
-                Caption = 'Production';
-                InstructionalText = 'Manage production options here, such as automatically creating inspections when output is posted';
-
                 group(SettingsForProductionAutomation)
                 {
-                    Caption = 'Automation';
-                    InstructionalText = 'Define the default automation for inspection generation in production. You can change triggers for inspection rules as needed in the Inspection Generation Rules.';
+                    Caption = 'Production';
                     AboutTitle = 'Production Related Automation Settings';
                     AboutText = 'Production related settings are configured in this group. You can choose to automatically create inspections when output is created, whether or not to update the source, and other automatic features.';
 
                     field("Production Trigger"; Rec."Production Trigger")
                     {
-                        Caption = 'Production - Create Inspection';
+                        Caption = 'Production Trigger';
                         ApplicationArea = Manufacturing;
                         ShowCaption = true;
                         AboutTitle = 'Production related trigger';
                         AboutText = 'Optionally choose a production-related trigger to try and create an inspection.';
                     }
-                    field("Auto Output Configuration"; Rec."Auto Output Configuration")
+                    field("Prod. trigger output condition"; Rec."Prod. trigger output condition")
                     {
-                        Caption = 'Auto Output Configuration';
+                        Caption = 'Prod. trigger output condition';
                         ApplicationArea = Manufacturing;
                         ShowCaption = true;
-                        AboutTitle = 'Auto Output Configuration';
+                        AboutTitle = 'Prod. trigger output condition';
                         AboutText = 'Provides granular options for when an inspection should be created automatically during the production process.';
                     }
                     field("Assembly Trigger"; Rec."Assembly Trigger")
                     {
-                        Caption = 'Assembly - Create Inspection';
+                        Caption = 'Assembly Trigger';
                         ApplicationArea = Assembly;
                         ShowCaption = true;
                         AboutTitle = 'Assembly related trigger';
@@ -198,80 +171,70 @@ page 20400 "Qlty. Management Setup"
                         AboutText = 'Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the inspection.';
                     }
                 }
-            }
-            group(SettingsForInventory)
-            {
-                Caption = 'Inventory and Warehousing';
-
                 group(SettingsForWarehouseAutomation)
                 {
-                    Caption = 'Automation';
-                    InstructionalText = 'Define the default automation settings for inspection generation rules related to warehousing. Different triggers can be changed on the inspection generation rules.';
+                    Caption = 'Inventory and Warehousing';
                     AboutTitle = 'Warehousing Related Automation Settings';
                     AboutText = 'Warehousing related settings are configured in this group. For example, you can choose to automatically create an inspection when a lot is moved to a specific bin.';
 
                     field("Warehouse Trigger"; Rec."Warehouse Trigger")
                     {
-                        Caption = 'Create Inspection';
+                        Caption = 'Warehouse Movement Trigger';
                         ApplicationArea = All;
                         ShowCaption = true;
                         AboutTitle = 'Warehouse related trigger';
                         AboutText = 'Optionally choose a warehousing related trigger to try and create an inspection.';
                     }
-                    field("Whse. Move Related Triggers"; Rec."Whse. Move Related Triggers")
-                    {
-                        Caption = 'Related Generation Rules';
-                        ApplicationArea = All;
-                    }
-                }
-                group(SettingsForBinMovements)
-                {
-                    Caption = 'Bin Movements and Reclassifications';
-                    InstructionalText = 'Set up the batch that will be used when moving inventory to a different bin or when changing item tracking information. The batch applies to manual Move to Bin actions, Power Automate flows, and reclassification journals.';
-
-                    field("Bin Move Batch Name"; Rec."Bin Move Batch Name")
-                    {
-                        ApplicationArea = All;
-                        Caption = 'Batch Name';
-                        AboutTitle = 'Batch Name (Non-Directed Pick and Put-away location)';
-                        AboutText = 'The batch to use for bin movements and reclassifications for non-directed pick and put-away locations';
-                    }
-                    field("Bin Whse. Move Batch Name"; Rec."Bin Whse. Move Batch Name")
-                    {
-                        ApplicationArea = All;
-                        Caption = 'Whse. Batch Name';
-                        AboutTitle = 'Batch Name (Directed Pick and Put-away location)';
-                        AboutText = 'The batch to use for bin movements and reclassifications for directed pick and put-away locations';
-                    }
-                    field("Whse. Wksh. Name"; Rec."Whse. Wksh. Name")
-                    {
-                        ApplicationArea = All;
-                        Caption = 'Whse. Worksheet Name';
-                        AboutTitle = 'Warehouse Worksheet Name (Directed Pick and Put-away location)';
-                        AboutText = 'The warehouse worksheet name for warehouse movements for directed pick and put-away locations';
-                    }
-                }
-                group(SettingsForAdjustments)
-                {
-                    Caption = 'Inventory Adjustments';
-                    InstructionalText = 'The batch to use when reducing inventory quantity, such as when disposing of samples after destructive testing or writing off stock due to damage or spoilage.';
-
-                    field("Item Adjustment Batch Name"; Rec."Adjustment Batch Name")
-                    {
-                        ApplicationArea = All;
-                        Caption = 'Batch Name';
-                        AboutTitle = 'Batch Name (Non-Directed Pick and Put-away location)';
-                        AboutText = 'The batch to use for negative inventory adjustments for non-directed pick and put-away locations';
-                    }
-                    field("Whse. Adjustment Batch Name"; Rec."Whse. Adjustment Batch Name")
-                    {
-                        ApplicationArea = All;
-                        Caption = 'Whse. Batch Name';
-                        AboutTitle = 'Batch Name (Directed Pick and Put-away location)';
-                        AboutText = 'The batch to use for negative inventory adjustments for directed pick and put-away locations';
-                    }
                 }
             }
+            group(SettingsForBinMovements)
+            {
+                Caption = 'Bin Movements and Reclassifications';
+                InstructionalText = 'Set up the batch that will be used when moving inventory to a different bin or when changing item tracking information. The batch applies to manual Move to Bin actions, Power Automate flows, and reclassification journals.';
+
+                field("Item Reclass. Batch Name"; Rec."Item Reclass. Batch Name")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Item Reclass. Batch Name';
+                    AboutTitle = 'Item Reclass. Batch Name (Non-Directed Pick and Put-away location)';
+                    AboutText = 'The batch to use for bin movements and reclassifications for non-directed pick and put-away locations';
+                }
+                field("Whse. Reclass. Batch Name"; Rec."Whse. Reclass. Batch Name")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Whse. Batch Name';
+                    AboutTitle = 'Batch Name (Directed Pick and Put-away location)';
+                    AboutText = 'The batch to use for bin movements and reclassifications for directed pick and put-away locations';
+                }
+                field("Movement Worksheet Name"; Rec."Movement Worksheet Name")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Whse. Worksheet Name';
+                    AboutTitle = 'Warehouse Worksheet Name (Directed Pick and Put-away location)';
+                    AboutText = 'The warehouse worksheet name for warehouse movements for directed pick and put-away locations';
+                }
+            }
+            group(SettingsForAdjustments)
+            {
+                Caption = 'Inventory Adjustments';
+                InstructionalText = 'The batch to use when reducing inventory quantity, such as when disposing of samples after destructive testing or writing off stock due to damage or spoilage.';
+
+                field("Item Item Journal Batch Name"; Rec."Item Journal Batch Name")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Batch Name';
+                    AboutTitle = 'Batch Name (Non-Directed Pick and Put-away location)';
+                    AboutText = 'The batch to use for negative inventory adjustments for non-directed pick and put-away locations';
+                }
+                field("Whse. Item Journal Batch Name"; Rec."Whse. Item Journal Batch Name")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Whse. Batch Name';
+                    AboutTitle = 'Batch Name (Directed Pick and Put-away location)';
+                    AboutText = 'The batch to use for negative inventory adjustments for directed pick and put-away locations';
+                }
+            }
+
             group(SettingsForTracking)
             {
                 Caption = 'Item Tracking';
@@ -282,6 +245,13 @@ page 20400 "Qlty. Management Setup"
                     ApplicationArea = All;
                     AboutTitle = 'Item Tracking';
                     AboutText = 'Will your lot numbers always be posted when performing quality inspections?';
+                }
+                field("Inspection Selection Criteria"; Rec."Inspection Selection Criteria")
+                {
+                    ApplicationArea = All;
+                    ShowCaption = true;
+                    AboutTitle = 'Which inspections to inspect when analyzing document specific lot blocking.';
+                    AboutText = 'Specifies the tests the system uses to decide if a document-specific transaction should be blocked.';
                 }
             }
             group(SettingsForMobileAndBricks)
@@ -457,3 +427,11 @@ page 20400 "Qlty. Management Setup"
         QltyApplicationAreaMgmt.RefreshExperienceTierCurrentCompany();
     end;
 }
+
+
+
+
+
+
+
+

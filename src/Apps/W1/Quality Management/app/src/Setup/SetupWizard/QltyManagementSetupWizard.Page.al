@@ -681,24 +681,24 @@ page 20438 "Qlty. Management Setup Wizard"
 
         if WhatForReceiving then begin
             case true of
-                ReceiveCreateInspectionsAutomaticallyTransfer and (QltyManagementSetup."Transfer Trigger" = QltyManagementSetup."Transfer Trigger"::NoTrigger):
-                    QltyManagementSetup.Validate("Transfer Trigger", QltyManagementSetup."Transfer Trigger"::OnTransferOrderPostReceive);
-                (not ReceiveCreateInspectionsAutomaticallyTransfer) and (QltyManagementSetup."Transfer Trigger" <> QltyManagementSetup."Transfer Trigger"::NoTrigger):
-                    QltyManagementSetup.Validate("Transfer Trigger", QltyManagementSetup."Transfer Trigger"::NoTrigger);
+                ReceiveCreateInspectionsAutomaticallyTransfer and (QltyManagementSetup."Transfer Order Trigger" = QltyManagementSetup."Transfer Order Trigger"::NoTrigger):
+                    QltyManagementSetup.Validate("Transfer Order Trigger", QltyManagementSetup."Transfer Order Trigger"::OnTransferOrderPostReceive);
+                (not ReceiveCreateInspectionsAutomaticallyTransfer) and (QltyManagementSetup."Transfer Order Trigger" <> QltyManagementSetup."Transfer Order Trigger"::NoTrigger):
+                    QltyManagementSetup.Validate("Transfer Order Trigger", QltyManagementSetup."Transfer Order Trigger"::NoTrigger);
             end;
 
             case true of
-                ReceiveCreateInspectionsAutomaticallyPurchase and (QltyManagementSetup."Purchase Trigger" = QltyManagementSetup."Purchase Trigger"::NoTrigger):
-                    QltyManagementSetup.Validate("Purchase Trigger", QltyManagementSetup."Purchase Trigger"::OnPurchaseOrderPostReceive);
-                (not ReceiveCreateInspectionsAutomaticallyPurchase) and (QltyManagementSetup."Purchase Trigger" <> QltyManagementSetup."Purchase Trigger"::NoTrigger):
-                    QltyManagementSetup.Validate("Purchase Trigger", QltyManagementSetup."Purchase Trigger"::NoTrigger);
+                ReceiveCreateInspectionsAutomaticallyPurchase and (QltyManagementSetup."Purchase Order Trigger" = QltyManagementSetup."Purchase Order Trigger"::NoTrigger):
+                    QltyManagementSetup.Validate("Purchase Order Trigger", QltyManagementSetup."Purchase Order Trigger"::OnPurchaseOrderPostReceive);
+                (not ReceiveCreateInspectionsAutomaticallyPurchase) and (QltyManagementSetup."Purchase Order Trigger" <> QltyManagementSetup."Purchase Order Trigger"::NoTrigger):
+                    QltyManagementSetup.Validate("Purchase Order Trigger", QltyManagementSetup."Purchase Order Trigger"::NoTrigger);
             end;
 
             case true of
-                ReceiveCreateInspectionsAutomaticallyWarehouseReceipt and (QltyManagementSetup."Warehouse Receive Trigger" = QltyManagementSetup."Warehouse Receive Trigger"::NoTrigger):
-                    QltyManagementSetup.Validate("Warehouse Receive Trigger", QltyManagementSetup."Warehouse Receive Trigger"::OnWarehouseReceiptPost);
-                (not ReceiveCreateInspectionsAutomaticallyWarehouseReceipt) and (QltyManagementSetup."Warehouse Receive Trigger" <> QltyManagementSetup."Warehouse Receive Trigger"::NoTrigger):
-                    QltyManagementSetup.Validate("Warehouse Receive Trigger", QltyManagementSetup."Warehouse Receive Trigger"::NoTrigger);
+                ReceiveCreateInspectionsAutomaticallyWarehouseReceipt and (QltyManagementSetup."Warehouse Receipt Trigger" = QltyManagementSetup."Warehouse Receipt Trigger"::NoTrigger):
+                    QltyManagementSetup.Validate("Warehouse Receipt Trigger", QltyManagementSetup."Warehouse Receipt Trigger"::OnWarehouseReceiptPost);
+                (not ReceiveCreateInspectionsAutomaticallyWarehouseReceipt) and (QltyManagementSetup."Warehouse Receipt Trigger" <> QltyManagementSetup."Warehouse Receipt Trigger"::NoTrigger):
+                    QltyManagementSetup.Validate("Warehouse Receipt Trigger", QltyManagementSetup."Warehouse Receipt Trigger"::NoTrigger);
             end;
 
             case true of
@@ -740,18 +740,18 @@ page 20438 "Qlty. Management Setup Wizard"
         if ResetWizardPageVariables then begin
             WhatForProduction := (QltyManagementSetup."Production Trigger" <> QltyManagementSetup."Production Trigger"::NoTrigger);
 
-            WhatForReceiving := (QltyManagementSetup."Purchase Trigger" <> QltyManagementSetup."Purchase Trigger"::NoTrigger) or
-                (QltyManagementSetup."Warehouse Receive Trigger" <> QltyManagementSetup."Warehouse Receive Trigger"::NoTrigger) or
+            WhatForReceiving := (QltyManagementSetup."Purchase Order Trigger" <> QltyManagementSetup."Purchase Order Trigger"::NoTrigger) or
+                (QltyManagementSetup."Warehouse Receipt Trigger" <> QltyManagementSetup."Warehouse Receipt Trigger"::NoTrigger) or
                 (QltyManagementSetup."Sales Return Trigger" <> QltyManagementSetup."Sales Return Trigger"::NoTrigger) or
-                (QltyManagementSetup."Transfer Trigger" <> QltyManagementSetup."Transfer Trigger"::NoTrigger);
+                (QltyManagementSetup."Transfer Order Trigger" <> QltyManagementSetup."Transfer Order Trigger"::NoTrigger);
 
             ProductionCreateInspectionsAutomatically := QltyManagementSetup."Production Trigger" <> QltyManagementSetup."Production Trigger"::NoTrigger;
             ProductionCreateInspectionsManually := not ProductionCreateInspectionsAutomatically;
 
-            ReceiveCreateInspectionsAutomaticallyPurchase := (QltyManagementSetup."Purchase Trigger" <> QltyManagementSetup."Purchase Trigger"::NoTrigger);
-            ReceiveCreateInspectionsAutomaticallyWarehouseReceipt := (QltyManagementSetup."Warehouse Receive Trigger" <> QltyManagementSetup."Warehouse Receive Trigger"::NoTrigger);
+            ReceiveCreateInspectionsAutomaticallyPurchase := (QltyManagementSetup."Purchase Order Trigger" <> QltyManagementSetup."Purchase Order Trigger"::NoTrigger);
+            ReceiveCreateInspectionsAutomaticallyWarehouseReceipt := (QltyManagementSetup."Warehouse Receipt Trigger" <> QltyManagementSetup."Warehouse Receipt Trigger"::NoTrigger);
             ReceiveCreateInspectionsAutomaticallySalesReturn := (QltyManagementSetup."Sales Return Trigger" <> QltyManagementSetup."Sales Return Trigger"::NoTrigger);
-            ReceiveCreateInspectionsAutomaticallyTransfer := (QltyManagementSetup."Transfer Trigger" <> QltyManagementSetup."Transfer Trigger"::NoTrigger);
+            ReceiveCreateInspectionsAutomaticallyTransfer := (QltyManagementSetup."Transfer Order Trigger" <> QltyManagementSetup."Transfer Order Trigger"::NoTrigger);
 
             ReceiveCreateInspectionsManually := not (ReceiveCreateInspectionsAutomaticallyPurchase or
                 ReceiveCreateInspectionsAutomaticallyTransfer or
@@ -777,3 +777,5 @@ page 20438 "Qlty. Management Setup Wizard"
                 TopBannerVisible := MediaResourcesDone."Media Reference".HasValue();
     end;
 }
+
+

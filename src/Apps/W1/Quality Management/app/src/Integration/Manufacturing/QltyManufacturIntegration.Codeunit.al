@@ -49,14 +49,14 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
-        case QltyManagementSetup."Auto Output Configuration" of
-            QltyManagementSetup."Auto Output Configuration"::OnAnyQuantity:
+        case QltyManagementSetup."Prod. trigger output condition" of
+            QltyManagementSetup."Prod. trigger output condition"::OnAnyQuantity:
                 if (ItemJournalLine.Quantity = 0) and (ItemJournalLine."Scrap Quantity" = 0) then
                     exit;
-            QltyManagementSetup."Auto Output Configuration"::OnlyWithQuantity:
+            QltyManagementSetup."Prod. trigger output condition"::OnlyWithQuantity:
                 if ItemJournalLine.Quantity = 0 then
                     exit;
-            QltyManagementSetup."Auto Output Configuration"::OnlyWithScrap:
+            QltyManagementSetup."Prod. trigger output condition"::OnlyWithScrap:
                 if ItemJournalLine."Scrap Quantity" = 0 then
                     exit;
         end;

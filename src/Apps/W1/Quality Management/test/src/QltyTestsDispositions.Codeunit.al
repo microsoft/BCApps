@@ -730,7 +730,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryInventory.CreateItemJournalTemplateByType(NegativeAdjustItemJournalTemplate, NegativeAdjustItemJournalTemplate.Type::Item);
 
         LibraryInventory.CreateItemJournalBatch(NegativeAdjustItemJournalBatch, NegativeAdjustItemJournalTemplate.Name);
-        QltyManagementSetup."Adjustment Batch Name" := NegativeAdjustItemJournalBatch.Name;
+        QltyManagementSetup."Item Journal Batch Name" := NegativeAdjustItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] Item with lot tracking is created
@@ -819,7 +819,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         NegativeAdjustmentItemJournalLine.Reset();
         NegativeAdjustmentItemJournalLine.SetRange(
             "Journal Batch Name",
-            QltyManagementSetup."Adjustment Batch Name");
+            QltyManagementSetup."Item Journal Batch Name");
         LibraryAssert.AreEqual(1, NegativeAdjustmentItemJournalLine.Count(), 'There should be one journal line in the negative adjustment batch.');
         NegativeAdjustmentItemJournalLine.FindLast();
 
@@ -886,7 +886,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         LibraryWarehouse.CreateWhseJournalBatch(InitialInventoryWarehouseJournalBatch, InitialInventoryWhseItemWarehouseJournalTemplate.Name, AdvWhseLocation.Code);
 
-        QltyManagementSetup."Whse. Adjustment Batch Name" := InitialInventoryWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Item Journal Batch Name" := InitialInventoryWarehouseJournalBatch.Name;
 
         // [GIVEN] Quality management setup is updated with warehouse adjustment batch
         QltyManagementSetup.Modify();
@@ -937,7 +937,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] Warehouse journal is verified to be empty after posting initial inventory
         WhseItemWarehouseJournalLine.Reset();
-        WhseItemWarehouseJournalLine.SetRange("Journal Batch Name", QltyManagementSetup."Whse. Adjustment Batch Name");
+        WhseItemWarehouseJournalLine.SetRange("Journal Batch Name", QltyManagementSetup."Whse. Item Journal Batch Name");
         WhseItemWarehouseJournalLine.SetFilter("Item No.", '<>''''');
         LibraryAssert.AreEqual(0, WhseItemWarehouseJournalLine.Count(), 'The warehouse journal should be empty after posting the initial inventory.');
 
@@ -963,7 +963,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WhseItemWarehouseJournalLine.Reset();
         WhseItemWarehouseJournalLine.SetRange(
             "Journal Batch Name",
-            QltyManagementSetup."Whse. Adjustment Batch Name");
+            QltyManagementSetup."Whse. Item Journal Batch Name");
         WhseItemWarehouseJournalLine.SetFilter("Item No.", '<>''''');
 
         InitialInventoryWarehouseJournalBatch.Delete();
@@ -1045,7 +1045,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
 
         QltyManagementSetup.Get();
-        QltyManagementSetup."Adjustment Batch Name" := ItemJournalBatch.Name;
+        QltyManagementSetup."Item Journal Batch Name" := ItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         QltyInspectionGenRule.Delete();
@@ -1126,7 +1126,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryWarehouse.CreateWhseJournalBatch(WarehouseJournalBatch, WarehouseJournalTemplate.Name, Location.Code);
 
         QltyManagementSetup.Get();
-        QltyManagementSetup."Whse. Adjustment Batch Name" := WarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Item Journal Batch Name" := WarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [WHEN] Negative adjustment disposition is performed with specific quantity
@@ -1244,7 +1244,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryWarehouse.CreateWhseJournalBatch(WarehouseJournalBatch, WarehouseJournalTemplate.Name, Location.Code);
 
         QltyManagementSetup.Get();
-        QltyManagementSetup."Whse. Adjustment Batch Name" := WarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Item Journal Batch Name" := WarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [WHEN] Negative adjustment disposition is performed for item tracked quantity
@@ -1328,7 +1328,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
 
         QltyManagementSetup.Get();
-        QltyManagementSetup."Adjustment Batch Name" := ItemJournalBatch.Name;
+        QltyManagementSetup."Item Journal Batch Name" := ItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [WHEN] Negative adjustment disposition is performed and posted with specific quantity
@@ -1408,7 +1408,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryWarehouse.CreateWhseJournalBatch(WarehouseJournalBatch, WarehouseJournalTemplate.Name, Location.Code);
 
         QltyManagementSetup.Get();
-        QltyManagementSetup."Whse. Adjustment Batch Name" := WarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Item Journal Batch Name" := WarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [WHEN] Negative adjustment disposition is performed and registered with specific quantity
@@ -1524,7 +1524,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryWarehouse.CreateWhseJournalBatch(WarehouseJournalBatch, WarehouseJournalTemplate.Name, Location.Code);
 
         QltyManagementSetup.Get();
-        QltyManagementSetup."Whse. Adjustment Batch Name" := WarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Item Journal Batch Name" := WarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [WHEN] Negative adjustment disposition is performed with a location filter where no inventory exists
@@ -1586,9 +1586,9 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         QltyInspectionGenRule.Delete();
 
-        // [GIVEN] The adjustment batch name is cleared from quality management setup
+        // [GIVEN] The Item Journal Batch Name is cleared from quality management setup
         QltyManagementSetup.Get();
-        QltyManagementSetup."Adjustment Batch Name" := '';
+        QltyManagementSetup."Item Journal Batch Name" := '';
         QltyManagementSetup.Modify();
 
         // [WHEN] Negative adjustment disposition is performed without adjustment batch configured
@@ -1642,9 +1642,9 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         QltyInspectionGenRule.Delete();
 
-        // [GIVEN] The warehouse adjustment batch name is cleared from quality management setup
+        // [GIVEN] The warehouse Item Journal Batch Name is cleared from quality management setup
         QltyManagementSetup.Get();
-        QltyManagementSetup."Whse. Adjustment Batch Name" := '';
+        QltyManagementSetup."Whse. Item Journal Batch Name" := '';
         QltyManagementSetup.Modify();
 
         // [WHEN] Negative adjustment disposition is performed without warehouse adjustment batch configured
@@ -1706,7 +1706,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
 
         QltyManagementSetup.Get();
-        QltyManagementSetup."Adjustment Batch Name" := ItemJournalBatch.Name;
+        QltyManagementSetup."Item Journal Batch Name" := ItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] The inspection generation rule and journal batch are then deleted to trigger the error condition
@@ -1716,7 +1716,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [WHEN] Negative adjustment disposition is attempted
         asserterror QltyInspectionUtility.PerformNegAdjustInvDisposition(QltyInspectionHeader, 50, TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity", '', '', QltyItemAdjPostBehavior::"Prepare only", '');
         // [THEN] An error is raised indicating the journal batch cannot be found
-        LibraryAssert.ExpectedError(StrSubstNo(CannotGetJournalBatchErr, ItemJournalTemplate.Name, QltyManagementSetup."Adjustment Batch Name", ''));
+        LibraryAssert.ExpectedError(StrSubstNo(CannotGetJournalBatchErr, ItemJournalTemplate.Name, QltyManagementSetup."Item Journal Batch Name", ''));
     end;
 
     [Test]
@@ -1764,7 +1764,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryWarehouse.CreateWhseJournalBatch(WarehouseJournalBatch, WarehouseJournalTemplate.Name, Location.Code);
 
         QltyManagementSetup.Get();
-        QltyManagementSetup."Whse. Adjustment Batch Name" := WarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Item Journal Batch Name" := WarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] The inspection generation rule and journal batch are then deleted to trigger the error condition
@@ -1774,7 +1774,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [WHEN] Negative adjustment disposition is performed
         asserterror QltyInspectionUtility.PerformNegAdjustInvDisposition(QltyInspectionHeader, 50, TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity", '', '', QltyItemAdjPostBehavior::"Prepare only", '');
         // [THEN] An error is raised indicating the journal batch cannot be found
-        LibraryAssert.ExpectedError(StrSubstNo(CannotGetJournalBatchErr, WarehouseJournalTemplate.Name, QltyManagementSetup."Whse. Adjustment Batch Name", StrSubstNo(LocationTok, Location.Code)));
+        LibraryAssert.ExpectedError(StrSubstNo(CannotGetJournalBatchErr, WarehouseJournalTemplate.Name, QltyManagementSetup."Whse. Item Journal Batch Name", StrSubstNo(LocationTok, Location.Code)));
     end;
 
     [Test]
@@ -1822,8 +1822,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassItemJournalBatch.CalcFields("Template Type");
         NegativeAdjustItemJournalBatch.CalcFields("Template Type");
 
-        QltyManagementSetup."Adjustment Batch Name" := NegativeAdjustItemJournalBatch.Name;
-        QltyManagementSetup."Bin Move Batch Name" := ReclassItemJournalBatch.Name;
+        QltyManagementSetup."Item Journal Batch Name" := NegativeAdjustItemJournalBatch.Name;
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] Lot tracking is created with number series and item tracking code
@@ -1914,7 +1914,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ChangeLotNumberItemJournalLine.Reset();
         ChangeLotNumberItemJournalLine.SetRange(
             "Journal Batch Name",
-            QltyManagementSetup."Bin Move Batch Name");
+            QltyManagementSetup."Item Reclass. Batch Name");
 
         LibraryAssert.AreEqual(1, ChangeLotNumberItemJournalLine.Count(),
         'There should be one journal line in the change lot adjustment batch.');
@@ -2005,12 +2005,12 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         LibraryWarehouse.CreateWhseJournalBatch(InitialInventoryWarehouseJournalBatch, InitialInventoryWhseItemWarehouseJournalTemplate.Name, Location.Code);
 
-        QltyManagementSetup."Whse. Adjustment Batch Name" := InitialInventoryWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Item Journal Batch Name" := InitialInventoryWarehouseJournalBatch.Name;
 
         // [GIVEN] Reclassification warehouse journal template and batch are created
         LibraryWarehouse.CreateWhseJournalTemplate(ReclassWhseItemWarehouseJournalTemplate, ReclassWhseItemWarehouseJournalTemplate.Type::Reclassification);
         LibraryWarehouse.CreateWhseJournalBatch(ReclassWarehouseJournalBatch, ReclassWhseItemWarehouseJournalTemplate.Name, Location.Code);
-        QltyManagementSetup."Bin Whse. Move Batch Name" := ReclassWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Reclass. Batch Name" := ReclassWarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] Original and new lot numbers are generated
@@ -2139,8 +2139,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassItemJournalBatch.CalcFields("Template Type");
         NegativeAdjustItemJournalBatch.CalcFields("Template Type");
 
-        QltyManagementSetup."Adjustment Batch Name" := NegativeAdjustItemJournalBatch.Name;
-        QltyManagementSetup."Bin Move Batch Name" := ReclassItemJournalBatch.Name;
+        QltyManagementSetup."Item Journal Batch Name" := NegativeAdjustItemJournalBatch.Name;
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] Serial number series and item tracking code are created for serial tracking
@@ -2231,7 +2231,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ChangeSerialNumberItemJournalLine.Reset();
         ChangeSerialNumberItemJournalLine.SetRange(
             "Journal Batch Name",
-            QltyManagementSetup."Bin Move Batch Name");
+            QltyManagementSetup."Item Reclass. Batch Name");
 
         LibraryAssert.AreEqual(1, ChangeSerialNumberItemJournalLine.Count(),
         'There should be one journal line in the change serial adjustment batch.');
@@ -2335,7 +2335,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryWarehouse.CreateWhseJournalBatch(InitialInventoryWarehouseJournalBatch, InitialInventoryWhseItemWarehouseJournalTemplate.Name, Location.Code);
 
         // [GIVEN] Quality management setup is configured with warehouse adjustment batch
-        QltyManagementSetup."Whse. Adjustment Batch Name" := InitialInventoryWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Item Journal Batch Name" := InitialInventoryWarehouseJournalBatch.Name;
 
         // [GIVEN] Warehouse journal template is created for reclassification
         LibraryWarehouse.CreateWhseJournalTemplate(ReclassWhseItemWarehouseJournalTemplate, ReclassWhseItemWarehouseJournalTemplate.Type::Reclassification);
@@ -2343,8 +2343,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] Warehouse journal batch is created for bin reclassification moves
         LibraryWarehouse.CreateWhseJournalBatch(ReclassWarehouseJournalBatch, ReclassWhseItemWarehouseJournalTemplate.Name, Location.Code);
 
-        // [GIVEN] Quality management setup is configured with bin move batch name
-        QltyManagementSetup."Bin Whse. Move Batch Name" := ReclassWarehouseJournalBatch.Name;
+        // [GIVEN] Quality management setup is configured with Item Reclass. Batch Name
+        QltyManagementSetup."Whse. Reclass. Batch Name" := ReclassWarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] Original serial number is generated for initial inventory
@@ -2490,8 +2490,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassItemJournalBatch.CalcFields("Template Type");
         NegativeAdjustItemJournalBatch.CalcFields("Template Type");
 
-        QltyManagementSetup."Adjustment Batch Name" := NegativeAdjustItemJournalBatch.Name;
-        QltyManagementSetup."Bin Move Batch Name" := ReclassItemJournalBatch.Name;
+        QltyManagementSetup."Item Journal Batch Name" := NegativeAdjustItemJournalBatch.Name;
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] Package number series and item tracking code are created for package tracking
@@ -2585,7 +2585,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [THEN] One journal line is created in the bin move batch
         ChangePackageNumberItemJournalLine.Reset();
-        ChangePackageNumberItemJournalLine.SetRange("Journal Batch Name", QltyManagementSetup."Bin Move Batch Name");
+        ChangePackageNumberItemJournalLine.SetRange("Journal Batch Name", QltyManagementSetup."Item Reclass. Batch Name");
 
         LibraryAssert.AreEqual(1, ChangePackageNumberItemJournalLine.Count(),
         'There should be one journal line in the change package adjustment batch.');
@@ -2680,12 +2680,12 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         LibraryWarehouse.CreateWhseJournalBatch(InitialInventoryWarehouseJournalBatch, InitialInventoryWhseItemWarehouseJournalTemplate.Name, Location.Code);
 
-        QltyManagementSetup."Whse. Adjustment Batch Name" := InitialInventoryWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Item Journal Batch Name" := InitialInventoryWarehouseJournalBatch.Name;
 
         // [GIVEN] Reclassification warehouse journal template and batch are created
         LibraryWarehouse.CreateWhseJournalTemplate(ReclassWhseItemWarehouseJournalTemplate, ReclassWhseItemWarehouseJournalTemplate.Type::Reclassification);
         LibraryWarehouse.CreateWhseJournalBatch(ReclassWarehouseJournalBatch, ReclassWhseItemWarehouseJournalTemplate.Name, Location.Code);
-        QltyManagementSetup."Bin Whse. Move Batch Name" := ReclassWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Reclass. Batch Name" := ReclassWarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] Original and new package numbers are generated
@@ -2817,11 +2817,11 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassItemJournalBatch.CalcFields("Template Type");
         NegativeAdjustItemJournalBatch.CalcFields("Template Type");
 
-        // [GIVEN] Quality management setup is configured with adjustment batch name
-        QltyManagementSetup."Adjustment Batch Name" := NegativeAdjustItemJournalBatch.Name;
+        // [GIVEN] Quality management setup is configured with Item Journal Batch Name
+        QltyManagementSetup."Item Journal Batch Name" := NegativeAdjustItemJournalBatch.Name;
 
-        // [GIVEN] Quality management setup is configured with bin move batch name
-        QltyManagementSetup."Bin Move Batch Name" := ReclassItemJournalBatch.Name;
+        // [GIVEN] Quality management setup is configured with Item Reclass. Batch Name
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] Lot number series is created
@@ -2961,7 +2961,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ChangeLotNumberItemJournalLine.Reset();
         ChangeLotNumberItemJournalLine.SetRange(
             "Journal Batch Name",
-            QltyManagementSetup."Bin Move Batch Name");
+            QltyManagementSetup."Item Reclass. Batch Name");
 
         LibraryAssert.AreEqual(1, ChangeLotNumberItemJournalLine.Count(),
         'There should be one journal line in the change lot adjustment batch.');
@@ -3057,12 +3057,12 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         LibraryWarehouse.CreateWhseJournalBatch(InitialInventoryWarehouseJournalBatch, InitialInventoryWhseItemWarehouseJournalTemplate.Name, Location.Code);
 
-        QltyManagementSetup."Whse. Adjustment Batch Name" := InitialInventoryWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Item Journal Batch Name" := InitialInventoryWarehouseJournalBatch.Name;
 
         // [GIVEN] Reclassification warehouse journal template and batch are created
         LibraryWarehouse.CreateWhseJournalTemplate(ReclassWhseItemWarehouseJournalTemplate, ReclassWhseItemWarehouseJournalTemplate.Type::Reclassification);
         LibraryWarehouse.CreateWhseJournalBatch(ReclassWarehouseJournalBatch, ReclassWhseItemWarehouseJournalTemplate.Name, Location.Code);
-        QltyManagementSetup."Bin Whse. Move Batch Name" := ReclassWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Reclass. Batch Name" := ReclassWarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] Original and new lot numbers are generated
@@ -3217,7 +3217,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         LibraryWarehouse.CreateWhseJournalBatch(InitialInventoryWarehouseJournalBatch, InitialInventoryWhseItemWarehouseJournalTemplate.Name, Location.Code);
 
-        QltyManagementSetup."Whse. Adjustment Batch Name" := InitialInventoryWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Item Journal Batch Name" := InitialInventoryWarehouseJournalBatch.Name;
         QltyManagementSetup.Modify(false);
 
         // [GIVEN] Reclassification warehouse journal template and batch are created with custom number series
@@ -3230,7 +3230,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassWarehouseJournalBatch."No. Series" := WhseJournalNoSeries.Code;
         ReclassWarehouseJournalBatch.Modify();
 
-        QltyManagementSetup."Bin Whse. Move Batch Name" := ReclassWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Reclass. Batch Name" := ReclassWarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] Original lot number is generated
@@ -3348,7 +3348,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] Reclassification warehouse journal template and batch are created
         LibraryWarehouse.CreateWhseJournalTemplate(ReclassWhseItemWarehouseJournalTemplate, ReclassWhseItemWarehouseJournalTemplate.Type::Reclassification);
         LibraryWarehouse.CreateWhseJournalBatch(ReclassWarehouseJournalBatch, ReclassWhseItemWarehouseJournalTemplate.Name, Location.Code);
-        QltyManagementSetup."Bin Whse. Move Batch Name" := ReclassWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Reclass. Batch Name" := ReclassWarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] Lot-tracked item with expiration dates is created
@@ -3504,8 +3504,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassItemJournalBatch.CalcFields("Template Type");
         NegativeAdjustItemJournalBatch.CalcFields("Template Type");
 
-        QltyManagementSetup."Adjustment Batch Name" := NegativeAdjustItemJournalBatch.Name;
-        QltyManagementSetup."Bin Move Batch Name" := ReclassItemJournalBatch.Name;
+        QltyManagementSetup."Item Journal Batch Name" := NegativeAdjustItemJournalBatch.Name;
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] Package tracking is created with number series
@@ -3667,7 +3667,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryWarehouse.CreateWhseJournalBatch(WarehouseJournalBatch, WarehouseJournalTemplate.Name, Location.Code);
 
         QltyManagementSetup.Get();
-        QltyManagementSetup."Bin Whse. Move Batch Name" := WarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Reclass. Batch Name" := WarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] Disposition buffer is configured to change lot number with specific quantity and post immediately
@@ -3743,7 +3743,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] Quality management setup is configured with warehouse adjustment batch
         QltyManagementSetup.Get();
-        QltyManagementSetup."Whse. Adjustment Batch Name" := WarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Item Journal Batch Name" := WarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] Disposition buffer is configured with filter location where no inventory exists
@@ -3832,7 +3832,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
         QltyManagementSetup.Get();
-        QltyManagementSetup."Bin Whse. Move Batch Name" := '';
+        QltyManagementSetup."Whse. Reclass. Batch Name" := '';
         QltyManagementSetup.Modify();
 
         // [GIVEN] A full WMS location with directed pick and put-away is created
@@ -3882,11 +3882,11 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     begin
         // [SCENARIO] Validate that an error is raised when bin move batch is not configured for non-directed location with bins
 
-        // [GIVEN] Quality management setup is initialized with empty bin move batch name
+        // [GIVEN] Quality management setup is initialized with empty Item Reclass. Batch Name
         QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
         QltyManagementSetup.Get();
-        QltyManagementSetup."Bin Move Batch Name" := '';
+        QltyManagementSetup."Item Reclass. Batch Name" := '';
         QltyManagementSetup.Modify();
 
         // [GIVEN] A non-directed location with bins is created
@@ -4471,7 +4471,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Get();
         LibraryWarehouse.CreateWhseJournalTemplate(ReclassWhseItemWarehouseJournalTemplate, ReclassWhseItemWarehouseJournalTemplate.Type::Reclassification);
         LibraryWarehouse.CreateWhseJournalBatch(ReclassWarehouseJournalBatch, ReclassWhseItemWarehouseJournalTemplate.Name, Location.Code);
-        QltyManagementSetup."Bin Whse. Move Batch Name" := ReclassWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Reclass. Batch Name" := ReclassWarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An untracked item is purchased and received in the directed location
@@ -4552,7 +4552,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Get();
         LibraryWarehouse.CreateWhseJournalTemplate(ReclassWhseItemWarehouseJournalTemplate, ReclassWhseItemWarehouseJournalTemplate.Type::Reclassification);
         LibraryWarehouse.CreateWhseJournalBatch(ReclassWarehouseJournalBatch, ReclassWhseItemWarehouseJournalTemplate.Name, Location.Code);
-        QltyManagementSetup."Bin Whse. Move Batch Name" := ReclassWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Reclass. Batch Name" := ReclassWarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An untracked item is purchased and received in the directed location
@@ -4641,7 +4641,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Get();
         LibraryWarehouse.CreateWhseJournalTemplate(ReclassWhseItemWarehouseJournalTemplate, ReclassWhseItemWarehouseJournalTemplate.Type::Reclassification);
         LibraryWarehouse.CreateWhseJournalBatch(ReclassWarehouseJournalBatch, ReclassWhseItemWarehouseJournalTemplate.Name, Location.Code);
-        QltyManagementSetup."Bin Whse. Move Batch Name" := ReclassWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Reclass. Batch Name" := ReclassWarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An untracked item is purchased and received in the directed location
@@ -4730,7 +4730,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Get();
         LibraryWarehouse.CreateWhseJournalTemplate(ReclassWhseItemWarehouseJournalTemplate, ReclassWhseItemWarehouseJournalTemplate.Type::Reclassification);
         LibraryWarehouse.CreateWhseJournalBatch(ReclassWarehouseJournalBatch, ReclassWhseItemWarehouseJournalTemplate.Name, Location.Code);
-        QltyManagementSetup."Bin Whse. Move Batch Name" := ReclassWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Reclass. Batch Name" := ReclassWarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An untracked item is purchased and received in the directed location
@@ -4821,7 +4821,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Get();
         LibraryWarehouse.CreateWhseJournalTemplate(ReclassWhseItemWarehouseJournalTemplate, ReclassWhseItemWarehouseJournalTemplate.Type::Reclassification);
         LibraryWarehouse.CreateWhseJournalBatch(ReclassWarehouseJournalBatch, ReclassWhseItemWarehouseJournalTemplate.Name, Location.Code);
-        QltyManagementSetup."Bin Whse. Move Batch Name" := ReclassWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Reclass. Batch Name" := ReclassWarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An untracked item is purchased and received at the directed location
@@ -4905,7 +4905,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Get();
         LibraryWarehouse.CreateWhseJournalTemplate(ReclassWhseItemWarehouseJournalTemplate, ReclassWhseItemWarehouseJournalTemplate.Type::Reclassification);
         LibraryWarehouse.CreateWhseJournalBatch(ReclassWarehouseJournalBatch, ReclassWhseItemWarehouseJournalTemplate.Name, Location.Code);
-        QltyManagementSetup."Bin Whse. Move Batch Name" := ReclassWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Reclass. Batch Name" := ReclassWarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] A lot-tracked item is purchased and received in the directed location
@@ -5022,7 +5022,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Get();
         LibraryWarehouse.CreateWhseJournalTemplate(ReclassWhseItemWarehouseJournalTemplate, ReclassWhseItemWarehouseJournalTemplate.Type::Reclassification);
         LibraryWarehouse.CreateWhseJournalBatch(ReclassWarehouseJournalBatch, ReclassWhseItemWarehouseJournalTemplate.Name, Location.Code);
-        QltyManagementSetup."Bin Whse. Move Batch Name" := ReclassWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Reclass. Batch Name" := ReclassWarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] A lot-tracked item with 100 units is purchased and received
@@ -5103,7 +5103,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Get();
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
         LibraryInventory.CreateItemJournalBatch(ReclassItemJournalBatch, ReclassItemJournalTemplate.Name);
-        QltyManagementSetup."Bin Move Batch Name" := ReclassItemJournalBatch.Name;
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
@@ -5183,7 +5183,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Get();
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
         LibraryInventory.CreateItemJournalBatch(ReclassItemJournalBatch, ReclassItemJournalTemplate.Name);
-        QltyManagementSetup."Bin Move Batch Name" := ReclassItemJournalBatch.Name;
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
@@ -5268,7 +5268,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Get();
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
         LibraryInventory.CreateItemJournalBatch(ReclassItemJournalBatch, ReclassItemJournalTemplate.Name);
-        QltyManagementSetup."Bin Move Batch Name" := ReclassItemJournalBatch.Name;
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
@@ -5354,7 +5354,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Get();
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
         LibraryInventory.CreateItemJournalBatch(ReclassItemJournalBatch, ReclassItemJournalTemplate.Name);
-        QltyManagementSetup."Bin Move Batch Name" := ReclassItemJournalBatch.Name;
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
@@ -5441,7 +5441,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Get();
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
         LibraryInventory.CreateItemJournalBatch(ReclassItemJournalBatch, ReclassItemJournalTemplate.Name);
-        QltyManagementSetup."Bin Move Batch Name" := ReclassItemJournalBatch.Name;
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] A non-directed location with bins is created
@@ -5526,7 +5526,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Get();
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
         LibraryInventory.CreateItemJournalBatch(ReclassItemJournalBatch, ReclassItemJournalTemplate.Name);
-        QltyManagementSetup."Bin Move Batch Name" := ReclassItemJournalBatch.Name;
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
@@ -5637,7 +5637,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Get();
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
         LibraryInventory.CreateItemJournalBatch(ReclassItemJournalBatch, ReclassItemJournalTemplate.Name);
-        QltyManagementSetup."Bin Move Batch Name" := ReclassItemJournalBatch.Name;
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
@@ -5701,10 +5701,10 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     begin
         // [SCENARIO] Attempting to perform item reclassification disposition without configured batch name should throw an error
 
-        // [GIVEN] Quality management setup with empty bin move batch name
+        // [GIVEN] Quality management setup with empty Item Reclass. Batch Name
         QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
-        QltyManagementSetup."Bin Move Batch Name" := '';
+        QltyManagementSetup."Item Reclass. Batch Name" := '';
         QltyManagementSetup.Modify();
 
         // [WHEN] Disposition action is performed
@@ -5727,7 +5727,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] Quality management setup with empty bin warehouse move batch name
         QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
-        QltyManagementSetup."Bin Whse. Move Batch Name" := '';
+        QltyManagementSetup."Whse. Reclass. Batch Name" := '';
         QltyManagementSetup.Modify();
 
         // [WHEN] Disposition action is performed
@@ -5770,7 +5770,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Get();
         LibraryWarehouse.CreateWhseJournalTemplate(ReclassWhseItemWarehouseJournalTemplate, ReclassWhseItemWarehouseJournalTemplate.Type::Reclassification);
         LibraryWarehouse.CreateWhseJournalBatch(ReclassWarehouseJournalBatch, ReclassWhseItemWarehouseJournalTemplate.Name, Location.Code);
-        QltyManagementSetup."Bin Whse. Move Batch Name" := ReclassWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Reclass. Batch Name" := ReclassWarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An item is purchased and received at the directed location
@@ -5846,7 +5846,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Get();
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
         LibraryInventory.CreateItemJournalBatch(ReclassItemJournalBatch, ReclassItemJournalTemplate.Name);
-        QltyManagementSetup."Bin Move Batch Name" := ReclassItemJournalBatch.Name;
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] A non-directed location with bins is created
@@ -5943,7 +5943,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WhseWorksheetTemplate.Insert();
         LibraryWarehouse.CreateWhseWorksheetName(WhseWorksheetName, WhseWorksheetTemplate.Name, Location.Code);
         QltyManagementSetup.Get();
-        QltyManagementSetup."Whse. Wksh. Name" := WhseWorksheetName.Name;
+        QltyManagementSetup."Movement Worksheet Name" := WhseWorksheetName.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An untracked item is purchased and received at the directed location
@@ -6049,7 +6049,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WhseWorksheetTemplate.Insert();
         LibraryWarehouse.CreateWhseWorksheetName(WhseWorksheetName, WhseWorksheetTemplate.Name, Location.Code);
         QltyManagementSetup.Get();
-        QltyManagementSetup."Whse. Wksh. Name" := WhseWorksheetName.Name;
+        QltyManagementSetup."Movement Worksheet Name" := WhseWorksheetName.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] A lot-tracked item is purchased and received at the directed location
@@ -6187,7 +6187,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WhseWorksheetTemplate.Insert();
         LibraryWarehouse.CreateWhseWorksheetName(WhseWorksheetName, WhseWorksheetTemplate.Name, Location.Code);
         QltyManagementSetup.Get();
-        QltyManagementSetup."Whse. Wksh. Name" := WhseWorksheetName.Name;
+        QltyManagementSetup."Movement Worksheet Name" := WhseWorksheetName.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An item is purchased and received at the directed location
@@ -6453,7 +6453,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Get();
         LibraryWarehouse.CreateWhseJournalTemplate(ReclassWhseItemWarehouseJournalTemplate, ReclassWhseItemWarehouseJournalTemplate.Type::Reclassification);
         LibraryWarehouse.CreateWhseJournalBatch(ReclassWarehouseJournalBatch, ReclassWhseItemWarehouseJournalTemplate.Name, Location.Code);
-        QltyManagementSetup."Bin Whse. Move Batch Name" := ReclassWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Reclass. Batch Name" := ReclassWarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An untracked item is purchased and received at the directed location
@@ -6549,7 +6549,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WhseWorksheetTemplate.Insert();
         LibraryWarehouse.CreateWhseWorksheetName(WhseWorksheetName, WhseWorksheetTemplate.Name, Location.Code);
         QltyManagementSetup.Get();
-        QltyManagementSetup."Whse. Wksh. Name" := WhseWorksheetName.Name;
+        QltyManagementSetup."Movement Worksheet Name" := WhseWorksheetName.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An untracked item is purchased and received at the directed location
@@ -6629,7 +6629,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Get();
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
         LibraryInventory.CreateItemJournalBatch(ReclassItemJournalBatch, ReclassItemJournalTemplate.Name);
-        QltyManagementSetup."Bin Move Batch Name" := ReclassItemJournalBatch.Name;
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
@@ -6897,7 +6897,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Get();
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
         LibraryInventory.CreateItemJournalBatch(ReclassItemJournalBatch, ReclassItemJournalTemplate.Name);
-        QltyManagementSetup."Bin Move Batch Name" := ReclassItemJournalBatch.Name;
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] A non-directed location with bins is created
@@ -7169,7 +7169,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] The generation rule is set to trigger on purchase order receive and automatic only
         QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::"Automatic only";
-        QltyInspectionGenRule."Purchase Trigger" := QltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderPostReceive;
+        QltyInspectionGenRule."Purchase Order Trigger" := QltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive;
         QltyInspectionGenRule.Modify();
 
         // [GIVEN] An item journal template and batch are created for adjustments
@@ -7184,7 +7184,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] Quality management setup is updated with adjustment item journal batch
         QltyManagementSetup.Get();
-        QltyManagementSetup."Adjustment Batch Name" := ItemJournalBatch.Name;
+        QltyManagementSetup."Item Journal Batch Name" := ItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] A location is created
@@ -7359,3 +7359,12 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         end;
     end;
 }
+
+
+
+
+
+
+
+
+

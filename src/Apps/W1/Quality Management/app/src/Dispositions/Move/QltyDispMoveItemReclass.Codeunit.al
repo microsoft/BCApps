@@ -37,7 +37,7 @@ codeunit 20452 "Qlty. Disp. Move Item Reclass." implements "Qlty. Disposition"
             exit;
 
         QltyManagementSetup.Get();
-        if QltyManagementSetup."Bin Move Batch Name" = '' then
+        if QltyManagementSetup."Item Reclass. Batch Name" = '' then
             Error(MissingBinMoveBatchErr);
 
         QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityToActQltyDispositionBuffer);
@@ -49,26 +49,26 @@ codeunit 20452 "Qlty. Disp. Move Item Reclass." implements "Qlty. Disposition"
 
         repeat
             Clear(CreatedLineNo);
-            CreateItemReclassificationLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Bin Move Batch Name", CreatedLineNo);
+            CreateItemReclassificationLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Item Reclass. Batch Name", CreatedLineNo);
 
             if CreatedLineNo <> 0 then begin
                 DidSomething := true;
                 if TempInstructionQltyDispositionBuffer."Entry Behavior" = TempInstructionQltyDispositionBuffer."Entry Behavior"::Post then begin
                     ItemJournalLine.SetRange("Journal Template Name", QltyManagementSetup.GetItemReclassJournalTemplate());
-                    ItemJournalLine.SetRange("Journal Batch Name", QltyManagementSetup."Bin Move Batch Name");
+                    ItemJournalLine.SetRange("Journal Batch Name", QltyManagementSetup."Item Reclass. Batch Name");
                     ItemJournalLine.SetRange("Line No.", CreatedLineNo);
                     DidSomething := QltyItemJournalManagement.PostItemJournal(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, ItemJournalLine);
                     if DidSomething then
-                        QltyNotificationMgmt.NotifyMovementOccurred(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, QltyManagementSetup."Bin Move Batch Name")
+                        QltyNotificationMgmt.NotifyMovementOccurred(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, QltyManagementSetup."Item Reclass. Batch Name")
                     else begin
                         TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::"Prepare only";
 
-                        QltyNotificationMgmt.NotifyMovementOccurred(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, QltyManagementSetup."Bin Move Batch Name");
+                        QltyNotificationMgmt.NotifyMovementOccurred(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, QltyManagementSetup."Item Reclass. Batch Name");
 
                         TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::Post;
                     end;
                 end else
-                    QltyNotificationMgmt.NotifyMovementOccurred(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, QltyManagementSetup."Bin Move Batch Name");
+                    QltyNotificationMgmt.NotifyMovementOccurred(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, QltyManagementSetup."Item Reclass. Batch Name");
             end;
         until TempQuantityToActQltyDispositionBuffer.Next() = 0;
 
@@ -137,3 +137,4 @@ codeunit 20452 "Qlty. Disp. Move Item Reclass." implements "Qlty. Disposition"
     begin
     end;
 }
+

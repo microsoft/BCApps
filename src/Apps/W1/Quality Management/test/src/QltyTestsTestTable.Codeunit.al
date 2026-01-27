@@ -2914,13 +2914,13 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Setup page is opened
         QltyManagementSetupPage.OpenEdit();
 
-        // [WHEN] Bin Move Batch Name lookup is invoked
-        QltyManagementSetupPage."Bin Move Batch Name".Lookup();
+        // [WHEN] Item Reclass. Batch Name lookup is invoked
+        QltyManagementSetupPage."Item Reclass. Batch Name".Lookup();
         QltyManagementSetupPage.Close();
 
         // [THEN] Setup is updated with selected batch name
         QltyManagementSetup.Get();
-        LibraryAssert.AreEqual(ItemJournalBatch.Name, QltyManagementSetup."Bin Move Batch Name", 'Should be same batch name.');
+        LibraryAssert.AreEqual(ItemJournalBatch.Name, QltyManagementSetup."Item Reclass. Batch Name", 'Should be same batch name.');
 
         // [GIVEN] Created records are cleaned up
         ItemJournalBatch.Delete();
@@ -2972,13 +2972,13 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Setup page is opened
         QltyManagementSetupPage.OpenEdit();
 
-        // [WHEN] Bin Whse. Move Batch Name lookup is invoked
-        QltyManagementSetupPage."Bin Whse. Move Batch Name".Lookup();
+        // [WHEN] Whse. Reclass. Batch Name lookup is invoked
+        QltyManagementSetupPage."Whse. Reclass. Batch Name".Lookup();
         QltyManagementSetupPage.Close();
 
         // [THEN] Setup is updated with selected batch name
         QltyManagementSetup.Get();
-        LibraryAssert.AreEqual(WhseWarehouseJournalBatch.Name, QltyManagementSetup."Bin Whse. Move Batch Name", 'Should be same batch name.');
+        LibraryAssert.AreEqual(WhseWarehouseJournalBatch.Name, QltyManagementSetup."Whse. Reclass. Batch Name", 'Should be same batch name.');
 
         // [GIVEN] Created records are cleaned up
         WhseWarehouseJournalBatch.Delete();
@@ -3038,13 +3038,13 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Setup page is opened
         QltyManagementSetupPage.OpenEdit();
 
-        // [WHEN] Whse. Wksh. Name lookup is invoked
-        QltyManagementSetupPage."Whse. Wksh. Name".Lookup();
+        // [WHEN] Movement Worksheet Name lookup is invoked
+        QltyManagementSetupPage."Movement Worksheet Name".Lookup();
         QltyManagementSetupPage.Close();
 
         // [THEN] Setup is updated with selected worksheet name
         QltyManagementSetup.Get();
-        LibraryAssert.AreEqual(WhseWorksheetName.Name, QltyManagementSetup."Whse. Wksh. Name", 'Should be same name.');
+        LibraryAssert.AreEqual(WhseWorksheetName.Name, QltyManagementSetup."Movement Worksheet Name", 'Should be same name.');
 
         // [GIVEN] Created records are cleaned up
         WhseWorksheetName.Delete();
@@ -3092,13 +3092,13 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Setup page is opened
         QltyManagementSetupPage.OpenEdit();
 
-        // [WHEN] Item Adjustment Batch Name lookup is invoked
-        QltyManagementSetupPage."Item Adjustment Batch Name".Lookup();
+        // [WHEN] Item Item Journal Batch Name lookup is invoked
+        QltyManagementSetupPage."Item Item Journal Batch Name".Lookup();
         QltyManagementSetupPage.Close();
 
         // [THEN] Setup is updated with selected batch name
         QltyManagementSetup.Get();
-        LibraryAssert.AreEqual(ItemJournalBatch.Name, QltyManagementSetup."Adjustment Batch Name", 'Should be same batch name.');
+        LibraryAssert.AreEqual(ItemJournalBatch.Name, QltyManagementSetup."Item Journal Batch Name", 'Should be same batch name.');
 
         // [GIVEN] Created records are cleaned up
         ItemJournalBatch.Delete();
@@ -3150,13 +3150,13 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Setup page is opened
         QltyManagementSetupPage.OpenEdit();
 
-        // [WHEN] Whse. Adjustment Batch Name lookup is invoked
-        QltyManagementSetupPage."Whse. Adjustment Batch Name".Lookup();
+        // [WHEN] Whse. Item Journal Batch Name lookup is invoked
+        QltyManagementSetupPage."Whse. Item Journal Batch Name".Lookup();
         QltyManagementSetupPage.Close();
 
         // [THEN] Setup is updated with selected batch name
         QltyManagementSetup.Get();
-        LibraryAssert.AreEqual(WhseWarehouseJournalBatch.Name, QltyManagementSetup."Whse. Adjustment Batch Name", 'Should be same batch name.');
+        LibraryAssert.AreEqual(WhseWarehouseJournalBatch.Name, QltyManagementSetup."Whse. Item Journal Batch Name", 'Should be same batch name.');
 
         // [GIVEN] Created records are cleaned up
         WhseWarehouseJournalBatch.Delete();
@@ -3184,16 +3184,16 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A warehouse receipt line rule is created
         QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Receipt Line", QltyInspectionGenRule);
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Warehouse Receive Trigger" = QltyInspectionGenRule."Warehouse Receive Trigger"::NoTrigger, 'Should not have trigger.');
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Warehouse Receipt Trigger" = QltyInspectionGenRule."Warehouse Receipt Trigger"::NoTrigger, 'Should not have trigger.');
 
         // [GIVEN] Setup is updated to OnWarehouseReceiptCreate trigger
         QltyManagementSetup.Get();
-        QltyManagementSetup.Validate("Warehouse Receive Trigger", QltyManagementSetup."Warehouse Receive Trigger"::OnWarehouseReceiptCreate);
+        QltyManagementSetup.Validate("Warehouse Receipt Trigger", QltyManagementSetup."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate);
         QltyManagementSetup.Modify();
 
         // [GIVEN] Existing rule is retrieved and still has NoTrigger
         QltyInspectionGenRule.Get(QltyInspectionGenRule."Entry No.");
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Warehouse Receive Trigger" = QltyInspectionGenRule."Warehouse Receive Trigger"::NoTrigger, 'Should not have trigger.');
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Warehouse Receipt Trigger" = QltyInspectionGenRule."Warehouse Receipt Trigger"::NoTrigger, 'Should not have trigger.');
 
         // [GIVEN] A new rule is created for different source table
         Clear(QltyInspectionGenRule);
@@ -3202,15 +3202,15 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Source table is changed to Warehouse Receipt Line
         QltyInspectionGenRule.Validate("Source Table No.", Database::"Warehouse Receipt Line");
         QltyInspectionGenRule.Modify();
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Warehouse Receive Trigger" = QltyInspectionGenRule."Warehouse Receive Trigger"::OnWarehouseReceiptCreate, 'Should have default trigger.');
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Warehouse Receipt Trigger" = QltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate, 'Should have default trigger.');
 
         // [WHEN] Setup trigger is changed to OnWarehouseReceiptPost
-        QltyManagementSetup.Validate("Warehouse Receive Trigger", QltyManagementSetup."Warehouse Receive Trigger"::OnWarehouseReceiptPost);
+        QltyManagementSetup.Validate("Warehouse Receipt Trigger", QltyManagementSetup."Warehouse Receipt Trigger"::OnWarehouseReceiptPost);
         QltyManagementSetup.Modify();
 
         // [THEN] Existing warehouse receipt rule is updated to new trigger
         QltyInspectionGenRule.Reset();
-        QltyInspectionGenRule.SetRange("Warehouse Receive Trigger", QltyInspectionGenRule."Warehouse Receive Trigger"::OnWarehouseReceiptPost);
+        QltyInspectionGenRule.SetRange("Warehouse Receipt Trigger", QltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptPost);
         LibraryAssert.AreEqual(1, QltyInspectionGenRule.Count(), 'Production rule should have new production trigger value.');
 
         // [GIVEN] All generation rules are cleaned up
@@ -3239,16 +3239,16 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A purchase line rule is created with no trigger
         QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Purchase Trigger" = QltyInspectionGenRule."Purchase Trigger"::NoTrigger, 'Should not have trigger.');
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Purchase Order Trigger" = QltyInspectionGenRule."Purchase Order Trigger"::NoTrigger, 'Should not have trigger.');
 
-        // [GIVEN] Setup purchase trigger is set to OnPurchaseOrderPostReceive
+        // [GIVEN] Setup Purchase Order Trigger is set to OnPurchaseOrderPostReceive
         QltyManagementSetup.Get();
-        QltyManagementSetup.Validate("Purchase Trigger", QltyManagementSetup."Purchase Trigger"::OnPurchaseOrderPostReceive);
+        QltyManagementSetup.Validate("Purchase Order Trigger", QltyManagementSetup."Purchase Order Trigger"::OnPurchaseOrderPostReceive);
         QltyManagementSetup.Modify();
 
         // [GIVEN] Existing rule still has NoTrigger
         QltyInspectionGenRule.Get(QltyInspectionGenRule."Entry No.");
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Purchase Trigger" = QltyInspectionGenRule."Purchase Trigger"::NoTrigger, 'Should not have trigger.');
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Purchase Order Trigger" = QltyInspectionGenRule."Purchase Order Trigger"::NoTrigger, 'Should not have trigger.');
 
         // [GIVEN] A new rule is created for different source table
         Clear(QltyInspectionGenRule);
@@ -3257,16 +3257,16 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Source table is changed to Purchase Line
         QltyInspectionGenRule.Validate("Source Table No.", Database::"Purchase Line");
         QltyInspectionGenRule.Modify();
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Purchase Trigger" = QltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderPostReceive, 'Should have default trigger.');
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Purchase Order Trigger" = QltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive, 'Should have default trigger.');
 
         // [WHEN] Setup trigger is changed to NoTrigger
-        QltyManagementSetup.Validate("Purchase Trigger", QltyManagementSetup."Purchase Trigger"::NoTrigger);
+        QltyManagementSetup.Validate("Purchase Order Trigger", QltyManagementSetup."Purchase Order Trigger"::NoTrigger);
         QltyManagementSetup.Modify();
 
         // [THEN] All purchase rules have trigger removed
         QltyInspectionGenRule.Reset();
-        QltyInspectionGenRule.SetRange("Purchase Trigger", QltyInspectionGenRule."Purchase Trigger"::NoTrigger);
-        LibraryAssert.AreEqual(2, QltyInspectionGenRule.Count(), 'Purchase rule should have new purchase trigger value.');
+        QltyInspectionGenRule.SetRange("Purchase Order Trigger", QltyInspectionGenRule."Purchase Order Trigger"::NoTrigger);
+        LibraryAssert.AreEqual(2, QltyInspectionGenRule.Count(), 'Purchase rule should have new Purchase Order Trigger value.');
 
         // [GIVEN] All generation rules are cleaned up
         QltyInspectionGenRule.Reset();
@@ -3349,16 +3349,16 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A transfer line rule is created with no trigger
         QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Transfer Line", QltyInspectionGenRule);
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Transfer Trigger" = QltyInspectionGenRule."Transfer Trigger"::NoTrigger, 'Should not have trigger.');
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Transfer Order Trigger" = QltyInspectionGenRule."Transfer Order Trigger"::NoTrigger, 'Should not have trigger.');
 
-        // [GIVEN] Setup transfer trigger is set to OnTransferOrderPostReceive
+        // [GIVEN] Setup transfer order trigger is set to OnTransferOrderPostReceive
         QltyManagementSetup.Get();
-        QltyManagementSetup.Validate("Transfer Trigger", QltyManagementSetup."Transfer Trigger"::OnTransferOrderPostReceive);
+        QltyManagementSetup.Validate("Transfer Order Trigger", QltyManagementSetup."Transfer Order Trigger"::OnTransferOrderPostReceive);
         QltyManagementSetup.Modify();
 
         // [GIVEN] Existing rule still has NoTrigger
         QltyInspectionGenRule.Get(QltyInspectionGenRule."Entry No.");
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Transfer Trigger" = QltyInspectionGenRule."Transfer Trigger"::NoTrigger, 'Should not have trigger.');
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Transfer Order Trigger" = QltyInspectionGenRule."Transfer Order Trigger"::NoTrigger, 'Should not have trigger.');
 
         // [GIVEN] A new rule is created for different source table
         Clear(QltyInspectionGenRule);
@@ -3367,16 +3367,16 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Source table is changed to Transfer Line
         QltyInspectionGenRule.Validate("Source Table No.", Database::"Transfer Line");
         QltyInspectionGenRule.Modify();
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Transfer Trigger" = QltyInspectionGenRule."Transfer Trigger"::OnTransferOrderPostReceive, 'Should have default trigger.');
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Transfer Order Trigger" = QltyInspectionGenRule."Transfer Order Trigger"::OnTransferOrderPostReceive, 'Should have default trigger.');
 
         // [WHEN] Setup trigger is changed to NoTrigger
-        QltyManagementSetup.Validate("Transfer Trigger", QltyManagementSetup."Transfer Trigger"::NoTrigger);
+        QltyManagementSetup.Validate("Transfer Order Trigger", QltyManagementSetup."Transfer Order Trigger"::NoTrigger);
         QltyManagementSetup.Modify();
 
         // [THEN] All transfer rules have trigger removed
         QltyInspectionGenRule.Reset();
-        QltyInspectionGenRule.SetRange("Transfer Trigger", QltyInspectionGenRule."Transfer Trigger"::NoTrigger);
-        LibraryAssert.AreEqual(2, QltyInspectionGenRule.Count(), 'Transfer rule should have new transfer trigger value.');
+        QltyInspectionGenRule.SetRange("Transfer Order Trigger", QltyInspectionGenRule."Transfer Order Trigger"::NoTrigger);
+        LibraryAssert.AreEqual(2, QltyInspectionGenRule.Count(), 'Transfer rule should have new transfer order trigger value.');
 
         // [GIVEN] All generation rules are cleaned up
         QltyInspectionGenRule.Reset();
@@ -4286,11 +4286,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] Setup with all triggers enabled
         QltyManagementSetup.Get();
-        QltyManagementSetup."Purchase Trigger" := QltyManagementSetup."Purchase Trigger"::OnPurchaseOrderPostReceive;
+        QltyManagementSetup."Purchase Order Trigger" := QltyManagementSetup."Purchase Order Trigger"::OnPurchaseOrderPostReceive;
         QltyManagementSetup."Sales Return Trigger" := QltyManagementSetup."Sales Return Trigger"::OnSalesReturnOrderPostReceive;
-        QltyManagementSetup."Transfer Trigger" := QltyManagementSetup."Transfer Trigger"::OnTransferOrderPostReceive;
+        QltyManagementSetup."Transfer Order Trigger" := QltyManagementSetup."Transfer Order Trigger"::OnTransferOrderPostReceive;
         QltyManagementSetup."Assembly Trigger" := QltyManagementSetup."Assembly Trigger"::OnAssemblyOutputPost;
-        QltyManagementSetup."Warehouse Receive Trigger" := QltyManagementSetup."Warehouse Receive Trigger"::OnWarehouseReceiptCreate;
+        QltyManagementSetup."Warehouse Receipt Trigger" := QltyManagementSetup."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate;
         QltyManagementSetup."Warehouse Trigger" := QltyManagementSetup."Warehouse Trigger"::OnWhseMovementRegister;
         QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::OnProductionOrderRelease;
         QltyManagementSetup.Modify();
@@ -4314,7 +4314,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
-        // [SCENARIO] Infer generation rule intent from Warehouse Journal Line when only Warehouse Receive trigger is set in setup
+        // [SCENARIO] Infer generation rule intent from Warehouse Journal Line when only Warehouse Receipt Trigger is set in setup
         Initialize();
 
         // [GIVEN] Quality management setup is configured
@@ -4323,10 +4323,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A generation rule for Warehouse Journal Line with no condition filter
         QltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
 
-        // [GIVEN] Setup with only Warehouse Receive trigger enabled
+        // [GIVEN] Setup with only Warehouse Receipt Trigger enabled
         QltyManagementSetup.Get();
         QltyInspectionUtility.ClearSetupTriggerDefaults(QltyManagementSetup);
-        QltyManagementSetup."Warehouse Receive Trigger" := QltyManagementSetup."Warehouse Receive Trigger"::OnWarehouseReceiptCreate;
+        QltyManagementSetup."Warehouse Receipt Trigger" := QltyManagementSetup."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate;
         QltyManagementSetup.Modify();
 
         // [WHEN] Inferring the generation rule intent
@@ -4335,8 +4335,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [THEN] The intent is correctly identified as Warehouse Receipt
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::"Warehouse Receipt", 'Should return Warehouse Receive intent.');
 
-        // [THEN] Cleanup: Disable Warehouse Receive trigger
-        QltyManagementSetup."Warehouse Receive Trigger" := QltyManagementSetup."Warehouse Receive Trigger"::NoTrigger;
+        // [THEN] Cleanup: Disable Warehouse Receipt Trigger
+        QltyManagementSetup."Warehouse Receipt Trigger" := QltyManagementSetup."Warehouse Receipt Trigger"::NoTrigger;
         QltyManagementSetup.Modify();
     end;
 
@@ -4861,3 +4861,14 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
     end;
 }
+
+
+
+
+
+
+
+
+
+
+

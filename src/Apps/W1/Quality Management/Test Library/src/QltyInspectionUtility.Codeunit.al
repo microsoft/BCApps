@@ -54,7 +54,7 @@ codeunit 139940 "Qlty. Inspection Utility"
     begin
         QltyAutoConfigure.EnsureBasicSetupExists(false);
         QltyManagementSetup.Get();
-        QltyManagementSetup."When to show inspections" := QltyManagementSetup."When to show inspections"::"Never" ; 
+        QltyManagementSetup."When to show inspections" := QltyManagementSetup."When to show inspections"::"Never";
         QltyManagementSetup.Modify();
 
         UserPermissionsLibrary.AssignPermissionSetToUser(UserSecurityId(), 'QltyGeneral');
@@ -636,11 +636,11 @@ codeunit 139940 "Qlty. Inspection Utility"
 
     internal procedure ClearSetupTriggerDefaults(var QltyManagementSetup: Record "Qlty. Management Setup")
     begin
-        QltyManagementSetup."Purchase Trigger" := QltyManagementSetup."Purchase Trigger"::NoTrigger;
+        QltyManagementSetup."Purchase Order Trigger" := QltyManagementSetup."Purchase Order Trigger"::NoTrigger;
         QltyManagementSetup."Sales Return Trigger" := QltyManagementSetup."Sales Return Trigger"::NoTrigger;
-        QltyManagementSetup."Warehouse Receive Trigger" := QltyManagementSetup."Warehouse Receive Trigger"::NoTrigger;
+        QltyManagementSetup."Warehouse Receipt Trigger" := QltyManagementSetup."Warehouse Receipt Trigger"::NoTrigger;
         QltyManagementSetup."Warehouse Trigger" := QltyManagementSetup."Warehouse Trigger"::NoTrigger;
-        QltyManagementSetup."Transfer Trigger" := QltyManagementSetup."Transfer Trigger"::NoTrigger;
+        QltyManagementSetup."Transfer Order Trigger" := QltyManagementSetup."Transfer Order Trigger"::NoTrigger;
         QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::NoTrigger;
         QltyManagementSetup."Assembly Trigger" := QltyManagementSetup."Assembly Trigger"::NoTrigger;
         QltyManagementSetup.Modify();
@@ -778,7 +778,7 @@ codeunit 139940 "Qlty. Inspection Utility"
         CreateTemplate(QltyInspectionTemplateHdr, 1);
         CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", CreatedQltyInspectionGenRule);
 
-        CreatedQltyInspectionGenRule."Purchase Trigger" := CreatedQltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderPostReceive;
+        CreatedQltyInspectionGenRule."Purchase Order Trigger" := CreatedQltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive;
         CreatedQltyInspectionGenRule.Modify();
 
         CreateLotTrackedItem(Item);
@@ -786,7 +786,7 @@ codeunit 139940 "Qlty. Inspection Utility"
         Item.SetRecFilter();
         CreatedQltyInspectionGenRule."Item Filter" := CopyStr(Item.GetView(), 1, MaxStrLen(CreatedQltyInspectionGenRule."Item Filter"));
         CreatedQltyInspectionGenRule."Activation Trigger" := CreatedQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic";
-        CreatedQltyInspectionGenRule."Purchase Trigger" := CreatedQltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderPostReceive;
+        CreatedQltyInspectionGenRule."Purchase Order Trigger" := CreatedQltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive;
         CreatedQltyInspectionGenRule.Modify();
 
         OrdQltyPurOrderGenerator.CreatePurchaseOrder(Quantity, Location, Item, PurchaseHeader, OutPurchaseLine, OutReservationEntry);
@@ -1609,3 +1609,5 @@ codeunit 139940 "Qlty. Inspection Utility"
 
     #endregion Qlty. Misc Helpers Wrappers
 }
+
+

@@ -75,12 +75,12 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
             if TempQuantityToActQltyDispositionBuffer."Location Filter" <> '' then
                 Location.Get(TempQuantityToActQltyDispositionBuffer.GetFromLocationCode());
             if Location."Directed Put-away and Pick" then begin
-                if QltyManagementSetup."Bin Whse. Move Batch Name" = '' then
+                if QltyManagementSetup."Whse. Reclass. Batch Name" = '' then
                     Error(MissingBatchErr);
 
-                DocumentOrBatch := QltyManagementSetup."Bin Whse. Move Batch Name";
+                DocumentOrBatch := QltyManagementSetup."Whse. Reclass. Batch Name";
                 Clear(WarehouseJournalLine);
-                CreateTrackingWarehouseReclassLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Bin Whse. Move Batch Name", WarehouseJournalLine, WhseItemTrackingLine);
+                CreateTrackingWarehouseReclassLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Whse. Reclass. Batch Name", WarehouseJournalLine, WhseItemTrackingLine);
                 LineCreated := WarehouseJournalLine."Line No." <> 0;
                 if TempInstructionQltyDispositionBuffer."Entry Behavior" = TempInstructionQltyDispositionBuffer."Entry Behavior"::"Prepare only" then
                     Changed := LineCreated;
@@ -88,11 +88,11 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
                     Changed := QltyItemJournalManagement.PostWarehouseJournal(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, WarehouseJournalLine);
                 LoopSuccess := true;
             end else begin
-                if QltyManagementSetup."Bin Move Batch Name" = '' then
+                if QltyManagementSetup."Item Reclass. Batch Name" = '' then
                     Error(MissingBatchErr);
-                DocumentOrBatch := QltyManagementSetup."Bin Move Batch Name";
+                DocumentOrBatch := QltyManagementSetup."Item Reclass. Batch Name";
                 Clear(ItemJournalLine);
-                CreateTrackingItemReclassLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Bin Move Batch Name", ItemJournalLine, ItemReservationEntry);
+                CreateTrackingItemReclassLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Item Reclass. Batch Name", ItemJournalLine, ItemReservationEntry);
                 LineCreated := ItemJournalLine."Line No." <> 0;
                 if TempInstructionQltyDispositionBuffer."Entry Behavior" = TempInstructionQltyDispositionBuffer."Entry Behavior"::"Prepare only" then
                     Changed := LineCreated;
@@ -202,3 +202,6 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
     begin
     end;
 }
+
+
+

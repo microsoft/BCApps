@@ -179,7 +179,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Qlty. Inspection Header");
 
         QltyManagementSetup.Get();
-        QltyManagementSetup."Create Inspection Behavior" := QltyManagementSetup."Create Inspection Behavior"::"Always create new inspection";
+        QltyManagementSetup."Inspection Creation Option" := QltyManagementSetup."Inspection Creation Option"::"Always create new inspection";
         QltyManagementSetup.Modify();
 
         CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseCreateInspection(), true);
@@ -366,7 +366,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
 
         QltyManagementSetup.Get();
-        QltyManagementSetup."Adjustment Batch Name" := ItemJournalBatch.Name;
+        QltyManagementSetup."Item Journal Batch Name" := ItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] A workflow configured to create and post inventory adjustment on inspection finished
@@ -612,7 +612,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         WhseWorksheetTemplate.Insert();
         LibraryWarehouse.CreateWhseWorksheetName(WhseWorksheetName, WhseWorksheetTemplate.Name, Location.Code);
         QltyManagementSetup.Get();
-        QltyManagementSetup."Whse. Wksh. Name" := WhseWorksheetName.Name;
+        QltyManagementSetup."Movement Worksheet Name" := WhseWorksheetName.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] A purchase order received with inspection from warehouse entry
@@ -712,7 +712,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyManagementSetup.Get();
         LibraryWarehouse.CreateWhseJournalTemplate(ReclassWhseItemWarehouseJournalTemplate, ReclassWhseItemWarehouseJournalTemplate.Type::Reclassification);
         LibraryWarehouse.CreateWhseJournalBatch(ReclassWarehouseJournalBatch, ReclassWhseItemWarehouseJournalTemplate.Name, Location.Code);
-        QltyManagementSetup."Bin Whse. Move Batch Name" := ReclassWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Reclass. Batch Name" := ReclassWarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] A purchase order received with inspection from warehouse entry
@@ -908,7 +908,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyManagementSetup.Get();
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
         LibraryInventory.CreateItemJournalBatch(ReclassItemJournalBatch, ReclassItemJournalTemplate.Name);
-        QltyManagementSetup."Bin Move Batch Name" := ReclassItemJournalBatch.Name;
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] A location with bins and a lot tracked item
@@ -1040,7 +1040,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyManagementSetup.Get();
         LibraryWarehouse.CreateWhseJournalTemplate(ReclassWhseItemWarehouseJournalTemplate, ReclassWhseItemWarehouseJournalTemplate.Type::Reclassification);
         LibraryWarehouse.CreateWhseJournalBatch(ReclassWarehouseJournalBatch, ReclassWhseItemWarehouseJournalTemplate.Name, Location.Code);
-        QltyManagementSetup."Bin Whse. Move Batch Name" := ReclassWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Reclass. Batch Name" := ReclassWarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] A purchase order received with inspection created from warehouse entry
@@ -1867,3 +1867,12 @@ codeunit 139969 "Qlty. Tests - Workflows"
         Reply := true;
     end;
 }
+
+
+
+
+
+
+
+
+

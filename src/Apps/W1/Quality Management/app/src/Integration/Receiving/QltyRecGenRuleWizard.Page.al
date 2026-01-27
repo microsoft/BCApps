@@ -630,9 +630,9 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
         TransferToCode: Code[20];
         ToZoneCodeFilter: Code[20];
         ToBinCodeFilter: Code[20];
-        QltyPurchaseTrigger: Enum "Qlty. Purchase Trigger";
-        QltyTransferTrigger: Enum "Qlty. Transfer Trigger";
-        QltyWhseReceiveTrigger: Enum "Qlty. Whse. Receive Trigger";
+        QltyPurchaseTrigger: Enum "Qlty. Purchase Order Trigger";
+        QltyTransferTrigger: Enum "Qlty. Transfer Order Trigger";
+        QltyWhseReceiveTrigger: Enum "Qlty. Whse. Receipt Trigger";
         QltySalesReturnTrigger: Enum "Qlty. Sales Return Trigger";
         PurchaseLineRule: Text[400];
         SalesReturnLineRule: Text[400];
@@ -680,10 +680,10 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
         IsPurchaseLine := true;
 
-        QltyPurchaseTrigger := QltyManagementSetup."Purchase Trigger";
-        QltyTransferTrigger := QltyManagementSetup."Transfer Trigger";
+        QltyPurchaseTrigger := QltyManagementSetup."Purchase Order Trigger";
+        QltyTransferTrigger := QltyManagementSetup."Transfer Order Trigger";
         QltySalesReturnTrigger := QltyManagementSetup."Sales Return Trigger";
-        QltyWhseReceiveTrigger := QltyManagementSetup."Warehouse Receive Trigger";
+        QltyWhseReceiveTrigger := QltyManagementSetup."Warehouse Receipt Trigger";
         MaxStep := StepDoneCounter;
     end;
 
@@ -892,8 +892,8 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                     QltyInspectionGenRule.Intent := QltyInspectionGenRule.Intent::Purchase;
                     QltyInspectionGenRule."Condition Filter" := PurchaseLineRule;
                     QltyInspectionGenRule.SetIntentAndDefaultTriggerValuesFromSetup();
-                    QltyInspectionGenRule."Purchase Trigger" := QltyPurchaseTrigger;
-                    QltyManagementSetup."Purchase Trigger" := QltyPurchaseTrigger;
+                    QltyInspectionGenRule."Purchase Order Trigger" := QltyPurchaseTrigger;
+                    QltyManagementSetup."Purchase Order Trigger" := QltyPurchaseTrigger;
                 end;
             IsReturnReceipt:
                 begin
@@ -910,8 +910,8 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                     QltyInspectionGenRule.Intent := QltyInspectionGenRule.Intent::Transfer;
                     QltyInspectionGenRule."Condition Filter" := TransferLineRule;
                     QltyInspectionGenRule.SetIntentAndDefaultTriggerValuesFromSetup();
-                    QltyInspectionGenRule."Transfer Trigger" := QltyTransferTrigger;
-                    QltyManagementSetup."Transfer Trigger" := QltyTransferTrigger;
+                    QltyInspectionGenRule."Transfer Order Trigger" := QltyTransferTrigger;
+                    QltyManagementSetup."Transfer Order Trigger" := QltyTransferTrigger;
                 end;
             IsWarehouseReceipt:
                 begin
@@ -919,8 +919,8 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                     QltyInspectionGenRule.Intent := QltyInspectionGenRule.Intent::"Warehouse Receipt";
                     QltyInspectionGenRule."Condition Filter" := WarehouseJournalLineRule;
                     QltyInspectionGenRule.SetIntentAndDefaultTriggerValuesFromSetup();
-                    QltyInspectionGenRule."Warehouse Receive Trigger" := QltyWhseReceiveTrigger;
-                    QltyManagementSetup."Warehouse Receive Trigger" := QltyWhseReceiveTrigger;
+                    QltyInspectionGenRule."Warehouse Receipt Trigger" := QltyWhseReceiveTrigger;
+                    QltyManagementSetup."Warehouse Receipt Trigger" := QltyWhseReceiveTrigger;
                 end;
         end;
 
@@ -1071,3 +1071,6 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
         InventoryPostingGroupCode := CopyStr(TempItem.GetFilter("Inventory Posting Group"), 1, MaxStrLen(InventoryPostingGroupCode));
     end;
 }
+
+
+

@@ -47,16 +47,17 @@ table 20400 "Qlty. Management Setup"
             Caption = 'When to show inspections';
             ToolTip = 'Specifies whether inspections are shown immediately or sent to a queue for quality inspectors. For demonstrations and training, it can be useful to show automatically created inspections immediately. In production scenarios, automatically created inspections are usually not shown, instead they are queued or dispatch for quality inspections.';
         }
-        field(4; "Create Inspection Behavior"; Enum "Qlty. Create Inspect. Behavior")
+        field(4; "Inspection Creation Option"; Enum "Qlty. Inspect. Creation Option")
         {
-            Caption = 'Create Inspection Behavior';
-            ToolTip = 'Specifies the behavior of when to create a new Quality Inspection when existing inspections occur.';
+            Caption = 'Inspection Creation Option';
+            ToolTip = 'Specifies whether and how a new quality inspection is created if existing inspections are found.';
         }
-        field(5; "Find Existing Behavior"; Enum "Qlty. Find Existing Behavior")
+        field(5; "Inspection Search Criteria"; Enum "Qlty. Inspect. Search Criteria")
         {
-            Caption = 'Find Existing Behavior';
+            Caption = 'Inspection Search Criteria';
             Description = 'When looking for existing inspections, this defines what it looks for.';
-            ToolTip = 'Specifies what criteria the system looks for when searching for existing inspections.';
+            ToolTip = 'Specifies the criteria the system uses to search for existing inspections.';
+
         }
         field(6; "Certificate Contact No."; Code[20])
         {
@@ -91,12 +92,6 @@ table 20400 "Qlty. Management Setup"
             Caption = 'Production Update Control';
             ToolTip = 'Specifies whether to update when the source changes. Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the inspection.';
         }
-        field(21; "Receive Update Control"; Enum "Qlty. Update Source Behavior")
-        {
-            Description = 'Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the inspection.';
-            Caption = 'Receive Update Control';
-            ToolTip = 'Specifies whether to update when the source changes. Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Purchase Order is posted). Set to "Do Not Update" to prevent updating the original source that created the inspection.';
-        }
         field(24; "Item Tracking Before Finishing"; Enum "Qlty. Item Tracking Behavior")
         {
             Description = 'Whether to require item tracking before finishing an inspection.';
@@ -120,11 +115,11 @@ table 20400 "Qlty. Management Setup"
                 SanityCheckPictureAndCameraSettings();
             end;
         }
-        field(28; "Conditional Lot Find Behavior"; Enum "Qlty. Inspection Find Behavior")
+        field(28; "Inspection Selection Criteria"; Enum "Qlty. Insp. Selection Criteria")
         {
             Description = 'When evaluating if a document specific transactions are blocked, this determines which inspection(s) are considered.';
-            Caption = 'Conditional Lot Find Behavior';
-            ToolTip = 'Specifies which test(s) are considered when evaluating if a document-specific transaction is blocked.';
+            Caption = 'Quality Inspection Selection Criteria';
+            ToolTip = 'Specifies the tests the system uses to decide if a document-specific transaction should be blocked.';
         }
         field(29; "Warehouse Trigger"; Enum "Qlty. Warehouse Trigger")
         {
@@ -148,14 +143,6 @@ table 20400 "Qlty. Management Setup"
                             QltyInspectionGenRule.ModifyAll("Warehouse Movement Trigger", Rec."Warehouse Trigger", false);
                 end;
             end;
-        }
-        field(30; "Whse. Move Related Triggers"; Integer)
-        {
-            CalcFormula = count("Qlty. Inspection Gen. Rule" where(Intent = const("Warehouse Movement")));
-            Caption = 'Whse. Move Related Triggers';
-            Editable = false;
-            FieldClass = FlowField;
-            ToolTip = 'Specifies the Inspection Generation Rules that are warehouse movement related.';
         }
         field(60; "Brick Top Left Expression"; Text[200])
         {
@@ -245,10 +232,10 @@ table 20400 "Qlty. Management Setup"
             Caption = 'Workflow Integration';
             ToolTip = 'Specifies whether to enable events and responses for workflows and approval requests.';
         }
-        field(73; "Bin Move Batch Name"; Code[10])
+        field(73; "Item Reclass. Batch Name"; Code[10])
         {
-            Caption = 'Bin Move Batch Name';
-            ToolTip = 'Specifies the batch to use for bin movements and reclassifications for non-directed pick and put-away locations.';
+            Caption = 'Item Reclass. Batch Name';
+            ToolTip = 'Specifies the item reclassification journal batch to use for bin movements and reclassifications for non-directed pick and put-away locations.';
 
             trigger OnLookup()
             var
@@ -261,7 +248,7 @@ table 20400 "Qlty. Management Setup"
 
                 if ItemJournalBatches.RunModal() = Action::LookupOK then begin
                     ItemJournalBatches.GetRecord(ItemJournalBatch);
-                    Rec."Bin Move Batch Name" := ItemJournalBatch.Name;
+                    Rec."Item Reclass. Batch Name" := ItemJournalBatch.Name;
                 end;
             end;
 
@@ -269,15 +256,15 @@ table 20400 "Qlty. Management Setup"
             var
                 ItemJournalBatch: Record "Item Journal Batch";
             begin
-                if Rec."Bin Move Batch Name" <> '' then
-                    ItemJournalBatch.Get(GetItemReclassJournalTemplate(), "Bin Move Batch Name");
+                if Rec."Item Reclass. Batch Name" <> '' then
+                    ItemJournalBatch.Get(GetItemReclassJournalTemplate(), "Item Reclass. Batch Name");
             end;
         }
-        field(74; "Bin Whse. Move Batch Name"; Code[10])
+        field(74; "Whse. Reclass. Batch Name"; Code[10])
         {
-            Caption = 'Bin Whse. Move Batch Name';
+            Caption = 'Whse. Reclass. Batch Name';
             Description = 'The batch to use for bin movements for directed pick and put-away locations';
-            ToolTip = 'Specifies the batch to use for bin movements and reclassifications for directed pick and put-away locations.';
+            ToolTip = 'Specifies the warehouse reclassification journal batch to use for bin movements and reclassifications for directed pick and put-away locations.';
 
             trigger OnLookup()
             var
@@ -290,7 +277,7 @@ table 20400 "Qlty. Management Setup"
 
                 if JnlWhseJournalBatches.RunModal() = Action::LookupOK then begin
                     JnlWhseJournalBatches.GetRecord(WhseWarehouseJournalBatch);
-                    "Bin Whse. Move Batch Name" := WhseWarehouseJournalBatch.Name;
+                    "Whse. Reclass. Batch Name" := WhseWarehouseJournalBatch.Name;
                 end;
             end;
 
@@ -298,10 +285,10 @@ table 20400 "Qlty. Management Setup"
             var
                 WhseWarehouseJournalBatch: Record "Warehouse Journal Batch";
             begin
-                if "Bin Whse. Move Batch Name" <> '' then begin
-                    WhseWarehouseJournalBatch.SetRange(Name, "Bin Whse. Move Batch Name");
+                if "Whse. Reclass. Batch Name" <> '' then begin
+                    WhseWarehouseJournalBatch.SetRange(Name, "Whse. Reclass. Batch Name");
                     if WhseWarehouseJournalBatch.IsEmpty() then
-                        Error(BatchNotFoundErr, "Bin Whse. Move Batch Name");
+                        Error(BatchNotFoundErr, "Whse. Reclass. Batch Name");
                 end;
             end;
         }
@@ -315,15 +302,15 @@ table 20400 "Qlty. Management Setup"
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies the maximum number of rows to fetch on data lookups. Keeping the number as low as possible will increase usability and performance. A larger number will reduce performance and reduce usability.';
         }
-        field(92; "Auto Output Configuration"; Enum "Qlty. Auto. Production Trigger")
+        field(92; "Prod. Trigger Output Condition"; Enum "Prod. Trigger Output Condition")
         {
-            Caption = 'Auto Output Configuration';
+            Caption = 'Prod. Trigger Output Condition';
             ToolTip = 'Specifies granular options for when an inspection should be created automatically during the production process.';
         }
-        field(93; "Whse. Wksh. Name"; Code[10])
+        field(93; "Movement Worksheet Name"; Code[10])
         {
-            Caption = 'Warehouse Worksheet Name';
-            ToolTip = 'Specifies the worksheet used for warehouse movements for directed pick and put-away locations.';
+            Caption = 'Movement Worksheet Name';
+            ToolTip = 'Specifies the movement worksheet name used for warehouse movements for directed pick and put-away locations.';
 
             trigger OnLookup()
             var
@@ -336,7 +323,7 @@ table 20400 "Qlty. Management Setup"
 
                 if NameWhseWorksheetNames.RunModal() = Action::LookupOK then begin
                     NameWhseWorksheetNames.GetRecord(WhseWorksheetName);
-                    Rec."Whse. Wksh. Name" := WhseWorksheetName.Name;
+                    Rec."Movement Worksheet Name" := WhseWorksheetName.Name;
                 end;
             end;
 
@@ -344,17 +331,17 @@ table 20400 "Qlty. Management Setup"
             var
                 WhseWorksheetName: Record "Whse. Worksheet Name";
             begin
-                if Rec."Whse. Wksh. Name" <> '' then begin
-                    WhseWorksheetName.SetRange(Name, Rec."Whse. Wksh. Name");
+                if Rec."Movement Worksheet Name" <> '' then begin
+                    WhseWorksheetName.SetRange(Name, Rec."Movement Worksheet Name");
                     if WhseWorksheetName.IsEmpty() then
-                        Error(WorksheetNameNotFoundErr, Rec."Whse. Wksh. Name");
+                        Error(WorksheetNameNotFoundErr, Rec."Movement Worksheet Name");
                 end;
             end;
         }
-        field(95; "Adjustment Batch Name"; Code[10])
+        field(95; "Item Journal Batch Name"; Code[10])
         {
-            Caption = 'Adjustment Batch Name';
-            ToolTip = 'Specifies the batch to use for negative inventory adjustment item journals.';
+            Caption = 'Item Journal Batch Name';
+            ToolTip = 'Specifies the item journal batch to use for negative inventory adjustments.';
 
             trigger OnLookup()
             var
@@ -367,7 +354,7 @@ table 20400 "Qlty. Management Setup"
 
                 if ItemJournalBatches.RunModal() = Action::LookupOK then begin
                     ItemJournalBatches.GetRecord(ItemJournalBatch);
-                    Rec."Adjustment Batch Name" := ItemJournalBatch.Name;
+                    Rec."Item Journal Batch Name" := ItemJournalBatch.Name;
                 end;
             end;
 
@@ -375,14 +362,14 @@ table 20400 "Qlty. Management Setup"
             var
                 ItemJournalBatch: Record "Item Journal Batch";
             begin
-                if Rec."Adjustment Batch Name" <> '' then
-                    ItemJournalBatch.Get(GetInventoryAdjustmentJournalTemplate(), Rec."Adjustment Batch Name");
+                if Rec."Item Journal Batch Name" <> '' then
+                    ItemJournalBatch.Get(GetInventoryAdjustmentJournalTemplate(), Rec."Item Journal Batch Name");
             end;
         }
-        field(96; "Whse. Adjustment Batch Name"; Code[10])
+        field(96; "Whse. Item Journal Batch Name"; Code[10])
         {
-            Caption = 'Whse. Adjustment Batch Name';
-            ToolTip = 'Specifies the batch to use for negative inventory adjustment warehouse item journals.';
+            Caption = 'Whse. Item Journal Batch Name';
+            ToolTip = 'Specifies the warehouse item journal batch to use for negative inventory adjustments.';
 
             trigger OnLookup()
             var
@@ -395,7 +382,7 @@ table 20400 "Qlty. Management Setup"
 
                 if JnlWhseJournalBatches.RunModal() = Action::LookupOK then begin
                     JnlWhseJournalBatches.GetRecord(WhseWarehouseJournalBatch);
-                    Rec."Whse. Adjustment Batch Name" := WhseWarehouseJournalBatch.Name;
+                    Rec."Whse. Item Journal Batch Name" := WhseWarehouseJournalBatch.Name;
                 end;
             end;
 
@@ -403,16 +390,16 @@ table 20400 "Qlty. Management Setup"
             var
                 WhseWarehouseJournalBatch: Record "Warehouse Journal Batch";
             begin
-                if Rec."Whse. Adjustment Batch Name" <> '' then begin
-                    WhseWarehouseJournalBatch.SetRange(Name, Rec."Whse. Adjustment Batch Name");
+                if Rec."Whse. Item Journal Batch Name" <> '' then begin
+                    WhseWarehouseJournalBatch.SetRange(Name, Rec."Whse. Item Journal Batch Name");
                     if WhseWarehouseJournalBatch.IsEmpty() then
-                        Error(BatchNotFoundErr, Rec."Whse. Adjustment Batch Name");
+                        Error(BatchNotFoundErr, Rec."Whse. Item Journal Batch Name");
                 end;
             end;
         }
-        field(97; "Warehouse Receive Trigger"; Enum "Qlty. Whse. Receive Trigger")
+        field(97; "Warehouse Receipt Trigger"; Enum "Qlty. Whse. Receipt Trigger")
         {
-            Caption = 'Create Inspection On Warehouse Receive Trigger';
+            Caption = 'Create Inspection On Warehouse Receipt Trigger';
             Description = 'Provides automation to create an inspection when a warehouse receipt is created.';
             ToolTip = 'Specifies a default warehouse receipt trigger value for Inspection Generation Rules to create an inspection.';
 
@@ -422,31 +409,30 @@ table 20400 "Qlty. Management Setup"
             begin
                 SanityCheckReceiveSettings();
 
-                if (Rec."Warehouse Receive Trigger" <> xRec."Warehouse Receive Trigger") and (xRec."Warehouse Receive Trigger" <> xRec."Warehouse Receive Trigger"::NoTrigger) then begin
+                if (Rec."Warehouse Receipt Trigger" <> xRec."Warehouse Receipt Trigger") and (xRec."Warehouse Receipt Trigger" <> xRec."Warehouse Receipt Trigger"::NoTrigger) then begin
                     QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::"Warehouse Receipt");
-                    QltyInspectionGenRule.SetRange("Warehouse Receive Trigger", xRec."Warehouse Receive Trigger");
+                    QltyInspectionGenRule.SetRange("Warehouse Receipt Trigger", xRec."Warehouse Receipt Trigger");
                     if (not QltyInspectionGenRule.IsEmpty()) and GuiAllowed() then
-                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Warehouse Receive Trigger", Rec."Warehouse Receive Trigger")) then
-                            QltyInspectionGenRule.ModifyAll("Warehouse Receive Trigger", Rec."Warehouse Receive Trigger", false);
+                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Warehouse Receipt Trigger", Rec."Warehouse Receipt Trigger")) then
+                            QltyInspectionGenRule.ModifyAll("Warehouse Receipt Trigger", Rec."Warehouse Receipt Trigger", false);
                 end;
             end;
         }
-        field(98; "Purchase Trigger"; Enum "Qlty. Purchase Trigger")
+        field(98; "Purchase Order Trigger"; Enum "Qlty. Purchase Order Trigger")
         {
-            Caption = 'Create Inspection On Purchase Trigger';
-            Description = 'Provides automation to create an inspection when a purchase is received.';
-            ToolTip = 'Specifies a default purchase trigger value for Inspection Generation Rules to create an inspection.';
-
+            Caption = 'Create Inspection On Purchase Order Trigger';
+            Description = 'Provides automation to create an inspection when a purchase order is received.';
+            ToolTip = 'Specifies a default purchase order trigger value for Inspection Generation Rules to create an inspection.';
             trigger OnValidate()
             var
                 QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
             begin
-                if (Rec."Purchase Trigger" <> xRec."Purchase Trigger") and (xRec."Purchase Trigger" <> xRec."Purchase Trigger"::NoTrigger) then begin
+                if (Rec."Purchase Order Trigger" <> xRec."Purchase Order Trigger") and (xRec."Purchase Order Trigger" <> xRec."Purchase Order Trigger"::NoTrigger) then begin
                     QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Purchase);
-                    QltyInspectionGenRule.SetRange("Purchase Trigger", xRec."Purchase Trigger");
+                    QltyInspectionGenRule.SetRange("Purchase Order Trigger", xRec."Purchase Order Trigger");
                     if (not QltyInspectionGenRule.IsEmpty()) and GuiAllowed() then
-                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Purchase Trigger", Rec."Purchase Trigger")) then
-                            QltyInspectionGenRule.ModifyAll("Purchase Trigger", Rec."Purchase Trigger", false);
+                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Purchase Order Trigger", Rec."Purchase Order Trigger")) then
+                            QltyInspectionGenRule.ModifyAll("Purchase Order Trigger", Rec."Purchase Order Trigger", false);
                 end;
             end;
         }
@@ -469,22 +455,22 @@ table 20400 "Qlty. Management Setup"
                 end;
             end;
         }
-        field(100; "Transfer Trigger"; Enum "Qlty. Transfer Trigger")
+        field(100; "Transfer Order Trigger"; Enum "Qlty. Transfer Order Trigger")
         {
-            Caption = 'Create Inspection On Transfer Trigger';
+            Caption = 'Create Inspection On Transfer Order Trigger';
             Description = 'Provides automation to create an inspection when a transfer order is received.';
-            ToolTip = 'Specifies a default transfer trigger value for Inspection Generation Rules to create an inspection.';
+            ToolTip = 'Specifies a default transfer order trigger value for Inspection Generation Rules to create an inspection.';
 
             trigger OnValidate()
             var
                 QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
             begin
-                if (Rec."Transfer Trigger" <> xRec."Transfer Trigger") and (xRec."Transfer Trigger" <> xRec."Transfer Trigger"::NoTrigger) then begin
+                if (Rec."Transfer Order Trigger" <> xRec."Transfer Order Trigger") and (xRec."Transfer Order Trigger" <> xRec."Transfer Order Trigger"::NoTrigger) then begin
                     QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Transfer);
-                    QltyInspectionGenRule.SetRange("Transfer Trigger", xRec."Transfer Trigger");
+                    QltyInspectionGenRule.SetRange("Transfer Order Trigger", xRec."Transfer Order Trigger");
                     if (not QltyInspectionGenRule.IsEmpty()) and GuiAllowed() then
-                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Transfer Trigger", Rec."Transfer Trigger")) then
-                            QltyInspectionGenRule.ModifyAll("Transfer Trigger", Rec."Transfer Trigger", false);
+                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Transfer Order Trigger", Rec."Transfer Order Trigger")) then
+                            QltyInspectionGenRule.ModifyAll("Transfer Order Trigger", Rec."Transfer Order Trigger", false);
                 end;
             end;
         }
@@ -773,3 +759,15 @@ table 20400 "Qlty. Management Setup"
     begin
     end;
 }
+
+
+
+
+
+
+
+
+
+
+
+
