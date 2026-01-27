@@ -56,10 +56,10 @@ table 37202 "PEPPOL 3.0 Setup"
     [InherentPermissions(PermissionObjectType::TableData, Database::"PEPPOL 3.0 Setup", 'I')]
     procedure GetSetup()
     var
-        Peppol30: Codeunit "PEPPOL30";
+        Peppol30Impl: Codeunit "PEPPOL30 Impl.";
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
-        FeatureTelemetry.LogUptake('0000QTW', Peppol30.GetPeppolTelemetryTok(), Enum::"Feature Uptake Status"::Used);
+        FeatureTelemetry.LogUptake('0000QTW', Peppol30Impl.GetPeppolTelemetryTok(), Enum::"Feature Uptake Status"::Used);
         if not Get() then begin
             Init();
             Insert(true);
