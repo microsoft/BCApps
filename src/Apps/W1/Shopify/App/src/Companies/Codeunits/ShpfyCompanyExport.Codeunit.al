@@ -122,6 +122,7 @@ codeunit 30284 "Shpfy Company Export"
         TaxRegistrationIdMapping: Interface "Shpfy Tax Registration Id Mapping";
         CountyCodeTooLongErr: Text;
         PaymentTermsId: BigInteger;
+        ISOCountryCode: Code[10];
     begin
         TempCompanyLocation := CompanyLocation;
 
@@ -132,8 +133,20 @@ codeunit 30284 "Shpfy Company Export"
         CompanyLocation.City := Customer.City;
         CompanyLocation.Recipient := Customer.Name;
 
+        if (Customer."Country/Region Code" = '') and CompanyInformation.Get() then
+            Customer."Country/Region Code" := CompanyInformation."Country/Region Code";
+
+        // Get the ISO country code first, as it's needed for both the Shopify API and Tax Area lookups
+        // Tax Area table stores Shopify's ISO country codes (e.g., "GR" for Greece),
+        // while BC may use different codes (e.g., "EL" for Greece in EU/VIES contexts)
+        if CountryRegion.Get(Customer."Country/Region Code") then begin
+            CountryRegion.TestField("ISO Code");
+            ISOCountryCode := CountryRegion."ISO Code";
+        end else
+            ISOCountryCode := CopyStr(Customer."Country/Region Code", 1, MaxStrLen(ISOCountryCode));
+
         if Customer.County <> '' then begin
-            TaxArea.SetRange("Country/Region Code", Customer."Country/Region Code");
+            TaxArea.SetRange("Country/Region Code", ISOCountryCode);
             if not TaxArea.IsEmpty() then
                 case Shop."County Source" of
                     Shop."County Source"::Code:
@@ -142,7 +155,7 @@ codeunit 30284 "Shpfy Company Export"
                                 CountyCodeTooLongErr := StrSubstNo(CountyCodeTooLongLbl, Customer."No.", Customer.Name, StrLen(Customer.County), MaxStrLen(TaxArea."County Code"), Customer.County, Customer.FieldCaption(County));
                                 Error(CountyCodeTooLongErr);
                             end;
-                            TaxArea.SetRange("Country/Region Code", Customer."Country/Region Code");
+                            TaxArea.SetRange("Country/Region Code", ISOCountryCode);
                             TaxArea.SetRange("County Code", Customer.County);
                             if TaxArea.FindFirst() then begin
                                 CompanyLocation."Province Code" := TaxArea."County Code";
@@ -151,7 +164,7 @@ codeunit 30284 "Shpfy Company Export"
                         end;
                     Shop."County Source"::Name:
                         begin
-                            TaxArea.SetRange("Country/Region Code", Customer."Country/Region Code");
+                            TaxArea.SetRange("Country/Region Code", ISOCountryCode);
                             TaxArea.SetRange(County, Customer.County);
                             if TaxArea.FindFirst() then begin
                                 CompanyLocation."Province Code" := TaxArea."County Code";
@@ -167,13 +180,7 @@ codeunit 30284 "Shpfy Company Export"
                 end;
         end;
 
-        if (Customer."Country/Region Code" = '') and CompanyInformation.Get() then
-            Customer."Country/Region Code" := CompanyInformation."Country/Region Code";
-
-        if CountryRegion.Get(Customer."Country/Region Code") then begin
-            CountryRegion.TestField("ISO Code");
-            CompanyLocation."Country/Region Code" := CountryRegion."ISO Code";
-        end;
+        CompanyLocation."Country/Region Code" := ISOCountryCode;
 
         CompanyLocation."Phone No." := Customer."Phone No.";
 
