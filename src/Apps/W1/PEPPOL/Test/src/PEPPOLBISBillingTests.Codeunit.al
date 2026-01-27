@@ -1536,15 +1536,13 @@ codeunit 139236 "PEPPOL BIS BillingTests"
             CompanyInfo.Name := "Test";
             CompanyInfo.Address := "Test";
             CompanyInfo.City := "Test";
-            CompanyInfo."Post Code" := "1234"
+            CompanyInfo."Post Code" := "1234";
             CompanyInfo.Insert();
         end;
 
         if not IsInitialized then begin
             LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"PEPPOL BIS BillingTests");
             
-            
-
             if CompanyInfo."VAT Registration No." = '' then
                 CompanyInfo."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo(CompanyInfo."Country/Region Code");
             CompanyInfo.Validate("Use GLN in Electronic Document", true);
