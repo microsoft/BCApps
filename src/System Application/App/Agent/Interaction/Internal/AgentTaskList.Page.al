@@ -8,9 +8,6 @@ namespace System.Agents;
 using System.Agents.TaskPane;
 using System.Environment.Consumption;
 
-#pragma warning disable AS0032 
-#pragma warning disable AS0050
-
 page 4300 "Agent Task List"
 {
     PageType = List;
@@ -262,5 +259,3 @@ page 4300 "Agent Task List"
         ConsumedCredits: Decimal;
         ConsumedCreditsVisible: Boolean;
 }
-#pragma warning restore AS0050
-#pragma warning restore AS0032
