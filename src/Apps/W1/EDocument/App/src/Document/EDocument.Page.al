@@ -201,7 +201,8 @@ page 6121 "E-Document"
                 ApplicationArea = All;
                 Caption = 'Documents';
                 UpdatePropagation = Both;
-                SubPageLink = "E-Document Entry No." = field("Entry No"),
+                SubPageLink = "Table ID" = const(Database::"E-Document"),
+                              "E-Document Entry No." = field("Entry No"),
                               "E-Document Attachment" = const(true);
             }
             part(InboundEDocFactbox; "Inbound E-Doc. Factbox")

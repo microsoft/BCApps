@@ -254,7 +254,8 @@ page 6181 "E-Document Purchase Draft"
                 ApplicationArea = All;
                 Caption = 'Documents';
                 UpdatePropagation = Both;
-                SubPageLink = "E-Document Entry No." = field("Entry No"),
+                SubPageLink = "Table ID" = const(Database::"E-Document"),
+                              "E-Document Entry No." = field("Entry No"),
                               "E-Document Attachment" = const(true);
             }
             part(InboundEDocPicture; "Inbound E-Doc. Picture")
