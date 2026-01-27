@@ -90,6 +90,11 @@
       "id": "c9d5e8f0-6a78-5c34-0d9e-5f9a7b3e1c4d",
       "name": "E-Document Core Demo Data (BE)",
       "publisher": "Microsoft"
+    },
+    {
+      "id": "d0e5f9a1-7b89-5d45-0e0f-6a0a8c4f2e5f",
+      "name": "E-Document Core Demo Data (NO)",
+      "publisher": "Microsoft"
     }
   ],
   "screenshots": [],
