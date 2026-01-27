@@ -26,28 +26,28 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Initialize the workflow
         id: init
-        uses: spetersenms/AL-Go/Actions/WorkflowInitialize@refactor
+        uses: spetersenms/AL-Go/Actions/WorkflowInitialize@CodeCoverage
         with:
           shell: powershell
 
       - name: Read settings
-        uses: spetersenms/AL-Go/Actions/ReadSettings@refactor
+        uses: spetersenms/AL-Go/Actions/ReadSettings@CodeCoverage
         with:
           shell: powershell
 
       - name: Determine ArtifactUrl
         id: determineArtifactUrl
-        uses: spetersenms/AL-Go/Actions/DetermineArtifactUrl@refactor
+        uses: spetersenms/AL-Go/Actions/DetermineArtifactUrl@CodeCoverage
         with:
           shell: powershell
 
       - name: Determine Deployment Environments
         id: DetermineDeploymentEnvironments
-        uses: spetersenms/AL-Go/Actions/DetermineDeploymentEnvironments@refactor
+        uses: spetersenms/AL-Go/Actions/DetermineDeploymentEnvironments@CodeCoverage
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -60,7 +60,7 @@ jobs:
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
 
       - name: Build Reference Documentation
-        uses: spetersenms/AL-Go/Actions/BuildReferenceDocumentation@refactor
+        uses: spetersenms/AL-Go/Actions/BuildReferenceDocumentation@CodeCoverage
         with:
           shell: powershell
           artifacts: 'latest'
@@ -78,7 +78,7 @@ jobs:
 
       - name: Finalize the workflow
         if: always()
-        uses: spetersenms/AL-Go/Actions/WorkflowPostProcess@refactor
+        uses: spetersenms/AL-Go/Actions/WorkflowPostProcess@CodeCoverage
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:

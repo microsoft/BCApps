@@ -1,7 +1,7 @@
 {
-  "$schema": "https://raw.githubusercontent.com/spetersenms/AL-Go/refactor/Actions/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/spetersenms/AL-Go/CodeCoverage/Actions/.Modules/settings.schema.json",
   "type": "PTE",
-  "templateUrl": "https://github.com/spetersenms/AL-Go@refactor",
+  "templateUrl": "https://github.com/spetersenms/AL-Go@CodeCoverage",
   "bcContainerHelperVersion": "preview",
   "runs-on": "windows-latest",
   "cacheImageName": "",
@@ -91,7 +91,7 @@
     ]
   },
   "UpdateALGoSystemFilesEnvironment": "Official-Build",
-  "templateSha": "cb83cd64dc2708d08d46dd954e85384d30298d23",
+  "templateSha": "cc692bd45c8de646539fc3e12b270d6414ddfa35",
   "commitOptions": {
     "messageSuffix": "Related to AB#539394",
     "pullRequestAutoMerge": true,

@@ -19,6 +19,7 @@ permissions:
   id-token: write
   pages: read
   security-events: write
+  packages: read
 
 env:
   workflowDepth: 2
@@ -31,6 +32,8 @@ jobs:
     runs-on: [ windows-latest ]
     outputs:
       telemetryScopeJson: ${{ steps.init.outputs.telemetryScopeJson }}
+      environmentsMatrixJson: ${{ steps.DetermineDeploymentEnvironments.outputs.EnvironmentsMatrixJson }}
+      environmentCount: ${{ steps.DetermineDeploymentEnvironments.outputs.EnvironmentCount }}
       deploymentEnvironmentsJson: ${{ steps.DetermineDeploymentEnvironments.outputs.DeploymentEnvironmentsJson }}
       generateALDocArtifact: ${{ steps.DetermineDeploymentEnvironments.outputs.GenerateALDocArtifact }}
       deployALDocArtifact: ${{ steps.DetermineDeploymentEnvironments.outputs.DeployALDocArtifact }}
@@ -46,39 +49,29 @@ jobs:
       workflowDepth: ${{ steps.DetermineWorkflowDepth.outputs.WorkflowDepth }}
       powerPlatformSolutionFolder: ${{ steps.DeterminePowerPlatformSolutionFolder.outputs.powerPlatformSolutionFolder }}
       trackALAlertsInGitHub: ${{ steps.SetALCodeAnalysisVar.outputs.trackALAlertsInGitHub }}
-      githubEnvironmentsJson: ${{ steps.GetGitHubEnvironments.outputs.GitHubEnvironments }}
     steps:
       - name: Dump Workflow Information
-        uses: spetersenms/AL-Go/Actions/DumpWorkflowInfo@refactor
+        uses: spetersenms/AL-Go/Actions/DumpWorkflowInfo@CodeCoverage
         with:
           shell: powershell
 
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           lfs: true
 
       - name: Initialize the workflow
         id: init
-        uses: spetersenms/AL-Go/Actions/WorkflowInitialize@refactor
-        with:
-          shell: powershell
-
-      - name: Get GitHub Environments
-        id: GetGitHubEnvironments
-        uses: spetersenms/AL-Go/Actions/GetGitHubEnvironments@refactor
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+        uses: spetersenms/AL-Go/Actions/WorkflowInitialize@CodeCoverage
         with:
           shell: powershell
 
       - name: Read settings
         id: ReadSettings
-        uses: spetersenms/AL-Go/Actions/ReadSettings@refactor
+        uses: spetersenms/AL-Go/Actions/ReadSettings@CodeCoverage
         with:
           shell: powershell
           get: type,powerPlatformSolutionFolder,useGitSubmodules,trackALAlertsInGitHub
-          githubEnvironmentsJson: ${{ env.GithubEnvironments }}
 
       - name: Set AL Code Analysis Var output
         id: SetALCodeAnalysisVar
@@ -89,7 +82,7 @@ jobs:
       - name: Read submodules token
         id: ReadSubmodulesToken
         if: env.useGitSubmodules != 'false' && env.useGitSubmodules != ''
-        uses: spetersenms/AL-Go/Actions/ReadSecrets@refactor
+        uses: spetersenms/AL-Go/Actions/ReadSecrets@CodeCoverage
         with:
           shell: powershell
           gitHubSecrets: ${{ toJson(secrets) }}
@@ -97,7 +90,7 @@ jobs:
 
       - name: Checkout Submodules
         if: env.useGitSubmodules != 'false' && env.useGitSubmodules != ''
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           lfs: true
           submodules: ${{ env.useGitSubmodules }}
@@ -110,7 +103,7 @@ jobs:
 
       - name: Determine Projects To Build
         id: determineProjectsToBuild
-        uses: spetersenms/AL-Go/Actions/DetermineProjectsToBuild@refactor
+        uses: spetersenms/AL-Go/Actions/DetermineProjectsToBuild@CodeCoverage
         with:
           shell: powershell
           maxBuildDepth: ${{ env.workflowDepth }}
@@ -123,7 +116,7 @@ jobs:
 
       - name: Determine Delivery Target Secrets
         id: DetermineDeliveryTargetSecrets
-        uses: spetersenms/AL-Go/Actions/DetermineDeliveryTargets@refactor
+        uses: spetersenms/AL-Go/Actions/DetermineDeliveryTargets@CodeCoverage
         with:
           shell: powershell
           projectsJson: '${{ steps.determineProjectsToBuild.outputs.ProjectsJson }}'
@@ -131,7 +124,7 @@ jobs:
 
       - name: Read secrets
         id: ReadSecrets
-        uses: spetersenms/AL-Go/Actions/ReadSecrets@refactor
+        uses: spetersenms/AL-Go/Actions/ReadSecrets@CodeCoverage
         with:
           shell: powershell
           gitHubSecrets: ${{ toJson(secrets) }}
@@ -139,7 +132,7 @@ jobs:
 
       - name: Determine Delivery Targets
         id: DetermineDeliveryTargets
-        uses: spetersenms/AL-Go/Actions/DetermineDeliveryTargets@refactor
+        uses: spetersenms/AL-Go/Actions/DetermineDeliveryTargets@CodeCoverage
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
         with:
@@ -149,12 +142,11 @@ jobs:
 
       - name: Determine Deployment Environments
         id: DetermineDeploymentEnvironments
-        uses: spetersenms/AL-Go/Actions/DetermineDeploymentEnvironments@refactor
+        uses: spetersenms/AL-Go/Actions/DetermineDeploymentEnvironments@CodeCoverage
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           shell: powershell
-          githubEnvironmentsJson: ${{ env.GithubEnvironments }}
           getEnvironments: '*'
           type: 'CD'
 
@@ -163,24 +155,24 @@ jobs:
     runs-on: [ windows-latest ]
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Read settings
-        uses: spetersenms/AL-Go/Actions/ReadSettings@refactor
+        uses: spetersenms/AL-Go/Actions/ReadSettings@CodeCoverage
         with:
           shell: powershell
           get: templateUrl
 
       - name: Read secrets
         id: ReadSecrets
-        uses: spetersenms/AL-Go/Actions/ReadSecrets@refactor
+        uses: spetersenms/AL-Go/Actions/ReadSecrets@CodeCoverage
         with:
           shell: powershell
           gitHubSecrets: ${{ toJson(secrets) }}
           getSecrets: 'ghTokenWorkflow'
 
       - name: Check for updates to AL-Go system files
-        uses: spetersenms/AL-Go/Actions/CheckForUpdates@refactor
+        uses: spetersenms/AL-Go/Actions/CheckForUpdates@CodeCoverage
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -246,20 +238,20 @@ jobs:
     name: Code Analysis Processing
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Download artifacts - ErrorLogs
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         if: (success() || failure())
         with:
-          pattern: '*-ErrorLogs-*'
+          pattern: '*-*ErrorLogs-*'
           path: '${{ github.workspace }}/ErrorLogs/'
           merge-multiple: true
 
       - name: Process AL Code Analysis Logs
         id: ProcessALCodeAnalysisLogs
         if: (success() || failure())
-        uses: spetersenms/AL-Go/Actions/ProcessALCodeAnalysisLogs@refactor
+        uses: spetersenms/AL-Go/Actions/ProcessALCodeAnalysisLogs@CodeCoverage
         with:
           shell: powershell
 
@@ -285,21 +277,21 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Download artifacts
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           path: '.artifacts'
 
       - name: Read settings
-        uses: spetersenms/AL-Go/Actions/ReadSettings@refactor
+        uses: spetersenms/AL-Go/Actions/ReadSettings@CodeCoverage
         with:
           shell: powershell
 
       - name: Determine ArtifactUrl
         id: determineArtifactUrl
-        uses: spetersenms/AL-Go/Actions/DetermineArtifactUrl@refactor
+        uses: spetersenms/AL-Go/Actions/DetermineArtifactUrl@CodeCoverage
         with:
           shell: powershell
 
@@ -308,7 +300,7 @@ jobs:
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
 
       - name: Build Reference Documentation
-        uses: spetersenms/AL-Go/Actions/BuildReferenceDocumentation@refactor
+        uses: spetersenms/AL-Go/Actions/BuildReferenceDocumentation@CodeCoverage
         with:
           shell: powershell
           artifacts: '.artifacts'
@@ -326,48 +318,44 @@ jobs:
 
   Deploy:
     needs: [ Initialization, Build1, Build ]
-    if: (!cancelled()) && (needs.Build1.result == 'success' || needs.Build1.result == 'skipped') && (needs.Build.result == 'success' || needs.Build.result == 'skipped') && needs.Initialization.outputs.environmentCount > 0
-    strategy:
-      matrix:
-        include: ${{ fromJson(needs.Initialization.outputs.deploymentEnvironmentsJson).environments }}
-      fail-fast: false
-    runs-on: ${{ fromJson(matrix.runs-on) }}
-    name: Deploy to ${{ matrix.environmentName }}
+    if: (!cancelled()) && (needs.Build1.result == 'success' || needs.Build1.result == 'skipped') && (needs.Build.result == 'success' || needs.Build.result == 'skipped') && fromJson(needs.Initialization.outputs.deploymentEnvironmentsJson).environmentCount > 0
+    strategy: ${{ fromJson(needs.Initialization.outputs.environmentsMatrixJson) }}
+    runs-on: ${{ fromJson(matrix.os) }}
+    name: Deploy to ${{ matrix.environment }}
     defaults:
       run:
         shell: ${{ matrix.shell }}
     environment:
-      name: ${{ matrix.environmentName }}
+      name: ${{ matrix.environment }}
       url: ${{ steps.Deploy.outputs.environmentUrl }}
     env:
       ALGoEnvSettings: ${{ vars.ALGoEnvironmentSettings }}
-      ALGoEnvName: ${{ matrix.environmentName }}
+      ALGoEnvName: ${{ matrix.environment }}
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Download artifacts
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           path: '.artifacts'
 
       - name: Read settings
-        uses: spetersenms/AL-Go/Actions/ReadSettings@refactor
+        uses: spetersenms/AL-Go/Actions/ReadSettings@CodeCoverage
         with:
           shell: ${{ matrix.shell }}
           get: type,powerPlatformSolutionFolder
-          githubEnvironmentsJson: ${{ needs.Initialization.outputs.githubEnvironmentsJson }}
 
       - name: EnvName
         id: envName
         run: |
           $errorActionPreference = "Stop"; $ProgressPreference = "SilentlyContinue"; Set-StrictMode -Version 2.0
-          $envName = '${{ matrix.environmentName }}'.split(' ')[0]
+          $envName = '${{ matrix.environment }}'.split(' ')[0]
           Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT -Value "envName=$envName"
 
       - name: Read secrets
         id: ReadSecrets
-        uses: spetersenms/AL-Go/Actions/ReadSecrets@refactor
+        uses: spetersenms/AL-Go/Actions/ReadSecrets@CodeCoverage
         with:
           shell: ${{ matrix.shell }}
           gitHubSecrets: ${{ toJson(secrets) }}
@@ -375,24 +363,26 @@ jobs:
 
       - name: Deploy to Business Central
         id: Deploy
-        uses: spetersenms/AL-Go/Actions/Deploy@refactor
+        uses: spetersenms/AL-Go/Actions/Deploy@CodeCoverage
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
         with:
           shell: ${{ matrix.shell }}
-          environmentName: ${{ matrix.environmentName }}
+          environmentName: ${{ matrix.environment }}
           artifactsFolder: '.artifacts'
           type: 'CD'
+          deploymentEnvironmentsJson: ${{ needs.Initialization.outputs.deploymentEnvironmentsJson }}
 
       - name: Deploy to Power Platform
         if: env.type == 'PTE' && env.powerPlatformSolutionFolder != ''
-        uses: spetersenms/AL-Go/Actions/DeployPowerPlatform@refactor
+        uses: spetersenms/AL-Go/Actions/DeployPowerPlatform@CodeCoverage
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
         with:
           shell: powershell
-          environmentName: ${{ matrix.environmentName }}
+          environmentName: ${{ matrix.environment }}
           artifactsFolder: '.artifacts'
+          deploymentEnvironmentsJson: ${{ needs.Initialization.outputs.deploymentEnvironmentsJson }}
 
   Deliver:
     needs: [ Initialization, Build1, Build ]
@@ -405,28 +395,28 @@ jobs:
     name: Deliver to ${{ matrix.deliveryTarget }}
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Download artifacts
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           path: '.artifacts'
 
       - name: Read settings
-        uses: spetersenms/AL-Go/Actions/ReadSettings@refactor
+        uses: spetersenms/AL-Go/Actions/ReadSettings@CodeCoverage
         with:
           shell: powershell
 
       - name: Read secrets
         id: ReadSecrets
-        uses: spetersenms/AL-Go/Actions/ReadSecrets@refactor
+        uses: spetersenms/AL-Go/Actions/ReadSecrets@CodeCoverage
         with:
           shell: powershell
           gitHubSecrets: ${{ toJson(secrets) }}
           getSecrets: '${{ matrix.deliveryTarget }}Context'
 
       - name: Deliver
-        uses: spetersenms/AL-Go/Actions/Deliver@refactor
+        uses: spetersenms/AL-Go/Actions/Deliver@CodeCoverage
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
         with:
@@ -442,11 +432,11 @@ jobs:
     runs-on: [ windows-latest ]
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Finalize the workflow
         id: PostProcess
-        uses: spetersenms/AL-Go/Actions/WorkflowPostProcess@refactor
+        uses: spetersenms/AL-Go/Actions/WorkflowPostProcess@CodeCoverage
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
