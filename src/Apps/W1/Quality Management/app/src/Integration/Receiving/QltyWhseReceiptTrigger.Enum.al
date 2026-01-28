@@ -5,19 +5,23 @@
 namespace Microsoft.QualityManagement.Integration.Receiving;
 
 /// <summary>
-/// Helps determine the trigger for transfer specific reactions.
+/// The warehouse receipt behavior to create an inspection.
 /// </summary>
-enum 20454 "Qlty. Transfer Trigger"
+enum 20450 "Qlty. Whse. Receipt Trigger"
 {
     Extensible = true;
-    Caption = 'Quality Transfer Trigger';
+    Caption = 'Quality Warehouse Receipt Trigger';
 
     value(0; NoTrigger)
     {
         Caption = 'Never';
     }
-    value(1; OnTransferOrderPostReceive)
+    value(1; OnWarehouseReceiptCreate)
     {
-        Caption = 'When Transfer Order is received';
+        Caption = 'When Warehouse Receipt is created';
+    }
+    value(2; OnWarehouseReceiptPost)
+    {
+        Caption = 'When Warehouse Receipt is posted';
     }
 }

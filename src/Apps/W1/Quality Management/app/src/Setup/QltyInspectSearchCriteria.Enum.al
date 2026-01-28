@@ -8,9 +8,9 @@ namespace Microsoft.QualityManagement.Setup;
 /// Controls how existing inspections are found.
 /// In some scenarios it's only about the source record, in others it is only item tracking, and in some it's standard source, document, and template.
 /// </summary>
-enum 20403 "Qlty. Find Existing Behavior"
+enum 20403 "Qlty. Inspect. Search Criteria"
 {
-    Caption = 'Quality Find Existing Behavior';
+    Caption = 'Quality Inspection Search Criteria';
 
     value(0; "By Standard Source Fields")
     {

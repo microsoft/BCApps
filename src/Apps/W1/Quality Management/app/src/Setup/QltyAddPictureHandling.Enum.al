@@ -7,20 +7,20 @@ namespace Microsoft.QualityManagement.Setup;
 /// <summary>
 /// This is used to help determine what to do when a picture is uploaded to an inspection.
 /// </summary>
-enum 20420 "Qlty. Picture Upload Behavior"
+enum 20420 "Qlty. Add. Picture Handling"
 {
-    Caption = 'Quality Picture Upload Behavior';
+    Caption = 'Additional Picture Handling';
 
-    value(0; "Do nothing")
+    value(0; None)
     {
-        Caption = 'Do nothing';
+        Caption = 'None';
     }
-    value(1; "Attach document")
+    value(1; "Save as attachment")
     {
-        Caption = 'Attach document';
+        Caption = 'Save as attachment';
     }
-    value(2; "Attach and upload to OneDrive")
+    value(2; "Save as attachment and upload to OneDrive")
     {
-        Caption = 'Attach and upload to OneDrive';
+        Caption = 'Save as attachment and upload to OneDrive';
     }
 }

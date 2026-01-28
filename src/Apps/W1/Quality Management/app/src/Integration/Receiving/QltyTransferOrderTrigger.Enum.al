@@ -5,23 +5,19 @@
 namespace Microsoft.QualityManagement.Integration.Receiving;
 
 /// <summary>
-/// Helps determine how receiving behaviors should occur.
+/// Helps determine the trigger for transfer specific reactions.
 /// </summary>
-enum 20452 "Qlty. Purchase Trigger"
+enum 20454 "Qlty. Transfer Order Trigger"
 {
     Extensible = true;
-    Caption = 'Quality Purchase Trigger';
+    Caption = 'Quality Transfer Order Trigger';
 
     value(0; NoTrigger)
     {
         Caption = 'Never';
     }
-    value(1; OnPurchaseOrderPostReceive)
+    value(1; OnTransferOrderPostReceive)
     {
-        Caption = 'When Purchase Order is received';
-    }
-    value(2; OnPurchaseOrderRelease)
-    {
-        Caption = 'When Purchase Order is released';
+        Caption = 'When Transfer Order is received';
     }
 }
