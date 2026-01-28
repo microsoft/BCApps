@@ -6,6 +6,7 @@ namespace Microsoft.QualityManagement.Utilities;
 
 using Microsoft.Inventory.Item;
 using Microsoft.QualityManagement.Dispositions;
+using System.Environment.Configuration;
 using Microsoft.QualityManagement.Document;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Activity;
@@ -60,6 +61,74 @@ codeunit 20437 "Qlty. Notification Mgmt."
         SerialMsg: Label ' Serial: %1', Comment = '%1=serial no.';
         PackageMsg: Label ' Package: %1', Comment = '%1=package no.';
         OriginTok: Label 'origin', Locked = true;
+        InspectionCreatedMsg: Label 'Quality Inspection %1 has been created.', Comment = '%1=the test friendly identifier';
+        MultipleInspectionsCreatedMsg: Label '%1 Quality Inspections have been created.', Comment = '%1=the number of inspections';
+        ViewTheInspectionsPageLbl: Label 'View the created inspections';
+        MultipleInspectionsNotificationDataFilterTok: Label 'InspectionsFilter', Locked = true;
+        HandleOpenMultipleInspectionsTok: Label 'HandleOpenMultipleInspections', Locked = true;
+        OpenTheInspectionPageLbl: Label 'Open the inspection';
+        AssignToYourselfTok: Label 'Assign Quality Inspection to yourself', Locked = true;
+        AssignToYourselfDescriptionTxt: Label 'Show a notification to provide the opportunity to assign the Quality Inspection to yourself.';
+        InspectionCreatedNameTok: Label 'Quality Inspection created', Locked = true;
+        InspectionCreatedDescriptionTxt: Label 'Show a notification that a Quality Inspection has been created.';
+
+    /// <summary>
+    /// Ensures that configurable notifications are inserted.
+    /// </summary>
+    procedure EnsureDefaultNotifications()
+    var
+        MyNotifications: Record "My Notifications";
+    begin
+        MyNotifications.InsertDefault(GetAssignToYourselfNotificationId(), AssignToYourselfTok, AssignToYourselfDescriptionTxt, true);
+        MyNotifications.InsertDefault(GetInspectionCreatedNotificationId(), InspectionCreatedNameTok, InspectionCreatedDescriptionTxt, true);
+    end;
+
+    /// <summary>
+    /// Creates a notification that an inspection has been created.
+    /// </summary>
+    /// <param name="QltyInspectionHeader"></param>
+    procedure NotifyInspectionCreated(QltyInspectionHeader: Record "Qlty. Inspection Header")
+    var
+        MyNotifications: Record "My Notifications";
+        NotificationInspectionCreated: Notification;
+        Message: Text;
+        NotificationOptions: Dictionary of [Text, Text];
+    begin
+        if not GuiAllowed() then
+            exit;
+        EnsureDefaultNotifications();
+        if not MyNotifications.IsEnabled(GetInspectionCreatedNotificationId()) then
+            exit;
+        Message := StrSubstNo(InspectionCreatedMsg, QltyInspectionHeader.GetFriendlyIdentifier());
+        NotificationOptions.Add(OpenTheInspectionPageLbl, HandleOpenDocumentTok);
+        NotificationInspectionCreated.SetData(NotificationDataRelatedRecordIdTok, Format(QltyInspectionHeader.RecordId));
+        CreateActionNotification(NotificationInspectionCreated, Message, NotificationOptions);
+    end;
+
+    /// <summary>
+    /// Creates a notification that multiple inspections have been created.
+    /// </summary>
+    /// <param name="QltyInspectionHeader"></param>
+    procedure NotifyMultipleInspectionsCreated(QltyInspectionHeader: Record "Qlty. Inspection Header")
+    var
+        MyNotifications: Record "My Notifications";
+        NotificationTestCreated: Notification;
+        Message: Text;
+        NotificationOptions: Dictionary of [Text, Text];
+    begin
+        if not GuiAllowed() then
+            exit;
+        EnsureDefaultNotifications();
+        if not MyNotifications.IsEnabled(GetInspectionCreatedNotificationId()) then
+            exit;
+        Message := StrSubstNo(
+            MultipleInspectionsCreatedMsg,
+            QltyInspectionHeader.Count()
+        );
+        NotificationOptions.Add(ViewTheInspectionsPageLbl, HandleOpenMultipleInspectionsTok);
+        NotificationTestCreated.SetData(MultipleInspectionsNotificationDataFilterTok, QltyInspectionHeader.GetView());
+        CreateActionNotification(NotificationTestCreated, Message, NotificationOptions);
+    end;
 
     /// <summary>
     /// Call this to create a notification if you want to assign to yourself.
@@ -67,12 +136,18 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// <param name="QltyInspectionHeader"></param>
     procedure NotifyDoYouWantToAssignToYourself(QltyInspectionHeader: Record "Qlty. Inspection Header")
     var
+        MyNotifications: Record "My Notifications";
         AssignToSelfNotification: Notification;
         AvailableOptions: Dictionary of [Text, Text];
     begin
+        if not GuiAllowed() then
+            exit;
+        EnsureDefaultNotifications();
+        if not MyNotifications.IsEnabled(GetAssignToYourselfNotificationId()) then
+            exit;
         AvailableOptions.Add(AssignToSelfLbl, HandleNotificationActionAssignToSelfTok);
         AvailableOptions.Add(IgnoreLbl, HandleNotificationActionIgnoreTok);
-        AssignToSelfNotification.Id := QltyInspectionHeader.SystemId;
+        AssignToSelfNotification.Id := GetAssignToYourselfNotificationId();
         AssignToSelfNotification.SetData(NotificationDataInspectionRecordIdTok, Format(QltyInspectionHeader.RecordId()));
         CreateActionNotification(AssignToSelfNotification, StrSubstNo(YouHaveAlteredDoYouWantToAutoAssignQst, QltyInspectionHeader."No."), AvailableOptions);
     end;
@@ -348,7 +423,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     end;
 
     /// <summary>
-    /// procedure name *must* mah tcHandleOpenDocumentTok 
+    /// procedure name *must* match HandleOpenDocumentTok 
     /// This is the event handle for the 'open the document' 
     /// </summary>
     /// <param name="NotificationToShow">The notification that triggered the action.</param>
@@ -392,7 +467,19 @@ codeunit 20437 "Qlty. Notification Mgmt."
     end;
 
     /// <summary>
-    /// procedure name *must* match tcHandleNotificationActionAssignToSelf 
+    /// procedure name must match HandleOpenMultipleInspectionsTok.
+    /// </summary>
+    /// <param name="pNotification"></param>
+    internal procedure HandleOpenMultipleInspections(pNotification: Notification)
+    var
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+    begin
+        QltyInspectionHeader.SetView(pNotification.GetData(MultipleInspectionsNotificationDataFilterTok));
+        Page.RunModal(Page::"Qlty. Inspection List", QltyInspectionHeader);
+    end;
+
+    /// <summary>
+    /// procedure name *must* match HandleNotificationActionAssignToSelfTok 
     /// </summary>
     /// <param name="NotificationToShow">The notification that triggered the action.</param>
     internal procedure HandleNotificationActionAssignToSelf(NotificationToShow: Notification)
@@ -556,6 +643,16 @@ codeunit 20437 "Qlty. Notification Mgmt."
             TextBuilder.Append(StrSubstNo(ExpDateMsg, Format(TempInstructionQltyDispositionBuffer."New Expiration Date")));
 
         exit(TextBuilder.ToText());
+    end;
+
+    local procedure GetAssignToYourselfNotificationId(): Guid
+    begin
+        exit('de535e9b-2727-4d23-8be4-e2ff33a2c586');
+    end;
+
+    local procedure GetInspectionCreatedNotificationId(): Guid
+    begin
+        exit('f2e838e8-c3c3-4ce2-ab34-cde0a3a3cb1f');
     end;
 
     /// <summary>

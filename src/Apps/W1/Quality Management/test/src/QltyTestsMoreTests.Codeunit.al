@@ -1615,10 +1615,14 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Source field configuration for Purchase Line "No." field is deleted
-        SpecificQltyInspectSrcFldConf.SetRange("From Table No.", Database::"Purchase Line");
-        SpecificQltyInspectSrcFldConf.SetRange("From Field No.", PurchaseLine.FieldNo("No."));
-        if SpecificQltyInspectSrcFldConf.FindFirst() then
-            SpecificQltyInspectSrcFldConf.Delete();
+        SpecificQltyInspectSrcFldConf.SetRange("To Table No.", Database::"Qlty. Inspection Header");
+        SpecificQltyInspectSrcFldConf.SetRange("To Field No.", QltyInspectionHeader.FieldNo("Source Item No."));
+        SpecificQltyInspectSrcFldConf.DeleteAll(false);
+        // Below is insufficient because it doesn't consider table crawling.
+        //SpecificQltyInspectSrcFldConf.SetRange("From Table No.", Database::"Purchase Line");
+        //SpecificQltyInspectSrcFldConf.SetRange("From Field No.", PurchaseLine.FieldNo("No."));
+        //if SpecificQltyInspectSrcFldConf.FindFirst() then
+        //   SpecificQltyInspectSrcFldConf.Delete();
 
         // [GIVEN] A location and item are created
         LibraryWarehouse.CreateLocation(Location);
@@ -1693,10 +1697,14 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine);
 
         // [GIVEN] Source field configuration for Purchase Line "Document No." field is deleted
-        SpecificQltyInspectSrcFldConf.SetRange("From Table No.", Database::"Purchase Line");
-        SpecificQltyInspectSrcFldConf.SetRange("From Field No.", PurchaseLine.FieldNo("Document No."));
-        if SpecificQltyInspectSrcFldConf.FindFirst() then
-            SpecificQltyInspectSrcFldConf.Delete();
+        SpecificQltyInspectSrcFldConf.SetRange("To Table No.", Database::"Qlty. Inspection Header");
+        SpecificQltyInspectSrcFldConf.SetRange("To Field No.", QltyInspectionHeader.FieldNo("Source Document No."));
+        SpecificQltyInspectSrcFldConf.DeleteAll(false);
+        // Below is insufficient because the system can crawl tables.
+        // SpecificQltyInspectSrcFldConf.SetRange("From Table No.", Database::"Purchase Line");
+        // SpecificQltyInspectSrcFldConf.SetRange("From Field No.", PurchaseLine.FieldNo("Document No."));
+        // if SpecificQltyInspectSrcFldConf.FindFirst() then
+        //     SpecificQltyInspectSrcFldConf.Delete();
 
         // [GIVEN] Inspection header has variant, lot, serial, and package tracking set
         QltyInspectionHeader."Source Variant Code" := 'Variant';

@@ -42,11 +42,6 @@ table 20400 "Qlty. Management Setup"
             TableRelation = "No. Series";
             ToolTip = 'Specifies the default number series for quality inspection documents used when there isn''t a number series defined on the quality inspection template.';
         }
-        field(3; "When to show inspections"; Enum "Qlty. When to Show Inspections")
-        {
-            Caption = 'When to show inspections';
-            ToolTip = 'Specifies whether inspections are shown immediately or sent to a queue for quality inspectors. For demonstrations and training, it can be useful to show automatically created inspections immediately. In production scenarios, automatically created inspections are usually not shown, instead they are queued or dispatch for quality inspections.';
-        }
         field(4; "Create Inspection Behavior"; Enum "Qlty. Create Inspect. Behavior")
         {
             Caption = 'Create Inspection Behavior';
