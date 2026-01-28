@@ -107,9 +107,8 @@ codeunit 8004 "Post Sub. Contract Renewal"
             TempServiceCommitment."Subscription Line End Date" := CalcDate('<-1D>', TempServiceCommitment."Subscription Line End Date");
         end;
         TempServiceCommitment.CopyFromSalesServiceCommitment(SalesServiceCommitment);
-        TempServiceCommitment.CalculateInitialTermUntilDate();
         TempServiceCommitment.CalculateInitialServiceEndDate();
-        TempServiceCommitment.CalculateInitialCancellationPossibleUntilDate();
+        TempServiceCommitment.CalculateInitialTermUntilDate();
         TempServiceCommitment.SetCurrencyData(SalesHeader."Currency Factor", SalesHeader."Posting Date", SalesHeader."Currency Code");
         TempServiceCommitment.SetLCYFields(true);
         TempServiceCommitment.SetDefaultDimensions(true);

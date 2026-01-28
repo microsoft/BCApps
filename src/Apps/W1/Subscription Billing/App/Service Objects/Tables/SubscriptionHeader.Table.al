@@ -1806,7 +1806,6 @@ table 8057 "Subscription Header"
                             ServiceCommitment."Subscription Line End Date" := ServiceEndDate
                         else
                             ServiceCommitment.CalculateInitialServiceEndDate();
-                        ServiceCommitment.CalculateInitialCancellationPossibleUntilDate();
                         ServiceCommitment.CalculateInitialTermUntilDate();
                         ServiceCommitment.ClearTerminationPeriodsWhenServiceEnded();
                         ServiceCommitment.UpdateNextBillingDate(ServiceCommitment."Subscription Line Start Date" - 1);
