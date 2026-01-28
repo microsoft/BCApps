@@ -1653,9 +1653,25 @@ codeunit 139236 "PEPPOL BIS BillingTests"
     local procedure ConfigureVATPostingSetup()
     var
         VATPostingSetup: Record "VAT Posting Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
     begin
         VATPostingSetup.SetRange("Tax Category", '');
         VATPostingSetup.ModifyAll("Tax Category", 'AA');
+
+        // Create VAT Posting Setup with blank VAT Product Posting Group for invoice rounding
+        if VATBusinessPostingGroup.FindSet() then
+            repeat
+                if not VATPostingSetup.Get(VATBusinessPostingGroup.Code, '') then begin
+                    VATPostingSetup.Init();
+                    VATPostingSetup.Validate("VAT Bus. Posting Group", VATBusinessPostingGroup.Code);
+                    VATPostingSetup.Validate("VAT Prod. Posting Group", '');
+                    VATPostingSetup.Validate("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+                    VATPostingSetup.Validate("VAT %", 0);
+                    VATPostingSetup.Validate("Tax Category", 'O');
+                    VATPostingSetup.Validate("Sales VAT Account", LibraryERM.CreateGLAccountNo());
+                    VATPostingSetup.Insert(true);
+                end;
+            until VATBusinessPostingGroup.Next() = 0;
     end;
 
     local procedure AddCompPEPPOLIdentifier()
