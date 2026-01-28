@@ -5,6 +5,7 @@
 namespace Microsoft.Peppol.Test;
 
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
@@ -19,6 +20,7 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
+using Microsoft.Service.Setup;
 using Microsoft.Service.Test;
 using System.IO;
 using System.Text;
