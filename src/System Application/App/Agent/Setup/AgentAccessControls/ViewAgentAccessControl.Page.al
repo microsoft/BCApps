@@ -14,7 +14,6 @@ page 4320 "View Agent Access Control"
 #pragma warning restore AS0030
 #pragma warning restore AS0125
 
-
     Caption = 'Agent Access Control';
     PageType = ListPart;
     ApplicationArea = All;
