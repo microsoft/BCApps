@@ -1659,6 +1659,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         VATPostingSetup.ModifyAll("Tax Category", 'AA');
 
         // Create VAT Posting Setup with blank VAT Product Posting Group for invoice rounding
+        VATPostingSetup.Reset();
         if VATBusinessPostingGroup.FindSet() then
             repeat
                 if not VATPostingSetup.Get(VATBusinessPostingGroup.Code, '') then begin
