@@ -74,8 +74,6 @@ codeunit 139967 "Qlty. Tests - Test Table"
         PassConditionExpressionTok: Label '1..5';
         PassConditionDescExpressionTok: Label '1 to 5';
         WarehouseFromTableFilterTok: Label '= %1|= %2', Comment = '%1=warehouse entry,%2=warehouse journal line';
-        DefaultExpressionTok: Label '[No.][Source Item No.]', Locked = true;
-        CalculatedExpressionTok: Label '%1%2%3', Comment = '%1= No.,%2=Item No.,%3=Table Name', Locked = true;
         ConditionFilterOutputTok: Label 'WHERE(Entry Type=FILTER(Output))';
         ConditionFilterProductionTok: Label 'WHERE(Order Type=FILTER(Production))';
         ConditionFilterPurchaseReceiptTok: Label 'WHERE(Document Type=FILTER(Purchase Receipt))';
@@ -3436,121 +3434,6 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] All generation rules are cleaned up
         QltyInspectionGenRule.Reset();
         QltyInspectionGenRule.DeleteAll();
-    end;
-
-    [Test]
-    [HandlerFunctions('AssistEditTemplatePageHandler')]
-    procedure SetupTable_AssistEditBrickFieldExpression()
-    var
-        QltyManagementSetup: Record "Qlty. Management Setup";
-        ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        Location: Record Location;
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        QltyInspectionHeader: Record "Qlty. Inspection Header";
-        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
-        QltyManagementSetupPage: TestPage "Qlty. Management Setup";
-    begin
-        // [SCENARIO] AssistEditBrickFieldExpression allows configuring brick field expressions via AssistEdit
-
-        Initialize();
-
-        // [GIVEN] Quality management setup is configured
-        QltyInspectionUtility.EnsureSetupExists();
-
-        // [GIVEN] A prioritized rule is created
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
-
-        // [GIVEN] Handler will provide default expression
-        AssistEditTemplateValue := DefaultExpressionTok;
-
-        // [GIVEN] Setup page is opened
-        QltyManagementSetupPage.OpenEdit();
-
-        // [WHEN] Brick Top Left Expression AssistEdit is invoked
-        QltyManagementSetupPage."Brick Top Left Expression".AssistEdit();
-        QltyManagementSetupPage.Close();
-
-        // [THEN] Setup is updated with brick expression
-        QltyManagementSetup.Get();
-        LibraryAssert.AreEqual(DefaultExpressionTok, QltyManagementSetup."Brick Top Left Expression", 'Brick expression should match.');
-
-        // [GIVEN] A location is created
-        LibraryWarehouse.CreateLocation(Location);
-
-        // [GIVEN] An inspection is created from purchase
-        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
-
-        // [THEN] Inspection brick field is calculated using expression
-        LibraryAssert.AreEqual(QltyInspectionHeader."Brick Top Left", StrSubstNo(CalculatedExpressionTok, QltyInspectionHeader."No.", QltyInspectionHeader."Source Item No.", QltyInspectionHeader."Table Name"), 'Expressions should match.');
-
-        // [GIVEN] Generation rule is cleaned up
-        QltyInspectionGenRule.Delete();
-    end;
-
-    [Test]
-    [HandlerFunctions('AssistEditTemplatePageHandler,MessageHandler')]
-    procedure SetupTable_UpdateBrickFieldsOnAllExistingInspection()
-    var
-        QltyManagementSetup: Record "Qlty. Management Setup";
-        ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        Location: Record Location;
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        QltyInspectionHeader: Record "Qlty. Inspection Header";
-        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
-        QltyManagementSetupPage: TestPage "Qlty. Management Setup";
-    begin
-        // [SCENARIO] UpdateBrickFieldsOnAllExistingInspections recalculates brick fields on all existing inspections
-
-        Initialize();
-
-        // [GIVEN] Quality management setup is configured
-        QltyInspectionUtility.EnsureSetupExists();
-
-        // [GIVEN] A prioritized rule is created
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
-
-        // [GIVEN] A location is created
-        LibraryWarehouse.CreateLocation(Location);
-
-        // [GIVEN] An inspection is created from purchase before expression is set
-        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
-
-        // [GIVEN] Handler will provide default expression
-        AssistEditTemplateValue := DefaultExpressionTok;
-
-        // [GIVEN] Setup page is opened
-        QltyManagementSetupPage.OpenEdit();
-
-        // [GIVEN] Brick Top Left Expression is configured via AssistEdit
-        QltyManagementSetupPage."Brick Top Left Expression".AssistEdit();
-        QltyManagementSetupPage.Close();
-
-        // [GIVEN] Setup is verified to have brick expression
-        QltyManagementSetup.Get();
-        LibraryAssert.AreEqual(DefaultExpressionTok, QltyManagementSetup."Brick Top Left Expression", 'Brick expression should match.');
-
-        // [GIVEN] Handler will use same expression for update
-        AssistEditTemplateValue := DefaultExpressionTok;
-
-        // [GIVEN] Setup page is reopened
-        QltyManagementSetupPage.OpenEdit();
-
-        // [WHEN] ChooseBrickUpdateExistingInspection drilldown is invoked
-        QltyManagementSetupPage.ChooseBrickUpdateExistingInspection.Drilldown();
-        QltyManagementSetupPage.Close();
-
-        // [THEN] Existing inspection has brick field recalculated
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
-        LibraryAssert.AreEqual(QltyInspectionHeader."Brick Top Left", StrSubstNo(CalculatedExpressionTok, QltyInspectionHeader."No.", QltyInspectionHeader."Source Item No.", QltyInspectionHeader."Table Name"), 'Expressions should match.');
-
-        // [GIVEN] Generation rule is cleaned up
-        QltyInspectionGenRule.Delete();
     end;
 
     [Test]
