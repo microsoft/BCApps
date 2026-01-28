@@ -1578,9 +1578,3 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
     begin
     end;
 }
-
-
-
-
-
-

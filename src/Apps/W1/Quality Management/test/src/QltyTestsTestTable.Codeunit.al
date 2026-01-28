@@ -2743,16 +2743,16 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] Production rules with OnProductionOrderRelease trigger are filtered
         QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Production);
-        QltyInspectionGenRule.SetRange("Production Trigger", QltyInspectionGenRule."Production Trigger"::OnProductionOrderRelease);
+        QltyInspectionGenRule.SetRange("Production Order Trigger", QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease);
         LibraryAssert.IsTrue(QltyInspectionGenRule.IsEmpty(), 'Should be no rules with trigger.');
 
         // [GIVEN] Setup is updated to OnProductionOrderRelease trigger
         QltyManagementSetup.Get();
-        QltyManagementSetup.Validate("Production Trigger", QltyManagementSetup."Production Trigger"::OnProductionOrderRelease);
+        QltyManagementSetup.Validate("Production Order Trigger", QltyManagementSetup."Production Order Trigger"::OnProductionOrderRelease);
         QltyManagementSetup.Modify();
 
         // [GIVEN] Rules with OnProductionOrderRelease trigger are verified as still empty
-        QltyInspectionGenRule.SetRange("Production Trigger", QltyInspectionGenRule."Production Trigger"::OnProductionOrderRelease);
+        QltyInspectionGenRule.SetRange("Production Order Trigger", QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease);
         LibraryAssert.IsTrue(QltyInspectionGenRule.IsEmpty(), 'Should be no rules with trigger.');
 
         // [GIVEN] A new production rule is created
@@ -2762,16 +2762,16 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] Source table is changed to Prod. Order Line
         QltyInspectionGenRule.Validate("Source Table No.", Database::"Prod. Order Line");
         QltyInspectionGenRule.Modify();
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Production Trigger" = QltyInspectionGenRule."Production Trigger"::OnProductionOrderRelease, 'Should have default trigger.');
+        LibraryAssert.IsTrue(QltyInspectionGenRule."Production Order Trigger" = QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease, 'Should have default trigger.');
 
-        // [WHEN] Setup production trigger is changed to OnProductionOutputPost
-        QltyManagementSetup.Validate("Production Trigger", QltyManagementSetup."Production Trigger"::OnProductionOutputPost);
+        // [WHEN] Setup production order trigger is changed to OnProductionOutputPost
+        QltyManagementSetup.Validate("Production Order Trigger", QltyManagementSetup."Production Order Trigger"::OnProductionOutputPost);
         QltyManagementSetup.Modify();
 
         // [THEN] Existing production rule is updated to new trigger
         QltyInspectionGenRule.Reset();
-        QltyInspectionGenRule.SetRange("Production Trigger", QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost);
-        LibraryAssert.AreEqual(1, QltyInspectionGenRule.Count(), 'Production rule should have new production trigger.');
+        QltyInspectionGenRule.SetRange("Production Order Trigger", QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost);
+        LibraryAssert.AreEqual(1, QltyInspectionGenRule.Count(), 'Production rule should have new production order trigger.');
     end;
 
     [Test]
@@ -3211,7 +3211,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [THEN] Existing warehouse receipt rule is updated to new trigger
         QltyInspectionGenRule.Reset();
         QltyInspectionGenRule.SetRange("Warehouse Receipt Trigger", QltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptPost);
-        LibraryAssert.AreEqual(1, QltyInspectionGenRule.Count(), 'Production rule should have new production trigger value.');
+        LibraryAssert.AreEqual(1, QltyInspectionGenRule.Count(), 'Production rule should have new production order trigger value.');
 
         // [GIVEN] All generation rules are cleaned up
         QltyInspectionGenRule.Reset();
@@ -4144,7 +4144,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
-        // [SCENARIO] Infer generation rule intent from Item Journal Line when only Production trigger is set in setup
+        // [SCENARIO] Infer generation rule intent from Item Journal Line when only production order trigger is set in setup
         Initialize();
 
         // [GIVEN] Quality management setup is configured
@@ -4153,10 +4153,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A generation rule for Item Journal Line with no condition filter
         QltyInspectionGenRule."Source Table No." := Database::"Item Journal Line";
 
-        // [GIVEN] Setup with only Production trigger enabled
+        // [GIVEN] Setup with only production order trigger enabled
         QltyManagementSetup.Get();
         QltyInspectionUtility.ClearSetupTriggerDefaults(QltyManagementSetup);
-        QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::OnProductionOrderRelease;
+        QltyManagementSetup."Production Order Trigger" := QltyManagementSetup."Production Order Trigger"::OnProductionOrderRelease;
         QltyManagementSetup.Modify();
 
         // [WHEN] Inferring the generation rule intent
@@ -4166,8 +4166,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryAssert.AreEqual(GenRuleIntent::Production, GenRuleIntent, 'Should return Production intent.');
         LibraryAssert.AreEqual(Certainty::Maybe, Certainty, 'Should be  maybe on certainty.');
 
-        // [THEN] Cleanup: Disable Production trigger
-        QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::NoTrigger;
+        // [THEN] Cleanup: Disable production order trigger
+        QltyManagementSetup."Production Order Trigger" := QltyManagementSetup."Production Order Trigger"::NoTrigger;
         QltyManagementSetup.Modify();
     end;
 
@@ -4179,7 +4179,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
-        // [SCENARIO] Infer generation rule intent from Item Ledger Entry when only Production trigger is set in setup
+        // [SCENARIO] Infer generation rule intent from Item Ledger Entry when only production order trigger is set in setup
         Initialize();
 
         // [GIVEN] Quality management setup is configured
@@ -4188,10 +4188,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] A generation rule for Item Ledger Entry with no condition filter
         QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
 
-        // [GIVEN] Setup with only Production trigger enabled
+        // [GIVEN] Setup with only production order trigger enabled
         QltyManagementSetup.Get();
         QltyInspectionUtility.ClearSetupTriggerDefaults(QltyManagementSetup);
-        QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::OnProductionOrderRelease;
+        QltyManagementSetup."Production Order Trigger" := QltyManagementSetup."Production Order Trigger"::OnProductionOrderRelease;
         QltyManagementSetup.Modify();
 
         // [WHEN] Inferring the generation rule intent
@@ -4200,8 +4200,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [THEN] The intent is correctly identified as Production
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Production, 'Should return Production intent.');
 
-        // [THEN] Cleanup: Disable Production trigger
-        QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::NoTrigger;
+        // [THEN] Cleanup: Disable production order trigger
+        QltyManagementSetup."Production Order Trigger" := QltyManagementSetup."Production Order Trigger"::NoTrigger;
         QltyManagementSetup.Modify();
     end;
 
@@ -4223,10 +4223,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
         QltyInspectionGenRule."Condition Filter" := 'WHERE(Entry Type=FILTER(Output|Positive Adjmt.))';
 
-        // [GIVEN] Setup with Production trigger enabled
+        // [GIVEN] Setup with production order trigger enabled
         QltyManagementSetup.Get();
         QltyInspectionUtility.ClearSetupTriggerDefaults(QltyManagementSetup);
-        QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::OnProductionOrderRelease;
+        QltyManagementSetup."Production Order Trigger" := QltyManagementSetup."Production Order Trigger"::OnProductionOrderRelease;
         QltyManagementSetup.Modify();
 
         // [WHEN] Inferring intent with Output first in filter
@@ -4262,8 +4262,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [THEN] Production intent is returned (Output recognized in middle)
         LibraryAssert.AreEqual(GenRuleIntent::Production, GenRuleIntent, 'Should be a Production intent (output is in the middle.)');
 
-        // [THEN] Cleanup: Disable Production trigger
-        QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::NoTrigger;
+        // [THEN] Cleanup: Disable production order trigger
+        QltyManagementSetup."Production Order Trigger" := QltyManagementSetup."Production Order Trigger"::NoTrigger;
         QltyManagementSetup.Modify();
     end;
 
@@ -4292,7 +4292,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup."Assembly Trigger" := QltyManagementSetup."Assembly Trigger"::OnAssemblyOutputPost;
         QltyManagementSetup."Warehouse Receipt Trigger" := QltyManagementSetup."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate;
         QltyManagementSetup."Warehouse Trigger" := QltyManagementSetup."Warehouse Trigger"::OnWhseMovementRegister;
-        QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::OnProductionOrderRelease;
+        QltyManagementSetup."Production Order Trigger" := QltyManagementSetup."Production Order Trigger"::OnProductionOrderRelease;
         QltyManagementSetup.Modify();
 
         // [WHEN] Inferring the generation rule intent
@@ -4301,8 +4301,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [THEN] The intent is Unknown (ambiguous due to multiple triggers)
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Unknown, 'Should return unknown intent.');
 
-        // [THEN] Cleanup: Disable Production trigger
-        QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::NoTrigger;
+        // [THEN] Cleanup: Disable production order trigger
+        QltyManagementSetup."Production Order Trigger" := QltyManagementSetup."Production Order Trigger"::NoTrigger;
         QltyManagementSetup.Modify();
     end;
 
@@ -4861,14 +4861,3 @@ codeunit 139967 "Qlty. Tests - Test Table"
     begin
     end;
 }
-
-
-
-
-
-
-
-
-
-
-

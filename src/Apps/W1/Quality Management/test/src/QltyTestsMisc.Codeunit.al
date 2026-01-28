@@ -2922,5 +2922,3 @@ codeunit 139964 "Qlty. Tests - Misc."
         DocumentNo := WarehouseMovement."No.".Value();
     end;
 }
-
-

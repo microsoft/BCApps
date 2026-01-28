@@ -136,13 +136,13 @@ page 20400 "Qlty. Management Setup"
                     AboutTitle = 'Production Related Automation Settings';
                     AboutText = 'Production related settings are configured in this group. You can choose to automatically create inspections when output is created, whether or not to update the source, and other automatic features.';
 
-                    field("Production Trigger"; Rec."Production Trigger")
+                    field("Production Order Trigger"; Rec."Production Order Trigger")
                     {
-                        Caption = 'Production Trigger';
+                        Caption = 'Production Order Trigger';
                         ApplicationArea = Manufacturing;
                         ShowCaption = true;
-                        AboutTitle = 'Production related trigger';
-                        AboutText = 'Optionally choose a production-related trigger to try and create an inspection.';
+                        AboutTitle = 'Production Order related trigger';
+                        AboutText = 'Optionally choose a production order related trigger to try and create an inspection.';
                     }
                     field("Prod. trigger output condition"; Rec."Prod. trigger output condition")
                     {

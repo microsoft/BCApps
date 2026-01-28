@@ -110,7 +110,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
                     Editable = EditAssemblyTrigger;
                     StyleExpr = AssemblyStyle;
                 }
-                field("Production Trigger"; Rec."Production Trigger")
+                field("Production Order Trigger"; Rec."Production Order Trigger")
                 {
                     Visible = ShowProductionTrigger;
                     Editable = EditProductionTrigger;
@@ -615,7 +615,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
             exit;
         if QltyManagementSetup."Assembly Trigger" <> QltyManagementSetup."Assembly Trigger"::NoTrigger then
             ShowAssemblyTrigger := true;
-        if QltyManagementSetup."Production Trigger" <> QltyManagementSetup."Production Trigger"::NoTrigger then
+        if QltyManagementSetup."Production Order Trigger" <> QltyManagementSetup."Production Order Trigger"::NoTrigger then
             ShowProductionTrigger := true;
         if QltyManagementSetup."Purchase Order Trigger" <> QltyManagementSetup."Purchase Order Trigger"::NoTrigger then
             ShowPurchaseTrigger := true;

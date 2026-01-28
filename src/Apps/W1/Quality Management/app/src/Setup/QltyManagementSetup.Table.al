@@ -66,22 +66,22 @@ table 20400 "Qlty. Management Setup"
             TableRelation = Contact."No.";
             ToolTip = 'Specifies the contact details that will appear on the Certificate of Analysis report when supplied.';
         }
-        field(10; "Production Trigger"; Enum "Qlty. Production Trigger")
+        field(10; "Production Order Trigger"; Enum "Qlty. Production Order Trigger")
         {
-            Description = 'Optionally choose a production related trigger to try and create an inspection.';
-            Caption = 'Production Trigger';
-            ToolTip = 'Specifies a default production-related trigger value for Inspection Generation Rules to try and create an inspection.';
+            Description = 'Optionally choose a production order related trigger to try and create an inspection.';
+            Caption = 'Production Order Trigger';
+            ToolTip = 'Specifies a default production order related trigger value for Inspection Generation Rules to try and create an inspection.';
 
             trigger OnValidate()
             var
                 QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
             begin
-                if (Rec."Production Trigger" <> xRec."Production Trigger") and (xRec."Production Trigger" <> xRec."Production Trigger"::NoTrigger) then begin
+                if (Rec."Production Order Trigger" <> xRec."Production Order Trigger") and (xRec."Production Order Trigger" <> xRec."Production Order Trigger"::NoTrigger) then begin
                     QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Production);
-                    QltyInspectionGenRule.SetRange("Production Trigger", xRec."Production Trigger");
+                    QltyInspectionGenRule.SetRange("Production Order Trigger", xRec."Production Order Trigger");
                     if (not QltyInspectionGenRule.IsEmpty()) and GuiAllowed() then
-                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Production Trigger", Rec."Production Trigger")) then
-                            QltyInspectionGenRule.ModifyAll("Production Trigger", Rec."Production Trigger", false);
+                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Production Order Trigger", Rec."Production Order Trigger")) then
+                            QltyInspectionGenRule.ModifyAll("Production Order Trigger", Rec."Production Order Trigger", false);
                 end;
             end;
         }
@@ -759,15 +759,3 @@ table 20400 "Qlty. Management Setup"
     begin
     end;
 }
-
-
-
-
-
-
-
-
-
-
-
-

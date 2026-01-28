@@ -7359,12 +7359,3 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         end;
     end;
 }
-
-
-
-
-
-
-
-
-

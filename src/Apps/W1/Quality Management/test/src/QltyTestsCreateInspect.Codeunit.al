@@ -688,7 +688,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         OutputItemLedgerEntry: Record "Item Ledger Entry";
         Item: Record Item;
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        ProductionTrigger: Enum "Qlty. Production Trigger";
+        ProductionTrigger: Enum "Qlty. Production Order Trigger";
         ClaimedInspectionWasFoundOrCreated: Boolean;
         BeforeCount: Integer;
         AfterCount: Integer;
@@ -700,10 +700,10 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         // [GIVEN] A quality inspection template, generation rule, item, and production order are set up
         SetupCreateInspectionProductionOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
-        // [GIVEN] Production trigger is disabled temporarily
+        // [GIVEN] production order trigger is disabled temporarily
         QltyManagementSetup.Get();
-        ProductionTrigger := QltyManagementSetup."Production Trigger";
-        QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::NoTrigger;
+        ProductionTrigger := QltyManagementSetup."Production Order Trigger";
+        QltyManagementSetup."Production Order Trigger" := QltyManagementSetup."Production Order Trigger"::NoTrigger;
         QltyManagementSetup.Modify();
 
         // [GIVEN] A production order line is created and output is posted
@@ -723,7 +723,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, OutputItemLedgerEntry, ItemJournalLine, ProdOrderLine, false, '');
         QltyInspectionCreate.GetCreatedInspection(CreatedQltyInspectionHeader);
 
-        QltyManagementSetup."Production Trigger" := ProductionTrigger;
+        QltyManagementSetup."Production Order Trigger" := ProductionTrigger;
         QltyInspectionGenRule.Delete();
         QltyManagementSetup.Modify();
 
@@ -766,7 +766,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         Item: Record Item;
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         UnusedVariant1: Variant;
-        ProductionTrigger: Enum "Qlty. Production Trigger";
+        ProductionTrigger: Enum "Qlty. Production Order Trigger";
         ClaimedInspectionWasFoundOrCreated: Boolean;
         BeforeCount: Integer;
         AfterCount: Integer;
@@ -778,10 +778,10 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         // [GIVEN] A quality inspection template, generation rule, item, and production order are set up
         SetupCreateInspectionProductionOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
-        // [GIVEN] Production trigger is disabled temporarily
+        // [GIVEN] production order trigger is disabled temporarily
         QltyManagementSetup.Get();
-        ProductionTrigger := QltyManagementSetup."Production Trigger";
-        QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::NoTrigger;
+        ProductionTrigger := QltyManagementSetup."Production Order Trigger";
+        QltyManagementSetup."Production Order Trigger" := QltyManagementSetup."Production Order Trigger"::NoTrigger;
         QltyManagementSetup.Modify();
 
         // [GIVEN] A production order line is created and output is posted
@@ -794,7 +794,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         // [WHEN] CreateInspectionWithMultiVariants is called with 2nd variant (ProdOrderRoutingLine) provided
         ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(UnusedVariant1, ProdOrderRoutingLine, ItemJournalLine, ProdOrderLine, false, '');
         QltyInspectionCreate.GetCreatedInspection(CreatedQltyInspectionHeader);
-        QltyManagementSetup."Production Trigger" := ProductionTrigger;
+        QltyManagementSetup."Production Order Trigger" := ProductionTrigger;
         QltyManagementSetup.Modify();
         QltyInspectionGenRule.Delete();
 
@@ -837,7 +837,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         UnusedVariant1: Variant;
         UnusedVariant2: Variant;
-        QltyProductionTrigger: Enum "Qlty. Production Trigger";
+        QltyProductionTrigger: Enum "Qlty. Production Order Trigger";
         ClaimedInspectionWasFoundOrCreated: Boolean;
         BeforeCount: Integer;
         AfterCount: Integer;
@@ -849,10 +849,10 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         // [GIVEN] A quality inspection template, generation rule, item, and production order are set up
         SetupCreateInspectionProductionOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
-        // [GIVEN] Production trigger is disabled temporarily
+        // [GIVEN] production order trigger is disabled temporarily
         QltyManagementSetup.Get();
-        QltyProductionTrigger := QltyManagementSetup."Production Trigger";
-        QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::NoTrigger;
+        QltyProductionTrigger := QltyManagementSetup."Production Order Trigger";
+        QltyManagementSetup."Production Order Trigger" := QltyManagementSetup."Production Order Trigger"::NoTrigger;
         QltyManagementSetup.Modify();
 
         // [GIVEN] A production order line is created and output is posted
@@ -866,7 +866,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(UnusedVariant1, UnusedVariant2, ProdOrderRoutingLine, ProdOrderLine, false, '');
         QltyInspectionCreate.GetCreatedInspection(CreatedQltyInspectionHeader);
 
-        QltyManagementSetup."Production Trigger" := QltyProductionTrigger;
+        QltyManagementSetup."Production Order Trigger" := QltyProductionTrigger;
         QltyManagementSetup.Modify();
         QltyInspectionGenRule.Delete();
 
@@ -877,7 +877,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         AfterCount := QltyInspectionHeader.Count();
 
         // [THEN] Overall inspection count increases by 1 if not triggered on output post
-        if QltyManagementSetup."Production Trigger" <> QltyManagementSetup."Production Trigger"::OnProductionOutputPost then
+        if QltyManagementSetup."Production Order Trigger" <> QltyManagementSetup."Production Order Trigger"::OnProductionOutputPost then
             LibraryAssert.AreEqual((BeforeCount + 1), AfterCount, 'Expected overall inspections to increase by 1.');
         QltyInspectionHeader.SetRange("Source Document No.", ProdOrderRoutingLine."Prod. Order No.");
 
@@ -912,7 +912,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         UnusedVariant1: Variant;
         UnusedVariant2: Variant;
         UnusedVariant3: Variant;
-        ProductionTrigger: Enum "Qlty. Production Trigger";
+        ProductionTrigger: Enum "Qlty. Production Order Trigger";
         ClaimedInspectionWasFoundOrCreated: Boolean;
         BeforeCount: Integer;
         AfterCount: Integer;
@@ -924,10 +924,10 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         // [GIVEN] A quality inspection template, generation rule, item, and production order are set up
         SetupCreateInspectionProductionOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
-        // [GIVEN] Production trigger is disabled temporarily
+        // [GIVEN] production order trigger is disabled temporarily
         QltyManagementSetup.Get();
-        ProductionTrigger := QltyManagementSetup."Production Trigger";
-        QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::NoTrigger;
+        ProductionTrigger := QltyManagementSetup."Production Order Trigger";
+        QltyManagementSetup."Production Order Trigger" := QltyManagementSetup."Production Order Trigger"::NoTrigger;
         QltyManagementSetup.Modify();
 
         // [GIVEN] A production order line is created and output is posted
@@ -941,7 +941,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(UnusedVariant1, UnusedVariant2, UnusedVariant3, ProdOrderRoutingLine, false, '');
         QltyInspectionCreate.GetCreatedInspection(CreatedQltyInspectionHeader);
 
-        QltyManagementSetup."Production Trigger" := ProductionTrigger;
+        QltyManagementSetup."Production Order Trigger" := ProductionTrigger;
         QltyManagementSetup.Modify();
         QltyInspectionGenRule.Delete();
 
@@ -982,7 +982,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         OutputItemLedgerEntry: Record "Item Ledger Entry";
         Item: Record Item;
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        ProductionTrigger: Enum "Qlty. Production Trigger";
+        ProductionTrigger: Enum "Qlty. Production Order Trigger";
         ClaimedInspectionWasFoundOrCreated: Boolean;
         BeforeCount: Integer;
         AfterCount: Integer;
@@ -994,10 +994,10 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         // [GIVEN] A quality inspection template, generation rule, item, and production order are set up
         SetupCreateInspectionProductionOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
-        // [GIVEN] Production trigger is disabled temporarily
+        // [GIVEN] production order trigger is disabled temporarily
         QltyManagementSetup.Get();
-        ProductionTrigger := QltyManagementSetup."Production Trigger";
-        QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::NoTrigger;
+        ProductionTrigger := QltyManagementSetup."Production Order Trigger";
+        QltyManagementSetup."Production Order Trigger" := QltyManagementSetup."Production Order Trigger"::NoTrigger;
         QltyManagementSetup.Modify();
 
         // [GIVEN] A production order line is created and output is posted
@@ -1017,7 +1017,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         // [WHEN] CreateInspectionWithMultiVariantsAndTemplate is called with specific template code
         ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, OutputItemLedgerEntry, ItemJournalLine, ProdOrderLine, false, QltyInspectionTemplateHdr.Code);
 
-        QltyManagementSetup."Production Trigger" := ProductionTrigger;
+        QltyManagementSetup."Production Order Trigger" := ProductionTrigger;
         QltyManagementSetup.Modify();
         QltyInspectionGenRule.Delete();
 
@@ -1061,7 +1061,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         OutputItemLedgerEntry: Record "Item Ledger Entry";
         Item: Record Item;
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
-        ProductionTrigger: Enum "Qlty. Production Trigger";
+        ProductionTrigger: Enum "Qlty. Production Order Trigger";
         ClaimedInspectionWasFoundOrCreated: Boolean;
         BeforeCount: Integer;
         AfterCount: Integer;
@@ -1073,9 +1073,9 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         // [GIVEN] Quality inspection setup is initialized
         QltyInspectionUtility.EnsureSetupExists();
         QltyManagementSetup.Get();
-        // [GIVEN] Production trigger is disabled temporarily
-        ProductionTrigger := QltyManagementSetup."Production Trigger";
-        QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::NoTrigger;
+        // [GIVEN] production order trigger is disabled temporarily
+        ProductionTrigger := QltyManagementSetup."Production Order Trigger";
+        QltyManagementSetup."Production Order Trigger" := QltyManagementSetup."Production Order Trigger"::NoTrigger;
         QltyManagementSetup.Modify();
         // [GIVEN] A quality inspection template is created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -1100,7 +1100,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         // [WHEN] CreateInspectionWithMultiVariantsAndTemplate is called with specific template code (no generation rule scenario)
         ClaimedInspectionWasFoundOrCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, OutputItemLedgerEntry, ItemJournalLine, ProdOrderLine, false, QltyInspectionTemplateHdr.Code);
 
-        QltyManagementSetup."Production Trigger" := ProductionTrigger;
+        QltyManagementSetup."Production Order Trigger" := ProductionTrigger;
         QltyManagementSetup.Modify();
 
         // [THEN] An inspection is claimed to be created
@@ -1522,7 +1522,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         Item: Record Item;
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         QltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
-        ProductionTrigger: Enum "Qlty. Production Trigger";
+        ProductionTrigger: Enum "Qlty. Production Order Trigger";
         FoundInspection: Boolean;
     begin
         // [SCENARIO] Retrieve an existing inspection created from production output with multiple variants
@@ -1531,10 +1531,10 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         Initialize();
         SetupCreateInspectionProductionOrder(QltyInspectionTemplateHdr, QltyInspectionGenRule, Item, ProdProductionOrder, ProdOrderRoutingLine);
 
-        // [GIVEN] Production trigger is disabled temporarily
+        // [GIVEN] production order trigger is disabled temporarily
         QltyManagementSetup.Get();
-        ProductionTrigger := QltyManagementSetup."Production Trigger";
-        QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::NoTrigger;
+        ProductionTrigger := QltyManagementSetup."Production Order Trigger";
+        QltyManagementSetup."Production Order Trigger" := QltyManagementSetup."Production Order Trigger"::NoTrigger;
         QltyManagementSetup.Modify();
 
         // [GIVEN] A production order line is created and output is posted
@@ -1557,7 +1557,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         // [WHEN] FindExistingInspectionWithMultipleVariants is called with the same variants
         FoundInspection := QltyInspectionUtility.FindExistingInspectionWithMultipleVariants(false, ProdOrderRoutingLine, OutputItemLedgerEntry, ItemJournalLine, ProdOrderLine, FoundQltyInspectionHeader);
 
-        QltyManagementSetup."Production Trigger" := ProductionTrigger;
+        QltyManagementSetup."Production Order Trigger" := ProductionTrigger;
         QltyManagementSetup.Modify();
         QltyInspectionGenRule.Delete();
 
@@ -2349,7 +2349,7 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
         // [GIVEN] The quality management setup is configured to show always
         QltyManagementSetup.Get();
         QltyManagementSetup."When to show inspections" := QltyManagementSetup."When to show inspections"::"Always";
-        QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::OnProductionOutputPost;
+        QltyManagementSetup."Production Order Trigger" := QltyManagementSetup."Production Order Trigger"::OnProductionOutputPost;
         QltyManagementSetup.Modify();
         // [GIVEN] A quality inspection template with 3 inspections and a prioritized generation rule for Prod. Order Routing Line are created
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -2618,9 +2618,3 @@ codeunit 139959 "Qlty. Tests - Create Inspect."
     begin
     end;
 }
-
-
-
-
-
-

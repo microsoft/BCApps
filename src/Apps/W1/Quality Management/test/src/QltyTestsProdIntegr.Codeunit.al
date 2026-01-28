@@ -78,7 +78,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
         // [GIVEN] Setup Prod. trigger output condition is set to OnAnyOutput
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
         QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnAnyOutput;
         QltyManagementSetup.Modify();
@@ -143,7 +143,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
         // [GIVEN] Setup Prod. trigger output condition is set to OnAnyOutput
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
         QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnAnyOutput;
         QltyManagementSetup.Modify();
@@ -209,7 +209,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
         // [GIVEN] Setup Prod. trigger output condition is set to OnAnyOutput
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
         QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnAnyOutput;
         QltyManagementSetup.Modify();
@@ -267,7 +267,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
         // [GIVEN] Setup Prod. trigger output condition is set to OnAnyOutput
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
         QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnAnyOutput;
         QltyManagementSetup.Modify();
@@ -333,7 +333,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
         // [GIVEN] Setup Prod. trigger output condition is set to OnAnyQuantity
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
         QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnAnyQuantity;
         QltyManagementSetup.Modify();
@@ -398,7 +398,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
         // [GIVEN] Setup Prod. trigger output condition is set to OnAnyQuantity
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
         QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnAnyQuantity;
         QltyManagementSetup.Modify();
@@ -465,7 +465,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
         // [GIVEN] Setup Prod. trigger output condition is set to OnAnyQuantity
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
         QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnAnyQuantity;
         QltyManagementSetup.Modify();
@@ -530,7 +530,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
         // [GIVEN] Setup Prod. trigger output condition is set to OnAnyQuantity
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
         QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnAnyQuantity;
         QltyManagementSetup.Modify();
@@ -587,7 +587,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
         // [GIVEN] Setup Prod. trigger output condition is set to OnlyWithQuantity
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
         QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnlyWithQuantity;
         QltyManagementSetup.Modify();
@@ -646,7 +646,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
         // [GIVEN] Setup Prod. trigger output condition is set to OnlyWithQuantity
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
         QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnlyWithQuantity;
         QltyManagementSetup.Modify();
@@ -712,7 +712,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
         // [GIVEN] Setup Prod. trigger output condition is set to OnlyWithQuantity
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
         QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnlyWithQuantity;
         QltyManagementSetup.Modify();
@@ -778,7 +778,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
         // [GIVEN] Setup Prod. trigger output condition is set to OnlyWithQuantity
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
         QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnlyWithQuantity;
         QltyManagementSetup.Modify();
@@ -835,7 +835,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
         // [GIVEN] Setup Prod. trigger output condition is set to OnlyWithScrap
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
         QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnlyWithScrap;
         QltyManagementSetup.Modify();
@@ -892,7 +892,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
         // [GIVEN] Setup Prod. trigger output condition is set to OnlyWithScrap
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
         QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnlyWithScrap;
         QltyManagementSetup.Modify();
@@ -960,7 +960,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
         // [GIVEN] Quality management setup has Prod. trigger output condition set to OnlyWithScrap
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
         QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnlyWithScrap;
         QltyManagementSetup.Modify();
@@ -1029,7 +1029,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
         // [GIVEN] Quality management setup has Prod. trigger output condition set to OnlyWithScrap
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
         QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnlyWithScrap;
         QltyManagementSetup.Modify();
@@ -1102,8 +1102,8 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
             ManufacturingSetup.Modify();
         end;
 
-        // [GIVEN] Inspection generation rule has Production Trigger set to OnProductionOrderRelease
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOrderRelease;
+        // [GIVEN] Inspection generation rule has Production Order Trigger set to OnProductionOrderRelease
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease;
         QltyInspectionGenRule.Modify();
 
         // [WHEN] The production order status is changed to Released
@@ -1168,8 +1168,8 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
             ManufacturingSetup.Modify();
         end;
 
-        // [GIVEN] Inspection generation rule has Production Trigger set to OnProductionOrderRelease
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOrderRelease;
+        // [GIVEN] Inspection generation rule has Production Order Trigger set to OnProductionOrderRelease
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease;
         QltyInspectionGenRule.Modify();
 
         // [WHEN] The production order status is changed to Released
@@ -1228,8 +1228,8 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
             ManufacturingSetup.Modify();
         end;
 
-        // [GIVEN] Inspection generation rule has Production Trigger set to OnProductionOrderRelease
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOrderRelease;
+        // [GIVEN] Inspection generation rule has Production Order Trigger set to OnProductionOrderRelease
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease;
         QltyInspectionGenRule.Modify();
 
         // [WHEN] The production order status is changed to Released
@@ -1294,8 +1294,8 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
             ManufacturingSetup.Modify();
         end;
 
-        // [GIVEN] Inspection generation rule has Production Trigger set to OnProductionOrderRelease
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOrderRelease;
+        // [GIVEN] Inspection generation rule has Production Order Trigger set to OnProductionOrderRelease
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease;
         QltyInspectionGenRule.Modify();
 
         // [WHEN] The production order status is changed to Released
@@ -2094,7 +2094,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
         // [GIVEN] An inspection generation rule is created for Prod. Order Routing Line with OnReleasedProductionOrderRefresh trigger
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
-        QltyInspectionGenRule.Validate("Production Trigger", QltyInspectionGenRule."Production Trigger"::OnReleasedProductionOrderRefresh);
+        QltyInspectionGenRule.Validate("Production Order Trigger", QltyInspectionGenRule."Production Order Trigger"::OnReleasedProductionOrderRefresh);
         QltyInspectionGenRule.Modify(true);
 
         // [GIVEN] An item and production order are created with routing lines
@@ -2418,5 +2418,3 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     begin
     end;
 }
-
-

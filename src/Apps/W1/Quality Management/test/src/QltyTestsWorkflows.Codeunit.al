@@ -1867,12 +1867,3 @@ codeunit 139969 "Qlty. Tests - Workflows"
         Reply := true;
     end;
 }
-
-
-
-
-
-
-
-
-

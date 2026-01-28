@@ -641,7 +641,7 @@ codeunit 139940 "Qlty. Inspection Utility"
         QltyManagementSetup."Warehouse Receipt Trigger" := QltyManagementSetup."Warehouse Receipt Trigger"::NoTrigger;
         QltyManagementSetup."Warehouse Trigger" := QltyManagementSetup."Warehouse Trigger"::NoTrigger;
         QltyManagementSetup."Transfer Order Trigger" := QltyManagementSetup."Transfer Order Trigger"::NoTrigger;
-        QltyManagementSetup."Production Trigger" := QltyManagementSetup."Production Trigger"::NoTrigger;
+        QltyManagementSetup."Production Order Trigger" := QltyManagementSetup."Production Order Trigger"::NoTrigger;
         QltyManagementSetup."Assembly Trigger" := QltyManagementSetup."Assembly Trigger"::NoTrigger;
         QltyManagementSetup.Modify();
     end;

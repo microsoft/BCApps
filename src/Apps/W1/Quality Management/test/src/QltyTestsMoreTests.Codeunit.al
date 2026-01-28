@@ -1108,7 +1108,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
-        // [SCENARIO] Production Trigger can be validated and set to OnProductionOrderRelease
+        // [SCENARIO] Production Order Trigger can be validated and set to OnProductionOrderRelease
         Initialize();
 
         // [GIVEN] Quality Management setup exists
@@ -1120,11 +1120,11 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::Disabled;
         QltyInspectionGenRule."Source Table No." := Database::"Prod. Order Routing Line";
 
-        // [WHEN] Production Trigger is validated and set to OnProductionOrderRelease
-        QltyInspectionGenRule.Validate("Production Trigger", QltyInspectionGenRule."Production Trigger"::OnProductionOrderRelease);
+        // [WHEN] Production Order Trigger is validated and set to OnProductionOrderRelease
+        QltyInspectionGenRule.Validate("Production Order Trigger", QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease);
 
-        // [THEN] The Production Trigger is successfully set to OnProductionOrderRelease
-        LibraryAssert.AreEqual(QltyInspectionGenRule."Production Trigger"::OnProductionOrderRelease, QltyInspectionGenRule."Production Trigger", 'Production trigger should be set to on release');
+        // [THEN] The Production Order Trigger is successfully set to OnProductionOrderRelease
+        LibraryAssert.AreEqual(QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease, QltyInspectionGenRule."Production Order Trigger", 'Production Order Trigger should be set to on release');
     end;
 
     [Test]
@@ -2480,9 +2480,3 @@ codeunit 139965 "Qlty. Tests - More Tests"
         FilterItemsByAttribute.OK().Invoke();
     end;
 }
-
-
-
-
-
-
