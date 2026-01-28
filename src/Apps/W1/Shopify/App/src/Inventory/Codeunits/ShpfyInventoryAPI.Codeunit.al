@@ -24,11 +24,6 @@ codeunit 30195 "Shpfy Inventory API"
         JsonHelper: Codeunit "Shpfy Json Helper";
         InventoryIds: List of [Guid];
 
-    /// <summary> 
-    /// Get Stock.
-    /// </summary>
-    /// <param name="ShopInventory">Parameter of type Record "Shopify Shop Inventory".</param>
-    /// <returns>Return variable "Stock" of type Decimal.</returns>
     internal procedure GetStock(ShopInventory: Record "Shpfy Shop Inventory") Stock: Decimal
     var
         Item: Record Item;
@@ -78,11 +73,6 @@ codeunit 30195 "Shpfy Inventory API"
         end;
     end;
 
-    /// <summary> 
-    /// Get Id.
-    /// </summary>
-    /// <param name="JObject">Parameter of type JsonObject.</param>
-    /// <returns>Return variable "Result" of type BigInteger.</returns>
     local procedure GetId(JObject: JsonObject) Result: BigInteger
     var
         JValue: JsonValue;
@@ -97,12 +87,6 @@ codeunit 30195 "Shpfy Inventory API"
         end;
     end;
 
-    /// <summary> 
-    /// Get Inventory Levels.
-    /// </summary>
-    /// <param name="JObject">Parameter of type JsonObject.</param>
-    /// <param name="JResult">Parameter of type JsonObject.</param>
-    /// <returns>Return value of type Boolean.</returns>
     local procedure GetInventoryLevels(JObject: JsonObject; var JResult: JsonObject): Boolean;
     var
         JData: JsonObject;
@@ -141,44 +125,95 @@ codeunit 30195 "Shpfy Inventory API"
     var
         IGraphQL: Interface "Shpfy IGraphQL";
         JGraphQL: JsonObject;
-        JSetQuantities: JsonArray;
-        JSetQuantity: JsonObject;
+        JQuantities: JsonArray;
+        JQuantity: JsonObject;
         InputSize: Integer;
     begin
         if ShopInventory.FindSet() then begin
             IGraphQL := Enum::"Shpfy GraphQL Type"::ModifyInventory;
             JGraphQL.ReadFrom(IGraphQL.GetGraphQL());
-            JSetQuantities := JsonHelper.GetJsonArray(JGraphQL, 'variables.input.setQuantities');
+            JQuantities := JsonHelper.GetJsonArray(JGraphQL, 'variables.input.quantities');
 
             repeat
-                JSetQuantity := CalcStock(ShopInventory);
-                if JSetQuantity.Keys.Count = 3 then begin
-                    JSetQuantities.Add(JSetQuantity);
+                JQuantity := CalcStock(ShopInventory);
+                if JQuantity.Keys.Count = 4 then begin
+                    JQuantities.Add(JQuantity);
                     InputSize += 1;
                     if InputSize = 250 then begin
-                        ShopifyCommunicationMgt.ExecuteGraphQL(Format(JGraphQL), IGraphQL.GetExpectedCost());
+                        ExecuteInventoryGraphQL(JGraphQL, IGraphQL.GetExpectedCost());
                         Clear(JGraphQL);
                         JGraphQL.ReadFrom(IGraphQL.GetGraphQL());
-                        JSetQuantities := JsonHelper.GetJsonArray(JGraphQL, 'variables.input.setQuantities');
+                        JQuantities := JsonHelper.GetJsonArray(JGraphQL, 'variables.input.quantities');
                         InputSize := 0;
                     end;
                 end;
             until ShopInventory.Next() = 0;
 
-            ShopifyCommunicationMgt.ExecuteGraphQL(Format(JGraphQL), IGraphQL.GetExpectedCost());
+            ExecuteInventoryGraphQL(JGraphQL, IGraphQL.GetExpectedCost());
         end;
     end;
 
-    local procedure CalcStock(var ShopInventory: Record "Shpfy Shop Inventory") JSetQuantity: JsonObject
+    local procedure ExecuteInventoryGraphQL(JGraphQL: JsonObject; ExpectedCost: Integer)
+    var
+        JResponse: JsonToken;
+        JUserErrors: JsonArray;
+        GraphQLText: Text;
+        IdempotencyKey: Guid;
+        RetryAttempt: Integer;
+        MaxRetries: Integer;
+        HasConcurrencyError: Boolean;
+        ErrorCode: Text;
+        JError: JsonToken;
+    begin
+        MaxRetries := 3;
+        RetryAttempt := 0;
+
+        repeat
+            HasConcurrencyError := false;
+            IdempotencyKey := CreateGuid();
+            GraphQLText := Format(JGraphQL);
+            GraphQLText := GraphQLText.Replace('{{IdempotencyKey}}', Format(IdempotencyKey, 0, 4).TrimStart('{').TrimEnd('}'));
+
+            JResponse := ShopifyCommunicationMgt.ExecuteGraphQL(GraphQLText, ExpectedCost);
+
+            if JsonHelper.GetJsonArray(JResponse, JUserErrors, 'data.inventorySetQuantities.userErrors') then
+                foreach JError in JUserErrors do begin
+                    ErrorCode := JsonHelper.GetValueAsText(JError, 'code');
+                    if ErrorCode in ['IDEMPOTENCY_CONCURRENT_REQUEST', 'CHANGE_FROM_QUANTITY_STALE'] then begin
+                        HasConcurrencyError := true;
+                        break;
+                    end;
+                end;
+
+            RetryAttempt += 1;
+        until (not HasConcurrencyError) or (RetryAttempt > MaxRetries);
+
+        if HasConcurrencyError then
+            LogSkippedInventoryUpdate(JGraphQL, ErrorCode);
+    end;
+
+    local procedure LogSkippedInventoryUpdate(JGraphQL: JsonObject; ErrorCode: Text)
+    var
+        SkippedRecord: Codeunit "Shpfy Skipped Record";
+        EmptyRecordId: RecordId;
+        JQuantities: JsonArray;
+        SkippedMsg: Label 'Inventory update skipped after retry due to %1 error', Comment = '%1 = Error code';
+    begin
+        if JsonHelper.GetJsonArray(JGraphQL, JQuantities, 'variables.input.quantities') then
+            if JQuantities.Count > 0 then
+                SkippedRecord.LogSkippedRecord(EmptyRecordId, CopyStr(StrSubstNo(SkippedMsg, ErrorCode), 1, 250), ShopifyShop);
+    end;
+
+    local procedure CalcStock(var ShopInventory: Record "Shpfy Shop Inventory") JQuantity: JsonObject
     var
         Item: Record Item;
         DelShopInventory: Record "Shpfy Shop Inventory";
         ShopLocation: Record "Shpfy Shop Location";
         ShopifyVariant: Record "Shpfy Variant";
         IStockAvailable: Interface "Shpfy IStock Available";
+        JNull: JsonValue;
         InventoryItemIdTxt: Label 'gid://shopify/InventoryItem/%1', Locked = true, Comment = '%1 = The inventory Item Id';
         LocationIdTxt: Label 'gid://shopify/Location/%1', Locked = true, Comment = '%1 = The Location Id';
-
     begin
         ShopifyVariant.SetRange(Id, ShopInventory."Variant Id");
         if ShopifyVariant.IsEmpty then begin
@@ -196,22 +231,19 @@ codeunit 30195 "Shpfy Inventory API"
                         if ShopLocation.Get(ShopInventory."Shop Code", ShopInventory."Location Id") then begin
                             IStockAvailable := ShopLocation."Stock Calculation";
                             if IStockAvailable.CanHaveStock() then begin
-                                JSetQuantity.Add('inventoryItemId', StrSubstNo(InventoryItemIdTxt, ShopInventory."Inventory Item Id"));
-                                JSetQuantity.Add('locationId', StrSubstNo(LocationIdTxt, ShopLocation.Id));
+                                JQuantity.Add('inventoryItemId', StrSubstNo(InventoryItemIdTxt, ShopInventory."Inventory Item Id"));
+                                JQuantity.Add('locationId', StrSubstNo(LocationIdTxt, ShopLocation.Id));
                                 if ShopInventory.Stock < 0 then
-                                    JSetQuantity.Add('quantity', 0)
+                                    JQuantity.Add('quantity', 0)
                                 else
-                                    JSetQuantity.Add('quantity', ShopInventory.Stock);
+                                    JQuantity.Add('quantity', ShopInventory.Stock);
+                                JNull.SetValueToNull();
+                                JQuantity.Add('changeFromQuantity', JNull);
                             end;
                         end;
                 end;
     end;
 
-    /// <summary> 
-    /// Has Next Results.
-    /// </summary>
-    /// <param name="JObject">Parameter of type JsonObject.</param>
-    /// <returns>Return value of type Boolean.</returns>
     local procedure HasNextResults(JObject: JsonObject): Boolean
     var
         JPageInfo: JsonObject;
@@ -293,10 +325,6 @@ codeunit 30195 "Shpfy Inventory API"
         end;
     end;
 
-    /// <summary> 
-    /// Import Stock.
-    /// </summary>
-    /// <param name="ShopLocation">Parameter of type Record "Shopify Shop Location".</param>
     internal procedure ImportStock(ShopLocation: Record "Shpfy Shop Location")
     var
         Parameters: Dictionary of [Text, Text];
@@ -313,10 +341,6 @@ codeunit 30195 "Shpfy Inventory API"
         until not HasNextResults(JInventoryLevels);
     end;
 
-    /// <summary> 
-    /// Set Shop.
-    /// </summary>
-    /// <param name="ShopCode">Parameter of type Code[20].</param>
     internal procedure SetShop(ShopCode: Code[20])
     begin
         if ShopifyShop.Code <> ShopCode then begin

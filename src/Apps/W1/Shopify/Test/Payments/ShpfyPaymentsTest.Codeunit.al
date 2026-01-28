@@ -18,6 +18,62 @@ codeunit 139566 "Shpfy Payments Test"
         LibraryAssert: Codeunit "Library Assert";
 
     [Test]
+    procedure UnitTestImportPayoutWithExternalTraceId()
+    var
+        Payout: Record "Shpfy Payout";
+        PaymentsAPI: Codeunit "Shpfy Payments API";
+        Id: BigInteger;
+        ExpectedExternalTraceId: Text;
+        JPayout: JsonObject;
+    begin
+        // [SCENARIO] Import payout correctly imports the externalTraceId field (2026-01 API)
+        // [GIVEN] A random Generated Payout with externalTraceId
+        Id := Any.IntegerInRange(10000, 99999);
+        ExpectedExternalTraceId := Any.AlphanumericText(50);
+        JPayout := GetRandomPayout(Id, ExpectedExternalTraceId);
+
+        // [WHEN] Invoke the function ImportPayout(JPayout)
+        PaymentsAPI.ImportPayout(JPayout);
+
+        // [THEN] We must find the "Shpfy Payout" record with the correct externalTraceId
+        LibraryAssert.IsTrue(Payout.Get(Id), 'Get "Shpfy Payout" record');
+        LibraryAssert.AreEqual(ExpectedExternalTraceId, Payout."External Trace Id", 'External Trace Id should match');
+    end;
+
+    local procedure GetRandomPayout(Id: BigInteger; ExternalTraceId: Text): JsonObject
+    var
+        JPayout: JsonObject;
+        JNet: JsonObject;
+        JSummary: JsonObject;
+        JAmount: JsonObject;
+        PayoutGidTxt: Label 'gid://shopify/ShopifyPaymentsPayout/%1', Comment = '%1 = id', Locked = true;
+    begin
+        JPayout.Add('id', StrSubstNo(PayoutGidTxt, Id));
+        JPayout.Add('status', 'SCHEDULED');
+        JPayout.Add('externalTraceId', ExternalTraceId);
+        JPayout.Add('issuedAt', Format(Today, 0, 9));
+        JNet.Add('amount', Any.DecimalInRange(1000, 2));
+        JNet.Add('currencyCode', 'USD');
+        JPayout.Add('net', JNet);
+        
+        // Add summary with fee/gross amounts
+        JAmount.Add('amount', 0);
+        JSummary.Add('adjustmentsFee', JAmount);
+        JSummary.Add('adjustmentsGross', JAmount);
+        JSummary.Add('chargesFee', JAmount);
+        JSummary.Add('chargesGross', JAmount);
+        JSummary.Add('refundsFee', JAmount);
+        JSummary.Add('refundsFeeGross', JAmount);
+        JSummary.Add('reservedFundsFee', JAmount);
+        JSummary.Add('reservedFundsGross', JAmount);
+        JSummary.Add('retriedPayoutsFee', JAmount);
+        JSummary.Add('retriedPayoutsGross', JAmount);
+        JPayout.Add('summary', JSummary);
+        
+        exit(JPayout);
+    end;
+
+    [Test]
     procedure UnitTestImportPayment()
     var
         PaymentTransaction: Record "Shpfy Payment Transaction";

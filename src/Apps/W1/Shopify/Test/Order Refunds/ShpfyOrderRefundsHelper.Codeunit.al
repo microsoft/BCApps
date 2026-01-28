@@ -186,17 +186,17 @@ codeunit 139564 "Shpfy Order Refunds Helper"
         exit(ReturnHeader."Return Id");
     end;
 
-    internal procedure CreateReturnLine(ReturnOrderId: BigInteger; OrderLineId: BigInteger; ReturnReason: Text): BigInteger
+    internal procedure CreateReturnLine(ReturnOrderId: BigInteger; OrderLineId: BigInteger; ReturnReasonHandle: Text): BigInteger
     var
         ReturnLine: Record "Shpfy Return Line";
-        ReturnEnumConvertor: Codeunit "Shpfy Return Enum Convertor";
     begin
         ReturnLine."Return Line Id" := Any.IntegerInRange(100000, 999999);
         ReturnLine."Return Id" := ReturnOrderId;
         ReturnLine.Type := ReturnLine.Type::Default;
         ReturnLine."Fulfillment Line Id" := Any.IntegerInRange(100000, 999999);
         ReturnLine."Order Line Id" := OrderLineId;
-        ReturnLine."Return Reason" := ReturnEnumConvertor.ConvertToReturnReason(ReturnReason);
+        ReturnLine."Return Reason Handle" := CopyStr(ReturnReasonHandle, 1, MaxStrLen(ReturnLine."Return Reason Handle"));
+        ReturnLine."Return Reason Name" := CopyStr(GetReturnReasonNameFromHandle(ReturnReasonHandle), 1, MaxStrLen(ReturnLine."Return Reason Name"));
         ReturnLine.Quantity := 1;
         ReturnLine."Refundable Quantity" := 0;
         ReturnLine."Refunded Quantity" := 1;
@@ -207,19 +207,48 @@ codeunit 139564 "Shpfy Order Refunds Helper"
         exit(ReturnLine."Return Line Id");
     end;
 
-    internal procedure CreateUnverifiedReturnLine(ReturnId: BigInteger; ReturnReason: Text): BigInteger
+    internal procedure CreateUnverifiedReturnLine(ReturnId: BigInteger; ReturnReasonHandle: Text): BigInteger
     var
         ReturnLine: Record "Shpfy Return Line";
-        ReturnEnumConvertor: Codeunit "Shpfy Return Enum Convertor";
     begin
         ReturnLine."Return Line Id" := Any.IntegerInRange(100000, 999999);
         ReturnLine."Return Id" := ReturnId;
         ReturnLine.Type := ReturnLine.Type::Unverified;
-        ReturnLine."Return Reason" := ReturnEnumConvertor.ConvertToReturnReason(ReturnReason);
+        ReturnLine."Return Reason Handle" := CopyStr(ReturnReasonHandle, 1, MaxStrLen(ReturnLine."Return Reason Handle"));
+        ReturnLine."Return Reason Name" := CopyStr(GetReturnReasonNameFromHandle(ReturnReasonHandle), 1, MaxStrLen(ReturnLine."Return Reason Name"));
         ReturnLine.Quantity := 1;
         ReturnLine."Refundable Quantity" := 1;
         ReturnLine."Refunded Quantity" := 0;
         ReturnLine."Unit Price" := 156.38;
+        ReturnLine.Insert();
+        exit(ReturnLine."Return Line Id");
+    end;
+
+    local procedure GetReturnReasonNameFromHandle(Handle: Text): Text
+    begin
+        // Map handle values to human-readable names (simulating Shopify's returnReasonDefinition)
+        case Handle of
+            'DEFECTIVE':
+                exit('Defective');
+            'NOT_AS_DESCRIBED':
+                exit('Not as described');
+            'WRONG_ITEM':
+                exit('Wrong item');
+            'SIZE_TOO_SMALL':
+                exit('Size too small');
+            'SIZE_TOO_LARGE':
+                exit('Size too large');
+            'STYLE':
+                exit('Style');
+            'COLOR':
+                exit('Color');
+            'OTHER':
+                exit('Other');
+            'UNKNOWN':
+                exit('Unknown');
+            else
+                exit(Handle);
+        end;
     end;
 
     internal procedure CreateRefundHeader(OrderId: BigInteger; ReturnId: BigInteger; Amount: Decimal): BigInteger

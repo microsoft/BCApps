@@ -295,11 +295,6 @@ enum 30111 "Shpfy GraphQL Type" implements "Shpfy IGraphQL"
         Caption = 'Get Next Refund Lines';
         Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextRefundLines";
     }
-    value(57; GetCurrentBulkOperation)
-    {
-        Caption = 'Get Current Bulk Operation';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL BulkOperations";
-    }
     value(58; RunBulkOperationMutation)
     {
         Caption = 'Run Bulk Operation Mutation';

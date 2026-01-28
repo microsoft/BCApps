@@ -22,25 +22,6 @@ codeunit 30278 "Shpfy Bulk Operation API"
         CommunicationMgt.SetShop(Shop);
     end;
 
-    internal procedure GetCurrentBulkRequest(var BulkOperationId: BigInteger; var Status: Enum "Shpfy Bulk Operation Status"; var ErrorCode: Text; var CompletedAt: DateTime; var Url: Text; var PartialDataUrl: Text)
-    var
-        JsonHelper: Codeunit "Shpfy Json Helper";
-        GraphQLType: Enum "Shpfy GraphQL Type";
-        Parameters: Dictionary of [Text, Text];
-        JResponse: JsonToken;
-        JBulkOperation: JsonObject;
-    begin
-        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::GetCurrentBulkOperation, Parameters);
-        if JsonHelper.GetJsonObject(JResponse, JBulkOperation, 'data.currentBulkOperation') then begin
-            BulkOperationId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JBulkOperation, 'id'));
-            Status := ConvertToBulkOperationStatus(JsonHelper.GetValueAsText(JBulkOperation, 'status'));
-            ErrorCode := JsonHelper.GetValueAsText(JBulkOperation, 'errorCode');
-            CompletedAt := JsonHelper.GetValueAsDateTime(JBulkOperation, 'completedAt');
-            Url := JsonHelper.GetValueAsText(JBulkOperation, 'url');
-            PartialDataUrl := JsonHelper.GetValueAsText(JBulkOperation, 'partialDataUrl');
-        end;
-    end;
-
     internal procedure GetBulkRequest(BulkOperationId: BigInteger; var Status: Enum "Shpfy Bulk Operation Status"; var ErrorCode: Text; var CompletedAt: DateTime; var Url: Text; var PartialDataUrl: Text)
     var
         JsonHelper: Codeunit "Shpfy Json Helper";

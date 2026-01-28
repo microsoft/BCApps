@@ -101,7 +101,6 @@ codeunit 30174 "Shpfy Create Product"
                                 TempShopifyVariant.Title := ItemVariant.Description;
                                 TempShopifyVariant."Inventory Policy" := Shop."Default Inventory Policy";
                                 TempShopifyVariant.SKU := GetVariantSKU(TempShopifyVariant.Barcode, Item."No.", ItemVariant.Code, Item."Vendor Item No.");
-                                TempShopifyVariant."Tax Code" := Item."Tax Group Code";
                                 TempShopifyVariant.Taxable := true;
                                 TempShopifyVariant.Weight := ItemUnitofMeasure."Qty. per Unit of Measure" > 0 ? Item."Gross Weight" * ItemUnitofMeasure."Qty. per Unit of Measure" : Item."Gross Weight";
                                 TempShopifyVariant."Option 1 Name" := 'Variant';
@@ -124,7 +123,6 @@ codeunit 30174 "Shpfy Create Product"
                         TempShopifyVariant.Title := ItemVariant.Description;
                         TempShopifyVariant."Inventory Policy" := Shop."Default Inventory Policy";
                         TempShopifyVariant.SKU := GetVariantSKU(TempShopifyVariant.Barcode, Item."No.", ItemVariant.Code, GetVendorItemNo(Item."No.", ItemVariant.Code, Item."Sales Unit of Measure"));
-                        TempShopifyVariant."Tax Code" := Item."Tax Group Code";
                         TempShopifyVariant.Taxable := true;
                         TempShopifyVariant.Weight := Item."Gross Weight";
                         TempShopifyVariant."Option 1 Name" := 'Variant';
@@ -151,7 +149,6 @@ codeunit 30174 "Shpfy Create Product"
                         TempShopifyVariant.Title := Item.Description;
                         TempShopifyVariant."Inventory Policy" := Shop."Default Inventory Policy";
                         TempShopifyVariant.SKU := GetVariantSKU(TempShopifyVariant.Barcode, Item."No.", '', Item."Vendor Item No.");
-                        TempShopifyVariant."Tax Code" := Item."Tax Group Code";
                         TempShopifyVariant.Taxable := true;
                         TempShopifyVariant.Weight := ItemUnitofMeasure."Qty. per Unit of Measure" > 0 ? Item."Gross Weight" * ItemUnitofMeasure."Qty. per Unit of Measure" : Item."Gross Weight";
                         TempShopifyVariant."Option 1 Name" := Shop."Option Name for UoM";
@@ -232,7 +229,6 @@ codeunit 30174 "Shpfy Create Product"
         TempShopifyVariant.Title := ''; // Title will be assigned to "Default Title" in Shopify as no Options are set.
         TempShopifyVariant."Inventory Policy" := Shop."Default Inventory Policy";
         TempShopifyVariant.SKU := GetVariantSKU(TempShopifyVariant.Barcode, Item."No.", '', Item."Vendor Item No.");
-        TempShopifyVariant."Tax Code" := Item."Tax Group Code";
         TempShopifyVariant.Taxable := true;
         TempShopifyVariant.Weight := Item."Gross Weight";
         TempShopifyVariant."Shop Code" := Shop.Code;

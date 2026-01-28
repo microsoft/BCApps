@@ -9,7 +9,7 @@ codeunit 30102 "Shpfy GQL Modify Inventory" implements "Shpfy IGraphQL"
 {
     procedure GetGraphQL(): Text
     begin
-        exit('{"query":"mutation inventorySetOnHandQuantities($input:InventorySetOnHandQuantitiesInput!) { inventorySetOnHandQuantities(input: $input) { userErrors { field message }}}","variables":{"input":{"reason":"correction","setQuantities":[]}}}');
+        exit('{"query":"mutation inventorySetQuantities($input: InventorySetQuantitiesInput!) { inventorySetQuantities(input: $input) @idempotent(key: \"{{IdempotencyKey}}\") { inventoryAdjustmentGroup { id } userErrors { field message code }}}","variables":{"input":{"name":"on_hand","reason":"correction","quantities":[]}}}');
     end;
 
     procedure GetExpectedCost(): Integer
