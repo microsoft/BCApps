@@ -1652,10 +1652,14 @@ codeunit 139236 "PEPPOL BIS BillingTests"
 
     local procedure ConfigureVATPostingSetup()
     var
+        CustomerPostingGroup: Record "Customer Posting Group";
         VATPostingSetup: Record "VAT Posting Setup";
     begin
         VATPostingSetup.SetRange("Tax Category", '');
         VATPostingSetup.ModifyAll("Tax Category", 'AA');
+
+        CustomerPostingGroup.DeleteAll();
+        LibrarySales.CreateCustomerPostingGroup(CustomerPostingGroup);
     end;
 
     local procedure AddCompPEPPOLIdentifier()
