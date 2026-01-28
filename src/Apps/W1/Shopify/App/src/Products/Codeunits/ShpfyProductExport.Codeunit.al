@@ -963,11 +963,12 @@ codeunit 30178 "Shpfy Product Export"
         exit(true);
     end;
 
-    local procedure GetItemAttributeIDsMarkedAsOption(Item: Record Item; var ItemAttributeIds: List of [Integer])
+    internal procedure GetItemAttributeIDsMarkedAsOption(Item: Record Item; var ItemAttributeIds: List of [Integer])
     var
         ItemAttribute: Record "Item Attribute";
         ItemAttributeValueMapping: Record "Item Attribute Value Mapping";
     begin
+        ItemAttributeValueMapping.SetLoadFields("Item Attribute ID");
         ItemAttributeValueMapping.SetRange("Table ID", Database::Item);
         ItemAttributeValueMapping.SetRange("No.", Item."No.");
         if ItemAttributeValueMapping.FindSet() then

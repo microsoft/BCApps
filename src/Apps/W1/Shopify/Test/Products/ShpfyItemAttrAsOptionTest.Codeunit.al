@@ -171,7 +171,7 @@ codeunit 139540 "Shpfy Item Attr As Option Test"
         Item := CreateItemWithAsOptionAttributes(2);
 
         // [GIVEN] Product exists with 'As Option' Attributes
-        ParentProductId := CreateShopifyProductWithAsOptionAttributesAndValues(CopyStr(LibraryVariableStorage.PeekText(2), 1, 250), CopyStr(LibraryVariableStorage.PeekText(4), 1, 250), CopyStr(LibraryVariableStorage.PeekText(6), 1, 250), CopyStr(LibraryVariableStorage.PeekText(8), 1, 250));
+        ParentProductId := CreateShopifyProductWithAsOptionAttributesAndValues(Item, CopyStr(LibraryVariableStorage.PeekText(2), 1, 250), CopyStr(LibraryVariableStorage.PeekText(4), 1, 250), CopyStr(LibraryVariableStorage.PeekText(6), 1, 250), CopyStr(LibraryVariableStorage.PeekText(8), 1, 250));
 
         // [GIVEN] Item is created without Item variants and without all required 'As Option' Item Attributes
         LibraryInventory.CreateItemAttribute(ItemAttribute, ItemAttribute.Type::Text, '');
@@ -206,7 +206,7 @@ codeunit 139540 "Shpfy Item Attr As Option Test"
         Item := CreateItemWithAsOptionAttributes(2);
 
         // [GIVEN] Product exists with 'As Option' Attributes
-        ParentProductId := CreateShopifyProductWithAsOptionAttributesAndValues(CopyStr(LibraryVariableStorage.PeekText(2), 1, 250), CopyStr(LibraryVariableStorage.PeekText(4), 1, 250), CopyStr(LibraryVariableStorage.PeekText(6), 1, 250), CopyStr(LibraryVariableStorage.PeekText(8), 1, 250));
+        ParentProductId := CreateShopifyProductWithAsOptionAttributesAndValues(Item, CopyStr(LibraryVariableStorage.PeekText(2), 1, 250), CopyStr(LibraryVariableStorage.PeekText(4), 1, 250), CopyStr(LibraryVariableStorage.PeekText(6), 1, 250), CopyStr(LibraryVariableStorage.PeekText(8), 1, 250));
 
         // [GIVEN] Item is created with the same 'As Option' Item Attribute values as existing variant
         Item := CreateItemWithSpecificAsOptionAttributes(LibraryVariableStorage.PeekInteger(1), LibraryVariableStorage.PeekInteger(3), CopyStr(LibraryVariableStorage.PeekText(4), 1, 250), LibraryVariableStorage.PeekInteger(5), LibraryVariableStorage.PeekInteger(7), CopyStr(LibraryVariableStorage.PeekText(8), 1, 250));
@@ -241,7 +241,7 @@ codeunit 139540 "Shpfy Item Attr As Option Test"
         HttpHandlerParams.Enqueue(LibraryVariableStorage.PeekText(2));
 
         // [GIVEN] Product exists with 'As Option' Attributes
-        ParentProductId := CreateShopifyProductWithAsOptionAttributesAndValues(CopyStr(LibraryVariableStorage.PeekText(2), 1, 250), CopyStr(LibraryVariableStorage.PeekText(4), 1, 250), CopyStr(LibraryVariableStorage.PeekText(6), 1, 250), CopyStr(LibraryVariableStorage.PeekText(8), 1, 250));
+        ParentProductId := CreateShopifyProductWithAsOptionAttributesAndValues(Item, CopyStr(LibraryVariableStorage.PeekText(2), 1, 250), CopyStr(LibraryVariableStorage.PeekText(4), 1, 250), CopyStr(LibraryVariableStorage.PeekText(6), 1, 250), CopyStr(LibraryVariableStorage.PeekText(8), 1, 250));
 
         // [GIVEN] Item is created without Item variants and with all required 'As Option' Item Attributes
         Item := CreateItemWithSpecificAsOptionAttributes(LibraryVariableStorage.PeekInteger(1), LibraryVariableStorage.PeekInteger(3), CopyStr(LibraryVariableStorage.PeekText(4), 1, 250), LibraryVariableStorage.PeekInteger(5), LibraryVariableStorage.PeekInteger(7), GenerateRandomAttributeValue());
@@ -526,12 +526,13 @@ codeunit 139540 "Shpfy Item Attr As Option Test"
         exit(ShopifyProduct.Id);
     end;
 
-    local procedure CreateShopifyProductWithAsOptionAttributesAndValues(ItemAttributeName1: Text[250]; ItemAttributeValue1: Text[250]; ItemAttributeName2: Text[250]; ItemAttributeValue2: Text[250]): BigInteger
+    local procedure CreateShopifyProductWithAsOptionAttributesAndValues(Item: Record Item; ItemAttributeName1: Text[250]; ItemAttributeValue1: Text[250]; ItemAttributeName2: Text[250]; ItemAttributeValue2: Text[250]): BigInteger
     var
         ShopifyProduct: Record "Shpfy Product";
         ShopifyVariant: Record "Shpfy Variant";
     begin
         ShopifyProduct.Init();
+        ShopifyProduct."Item SystemId" := Item.SystemId;
         ShopifyProduct.Id := Any.IntegerInRange(10000, 99999);
         ShopifyProduct."Shop Code" := Shop.Code;
         ShopifyProduct.Title := CopyStr(Any.AlphabeticText(50), 1, MaxStrLen(ShopifyProduct.Title));

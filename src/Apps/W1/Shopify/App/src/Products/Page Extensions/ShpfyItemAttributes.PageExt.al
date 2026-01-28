@@ -16,7 +16,18 @@ pageextension 30127 "Shpfy Item Attributes" extends "Item Attributes"
             field("Shpfy Incl. in Product Sync"; Rec."Shpfy Incl. in Product Sync")
             {
                 ApplicationArea = All;
+                Visible = ShopifyEnabled;
             }
         }
     }
+
+    var
+        ShopifyEnabled: Boolean;
+
+    trigger OnOpenPage()
+    var
+        ShopMgt: Codeunit "Shpfy Shop Mgt.";
+    begin
+        ShopifyEnabled := ShopMgt.IsEnabled();
+    end;
 }
