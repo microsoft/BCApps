@@ -735,8 +735,6 @@ table 8059 "Subscription Line"
     begin
         if IsInitialTermEmpty() then
             exit;
-        if not IsExtensionTermEmpty() then
-            exit;
 
         TestField("Subscription Line Start Date");
         "Subscription Line End Date" := CalcDate("Initial Term", "Subscription Line Start Date");
@@ -744,43 +742,17 @@ table 8059 "Subscription Line"
         RefreshRenewalTerm();
     end;
 
-    internal procedure CalculateInitialCancellationPossibleUntilDate()
-    begin
-        if IsExtensionTermEmpty() then
-            exit;
-        if IsNoticePeriodEmpty() then
-            exit;
-        if IsInitialTermEmpty() then
-            exit;
-
-        TestField("Subscription Line Start Date");
-        "Cancellation Possible Until" := CalcDate("Initial Term", "Subscription Line Start Date");
-        CalendarManagement.ReverseDateFormula(NegativeDateFormula, "Notice Period");
-        "Cancellation Possible Until" := CalcDate(NegativeDateFormula, "Cancellation Possible Until");
-        "Cancellation Possible Until" := CalcDate('<-1D>', "Cancellation Possible Until");
-    end;
-
     internal procedure CalculateInitialTermUntilDate()
     begin
-        if "Subscription Line End Date" <> 0D then begin
-            "Term Until" := "Subscription Line End Date";
-            exit;
-        end;
-
-        if IsExtensionTermEmpty() then
-            exit;
-        if IsNoticePeriodEmpty() and IsInitialTermEmpty() then
-            exit;
-
-        TestField("Subscription Line Start Date");
-        if IsInitialTermEmpty() then begin
-            "Term Until" := CalcDate("Notice Period", "Subscription Line Start Date");
-            "Term Until" := CalcDate('<-1D>', "Term Until");
-            UpdateCancellationPossibleUntil();
-        end else begin
-            "Term Until" := CalcDate("Initial Term", "Subscription Line Start Date");
-            "Term Until" := CalcDate('<-1D>', "Term Until");
-        end;
+        if "Subscription Line End Date" <> 0D then
+            "Term Until" := "Subscription Line End Date"
+        else
+            if not IsNoticePeriodEmpty() then begin
+                TestField("Subscription Line Start Date");
+                "Term Until" := CalcDate("Notice Period", "Subscription Line Start Date");
+                "Term Until" := CalcDate('<-1D>', "Term Until");
+            end;
+        UpdateCancellationPossibleUntil();
     end;
 
     internal procedure GetReferenceDate(): Date
