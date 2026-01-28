@@ -230,62 +230,11 @@ page 30113 "Shpfy Order"
                     Editable = false;
                     ToolTip = 'Specifies whether a sales order has been created for the Shopify Order.';
                 }
-                group(ProcessedCurrHanndling)
-                {
-                    ShowCaption = false;
-                    Visible = Rec.Processed;
-
-                    field(ProcessedCurrencyHandling; Rec."Processed Currency Handling")
-                    {
-                        ApplicationArea = All;
-                        Caption = 'Processed Currency Handling';
-                        Importance = Additional;
-                        Editable = false;
-                        ToolTip = 'Specifies how the currency was handled when processing the order.';
-                    }
-                }
                 field(FinancialStatus; Rec."Financial Status")
                 {
                     ApplicationArea = All;
                     Editable = false;
                     ToolTip = 'Specifies the status of payments associated with the order. Valid values are: pending, authorized, partially paid, paid, partially refunded, refunded, voided.';
-                }
-                group(PresentmentCurrency)
-                {
-                    ShowCaption = false;
-                    Visible = PresentmentVisible;
-
-                    field("Presentment Subtotal Amount"; Rec."Presentment Subtotal Amount")
-                    {
-                        ApplicationArea = All;
-                        Editable = false;
-                    }
-                    field("Pres. Shipping Charges Amount"; Rec."Pres. Shipping Charges Amount")
-                    {
-                        ApplicationArea = All;
-                        Editable = false;
-                    }
-                    field("Presentment Total Amount"; Rec."Presentment Total Amount")
-                    {
-                        ApplicationArea = All;
-                        Editable = false;
-                        Importance = Promoted;
-                    }
-                    field("Presentment VAT Amount"; Rec."Presentment VAT Amount")
-                    {
-                        ApplicationArea = All;
-                        Editable = false;
-                    }
-                    field("Presentment Discount Amount"; Rec."Presentment Discount Amount")
-                    {
-                        ApplicationArea = All;
-                        Editable = false;
-                    }
-                    field("Presentment Currency Code"; Rec."Presentment Currency Code")
-                    {
-                        ApplicationArea = All;
-                        Editable = false;
-                    }
                 }
                 field(FulfillmentStatus; Rec."Fulfillment Status")
                 {
@@ -398,12 +347,62 @@ page 30113 "Shpfy Order"
                     Editable = false;
                     ToolTip = 'Specifies if any tax line on the order is liable to be charged by the sales channel.';
                 }
-
                 field(CurrencyCode; Rec."Currency Code")
                 {
                     ApplicationArea = All;
                     Editable = false;
                     ToolTip = 'Specifies the currency of amounts on the document.';
+                }
+                group(ProcessedCurrHandling)
+                {
+                    ShowCaption = false;
+                    Visible = Rec.Processed;
+
+                    field(ProcessedCurrencyHandling; Rec."Processed Currency Handling")
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Processed Currency Handling';
+                        Importance = Additional;
+                        Editable = false;
+                        ToolTip = 'Specifies how the currency was handled when processing the order.';
+                    }
+                }
+                group(PresentmentCurrency)
+                {
+                    ShowCaption = false;
+                    Visible = PresentmentVisible;
+
+                    field("Presentment Subtotal Amount"; Rec."Presentment Subtotal Amount")
+                    {
+                        ApplicationArea = All;
+                        Editable = false;
+                    }
+                    field("Pres. Shipping Charges Amount"; Rec."Pres. Shipping Charges Amount")
+                    {
+                        ApplicationArea = All;
+                        Editable = false;
+                    }
+                    field("Presentment Total Amount"; Rec."Presentment Total Amount")
+                    {
+                        ApplicationArea = All;
+                        Editable = false;
+                        Importance = Promoted;
+                    }
+                    field("Presentment VAT Amount"; Rec."Presentment VAT Amount")
+                    {
+                        ApplicationArea = All;
+                        Editable = false;
+                    }
+                    field("Presentment Discount Amount"; Rec."Presentment Discount Amount")
+                    {
+                        ApplicationArea = All;
+                        Editable = false;
+                    }
+                    field("Presentment Currency Code"; Rec."Presentment Currency Code")
+                    {
+                        ApplicationArea = All;
+                        Editable = false;
+                    }
                 }
             }
             group(ShippingAndBilling)
