@@ -14,7 +14,7 @@ using Microsoft.QualityManagement.Document;
 page 20401 "Qlty. Tests"
 {
     Caption = 'Quality Tests';
-    AdditionalSearchTerms = 'Quality measurement ';
+    AdditionalSearchTerms = 'Quality measurement';
     AboutTitle = 'Configure Available Tests';
     AboutText = 'This page lets you define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these tests in Quality Inspection Templates.';
     CardPageId = "Qlty. Test Card";

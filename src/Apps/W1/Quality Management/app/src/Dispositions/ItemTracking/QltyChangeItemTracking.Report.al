@@ -20,7 +20,7 @@ report 20409 "Qlty. Change Item Tracking"
     UsageCategory = Tasks;
     AllowScheduling = false;
     Extensible = true;
-    AdditionalSearchTerms = 'Change lot number, Change serial number, Change Package, Change Expiration Date';
+    AdditionalSearchTerms = 'Change lot number, Change serial number, Change package, Change Expiration Date';
     Description = 'Use this to update item tracking information.';
 
     dataset
