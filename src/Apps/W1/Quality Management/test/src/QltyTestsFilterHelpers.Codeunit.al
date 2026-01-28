@@ -51,8 +51,6 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         InputWhereClauseTok: Label 'Lorem ipsum dolor sit amet, WHERE consectetuer adipiscing elit';
         CorrectOutputTok: Label 'WHERE consectetuer adipiscing elit';
         InputWhereClause2Tok: Label 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.';
-        InputWhereClause250Tok: Label 'WHERE Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec.';
-        InputWhereClause400Tok: Label 'WHERE Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibu';
         ViewTok: Label 'VERSION(1) SORTING("No.") WHERE("No."=FILTER(%1))', Comment = '%1=item no.';
 
     [Test]
@@ -2023,34 +2021,6 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         // [THEN] A location is found and the location code matches
         LibraryAssert.IsTrue(FoundLocation, 'Should claim found location.');
         LibraryAssert.AreEqual(Location.Code, LocationToUse, 'The location code should match.');
-    end;
-
-    [Test]
-    procedure CleanupWhereClause250()
-    var
-        Output: Text;
-    begin
-        // [SCENARIO] Validate where clause cleanup reducing length to 250 characters or less
-
-        // [WHEN] CleanUpWhereClause250 is called with input where clause
-        Output := QltyFilterHelpers.CleanUpWhereClause250(InputWhereClause250Tok);
-
-        // [THEN] The output length is 250 characters or less
-        LibraryAssert.IsTrue(StrLen(Output) <= 250, 'Should reduce length to 250 characters or less');
-    end;
-
-    [Test]
-    procedure CleanupWhereClause400()
-    var
-        Output: Text;
-    begin
-        // [SCENARIO] Validate where clause cleanup reducing length to 400 characters or less
-
-        // [WHEN] CleanUpWhereClause400 is called with input where clause
-        Output := QltyFilterHelpers.CleanUpWhereClause400(InputWhereClause400Tok);
-
-        // [THEN] The output length is 400 characters or less
-        LibraryAssert.IsTrue(StrLen(Output) <= 400, 'Should reduce length to 250 characters or less');
     end;
 
     [Test]
