@@ -31,22 +31,22 @@ page 20400 "Qlty. Management Setup"
         {
             group(SettingsForDefaults)
             {
-                Caption = 'Defaults';
+                Caption = 'General';
                 group(SettingsForNumbering)
                 {
-                    Caption = 'Numbering';
+                    Caption = 'Number Series';
 
                     field("Quality Inspection Nos."; Rec."Quality Inspection Nos.")
                     {
                         ApplicationArea = All;
                         ShowCaption = true;
                         AboutTitle = 'No. Series';
-                        AboutText = 'The default number series used for quality inspection documents when there is not a no. series defined on a Quality Inspection Template. When a no. series is defined on a template, then that is used instead.';
+                        AboutText = 'The default number series for quality inspection documents is used when there isn''t a number series defined on the quality inspection template.';
                     }
                 }
                 group(SettingsForBehaviors)
                 {
-                    Caption = 'Behaviors';
+                    Caption = 'Creating and finding inspections';
 
                     field("Create Inspection Behavior"; Rec."Create Inspection Behavior")
                     {
@@ -84,24 +84,22 @@ page 20400 "Qlty. Management Setup"
                     {
                         Importance = Additional;
                         ApplicationArea = All;
-                        Caption = 'Maximum Rows To Fetch on Field Lookups';
                         ShowCaption = true;
-                        AboutTitle = 'Maximum Rows To Fetch on Field Lookups';
-                        AboutText = 'This is the maximum number of rows to fetch on data lookups. Keeping the number as low as possible will increase usability and performance. A larger number will reduce performance and reduce usability.';
+                        AboutTitle = 'Maximum Rows To Fetch In Lookups';
+                        AboutText = 'This is the maximum number of rows to fetch on data lookups. Keeping the number as low as possible will increase usability and performance.';
 
                     }
                     group(SettingsForExplainShowInspection)
                     {
-                        Caption = 'Show Inspection';
-                        InstructionalText = 'For demonstrations and training it can be useful to show automatically created inspections immediately to the user, however for production scenarios in most circumstances automatically created inspections will end up in a queue or dispatch for quality inspectors. Value "Only manually created inspections" will let you see inspections created manually with a button, and will just let automatically created inspections be created without showing it.';
-                        field("Show Inspection Behavior"; Rec."Show Inspection Behavior")
+                        Caption = 'When to show inspections';
+                        InstructionalText = 'Define when to show inspections. For demonstrations and training, it can be useful to show automatically created inspections immediately. However, in most production scenarios, these inspections are sent to a queue or dispatch for quality inspectors.';
+                        field("When to show inspections"; Rec."When to show inspections")
                         {
                             ApplicationArea = All;
-                            Caption = 'Show Inspection';
                             ShowCaption = true;
                             Importance = Promoted;
                             AboutTitle = 'When To Show Inspections';
-                            AboutText = 'Whether to show the Quality Inspection page after an inspection has been made.';
+                            AboutText = 'Specifies whether inspections are shown immediately or sent to a queue for quality inspectors. For demonstrations and training, it can be useful to show automatically created inspections immediately. In production scenarios, automatically created inspections are usually not shown, instead they are queued or dispatch for quality inspectors.';
                         }
                     }
                     field("Picture Upload Behavior"; Rec."Picture Upload Behavior")
@@ -114,11 +112,12 @@ page 20400 "Qlty. Management Setup"
                     }
                     group(Workflow)
                     {
-                        Caption = 'Workflow and Approval Request Integration';
+                        Caption = 'Workflow and Approval Requests';
                         field("Workflow Integration Enabled"; Rec."Workflow Integration Enabled")
                         {
                             Importance = Additional;
                             ApplicationArea = All;
+                            Caption = 'Workflow Integration';
                             AboutTitle = 'Business Central Workflow integration.';
                             AboutText = 'Workflows can be used to trigger dispositions, such as negative adjustments, transfers, moves, and more.';
                         }
@@ -129,12 +128,12 @@ page 20400 "Qlty. Management Setup"
             group(SettingsForReceiving)
             {
                 Caption = 'Receiving';
-                InstructionalText = 'Receiving related settings are configured in this group. For example, you can choose to automatically create an inspection when a receipt is posted.';
+                InstructionalText = 'Manage receiving options here, such as automatically creating inspections when receipts are posted.';
 
                 group(SettingsForReceiveAutomation)
                 {
                     Caption = 'Automation';
-                    InstructionalText = 'Define the default automation settings for how receipt tasks automatically create inspections. You also need to create inspection generation rules to configure which templates will be used. Different triggers can be changed on the inspection generation rules.';
+                    InstructionalText = 'Set up default automation for creating inspections from receipt tasks. Create inspection generation rules to choose templates and adjust triggers as needed.';
                     AboutTitle = 'Receiving Related Automation Settings';
                     AboutText = 'Receiving related settings are configured in this group. For example, you can choose to automatically create an inspection when a receipt is posted.';
 
@@ -158,7 +157,7 @@ page 20400 "Qlty. Management Setup"
                         ApplicationArea = All;
                         Caption = 'Transfer Orders';
                     }
-                    field(ChooseCreateNewRule_Receiving; 'Click here to create a new generation rule...')
+                    field(ChooseCreateNewRule_Receiving; 'Create receipt inspection rule')
                     {
                         ShowCaption = false;
                         ApplicationArea = All;
@@ -187,12 +186,12 @@ page 20400 "Qlty. Management Setup"
             group(SettingsForProduction)
             {
                 Caption = 'Production';
-                InstructionalText = 'Production related settings are configured in this group. For example, you can choose to automatically create inspections when output is created.';
+                InstructionalText = 'Manage production options here, such as automatically creating inspections when output is posted';
 
                 group(SettingsForProductionAutomation)
                 {
                     Caption = 'Automation';
-                    InstructionalText = 'Define the default automation settings for inspection generation rules related to production output. Different triggers can be changed on the inspection generation rules.';
+                    InstructionalText = 'Define the default automation for inspection generation in production. You can change triggers for inspection rules as needed in the Inspection Generation Rules.';
                     AboutTitle = 'Production Related Automation Settings';
                     AboutText = 'Production related settings are configured in this group. You can choose to automatically create inspections when output is created, whether or not to update the source, and other automatic features.';
 
@@ -220,7 +219,7 @@ page 20400 "Qlty. Management Setup"
                         AboutTitle = 'Assembly related trigger';
                         AboutText = 'Optionally choose an assembly-related trigger to try and create an inspection.';
                     }
-                    field(ChooseCreateNewRule_Production; 'Click here to create a new generation rule...')
+                    field(ChooseCreateNewRule_Production; 'Create production inspection rule')
                     {
                         ShowCaption = false;
                         ApplicationArea = Assembly, Manufacturing;
@@ -270,7 +269,7 @@ page 20400 "Qlty. Management Setup"
                         Caption = 'Related Generation Rules';
                         ApplicationArea = All;
                     }
-                    field(ChooseCreateNewRule_WhseMovement; 'Click here to create a new generation rule...')
+                    field(ChooseCreateNewRule_WhseMovement; 'Create warehouse inspection rule')
                     {
                         ShowCaption = false;
                         ApplicationArea = All;
@@ -288,7 +287,7 @@ page 20400 "Qlty. Management Setup"
                 group(SettingsForBinMovements)
                 {
                     Caption = 'Bin Movements and Reclassifications';
-                    InstructionalText = 'The batch to use when moving inventory to a different bin; this will be used for the manual Move to Bin action as well as PowerAutomate actions. This will also be used for reclassification journals when changing item tracking information.';
+                    InstructionalText = 'Set up the batch that will be used when moving inventory to a different bin or when changing item tracking information. The batch applies to manual Move to Bin actions, Power Automate flows, and reclassification journals.';
 
                     field("Bin Move Batch Name"; Rec."Bin Move Batch Name")
                     {

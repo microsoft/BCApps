@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -42,20 +42,20 @@ codeunit 99001522 "Subc. Planning Comp. Ext."
 
     local procedure HandleRoutingLinkCodeValidation(var PlanningComponent: Record "Planning Component"; var xPlanningComponent: Record "Planning Component")
     var
-        PlanningRtngLine: Record "Planning Routing Line";
-        SKU: Record "Stockkeeping Unit";
+        PlanningRoutingLine: Record "Planning Routing Line";
+        StockkeepingUnit: Record "Stockkeeping Unit";
         Vendor: Record Vendor;
-        GetPlanningParameters: Codeunit "Planning-Get Parameters";
+        PlanningGetParameters: Codeunit "Planning-Get Parameters";
         SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
         if PlanningComponent."Routing Link Code" <> '' then begin
-            PlanningRtngLine.SetRange("Worksheet Template Name", PlanningComponent."Worksheet Template Name");
-            PlanningRtngLine.SetRange("Worksheet Batch Name", PlanningComponent."Worksheet Batch Name");
-            PlanningRtngLine.SetRange("Worksheet Line No.", PlanningComponent."Worksheet Line No.");
-            PlanningRtngLine.SetRange("Routing Link Code", PlanningComponent."Routing Link Code");
-            PlanningRtngLine.SetRange(Type, PlanningRtngLine.Type::"Work Center");
-            if PlanningRtngLine.FindFirst() then
-                if SubcontractingManagement.GetSubcontractor(PlanningRtngLine."No.", Vendor) then
+            PlanningRoutingLine.SetRange("Worksheet Template Name", PlanningComponent."Worksheet Template Name");
+            PlanningRoutingLine.SetRange("Worksheet Batch Name", PlanningComponent."Worksheet Batch Name");
+            PlanningRoutingLine.SetRange("Worksheet Line No.", PlanningComponent."Worksheet Line No.");
+            PlanningRoutingLine.SetRange("Routing Link Code", PlanningComponent."Routing Link Code");
+            PlanningRoutingLine.SetRange(Type, PlanningRoutingLine.Type::"Work Center");
+            if PlanningRoutingLine.FindFirst() then
+                if SubcontractingManagement.GetSubcontractor(PlanningRoutingLine."No.", Vendor) then
                     SubcontractingManagement.ChangeLocation_OnPlanningComponent(PlanningComponent, Vendor."Subcontr. Location Code", PlanningComponent."Orig. Location Code", PlanningComponent."Orig. Bin Code");
         end else
             if xPlanningComponent."Routing Link Code" <> '' then
@@ -67,12 +67,12 @@ codeunit 99001522 "Subc. Planning Comp. Ext."
                         PlanningComponent."Orig. Bin Code" := '';
                     end;
                 end else begin
-                    GetPlanningParameters.AtSKU(
-                      SKU,
+                    PlanningGetParameters.AtSKU(
+                      StockkeepingUnit,
                       PlanningComponent."Item No.",
                       PlanningComponent."Variant Code",
                       PlanningComponent."Location Code");
-                    PlanningComponent.Validate(PlanningComponent."Location Code", SKU."Components at Location");
+                    PlanningComponent.Validate(PlanningComponent."Location Code", StockkeepingUnit."Components at Location");
                 end;
     end;
 

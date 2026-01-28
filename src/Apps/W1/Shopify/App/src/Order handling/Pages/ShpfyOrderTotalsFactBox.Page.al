@@ -37,51 +37,120 @@ page 30172 "Shpfy Order Totals FactBox"
                         Page.Run(Page::"Shpfy Order", Rec);
                     end;
                 }
-                field("Subtotal Amount"; Rec."Subtotal Amount")
+                group(ShopifyTotals)
                 {
-                    ApplicationArea = All;
-                    AutoFormatExpression = Rec."Currency Code";
-                    AutoFormatType = 1;
-                    ToolTip = 'Specifies the subtotal amount of the order.';
+                    Caption = 'Shopify Totals';
+                    ShowCaption = false;
+                    Visible = not PresentmentVisible;
+
+                    field("Subtotal Amount"; Rec."Subtotal Amount")
+                    {
+                        ApplicationArea = All;
+                        AutoFormatExpression = Rec."Currency Code";
+                        AutoFormatType = 1;
+                        ToolTip = 'Specifies the subtotal amount of the order.';
+                    }
+                    field("Shipping Charges Amount"; Rec."Shipping Charges Amount")
+                    {
+                        ApplicationArea = All;
+                        AutoFormatExpression = Rec."Currency Code";
+                        AutoFormatType = 1;
+                        ToolTip = 'Specifies the shipping charges amount of the order.';
+                    }
+                    field("Total Amount"; Rec."Total Amount")
+                    {
+                        ApplicationArea = All;
+                        AutoFormatExpression = Rec."Currency Code";
+                        AutoFormatType = 1;
+                        ToolTip = 'Specifies the total amount of the order.';
+                    }
+                    field(VATAmount; Rec."VAT Amount")
+                    {
+                        ApplicationArea = All;
+                        AutoFormatExpression = Rec."Currency Code";
+                        AutoFormatType = 1;
+                        CaptionClass = DocumentTotals.GetTotalVATCaption(Rec."Currency Code");
+                        ToolTip = 'Specifies the sum of tax amounts on all lines in the document.';
+                    }
+                    field(RoundingAmount; Rec."Payment Rounding Amount")
+                    {
+                        ApplicationArea = All;
+                        AutoFormatExpression = Rec."Currency Code";
+                        AutoFormatType = 1;
+                        ToolTip = 'Specifies the amount of rounding applied to the total amount of the document.';
+                    }
                 }
-                field("Shipping Charges Amount"; Rec."Shipping Charges Amount")
+                group(ShopifyPresentmentTotals)
                 {
-                    ApplicationArea = All;
-                    AutoFormatExpression = Rec."Currency Code";
-                    AutoFormatType = 1;
-                    ToolTip = 'Specifies the shipping charges amount of the order.';
-                }
-                field("Total Amount"; Rec."Total Amount")
-                {
-                    ApplicationArea = All;
-                    AutoFormatExpression = Rec."Currency Code";
-                    AutoFormatType = 1;
-                    ToolTip = 'Specifies the total amount of the order.';
-                }
-                field(VATAmount; Rec."VAT Amount")
-                {
-                    ApplicationArea = All;
-                    AutoFormatExpression = Rec."Currency Code";
-                    AutoFormatType = 1;
-                    CaptionClass = DocumentTotals.GetTotalVATCaption(Rec."Currency Code");
-                    ToolTip = 'Specifies the sum of tax amounts on all lines in the document.';
-                }
-                field(RoundingAmount; Rec."Payment Rounding Amount")
-                {
-                    ApplicationArea = All;
-                    AutoFormatExpression = Rec."Currency Code";
-                    AutoFormatType = 1;
-                    ToolTip = 'Specifies the amount of rounding applied to the total amount of the document.';
+                    Caption = 'Shopify Presentment Totals';
+                    ShowCaption = false;
+                    Visible = PresentmentVisible;
+
+                    field("Presentment Subtotal Amount"; Rec."Presentment Subtotal Amount")
+                    {
+                        ApplicationArea = All;
+                        AutoFormatExpression = Rec."Presentment Currency Code";
+                        AutoFormatType = 1;
+                        ToolTip = 'Specifies the presentment subtotal amount of the order.';
+                    }
+                    field("Presentment Shipping Charges Amount"; Rec."Pres. Shipping Charges Amount")
+                    {
+                        ApplicationArea = All;
+                        AutoFormatExpression = Rec."Presentment Currency Code";
+                        AutoFormatType = 1;
+                        ToolTip = 'Specifies the presentment shipping charges amount of the order.';
+                    }
+                    field("Presentment Total Amount"; Rec."Presentment Total Amount")
+                    {
+                        ApplicationArea = All;
+                        AutoFormatExpression = Rec."Presentment Currency Code";
+                        AutoFormatType = 1;
+                        ToolTip = 'Specifies the presentment total amount of the order.';
+                    }
+                    field("Presentment VAT Amount"; Rec."Presentment VAT Amount")
+                    {
+                        ApplicationArea = All;
+                        AutoFormatExpression = Rec."Presentment Currency Code";
+                        AutoFormatType = 1;
+                        CaptionClass = DocumentTotals.GetTotalVATCaption(Rec."Presentment Currency Code");
+                        ToolTip = 'Specifies the sum of presentment tax amounts on all lines in the document.';
+                    }
+                    field("Presentment Payment Rounding Amount"; Rec."Pres. Payment Rounding Amount")
+                    {
+                        ApplicationArea = All;
+                        AutoFormatExpression = Rec."Presentment Currency Code";
+                        AutoFormatType = 1;
+                        ToolTip = 'Specifies the amount of presentment rounding applied to the total amount of the document.';
+                    }
                 }
                 field("VAT Included"; Rec."VAT Included")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies if tax is included in the unit price.';
                 }
-                field("Currency Code"; Rec."Currency Code")
+                group(ShopifyCurrency)
                 {
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies the currency of amounts on the document.';
+                    Caption = 'Currency';
+                    ShowCaption = false;
+                    Visible = not PresentmentVisible;
+
+                    field("Currency Code"; Rec."Currency Code")
+                    {
+                        ApplicationArea = All;
+                        ToolTip = 'Specifies the currency of amounts on the document.';
+                    }
+                }
+                group(ShopifyPresentmentCurrency)
+                {
+                    Caption = 'Presentment Currency';
+                    ShowCaption = false;
+                    Visible = PresentmentVisible;
+
+                    field("Presentment Currency Code"; Rec."Presentment Currency Code")
+                    {
+                        ApplicationArea = All;
+                        ToolTip = 'Specifies the presentment currency of amounts on the document.';
+                    }
                 }
             }
             group(SalesDocument)
@@ -161,6 +230,7 @@ page 30172 "Shpfy Order Totals FactBox"
         SalesLine: Record "Sales Line";
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
+        PresentmentVisible := Rec.IsPresentmentCurrencyOrder();
         if Rec."Sales Order No." <> '' then
             if not SalesHeader.Get(SalesHeader."Document Type"::Order, Rec."Sales Order No.") then
                 exit;
@@ -171,7 +241,7 @@ page 30172 "Shpfy Order Totals FactBox"
 
         DocumentNo := SalesHeader."No.";
         PricesIncludingVAT := SalesHeader."Prices Including VAT";
-        if CurrencyCode <> '' then
+        if SalesHeader."Currency Code" <> '' then
             CurrencyCode := SalesHeader."Currency Code"
         else begin
             GeneralLedgerSetup.Get();
@@ -190,6 +260,7 @@ page 30172 "Shpfy Order Totals FactBox"
         DocumentTotals: Codeunit "Document Totals";
         DocumentNo: Text[20];
         PricesIncludingVAT: Boolean;
+        PresentmentVisible: Boolean;
         NumberOfLines: Integer;
         CurrencyCode: Code[10];
         VATAmount: Decimal;

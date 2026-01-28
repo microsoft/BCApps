@@ -7,9 +7,9 @@ namespace Microsoft.QualityManagement.Setup;
 /// <summary>
 /// Defines when to automatically show the inspections.
 /// </summary>
-enum 20401 "Qlty. Show Inspection Behavior"
+enum 20401 "Qlty. When to Show Inspections"
 {
-    Caption = 'Quality Show Inspection Behavior';
+    Caption = 'When to Show Inspections';
 
     value(0; "Automatic and manually created inspections")
     {
