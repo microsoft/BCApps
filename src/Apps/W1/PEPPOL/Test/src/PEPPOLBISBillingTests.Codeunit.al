@@ -1336,6 +1336,8 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         LibrarySales.SetInvoiceRounding(true);
 
         // [GIVEN] Posted Service Invoice has two lines with Amount = 100.01 and 100.01, VAT% = 25, invoice rounding amount = 0.02.
+        SetupServiceMgtSetupTemplates();
+
         Customer.Get(CreateCustomerWithAddressAndGLN());
         LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Invoice, Customer."No.");
         ServiceHeader.Validate("Due Date", LibraryRandom.RandDate(10));
@@ -1765,6 +1767,8 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         ServiceLine: Record "Service Line";
         Customer: Record Customer;
     begin
+        SetupServiceMgtSetupTemplates();
+
         Customer.Get(CreateCustomerWithAddressAndGLN());
         LibraryService.CreateServiceHeader(ServiceHeader, DocumentType, Customer."No.");
         ServiceHeader.Validate("Due Date", LibraryRandom.RandDate(10));
@@ -2167,5 +2171,19 @@ codeunit 139236 "PEPPOL BIS BillingTests"
             ServiceCrMemoHeader."Ship-to Country/Region Code" := ShipToAddress."Country/Region Code";
             ServiceCrMemoHeader.Modify();
         end;
+    end;
+
+    local procedure SetupServiceMgtSetupTemplates()
+    var
+        ServMgtSetup: Record "Service Mgt. Setup";
+        GenJournalTemplate: Record "Gen. Journal Template";
+    begin
+        LibraryERM.FindGenJournalTemplate(GenJournalTemplate);
+        GenJournalTemplate."Posting No. Series" := LibraryERM.CreateNoSeriesCode();
+        GenJournalTemplate.Modify(false);
+        ServMgtSetup.GetRecordOnce();
+        ServMgtSetup."Serv. Inv. Template Name" := GenJournalTemplate.Name;
+        ServMgtSetup."Serv. Cr. Memo Templ. Name" := GenJournalTemplate.Name;
+        ServMgtSetup.Modify(false);
     end;
 }
