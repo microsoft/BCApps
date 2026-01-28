@@ -1326,6 +1326,8 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         ServiceInvoiceHeader: Record "Service Invoice Header";
         Customer: Record Customer;
         VATPostingSetup: Record "VAT Posting Setup";
+        ServMgtSetup: Record "Service Mgt. Setup";
+        GenJournalTemplate: Record "Gen. Journal Template";
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [Invoice] [Invoice Rounding] [Service]
@@ -1336,6 +1338,14 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         LibrarySales.SetInvoiceRounding(true);
 
         // [GIVEN] Posted Service Invoice has two lines with Amount = 100.01 and 100.01, VAT% = 25, invoice rounding amount = 0.02.
+        LibraryERM.FindGenJournalTemplate(GenJournalTemplate);
+        GenJournalTemplate."Posting No. Series" := LibraryERM.CreateNoSeriesCode();
+        GenJournalTemplate.Modify(false);
+        ServMgtSetup.GetRecordOnce();
+        ServMgtSetup."Serv. Inv. Template Name" := GenJournalTemplate.Name;
+        ServMgtSetup."Serv. Cr. Memo Templ. Name" := GenJournalTemplate.Name;
+        ServMgtSetup.Modify(false);
+
         Customer.Get(CreateCustomerWithAddressAndGLN());
         LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Invoice, Customer."No.");
         ServiceHeader.Validate("Due Date", LibraryRandom.RandDate(10));
@@ -1761,7 +1771,17 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         ServiceHeader: Record "Service Header";
         ServiceLine: Record "Service Line";
         Customer: Record Customer;
+        ServMgtSetup: Record "Service Mgt. Setup";
+        GenJournalTemplate: Record "Gen. Journal Template";
     begin
+        LibraryERM.FindGenJournalTemplate(GenJournalTemplate);
+        GenJournalTemplate."Posting No. Series" := LibraryERM.CreateNoSeriesCode();
+        GenJournalTemplate.Modify(false);
+        ServMgtSetup.GetRecordOnce();
+        ServMgtSetup."Serv. Inv. Template Name" := GenJournalTemplate.Name;
+        ServMgtSetup."Serv. Cr. Memo Templ. Name" := GenJournalTemplate.Name;
+        ServMgtSetup.Modify(false);
+
         Customer.Get(CreateCustomerWithAddressAndGLN());
         LibraryService.CreateServiceHeader(ServiceHeader, DocumentType, Customer."No.");
         ServiceHeader.Validate("Due Date", LibraryRandom.RandDate(10));
