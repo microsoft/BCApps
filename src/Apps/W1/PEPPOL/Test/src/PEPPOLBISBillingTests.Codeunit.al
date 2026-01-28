@@ -1544,6 +1544,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
     local procedure Initialize()
     var
         CompanyInfo: Record "Company Information";
+        GLSetup: Record "General Ledger Setup";
     begin
         LibrarySetupStorage.Restore();
         LibraryTestInitialize.OnTestInitialize(Codeunit::"PEPPOL BIS BillingTests");
@@ -1568,7 +1569,9 @@ codeunit 139236 "PEPPOL BIS BillingTests"
             CompanyInfo.Validate("Use GLN in Electronic Document", true);
             CompanyInfo.Modify(true);
 
-
+            GLSetup.GetRecordOnce();
+            GLSetup."VAT Reporting Date Usage" := GLSetup."VAT Reporting Date Usage"::Disabled;
+            GLSetup.Modify(false);
 
             AddCompPEPPOLIdentifier();
 
