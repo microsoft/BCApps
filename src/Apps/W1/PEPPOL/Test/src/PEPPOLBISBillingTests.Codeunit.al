@@ -1568,7 +1568,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
             CompanyInfo.Validate("Use GLN in Electronic Document", true);
             CompanyInfo.Modify(true);
 
-            ConfigureVATPostingSetup();
+
 
             AddCompPEPPOLIdentifier();
 
@@ -1581,6 +1581,8 @@ codeunit 139236 "PEPPOL BIS BillingTests"
             LibraryService.SetupServiceMgtNoSeries();
             LibrarySetupStorage.Save(DATABASE::"Company Information");
             LibrarySetupStorage.Save(DATABASE::"General Ledger Setup");
+
+            ConfigureVATPostingSetup();
 
             IsInitialized := true;
             LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"PEPPOL BIS BillingTests");
