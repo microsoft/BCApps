@@ -258,7 +258,6 @@ page 20400 "Qlty. Management Setup"
             {
                 Caption = 'Personal Device Interface';
                 InstructionalText = 'Use this section to configure the available fields when looking at inspections on a mobile interface.';
-                Visible = false;
 
                 field("Brick Top Left Header"; Rec."Brick Top Left Header")
                 {
