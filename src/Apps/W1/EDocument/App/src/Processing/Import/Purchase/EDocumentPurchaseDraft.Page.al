@@ -385,7 +385,7 @@ page 6181 "E-Document Purchase Draft"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Provide feedback';
                     ToolTip = 'Provide feedback on the Payables Agent experience.';
-                    Image = Help;
+                    Image = Comment;
 
                     trigger OnAction()
                     begin
