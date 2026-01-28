@@ -1,0 +1,29 @@
+name: 'Restart Pull Request Status Check'
+
+on:
+  schedule:
+    - cron: '0 0 */3 * *' # Run every 3 days at midnight UTC
+  workflow_dispatch: # Allow manual trigger for testing
+
+permissions:
+  actions: write
+  checks: read
+  contents: read
+  pull-requests: read
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  RestartStatusChecks:
+    runs-on: ubuntu-latest
+    name: Restart Stale PR Status Checks
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Restart Stale PR Status Checks
+        uses: ./.github/actions/RestartStalePRChecks
+        with:
+          token: ${{ github.token }}
