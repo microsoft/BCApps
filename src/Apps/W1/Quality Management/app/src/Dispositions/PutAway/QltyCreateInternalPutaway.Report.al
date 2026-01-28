@@ -12,7 +12,6 @@ using Microsoft.Warehouse.Structure;
 report 20406 "Qlty. Create Internal Put-away"
 {
     Caption = 'Quality Management - Create Internal Put-away';
-    AdditionalSearchTerms = 'Create Internal Put-away,putaway,create internal putaway';
     ProcessingOnly = true;
     ApplicationArea = Warehouse;
     UsageCategory = Tasks;

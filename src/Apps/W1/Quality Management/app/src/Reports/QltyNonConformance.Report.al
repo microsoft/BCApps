@@ -21,7 +21,7 @@ report 20403 "Qlty. Non-Conformance"
     Caption = 'Quality Management - Non-Conformance Report';
     DefaultRenderingLayout = QltyNonConformanceDefault;
     Extensible = true;
-    AdditionalSearchTerms = 'NCR,CAR,Printable Certificate,Non Conformance';
+    AdditionalSearchTerms = 'NCR,CAR';
 
     dataset
     {

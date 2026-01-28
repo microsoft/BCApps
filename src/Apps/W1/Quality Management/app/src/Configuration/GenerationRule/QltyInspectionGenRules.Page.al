@@ -18,7 +18,6 @@ page 20405 "Qlty. Inspection Gen. Rules"
     SourceTable = "Qlty. Inspection Gen. Rule";
     PopulateAllFields = true;
     SourceTableView = sorting("Sort Order", Intent);
-    AdditionalSearchTerms = 'Assignments, Test Generation Parameters, Test Creation Criteria, Inspection Template Test Conditions, Quality Control Test Specification, Test Generation Guidelines, Test Triggering Parameters,Inspection Generation Rules';
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
     AboutTitle = 'Quality Inspection Generation Rule';

@@ -21,7 +21,6 @@ page 20402 "Qlty. Inspection Template"
     PageType = Card;
     RefreshOnActivate = true;
     SourceTable = "Qlty. Inspection Template Hdr.";
-    AdditionalSearchTerms = 'Test Plan,Quality Inspection,design an inspection,quality inspection template,questions,types of tests,template,quality inspector template,quality template,certificate design,SOP,standard operating procedures';
     AboutTitle = 'Quality Inspection Template';
     AboutText = 'A Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
     PromotedActionCategories = 'New,Process,Report';
