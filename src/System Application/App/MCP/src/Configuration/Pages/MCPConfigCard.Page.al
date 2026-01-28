@@ -112,6 +112,7 @@ page 8351 "MCP Config Card"
                 Caption = 'Copy';
                 ToolTip = 'Creates a copy of the current MCP configuration, including its tools and permissions.';
                 Image = Copy;
+                AccessByPermission = tabledata "MCP Configuration" = IM;
 
                 trigger OnAction()
                 begin
