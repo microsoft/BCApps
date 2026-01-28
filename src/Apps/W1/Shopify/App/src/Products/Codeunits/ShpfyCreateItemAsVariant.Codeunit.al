@@ -91,9 +91,6 @@ codeunit 30343 "Shpfy Create Item As Variant"
 
         Options := ProductApi.GetProductOptions(ShopifyProduct.Id);
 
-        OptionId := CommunicationMgt.GetIdOfGId(Options.Keys.Get(1));
-        OptionName := Options.Values.Get(1);
-
         if ProductItem.GetBySystemId(ShopifyProduct."Item SystemId") then
             ProductExport.GetItemAttributeIDsMarkedAsOption(ProductItem, ItemAttributeIds);
 
@@ -102,6 +99,9 @@ codeunit 30343 "Shpfy Create Item As Variant"
                 Error(MultipleOptionsErr);
         end else
             VerifyProductOptionsMatchesItemAttributes(Options, ProductItem);
+
+        OptionId := CommunicationMgt.GetIdOfGId(Options.Keys.Get(1));
+        OptionName := Options.Values.Get(1);
     end;
 
     /// <summary>
