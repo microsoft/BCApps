@@ -8,8 +8,10 @@ namespace System.Agents;
 using System.Security.AccessControl;
 
 #pragma warning disable AS0125
+#pragma warning disable AS0030
 page 4320 "View Agent Access Control"
 {
+#pragma warning restore AS0030
 #pragma warning restore AS0125
 
     Caption = 'Agent Access Control';
