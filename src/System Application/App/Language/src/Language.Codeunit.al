@@ -341,5 +341,16 @@ codeunit 43 Language
     internal procedure OnGetUserLanguageCode(var UserLanguageCode: Code[10]; var Handled: Boolean)
     begin
     end;
+
+    /// <summary>
+    /// Integration event, emitted from <see cref="GetLanguageIdOrDefault"/>.
+    /// Subscribe to this event to change the default behavior by changing the provided parameter(s).
+    /// </summary>
+    /// <seealso cref="GetLanguageIdOrDefault"/>
+    /// <param name="Default LanguageCode">Exit parameter that holds the user language code.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnGetLanguageIdOrDefault(var DefaultLanguageCode: Code[10])
+    begin
+    end;
 }
 
