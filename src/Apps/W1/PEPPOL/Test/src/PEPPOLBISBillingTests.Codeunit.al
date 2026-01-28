@@ -1765,11 +1765,28 @@ codeunit 139236 "PEPPOL BIS BillingTests"
 
     local procedure CreateCustomerWithAddressAndVATRegNo(): Code[20]
     var
+        CountryRegion: Record "Country/Region";
+        ShipToAddress: Record "Ship-to Address";
         Customer: Record Customer;
     begin
         LibrarySales.CreateCustomerWithAddress(Customer);
-        Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo(Customer."Country/Region Code");
+
+        ShipToAddress."Customer No." := Customer."No.";
+        ShipToAddress.Code := LibraryUtility.GenerateRandomCode(ShipToAddress.FieldNo(Code), DATABASE::"Ship-to Address");
+        ShipToAddress.Address := Customer.Address;
+        ShipToAddress.City := Customer.City;
+        ShipToAddress."Post Code" := Customer."Post Code";
+        ShipToAddress."Country/Region Code" := Customer."Country/Region Code";
+        ShipToAddress.Validate(Name, Customer.Name);
+        if ShipToAddress.Insert() then;
+
+        // Generate VAT Registration No. with country ISO prefix to match PEPPOL BIS formatting expectations
+        if CountryRegion.Get(Customer."Country/Region Code") and (CountryRegion."ISO Code" <> '') then
+            Customer."VAT Registration No." := CountryRegion."ISO Code" + LibraryUtility.GenerateGUID()
+        else
+            Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo(Customer."Country/Region Code");
         Customer."Use GLN in Electronic Document" := true;
+        Customer."Ship-to Code" := ShipToAddress.Code;
         Customer.Modify();
         exit(Customer."No.");
     end;
