@@ -493,6 +493,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         MockTextSalesCrMemoLine(SalesCrMemoHeader."No.");
 
         // [WHEN] Export Sales Credit Memo with PEPPOL BIS3
+        SetShipToAddressOnCreditMemo(SalesCrMemoHeader);
         SalesCrMemoHeader.SetRecFilter();
         PEPPOLXMLExportToBlob(SalesCrMemoHeader, CreateBISElectronicDocumentFormatSalesCrMemo(), TempBlob);
 
@@ -532,6 +533,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         SalesCrMemoHeader.Modify();
 
         // [WHEN] Export Sales Credit Memo with PEPPOL BIS3
+        SetShipToAddressOnCreditMemo(SalesCrMemoHeader);
         SalesCrMemoHeader.SetRecFilter();
         PEPPOLXMLExportToBlob(SalesCrMemoHeader, CreateBISElectronicDocumentFormatSalesCrMemo(), TempBlob);
 
@@ -566,6 +568,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
           CreatePostSalesDoc(CreateCustomerWithAddressAndVATRegNo(), SalesHeader."Document Type"::"Credit Memo"));
 
         // [WHEN] Export Sales Credit Memo with PEPPOL BIS3
+        SetShipToAddressOnCreditMemo(SalesCrMemoHeader);
         SalesCrMemoHeader.SetRecFilter();
         PEPPOLXMLExportToBlob(SalesCrMemoHeader, CreateBISElectronicDocumentFormatSalesCrMemo(), TempBlob);
 
@@ -604,6 +607,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
           CreatePostSalesDoc(CreateCustomerWithAddressAndVATRegNo(), SalesHeader."Document Type"::"Credit Memo"));
 
         // [WHEN] Export Sales Credit Memo with PEPPOL BIS3
+        SetShipToAddressOnCreditMemo(SalesCrMemoHeader);
         SalesCrMemoHeader.SetRecFilter();
         PEPPOLXMLExportToBlob(SalesCrMemoHeader, CreateBISElectronicDocumentFormatSalesCrMemo(), TempBlob);
 
@@ -637,6 +641,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
             CreateCustomerWithAddressAndGLN(), SalesHeader."Document Type"::"Credit Memo", GetTaxCategoryS(), LibraryRandom.RandIntInRange(10, 20)));
 
         // [WHEN] Export Sales Credit Memo with PEPPOL BIS3
+        SetShipToAddressOnCreditMemo(SalesCrMemoHeader);
         SalesCrMemoHeader.SetRecFilter();
         PEPPOLXMLExportToBlob(SalesCrMemoHeader, CreateBISElectronicDocumentFormatSalesCrMemo(), TempBlob);
 
@@ -667,6 +672,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
           CreatePostSalesDocWithTaxCategory(CreateCustomerWithAddressAndGLN(), SalesHeader."Document Type"::"Credit Memo", GetTaxCategoryE(), 0));
 
         // [WHEN] Export Sales Credit Memo with PEPPOL BIS3
+        SetShipToAddressOnCreditMemo(SalesCrMemoHeader);
         SalesCrMemoHeader.SetRecFilter();
         PEPPOLXMLExportToBlob(SalesCrMemoHeader, CreateBISElectronicDocumentFormatSalesCrMemo(), TempBlob);
 
@@ -696,6 +702,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
           CreatePostSalesDocWithTaxCategory(CreateCustomerWithAddressAndGLN(), SalesHeader."Document Type"::"Credit Memo", GetTaxCategoryO(), 0));
 
         // [WHEN] Export Sales Credit Memo with PEPPOL BIS3
+        SetShipToAddressOnCreditMemo(SalesCrMemoHeader);
         SalesCrMemoHeader.SetRecFilter();
         PEPPOLXMLExportToBlob(SalesCrMemoHeader, CreateBISElectronicDocumentFormatSalesCrMemo(), TempBlob);
 
@@ -728,6 +735,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
           CreatePostSalesDocWithTaxCategory(CreateCustomerWithAddressAndGLN(), SalesHeader."Document Type"::"Credit Memo", GetTaxCategoryZ(), 0));
 
         // [WHEN] Export Sales Credit Memo with PEPPOL BIS3
+        SetShipToAddressOnCreditMemo(SalesCrMemoHeader);
         SalesCrMemoHeader.SetRecFilter();
         PEPPOLXMLExportToBlob(SalesCrMemoHeader, CreateBISElectronicDocumentFormatSalesCrMemo(), TempBlob);
 
@@ -758,6 +766,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
             LibraryRandom.RandIntInRange(10, 20)));
 
         // [WHEN] Export Sales Credit Memo with PEPPOL BIS3
+        SetShipToAddressOnCreditMemo(SalesCrMemoHeader);
         SalesCrMemoHeader.SetRecFilter();
         PEPPOLXMLExportToBlob(SalesCrMemoHeader, CreateBISElectronicDocumentFormatSalesCrMemo(), TempBlob);
 
@@ -788,6 +797,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
             CreateCustomerWithAddressAndGLN(), SalesHeader."Document Type"::"Credit Memo", GetTaxCategoryG(), 0));
 
         // [WHEN] Export Sales Credit Memo with PEPPOL BIS3
+        SetShipToAddressOnCreditMemo(SalesCrMemoHeader);
         SalesCrMemoHeader.SetRecFilter();
         PEPPOLXMLExportToBlob(SalesCrMemoHeader, CreateBISElectronicDocumentFormatSalesCrMemo(), TempBlob);
 
@@ -819,6 +829,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
             LibraryRandom.RandIntInRange(10, 20)));
 
         // [WHEN] Export Sales Credit Memo with PEPPOL BIS3
+        SetShipToAddressOnCreditMemo(SalesCrMemoHeader);
         SalesCrMemoHeader.SetRecFilter();
         PEPPOLXMLExportToBlob(SalesCrMemoHeader, CreateBISElectronicDocumentFormatSalesCrMemo(), TempBlob);
 
@@ -846,6 +857,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
             CreateCustomerWithAddressAndGLN(), SalesHeader."Document Type"::"Credit Memo", GetTaxCategoryM(), LibraryRandom.RandIntInRange(10, 20)));
 
         // [WHEN] Export Sales Credit Memo with PEPPOL BIS3
+        SetShipToAddressOnCreditMemo(SalesCrMemoHeader);
         SalesCrMemoHeader.SetRecFilter();
         PEPPOLXMLExportToBlob(SalesCrMemoHeader, CreateBISElectronicDocumentFormatSalesCrMemo(), TempBlob);
 
@@ -873,6 +885,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
             CreateCustomerWithAddressAndVATRegNo(), SalesHeader."Document Type"::"Credit Memo", GetTaxCategoryK(), 0));
 
         // [WHEN] Export Sales Credit Memo with PEPPOL BIS3
+        SetShipToAddressOnCreditMemo(SalesCrMemoHeader);
         SalesCrMemoHeader.SetRecFilter();
         PEPPOLXMLExportToBlob(SalesCrMemoHeader, CreateBISElectronicDocumentFormatSalesCrMemo(), TempBlob);
 
@@ -935,8 +948,10 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         Customer.Get(ServiceCrMemoHeader."Customer No.");
 
         // [WHEN] Export Service Credit Memo with PEPPOL BIS3
+        SetShipToAddressOnCreditMemo(ServiceCrMemoHeader);
         ServiceCrMemoHeader.SetRecFilter();
         PEPPOLXMLExportToBlob(ServiceCrMemoHeader, CreateBISElectronicDocumentFormatServiceCrMemo(), TempBlob);
+
 
         // [THEN] <AccountingCustomerParty> has <ID> = '1234567890123' with <SchemeID> = '0088'
         // [THEN] <OrderReference> is not exported
@@ -999,6 +1014,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         SalesCrMemoHeader.Modify();
 
         // [WHEN] Export Sales Credit Memo with PEPPOL BIS3
+        SetShipToAddressOnCreditMemo(SalesCrMemoHeader);
         SalesCrMemoHeader.SetRecFilter();
         PEPPOLXMLExportToBlob(SalesCrMemoHeader, CreateBISElectronicDocumentFormatSalesCrMemo(), TempBlob);
 
@@ -1063,6 +1079,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         SalesCrMemoHeader.Modify();
 
         // [WHEN] Export Sales Credit Memo with PEPPOL BIS3
+        SetShipToAddressOnCreditMemo(SalesCrMemoHeader);
         SalesCrMemoHeader.SetRecFilter();
         PEPPOLXMLExportToBlob(SalesCrMemoHeader, CreateBISElectronicDocumentFormatSalesCrMemo(), TempBlob);
 
@@ -1113,6 +1130,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         Customer.Get(ServiceCrMemoHeader."Customer No.");
 
         // [WHEN] Export Service Credit Memo with PEPPOL BIS3
+        SetShipToAddressOnCreditMemo(ServiceCrMemoHeader);
         ServiceCrMemoHeader.SetRecFilter();
         PEPPOLXMLExportToBlob(ServiceCrMemoHeader, CreateBISElectronicDocumentFormatServiceCrMemo(), TempBlob);
 
@@ -1284,6 +1302,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         SalesCrMemoHeader.CalcFields("Amount Including VAT");
 
         // [WHEN] Export Sales Credit Memo with PEPPOL BIS3
+        SetShipToAddressOnCreditMemo(SalesCrMemoHeader);
         SalesCrMemoHeader.SetRecFilter();
         PEPPOLXMLExportToBlob(SalesCrMemoHeader, CreateBISElectronicDocumentFormatSalesCrMemo(), TempBlob);
 
@@ -2109,5 +2128,39 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         LibraryXPathXMLReader.SetDefaultNamespaceUsage(false);
         LibraryXPathXMLReader.AddAdditionalNamespace('cac', 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
         LibraryXPathXMLReader.AddAdditionalNamespace('cbc', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+    end;
+
+    local procedure SetShipToAddressOnCreditMemo(var SalesCrMemoHeader: Record "Sales Cr.Memo Header")
+    var
+        Customer: Record Customer;
+        ShipToAddress: Record "Ship-to Address";
+    begin
+        Customer.Get(SalesCrMemoHeader."Sell-to Customer No.");
+        if ShipToAddress.Get(Customer."No.", Customer."Ship-to Code") then begin
+            SalesCrMemoHeader."Ship-to Code" := ShipToAddress.Code;
+            SalesCrMemoHeader."Ship-to Name" := ShipToAddress.Name;
+            SalesCrMemoHeader."Ship-to Address" := ShipToAddress.Address;
+            SalesCrMemoHeader."Ship-to City" := ShipToAddress.City;
+            SalesCrMemoHeader."Ship-to Post Code" := ShipToAddress."Post Code";
+            SalesCrMemoHeader."Ship-to Country/Region Code" := ShipToAddress."Country/Region Code";
+            SalesCrMemoHeader.Modify();
+        end;
+    end;
+
+    local procedure SetShipToAddressOnCreditMemo(var ServiceCrMemoHeader: Record "Service Cr.Memo Header")
+    var
+        Customer: Record Customer;
+        ShipToAddress: Record "Ship-to Address";
+    begin
+        Customer.Get(ServiceCrMemoHeader."Customer No.");
+        if ShipToAddress.Get(Customer."No.", Customer."Ship-to Code") then begin
+            ServiceCrMemoHeader."Ship-to Code" := ShipToAddress.Code;
+            ServiceCrMemoHeader."Ship-to Name" := ShipToAddress.Name;
+            ServiceCrMemoHeader."Ship-to Address" := ShipToAddress.Address;
+            ServiceCrMemoHeader."Ship-to City" := ShipToAddress.City;
+            ServiceCrMemoHeader."Ship-to Post Code" := ShipToAddress."Post Code";
+            ServiceCrMemoHeader."Ship-to Country/Region Code" := ShipToAddress."Country/Region Code";
+            ServiceCrMemoHeader.Modify();
+        end;
     end;
 }
