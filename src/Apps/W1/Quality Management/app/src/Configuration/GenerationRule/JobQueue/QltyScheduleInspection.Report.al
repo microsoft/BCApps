@@ -48,7 +48,7 @@ report 20412 "Qlty. Schedule Inspection"
                 {
                     Caption = 'Warning';
                     Visible = ShowWarningIfCreateInspection;
-                    InstructionalText = 'On your Quality Management Setup page you have the Create Inspection Behavior set to a setting that will cause inspections to be created whenever this report is run even if there are already inspections for that item and lot. Make sure this is compatible with the scenario you are solving.';
+                    InstructionalText = 'On your Quality Management Setup page you have the Inspection Creation Option set to a setting that will cause inspections to be created whenever this report is run even if there are already inspections for that item and lot. Make sure this is compatible with the scenario you are solving.';
 
                     field(ChooseOpenQualityManagementSetup; 'Click here to open the Quality Management Setup page.')
                     {
@@ -58,7 +58,7 @@ report 20412 "Qlty. Schedule Inspection"
                         trigger OnDrillDown()
                         begin
                             QltyManagementSetup.Get();
-                            Page.RunModal(Page::"Qlty. Management Setup", QltyManagementSetup, QltyManagementSetup.FieldNo("Create Inspection Behavior"));
+                            Page.RunModal(Page::"Qlty. Management Setup", QltyManagementSetup, QltyManagementSetup.FieldNo("Inspection Creation Option"));
                         end;
                     }
                 }
@@ -78,7 +78,7 @@ report 20412 "Qlty. Schedule Inspection"
     trigger OnInitReport()
     begin
         QltyManagementSetup.Get();
-        if QltyManagementSetup."Create Inspection Behavior" in [QltyManagementSetup."Create Inspection Behavior"::"Always create new inspection", QltyManagementSetup."Create Inspection Behavior"::"Always create re-inspection"] then
+        if QltyManagementSetup."Inspection Creation Option" in [QltyManagementSetup."Inspection Creation Option"::"Always create new inspection", QltyManagementSetup."Inspection Creation Option"::"Always create re-inspection"] then
             ShowWarningIfCreateInspection := true;
     end;
 
