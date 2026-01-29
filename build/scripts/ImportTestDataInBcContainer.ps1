@@ -45,12 +45,15 @@ function Invoke-DemoDataGeneration
         [string]$TestType
     )
     if ($TestType -eq "UnitTest") {
+        New-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
         Write-Host "UnitTest shouldn't have dependency on any Demo Data, skipping demo data generation"
         return
     } elseif( $TestType -eq "IntegrationTest" ) {
+        New-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
         Write-Host "Proceeding with demo data generation (SetupData) as test type is set to IntegrationTest"
         Invoke-ContosoDemoTool -ContainerName $ContainerName -SetupData
     } elseif( $TestType -eq "Uncategorized" ) {
+        New-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName) -EvaluationCompany
         Write-Host "Proceeding with full demo data generation as test type is set to Uncategorized"
         Invoke-ContosoDemoTool -ContainerName $ContainerName
     } else {
@@ -98,13 +101,10 @@ foreach ($app in (Get-BcContainerAppInfo -containerName $ContainerName -tenantSp
     Write-Host "App: $($app.Name) ($($app.Version)) - Scope: $($app.Scope) - $($app.IsInstalled) / $($app.IsPublished)"
 }
 
-$testType = Get-ALGoSetting -Key "testType"
-if ($testType -eq "Uncategorized") {
-    Write-Host "Creating evaluation test company"
-    New-TestCompany -ContainerName $parameters.ContainerName -CompanyName (Get-TestCompanyName) -EvaluationCompany
-} else {
-    Write-Host "Creating standard test company"
-    New-TestCompany -ContainerName $parameters.ContainerName -CompanyName (Get-TestCompanyName)
+try {
+    Invoke-DemoDataGeneration -ContainerName $parameters.ContainerName -TestType (Get-ALGoSetting -Key "testType")
+} catch {
+    Write-Host "An error occurred during demo data generation: $($_.Exception.Message)"
+    Write-Host "Trying again..."
+    Invoke-DemoDataGeneration -ContainerName $parameters.ContainerName -TestType (Get-ALGoSetting -Key "testType")
 }
-
-Invoke-DemoDataGeneration -ContainerName $parameters.ContainerName -TestType (Get-ALGoSetting -Key "testType")
