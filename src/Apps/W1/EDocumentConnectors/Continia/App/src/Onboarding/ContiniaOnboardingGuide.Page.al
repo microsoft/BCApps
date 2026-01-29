@@ -1014,7 +1014,7 @@ page 6393 "Continia Onboarding Guide"
         OnboardingHelper.GetCurrentActivatedProfiles(TempParticipation, TempActivatedProfiles);
 
         CurrPage.SelectProfilesPeppol.Page.ClearProfileSelections();
-        CurrPage.SelectProfilesPeppol.Page.SetCurrentNetwork(TempParticipation.Network);
+        CurrPage.SelectProfilesPeppol.Page.SetCurrentParticipation(TempParticipation);
         CurrPage.SelectProfilesPeppol.Page.SetProfileSelection(TempActivatedProfiles);
     end;
 
@@ -1069,7 +1069,7 @@ page 6393 "Continia Onboarding Guide"
         TempActivatedProfiles.DeleteAll();
 
         GetSelectedNetworksProfiles(TempActivatedProfiles);
-        CurrPage.SelectProfilesPeppol.Page.SetCurrentNetwork(TempParticipation.Network);
+        CurrPage.SelectProfilesPeppol.Page.SetCurrentParticipation(TempParticipation);
         CurrPage.SelectProfilesPeppol.Page.ClearProfileSelections();
         CurrPage.SelectProfilesPeppol.Page.SetProfileSelection(TempActivatedProfiles);
     end;
