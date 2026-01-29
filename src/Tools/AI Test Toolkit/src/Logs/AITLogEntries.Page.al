@@ -7,7 +7,7 @@ namespace System.TestTools.AITestToolkit;
 
 page 149033 "AIT Log Entries"
 {
-    Caption = 'AI Log Entries';
+    Caption = 'AI Eval Log Entries';
     PageType = List;
     ApplicationArea = All;
     Editable = false;
@@ -102,7 +102,7 @@ page 149033 "AIT Log Entries"
                 field("Input Text"; InputText)
                 {
                     Caption = 'Input';
-                    ToolTip = 'Specifies the test input of the test.';
+                    ToolTip = 'Specifies the test input of the eval.';
 
                     trigger OnDrillDown()
                     begin
@@ -111,8 +111,8 @@ page 149033 "AIT Log Entries"
                 }
                 field("Output Text"; OutputText)
                 {
-                    Caption = 'Test Output';
-                    ToolTip = 'Specifies the test output of the test.';
+                    Caption = 'Eval Output';
+                    ToolTip = 'Specifies the eval output of the eval.';
 
                     trigger OnDrillDown()
                     begin
@@ -125,24 +125,24 @@ page 149033 "AIT Log Entries"
                 field(TestRunDuration; TestRunDuration)
                 {
                     Caption = 'Duration';
-                    ToolTip = 'Specifies the duration of the iteration.';
+                    ToolTip = 'Specifies the duration of the eval.';
                 }
                 field(StartTime; Format(Rec."Start Time", 0, '<Year4>-<Month,2>-<Day,2> <Hours24>:<Minutes,2>:<Seconds,2><Second dec.>'))
                 {
                     Caption = 'Start Time';
-                    ToolTip = 'Specifies the start time of the test.';
+                    ToolTip = 'Specifies the start time of the eval.';
                     Visible = false;
                 }
                 field(EndTime; Format(Rec."End Time", 0, '<Year4>-<Month,2>-<Day,2> <Hours24>:<Minutes,2>:<Seconds,2><Second dec.>'))
                 {
                     Caption = 'End Time';
-                    ToolTip = 'Specifies the end time of the test.';
+                    ToolTip = 'Specifies the end time of the eval.';
                     Visible = false;
                 }
                 field(Message; ErrorMessage)
                 {
                     Caption = 'Error Message';
-                    ToolTip = 'Specifies the error message from the test.';
+                    ToolTip = 'Specifies the error message from the eval.';
                     Style = Unfavorable;
 
                     trigger OnDrillDown()
@@ -249,9 +249,9 @@ page 149033 "AIT Log Entries"
             }
             action("Download Test Output")
             {
-                Caption = 'Download Test Output';
+                Caption = 'Download Eval Output';
                 Image = Download;
-                ToolTip = 'Download the test output.';
+                ToolTip = 'Download the eval output.';
 
                 trigger OnAction()
                 var
@@ -262,9 +262,9 @@ page 149033 "AIT Log Entries"
             }
             action("View Test Data")
             {
-                Caption = 'View Test Data';
+                Caption = 'View Eval Data';
                 Image = CompareCOA;
-                ToolTip = 'View Test Data.';
+                ToolTip = 'View Eval Data.';
 
                 trigger OnAction()
                 begin
@@ -273,9 +273,9 @@ page 149033 "AIT Log Entries"
             }
             action("Download Test Summary")
             {
-                Caption = 'Download Test Summary';
+                Caption = 'Download Eval Summary';
                 Image = Export;
-                ToolTip = 'Downloads a summary of the test results.';
+                ToolTip = 'Downloads a summary of the eval results.';
 
                 trigger OnAction()
                 var
@@ -287,9 +287,9 @@ page 149033 "AIT Log Entries"
 
             action(RerunTest)
             {
-                Caption = 'Rerun test';
+                Caption = 'Rerun eval';
                 Image = Redo;
-                ToolTip = 'Rerun the test for the selected line.';
+                ToolTip = 'Rerun the eval for the selected line.';
 
                 trigger OnAction()
                 var
@@ -341,7 +341,7 @@ page 149033 "AIT Log Entries"
     }
 
     var
-        ClickToShowLbl: Label 'Show data input';
+        ClickToShowLbl: Label 'Show eval input';
         DoYouWantToDeleteQst: Label 'Do you want to delete all entries within the filter?';
         InputText: Text;
         TurnsText: Text;
