@@ -278,7 +278,7 @@ codeunit 6140 "E-Doc. Import"
                 EDocErrorHelper.LogWarningMessage(EDocument, EDocument2, EDocument2.FieldNo("Incoming E-Document No."), DocAlreadyExistsMsg);
 
             if EDocService."Validate Receiving Company" then
-                EDocImportHelper.ValidateReceivingCompanyInfo(EDocument, EDocService.Code);
+                EDocImportHelper.ValidateReceivingCompanyInfo(EDocument, EDocService);
         end else
             EDocErrorHelper.LogSimpleErrorMessage(EDocument, GetLastErrorText());
 

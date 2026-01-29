@@ -258,18 +258,28 @@ codeunit 6109 "E-Document Import Helper"
 
     /// <summary>
     /// Use it to check if receiving company information is in line with Company Information.
+    /// Also checks if the Receiving Company Id matches a Company Service Participant.
     /// </summary>
     /// <param name="EDocument">The E-Document record.</param>
-    /// <param name="ServiceCode">The E-Document Service code to match against.</param>
-    procedure ValidateReceivingCompanyInfo(EDocument: Record "E-Document"; ServiceCode: Code[20])
+    /// <param name="EDocService">The E-Document Service record to match against.</param>
+    procedure ValidateReceivingCompanyInfo(EDocument: Record "E-Document"; EDocService: Record "E-Document Service")
+    begin
+        // First, check if the Receiving Company Id matches a Company Service Participant
+        if MatchCompanyByServiceParticipant(EDocument, EDocService) then
+            exit;
+
+        ValidateReceivingCompanyInfo(EDocument);
+    end;
+
+    /// <summary>
+    /// Use it to check if receiving company information is in line with Company Information.
+    /// </summary>
+    /// <param name="EDocument">The E-Document record.</param>
+    procedure ValidateReceivingCompanyInfo(EDocument: Record "E-Document")
     var
         CompanyInformation: Record "Company Information";
     begin
         CompanyInformation.Get();
-
-        // First, check if the Receiving Company Id matches a Company Service Participant
-        if MatchCompanyByServiceParticipant(EDocument, ServiceCode) then
-            exit;
 
         if (EDocument."Receiving Company GLN" = '') and (EDocument."Receiving Company VAT Reg. No." = '') then begin
             ValidateReceivingCompanyInfoByNameAndAddress(EDocument);
@@ -290,9 +300,9 @@ codeunit 6109 "E-Document Import Helper"
     /// Use it to check if receiving company information matches a Company Service Participant for a specific service.
     /// </summary>
     /// <param name="EDocument">The E-Document record.</param>
-    /// <param name="ServiceCode">The E-Document Service code to match against.</param>
+    /// <param name="EDocService">The E-Document Service record to match against.</param>
     /// <returns>True if a matching Company Service Participant is found.</returns>
-    local procedure MatchCompanyByServiceParticipant(EDocument: Record "E-Document"; ServiceCode: Code[20]): Boolean
+    local procedure MatchCompanyByServiceParticipant(EDocument: Record "E-Document"; EDocService: Record "E-Document Service"): Boolean
     var
         ServiceParticipant: Record "Service Participant";
     begin
@@ -301,7 +311,7 @@ codeunit 6109 "E-Document Import Helper"
 
         ServiceParticipant.SetRange("Participant Type", ServiceParticipant."Participant Type"::Company);
         ServiceParticipant.SetRange("Participant Identifier", EDocument."Receiving Company Id");
-        ServiceParticipant.SetRange(Service, ServiceCode);
+        ServiceParticipant.SetRange(Service, EDocService.Code);
         exit(ServiceParticipant.FindFirst());
     end;
 
