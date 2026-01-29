@@ -12,7 +12,7 @@ page 4303 "Agent Task Log Entry List"
     PageType = List;
     ApplicationArea = All;
     SourceTable = "Agent Task Log Entry";
-    Caption = 'Agent Task Log (Preview)';
+    Caption = 'Agent Task Log';
     InsertAllowed = false;
     ModifyAllowed = false;
     DeleteAllowed = false;
