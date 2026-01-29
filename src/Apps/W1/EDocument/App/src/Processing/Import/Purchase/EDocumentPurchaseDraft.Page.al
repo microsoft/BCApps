@@ -618,6 +618,18 @@ page 6181 "E-Document Purchase Draft"
             EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare draft";
             EDocImport.ProcessIncomingEDocument(Rec, EDocImportParameters);
             Rec.Get(Rec."Entry No");
+            Rec.CalcFields("Import Processing Status");
+            if Rec."Import Processing Status" <> Enum::"Import E-Doc. Proc. Status"::"Draft Ready" then begin
+                // Draft preparation failed, show errors to user
+                if EDocumentErrorHelper.HasErrors(Rec) then begin
+                    ErrorMessage.SetRange("Context Record ID", Rec.RecordId);
+                    ErrorMessage.CopyToTemp(TempErrorMessage);
+                    Commit();
+                    TempErrorMessage.ThrowError();
+                end;
+                CurrPage.Update();
+                exit;
+            end;
         end;
 
         EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
