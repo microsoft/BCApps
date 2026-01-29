@@ -9,13 +9,8 @@ namespace Microsoft.QualityManagement.Utilities;
 /// </summary>
 page 20441 "Qlty. Edit Large Text"
 {
-    PageType = Card;
+    PageType = StandardDialog;
     Caption = 'Quality Edit Large Text';
-    UsageCategory = None;
-    DataCaptionExpression = '';
-    DeleteAllowed = false;
-    InsertAllowed = false;
-    Extensible = true;
     ApplicationArea = QualityManagement;
 
     layout
@@ -31,7 +26,7 @@ page 20441 "Qlty. Edit Large Text"
                 {
                     Caption = 'HTML';
                     ShowCaption = false;
-                    ToolTip = 'Change the text.';
+                    ToolTip = 'Specifies the text to be displayed.';
                     MultiLine = true;
                 }
             }
