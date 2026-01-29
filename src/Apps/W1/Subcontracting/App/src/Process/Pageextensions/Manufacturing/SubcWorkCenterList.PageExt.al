@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,13 +24,13 @@ pageextension 99001507 "Subc. Work Center List" extends "Work Center List"
                     ToolTip = 'Set up different prices for the work center and vendor in subcontracting.';
                     trigger OnAction()
                     var
-                        SubcontractorPrices: Record "Subcontractor Price";
-                        SubcPriceForm: Page "Subcontractor Prices";
+                        SubcontractorPrice: Record "Subcontractor Price";
+                        SubcontractorPrices: Page "Subcontractor Prices";
                     begin
                         if Rec."Subcontractor No." <> '' then begin
-                            SubcontractorPrices.SetRange("Work Center No.", Rec."No.");
-                            SubcPriceForm.SetTableView(SubcontractorPrices);
-                            SubcPriceForm.RunModal();
+                            SubcontractorPrice.SetRange("Work Center No.", Rec."No.");
+                            SubcontractorPrices.SetTableView(SubcontractorPrice);
+                            SubcontractorPrices.RunModal();
                         end;
                     end;
                 }

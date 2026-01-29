@@ -14,7 +14,6 @@ report 20411 "Qlty. Create Purchase Return"
 {
     ApplicationArea = PurchReturnOrder;
     Caption = 'Quality Management - Create Purchase Return Order';
-    AdditionalSearchTerms = 'purchase return order, vendor return, damaged item, defective';
     UsageCategory = Tasks;
     ProcessingOnly = true;
     AllowScheduling = false;

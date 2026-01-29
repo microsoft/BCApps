@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,7 +20,7 @@ codeunit 99001507 "Subc. Factbox Mgmt."
     procedure ShowProductionOrder(RecRelatedVariant: Variant)
     var
         ProductionOrder: Record "Production Order";
-        RelProdOrderPage: Page "Released Production Order";
+        ReleasedProductionOrder: Page "Released Production Order";
         OperationNo: Code[10];
         ProdOrderNo: Code[20];
         RoutingNo: Code[20];
@@ -30,15 +30,15 @@ codeunit 99001507 "Subc. Factbox Mgmt."
             exit;
         ProductionOrder.SetRange(Status, ProductionOrder.Status::Released);
         ProductionOrder.SetRange("No.", ProdOrderNo);
-        RelProdOrderPage.SetTableView(ProductionOrder);
-        RelProdOrderPage.Editable := false;
-        RelProdOrderPage.Run();
+        ReleasedProductionOrder.SetTableView(ProductionOrder);
+        ReleasedProductionOrder.Editable := false;
+        ReleasedProductionOrder.Run();
     end;
 
     procedure ShowProductionOrderRouting(RecRelatedVariant: Variant)
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
-        ProdOrdRoutPage: Page "Prod. Order Routing";
+        ProdOrderRouting: Page "Prod. Order Routing";
         OperationNo: Code[10];
         ProdOrderNo: Code[20];
         RoutingNo: Code[20];
@@ -52,9 +52,9 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         ProdOrderRoutingLine.SetRange("Routing No.", RoutingNo);
         ProdOrderRoutingLine.SetRange("Operation No.", OperationNo);
         ProdOrderRoutingLine.FindFirst();
-        ProdOrdRoutPage.SetTableView(ProdOrderRoutingLine);
-        ProdOrdRoutPage.Editable := false;
-        ProdOrdRoutPage.Run();
+        ProdOrderRouting.SetTableView(ProdOrderRoutingLine);
+        ProdOrderRouting.Editable := false;
+        ProdOrderRouting.Run();
     end;
 
     procedure CalcNoOfProductionOrderRoutings(RecRelatedVariant: Variant): Integer
@@ -75,7 +75,7 @@ codeunit 99001507 "Subc. Factbox Mgmt."
 
     procedure ShowProductionOrderComponents(RecRelatedVariant: Variant)
     var
-        ProdOrdComp: Record "Prod. Order Component";
+        ProdOrderComponent: Record "Prod. Order Component";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PageManagement: Codeunit "Page Management";
         OperationNo: Code[10];
@@ -91,17 +91,17 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         ProdOrderRoutingLine.SetRange("Routing No.", RoutingNo);
         ProdOrderRoutingLine.SetRange("Operation No.", OperationNo);
         if ProdOrderRoutingLine.FindFirst() then
-            ProdOrdComp.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
+            ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
 
-        ProdOrdComp.SetRange(Status, ProdOrdComp.Status::Released);
-        ProdOrdComp.SetRange("Prod. Order No.", ProdOrderNo);
-        ProdOrdComp.SetRange("Prod. Order Line No.", ProdOrderLineNo);
-        PageManagement.PageRun(ProdOrdComp);
+        ProdOrderComponent.SetRange(Status, ProdOrderComponent.Status::Released);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderNo);
+        ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLineNo);
+        PageManagement.PageRun(ProdOrderComponent);
     end;
 
     procedure CalcNoOfProductionOrderComponents(RecRelatedVariant: Variant): Integer
     var
-        ProdOrdComp: Record "Prod. Order Component";
+        ProdOrderComponent: Record "Prod. Order Component";
         OperationNo: Code[10];
         ProdOrderNo: Code[20];
         RoutingNo: Code[20];
@@ -110,10 +110,10 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         if not SetProdOrderInformationByVariant(RecRelatedVariant, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo) then
             exit(0);
 
-        ProdOrdComp.SetRange(Status, ProdOrdComp.Status::Released);
-        ProdOrdComp.SetRange("Prod. Order No.", ProdOrderNo);
-        ProdOrdComp.SetRange("Prod. Order Line No.", ProdOrderLineNo);
-        exit(ProdOrdComp.Count());
+        ProdOrderComponent.SetRange(Status, ProdOrderComponent.Status::Released);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderNo);
+        ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLineNo);
+        exit(ProdOrderComponent.Count());
     end;
 
     procedure ShowPurchaseOrder(RecRelatedVariant: Variant)
@@ -236,16 +236,16 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         PurchInvLine: Record "Purch. Inv. Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         TransferLine: Record "Transfer Line";
-        TransferRcptLine: Record "Transfer Receipt Line";
-        TransferShptLine: Record "Transfer Shipment Line";
-        DataTypeMgmt: Codeunit "Data Type Management";
+        TransferReceiptLine: Record "Transfer Receipt Line";
+        TransferShipmentLine: Record "Transfer Shipment Line";
+        DataTypeManagement: Codeunit "Data Type Management";
         ResultRecordRef: RecordRef;
         RecId: RecordId;
     begin
         if not RecRelatedVariant.IsRecord() then
             exit(false);
 
-        DataTypeMgmt.GetRecordRef(RecRelatedVariant, ResultRecordRef);
+        DataTypeManagement.GetRecordRef(RecRelatedVariant, ResultRecordRef);
 
         RecId := ResultRecordRef.RecordId();
 
@@ -287,19 +287,19 @@ codeunit 99001507 "Subc. Factbox Mgmt."
                 end;
             Database::"Transfer Shipment Line":
                 begin
-                    ResultRecordRef.SetTable(TransferShptLine);
-                    ProdOrderNo := TransferShptLine."Prod. Order No.";
-                    ProdOrderLineNo := TransferShptLine."Prod. Order Line No.";
-                    RoutingNo := TransferShptLine."Routing No.";
-                    OperationNo := TransferShptLine."Operation No.";
+                    ResultRecordRef.SetTable(TransferShipmentLine);
+                    ProdOrderNo := TransferShipmentLine."Prod. Order No.";
+                    ProdOrderLineNo := TransferShipmentLine."Prod. Order Line No.";
+                    RoutingNo := TransferShipmentLine."Routing No.";
+                    OperationNo := TransferShipmentLine."Operation No.";
                 end;
             Database::"Transfer Receipt Line":
                 begin
-                    ResultRecordRef.SetTable(TransferRcptLine);
-                    ProdOrderNo := TransferRcptLine."Prod. Order No.";
-                    ProdOrderLineNo := TransferRcptLine."Prod. Order Line No.";
-                    RoutingNo := TransferRcptLine."Routing No.";
-                    OperationNo := TransferRcptLine."Operation No.";
+                    ResultRecordRef.SetTable(TransferReceiptLine);
+                    ProdOrderNo := TransferReceiptLine."Prod. Order No.";
+                    ProdOrderLineNo := TransferReceiptLine."Prod. Order Line No.";
+                    RoutingNo := TransferReceiptLine."Routing No.";
+                    OperationNo := TransferReceiptLine."Operation No.";
                 end;
         end;
         exit((ProdOrderNo <> '') and (ProdOrderLineNo <> 0));
@@ -315,16 +315,16 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         PurchInvLine: Record "Purch. Inv. Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         TransferLine: Record "Transfer Line";
-        TransferRcptLine: Record "Transfer Receipt Line";
-        TransferShptLine: Record "Transfer Shipment Line";
-        DataTypeMgmt: Codeunit "Data Type Management";
+        TransferReceiptLine: Record "Transfer Receipt Line";
+        TransferShipmentLine: Record "Transfer Shipment Line";
+        DataTypeManagement: Codeunit "Data Type Management";
         ResultRecordRef: RecordRef;
         RecId: RecordId;
     begin
         if not RecRelatedVariant.IsRecord() then
             exit(false);
 
-        DataTypeMgmt.GetRecordRef(RecRelatedVariant, ResultRecordRef);
+        DataTypeManagement.GetRecordRef(RecRelatedVariant, ResultRecordRef);
 
         RecId := ResultRecordRef.RecordId();
         if RecId.TableNo() = 0 then
@@ -357,15 +357,15 @@ codeunit 99001507 "Subc. Factbox Mgmt."
                 end;
             Database::"Transfer Shipment Line":
                 begin
-                    ResultRecordRef.SetTable(TransferShptLine);
-                    PurchOrderNo := TransferShptLine."Subcontr. Purch. Order No.";
-                    PurchOrderLineNo := TransferShptLine."Subcontr. PO Line No.";
+                    ResultRecordRef.SetTable(TransferShipmentLine);
+                    PurchOrderNo := TransferShipmentLine."Subcontr. Purch. Order No.";
+                    PurchOrderLineNo := TransferShipmentLine."Subcontr. PO Line No.";
                 end;
             Database::"Transfer Receipt Line":
                 begin
-                    ResultRecordRef.SetTable(TransferRcptLine);
-                    PurchOrderNo := TransferRcptLine."Subcontr. Purch. Order No.";
-                    PurchOrderLineNo := TransferRcptLine."Subcontr. PO Line No.";
+                    ResultRecordRef.SetTable(TransferReceiptLine);
+                    PurchOrderNo := TransferReceiptLine."Subcontr. Purch. Order No.";
+                    PurchOrderLineNo := TransferReceiptLine."Subcontr. PO Line No.";
                 end;
             Database::"Item Ledger Entry":
                 begin
@@ -542,7 +542,7 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         PurchInvLine: Record "Purch. Inv. Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         TransferLine: Record "Transfer Line";
-        DataTypeMgmt: Codeunit "Data Type Management";
+        DataTypeManagement: Codeunit "Data Type Management";
         ResultRecordRef: RecordRef;
         RecId: RecordId;
         ProdOperation: Code[10];
@@ -553,7 +553,7 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         if not RecRelatedVariant.IsRecord() then
             exit(false);
 
-        DataTypeMgmt.GetRecordRef(RecRelatedVariant, ResultRecordRef);
+        DataTypeManagement.GetRecordRef(RecRelatedVariant, ResultRecordRef);
 
         RecId := ResultRecordRef.RecordId();
         if RecId.TableNo() = 0 then
@@ -610,14 +610,14 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         TempTransferHeader: Record "Transfer Header" temporary;
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
-        DataTypeMgmt: Codeunit "Data Type Management";
+        DataTypeManagement: Codeunit "Data Type Management";
         RecRef: RecordRef;
         NoTransferExistsTxt: Label 'No transfer order exists for this purchase order.';
     begin
         if not RecRelatedVariant.IsRecord() then
             exit(0);
 
-        DataTypeMgmt.GetRecordRef(RecRelatedVariant, RecRef);
+        DataTypeManagement.GetRecordRef(RecRelatedVariant, RecRef);
 
         case RecRef.Number() of
             Database::"Prod. Order Component":
@@ -858,10 +858,10 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         ProdOrderRoutingLine.FindFirst();
     end;
 
-    procedure CalcNoOfPurchasePrices(var PurchLine: Record "Purchase Line"): Integer
+    procedure CalcNoOfPurchasePrices(var PurchaseLine: Record "Purchase Line"): Integer
     begin
-        if IsItemLine(PurchLine) then
-            exit(CountPriceOnPurchItemLine(PurchLine));
+        if IsItemLine(PurchaseLine) then
+            exit(CountPriceOnPurchItemLine(PurchaseLine));
     end;
 
     local procedure CountPriceOnPurchItemLine(PurchaseLine: Record "Purchase Line"): Decimal
@@ -873,9 +873,9 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         exit(SubcontractorPrice.Count());
     end;
 
-    local procedure IsItemLine(PurchLine: Record "Purchase Line"): Boolean
+    local procedure IsItemLine(PurchaseLine: Record "Purchase Line"): Boolean
     begin
-        if (PurchLine.Type <> PurchLine.Type::Item) or (PurchLine."No." = '') then
+        if (PurchaseLine.Type <> PurchaseLine.Type::Item) or (PurchaseLine."No." = '') then
             exit(false);
         exit(true);
     end;

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -17,7 +17,7 @@ page 99001502 "Subc. Routing Info Factbox"
     {
         area(Content)
         {
-            field(ShowSubcontractor; SubcontractingFactboxMgmt.GetSubcontractorNo(Rec))
+            field(ShowSubcontractor; SubcFactboxMgmt.GetSubcontractorNo(Rec))
             {
                 Caption = 'Subcontractor';
                 ToolTip = 'Specifies the assigned Subcontractor No. of this Prod. Order Routing Line.';
@@ -26,7 +26,7 @@ page 99001502 "Subc. Routing Info Factbox"
                     ShowSubcontractorFromRouting();
                 end;
             }
-            field(ShowQtyInSubcontractingOrder; SubcontractingFactboxMgmt.GetPurchOrderQtyFromRoutingLine(Rec))
+            field(ShowQtyInSubcontractingOrder; SubcFactboxMgmt.GetPurchOrderQtyFromRoutingLine(Rec))
             {
                 AutoFormatType = 0;
                 Caption = 'Order Quantity';
@@ -37,7 +37,7 @@ page 99001502 "Subc. Routing Info Factbox"
                     ShowPurchaseOrders();
                 end;
             }
-            field(ShowQtyShippedRequest; SubcontractingFactboxMgmt.GetPurchReceiptQtyFromRoutingLine(Rec))
+            field(ShowQtyShippedRequest; SubcFactboxMgmt.GetPurchReceiptQtyFromRoutingLine(Rec))
             {
                 AutoFormatType = 0;
                 Caption = 'Quantity received';
@@ -48,7 +48,7 @@ page 99001502 "Subc. Routing Info Factbox"
                     ShowPurchaseReceipts();
                 end;
             }
-            field(ShowQtyInvoicedRequest; SubcontractingFactboxMgmt.GetPurchInvoicedQtyFromRoutingLine(Rec))
+            field(ShowQtyInvoicedRequest; SubcFactboxMgmt.GetPurchInvoicedQtyFromRoutingLine(Rec))
             {
                 AutoFormatType = 0;
                 Caption = 'Quantity invoiced';
@@ -59,7 +59,7 @@ page 99001502 "Subc. Routing Info Factbox"
                     ShowPurchaseInvoices();
                 end;
             }
-            field(ShowNoOfTransferOrdersFromProdOrderComp; SubcontractingFactboxMgmt.GetNoOfTransferLinesFromRouting(Rec))
+            field(ShowNoOfTransferOrdersFromProdOrderComp; SubcFactboxMgmt.GetNoOfTransferLinesFromRouting(Rec))
             {
                 AutoFormatType = 0;
                 Caption = 'Transfer Order Lines';
@@ -68,10 +68,10 @@ page 99001502 "Subc. Routing Info Factbox"
                 trigger OnDrillDown()
                 var
                 begin
-                    SubcontractingFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
+                    SubcFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
                 end;
             }
-            field(ShowNoOfReturnTransferOrdersFromProdOrderComp; SubcontractingFactboxMgmt.GetNoOfReturnTransferLinesFromRouting(Rec))
+            field(ShowNoOfReturnTransferOrdersFromProdOrderComp; SubcFactboxMgmt.GetNoOfReturnTransferLinesFromRouting(Rec))
             {
                 AutoFormatType = 0;
                 Caption = 'Return Transfer Order Lines';
@@ -80,10 +80,10 @@ page 99001502 "Subc. Routing Info Factbox"
                 trigger OnDrillDown()
                 var
                 begin
-                    SubcontractingFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, true);
+                    SubcFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, true);
                 end;
             }
-            field(ShowNoOfLinkedComp; SubcontractingFactboxMgmt.GetNoOfLinkedComponentsFromRouting(Rec))
+            field(ShowNoOfLinkedComp; SubcFactboxMgmt.GetNoOfLinkedComponentsFromRouting(Rec))
             {
                 AutoFormatType = 0;
                 Caption = 'Components';
@@ -99,29 +99,29 @@ page 99001502 "Subc. Routing Info Factbox"
     }
     local procedure ShowSubcontractorFromRouting()
     begin
-        SubcontractingFactboxMgmt.ShowSubcontractor(Rec);
+        SubcFactboxMgmt.ShowSubcontractor(Rec);
     end;
 
     local procedure ShowPurchaseOrders()
     begin
-        SubcontractingFactboxMgmt.ShowPurchaseOrderLinesFromRouting(Rec);
+        SubcFactboxMgmt.ShowPurchaseOrderLinesFromRouting(Rec);
     end;
 
     local procedure ShowPurchaseReceipts()
     begin
-        SubcontractingFactboxMgmt.ShowPurchaseReceiptLinesFromRouting(Rec);
+        SubcFactboxMgmt.ShowPurchaseReceiptLinesFromRouting(Rec);
     end;
 
     local procedure ShowPurchaseInvoices()
     begin
-        SubcontractingFactboxMgmt.ShowPurchaseInvoiceLinesFromRouting(Rec);
+        SubcFactboxMgmt.ShowPurchaseInvoiceLinesFromRouting(Rec);
     end;
 
     local procedure ShowProdOrderComponents()
     begin
-        SubcontractingFactboxMgmt.ShowProdOrderComponents(Rec);
+        SubcFactboxMgmt.ShowProdOrderComponents(Rec);
     end;
 
     var
-        SubcontractingFactboxMgmt: Codeunit "Subc. Factbox Mgmt.";
+        SubcFactboxMgmt: Codeunit "Subc. Factbox Mgmt.";
 }

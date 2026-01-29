@@ -48,7 +48,7 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
         TempInstructionQltyDispositionBuffer."Disposition Action" := TempInstructionQltyDispositionBuffer."Disposition Action"::"Move with Movement Worksheet";
         QltyManagementSetup.Get();
         MovementWorksheetTemplateName := QltyManagementSetup.GetMovementWorksheetTemplateName();
-        if QltyManagementSetup."Whse. Wksh. Name" = '' then
+        if QltyManagementSetup."Movement Worksheet Name" = '' then
             Error(MissingBinMoveBatchErr);
 
         if TempInstructionQltyDispositionBuffer."Location Filter" = '' then
@@ -74,7 +74,7 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
             CreateWarehouseWorksheetLine(
                 QltyInspectionHeader,
                 MovementWorksheetTemplateName,
-                QltyManagementSetup."Whse. Wksh. Name",
+                QltyManagementSetup."Movement Worksheet Name",
                 TempQuantityToActQltyDispositionBuffer.GetFromLocationCode(),
                 TempQuantityToActQltyDispositionBuffer.GetFromBinCode(),
                 TempQuantityToActQltyDispositionBuffer."New Bin Code",
@@ -84,12 +84,12 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
             DidSomething := DidSomething or MovementLineCreated;
 
             if (MovementLineCreated and (TempInstructionQltyDispositionBuffer."Entry Behavior" = TempInstructionQltyDispositionBuffer."Entry Behavior"::"Prepare only")) then
-                QltyNotificationMgmt.NotifyMovementOccurred(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Whse. Wksh. Name");
+                QltyNotificationMgmt.NotifyMovementOccurred(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Movement Worksheet Name");
 
         until TempQuantityToActQltyDispositionBuffer.Next() = 0;
 
         if (DidSomething and (TempInstructionQltyDispositionBuffer."Entry Behavior" = TempInstructionQltyDispositionBuffer."Entry Behavior"::Post)) then
-            CreatedDocumentNo := CreateMovementFromMovementWorksheetLines(QltyInspectionHeader, MovementWorksheetTemplateName, QltyManagementSetup."Whse. Wksh. Name", FromLocation.Code);
+            CreatedDocumentNo := CreateMovementFromMovementWorksheetLines(QltyInspectionHeader, MovementWorksheetTemplateName, QltyManagementSetup."Movement Worksheet Name", FromLocation.Code);
 
         if CreatedDocumentNo <> '' then
             if CreatedWarehouseActivityHeader.Get(CreatedWarehouseActivityHeader.Type::Movement, CreatedDocumentNo) then

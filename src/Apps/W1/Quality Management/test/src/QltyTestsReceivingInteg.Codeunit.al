@@ -74,7 +74,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
         // [GIVEN] The generation rule is set to trigger on purchase order receive
-        QltyInspectionGenRule."Purchase Trigger" := QltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderPostReceive;
+        QltyInspectionGenRule."Purchase Order Trigger" := QltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive;
         QltyInspectionGenRule.Modify();
 
         BeforeCount := QltyInspectionHeader.Count();
@@ -132,7 +132,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
         // [GIVEN] The generation rule is set to trigger on purchase order receive
-        QltyInspectionGenRule."Purchase Trigger" := QltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderPostReceive;
+        QltyInspectionGenRule."Purchase Order Trigger" := QltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive;
         QltyInspectionGenRule.Modify();
 
         BeforeCount := QltyInspectionHeader.Count();
@@ -188,7 +188,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
         // [GIVEN] The generation rule is set to trigger on warehouse receipt post
-        QltyInspectionGenRule."Warehouse Receive Trigger" := QltyInspectionGenRule."Warehouse Receive Trigger"::OnWarehouseReceiptPost;
+        QltyInspectionGenRule."Warehouse Receipt Trigger" := QltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptPost;
         QltyInspectionGenRule.Modify();
 
         BeforeCount := QltyInspectionHeader.Count();
@@ -246,7 +246,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
         // [GIVEN] The generation rule is set to trigger on warehouse receipt create
-        QltyInspectionGenRule."Warehouse Receive Trigger" := QltyInspectionGenRule."Warehouse Receive Trigger"::OnWarehouseReceiptCreate;
+        QltyInspectionGenRule."Warehouse Receipt Trigger" := QltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate;
         QltyInspectionGenRule.Modify();
 
         BeforeCount := QltyInspectionHeader.Count();
@@ -303,7 +303,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
         // [GIVEN] The generation rule is set to trigger on warehouse receipt post
-        QltyInspectionGenRule."Warehouse Receive Trigger" := QltyInspectionGenRule."Warehouse Receive Trigger"::OnWarehouseReceiptPost;
+        QltyInspectionGenRule."Warehouse Receipt Trigger" := QltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptPost;
         QltyInspectionGenRule.Modify();
 
         BeforeCount := QltyInspectionHeader.Count();
@@ -359,7 +359,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
         // [GIVEN] The generation rule is set to trigger on warehouse receipt post
-        QltyInspectionGenRule."Warehouse Receive Trigger" := QltyInspectionGenRule."Warehouse Receive Trigger"::OnWarehouseReceiptPost;
+        QltyInspectionGenRule."Warehouse Receipt Trigger" := QltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptPost;
         QltyInspectionGenRule.Modify();
 
         BeforeCount := QltyInspectionHeader.Count();
@@ -417,7 +417,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
         // [GIVEN] The generation rule is set to trigger on warehouse receipt create
-        QltyInspectionGenRule."Warehouse Receive Trigger" := QltyInspectionGenRule."Warehouse Receive Trigger"::OnWarehouseReceiptCreate;
+        QltyInspectionGenRule."Warehouse Receipt Trigger" := QltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate;
         QltyInspectionGenRule.Modify();
 
         BeforeCount := QltyInspectionHeader.Count();
@@ -475,7 +475,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         LibraryPurchase.ReleasePurchaseDocument(PurOrderPurchaseHeader);
 
         // [GIVEN] The generation rule is set to trigger on warehouse receipt create
-        QltyInspectionGenRule."Warehouse Receive Trigger" := QltyInspectionGenRule."Warehouse Receive Trigger"::OnWarehouseReceiptCreate;
+        QltyInspectionGenRule."Warehouse Receipt Trigger" := QltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate;
         QltyInspectionGenRule.Modify();
 
         BeforeCount := QltyInspectionHeader.Count();
@@ -720,7 +720,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         LibraryWarehouse.ReleaseTransferOrder(OrderTransferHeader);
 
         // [GIVEN] The generation rule is set to trigger on transfer order receive post
-        QltyInspectionGenRule."Transfer Trigger" := QltyInspectionGenRule."Transfer Trigger"::OnTransferOrderPostReceive;
+        QltyInspectionGenRule."Transfer Order Trigger" := QltyInspectionGenRule."Transfer Order Trigger"::OnTransferOrderPostReceive;
         QltyInspectionGenRule.Modify();
 
         BeforeCount := QltyInspectionHeader.Count();
@@ -798,7 +798,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         LibraryWarehouse.ReleaseTransferOrder(OrderTransferHeader);
 
         // [GIVEN] The generation rule is set to trigger on transfer order receive post
-        QltyInspectionGenRule."Transfer Trigger" := QltyInspectionGenRule."Transfer Trigger"::OnTransferOrderPostReceive;
+        QltyInspectionGenRule."Transfer Order Trigger" := QltyInspectionGenRule."Transfer Order Trigger"::OnTransferOrderPostReceive;
         QltyInspectionGenRule.Modify();
 
         BeforeCount := QltyInspectionHeader.Count();
@@ -871,7 +871,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         LibraryWarehouse.ReleaseTransferOrder(OrderTransferHeader);
 
         // [GIVEN] The generation rule is set to trigger on transfer order receive post
-        QltyInspectionGenRule."Transfer Trigger" := QltyInspectionGenRule."Transfer Trigger"::OnTransferOrderPostReceive;
+        QltyInspectionGenRule."Transfer Order Trigger" := QltyInspectionGenRule."Transfer Order Trigger"::OnTransferOrderPostReceive;
         QltyInspectionGenRule.Modify();
 
         BeforeCount := QltyInspectionHeader.Count();
@@ -944,7 +944,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         LibraryWarehouse.ReleaseTransferOrder(OrderTransferHeader);
 
         // [GIVEN] The generation rule is set to trigger on transfer order receive post
-        QltyInspectionGenRule."Transfer Trigger" := QltyInspectionGenRule."Transfer Trigger"::OnTransferOrderPostReceive;
+        QltyInspectionGenRule."Transfer Order Trigger" := QltyInspectionGenRule."Transfer Order Trigger"::OnTransferOrderPostReceive;
         QltyInspectionGenRule.Modify();
 
         BeforeCount := QltyInspectionHeader.Count();
@@ -1006,7 +1006,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyManagementSetup.Get();
         LibraryWarehouse.CreateWhseJournalTemplate(WarehouseJournalTemplate, WarehouseJournalTemplate.Type::Reclassification);
         LibraryWarehouse.CreateWhseJournalBatch(WarehouseJournalBatch, WarehouseJournalTemplate.Name, Location.Code);
-        QltyManagementSetup."Bin Whse. Move Batch Name" := WarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Reclass. Batch Name" := WarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] A lot-tracked item is created with lot number series
@@ -1103,7 +1103,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyManagementSetup.Get();
         LibraryWarehouse.CreateWhseJournalTemplate(WarehouseJournalTemplate, WarehouseJournalTemplate.Type::Reclassification);
         LibraryWarehouse.CreateWhseJournalBatch(WarehouseJournalBatch, WarehouseJournalTemplate.Name, Location.Code);
-        QltyManagementSetup."Bin Whse. Move Batch Name" := WarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Reclass. Batch Name" := WarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] The generation rule is set to trigger on movement into bin and a lot-tracked item is created
@@ -1368,7 +1368,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         SecondReservationEntry.Insert();
 
         // [GIVEN] The generation rule is set to trigger on purchase order release
-        QltyInspectionGenRule."Purchase Trigger" := QltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderRelease;
+        QltyInspectionGenRule."Purchase Order Trigger" := QltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderRelease;
         QltyInspectionGenRule.Modify();
 
         BeforeCount := QltyInspectionHeader.Count();
@@ -1425,7 +1425,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         ReservationEntry.Delete();
 
         // [GIVEN] The generation rule is set to trigger on purchase order release
-        QltyInspectionGenRule."Purchase Trigger" := QltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderRelease;
+        QltyInspectionGenRule."Purchase Order Trigger" := QltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderRelease;
         QltyInspectionGenRule.Modify();
 
         BeforeCount := QltyInspectionHeader.Count();
@@ -1483,7 +1483,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
 
         // [GIVEN] The generation rule is set to trigger on purchase order release
-        QltyInspectionGenRule."Purchase Trigger" := QltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderRelease;
+        QltyInspectionGenRule."Purchase Order Trigger" := QltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderRelease;
         QltyInspectionGenRule.Modify();
 
         BeforeCount := QltyInspectionHeader.Count();
@@ -1533,7 +1533,7 @@ codeunit 139958 "Qlty. Tests - Receiving Integ."
 
         IWXOrdQltyPurOrderGenerator.CreatePurchaseOrder(2, Location, Item, Vendor, '', PurOrderPurchaseHeader, PurOrdPurchaseLine, ReservationEntry);
 
-        QltyInspectionGenRule."Purchase Trigger" := QltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderRelease;
+        QltyInspectionGenRule."Purchase Order Trigger" := QltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderRelease;
         QltyInspectionGenRule.Modify();
 
         BeforeCount := QltyInspectionHeader.Count();

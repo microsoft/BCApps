@@ -497,6 +497,5 @@ permissionset 30104 "Shpfy - Objects"
         page "Shpfy Tax Areas" = X,
         page "Shpfy Transaction Gateways" = X,
         page "Shpfy Transactions" = X,
-        page "Shpfy Variants" = X,
-        query "Shpfy Shipment Location" = X;
+        page "Shpfy Variants" = X;
 }

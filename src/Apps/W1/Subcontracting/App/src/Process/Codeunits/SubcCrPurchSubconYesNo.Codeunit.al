@@ -11,11 +11,10 @@ codeunit 99001509 "Subc. CrPurchSubcon(Yes/No)"
 {
     TableNo = "Purchase Line";
 
+    trigger OnRun()
     var
         PurchaseLine: Record "Purchase Line";
         NothingToCreateErr: Label 'There is nothing to create.';
-
-    trigger OnRun()
     begin
         if not Rec.Find() then
             Error(NothingToCreateErr);
@@ -29,34 +28,34 @@ codeunit 99001509 "Subc. CrPurchSubcon(Yes/No)"
         Rec := PurchaseLine;
     end;
 
-    local procedure CheckPurchaseLine(PurchLine: Record "Purchase Line")
+    local procedure CheckPurchaseLine(PurchaseLine: Record "Purchase Line")
     begin
-        PurchLine.TestField(Type, "Purchase Line Type"::Item);
-        PurchLine.TestField("Prod. Order No.", '');
-        PurchLine.TestField("Prod. Order Line No.", 0);
-        PurchLine.TestField("Qty. Assigned", 0);
-        PurchLine.TestField("Qty. Rcd. Not Invoiced", 0);
+        PurchaseLine.TestField(Type, "Purchase Line Type"::Item);
+        PurchaseLine.TestField("Prod. Order No.", '');
+        PurchaseLine.TestField("Prod. Order Line No.", 0);
+        PurchaseLine.TestField("Qty. Assigned", 0);
+        PurchaseLine.TestField("Qty. Rcd. Not Invoiced", 0);
 
-        PurchLine.TestStatusOpen();
+        PurchaseLine.TestStatusOpen();
     end;
 
-    local procedure CreateProductionOrderFromPurchaseLine(var PurchLine: Record "Purchase Line")
+    local procedure CreateProductionOrderFromPurchaseLine(var PurchaseLine: Record "Purchase Line")
     var
         HideDialog: Boolean;
     begin
         if not HideDialog then
-            if not ConfirmCreateProductionOrder(PurchLine) then
+            if not ConfirmCreateProductionOrder(PurchaseLine) then
                 exit;
 
-        Codeunit.Run(Codeunit::"Subc. Create Prod. Ord. Opt.", PurchLine);
+        Codeunit.Run(Codeunit::"Subc. Create Prod. Ord. Opt.", PurchaseLine);
     end;
 
-    local procedure ConfirmCreateProductionOrder(var PurchLine: Record "Purchase Line"): Boolean
+    local procedure ConfirmCreateProductionOrder(var PurchaseLine: Record "Purchase Line"): Boolean
     var
         ConfirmManagement: Codeunit "Confirm Management";
         PostConfirmQst: Label 'Do you want to create a production order from %1, %2 line no. %3?', Comment = '%1=Document Type, %2=Document No., %3=Line No.';
     begin
-        if not ConfirmManagement.GetResponse(StrSubstNo(PostConfirmQst, Format(PurchLine."Document Type"), PurchLine."Document No.", PurchLine."Line No."), true) then
+        if not ConfirmManagement.GetResponse(StrSubstNo(PostConfirmQst, Format(PurchaseLine."Document Type"), PurchaseLine."Document No.", PurchaseLine."Line No."), true) then
             exit(false);
 
         exit(true);

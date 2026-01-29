@@ -15,7 +15,7 @@ using Microsoft.Warehouse.Structure;
 
 page 20460 "Qlty. Whse. Gen. Rule Wizard"
 {
-    Caption = 'Quality Management - Warehouse Movement Quality Inspection Generation Rule Wizard';
+    Caption = 'Warehouse Movement Quality Inspection Rule Setup Guide';
     PageType = NavigatePage;
     UsageCategory = None;
     ApplicationArea = Warehouse;
@@ -45,7 +45,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
                 }
                 field(ChoosechooseTemplate; TemplateCode)
                 {
-                    Caption = 'Choose Template';
+                    Caption = 'Choose template';
                     ToolTip = 'Specifies which Quality Inspection template do you want to use?';
                     ShowMandatory = true;
 

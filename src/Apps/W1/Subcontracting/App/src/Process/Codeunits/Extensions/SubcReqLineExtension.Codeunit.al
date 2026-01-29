@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -11,9 +11,9 @@ codeunit 99001513 "Subc. Req.Line Extension"
     [EventSubscriber(ObjectType::Table, Database::"Requisition Line", OnAfterGetDirectCost, '', false, false)]
     local procedure OnAfterGetDirectCost(var RequisitionLine: Record "Requisition Line"; CalledByFieldNo: Integer)
     var
-        SubcontractingMgmt: Codeunit "Subcontracting Management";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
-        SubcontractingMgmt.UpdateSubcontractorPriceForRequisitionLine(RequisitionLine);
+        SubcontractingManagement.UpdateSubcontractorPriceForRequisitionLine(RequisitionLine);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Requisition Line", OnAfterValidateEvent, "Vendor No.", false, false)]

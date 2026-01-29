@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -135,9 +135,9 @@ report 99001500 "Subc. Detailed Calculation"
                 }
                 trigger OnAfterGetRecord()
                 var
-                    SubcPrices: Record "Subcontractor Price";
+                    SubcontractorPrice: Record "Subcontractor Price";
                     WorkCenter: Record "Work Center";
-                    SubcontractingPriceMgt: Codeunit "Subc. Price Management";
+                    SubcPriceManagement: Codeunit "Subc. Price Management";
                     UnitCostCalculationType: Enum "Unit Cost Calculation Type";
                 begin
                     ProdUnitCost := "Unit Cost per";
@@ -147,16 +147,16 @@ report 99001500 "Subc. Detailed Calculation"
                     if ("Routing Line".Type = "Routing Line".Type::"Work Center") and
                        (WorkCenter."Subcontractor No." <> '')
                     then begin
-                        SubcPrices."Vendor No." := WorkCenter."Subcontractor No.";
-                        SubcPrices."Item No." := Item."No.";
-                        SubcPrices."Standard Task Code" := "Routing Line"."Standard Task Code";
-                        SubcPrices."Work Center No." := WorkCenter."No.";
-                        SubcPrices."Variant Code" := '';
-                        SubcPrices."Unit of Measure Code" := Item."Base Unit of Measure";
-                        SubcPrices."Starting Date" := CalculateDate;
-                        SubcPrices."Currency Code" := '';
-                        SubcontractingPriceMgt.SetRoutingPriceListCost(
-                          SubcPrices,
+                        SubcontractorPrice."Vendor No." := WorkCenter."Subcontractor No.";
+                        SubcontractorPrice."Item No." := Item."No.";
+                        SubcontractorPrice."Standard Task Code" := "Routing Line"."Standard Task Code";
+                        SubcontractorPrice."Work Center No." := WorkCenter."No.";
+                        SubcontractorPrice."Variant Code" := '';
+                        SubcontractorPrice."Unit of Measure Code" := Item."Base Unit of Measure";
+                        SubcontractorPrice."Starting Date" := CalculateDate;
+                        SubcontractorPrice."Currency Code" := '';
+                        SubcPriceManagement.SetRoutingPriceListCost(
+                          SubcontractorPrice,
                           WorkCenter,
                           DirectUnitCost,
                           IndirectCostPct,
@@ -167,7 +167,7 @@ report 99001500 "Subc. Detailed Calculation"
                           1,
                           1);
                     end else
-                        CostCalcMgt.CalcRoutingCostPerUnit(
+                        MfgCostCalculationMgt.CalcRoutingCostPerUnit(
                           Type,
                           "No.",
                           DirectUnitCost,
@@ -175,12 +175,12 @@ report 99001500 "Subc. Detailed Calculation"
                           OverheadRate, ProdUnitCost, UnitCostCalculationType);
 
                     CostTime :=
-                      CostCalcMgt.CalculateCostTime(
-                        CostCalcMgt.CalcQtyAdjdForBOMScrap(Item."Lot Size", Item."Scrap %"),
+                      MfgCostCalculationMgt.CalculateCostTime(
+                        MfgCostCalculationMgt.CalcQtyAdjdForBOMScrap(Item."Lot Size", Item."Scrap %"),
                         "Setup Time", "Setup Time Unit of Meas. Code",
                         "Run Time", "Run Time Unit of Meas. Code", "Lot Size",
                         "Scrap Factor % (Accumulated)", "Fixed Scrap Qty. (Accum.)",
-                        "Work Center No.", UnitCostCalculationType, MfgSetup."Cost Incl. Setup",
+                        "Work Center No.", UnitCostCalculationType, ManufacturingSetup."Cost Incl. Setup",
                         "Concurrent Capacities") /
                       Item."Lot Size";
 
@@ -275,12 +275,12 @@ report 99001500 "Subc. Detailed Calculation"
 
                     if Level = 1 then
                         UOMFactor :=
-                          UOMMgt.GetQtyPerUnitOfMeasure(Item, VersionMgt.GetBOMUnitOfMeasure(PBOMNoList[Level], PBOMVersionCode[Level]))
+                          UnitofMeasureManagement.GetQtyPerUnitOfMeasure(Item, VersionManagement.GetBOMUnitOfMeasure(PBOMNoList[Level], PBOMVersionCode[Level]))
                     else
                         UOMFactor := 1;
 
                     CompItemQtyBase :=
-                      CostCalcMgt.CalcCompItemQtyBase(ProdBOMLine[Level], CalculateDate, Quantity[Level], Item."Routing No.", Level = 1) /
+                      MfgCostCalculationMgt.CalcCompItemQtyBase(ProdBOMLine[Level], CalculateDate, Quantity[Level], Item."Routing No.", Level = 1) /
                       UOMFactor;
 
                     case ProdBOMLine[Level].Type of
@@ -297,7 +297,7 @@ report 99001500 "Subc. Detailed Calculation"
                                 Clear(ProdBOMLine[NextLevel]);
                                 PBOMNoList[NextLevel] := ProdBOMLine[Level]."No.";
                                 PBOMVersionCode[NextLevel] :=
-                                  VersionMgt.GetBOMVersion(ProdBOMLine[Level]."No.", CalculateDate, false);
+                                  VersionManagement.GetBOMVersion(ProdBOMLine[Level]."No.", CalculateDate, false);
                                 ProdBOMLine[NextLevel].SetRange("Production BOM No.", PBOMNoList[NextLevel]);
                                 ProdBOMLine[NextLevel].SetRange("Version Code", PBOMVersionCode[NextLevel]);
                                 ProdBOMLine[NextLevel].SetFilter("Starting Date", '%1|..%2', 0D, CalculateDate);
@@ -321,7 +321,7 @@ report 99001500 "Subc. Detailed Calculation"
                     Clear(CostTotal);
                     Level := 1;
 
-                    ProdBOMHeader.Get(PBOMNoList[Level]);
+                    ProductionBOMHeader.Get(PBOMNoList[Level]);
 
                     Clear(ProdBOMLine);
                     ProdBOMLine[Level].SetRange("Production BOM No.", PBOMNoList[Level]);
@@ -329,7 +329,7 @@ report 99001500 "Subc. Detailed Calculation"
                     ProdBOMLine[Level].SetFilter("Starting Date", '%1|..%2', 0D, CalculateDate);
                     ProdBOMLine[Level].SetFilter("Ending Date", '%1|%2..', 0D, CalculateDate);
 
-                    Quantity[Level] := CostCalcMgt.CalcQtyAdjdForBOMScrap(Item."Lot Size", Item."Scrap %");
+                    Quantity[Level] := MfgCostCalculationMgt.CalcQtyAdjdForBOMScrap(Item."Lot Size", Item."Scrap %");
 
                     InBOM := true;
                 end;
@@ -394,10 +394,10 @@ report 99001500 "Subc. Detailed Calculation"
 
                 if "Production BOM No." <> '' then
                     PBOMVersionCode[1] :=
-                      VersionMgt.GetBOMVersion("Production BOM No.", CalculateDate, false);
+                      VersionManagement.GetBOMVersion("Production BOM No.", CalculateDate, false);
 
                 if "Routing No." <> '' then
-                    RtngVersionCode := VersionMgt.GetRtngVersion("Routing No.", CalculateDate, false);
+                    RtngVersionCode := VersionManagement.GetRtngVersion("Routing No.", CalculateDate, false);
 
                 SingleLevelMfgOvhd := Item."Single-Level Mfg. Ovhd Cost";
 
@@ -439,17 +439,17 @@ report 99001500 "Subc. Detailed Calculation"
     }
     trigger OnInitReport()
     begin
-        MfgSetup.Get();
+        ManufacturingSetup.Get();
     end;
 
     var
         CompItem: Record Item;
-        MfgSetup: Record "Manufacturing Setup";
-        ProdBOMHeader: Record "Production BOM Header";
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ProductionBOMHeader: Record "Production BOM Header";
         ProdBOMLine: array[99] of Record "Production BOM Line";
-        CostCalcMgt: Codeunit "Mfg. Cost Calculation Mgt.";
-        UOMMgt: Codeunit "Unit of Measure Management";
-        VersionMgt: Codeunit VersionManagement;
+        MfgCostCalculationMgt: Codeunit "Mfg. Cost Calculation Mgt.";
+        UnitofMeasureManagement: Codeunit "Unit of Measure Management";
+        VersionManagement: Codeunit VersionManagement;
         InBOM: Boolean;
         InRouting: Boolean;
         PBOMNoList: array[99] of Code[20];

@@ -12,19 +12,14 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
-using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
-using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.Sales.Document;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Ledger;
-using System.IO;
-using System.Utilities;
 
 /// <summary>
 /// Contains helper functions to use for automatic configuration.
@@ -34,7 +29,7 @@ codeunit 20402 "Qlty. Auto Configure"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         DefaultQltyInspectionNoSeriesTok: Label 'QltyDEFAULT', Locked = true;
-        DefaultQltyInspectionNoSeriesLabelTok: Label 'Quality Inspection Default', Locked = true;
+        DefaultQltyInspectionNoSeriesLabelTok: Label 'Quality Inspection Default';
         DefaultSeriesStartingNoTok: Label 'QI00000001', Locked = true;
         DefaultResult0InProgressCodeTok: Label 'INPROGRESS', Locked = true;
         DefaultResult0InProgressDescriptionTok: Label 'In Progress';
@@ -53,52 +48,51 @@ codeunit 20402 "Qlty. Auto Configure"
         DefaultResult2PassConditionBooleanTok: Label 'Yes', Locked = true;
         BasicDefaultRecordsConfiguredMsg: Label 'Basic default configuration records have been configured. If you have previously adjusted those defaults then they have not been replaced.';
         WarehouseEntryToInspectTok: Label 'WHSEENTRYTOINSPECT', Locked = true;
-        WarehouseEntryToInspectDescriptionTok: Label 'Warehouse Entry to Inspect', Locked = true;
+        WarehouseEntryToInspectDescriptionTok: Label 'Warehouse Entry to Inspect';
         WarehouseJournalToInspectTok: Label 'WHSEJNLTOINSPECT', Locked = true;
-        WarehouseJournalToInspectDescriptionTok: Label 'Warehouse Journal to Inspect', Locked = true;
+        WarehouseJournalToInspectDescriptionTok: Label 'Warehouse Journal to Inspect';
         SalesLineToTrackingTok: Label 'TRACKINGTOSALES', Locked = true;
-        SalesLineToTrackingDescriptionTok: Label 'Tracking Specification to Sales Line', Locked = true;
+        SalesLineToTrackingDescriptionTok: Label 'Tracking Specification to Sales Line';
         WhseReceiptToPurchLineTok: Label 'WRTOPURCH', Locked = true;
-        WhseReceiptToPurchLineDescriptionTok: Label 'Whse. Receipt to Purchase Line', Locked = true;
+        WhseReceiptToPurchLineDescriptionTok: Label 'Whse. Receipt to Purchase Line';
         ProdLineToTrackingTok: Label 'TRACKINGTOPROD', Locked = true;
-        ProdLineToTrackingDescriptionTok: Label 'Tracking Specification to Prod. Order Line', Locked = true;
+        ProdLineToTrackingDescriptionTok: Label 'Tracking Specification to Prod. Order Line';
         PurchLineToTrackingTok: Label 'TRACKINGTOPURCH', Locked = true;
-        PurchLineToTrackingDescriptionTok: Label 'Tracking Specification to Purchase Line', Locked = true;
+        PurchLineToTrackingDescriptionTok: Label 'Tracking Specification to Purchase Line';
         WhseReceiptToSalesLineTok: Label 'WRTOSALESRET', Locked = true;
-        WhseReceiptToSalesLineDescriptionTok: Label 'Whse. Receipt to Sales Return', Locked = true;
+        WhseReceiptToSalesLineDescriptionTok: Label 'Whse. Receipt to Sales Return';
         WhseJournalToPurchLineTok: Label 'WJNLTOPURCH', Locked = true;
-        WhseJournalToPurchLineDescriptionTok: Label 'Whse. Journal to Purchase Line', Locked = true;
+        WhseJournalToPurchLineDescriptionTok: Label 'Whse. Journal to Purchase Line';
         WhseJournalToSalesLineTok: Label 'WJNLTOSALES', Locked = true;
-        WhseJournalToSalesLineDescriptionTok: Label 'Whse. Journal to Sales Line', Locked = true;
+        WhseJournalToSalesLineDescriptionTok: Label 'Whse. Journal to Sales Line';
         TrackingSpecToInspectTok: Label 'TRACKINGSPEC', Locked = true;
-        TrackingSpecToInspectDescriptionTok: Label 'Tracking Specification to Inspect', Locked = true;
+        TrackingSpecToInspectDescriptionTok: Label 'Tracking Specification to Inspect';
         PurchLineToInspectTok: Label 'PURCHTOINSPECT', Locked = true;
-        PurchLineToInspectDescriptionTok: Label 'Purchase Line to Inspect', Locked = true;
+        PurchLineToInspectDescriptionTok: Label 'Purchase Line to Inspect';
         SalesLineToInspectTok: Label 'SALESTOINSPECT', Locked = true;
-        SalesLineToInspectDescriptionTok: Label 'Sales Order to Inspect', Locked = true;
+        SalesLineToInspectDescriptionTok: Label 'Sales Order to Inspect';
         SalesLineToInspectFilterTok: Label 'WHERE(Document Type=FILTER(Order),Type=FILTER(Item))', Locked = true;
         SalesReturnLineToInspectTok: Label 'SALESRETURNTOINSPECT', Locked = true;
-        SalesReturnLineToInspectDescriptionTok: Label 'Sales Return to Inspect', Locked = true;
+        SalesReturnLineToInspectDescriptionTok: Label 'Sales Return to Inspect';
         SalesReturnLineToInspectFilterTok: Label 'WHERE(Document Type=FILTER(Return Order),Type=FILTER(Item))', Locked = true;
         ProdJnlToInspectTok: Label 'PRODJNLTOINSPECT', Locked = true;
-        ProdJnlToInspectDescriptionTok: Label 'Production Output Journal to Inspect', Locked = true;
+        ProdJnlToInspectDescriptionTok: Label 'Production Output Journal to Inspect';
         LedgerToInspectTok: Label 'ITEMLDGEROUTTOINSPECT', Locked = true;
-        LedgerToInspectDescriptionTok: Label 'Output Item Ledger to Inspect', Locked = true;
+        LedgerToInspectDescriptionTok: Label 'Output Item Ledger to Inspect';
         RtngToItemJnlTok: Label 'ROUTINGLINETOITEMJNL', Locked = true;
-        RtngToItemJnlDescriptionTok: Label 'Prod. Routing Line to Item Journal Line', Locked = true;
+        RtngToItemJnlDescriptionTok: Label 'Prod. Routing Line to Item Journal Line';
         ProdLineToJnlTok: Label 'PRODLINETOITEMJNL', Locked = true;
-        ProdLineToJnlDescriptionTok: Label 'Prod. Order Line to Item Journal Line', Locked = true;
+        ProdLineToJnlDescriptionTok: Label 'Prod. Order Line to Item Journal Line';
         ProdLineToRoutingTok: Label 'PRODLINETOROUTING', Locked = true;
-        ProdLineToRoutingDescriptionTok: Label 'Prod. Order Line to Prod. Rtng.', Locked = true;
+        ProdLineToRoutingDescriptionTok: Label 'Prod. Order Line to Prod. Rtng.';
         InTransLineToInspectTok: Label 'TRANSFERRECEIPTTOINSPECT', Locked = true;
-        InTransLineToInspectDescriptionTok: Label 'Inbound Transfer Line to Inspect', Locked = true;
+        InTransLineToInspectDescriptionTok: Label 'Inbound Transfer Line to Inspect';
         ProdLineToLedgerTok: Label 'PRODLINETOITEMLEDGER', Locked = true;
-        ProdLineToLedgerDescriptionTok: Label 'Prod. Order Line to Item Ledger Entry.', Locked = true;
+        ProdLineToLedgerDescriptionTok: Label 'Prod. Order Line to Item Ledger Entry.';
         ProdRoutingToInspectTok: Label 'ROUTINGTOINSPECT', Locked = true;
-        ProdRoutingToInspectDescriptionTok: Label 'Prod. Order Routing Line to Inspect', Locked = true;
+        ProdRoutingToInspectDescriptionTok: Label 'Prod. Order Routing Line to Inspect';
         AssemblyOutputToInspectTok: Label 'ASSEMBLYOUTPUTTOINSPECT', Locked = true;
-        AssemblyOutputToInspectDescriptionTok: Label 'Posted Assembly Header to Inspect', Locked = true;
-        ResourceBasedInstallFileTok: Label 'InstallFiles/PackageQM-EXPRESSDEMO.rapidstart', Locked = true;
+        AssemblyOutputToInspectDescriptionTok: Label 'Posted Assembly Header to Inspect';
 
     internal procedure GetDefaultPassResult(): Text
     begin
@@ -1783,102 +1777,5 @@ codeunit 20402 "Qlty. Auto Configure"
             QltyInspectSrcFldConf."Priority Test" := QltyConfigTestPriority;
             QltyInspectSrcFldConf.Insert();
         end;
-    end;
-
-    /// <summary>
-    /// GuessDoesAppearToBeSetup will guess if the system appears to be setup.
-    /// Use this if you need to not just make sure that Quality Management is installed but some basic setup has been done.
-    /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
-    procedure GuessDoesAppearToBeSetup(): Boolean
-    var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyTest: Record "Qlty. Test";
-        QltyInspectionResult: Record "Qlty. Inspection Result";
-    begin
-        case true of
-            QltyInspectionGenRule.IsEmpty(),
-            QltyInspectionTemplateHdr.IsEmpty(),
-            QltyTest.IsEmpty(),
-            QltyInspectionResult.IsEmpty():
-                exit(false);
-        end;
-
-        exit(true);
-    end;
-
-    /// <summary>
-    /// GuessDoesAppearToBeUsed will guess if it's used.
-    /// Use this if you need to guess if the system is not just probably setup enough, but also appears to have actual usage.
-    /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
-    procedure GuessDoesAppearToBeUsed(): Boolean
-    var
-        QltyInspectionLine: Record "Qlty. Inspection Line";
-    begin
-        exit(QltyInspectionLine.Count() > 2);
-    end;
-
-    /// <summary>
-    /// Apply any settings files from the public endpoint
-    /// </summary>
-    /// <param name="CurrentCommit">Boolean.</param>
-    procedure ApplyGettingStartedData(CurrentCommit: Boolean)
-    begin
-        if CurrentCommit then
-            Commit();
-        ApplyConfigurationPackage();
-        if CurrentCommit then
-            Commit();
-    end;
-
-    /// <summary>
-    /// Apply the configuration package.
-    /// </summary>
-    procedure ApplyConfigurationPackage()
-    begin
-        ApplyConfigurationPackageFromResource(ResourceBasedInstallFileTok);
-        UpdateResultCategoryOnResultsInSystem();
-    end;
-
-    local procedure UpdateResultCategoryOnResultsInSystem()
-    var
-        QltyInspectionResult: Record "Qlty. Inspection Result";
-    begin
-        QltyInspectionResult.SetRange("Result Category", QltyInspectionResult."Result Category"::Uncategorized);
-        if QltyInspectionResult.FindSet(true) then
-            repeat
-                case QltyInspectionResult.Code of
-                    'PASS', 'GOOD', 'ACCEPTABLE':
-                        begin
-                            QltyInspectionResult."Result Category" := QltyInspectionResult."Result Category"::Acceptable;
-                            QltyInspectionResult.Modify(false);
-                        end;
-                    'FAIL', 'BAD', 'UNACCEPTABLE', 'ERROR', 'REJECT':
-                        begin
-                            QltyInspectionResult."Result Category" := QltyInspectionResult."Result Category"::"Not acceptable";
-                            QltyInspectionResult.Modify(false);
-                        end;
-                end;
-            until QltyInspectionResult.Next() = 0;
-    end;
-
-    /// <summary>
-    /// Apply the supplied configuration package.
-    /// </summary>
-    /// <param name="ResourcePath">reference to the internal resource location</param>
-    procedure ApplyConfigurationPackageFromResource(ResourcePath: Text)
-    var
-        TempBlob: Codeunit "Temp Blob";
-        ConfigPackageImport: Codeunit "Config. Package - Import";
-        InStreamFromResource: InStream;
-        OutStreamToConfigPackage: OutStream;
-    begin
-        TempBlob.CreateInStream(InStreamFromResource);
-        TempBlob.CreateOutStream(OutStreamToConfigPackage);
-        NavApp.GetResource(ResourcePath, InStreamFromResource);
-        CopyStream(OutStreamToConfigPackage, InStreamFromResource);
-        ConfigPackageImport.ImportAndApplyRapidStartPackageStream(TempBlob);
     end;
 }
