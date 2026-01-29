@@ -204,7 +204,8 @@ codeunit 30250 "Shpfy Returns API"
             ReturnLine."Order Line Id" := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JLine, 'fulfillmentLineItem.lineItem.id'));
             ReturnLine.Insert();
         end;
-        ReturnLine."Return Reason" := ReturnEnumConvertor.ConvertToReturnReason(JsonHelper.GetValueAsText(JLine, 'returnReason'));
+        ReturnLine."Return Reason Name" := CopyStr(JsonHelper.GetValueAsText(JLine, 'returnReasonDefinition.name'), 1, MaxStrLen(ReturnLine."Return Reason Name"));
+        ReturnLine."Return Reason Handle" := CopyStr(JsonHelper.GetValueAsText(JLine, 'returnReasonDefinition.handle'), 1, MaxStrLen(ReturnLine."Return Reason Handle"));
         // If item was restocked to multiple locations, we cannot determine the return location for the line
         if ReturnLocations.Get(ReturnLine."Order Line Id", ReturnLocation) then
             ReturnLine."Location Id" := ReturnLocation;
@@ -239,7 +240,8 @@ codeunit 30250 "Shpfy Returns API"
             ReturnLine.Type := ReturnLine.Type::Unverified;
             ReturnLine.Insert();
         end;
-        ReturnLine."Return Reason" := ReturnEnumConvertor.ConvertToReturnReason(JsonHelper.GetValueAsText(JLine, 'returnReason'));
+        ReturnLine."Return Reason Name" := CopyStr(JsonHelper.GetValueAsText(JLine, 'returnReasonDefinition.name'), 1, MaxStrLen(ReturnLine."Return Reason Name"));
+        ReturnLine."Return Reason Handle" := CopyStr(JsonHelper.GetValueAsText(JLine, 'returnReasonDefinition.handle'), 1, MaxStrLen(ReturnLine."Return Reason Handle"));
         ReturnLine.SetReturnReasonNote(JsonHelper.GetValueAsText(JLine, 'returnReasonNote'));
         ReturnLine.SetCustomerNote(JsonHelper.GetValueAsText(JLine, 'customerNote'));
 
