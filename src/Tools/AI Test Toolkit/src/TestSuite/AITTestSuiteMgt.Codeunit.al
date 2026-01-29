@@ -16,23 +16,23 @@ codeunit 149034 "AIT Test Suite Mgt."
 
     var
         GlobalAITTestSuite: Record "AIT Test Suite";
-        NoDatasetInLineErr: Label 'The dataset %1 specified for AI Test Line %2 does not exist.', Comment = '%1 is the Dataset name, %2 is AI Test Line No.';
-        NoInputsInLineErr: Label 'The dataset %1 specified for AI Test line %2 has no input lines.', Comment = '%1 is the Dataset name, %2 is the AI Test Line No.';
-        LanguageMismatchInLineErr: Label 'The dataset %1 specified for AI Test line %2 does not have inputs for language %3.', Comment = '%1 is the Dataset name, %2 is the AI Test Line No., %3 is the Language ID';
+        NoDatasetInLineErr: Label 'The dataset %1 specified for AI Eval Line %2 does not exist.', Comment = '%1 is the Dataset name, %2 is AI Eval Line No.';
+        NoInputsInLineErr: Label 'The dataset %1 specified for AI Eval line %2 has no input lines.', Comment = '%1 is the Dataset name, %2 is the AI Eval Line No.';
+        LanguageMismatchInLineErr: Label 'The dataset %1 specified for AI Eval line %2 does not have inputs for language %3.', Comment = '%1 is the Dataset name, %2 is the AI Eval Line No., %3 is the Language ID';
         ScenarioStarted: Dictionary of [Text, DateTime];
         ScenarioOutput: Dictionary of [Text, Text];
         ScenarioNotStartedErr: Label 'Scenario %1 in codeunit %2 was not started.', Comment = '%1 = method name, %2 = codeunit name';
-        NothingToRunErr: Label 'There is nothing to run. Please add test lines to the test suite.';
-        CannotRunMultipleSuitesInParallelErr: Label 'There is already a test run in progress. You need to wait for it to finish or cancel it before starting a new test run.';
-        FeatureNameLbl: Label 'AI Test Toolkit', Locked = true;
+        NothingToRunErr: Label 'There is nothing to run. Please add eval lines to the eval suite.';
+        CannotRunMultipleSuitesInParallelErr: Label 'There is already an eval run in progress. You need to wait for it to finish or cancel it before starting a new eval run.';
+        FeatureNameLbl: Label 'AI Eval Toolkit', Locked = true;
         LineNoFilterLbl: Label 'Codeunit %1 "%2" (Input: %3)', Locked = true;
         TurnsLbl: Label '%1/%2', Comment = '%1 - No. of turns that passed, %2 - Total no. of turns';
-        EmptyLogEntriesErr: Label 'Cannot download test summary as there is no log entries within the filter.';
-        DownloadResultsLbl: Label 'Download Test Summary';
-        SummaryFileNameLbl: Label '%1_Test_Summary.xlsx', Locked = true;
+        EmptyLogEntriesErr: Label 'Cannot download eval summary as there is no log entries within the filter.';
+        DownloadResultsLbl: Label 'Download Eval Summary';
+        SummaryFileNameLbl: Label '%1_Eval_Summary.xlsx', Locked = true;
         ConfirmCancelQst: Label 'This action will mark the run as Cancelled. Are you sure you want to continue?';
-        TestMethodLineNotFoundErr: Label 'The test suite %1 does not contain the test line %2. Run the suite again.', Comment = '%1 = test suite code, %2 = line number';
-        TestSuiteChangedErr: Label 'The test suite %1 has been changed since test line %2 was run. Run the suite again.', Comment = '%1 = test suite code, %2 = line number';
+        TestMethodLineNotFoundErr: Label 'The eval suite %1 does not contain the eval line %2. Run the suite again.', Comment = '%1 = eval suite code, %2 = line number';
+        TestSuiteChangedErr: Label 'The eval suite %1 has been changed since eval line %2 was run. Run the suite again.', Comment = '%1 = eval suite code, %2 = line number';
         NoEvaluatorsLbl: Label 'Configure...';
 
     procedure StartAITSuite(Iterations: Integer; var AITTestSuite: Record "AIT Test Suite")
