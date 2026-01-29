@@ -11,7 +11,7 @@ using Microsoft.QualityManagement.Setup;
 report 20412 "Qlty. Schedule Inspection"
 {
     Caption = 'Quality Management - Schedule Inspection';
-    AdditionalSearchTerms = 'Periodic inspections, scheduled inspections,schedule test,schedule inspection';
+    AdditionalSearchTerms = 'Periodic inspections';
     Description = 'This report is intended to be scheduled in the job queue to allow the ability to schedule inspections.';
     ProcessingOnly = true;
     ApplicationArea = QualityManagement;
