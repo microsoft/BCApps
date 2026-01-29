@@ -14,7 +14,6 @@ using Microsoft.QualityManagement.Document;
 page 20479 "Qlty. Test Card"
 {
     Caption = 'Quality Test';
-    AdditionalSearchTerms = 'Custom fields,field template,custom field template.';
     AboutTitle = 'Configure Available Tests';
     AboutText = 'This page lets you define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these tests in Quality Inspection Templates.';
     DeleteAllowed = false;

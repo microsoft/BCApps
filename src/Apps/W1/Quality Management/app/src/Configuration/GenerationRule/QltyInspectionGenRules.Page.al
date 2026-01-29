@@ -18,7 +18,6 @@ page 20405 "Qlty. Inspection Gen. Rules"
     SourceTable = "Qlty. Inspection Gen. Rule";
     PopulateAllFields = true;
     SourceTableView = sorting("Sort Order", Intent);
-    AdditionalSearchTerms = 'Assignments, Test Generation Parameters, Test Creation Criteria, Inspection Template Test Conditions, Quality Control Test Specification, Test Generation Guidelines, Test Triggering Parameters,Inspection Generation Rules';
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
     AboutTitle = 'Quality Inspection Generation Rule';
@@ -140,13 +139,13 @@ page 20405 "Qlty. Inspection Gen. Rules"
                     Editable = EditAssemblyTrigger;
                     StyleExpr = AssemblyStyle;
                 }
-                field("Production Trigger"; Rec."Production Trigger")
+                field("Production Order Trigger"; Rec."Production Order Trigger")
                 {
                     Visible = ShowProductionTrigger;
                     Editable = EditProductionTrigger;
                     StyleExpr = ProductionStyle;
                 }
-                field("Purchase Trigger"; Rec."Purchase Trigger")
+                field("Purchase Order Trigger"; Rec."Purchase Order Trigger")
                 {
                     Visible = ShowPurchaseTrigger;
                     Editable = EditPurchaseTrigger;
@@ -158,13 +157,13 @@ page 20405 "Qlty. Inspection Gen. Rules"
                     Editable = EditSalesReturnTrigger;
                     StyleExpr = SalesReturnStyle;
                 }
-                field("Transfer Trigger"; Rec."Transfer Trigger")
+                field("Transfer Order Trigger"; Rec."Transfer Order Trigger")
                 {
                     Visible = ShowTransferTrigger;
                     Editable = EditTransferTrigger;
                     StyleExpr = TransferStyle;
                 }
-                field("Warehouse Receive Trigger"; Rec."Warehouse Receive Trigger")
+                field("Warehouse Receipt Trigger"; Rec."Warehouse Receipt Trigger")
                 {
                     Visible = ShowWarehouseReceiveTrigger;
                     Editable = EditWarehouseReceiveTrigger;
@@ -651,15 +650,15 @@ page 20405 "Qlty. Inspection Gen. Rules"
             exit;
         if QltyManagementSetup."Assembly Trigger" <> QltyManagementSetup."Assembly Trigger"::NoTrigger then
             ShowAssemblyTrigger := true;
-        if QltyManagementSetup."Production Trigger" <> QltyManagementSetup."Production Trigger"::NoTrigger then
+        if QltyManagementSetup."Production Order Trigger" <> QltyManagementSetup."Production Order Trigger"::NoTrigger then
             ShowProductionTrigger := true;
-        if QltyManagementSetup."Purchase Trigger" <> QltyManagementSetup."Purchase Trigger"::NoTrigger then
+        if QltyManagementSetup."Purchase Order Trigger" <> QltyManagementSetup."Purchase Order Trigger"::NoTrigger then
             ShowPurchaseTrigger := true;
         if QltyManagementSetup."Sales Return Trigger" <> QltyManagementSetup."Sales Return Trigger"::NoTrigger then
             ShowSalesReturnTrigger := true;
-        if QltyManagementSetup."Transfer Trigger" <> QltyManagementSetup."Transfer Trigger"::NoTrigger then
+        if QltyManagementSetup."Transfer Order Trigger" <> QltyManagementSetup."Transfer Order Trigger"::NoTrigger then
             ShowTransferTrigger := true;
-        if QltyManagementSetup."Warehouse Receive Trigger" <> QltyManagementSetup."Warehouse Receive Trigger"::NoTrigger then
+        if QltyManagementSetup."Warehouse Receipt Trigger" <> QltyManagementSetup."Warehouse Receipt Trigger"::NoTrigger then
             ShowWarehouseReceiveTrigger := true;
         if QltyManagementSetup."Warehouse Trigger" <> QltyManagementSetup."Warehouse Trigger"::NoTrigger then
             ShowWarehouseMovementTrigger := true;

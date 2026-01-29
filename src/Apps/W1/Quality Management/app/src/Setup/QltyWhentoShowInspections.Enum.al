@@ -11,16 +11,16 @@ enum 20401 "Qlty. When to Show Inspections"
 {
     Caption = 'When to Show Inspections';
 
-    value(0; "Automatic and manually created inspections")
+    value(0; "Always")
     {
-        Caption = 'Automatic and manually created inspections';
+        Caption = 'Always';
     }
     value(1; "Only manually created inspections")
     {
         Caption = 'Only manually created inspections';
     }
-    value(2; "Do not show created inspections")
+    value(2; "Never")
     {
-        Caption = 'Do not show created inspections';
+        Caption = 'Never';
     }
 }
