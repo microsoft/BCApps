@@ -6,7 +6,7 @@ namespace Microsoft.DemoData.QualityManagement;
 
 using Microsoft.DemoTool.Helpers;
 
-codeunit 5218 "Create QM Insp. Template Line"
+codeunit 5597 "Create QM Insp. Template Line"
 {
     InherentEntitlements = X;
     InherentPermissions = X;

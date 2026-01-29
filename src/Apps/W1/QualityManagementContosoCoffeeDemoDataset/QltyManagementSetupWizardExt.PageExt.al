@@ -7,7 +7,7 @@ namespace Microsoft;
 using Microsoft.DemoTool;
 using Microsoft.QualityManagement.Setup.SetupWizard;
 
-pageextension 5800 QltyManagementSetupWizardExt extends "Qlty. Management Setup Wizard"
+pageextension 5713 QltyManagementSetupWizardExt extends "Qlty. Management Setup Wizard"
 {
     layout
     {

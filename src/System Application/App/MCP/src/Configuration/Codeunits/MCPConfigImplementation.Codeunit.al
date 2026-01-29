@@ -791,19 +791,37 @@ codeunit 8351 "MCP Config Implementation"
     var
         JsonBuilder: TextBuilder;
     begin
-        JsonBuilder.AppendLine('{');
-        JsonBuilder.AppendLine('  "' + MCPPrefix + '": {');
-        JsonBuilder.AppendLine('    "url": "' + MCPUrl + '",');
-        JsonBuilder.AppendLine('    "type": "http",');
-        JsonBuilder.AppendLine('    "headers": {');
-        JsonBuilder.AppendLine('      "TenantId": "' + TenantId + '",');
-        JsonBuilder.AppendLine('      "EnvironmentName": "' + EnvironmentName + '",');
-        JsonBuilder.AppendLine('      "Company": "' + Company + '",');
-        JsonBuilder.AppendLine('      "ConfigurationName": "' + ConfigurationName + '"');
-        JsonBuilder.AppendLine('    }');
+        JsonBuilder.AppendLine('"' + MCPPrefix + '": {');
+        JsonBuilder.AppendLine('  "url": "' + MCPUrl + '",');
+        JsonBuilder.AppendLine('  "type": "http",');
+        JsonBuilder.AppendLine('  "headers": {');
+        JsonBuilder.AppendLine('    "TenantId": "' + TenantId + '",');
+        JsonBuilder.AppendLine('    "EnvironmentName": "' + EnvironmentName + '",');
+        JsonBuilder.AppendLine('    "Company": "' + Company + '",');
+        JsonBuilder.AppendLine('    "ConfigurationName": "' + ConfigurationName + '"');
         JsonBuilder.AppendLine('  }');
         JsonBuilder.AppendLine('}');
         exit(JsonBuilder.ToText());
+    end;
+
+    internal procedure CreateEntraApplication(Name: Text[100]; Description: Text[250]; ClientId: Guid)
+    var
+        MCPEntraApplication: Record "MCP Entra Application";
+    begin
+        MCPEntraApplication.Name := Name;
+        MCPEntraApplication.Description := Description;
+        MCPEntraApplication."Client ID" := ClientId;
+        MCPEntraApplication.Insert();
+    end;
+
+    internal procedure DeleteEntraApplication(Name: Text[100])
+    var
+        MCPEntraApplication: Record "MCP Entra Application";
+    begin
+        if not MCPEntraApplication.Get(Name) then
+            exit;
+
+        MCPEntraApplication.Delete();
     end;
     #endregion
 
@@ -819,6 +837,7 @@ codeunit 8351 "MCP Config Implementation"
 
     local procedure GetDimensions(MCPConfiguration: Record "MCP Configuration") Dimensions: Dictionary of [Text, Text]
     begin
+        Dimensions.Add('Category', GetTelemetryCategory());
         Dimensions.Add('MCPConfigurationName', MCPConfiguration.Name);
         Dimensions.Add('Active', Format(MCPConfiguration.Active));
         Dimensions.Add('UnblockEditTools', Format(MCPConfiguration.AllowProdChanges));
@@ -841,6 +860,7 @@ codeunit 8351 "MCP Config Implementation"
     var
         Dimensions: Dictionary of [Text, Text];
     begin
+        Dimensions.Add('Category', GetTelemetryCategory());
         Dimensions.Add('MCPConfigurationName', MCPConfiguration.Name);
         if MCPConfiguration.Active <> xMCPConfiguration.Active then begin
             Dimensions.Add('OldActive', Format(xMCPConfiguration.Active));

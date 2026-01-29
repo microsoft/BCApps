@@ -6,7 +6,7 @@ namespace Microsoft.DemoData.QualityManagement;
 
 using Microsoft.DemoTool;
 
-codeunit 5213 "Quality Management Module" implements "Contoso Demo Data Module"
+codeunit 5592 "Quality Management Module" implements "Contoso Demo Data Module"
 {
     InherentEntitlements = X;
     InherentPermissions = X;
@@ -21,9 +21,6 @@ codeunit 5213 "Quality Management Module" implements "Contoso Demo Data Module"
     procedure GetDependencies() Dependencies: List of [Enum "Contoso Demo Data Module"]
     begin
         Dependencies.Add(Enum::"Contoso Demo Data Module"::Foundation);
-        Dependencies.Add(Enum::"Contoso Demo Data Module"::Finance);
-        Dependencies.Add(Enum::"Contoso Demo Data Module"::Inventory);
-        Dependencies.Add(Enum::"Contoso Demo Data Module"::Purchase);
     end;
 
     procedure CreateSetupData()

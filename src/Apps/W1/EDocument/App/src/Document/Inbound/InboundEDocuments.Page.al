@@ -100,9 +100,21 @@ page 6105 "Inbound E-Documents"
                         TaskPane.ShowTask(Task);
                     end;
                 }
+#if not CLEAN28
                 field(TaskStatus; AgentTask.Status)
                 {
                     Caption = 'Task Status';
+                    ToolTip = 'Specifies the status of the agent task for this document.';
+                    Editable = false;
+                    Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the AgentTaskStatus field.';
+                    ObsoleteTag = '28.0';
+                }
+#endif
+                field(AgentTaskStatus; AgentTaskStatus)
+                {
+                    Caption = 'Agent Task Status';
                     ToolTip = 'Specifies the status of the agent task for this document.';
                     Editable = false;
                 }
@@ -435,8 +447,11 @@ page 6105 "Inbound E-Documents"
     begin
         AgentTask.SetRange("Company Name", CompanyName());
         AgentTask.SetRange("External ID", Format(Rec."Entry No"));
-        if not AgentTask.IsEmpty() then
+        if not AgentTask.FindFirst() then
             Clear(AgentTask);
+        AgentTaskStatus := '';
+        if AgentTask.ID <> 0 then
+            AgentTaskStatus := Format(AgentTask.Status);
     end;
 
     trigger OnOpenPage()
@@ -563,7 +578,7 @@ page 6105 "Inbound E-Documents"
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         AgentTask: Record "Agent Task";
         EDocumentHelper: Codeunit "E-Document Helper";
-        RecordLinkTxt, DocumentNameTxt, DocumentTypeStyleTxt, ConfirmedVendorTxt : Text;
+        RecordLinkTxt, DocumentNameTxt, DocumentTypeStyleTxt, ConfirmedVendorTxt, AgentTaskStatus : Text;
         HasPdf: Boolean;
 #if not CLEAN27
         EmailVisibilityFlag: Boolean;

@@ -111,6 +111,30 @@ page 8352 "MCP Config Tool List"
     {
         area(Processing)
         {
+            action(SelectTools)
+            {
+                Caption = 'Select Tools';
+                Ellipsis = true;
+                Image = Resource;
+                ToolTip = 'Opens a lookup to select API tools to add to this configuration.';
+
+                trigger OnAction()
+                var
+                    PageMetadata: Record "Page Metadata";
+                begin
+                    if not MCPConfigImplementation.LookupAPITools(PageMetadata) then
+                        exit;
+
+                    if not PageMetadata.FindSet() then
+                        exit;
+
+                    repeat
+                        MCPConfig.CreateAPITool(Rec.ID, PageMetadata.ID);
+                    until PageMetadata.Next() = 0;
+
+                    CurrPage.Update();
+                end;
+            }
             action(AddToolsByAPIGroup)
             {
                 Caption = 'Add Tools by API Group';
