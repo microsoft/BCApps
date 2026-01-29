@@ -843,15 +843,10 @@ codeunit 8351 "MCP Config Implementation"
     internal procedure ImportConfiguration(var InStream: InStream; NewName: Text[100]; NewDescription: Text[250]): Guid
     var
         MCPConfiguration: Record "MCP Configuration";
-        MCPConfigurationTool: Record "MCP Configuration Tool";
         ConfigJson: JsonObject;
         ToolsArray: JsonArray;
         ToolToken: JsonToken;
-        ToolJson: JsonObject;
-        JsonToken: JsonToken;
         InputText: Text;
-        ObjectTypeText: Text;
-        i: Integer;
     begin
         InStream.ReadText(InputText);
         if not ConfigJson.ReadFrom(InputText) then
@@ -861,56 +856,60 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfiguration.Description := NewDescription;
         MCPConfiguration.Active := false;
 
-        if ConfigJson.Get('enableDynamicToolMode', JsonToken) then
-            MCPConfiguration.EnableDynamicToolMode := JsonToken.AsValue().AsBoolean();
+        if ConfigJson.Contains('enableDynamicToolMode') then
+            MCPConfiguration.EnableDynamicToolMode := ConfigJson.GetBoolean('enableDynamicToolMode');
 
-        if ConfigJson.Get('discoverReadOnlyObjects', JsonToken) then
-            MCPConfiguration.DiscoverReadOnlyObjects := JsonToken.AsValue().AsBoolean();
+        if ConfigJson.Contains('discoverReadOnlyObjects') then
+            MCPConfiguration.DiscoverReadOnlyObjects := ConfigJson.GetBoolean('discoverReadOnlyObjects');
 
-        if ConfigJson.Get('allowProdChanges', JsonToken) then
-            MCPConfiguration.AllowProdChanges := JsonToken.AsValue().AsBoolean();
+        if ConfigJson.Contains('allowProdChanges') then
+            MCPConfiguration.AllowProdChanges := ConfigJson.GetBoolean('allowProdChanges');
 
         MCPConfiguration.Insert();
         LogConfigurationCreated(MCPConfiguration);
 
-        if ConfigJson.Get('tools', JsonToken) then begin
-            ToolsArray := JsonToken.AsArray();
-            for i := 0 to ToolsArray.Count() - 1 do begin
-                ToolsArray.Get(i, ToolToken);
-                ToolJson := ToolToken.AsObject();
-
-                MCPConfigurationTool.Init();
-                MCPConfigurationTool.ID := MCPConfiguration.SystemId;
-
-                if ToolJson.Get('objectType', JsonToken) then begin
-                    ObjectTypeText := JsonToken.AsValue().AsText();
-                    if ObjectTypeText = 'Page' then
-                        MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Page;
-                end;
-
-                if ToolJson.Get('objectId', JsonToken) then
-                    MCPConfigurationTool."Object ID" := JsonToken.AsValue().AsInteger();
-
-                if ToolJson.Get('allowRead', JsonToken) then
-                    MCPConfigurationTool."Allow Read" := JsonToken.AsValue().AsBoolean();
-
-                if ToolJson.Get('allowCreate', JsonToken) then
-                    MCPConfigurationTool."Allow Create" := JsonToken.AsValue().AsBoolean();
-
-                if ToolJson.Get('allowModify', JsonToken) then
-                    MCPConfigurationTool."Allow Modify" := JsonToken.AsValue().AsBoolean();
-
-                if ToolJson.Get('allowDelete', JsonToken) then
-                    MCPConfigurationTool."Allow Delete" := JsonToken.AsValue().AsBoolean();
-
-                if ToolJson.Get('allowBoundActions', JsonToken) then
-                    MCPConfigurationTool."Allow Bound Actions" := JsonToken.AsValue().AsBoolean();
-
-                MCPConfigurationTool.Insert();
-            end;
+        if ConfigJson.Contains('tools') then begin
+            ToolsArray := ConfigJson.GetArray('tools');
+            foreach ToolToken in ToolsArray do
+                ImportTool(MCPConfiguration.SystemId, ToolToken.AsObject());
         end;
 
         exit(MCPConfiguration.SystemId);
+    end;
+
+    local procedure ImportTool(ConfigId: Guid; ToolJson: JsonObject)
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ObjectTypeText: Text;
+    begin
+        MCPConfigurationTool.Init();
+        MCPConfigurationTool.ID := ConfigId;
+
+        if ToolJson.Contains('objectType') then begin
+            ObjectTypeText := ToolJson.GetText('objectType');
+            if ObjectTypeText = 'Page' then
+                MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Page;
+        end;
+
+        if ToolJson.Contains('objectId') then
+            MCPConfigurationTool."Object ID" := ToolJson.GetInteger('objectId');
+
+        if ToolJson.Contains('allowRead') then
+            MCPConfigurationTool."Allow Read" := ToolJson.GetBoolean('allowRead');
+
+        if ToolJson.Contains('allowCreate') then
+            MCPConfigurationTool."Allow Create" := ToolJson.GetBoolean('allowCreate');
+
+        if ToolJson.Contains('allowModify') then
+            MCPConfigurationTool."Allow Modify" := ToolJson.GetBoolean('allowModify');
+
+        if ToolJson.Contains('allowDelete') then
+            MCPConfigurationTool."Allow Delete" := ToolJson.GetBoolean('allowDelete');
+
+        if ToolJson.Contains('allowBoundActions') then
+            MCPConfigurationTool."Allow Bound Actions" := ToolJson.GetBoolean('allowBoundActions');
+
+        MCPConfigurationTool.Insert();
     end;
     #endregion
 

@@ -773,8 +773,9 @@ codeunit 130130 "MCP Config Test"
         ConfigJson: JsonObject;
         JsonToken: JsonToken;
     begin
-        // [GIVEN] Configuration with tools is created
+        // [GIVEN] Configuration with two tools is created
         ConfigId := CreateMCPConfig(false, true, true, true);
+        CreateMCPConfigTool(ConfigId);
         CreateMCPConfigTool(ConfigId);
         MCPConfiguration.GetBySystemId(ConfigId);
 
@@ -794,7 +795,7 @@ codeunit 130130 "MCP Config Test"
         Assert.AreEqual(true, JsonToken.AsValue().AsBoolean(), 'EnableDynamicToolMode mismatch');
 
         ConfigJson.Get('tools', JsonToken);
-        Assert.AreEqual(1, JsonToken.AsArray().Count(), 'Tools count mismatch');
+        Assert.AreEqual(2, JsonToken.AsArray().Count(), 'Tools count mismatch');
     end;
 
     [Test]
@@ -810,8 +811,9 @@ codeunit 130130 "MCP Config Test"
         NewName: Text[100];
         NewDescription: Text[250];
     begin
-        // [GIVEN] Configuration with tools is created and exported
+        // [GIVEN] Configuration with two tools is created and exported
         SourceConfigId := CreateMCPConfig(false, true, true, true);
+        CreateMCPConfigTool(SourceConfigId);
         CreateMCPConfigTool(SourceConfigId);
 
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
@@ -833,7 +835,7 @@ codeunit 130130 "MCP Config Test"
 
         // [THEN] Tools are imported
         MCPConfigurationTool.SetRange(ID, ImportedConfigId);
-        Assert.RecordCount(MCPConfigurationTool, 1);
+        Assert.RecordCount(MCPConfigurationTool, 2);
     end;
 
     local procedure CreateMCPConfig(Active: Boolean; DynamicToolMode: Boolean; AllowCreateUpdateDeleteTools: Boolean; DiscoverReadOnlyObjects: Boolean): Guid
