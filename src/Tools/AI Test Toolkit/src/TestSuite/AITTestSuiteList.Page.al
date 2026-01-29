@@ -8,7 +8,7 @@ using System.TestTools.TestRunner;
 
 page 149040 "AIT Test Suite List"
 {
-    Caption = 'AI Test Suites';
+    Caption = 'AI Eval Suites';
     PageType = List;
     SourceTable = "AIT Test Suite";
     CardPageId = "AIT Test Suite";
@@ -16,7 +16,7 @@ page 149040 "AIT Test Suite List"
     RefreshOnActivate = true;
     UsageCategory = Lists;
     Extensible = true;
-    AdditionalSearchTerms = 'AIT, AI Test Tool, Test Tool, AI Test Suite, Test Suite, Copilot, Copilot Test';
+    AdditionalSearchTerms = 'AIT, AI Eval Tool, Eval Tool, AI Eval Suite, Eval Suite, Copilot, Copilot Eval, AI Test Tool, Test Tool, AI Test Suite, Test Suite, Copilot Test';
     ApplicationArea = All;
 
     layout
@@ -34,7 +34,7 @@ page 149040 "AIT Test Suite List"
                 field("Copilot Capability"; CopilotCapabilityText)
                 {
                     Caption = 'Capability';
-                    ToolTip = 'Specifies the capability that the test suite tests.';
+                    ToolTip = 'Specifies the capability that the eval suite evaluates.';
                 }
                 field(Started; Rec."Started at")
                 {
@@ -57,7 +57,7 @@ page 149040 "AIT Test Suite List"
                 {
                     Caption = 'Import';
                     Image = Import;
-                    ToolTip = 'Import the AI Test Suite configuration.';
+                    ToolTip = 'Import the AI Eval Suite configuration';
 
                     trigger OnAction()
                     var
@@ -73,7 +73,7 @@ page 149040 "AIT Test Suite List"
                     Image = Export;
                     Enabled = ValidRecord;
                     Scope = Repeater;
-                    ToolTip = 'Exports the AI Test Suite configuration.';
+                    ToolTip = 'Exports the AI Eval Suite configuration.';
 
                     trigger OnAction()
                     var
