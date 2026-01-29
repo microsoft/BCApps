@@ -8,9 +8,9 @@ namespace Microsoft.QualityManagement.Setup;
 /// This behavior controls how quality inspections should be created.
 /// If extending this make sure to implement OnCustomCreateInspectionBehavior
 /// </summary>
-enum 20402 "Qlty. Create Inspect. Behavior"
+enum 20402 "Qlty. Inspect. Creation Option"
 {
-    Caption = 'Quality Create Inspection Behavior';
+    Caption = 'Quality Inspection Creation Option';
 
     value(0; "Always create new inspection")
     {
