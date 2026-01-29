@@ -829,8 +829,10 @@ codeunit 8351 "MCP Config Implementation"
         if not ConfigJson.ReadFrom(InputText) then
             exit(false);
 
-        if ConfigJson.Get('name', JsonToken) then
-            ConfigName := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(ConfigName));
+        if not ConfigJson.Get('name', JsonToken) then
+            exit(false);
+
+        ConfigName := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(ConfigName));
 
         if ConfigJson.Get('description', JsonToken) then
             ConfigDescription := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(ConfigDescription));
