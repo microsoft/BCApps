@@ -291,6 +291,17 @@ codeunit 6109 "E-Document Import Helper"
     /// <param name="EDocument">The E-Document record.</param>
     /// <returns>True if a matching Company Service Participant is found.</returns>
     local procedure MatchCompanyByServiceParticipant(EDocument: Record "E-Document"): Boolean
+    begin
+        exit(MatchCompanyByServiceParticipant(EDocument, EDocument.GetEDocumentService().Code));
+    end;
+
+    /// <summary>
+    /// Use it to check if receiving company information matches a Company Service Participant for a specific service.
+    /// </summary>
+    /// <param name="EDocument">The E-Document record.</param>
+    /// <param name="ServiceCode">The E-Document Service code to match against.</param>
+    /// <returns>True if a matching Company Service Participant is found.</returns>
+    local procedure MatchCompanyByServiceParticipant(EDocument: Record "E-Document"; ServiceCode: Code[20]): Boolean
     var
         ServiceParticipant: Record "Service Participant";
     begin
@@ -299,12 +310,7 @@ codeunit 6109 "E-Document Import Helper"
 
         ServiceParticipant.SetRange("Participant Type", ServiceParticipant."Participant Type"::Company);
         ServiceParticipant.SetRange("Participant Identifier", EDocument."Receiving Company Id");
-        ServiceParticipant.SetRange(Service, EDocument.GetEDocumentService().Code);
-        if ServiceParticipant.FindFirst() then
-            exit(true);
-
-        // If no match found for the specific service, try to find any Company participant with this identifier
-        ServiceParticipant.SetRange(Service);
+        ServiceParticipant.SetRange(Service, ServiceCode);
         exit(ServiceParticipant.FindFirst());
     end;
 
