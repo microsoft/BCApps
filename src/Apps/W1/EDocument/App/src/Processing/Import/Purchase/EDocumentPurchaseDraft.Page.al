@@ -272,7 +272,7 @@ page 6181 "E-Document Purchase Draft"
             }
             part(ErrorMessagesFactBox; "Error Messages Part")
             {
-                Visible = false;
+                Visible = HasErrorsOrWarnings;
                 ShowFilter = false;
                 UpdatePropagation = Both;
             }
@@ -524,7 +524,7 @@ page 6181 "E-Document Purchase Draft"
         SetPageCaption();
 
         Rec.CalcFields("Import Processing Status");
-        ShowFinalizeDraftAction := Rec."Import Processing Status" = Enum::"Import E-Doc. Proc. Status"::"Draft Ready";
+        ShowFinalizeDraftAction := Rec."Import Processing Status" in [Enum::"Import E-Doc. Proc. Status"::"Ready for draft", Enum::"Import E-Doc. Proc. Status"::"Draft Ready"];
         ShowAnalyzeDocumentAction :=
             (Rec."Import Processing Status" = Enum::"Import E-Document Steps"::"Structure received data") and
             (Rec.Status = Enum::"E-Document Status"::Error);
@@ -612,6 +612,13 @@ page 6181 "E-Document Purchase Draft"
     begin
         if not GlobalEDocumentHelper.EnsureInboundEDocumentHasService(Rec) then
             exit;
+
+        Rec.CalcFields("Import Processing Status");
+        if Rec."Import Processing Status" = Enum::"Import E-Doc. Proc. Status"::"Ready for draft" then begin
+            EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+            EDocImport.ProcessIncomingEDocument(Rec, EDocImportParameters);
+            Rec.Get(Rec."Entry No");
+        end;
 
         EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
         EDocImport.ProcessIncomingEDocument(Rec, EDocImportParameters);
