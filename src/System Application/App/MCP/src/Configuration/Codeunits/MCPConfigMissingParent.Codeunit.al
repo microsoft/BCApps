@@ -39,7 +39,7 @@ codeunit 8354 "MCP Config Missing Parent" implements "MCP Config Warning"
         repeat
             if PageMetadata.Get(MCPConfigurationTool."Object ID") then
                 if PageMetadata.PageType = PageMetadata.PageType::API then
-                    PageIdVersions.Add(MCPConfigurationTool."Object ID", PageMetadata.APIVersion);
+                    PageIdVersions.Add(MCPConfigurationTool."Object ID", MCPConfigurationTool."API Version");
         until MCPConfigurationTool.Next() = 0;
 
         // Get parent mappings from platform

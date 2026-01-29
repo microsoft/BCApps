@@ -5,7 +5,7 @@
 
 namespace System.MCP;
 
-table 8350 "MCP API Publisher Group"
+table 8354 "MCP API Version"
 {
     Access = Internal;
     DataClassification = SystemMetadata;
@@ -13,19 +13,15 @@ table 8350 "MCP API Publisher Group"
 
     fields
     {
-        field(1; "API Publisher"; Text[40])
+        field(1; "API Version"; Text[30])
         {
-            Caption = 'API Publisher';
-        }
-        field(2; "API Group"; Text[40])
-        {
-            Caption = 'API Group';
+            Caption = 'API Version';
         }
     }
 
     keys
     {
-        key(Key1; "API Publisher", "API Group")
+        key(Key1; "API Version")
         {
             Clustered = true;
         }
