@@ -266,6 +266,10 @@ codeunit 6109 "E-Document Import Helper"
     begin
         CompanyInformation.Get();
 
+        // First, check if the Receiving Company Id matches a Company Service Participant
+        if MatchCompanyByServiceParticipant(EDocument) then
+            exit;
+
         if (EDocument."Receiving Company GLN" = '') and (EDocument."Receiving Company VAT Reg. No." = '') then begin
             ValidateReceivingCompanyInfoByNameAndAddress(EDocument);
             exit;
@@ -279,6 +283,29 @@ codeunit 6109 "E-Document Import Helper"
 
         if not (ExtractVatRegNo(CompanyInformation."VAT Registration No.", '') in ['', ExtractVatRegNo(EDocument."Receiving Company VAT Reg. No.", '')]) then
             EDocErrorHelper.LogErrorMessage(EDocument, CompanyInformation, CompanyInformation.FieldNo("VAT Registration No."), StrSubstNo(InvalidCompanyInfoVATRegNoErr, EDocument."Receiving Company VAT Reg. No."));
+    end;
+
+    /// <summary>
+    /// Use it to check if receiving company information matches a Company Service Participant.
+    /// </summary>
+    /// <param name="EDocument">The E-Document record.</param>
+    /// <returns>True if a matching Company Service Participant is found.</returns>
+    local procedure MatchCompanyByServiceParticipant(EDocument: Record "E-Document"): Boolean
+    var
+        ServiceParticipant: Record "Service Participant";
+    begin
+        if EDocument."Receiving Company Id" = '' then
+            exit(false);
+
+        ServiceParticipant.SetRange("Participant Type", ServiceParticipant."Participant Type"::Company);
+        ServiceParticipant.SetRange("Participant Identifier", EDocument."Receiving Company Id");
+        ServiceParticipant.SetRange(Service, EDocument.GetEDocumentService().Code);
+        if ServiceParticipant.FindFirst() then
+            exit(true);
+
+        // If no match found for the specific service, try to find any Company participant with this identifier
+        ServiceParticipant.SetRange(Service);
+        exit(ServiceParticipant.FindFirst());
     end;
 
     /// <summary>
