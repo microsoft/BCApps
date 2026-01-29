@@ -115,7 +115,7 @@ codeunit 30385 "Shpfy Payments API"
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.shopifyPaymentsAccount.payouts.pageInfo.hasNextPage');
     end;
 
-    local procedure ImportPayout(JPayout: JsonObject)
+    internal procedure ImportPayout(JPayout: JsonObject)
     var
         DataCapture: Record "Shpfy Data Capture";
         Payout: Record "Shpfy Payout";
@@ -142,6 +142,7 @@ codeunit 30385 "Shpfy Payments API"
             JsonHelper.GetValueIntoField(JPayout, 'summary.reservedFundsGross.amount', RecordRef, Payout.FieldNo("Reserved Funds Gross Amount"));
             JsonHelper.GetValueIntoField(JPayout, 'summary.retriedPayoutsFee.amount', RecordRef, Payout.FieldNo("Retried Payouts Fee Amount"));
             JsonHelper.GetValueIntoField(JPayout, 'summary.retriedPayoutsGross.amount', RecordRef, Payout.FieldNo("Retried Payouts Gross Amount"));
+            JsonHelper.GetValueIntoField(JPayout, 'externalTraceId', RecordRef, Payout.FieldNo("External Trace Id"));
             RecordRef.SetTable(Payout);
             RecordRef.Close();
             Payout.Id := Id;
