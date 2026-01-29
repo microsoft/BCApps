@@ -3,8 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Agents;
+namespace System.Agents.Troubleshooting;
 
+using System.Agents;
 using System.Agents.TaskPane;
 
 page 4343 "Agent Task Context Part"
