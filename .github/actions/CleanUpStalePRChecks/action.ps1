@@ -162,10 +162,15 @@ if ($env:GITHUB_STEP_SUMMARY) {
     Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value $summaryTitle
     Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ""
     if ($WhatIf) {
-        Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- ℹ️ Running in **WhatIf mode** - no workflow runs were deleted"
+        Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- ℹ️ Running in **WhatIf mode** - no workflow runs were deleted and no comments were added"
         Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ""
     }
-    Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- ✓ Successfully processed: **$restarted** PR(s) (deleted stale workflow runs and added comments)"
+    if ($WhatIf) {
+        Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- ✓ Successfully processed: **$restarted** PR(s) (WhatIf mode: no workflow runs were deleted or comments added)"
+    }
+    else {
+        Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- ✓ Successfully processed: **$restarted** PR(s) (deleted stale workflow runs and added comments)"
+    }
     Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- ✗ Failed to process: **$failed** PR(s)"
 }
 
