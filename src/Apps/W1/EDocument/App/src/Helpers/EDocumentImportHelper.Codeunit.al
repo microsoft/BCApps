@@ -312,7 +312,7 @@ codeunit 6109 "E-Document Import Helper"
         ServiceParticipant.SetRange("Participant Type", ServiceParticipant."Participant Type"::Company);
         ServiceParticipant.SetRange("Participant Identifier", EDocument."Receiving Company Id");
         ServiceParticipant.SetRange(Service, EDocService.Code);
-        exit(ServiceParticipant.FindFirst());
+        exit(not ServiceParticipant.IsEmpty());
     end;
 
     /// <summary>
