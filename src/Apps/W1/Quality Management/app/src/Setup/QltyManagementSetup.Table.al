@@ -225,13 +225,6 @@ table 20400 "Qlty. Management Setup"
                 end;
             end;
         }
-        field(72; "Workflow Integration Enabled"; Boolean)
-        {
-            Description = 'When enabled, provides events and responses for working with Business Central workflows and approvals.';
-            DataClassification = SystemMetadata;
-            Caption = 'Workflow Integration';
-            ToolTip = 'Specifies whether to enable events and responses for workflows and approval requests.';
-        }
         field(73; "Item Reclass. Batch Name"; Code[10])
         {
             Caption = 'Item Reclass. Batch Name';
