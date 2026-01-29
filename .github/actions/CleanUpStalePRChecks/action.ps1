@@ -106,13 +106,22 @@ foreach ($pr in $prs) {
 
                     # Add a comment to the PR with instructions
                     $commentBody = @"
-The Pull Request Status Check for this PR was stale (older than $thresholdHours hours) and has been deleted.
+## ⚠️ Stale Status Check Deleted
 
-To unblock this PR and trigger a new status check, you can:
-1. Push a new commit to the PR branch, or
-2. Close and reopen the PR
+The **Pull Request Build** workflow run for this PR was older than **$thresholdHours hours** and has been deleted.
 
-This will automatically trigger a new Pull Request Build workflow run.
+### 📋 Why was it deleted?
+
+Status checks that are too old may no longer reflect the current state of the target branch. To ensure this PR is validated against the latest code and passes up-to-date checks, a fresh build is required.
+
+---
+
+### 🔄 How to trigger a new status check:
+
+1. 📤 **Push a new commit** to the PR branch, or
+2. 🔁 **Close and reopen** the PR
+
+This will automatically trigger a new **Pull Request Build** workflow run.
 "@
                     Invoke-CommandWithRetry -ScriptBlock {
                         gh pr comment $pr.number --body $commentBody -R $env:GITHUB_REPOSITORY | Out-Null
