@@ -332,6 +332,50 @@ codeunit 139883 "E-Doc Process Test"
         Assert.RecordIsEmpty(PurchaseHeader);
     end;
 
+    [Test]
+    procedure FinishDraftFromReadyForDraftStateSucceeds()
+    var
+        EDocument: Record "E-Document";
+        EDocImportParameters: Record "E-Doc. Import Parameters";
+        PurchaseHeader: Record "Purchase Header";
+        EDocLogRecord: Record "E-Document Log";
+        EDocImport: Codeunit "E-Doc. Import";
+        EDocumentLog: Codeunit "E-Document Log";
+        EDocumentProcessing: Codeunit "E-Document Processing";
+    begin
+        // [SCENARIO] When finalize action is invoked from Ready for draft state, the system should automatically run Prepare draft first and then Finish draft
+        Initialize(Enum::"Service Integration"::"Mock");
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocument."Document Type" := "E-Document Type"::"Purchase Invoice";
+        EDocument.Modify();
+        EDocumentService."Import Process" := "E-Document Import Process"::"Version 2.0";
+        EDocumentService.Modify();
+
+        EDocumentLog.SetBlob('Test', Enum::"E-Doc. File Format"::XML, 'Data');
+        EDocumentLog.SetFields(EDocument, EDocumentService);
+        EDocLogRecord := EDocumentLog.InsertLog(Enum::"E-Document Service Status"::Imported, Enum::"Import E-Doc. Proc. Status"::Readable);
+
+        EDocument."Structured Data Entry No." := EDocLogRecord."E-Doc. Data Storage Entry No.";
+        EDocument.Modify();
+
+        // [GIVEN] E-Document is in Ready for draft state
+        EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Ready for draft");
+        EDocument.CalcFields("Import Processing Status");
+        Assert.AreEqual(Enum::"Import E-Doc. Proc. Status"::"Ready for draft", EDocument."Import Processing Status", 'The status should be Ready for draft before processing.');
+
+        // [WHEN] Finish draft step is executed (simulating finalize action)
+        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImportParameters."Processing Customizations" := "E-Doc. Proc. Customizations"::"Mock Create Purchase Invoice";
+        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+
+        // [THEN] The document is processed (the system ran Prepare draft automatically and then Finish draft)
+        EDocument.CalcFields("Import Processing Status");
+        Assert.AreEqual(Enum::"Import E-Doc. Proc. Status"::Processed, EDocument."Import Processing Status", 'The status should be Processed after finalize action from Ready for draft state.');
+
+        PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
+        Assert.IsTrue(PurchaseHeader.FindFirst(), 'The purchase header should be created.');
+    end;
+
     #region HistoricalMatchingTest
 
     [Test]
