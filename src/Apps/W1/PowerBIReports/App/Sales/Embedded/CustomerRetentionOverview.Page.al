@@ -45,7 +45,9 @@ page 36983 "Customer Retention Overview"
     var
         SetupHelper: Codeunit "Power BI Report Setup";
         ReportId: Guid;
+#pragma warning disable AA0240 // False positive
         ReportPageLbl: Label '1e1bf600740818044875', Locked = true;
+#pragma warning restore AA0240
 
     trigger OnOpenPage()
     var
