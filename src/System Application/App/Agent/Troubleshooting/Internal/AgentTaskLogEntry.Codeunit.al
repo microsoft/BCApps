@@ -6,7 +6,6 @@
 namespace System.Agents.Troubleshooting;
 
 using System.Agents;
-using System.Environment;
 
 codeunit 4314 "Agent Task Log Entry"
 {
@@ -113,74 +112,6 @@ codeunit 4314 "Agent Task Log Entry"
     procedure GetDefaultEncoding(): TextEncoding
     begin
         exit(TextEncoding::UTF8);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", OnFeedbackEvent, '', false, false)]
-    local procedure OnFeedbackEventForAgentTaskLogEntryTable(PageId: Integer; Context: Dictionary of [Text, Text]; var Handled: Boolean)
-    var
-        AgentRecord: Record Agent;
-        AgentTaskLogEntryRecord: Record "Agent Task Log Entry";
-        AgentUserFeedback: Codeunit "Agent User Feedback";
-        AgentTaskImpl: Codeunit "Agent Task Impl.";
-        TableIndex: Integer;
-        SystemIdGuid: Guid;
-    begin
-        if not TryFindSourceTableIdIndex(Context, Database::"Agent Task Log Entry", TableIndex) then
-            exit;
-
-        if not TryGetSystemIdAtIndex(Context, TableIndex, SystemIdGuid) then
-            exit;
-
-        if not AgentTaskLogEntryRecord.GetBySystemId(SystemIdGuid) then
-            exit;
-
-        // Record is now initialized and can be used for enriching the context
-        if not AgentTaskImpl.TryGetAgentRecordFromTaskId(AgentTaskLogEntryRecord."Task ID", AgentRecord) then
-            exit;
-
-        Context.Add(AgentUserFeedback.GetAgentUserSecurityIdTok(), Format(AgentRecord."User Security ID"));
-        Context.Add(AgentUserFeedback.GetAgentMetadataProviderTok(), Format(AgentRecord."Agent Metadata Provider"));
-        Context.Add(AgentUserFeedback.GetAgentTaskIdTok(), Format(AgentTaskLogEntryRecord."Task ID"));
-        Context.Add(AgentUserFeedback.GetAgentTaskLogEntryIdTok(), Format(AgentTaskLogEntryRecord.ID));
-        Context.Add(AgentUserFeedback.GetAgentTaskLogEntryTypeTok(), Format(AgentTaskLogEntryRecord.Type));
-    end;
-
-    local procedure TryFindSourceTableIdIndex(Context: Dictionary of [Text, Text]; TargetTableId: Integer; var Index: Integer): Boolean
-    var
-        TableIdList: List of [Text];
-        TableIdText: Text;
-        CandidateTableId: Integer;
-        SourceTableIDsTok: Label 'SourceTableIDs', Locked = true;
-    begin
-        if not Context.ContainsKey(SourceTableIDsTok) then
-            exit(false);
-
-        TableIdList := Context.Get(SourceTableIDsTok).Split(',');
-        for Index := 1 to TableIdList.Count() do begin
-            TableIdText := TableIdList.Get(Index);
-            if Evaluate(CandidateTableId, TableIdText.Trim()) then
-                if CandidateTableId = TargetTableId then
-                    exit(true);
-        end;
-
-        exit(false);
-    end;
-
-    local procedure TryGetSystemIdAtIndex(Context: Dictionary of [Text, Text]; Index: Integer; var SystemIdGuid: Guid): Boolean
-    var
-        SystemIdList: List of [Text];
-        SystemIdText: Text;
-        SystemIDsTok: Label 'SystemIDs', Locked = true;
-    begin
-        if not Context.ContainsKey(SystemIDsTok) then
-            exit(false);
-
-        SystemIdList := Context.Get(SystemIDsTok).Split(',');
-        if (Index < 1) or (Index > SystemIdList.Count()) then
-            exit(false);
-
-        SystemIdText := SystemIdList.Get(Index);
-        exit(Evaluate(SystemIdGuid, SystemIdText.Trim()));
     end;
 
     var
