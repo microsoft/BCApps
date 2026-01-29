@@ -18,6 +18,7 @@ using Microsoft.Peppol;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using Microsoft.Sales.Receivables;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Setup;
@@ -1549,9 +1550,20 @@ codeunit 139236 "PEPPOL BIS BillingTests"
     var
         CompanyInfo: Record "Company Information";
         GLSetup: Record "General Ledger Setup";
+        CustLedgerEntries: Record "Cust. Ledger Entry";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        ServiceCreditMemoHeader: Record "Service Cr.Memo Header";
+        ServiceInvLine: Record "Service Invoice Line";
+        ServiceCrMemoHeader: Record "Service Cr.Memo Line";
     begin
         LibrarySetupStorage.Restore();
         LibraryTestInitialize.OnTestInitialize(Codeunit::"PEPPOL BIS BillingTests");
+
+        CustLedgerEntries.DeleteAll();
+        ServiceInvoiceHeader.DeleteAll();
+        ServiceCreditMemoHeader.DeleteAll();
+        ServiceInvLine.DeleteAll();
+        ServiceCrMemoHeader.DeleteAll();
 
         if not CompanyInfo.Get() then
             CompanyInfo.Insert();
