@@ -16,8 +16,8 @@
   "target": "OnPrem",
   "idRanges": [
     {
-      "from": 3000,
-      "to": 5000
+      "from": 4300,
+      "to": 4349
     }
   ],
   "dependencies": [
@@ -72,6 +72,12 @@
     {
       "id": "f7964d32-7685-400f-8297-4bc17d0aab0e",
       "name": "Microsoft User Feedback",
+      "publisher": "Microsoft",
+      "version": "27.4.0.0"
+    },
+    {
+      "id": "645965f7-95bf-4ee9-bf97-84e45dc6c6d1",
+      "name": "Json",
       "publisher": "Microsoft",
       "version": "27.4.0.0"
     }
