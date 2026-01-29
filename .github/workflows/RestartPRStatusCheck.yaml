@@ -1,4 +1,4 @@
-name: 'Restart Pull Request Status Check'
+name: 'Clean Up Stale PR Status Checks'
 
 on:
   schedule:
@@ -9,21 +9,21 @@ permissions:
   actions: write
   checks: read
   contents: read
-  pull-requests: read
+  pull-requests: write
 
 defaults:
   run:
     shell: pwsh
 
 jobs:
-  RestartStatusChecks:
+  CleanUpStatusChecks:
     runs-on: ubuntu-latest
-    name: Restart Stale PR Status Checks
+    name: Clean Up Stale PR Status Checks
     steps:
       - name: Checkout
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
-      - name: Restart Stale PR Status Checks
+      - name: Clean Up Stale PR Status Checks
         uses: ./.github/actions/RestartStalePRChecks
         with:
           token: ${{ github.token }}

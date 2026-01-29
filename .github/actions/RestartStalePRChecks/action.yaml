@@ -1,6 +1,6 @@
-name: Restart Stale PR Checks
+name: Clean Up Stale PR Checks
 author: Microsoft Corporation
-description: Restart stale PR status checks that are older than a specified threshold
+description: Delete stale PR status check workflow runs and add comments with instructions to unblock PRs
 inputs:
   thresholdHours:
     description: Threshold in hours for considering a check stale
@@ -17,7 +17,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Restart Stale PR Checks
+    - name: Clean Up Stale PR Checks
       shell: pwsh
       env:
         GH_TOKEN: ${{ inputs.token }}
