@@ -4,9 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.DataAdministration;
-
-using System.Security.User;
 using System.Environment;
+using System.Security.User;
 
 /// <summary>
 /// The Table Information page shows information about database tables.

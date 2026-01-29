@@ -141,15 +141,17 @@ codeunit 30228 "Shpfy Refunds API"
         DataCapture: Record "Shpfy Data Capture";
         RefundLine: Record "Shpfy Refund Line";
         RefundLineRecordRef: RecordRef;
-        Id: BigInteger;
+        RefundLineId: BigInteger;
+        LineItemId: BigInteger;
         ReturnLocation: BigInteger;
     begin
-        Id := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JLine, 'lineItem.id'));
+        RefundLineId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JLine, 'id'));
+        LineItemId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JLine, 'lineItem.id'));
 
-        if not RefundLine.Get(RefundId, Id) then begin
-            RefundLine."Refund Line Id" := Id;
+        if not RefundLine.Get(RefundId, RefundLineId) then begin
+            RefundLine."Refund Line Id" := RefundLineId;
             RefundLine."Refund Id" := RefundId;
-            RefundLine."Order Line Id" := Id;
+            RefundLine."Order Line Id" := LineItemId;
             RefundLine.Insert();
         end;
 
@@ -166,7 +168,7 @@ codeunit 30228 "Shpfy Refunds API"
         JsonHelper.GetValueIntoField(JLine, 'totalTaxSet.presentmentMoney.amount', RefundLineRecordRef, RefundLine.FieldNo("Presentment Total Tax Amount"));
         RefundLineRecordRef.SetTable(RefundLine);
 
-        RefundLine."Can Create Credit Memo" := NonZeroOrReturnRefund;
+        RefundLine."Can Create Credit Memo" := NonZeroOrReturnRefund or (RefundLine."Restock Type" = RefundLine."Restock Type"::Return);
         RefundLine."Location Id" := JsonHelper.GetValueAsBigInteger(JLine, 'location.legacyResourceId');
 
         // If refund was created from a return, the location needs to come from the return

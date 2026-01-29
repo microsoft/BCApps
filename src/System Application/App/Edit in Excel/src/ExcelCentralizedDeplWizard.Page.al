@@ -4,9 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Integration.Excel;
-
-using System.Environment.Configuration;
 using System.Environment;
+using System.Environment.Configuration;
 
 /// <summary>
 /// This is a wizard which guides the user through setting up their tenant for using Edit in Excel with Excel add-in installed through centralized deployments.

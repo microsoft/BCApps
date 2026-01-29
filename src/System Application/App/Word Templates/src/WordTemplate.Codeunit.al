@@ -4,9 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Integration.Word;
-
-using System.Reflection;
 using System.Integration;
+using System.Reflection;
 
 /// <summary>
 /// Exposes functionality to create and consume Word templates.

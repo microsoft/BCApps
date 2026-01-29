@@ -4,9 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Tooling;
-
-using System.Visualization;
 using System.Integration;
+using System.Visualization;
 
 /// <summary>
 /// The chart showing the breakdown of time full spent by app name / app publisher on the performance profiler page.

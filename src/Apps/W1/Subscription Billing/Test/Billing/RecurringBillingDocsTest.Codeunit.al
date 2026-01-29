@@ -233,8 +233,8 @@ codeunit 139687 "Recurring Billing Docs Test"
         SalesLine2.SetRange("Attached to Line No.", SalesLine."Line No.");
         Assert.AreEqual(5, SalesLine2.Count, 'Setup-failure: expected five attached Lines.');
         SalesLine2.FindSet();
-        // 1st line: Service Period
-        Assert.IsSubstring(SalesLine2.Description, 'Subscription period');
+        // 1st line: Billing Period
+        Assert.IsSubstring(SalesLine2.Description, 'Billing period');
         ParentSalesLine.Get(SalesLine2."Document Type", SalesLine2."Document No.", SalesLine2."Attached to Line No.");
         SalesLine2.Next();
         // 2nd line: Subscription Description

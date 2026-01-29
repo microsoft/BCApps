@@ -4,11 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Integration;
-
 using System.Azure.Identity;
 using System.Environment;
-using System.Reflection;
 using System.Environment.Configuration;
+using System.Reflection;
 
 /// <summary>
 /// Implements functionality to get action data for a given page.

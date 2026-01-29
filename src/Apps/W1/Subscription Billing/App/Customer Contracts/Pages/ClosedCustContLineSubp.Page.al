@@ -108,6 +108,8 @@ page 8080 "Closed Cust. Cont. Line Subp."
                     ToolTip = 'Specifies the base amount from which the price will be calculated.';
                     BlankZero = true;
                     Editable = false;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = ServiceCommitment."Currency Code";
                 }
                 field("Calculation Base %"; ServiceCommitment."Calculation Base %")
                 {
@@ -116,6 +118,8 @@ page 8080 "Closed Cust. Cont. Line Subp."
                     ToolTip = 'Specifies the percent at which the price of the Subscription Line will be calculated. 100% means that the price corresponds to the Base Price.';
                     BlankZero = true;
                     Editable = false;
+                    DecimalPlaces = 0 : 5;
+                    AutoFormatType = 0;
                 }
                 field(Price; ServiceCommitment.Price)
                 {
@@ -123,6 +127,8 @@ page 8080 "Closed Cust. Cont. Line Subp."
                     ToolTip = 'Specifies the price of the Subscription Line with quantity of 1 in the billing period. The price is calculated from Base Price and Base Price %.';
                     Editable = false;
                     BlankZero = true;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = ServiceCommitment."Currency Code";
                 }
                 field("Price (LCY)"; ServiceCommitment."Price (LCY)")
                 {
@@ -131,6 +137,8 @@ page 8080 "Closed Cust. Cont. Line Subp."
                     Visible = false;
                     BlankZero = true;
                     Editable = false;
+                    AutoFormatType = 2;
+                    AutoFormatExpression = '';
                 }
                 field("Discount %"; ServiceCommitment."Discount %")
                 {
@@ -140,6 +148,8 @@ page 8080 "Closed Cust. Cont. Line Subp."
                     MinValue = 0;
                     MaxValue = 100;
                     Editable = false;
+                    DecimalPlaces = 0 : 5;
+                    AutoFormatType = 0;
                 }
                 field("Discount Amount"; ServiceCommitment."Discount Amount")
                 {
@@ -148,6 +158,8 @@ page 8080 "Closed Cust. Cont. Line Subp."
                     BlankZero = true;
                     MinValue = 0;
                     Editable = false;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = ServiceCommitment."Currency Code";
                 }
                 field("Discount Amount (LCY)"; ServiceCommitment."Discount Amount (LCY)")
                 {
@@ -163,6 +175,8 @@ page 8080 "Closed Cust. Cont. Line Subp."
                     ToolTip = 'Specifies the amount for the Subscription Line including discount.';
                     BlankZero = true;
                     Editable = false;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                 }
                 field("Service Amount (LCY)"; ServiceCommitment."Amount (LCY)")
                 {
@@ -171,6 +185,8 @@ page 8080 "Closed Cust. Cont. Line Subp."
                     Visible = false;
                     BlankZero = true;
                     Editable = false;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
                 }
                 field("Billing Base Period"; ServiceCommitment."Billing Base Period")
                 {
@@ -261,6 +277,8 @@ page 8080 "Closed Cust. Cont. Line Subp."
                     Visible = false;
                     BlankZero = true;
                     Editable = false;
+                    DecimalPlaces = 0 : 15;
+                    AutoFormatType = 0;
                 }
                 field("Currency Factor Date"; ServiceCommitment."Currency Factor Date")
                 {

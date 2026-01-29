@@ -3,14 +3,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace System.Apps.AppSource;
-
+using System.Azure.Identity;
+using System.Azure.KeyVault;
+using System.Environment;
 using System.Environment.Configuration;
 using System.Globalization;
-using System.Azure.Identity;
-using System.Utilities;
-using System.Azure.KeyVault;
 using System.RestClient;
-using System.Environment;
+using System.Utilities;
 
 /// <summary>
 /// Library for managing AppSource product retrieval and usage.

@@ -4,11 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Apps;
-
 using System;
-using System.Utilities;
 using System.Environment;
 using System.Environment.Configuration;
+using System.Utilities;
 
 codeunit 2503 "Extension Operation Impl"
 {

@@ -4,12 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Azure.Identity;
-
 using System;
-using System.Security.User;
 using System.Environment;
-using System.Security.AccessControl;
 using System.Environment.Configuration;
+using System.Security.AccessControl;
+using System.Security.User;
 
 codeunit 9017 "Azure AD User Mgmt. Impl."
 {

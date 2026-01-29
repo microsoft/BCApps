@@ -4,10 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Email;
-
-using System.Telemetry;
-using System.Environment;
 using System.Apps;
+using System.Environment;
+using System.Telemetry;
 
 /// <summary>
 /// Step by step guide for adding a new email account in Business Central

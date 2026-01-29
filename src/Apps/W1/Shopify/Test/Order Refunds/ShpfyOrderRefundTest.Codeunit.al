@@ -145,6 +145,7 @@ codeunit 139611 "Shpfy Order Refund Test"
         RefundId1: BigInteger;
         RefundId2: BigInteger;
         RefundId3: BigInteger;
+        RefundId4: BigInteger;
     begin
         // [SCENARIO] Can create credit memo check returns
         // Non-zero refund = true
@@ -158,11 +159,14 @@ codeunit 139611 "Shpfy Order Refund Test"
         RefundId2 := ShopifyIds.Get('Refund').Get(4);
         // [GIVEN] Zero and not linked refund
         RefundId3 := ShopifyIds.Get('Refund').Get(6);
+        // [GIVEN] Zero refund with restock type return
+        RefundId4 := ShopifyIds.Get('Refund').Get(7);
 
         // [WHEN] Execute VerifyRefundCanCreateCreditMemo
         RefundsAPI.VerifyRefundCanCreateCreditMemo(RefundId1);
         RefundsAPI.VerifyRefundCanCreateCreditMemo(RefundId2);
-        asserterror RefundsAPI.VerifyRefundCanCreateCreditMemo(RefundId3);
+        RefundsAPI.VerifyRefundCanCreateCreditMemo(RefundId3);
+        asserterror RefundsAPI.VerifyRefundCanCreateCreditMemo(RefundId4);
 
         // [THEN] Only RefundId3 throws an error
         LibraryAssert.ExpectedError('The refund imported from Shopify can''t be used to create a credit memo. Only refunds for paid items can be used to create credit memos.');
@@ -208,6 +212,7 @@ codeunit 139611 "Shpfy Order Refund Test"
         JRefundLine: JsonObject;
         ReturnLocations: Dictionary of [BigInteger, BigInteger];
         RefundLineId: BigInteger;
+        LineItemId: BigInteger;
         ReturnLocationId: BigInteger;
     begin
         // [SCENARIO] Import refund lines with locations
@@ -217,10 +222,11 @@ codeunit 139611 "Shpfy Order Refund Test"
         RefundId := OrderRefundsHelper.CreateRefundHeader();
         // [GIVEN] Refund Line  response
         RefundLineId := Any.IntegerInRange(100000, 999999);
-        CreateRefundLineResponse(JRefundLine, RefundLineId, 0);
+        LineItemId := Any.IntegerInRange(100000, 999999);
+        CreateRefundLineResponse(JRefundLine, RefundLineId, LineItemId, 0);
         //[GIVEN] Return Locations
         ReturnLocationId := Any.IntegerInRange(100000, 999999);
-        ReturnLocations.Add(RefundLineId, ReturnLocationId);
+        ReturnLocations.Add(LineItemId, ReturnLocationId);
 
         // [WHEN] Execute RefundsAPI.FillInRefundLine
         RefundsAPI.FillInRefundLine(RefundId, JRefundLine, false, ReturnLocations);
@@ -262,7 +268,7 @@ codeunit 139611 "Shpfy Order Refund Test"
         // [GIVEN] Refund Header
         RefundId := OrderRefundsHelper.CreateRefundHeader(OrderId, ReturnId, 156.38, Shop.Code);
         // [GIVEN] Refund line without location
-        OrderRefundsHelper.CreateRefundLine(RefundId, OrderLineId, 0);
+        OrderRefundsHelper.CreateRefundLine(RefundId, OrderLineId, 0, "Shpfy Restock Type"::Return);
 
         // [WHEN] Execute create credit memo
         IReturnRefundProcess := Enum::"Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
@@ -308,7 +314,7 @@ codeunit 139611 "Shpfy Order Refund Test"
         // [GIVEN] Refund Header
         RefundId := OrderRefundsHelper.CreateRefundHeader(OrderId, ReturnId, 156.38, Shop.Code);
         // [GIVEN] Refund line without location
-        OrderRefundsHelper.CreateRefundLine(RefundId, OrderLineId, LocationId);
+        OrderRefundsHelper.CreateRefundLine(RefundId, OrderLineId, LocationId, "Shpfy Restock Type"::Return);
 
         // [WHEN] Execute create credit memo
         IReturnRefundProcess := Enum::"Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
@@ -430,9 +436,17 @@ codeunit 139611 "Shpfy Order Refund Test"
 
     local procedure CreateRefundLineResponse(var JRefundLine: JsonObject; RefundLineId: BigInteger; RefundLocationId: BigInteger)
     var
-        RefundLineLbl: Label '{"lineItem": {"id": "gid://shopify/LineItem/%1"}, "quantity": 1, "restockType": "no_restock", "location": {"legacyResourceId": %2}}', Comment = '%1 = RefundLineId, %2 = RefundLocationId', Locked = true;
+        LineItemId: BigInteger;
     begin
-        JRefundLine.ReadFrom(StrSubstNo(RefundLineLbl, RefundLineId, RefundLocationId));
+        LineItemId := Any.IntegerInRange(100000, 999999);
+        CreateRefundLineResponse(JRefundLine, RefundLineId, LineItemId, RefundLocationId);
+    end;
+
+    local procedure CreateRefundLineResponse(var JRefundLine: JsonObject; RefundLineId: BigInteger; LineItemId: BigInteger; RefundLocationId: BigInteger)
+    var
+        RefundLineLbl: Label '{"id": "gid://shopify/RefundLineItem/%1", "lineItem": {"id": "gid://shopify/LineItem/%2"}, "quantity": 1, "restockType": "no_restock", "location": {"legacyResourceId": %3}}', Comment = '%1 = RefundLineId, %2 = LineItemId, %3 = RefundLocationId', Locked = true;
+    begin
+        JRefundLine.ReadFrom(StrSubstNo(RefundLineLbl, RefundLineId, LineItemId, RefundLocationId));
     end;
 
     local procedure CerateProcessedShopifyOrder(var OrderId: BigInteger; var OrderLineId: BigInteger)

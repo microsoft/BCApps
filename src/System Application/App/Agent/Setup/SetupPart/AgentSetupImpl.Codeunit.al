@@ -46,12 +46,14 @@ codeunit 4325 "Agent Setup Impl."
     end;
 
     [Scope('OnPrem')]
-    procedure UpdateUserAccessControl(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
+    procedure OpenAgentAccessControlSetup(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
     var
         TempAgentAccessControl: Record "Agent Access Control" temporary;
+        SelectAgentAccessControl: Page "Select Agent Access Control";
     begin
         AgentSetupBuffer.GetTempAgentAccessControl(TempAgentAccessControl);
-        if (Page.RunModal(Page::"Select Agent Access Control", TempAgentAccessControl) in [Action::LookupOK, Action::OK]) then begin
+        SelectAgentAccessControl.Initialize(AgentSetupBuffer."User Security ID", TempAgentAccessControl);
+        if (SelectAgentAccessControl.RunModal() in [Action::LookupOK, Action::OK]) then begin
             AgentSetupBuffer."Access Updated" := true;
             AgentSetupBuffer.Modify(true);
             AgentSetupBuffer.SetTempAgentAccessControl(TempAgentAccessControl);
@@ -67,6 +69,51 @@ codeunit 4325 "Agent Setup Impl."
         exit(AgentSetupBuffer."Access Updated" or AgentSetupBuffer."Values Updated" or AgentSetupBuffer."User Settings Updated" or AgentSetupBuffer."State Updated");
     end;
 
+    [Scope('OnPrem')]
+    procedure OpenProfileLookup(var UserSettingsRec: Record "User Settings"): Boolean
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+    begin
+        exit(AgentImpl.ProfileLookup(UserSettingsRec));
+    end;
+
+    /// <summary>
+    /// Opens the setup page for the specified agent.
+    /// </summary>
+    /// <param name="AgentUserSecurityID">Security ID of the agent.</param>
+    [Scope('OnPrem')]
+    procedure OpenSetupPage(AgentUserSecurityID: Guid)
+    var
+        Agent: Record Agent;
+        AgentImpl: Codeunit "Agent Impl.";
+    begin
+        AgentImpl.GetAgent(Agent, AgentUserSecurityID);
+        AgentImpl.OpenSetupPageId(Agent."Agent Metadata Provider", AgentUserSecurityID);
+    end;
+
+    [Scope('OnPrem')]
+    procedure OpenAgentLookup(var AgentUserSecurityId: Guid): Boolean
+    var
+        Agent: Record Agent;
+        AgentImpl: Codeunit "Agent Impl.";
+    begin
+        AgentImpl.SelectAgent(Agent);
+        AgentUserSecurityId := Agent."User Security ID";
+        exit(not IsNullGuid(AgentUserSecurityId));
+    end;
+
+    [Scope('OnPrem')]
+    procedure OpenAgentLookup(AgentType: Enum "Agent Metadata Provider"; var AgentUserSecurityId: Guid): Boolean
+    var
+        Agent: Record Agent;
+        AgentImpl: Codeunit "Agent Impl.";
+    begin
+        Agent.SetRange("Agent Metadata Provider", AgentType);
+        AgentImpl.SelectAgent(Agent);
+        AgentUserSecurityId := Agent."User Security ID";
+        exit(not IsNullGuid(AgentUserSecurityId));
+    end;
+
     local procedure UpdateFields(var AgentSetupBuffer: Record "Agent Setup Buffer"; UserSecurityID: Guid; AgentMetadataProvider: Enum "Agent Metadata Provider"; DefaultUserName: Code[50]; DefaultDisplayName: Text[80])
     var
         Agent: Record Agent;
@@ -74,7 +121,7 @@ codeunit 4325 "Agent Setup Impl."
         Language: Codeunit Language;
         AgentMetadata: Interface IAgentMetadata;
     begin
-        UserSettings := AgentSetupBuffer.GetUserSettings();
+        AgentSetupBuffer.GetUserSettings(UserSettings);
         AgentSetupBuffer."Language Used" := CopyStr(Language.GetWindowsLanguageName(UserSettings."Language ID"), 1, MaxStrLen(AgentSetupBuffer."Language Used"));
 
         if not IsNullGuid(UserSecurityID) then
@@ -96,13 +143,13 @@ codeunit 4325 "Agent Setup Impl."
     end;
 
     [Scope('OnPrem')]
-    procedure SetupLanguageAndRegion(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
+    procedure OpenLanguageAndRegionPage(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
     var
         UserSettings: Record "User Settings";
         Language: Codeunit Language;
         AgentUserSettings: Page "Agent User Settings";
     begin
-        UserSettings := AgentSetupBuffer.GetUserSettings();
+        AgentSetupBuffer.GetUserSettings(UserSettings);
         AgentUserSettings.InitializeTemp(UserSettings);
         if AgentUserSettings.RunModal() in [Action::LookupOK, Action::OK] then begin
             AgentUserSettings.GetRecord(UserSettings);
@@ -139,6 +186,36 @@ codeunit 4325 "Agent Setup Impl."
         exit(FullSummaryText.ToText());
     end;
 
+    internal procedure AppendAgentSummary(var AgentSetupBuffer: Record "Agent Setup Buffer"; SummaryText: Text): Text
+    var
+        UserSettings: Record "User Settings";
+        Language: Codeunit Language;
+        NewSummaryText: Text;
+    begin
+        NewSummaryText := SummaryText;
+        if not NewSummaryText.Contains(ReviewForAccuracyAgentUsesAILbl) then
+            NewSummaryText := StrSubstNo(AppendTextToEndTxt, NewSummaryText, ReviewForAccuracyAgentUsesAILbl);
+
+        if not SummaryText.Contains(LanguageUsedLbl) then begin
+            AgentSetupBuffer.GetUserSettings(UserSettings);
+            NewSummaryText := StrSubstNo(AppendTextToEndTxt, NewSummaryText, StrSubstNo(LanguageUsedLbl, Language.GetWindowsLanguageName(UserSettings."Language ID")));
+        end;
+
+        exit(NewSummaryText);
+    end;
+
+    internal procedure CopyAgentSetupBuffer(var Target: Record "Agent Setup Buffer"; var Source: Record "Agent Setup Buffer")
+    var
+        TempUserSettings: Record "User Settings" temporary;
+        TempAccessControl: Record "Agent Access Control" temporary;
+    begin
+        Target.Copy(Source, true);
+        Source.GetUserSettings(TempUserSettings);
+        Target.SetUserSettings(TempUserSettings);
+        Source.GetTempAgentAccessControl(TempAccessControl);
+        Target.SetTempAgentAccessControl(TempAccessControl);
+    end;
+
     local procedure CreateAgent(var AgentSetupBuffer: Record "Agent Setup Buffer"): Guid
     var
         AgentRecord: Record Agent;
@@ -149,7 +226,7 @@ codeunit 4325 "Agent Setup Impl."
         AgentSetupBuffer.GetTempAgentAccessControl(TemporaryAgentAccessControl);
         AgentSetupBuffer."User Security ID" := Agent.Create(AgentSetupBuffer."Agent Metadata Provider", AgentSetupBuffer."User Name", AgentSetupBuffer."Display Name", TemporaryAgentAccessControl);
         AgentRecord.Get(AgentSetupBuffer."User Security ID");
-        NewUserSettings := AgentSetupBuffer.GetUserSettings();
+        AgentSetupBuffer.GetUserSettings(NewUserSettings);
         Agent.UpdateLocalizationSettings(AgentRecord."User Security ID", NewUserSettings);
         UpdateAgentState(AgentSetupBuffer);
 
@@ -169,7 +246,7 @@ codeunit 4325 "Agent Setup Impl."
             Agent.SetDisplayName(AgentSetupBuffer."User Security ID", AgentSetupBuffer."Display Name");
 
         if AgentSetupBuffer."User Settings Updated" then begin
-            NewUserSettings := AgentSetupBuffer.GetUserSettings();
+            AgentSetupBuffer.GetUserSettings(NewUserSettings);
             Agent.UpdateLocalizationSettings(AgentSetupBuffer."User Security ID", NewUserSettings);
         end;
 
@@ -206,4 +283,9 @@ codeunit 4325 "Agent Setup Impl."
     begin
         exit(TextEncoding::UTF8);
     end;
+
+    var
+        LanguageUsedLbl: Label 'Language used: %1', Comment = '%1 is the language name, e.g. English (United States).';
+        ReviewForAccuracyAgentUsesAILbl: Label 'This agent uses AI - review its actions for accuracy.';
+        AppendTextToEndTxt: Label '%1\\%2', Comment = '%1 is the existing summary text, %2 is the text that we are appending to the end';
 }

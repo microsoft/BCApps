@@ -4,14 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Environment.Configuration;
-
-using System.Media;
-using System.Utilities;
-using System.Globalization;
-using System.Telemetry;
-using System.Reflection;
 using System.Apps;
 using System.Environment;
+using System.Globalization;
+using System.Media;
+using System.Reflection;
+using System.Telemetry;
+using System.Utilities;
 
 codeunit 1991 "Guided Experience Impl."
 {
