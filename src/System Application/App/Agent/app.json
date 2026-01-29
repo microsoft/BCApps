@@ -74,6 +74,12 @@
       "name": "Microsoft User Feedback",
       "publisher": "Microsoft",
       "version": "27.4.0.0"
+    },
+    {
+      "id": "645965f7-95bf-4ee9-bf97-84e45dc6c6d1",
+      "name": "Json",
+      "publisher": "Microsoft",
+      "version": "27.4.0.0"
     }
   ],
   "propagateDependencies": true,

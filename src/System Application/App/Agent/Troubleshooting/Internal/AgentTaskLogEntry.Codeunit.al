@@ -6,6 +6,7 @@
 namespace System.Agents.Troubleshooting;
 
 using System.Agents;
+using System.Text.Json;
 
 codeunit 4314 "Agent Task Log Entry"
 {
@@ -15,7 +16,7 @@ codeunit 4314 "Agent Task Log Entry"
 
     procedure FormatJsonTextForRichContent(JsonText: text): text
     var
-        Json: Codeunit System.Text.Json.Json;
+        Json: Codeunit Json;
         FormattedJson: Text;
     begin
         json.InitializeCollection('[' + JsonText + ']');
