@@ -57,10 +57,12 @@ codeunit 30251 "Shpfy Webhooks API"
         exit(false);
     end;
 
-    [TryFunction]
-    internal procedure TryDeleteWebhookSubscription(var Shop: Record "Shpfy Shop"; SubscriptionId: Text)
+    internal procedure TryDeleteWebhookSubscription(var Shop: Record "Shpfy Shop"; SubscriptionId: Text): Boolean
+    var
+        DeleteWebhookSubscr: Codeunit "Shpfy Delete Webhook Subs.";
     begin
-        DeleteWebhookSubscription(Shop, SubscriptionId);
+        DeleteWebhookSubscr.SetSubscriptionId(SubscriptionId);
+        exit(DeleteWebhookSubscr.Run(Shop));
     end;
 
     internal procedure DeleteWebhookSubscription(var Shop: Record "Shpfy Shop"; SubscriptionId: Text)
