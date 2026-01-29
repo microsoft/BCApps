@@ -7,6 +7,7 @@ namespace Microsoft.ExternalStorage.DocumentAttachments;
 
 using Microsoft.Foundation.Attachment;
 using System.Threading;
+using System.Utilities;
 
 /// <summary>
 /// Setup table for External Storage functionality.
@@ -33,9 +34,17 @@ table 8750 "DA External Storage Setup"
 
             trigger OnValidate()
             var
+                ConfirmManagement: Codeunit "Confirm Management";
                 DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
-                DisableSetupErr: Label 'Cannot disable External Storage setup because there are files uploaded using this configuration. Please delete the uploaded files before disabling the setup.';
+                DisclaimerMsg: Label 'You are about to enable External Storage.\\When this feature is enabled, files will be stored outside the Business Central service boundary.\Microsoft does not manage, back up, or restore data stored in external storage.\\You are responsible for the configuration, security, compliance, backup, and recovery of all externally stored files.\This feature is provided as-is, and you enable it at your own risk.\\Do you want to continue?';
+                DisableSetupErr: Label 'Cannot disable External Storage because there are files stored externally.\\To disable this feature:\1. Open the Document Attachments - External Storage page.\2. Use "Copy from External To Internal" to restore files.\3. Then disable the feature.';
             begin
+                if not xRec.Enabled and Rec.Enabled then
+                    if not ConfirmManagement.GetResponseOrDefault(DisclaimerMsg) then begin
+                        Rec.Enabled := false;
+                        exit;
+                    end;
+
                 if xRec.Enabled and not Rec.Enabled then begin
                     CalcFields("Has Uploaded Files");
                     if "Has Uploaded Files" then

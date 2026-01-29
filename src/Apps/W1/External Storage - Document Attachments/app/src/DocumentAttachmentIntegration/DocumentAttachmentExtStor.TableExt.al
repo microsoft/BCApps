@@ -38,10 +38,10 @@ tableextension 8750 "Document Attachment Ext.Stor." extends "Document Attachment
         }
         field(8753; "Deleted Internally"; Boolean)
         {
-            Caption = 'Deleted Internally';
+            Caption = 'Not Stored in Internal DB';
             DataClassification = SystemMetadata;
             Editable = false;
-            ToolTip = 'Specifies if the file has been deleted from internal storage.';
+            ToolTip = 'Specifies if the file has been removed from internal database storage.';
         }
         field(8754; "Source Environment Hash"; Text[16])
         {

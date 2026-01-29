@@ -30,4 +30,11 @@ interface "File Scenario"
     /// <param name="Connector">The file storage connector.</param>
     /// <returns>True if the delete operation is handled and should not proceed; otherwise false.</returns>
     procedure BeforeDeleteFileScenarioCheck(Scenario: Enum "File Scenario"; Connector: Enum System.ExternalFileStorage."Ext. File Storage Connector") SkipDelete: Boolean;
+
+    /// <summary>
+    /// Called before reassigning a file scenario from one to another.
+    /// </summary>
+    /// <param name="CurrentScenario">The ID of the old file scenario.</param>
+    /// <returns>True if the reassign operation is handled and should not proceed, otherwise false.</returns>
+    procedure BeforeReassignFileScenarioCheck(CurrentScenario: Enum "File Scenario") SkipReassign: Boolean
 }

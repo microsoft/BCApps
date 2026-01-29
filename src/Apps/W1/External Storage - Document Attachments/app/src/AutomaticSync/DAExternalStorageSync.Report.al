@@ -31,11 +31,8 @@ report 8752 "DA External Storage Sync"
                 SetFilters();
                 TotalCount := Count();
 
-                if TotalCount = 0 then begin
-                    if GuiAllowed() then
-                        Message(NoRecordsMsg);
+                if TotalCount = 0 then
                     CurrReport.Break();
-                end;
 
                 if MaxRecordsToProcess > 0 then
                     if TotalCount > MaxRecordsToProcess then
@@ -49,21 +46,29 @@ report 8752 "DA External Storage Sync"
             end;
 
             trigger OnAfterGetRecord()
+            var
+                SyncSuccess: Boolean;
             begin
                 ProcessedCount += 1;
 
                 if GuiAllowed() then
                     Dialog.Update(1, ProcessedCount);
 
+                SyncSuccess := false;
                 case SyncDirection of
                     SyncDirection::"To External Storage":
-                        if not ExternalStorageImpl.UploadToExternalStorage(DocumentAttachment) then
-                            FailedCount += 1;
+                        begin
+                            SyncSuccess := ExternalStorageImpl.UploadToExternalStorage(DocumentAttachment);
+                            if SyncSuccess then
+                                ExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment);
+                        end;
                     SyncDirection::"From External Storage":
-
-                        if not ExternalStorageImpl.DownloadFromExternalStorage(DocumentAttachment) then
-                            FailedCount += 1;
+                        SyncSuccess := ExternalStorageImpl.DownloadFromExternalStorageToInternal(DocumentAttachment);
                 end;
+
+                if not SyncSuccess then
+                    FailedCount += 1;
+
                 Commit(); // Commit after each record to avoid lost in communication error with external storage service
 
                 if (MaxRecordsToProcess > 0) and (ProcessedCount >= MaxRecordsToProcess) then
@@ -121,7 +126,6 @@ report 8752 "DA External Storage Sync"
         MaxRecordsToProcess: Integer;
         ProcessedCount: Integer;
         TotalCount: Integer;
-        NoRecordsMsg: Label 'No records found to process.';
         ProcessedMsg: Label 'Processed %1 attachments successfully. %2 failed.', Comment = '%1 - Number of Processed Attachments, %2 - Number of Failed Attachments';
         ProcessingMsg: Label 'Processing #1###### attachments...', Comment = '%1 - Total Number of Attachments';
         SyncDirection: Option "To External Storage","From External Storage";
@@ -132,7 +136,10 @@ report 8752 "DA External Storage Sync"
             SyncDirection::"To External Storage":
                 DocumentAttachment.SetRange("Uploaded Externally", false);
             SyncDirection::"From External Storage":
-                DocumentAttachment.SetRange("Uploaded Externally", true);
+                begin
+                    DocumentAttachment.SetRange("Uploaded Externally", true);
+                    DocumentAttachment.SetRange("Deleted Internally", true);
+                end;
         end;
     end;
 

@@ -129,9 +129,17 @@ page 8750 "DA External Storage Setup"
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
         ConfirmManagement: Codeunit "Confirm Management";
         NoFolderSelectedLbl: Label 'No folder selected. Do you want to clear the current root folder?';
+        ChangeRootFolderWarningLbl: Label 'Changing the root folder while files are stored externally may cause issues accessing existing files.\\Existing files will remain in the old folder and new files will be stored in the new folder.\\Do you want to continue?';
         FolderPath: Text;
     begin
         FolderPath := DAExternalStorageImpl.SelectRootFolder();
+
+        // Check if there are uploaded files and warn about changing root folder
+        Rec.CalcFields("Has Uploaded Files");
+        if Rec."Has Uploaded Files" then
+            if not ConfirmManagement.GetResponseOrDefault(ChangeRootFolderWarningLbl, false) then
+                exit;
+
         if FolderPath <> '' then begin
             Rec."Root Folder" := CopyStr(FolderPath, 1, MaxStrLen(Rec."Root Folder"));
             CurrPage.Update();

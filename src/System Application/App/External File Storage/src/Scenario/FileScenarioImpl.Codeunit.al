@@ -272,8 +272,15 @@ codeunit 9453 "File Scenario Impl."
         FileScenario: Record "File Scenario";
         FileAccount: Codeunit "File Account";
         AccountsPage: Page "File Accounts";
+        FileScenarioInterface: Interface "File Scenario";
+        FileScenarioEnum: Enum "File Scenario";
     begin
         FileAccountImpl.CheckPermissions();
+
+        FileScenarioEnum := Enum::"File Scenario".FromInteger(TempFileAccountScenario.Scenario);
+        FileScenarioInterface := FileScenarioEnum;
+        if FileScenarioInterface.BeforeReassignFileScenarioCheck(FileScenarioEnum) then
+            exit;
 
         if not TempFileAccountScenario.FindSet() then
             exit;

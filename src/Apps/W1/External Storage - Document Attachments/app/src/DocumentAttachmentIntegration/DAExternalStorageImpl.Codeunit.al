@@ -30,21 +30,28 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <returns>True if the operation is allowed, otherwise false.</returns>
     procedure BeforeAddOrModifyFileScenarioCheck(Scenario: Enum "File Scenario"; Connector: Enum System.ExternalFileStorage."Ext. File Storage Connector") SkipInsertOrModify: Boolean;
     var
+        ExternalStorageSetup: Record "DA External Storage Setup";
         FileAccount: Record "File Account";
-        ConfirmManagement: Codeunit "Confirm Management";
         FileScenarioCU: Codeunit "File Scenario";
-        DisclaimerMsg: Label 'You are about to enable External Storage.\\When this feature is enabled, files will be stored outside the Business Central service boundary.\Microsoft does not manage, back up, or restore data stored in external storage.\\You are responsible for the configuration, security, compliance, backup, and recovery of all externally stored files.\This feature is provided as-is, and you enable it at your own risk.\\Do you want to continue?';
+        CannotReassignScenarioErr: Label 'You cannot change the file storage account while External Storage is enabled and files are stored externally.\\To change the storage account:\1. Copy all files back to internal storage using the "Storage Sync" action.\2. Disable the External Storage feature.\3. Reassign the file scenario to the new storage account.\4. Re-enable the feature and sync files to the new storage.';
     begin
         if not (Scenario = Enum::"File Scenario"::"Doc. Attach. - External Storage") then
             exit;
 
-        // Search for External Storage assigned File Scenario
-        if FileScenarioCU.GetSpecificFileAccount(Scenario, FileAccount) then begin
-            SkipInsertOrModify := true;
-            exit;
-        end;
+        // Check if scenario is already assigned to a different account
+        if FileScenarioCU.GetSpecificFileAccount(Scenario, FileAccount) then
+            // If feature is enabled and has uploaded files, don't allow reassignment
+            if ExternalStorageSetup.Get() then
+                if ExternalStorageSetup.Enabled then begin
+                    ExternalStorageSetup.CalcFields("Has Uploaded Files");
+                    if ExternalStorageSetup."Has Uploaded Files" then begin
+                        SkipInsertOrModify := true;
+                        Message(CannotReassignScenarioErr);
+                        exit;
+                    end;
+                end;
 
-        SkipInsertOrModify := not ConfirmManagement.GetResponseOrDefault(DisclaimerMsg);
+        SkipInsertOrModify := false;
     end;
 
     /// <summary>
@@ -87,6 +94,25 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 
         SkipDelete := true;
         Message(NotPossibleToUnassignScenarioMsg);
+    end;
+
+    procedure BeforeReassignFileScenarioCheck(CurrentScenario: Enum "File Scenario") SkipReassign: Boolean
+    var
+        ExternalStorageSetup: Record "DA External Storage Setup";
+        NotPossibleToReassignScenarioMsg: Label 'External Storage scenario can not be reassigned when there are uploaded files.';
+    begin
+        if not (CurrentScenario = Enum::"File Scenario"::"Doc. Attach. - External Storage") then
+            exit;
+
+        if not ExternalStorageSetup.Get() then
+            exit;
+
+        ExternalStorageSetup.CalcFields("Has Uploaded Files");
+        if not ExternalStorageSetup."Has Uploaded Files" then
+            exit;
+
+        SkipReassign := true;
+        Message(NotPossibleToReassignScenarioMsg);
     end;
     #endregion
 
@@ -232,7 +258,8 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 
         // Get the file with connector using the File Account framework
         ExternalFileStorage.Initialize(FileScenario);
-        ExternalFileStorage.GetFile(ExternalFilePath, InStream);
+        if not ExternalFileStorage.GetFile(ExternalFilePath, InStream) then
+            exit(false);
 
         // Import the file into the Document Attachment
         DocumentAttachment.ImportAttachment(InStream, FileName);

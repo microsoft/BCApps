@@ -43,4 +43,14 @@ codeunit 9459 "Default File Scenario Impl." implements "File Scenario"
     begin
         SkipDelete := false;
     end;
+
+    /// <summary>
+    /// Called before reassigning a file scenario from one to another.
+    /// </summary>
+    /// <param name="CurrentScenario">The ID of the old file scenario.</param>
+    /// <returns>True if the reassign operation is handled and should not proceed, otherwise false.</returns>
+    procedure BeforeReassignFileScenarioCheck(CurrentScenario: Enum "File Scenario") SkipReassign: Boolean
+    begin
+        SkipReassign := false;
+    end;
 }

@@ -56,15 +56,12 @@ page 8751 "Document Attachment - External"
                 }
                 field("Uploaded to External"; Rec."Uploaded Externally")
                 {
-                    Caption = 'Uploaded to External';
                 }
                 field("External Upload Date"; Rec."External Upload Date")
                 {
-                    Caption = 'Upload Date';
                 }
                 field("External File Path"; Rec."External File Path")
                 {
-                    Caption = 'External File Path';
                 }
             }
         }
@@ -76,96 +73,161 @@ page 8751 "Document Attachment - External"
         {
             action("Upload to External")
             {
-                Enabled = not Rec."Uploaded Externally";
+                Enabled = UploadActionEnabled;
                 Caption = 'Upload to External';
-                ToolTip = 'Upload the selected file to external storage.';
+                ToolTip = 'Upload the selected file(s) to external storage.';
                 Image = Export;
 
                 trigger OnAction()
                 var
                     DocumentAttachment: Record "Document Attachment";
                     ExternalStorageImpl: Codeunit "DA External Storage Impl.";
+                    SuccessCount: Integer;
+                    FailedCount: Integer;
                 begin
                     CurrPage.SetSelectionFilter(DocumentAttachment);
+                    SuccessCount := 0;
+                    FailedCount := 0;
                     if DocumentAttachment.FindSet() then
                         repeat
                             if ExternalStorageImpl.UploadToExternalStorage(DocumentAttachment) then
-                                Message(FileUploadedMsg)
+                                SuccessCount += 1
                             else
-                                Message(FailedFileUploadMsg);
+                                FailedCount += 1;
                         until DocumentAttachment.Next() = 0;
+
+                    if SuccessCount + FailedCount > 0 then
+                        Message(FilesUploadedMsg, SuccessCount, FailedCount);
                 end;
             }
             action(Download)
             {
                 Caption = 'Download';
-                ToolTip = 'Download the selected file from external storage. If the file is not stored externally, it will be exported from internal storage.';
+                ToolTip = 'Download the selected file(s) from external storage. If the file is not stored externally, it will be exported from internal storage.';
                 Image = Import;
 
                 trigger OnAction()
                 var
+                    DocumentAttachment: Record "Document Attachment";
                     ExternalStorageImpl: Codeunit "DA External Storage Impl.";
+                    SuccessCount: Integer;
+                    FailedCount: Integer;
                 begin
-                    if Rec."Uploaded Externally" then begin
-                        if ExternalStorageImpl.DownloadFromExternalStorage(Rec) then
-                            Message(FileDownloadedMsg)
-                        else
-                            Message(FailedFileDownloadMsg);
-                    end else
-                        Rec.Export(true);
+                    CurrPage.SetSelectionFilter(DocumentAttachment);
+                    SuccessCount := 0;
+                    FailedCount := 0;
+                    if DocumentAttachment.FindSet() then
+                        repeat
+                            if DocumentAttachment."Uploaded Externally" then begin
+                                if ExternalStorageImpl.DownloadFromExternalStorage(DocumentAttachment) then
+                                    SuccessCount += 1
+                                else
+                                    FailedCount += 1;
+                            end else
+                                DocumentAttachment.Export(true);
+                        until DocumentAttachment.Next() = 0;
+
+                    if SuccessCount > 0 then
+                        Message(FilesDownloadedMsg, SuccessCount, FailedCount);
                 end;
             }
             action("Copy from External To Internal")
             {
                 Enabled = Rec."Deleted Internally" and Rec."Uploaded Externally";
                 Caption = 'Copy from External To Internal';
-                ToolTip = 'Copy the file from external storage to internal storage.';
+                ToolTip = 'Copy the selected file(s) from external storage to internal storage.';
                 Image = Import;
 
                 trigger OnAction()
                 var
+                    DocumentAttachment: Record "Document Attachment";
                     ExternalStorageImpl: Codeunit "DA External Storage Impl.";
+                    SuccessCount: Integer;
+                    FailedCount: Integer;
                 begin
-                    if ExternalStorageImpl.DownloadFromExternalStorageToInternal(Rec) then
-                        Message(FileDownloadedMsg)
-                    else
-                        Message(FailedFileDownloadMsg);
+                    CurrPage.SetSelectionFilter(DocumentAttachment);
+                    DocumentAttachment.SetRange("Deleted Internally", true);
+                    DocumentAttachment.SetRange("Uploaded Externally", true);
+                    SuccessCount := 0;
+                    FailedCount := 0;
+                    if DocumentAttachment.FindSet() then
+                        repeat
+                            if ExternalStorageImpl.DownloadFromExternalStorageToInternal(DocumentAttachment) then
+                                SuccessCount += 1
+                            else
+                                FailedCount += 1;
+                        until DocumentAttachment.Next() = 0;
+
+                    if SuccessCount + FailedCount > 0 then
+                        Message(FilesCopiedMsg, SuccessCount, FailedCount);
                 end;
             }
             action("Delete from External")
             {
                 Enabled = not (Rec."Deleted Internally") and Rec."Uploaded Externally";
                 Caption = 'Delete from External';
-                ToolTip = 'Delete the file from external storage.';
+                ToolTip = 'Delete the selected file(s) from external storage.';
                 Image = Delete;
 
                 trigger OnAction()
                 var
+                    DocumentAttachment: Record "Document Attachment";
                     ExternalStorageImpl: Codeunit "DA External Storage Impl.";
+                    SuccessCount: Integer;
+                    FailedCount: Integer;
                 begin
-                    if Confirm(DeleteFileFromExternalStorageQst) then
-                        if ExternalStorageImpl.DeleteFromExternalStorage(Rec) then
-                            Message(FileDeletedExternalStorageMsg)
-                        else
-                            Message(FailedFileDeleteExternalStorageMsg);
+                    if not Confirm(DeleteFilesFromExternalStorageQst) then
+                        exit;
+
+                    CurrPage.SetSelectionFilter(DocumentAttachment);
+                    DocumentAttachment.SetRange("Deleted Internally", false);
+                    DocumentAttachment.SetRange("Uploaded Externally", true);
+                    SuccessCount := 0;
+                    FailedCount := 0;
+                    if DocumentAttachment.FindSet() then
+                        repeat
+                            if ExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment) then
+                                SuccessCount += 1
+                            else
+                                FailedCount += 1;
+                        until DocumentAttachment.Next() = 0;
+
+                    if SuccessCount + FailedCount > 0 then
+                        Message(FilesDeletedExternalStorageMsg, SuccessCount, FailedCount);
                 end;
             }
             action("Delete from Internal")
             {
                 Enabled = Rec."Uploaded Externally" and not Rec."Deleted Internally";
                 Caption = 'Delete from Internal';
-                ToolTip = 'Delete the file from Internal storage.';
+                ToolTip = 'Delete the selected file(s) from Internal storage.';
                 Image = Delete;
 
                 trigger OnAction()
                 var
+                    DocumentAttachment: Record "Document Attachment";
                     ExternalStorageImpl: Codeunit "DA External Storage Impl.";
+                    SuccessCount: Integer;
+                    FailedCount: Integer;
                 begin
-                    if Confirm(DeleteFileFromIntStorageQst) then
-                        if ExternalStorageImpl.DeleteFromInternalStorage(Rec) then
-                            Message(FileDeletedIntStorageMsg)
-                        else
-                            Message(FailedFileDeleteIntStorageMsg);
+                    if not Confirm(DeleteFilesFromIntStorageQst) then
+                        exit;
+
+                    CurrPage.SetSelectionFilter(DocumentAttachment);
+                    DocumentAttachment.SetRange("Uploaded Externally", true);
+                    DocumentAttachment.SetRange("Deleted Internally", false);
+                    SuccessCount := 0;
+                    FailedCount := 0;
+                    if DocumentAttachment.FindSet() then
+                        repeat
+                            if ExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment) then
+                                SuccessCount += 1
+                            else
+                                FailedCount += 1;
+                        until DocumentAttachment.Next() = 0;
+
+                    if SuccessCount + FailedCount > 0 then
+                        Message(FilesDeletedIntStorageMsg, SuccessCount, FailedCount);
                 end;
             }
         }
@@ -190,14 +252,19 @@ page 8751 "Document Attachment - External"
     }
 
     var
-        DeleteFileFromExternalStorageQst: Label 'Are you sure you want to delete this file from external storage?';
-        DeleteFileFromIntStorageQst: Label 'Are you sure you want to delete this file from Internal storage?';
-        FailedFileDeleteExternalStorageMsg: Label 'Failed to delete file from external storage.';
-        FailedFileDeleteIntStorageMsg: Label 'Failed to delete file from Internal storage.';
-        FailedFileDownloadMsg: Label 'Failed to download file.';
-        FailedFileUploadMsg: Label 'Failed to upload file.';
-        FileDeletedExternalStorageMsg: Label 'File deleted successfully from external storage.';
-        FileDeletedIntStorageMsg: Label 'File deleted successfully from Internal storage.';
-        FileDownloadedMsg: Label 'File downloaded successfully.';
-        FileUploadedMsg: Label 'File uploaded successfully.';
+        DeleteFilesFromExternalStorageQst: Label 'Are you sure you want to delete the selected file(s) from external storage?';
+        DeleteFilesFromIntStorageQst: Label 'Are you sure you want to delete the selected file(s) from internal storage?';
+        FilesCopiedMsg: Label '%1 file(s) copied successfully to internal storage. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
+        FilesDeletedExternalStorageMsg: Label '%1 file(s) deleted successfully from external storage. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
+        FilesDeletedIntStorageMsg: Label '%1 file(s) deleted successfully from internal storage. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
+        FilesDownloadedMsg: Label '%1 file(s) downloaded successfully. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
+        FilesUploadedMsg: Label '%1 file(s) uploaded successfully to external storage. %2 failed.', Comment = '%1 = Success count, %2 = Failed count';
+        UploadActionEnabled: Boolean;
+
+    trigger OnAfterGetRecord()
+    var
+        ExternalStorageSetup: Record "DA External Storage Setup";
+    begin
+        UploadActionEnabled := (not Rec."Uploaded Externally") and ExternalStorageSetup.Get() and ExternalStorageSetup.Enabled;
+    end;
 }
