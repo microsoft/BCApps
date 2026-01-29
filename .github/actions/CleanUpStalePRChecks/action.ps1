@@ -3,7 +3,7 @@ param (
     [int] $thresholdHours = 72,
     [Parameter(Mandatory = $false, HelpMessage="Maximum number of retry attempts")]
     [int] $maxRetries = 3,
-    [Parameter(Mandatory = $false, HelpMessage="If specified, only performs read operations without triggering any reruns")]
+    [Parameter(Mandatory = $false, HelpMessage="If specified, only performs read operations without deleting workflow runs or adding PR comments")]
     [switch] $WhatIf
 )
 
@@ -12,10 +12,10 @@ $ProgressPreference = "SilentlyContinue"
 Set-StrictMode -Version 2.0
 
 # Import EnlistmentHelperFunctions module
-Import-Module "$PSScriptRoot\..\..\..\build\scripts\EnlistmentHelperFunctions.psm1" -DisableNameChecking
+Import-Module "$PSScriptRoot/../../../build/scripts/EnlistmentHelperFunctions.psm1" -DisableNameChecking
 
 if ($WhatIf) {
-    Write-Host "::notice::Running in WhatIf mode - no workflows will be rerun"
+    Write-Host "::notice::Running in WhatIf mode - no workflow runs will be deleted and no comments will be added"
 }
 
 Write-Host "Fetching open pull requests..."
@@ -164,9 +164,7 @@ if ($env:GITHUB_STEP_SUMMARY) {
     if ($WhatIf) {
         Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- ℹ️ Running in **WhatIf mode** - no workflow runs were deleted and no comments were added"
         Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ""
-    }
-    if ($WhatIf) {
-        Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- ✓ Successfully processed: **$restarted** PR(s) (WhatIf mode: no workflow runs were deleted or comments added)"
+        Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- ✓ Successfully processed: **$restarted** PR(s) (would have deleted stale workflow runs and added comments)"
     }
     else {
         Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- ✓ Successfully processed: **$restarted** PR(s) (deleted stale workflow runs and added comments)"
