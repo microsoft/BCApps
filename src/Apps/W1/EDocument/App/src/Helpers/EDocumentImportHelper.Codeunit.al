@@ -260,14 +260,15 @@ codeunit 6109 "E-Document Import Helper"
     /// Use it to check if receiving company information is in line with Company Information.
     /// </summary>
     /// <param name="EDocument">The E-Document record.</param>
-    procedure ValidateReceivingCompanyInfo(EDocument: Record "E-Document")
+    /// <param name="ServiceCode">The E-Document Service code to match against.</param>
+    procedure ValidateReceivingCompanyInfo(EDocument: Record "E-Document"; ServiceCode: Code[20])
     var
         CompanyInformation: Record "Company Information";
     begin
         CompanyInformation.Get();
 
         // First, check if the Receiving Company Id matches a Company Service Participant
-        if MatchCompanyByServiceParticipant(EDocument) then
+        if MatchCompanyByServiceParticipant(EDocument, ServiceCode) then
             exit;
 
         if (EDocument."Receiving Company GLN" = '') and (EDocument."Receiving Company VAT Reg. No." = '') then begin
@@ -283,16 +284,6 @@ codeunit 6109 "E-Document Import Helper"
 
         if not (ExtractVatRegNo(CompanyInformation."VAT Registration No.", '') in ['', ExtractVatRegNo(EDocument."Receiving Company VAT Reg. No.", '')]) then
             EDocErrorHelper.LogErrorMessage(EDocument, CompanyInformation, CompanyInformation.FieldNo("VAT Registration No."), StrSubstNo(InvalidCompanyInfoVATRegNoErr, EDocument."Receiving Company VAT Reg. No."));
-    end;
-
-    /// <summary>
-    /// Use it to check if receiving company information matches a Company Service Participant.
-    /// </summary>
-    /// <param name="EDocument">The E-Document record.</param>
-    /// <returns>True if a matching Company Service Participant is found.</returns>
-    local procedure MatchCompanyByServiceParticipant(EDocument: Record "E-Document"): Boolean
-    begin
-        exit(MatchCompanyByServiceParticipant(EDocument, EDocument.GetEDocumentService().Code));
     end;
 
     /// <summary>
