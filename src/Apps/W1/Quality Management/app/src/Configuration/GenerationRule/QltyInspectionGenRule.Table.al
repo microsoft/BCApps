@@ -421,7 +421,14 @@ table 20404 "Qlty. Inspection Gen. Rule"
         if Certainty = Certainty::Yes then begin
             Rec.Intent := InferredIntent;
             SetDefaultTriggerValuesToNoTrigger();
-            if Rec."Activation Trigger" in [Rec."Activation Trigger"::"Manual or Automatic", Rec."Activation Trigger"::"Automatic only"] then
+            if Rec."Activation Trigger" in [Rec."Activation Trigger"::"Manual or Automatic", Rec."Activation Trigger"::"Automatic only"] then begin
+                Rec."Assembly Trigger" := Rec."Assembly Trigger"::NoTrigger;
+                Rec."Production Trigger" := Rec."Production Trigger"::NoTrigger;
+                Rec."Purchase Trigger" := Rec."Purchase Trigger"::NoTrigger;
+                Rec."Sales Return Trigger" := Rec."Sales Return Trigger"::NoTrigger;
+                Rec."Transfer Trigger" := Rec."Transfer Trigger"::NoTrigger;
+                Rec."Warehouse Movement Trigger" := Rec."Warehouse Movement Trigger"::NoTrigger;
+                Rec."Warehouse Receive Trigger" := Rec."Warehouse Receive Trigger"::NoTrigger;
                 case InferredIntent of
                     InferredIntent::Assembly:
                         Rec."Assembly Trigger" := QltyManagementSetup."Assembly Trigger";
@@ -438,6 +445,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
                     InferredIntent::"Warehouse Receipt":
                         Rec."Warehouse Receipt Trigger" := QltyManagementSetup."Warehouse Receipt Trigger";
                 end;
+            end;
         end;
     end;
 
