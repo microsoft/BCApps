@@ -3,7 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+#pragma warning disable AS0007 // Aligning namespaces.
 namespace System.Agents.Troubleshooting;
+#pragma warning restore AS0007
 
 using System.Agents;
 using System.Agents.TaskPane;
