@@ -35,6 +35,12 @@ table 8101 "Sub. Billing Module Setup"
             ToolTip = 'Specifies whether a reconciliation file is imported to be used for usage data.';
             InitValue = true;
         }
+        field(5; "Create Sub. Analysis Entries"; Boolean)
+        {
+            Caption = 'Create Sub. Analysis Entries';
+            ToolTip = 'Specifies whether subscription analysis entries are created for analytics.';
+            InitValue = true;
+        }
     }
 
     keys
