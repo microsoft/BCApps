@@ -171,7 +171,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         // Create the file with connector using the File Account framework
         ExternalFileStorage.Initialize(FileScenario);
         if ExternalFileStorage.CreateFile(FileName, InStream) then begin
-            DocumentAttachment."Uploaded Externally" := true;
+            DocumentAttachment."Stored Externally" := true;
             DocumentAttachment."External Upload Date" := CurrentDateTime();
             DocumentAttachment."External File Path" := FileName;
             DocumentAttachment."Source Environment Hash" := GetCurrentEnvironmentHash();
@@ -205,7 +205,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if DocumentAttachment."External File Path" = '' then
             exit(false);
 
-        if not DocumentAttachment."Uploaded Externally" then
+        if not DocumentAttachment."Stored Externally" then
             exit(false);
 
         // Use the stored external file path
@@ -247,7 +247,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if DocumentAttachment."External File Path" = '' then
             exit(false);
 
-        if not DocumentAttachment."Uploaded Externally" then
+        if not DocumentAttachment."Stored Externally" then
             exit(false);
 
         // Use the stored external file path
@@ -266,7 +266,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 
         // Import the file into the Document Attachment
         DocumentAttachment.ImportAttachment(InStream, FileName);
-        DocumentAttachment."Deleted Internally" := false;
+        DocumentAttachment."Stored Internally" := true;
         DocumentAttachment.Modify();
 
         exit(true);
@@ -378,7 +378,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if DocumentAttachment."External File Path" = '' then
             exit(false);
 
-        if not DocumentAttachment."Uploaded Externally" then
+        if not DocumentAttachment."Stored Externally" then
             exit(false);
 
         if DocumentAttachment."Skip Delete On Copy" then
@@ -423,14 +423,14 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             exit(false);
 
         // Check if file is uploaded externally before deleting internally
-        if not DocumentAttachment."Uploaded Externally" then
+        if not DocumentAttachment."Stored Externally" then
             exit(false);
 
         // Delete from Tenant Media
         if TenantMedia.Get(DocumentAttachment."Document Reference ID".MediaId()) then begin
             TenantMedia.Delete();
 
-            // Mark Document Attachment as Deleted Internally
+            // Mark Document Attachment as Not Stored Internally
             DocumentAttachment.MarkAsDeletedInternally();
             exit(true);
         end;
@@ -487,16 +487,16 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     end;
 
     /// <summary>
-    /// Checks if a Document Attachment file is uploaded to external storage and deleted internally.
+    /// Checks if a Document Attachment file is uploaded to external storage and not stored internally.
     /// </summary>
     /// <param name="DocumentAttachment">The Document Attachment record to check.</param>
-    /// <returns>True if the file is uploaded and deleted, false otherwise.</returns>
+    /// <returns>True if the file is uploaded and not stored internally, false otherwise.</returns>
     procedure IsFileUploadedToExternalStorageAndDeletedInternally(var DocumentAttachment: Record "Document Attachment"): Boolean
     begin
-        if not DocumentAttachment."Deleted Internally" then
+        if DocumentAttachment."Stored Internally" then
             exit(false);
 
-        if not DocumentAttachment."Uploaded Externally" then
+        if not DocumentAttachment."Stored Externally" then
             exit(false);
 
         if DocumentAttachment."Document Reference ID".HasValue() then
@@ -570,7 +570,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             exit;
 
         // Only process files that were uploaded to external storage
-        if not Rec."Uploaded Externally" then
+        if not Rec."Stored Externally" then
             exit;
 
         // Delete from external storage
@@ -666,14 +666,14 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnInsertOnBeforeCheckDocRefID, '', false, false)]
     local procedure "Document Attachment_OnInsertOnBeforeCheckDocRefID"(var DocumentAttachment: Record "Document Attachment"; var IsHandled: Boolean)
     begin
-        if DocumentAttachment."Uploaded Externally" then
+        if DocumentAttachment."Stored Externally" then
             IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", OnCopyAttachmentsOnAfterSetToDocumentFilters, '', false, false)]
     local procedure "Document Attachment Mgmt_OnCopyAttachmentsOnAfterSetToDocumentFilters"(var ToDocumentAttachment: Record "Document Attachment"; ToRecRef: RecordRef; ToAttachmentDocumentType: Enum "Attachment Document Type"; ToNo: Code[20]; ToLineNo: Integer)
     begin
-        ToDocumentAttachment."Skip Delete On Copy" := ToDocumentAttachment."Uploaded Externally";
+        ToDocumentAttachment."Skip Delete On Copy" := ToDocumentAttachment."Stored Externally";
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnBeforeOpenInOneDrive, '', false, false)]
@@ -681,7 +681,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     var
         NotSupportedMsg: Label 'Opening Document Attachments stored in External Storage via OneDrive is not supported.';
     begin
-        if Rec."Uploaded Externally" then begin
+        if Rec."Stored Externally" then begin
             IsHandled := true;
             Message(NotSupportedMsg);
         end;
@@ -858,7 +858,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         OldFilePath: Text;
         NewFilePath: Text[2048];
     begin
-        if not DocumentAttachment."Uploaded Externally" then
+        if not DocumentAttachment."Stored Externally" then
             exit(false);
 
         if DocumentAttachment."External File Path" = '' then
@@ -912,7 +912,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             exit(0);
 
         MigratedCount := 0;
-        DocumentAttachment.SetRange("Uploaded Externally", true);
+        DocumentAttachment.SetRange("Stored Externally", true);
         DocumentAttachment.SetFilter("External File Path", '<>%1', '');
         if DocumentAttachment.FindSet(true) then
             repeat

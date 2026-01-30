@@ -48,6 +48,7 @@ report 8752 "DA External Storage Sync"
             trigger OnAfterGetRecord()
             var
                 SyncSuccess: Boolean;
+                DeleteSuccess: Boolean;
             begin
                 ProcessedCount += 1;
 
@@ -59,11 +60,24 @@ report 8752 "DA External Storage Sync"
                     SyncDirection::"To External Storage":
                         begin
                             SyncSuccess := ExternalStorageImpl.UploadToExternalStorage(DocumentAttachment);
-                            if SyncSuccess then
-                                ExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment);
+                            if SyncSuccess and (Operation = Operation::Move) then begin
+                                DeleteSuccess := ExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment);
+                                if not DeleteSuccess then
+                                    FailedCount += 1;
+                            end;
                         end;
                     SyncDirection::"From External Storage":
-                        SyncSuccess := ExternalStorageImpl.DownloadFromExternalStorageToInternal(DocumentAttachment);
+                        begin
+                            SyncSuccess := ExternalStorageImpl.DownloadFromExternalStorageToInternal(DocumentAttachment);
+                            if SyncSuccess and (Operation = Operation::Move) then begin
+                                DocumentAttachment.SetRange("Stored Internally");
+                                DocumentAttachment.Find();
+                                DeleteSuccess := ExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment);
+                                if not DeleteSuccess then
+                                    FailedCount += 1;
+                                DocumentAttachment.SetRange("Stored Internally", false);
+                            end;
+                        end;
                 end;
 
                 if not SyncSuccess then
@@ -106,6 +120,13 @@ report 8752 "DA External Storage Sync"
                         OptionCaption = 'To External Storage,From External Storage';
                         ToolTip = 'Specifies whether to sync to external storage or from external storage.';
                     }
+                    field(OperationField; Operation)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Operation';
+                        OptionCaption = 'Copy,Move';
+                        ToolTip = 'Specifies whether to copy files (leaving them in the source) or move them (deleting from the source after successful copy).';
+                    }
                     field(MaxRecordsToProcessField; MaxRecordsToProcess)
                     {
                         ApplicationArea = Basic, Suite;
@@ -129,16 +150,18 @@ report 8752 "DA External Storage Sync"
         ProcessedMsg: Label 'Processed %1 attachments successfully. %2 failed.', Comment = '%1 - Number of Processed Attachments, %2 - Number of Failed Attachments';
         ProcessingMsg: Label 'Processing #1###### attachments...', Comment = '%1 - Total Number of Attachments';
         SyncDirection: Option "To External Storage","From External Storage";
+        Operation: Option Copy,Move;
 
     local procedure SetFilters()
     begin
         case SyncDirection of
             SyncDirection::"To External Storage":
-                DocumentAttachment.SetRange("Uploaded Externally", false);
+                DocumentAttachment.SetRange("Stored Externally", false);
             SyncDirection::"From External Storage":
                 begin
-                    DocumentAttachment.SetRange("Uploaded Externally", true);
-                    DocumentAttachment.SetRange("Deleted Internally", true);
+                    DocumentAttachment.SetRange("Stored Externally", true);
+                    if Operation = Operation::Move then
+                        DocumentAttachment.SetRange("Stored Internally", false);
                 end;
         end;
     end;

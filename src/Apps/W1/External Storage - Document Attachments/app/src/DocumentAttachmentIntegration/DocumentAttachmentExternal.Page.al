@@ -51,10 +51,10 @@ page 8751 "Document Attachment - External"
                 {
                     ToolTip = 'Specifies the user who attached the file.';
                 }
-                field("Deleted Internally"; Rec."Deleted Internally")
+                field("Stored Internally"; Rec."Stored Internally")
                 {
                 }
-                field("Uploaded to External"; Rec."Uploaded Externally")
+                field("Uploaded to External"; Rec."Stored Externally")
                 {
                 }
                 field("External Upload Date"; Rec."External Upload Date")
@@ -118,7 +118,7 @@ page 8751 "Document Attachment - External"
                     FailedCount := 0;
                     if DocumentAttachment.FindSet() then
                         repeat
-                            if DocumentAttachment."Uploaded Externally" then begin
+                            if DocumentAttachment."Stored Externally" then begin
                                 if ExternalStorageImpl.DownloadFromExternalStorage(DocumentAttachment) then
                                     SuccessCount += 1
                                 else
@@ -133,7 +133,7 @@ page 8751 "Document Attachment - External"
             }
             action("Copy from External To Internal")
             {
-                Enabled = Rec."Deleted Internally" and Rec."Uploaded Externally";
+                Enabled = not Rec."Stored Internally" and Rec."Stored Externally";
                 Caption = 'Copy from External To Internal';
                 ToolTip = 'Copy the selected file(s) from external storage to internal storage.';
                 Image = Import;
@@ -146,8 +146,8 @@ page 8751 "Document Attachment - External"
                     FailedCount: Integer;
                 begin
                     CurrPage.SetSelectionFilter(DocumentAttachment);
-                    DocumentAttachment.SetRange("Deleted Internally", true);
-                    DocumentAttachment.SetRange("Uploaded Externally", true);
+                    DocumentAttachment.SetRange("Stored Internally", false);
+                    DocumentAttachment.SetRange("Stored Externally", true);
                     SuccessCount := 0;
                     FailedCount := 0;
                     if DocumentAttachment.FindSet() then
@@ -164,7 +164,7 @@ page 8751 "Document Attachment - External"
             }
             action("Delete from External")
             {
-                Enabled = not (Rec."Deleted Internally") and Rec."Uploaded Externally";
+                Enabled = Rec."Stored Internally" and Rec."Stored Externally";
                 Caption = 'Delete from External';
                 ToolTip = 'Delete the selected file(s) from external storage.';
                 Image = Delete;
@@ -180,8 +180,8 @@ page 8751 "Document Attachment - External"
                         exit;
 
                     CurrPage.SetSelectionFilter(DocumentAttachment);
-                    DocumentAttachment.SetRange("Deleted Internally", false);
-                    DocumentAttachment.SetRange("Uploaded Externally", true);
+                    DocumentAttachment.SetRange("Stored Internally", true);
+                    DocumentAttachment.SetRange("Stored Externally", true);
                     SuccessCount := 0;
                     FailedCount := 0;
                     if DocumentAttachment.FindSet() then
@@ -198,7 +198,7 @@ page 8751 "Document Attachment - External"
             }
             action("Delete from Internal")
             {
-                Enabled = Rec."Uploaded Externally" and not Rec."Deleted Internally";
+                Enabled = Rec."Stored Externally" and Rec."Stored Internally";
                 Caption = 'Delete from Internal';
                 ToolTip = 'Delete the selected file(s) from Internal storage.';
                 Image = Delete;
@@ -214,8 +214,8 @@ page 8751 "Document Attachment - External"
                         exit;
 
                     CurrPage.SetSelectionFilter(DocumentAttachment);
-                    DocumentAttachment.SetRange("Uploaded Externally", true);
-                    DocumentAttachment.SetRange("Deleted Internally", false);
+                    DocumentAttachment.SetRange("Stored Externally", true);
+                    DocumentAttachment.SetRange("Stored Internally", true);
                     SuccessCount := 0;
                     FailedCount := 0;
                     if DocumentAttachment.FindSet() then
@@ -265,6 +265,6 @@ page 8751 "Document Attachment - External"
     var
         ExternalStorageSetup: Record "DA External Storage Setup";
     begin
-        UploadActionEnabled := (not Rec."Uploaded Externally") and ExternalStorageSetup.Get() and ExternalStorageSetup.Enabled;
+        UploadActionEnabled := (not Rec."Stored Externally") and ExternalStorageSetup.Get() and ExternalStorageSetup.Enabled;
     end;
 }
