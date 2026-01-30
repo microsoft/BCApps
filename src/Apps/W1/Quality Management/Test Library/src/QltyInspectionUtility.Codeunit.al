@@ -27,7 +27,6 @@ using Microsoft.QualityManagement.Dispositions.PutAway;
 using Microsoft.QualityManagement.Dispositions.Transfer;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Integration.Inventory;
-using Microsoft.QualityManagement.Integration.Utilities;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
 using Microsoft.QualityManagement.Utilities;
