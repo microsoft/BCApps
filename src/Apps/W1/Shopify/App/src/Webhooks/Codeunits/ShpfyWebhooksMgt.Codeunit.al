@@ -123,6 +123,7 @@ codeunit 30269 "Shpfy Webhooks Mgt."
 
                 if FoundCompany = '' then begin
                     WebhookSubscription.Delete();
+                    Commit();
                     if WebhooksAPI.TryDeleteWebhookSubscription(Shop, Shop."Bulk Operation Webhook Id") then;
                 end else
                     if FoundCompany <> WebhookSubscription."Company Name" then begin
@@ -178,6 +179,7 @@ codeunit 30269 "Shpfy Webhooks Mgt."
 
                 if FoundCompany = '' then begin
                     WebhookSubscription.Delete();
+                    Commit();
                     if WebhooksAPI.TryDeleteWebhookSubscription(Shop, Shop."Order Created Webhook Id") then;
                 end else
                     if FoundCompany <> WebhookSubscription."Company Name" then begin
