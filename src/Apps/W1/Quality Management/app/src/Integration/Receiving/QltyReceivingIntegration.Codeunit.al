@@ -46,7 +46,7 @@ codeunit 20411 "Qlty. Receiving Integration"
             exit;
 
         ApplicableReceivingQltyInspectionGenRule.Reset();
-        ApplicableReceivingQltyInspectionGenRule.SetRange("Purchase Trigger", ApplicableReceivingQltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderPostReceive);
+        ApplicableReceivingQltyInspectionGenRule.SetRange("Purchase Order Trigger", ApplicableReceivingQltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive);
         ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
         if ApplicableReceivingQltyInspectionGenRule.IsEmpty() then
             exit;
@@ -96,7 +96,7 @@ codeunit 20411 "Qlty. Receiving Integration"
             exit;
 
         ApplicableReceivingQltyInspectionGenRule.Reset();
-        ApplicableReceivingQltyInspectionGenRule.SetRange("Warehouse Receive Trigger", ApplicableReceivingQltyInspectionGenRule."Warehouse Receive Trigger"::OnWarehouseReceiptPost);
+        ApplicableReceivingQltyInspectionGenRule.SetRange("Warehouse Receipt Trigger", ApplicableReceivingQltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptPost);
         ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
         if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then
             AttemptCreateInspectionWithWhseJournalLine(WarehouseJournalLine, PostedWhseReceiptHeader);
@@ -114,7 +114,7 @@ codeunit 20411 "Qlty. Receiving Integration"
             exit;
 
         ApplicableReceivingQltyInspectionGenRule.Reset();
-        ApplicableReceivingQltyInspectionGenRule.SetRange("Warehouse Receive Trigger", ApplicableReceivingQltyInspectionGenRule."Warehouse Receive Trigger"::OnWarehouseReceiptCreate);
+        ApplicableReceivingQltyInspectionGenRule.SetRange("Warehouse Receipt Trigger", ApplicableReceivingQltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate);
         ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
         if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then begin
             OptionalSource := PurchaseLine;
@@ -183,7 +183,7 @@ codeunit 20411 "Qlty. Receiving Integration"
             exit;
 
         ApplicableReceivingQltyInspectionGenRule.Reset();
-        ApplicableReceivingQltyInspectionGenRule.SetRange("Transfer Trigger", ApplicableReceivingQltyInspectionGenRule."Transfer Trigger"::OnTransferOrderPostReceive);
+        ApplicableReceivingQltyInspectionGenRule.SetRange("Transfer Order Trigger", ApplicableReceivingQltyInspectionGenRule."Transfer Order Trigger"::OnTransferOrderPostReceive);
         ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
         if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then
             AttemptCreateInspectionWithReceiveTransferLine(TransLine, UnusedTransTransferReceiptHeader, DirectTransHeader);
@@ -201,7 +201,7 @@ codeunit 20411 "Qlty. Receiving Integration"
             exit;
 
         ApplicableReceivingQltyInspectionGenRule.Reset();
-        ApplicableReceivingQltyInspectionGenRule.SetRange("Transfer Trigger", ApplicableReceivingQltyInspectionGenRule."Transfer Trigger"::OnTransferOrderPostReceive);
+        ApplicableReceivingQltyInspectionGenRule.SetRange("Transfer Order Trigger", ApplicableReceivingQltyInspectionGenRule."Transfer Order Trigger"::OnTransferOrderPostReceive);
         ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
         if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then
             AttemptCreateInspectionWithReceiveTransferLine(TransLine, TransferReceiptHeader, UnusedDirectTransHeader);
@@ -222,7 +222,7 @@ codeunit 20411 "Qlty. Receiving Integration"
             exit;
 
         ApplicableReceivingQltyInspectionGenRule.Reset();
-        ApplicableReceivingQltyInspectionGenRule.SetRange("Purchase Trigger", ApplicableReceivingQltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderRelease);
+        ApplicableReceivingQltyInspectionGenRule.SetRange("Purchase Order Trigger", ApplicableReceivingQltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderRelease);
         ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
         if ApplicableReceivingQltyInspectionGenRule.IsEmpty() then
             exit;
@@ -514,7 +514,7 @@ codeunit 20411 "Qlty. Receiving Integration"
     end;
 
     /// <summary>
-    /// Provides an opportunity to modify the create inspection behavior when triggered from posting an inbound Transfer Line.
+    /// Provides an opportunity to modify the Inspection Creation Option when triggered from posting an inbound Transfer Line.
     /// </summary>
     /// <param name="TransTransferLine">Transfer Line</param>
     /// <param name="TransferReceiptHeader">Transfer Receipt Header</param>

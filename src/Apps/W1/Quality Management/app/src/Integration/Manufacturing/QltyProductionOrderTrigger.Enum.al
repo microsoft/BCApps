@@ -7,9 +7,9 @@ namespace Microsoft.QualityManagement.Integration.Manufacturing;
 /// <summary>
 /// The trigger for when to create inspections for production orders.
 /// </summary>
-enum 20406 "Qlty. Production Trigger"
+enum 20406 "Qlty. Production Order Trigger"
 {
-    Caption = 'Quality Production Trigger';
+    Caption = 'Quality Production Order Trigger';
 
     value(0; NoTrigger)
     {

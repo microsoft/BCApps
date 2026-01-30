@@ -2,22 +2,20 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.QualityManagement.Integration.Receiving;
+
+namespace System.ExternalFileStorage;
 
 /// <summary>
-/// Helps determine the trigger for transfer specific reactions.
+/// Enum extension to register the SFTP connector.
 /// </summary>
-enum 20454 "Qlty. Transfer Trigger"
+enumextension 4621 "Ext. SFTP Connector" extends "Ext. File Storage Connector"
 {
-    Extensible = true;
-    Caption = 'Quality Transfer Trigger';
-
-    value(0; NoTrigger)
+    /// <summary>
+    /// The SFTP connector.
+    /// </summary>
+    value(4621; "SFTP")
     {
-        Caption = 'Never';
-    }
-    value(1; OnTransferOrderPostReceive)
-    {
-        Caption = 'When Transfer Order is received';
+        Caption = 'SFTP';
+        Implementation = "External File Storage Connector" = "Ext. SFTP Connector Impl";
     }
 }

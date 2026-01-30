@@ -13,7 +13,7 @@ page 4316 "Agent List"
     ApplicationArea = All;
     UsageCategory = Administration;
     SourceTable = "Agent";
-    Caption = 'Agents (Preview)';
+    Caption = 'Agents';
     CardPageId = "Agent Card";
     AdditionalSearchTerms = 'Agent, Agents, Copilot, Automation, AI';
     Editable = false;
@@ -69,7 +69,7 @@ page 4316 "Agent List"
             action(AgentTasks)
             {
                 ApplicationArea = All;
-                Caption = 'Agent Tasks';
+                Caption = 'View tasks';
                 ToolTip = 'View agent tasks';
                 Image = Log;
 

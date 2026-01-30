@@ -550,7 +550,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
         ItemNoFilter: Code[20];
         CategoryCodeFilter: Code[20];
         InventoryPostingGroupCode: Code[20];
-        QltyProductionTrigger: Enum "Qlty. Production Trigger";
+        QltyProductionTrigger: Enum "Qlty. Production Order Trigger";
         QltyAssemblyTrigger: Enum "Qlty. Assembly Trigger";
         ProdOrderRoutingLineRuleFilter: Text[400];
         PostedAssemblyOrderRuleFilter: Text[400];
@@ -702,7 +702,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
         if LeavingThisStep = StepAssemblyOrProductionCounter then
             if IsProductionOrder then begin
                 MovingToThisStep := StepWhichLineCounter;
-                QltyProductionTrigger := QltyManagementSetup."Production Trigger";
+                QltyProductionTrigger := QltyManagementSetup."Production Order Trigger";
             end else begin
                 MovingToThisStep := StepWhichAssemblyOrderCounter;
                 QltyAssemblyTrigger := QltyManagementSetup."Assembly Trigger";
@@ -802,9 +802,9 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
             QltyInspectionGenRule.Intent := QltyInspectionGenRule.Intent::Production;
             QltyInspectionGenRule."Condition Filter" := ProdOrderRoutingLineRuleFilter;
             QltyInspectionGenRule.SetIntentAndDefaultTriggerValuesFromSetup();
-            QltyInspectionGenRule."Production Trigger" := QltyProductionTrigger;
+            QltyInspectionGenRule."Production Order Trigger" := QltyProductionTrigger;
 
-            QltyManagementSetup."Production Trigger" := QltyProductionTrigger;
+            QltyManagementSetup."Production Order Trigger" := QltyProductionTrigger;
         end else begin
             QltyInspectionGenRule."Source Table No." := Database::"Posted Assembly Header";
             QltyInspectionGenRule.Intent := QltyInspectionGenRule.Intent::Assembly;

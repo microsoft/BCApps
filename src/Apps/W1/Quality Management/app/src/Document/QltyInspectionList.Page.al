@@ -30,7 +30,6 @@ page 20408 "Qlty. Inspection List"
     PageType = List;
     SourceTable = "Qlty. Inspection Header";
     SourceTableView = sorting("No.", "Re-inspection No.") order(descending);
-    AdditionalSearchTerms = 'Test Results,Certificates,Quality Tests,Inspections,inspection results';
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
 

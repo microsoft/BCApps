@@ -1637,8 +1637,8 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, ItemJournalLine.Quantity);
 
-        // [GIVEN] Quality Management setup configured with 'Any' conditional lot find behavior
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Any inspection that matches";
+        // [GIVEN] Quality Management setup configured with 'Any' inspection selection criteria
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Any inspection that matches";
         QltyManagementSetup.Modify();
 
         // [GIVEN] No inspections exist in the system
@@ -1663,8 +1663,8 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, ItemJournalLine.Quantity);
 
-        // [GIVEN] Quality Management setup configured with "Any finished inspection that matches" conditional lot find behavior
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Any finished inspection that matches";
+        // [GIVEN] Quality Management setup configured with "Any finished inspection that matches" inspection selection criteria
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Any finished inspection that matches";
         QltyManagementSetup.Modify();
 
         // [GIVEN] No inspections exist
@@ -1689,8 +1689,8 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, ItemJournalLine.Quantity);
 
-        // [GIVEN] Quality Management setup configured with "Only the newest finished inspection/re-inspection" conditional lot find behavior
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Only the newest finished inspection/re-inspection";
+        // [GIVEN] Quality Management setup configured with "Only the newest finished inspection/re-inspection" inspection selection criteria
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Only the newest finished inspection/re-inspection";
         QltyManagementSetup.Modify();
 
         // [GIVEN] No inspections exist
@@ -1715,8 +1715,8 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, ItemJournalLine.Quantity);
 
-        // [GIVEN] Quality Management setup configured with "Only the newest inspection/re-inspection" conditional lot find behavior
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Only the newest inspection/re-inspection";
+        // [GIVEN] Quality Management setup configured with "Only the newest inspection/re-inspection" inspection selection criteria
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Only the newest inspection/re-inspection";
         QltyManagementSetup.Modify();
 
         // [GIVEN] No inspections exist
@@ -1741,8 +1741,8 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, ItemJournalLine.Quantity);
 
-        // [GIVEN] Quality Management setup configured with "Only the most recently modified finished inspection" conditional lot find behavior
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Only the most recently modified finished inspection";
+        // [GIVEN] Quality Management setup configured with "Only the most recently modified finished inspection" inspection selection criteria
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Only the most recently modified finished inspection";
         QltyManagementSetup.Modify();
 
         // [GIVEN] No inspections exist
@@ -1767,8 +1767,8 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, ItemJournalLine.Quantity);
 
-        // [GIVEN] Quality Management setup configured with "Only the most recently modified inspection" conditional lot find behavior
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Only the most recently modified inspection";
+        // [GIVEN] Quality Management setup configured with "Only the most recently modified inspection" inspection selection criteria
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Only the most recently modified inspection";
         QltyManagementSetup.Modify();
 
         // [GIVEN] No inspections exist
@@ -1830,8 +1830,8 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Location created
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
 
-        // [GIVEN] Quality Management setup with "Any finished inspection that matches" conditional lot find behavior
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Any finished inspection that matches";
+        // [GIVEN] Quality Management setup with "Any finished inspection that matches" inspection selection criteria
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Any finished inspection that matches";
         QltyManagementSetup.Modify();
 
         // [GIVEN] Assembly item with one lot-tracked component created
@@ -1951,9 +1951,9 @@ codeunit 139964 "Qlty. Tests - Misc."
         ReQltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
         ReQltyInspectionHeader.Modify();
 
-        // [GIVEN] Quality Management setup with "Only the newest inspection/re-inspection" conditional lot find behavior
+        // [GIVEN] Quality Management setup with "Only the newest inspection/re-inspection" inspection selection criteria
         QltyManagementSetup.Get();
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Only the newest inspection/re-inspection";
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Only the newest inspection/re-inspection";
         QltyManagementSetup.Modify();
 
         // [GIVEN] Inspection generation rule deleted to prevent new inspection creation
@@ -2111,9 +2111,9 @@ codeunit 139964 "Qlty. Tests - Misc."
         // [GIVEN] Sleep to ensure modified timestamp is different
         Sleep(1001);
 
-        // [GIVEN] Quality Management setup with "Only the most recently modified finished inspection" conditional lot find behavior
+        // [GIVEN] Quality Management setup with "Only the most recently modified finished inspection" inspection selection criteria
         QltyManagementSetup.Get();
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Only the most recently modified finished inspection";
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Only the most recently modified finished inspection";
         QltyManagementSetup.Modify();
 
         // [GIVEN] Inspection generation rule deleted to prevent new inspection creation
@@ -2205,9 +2205,9 @@ codeunit 139964 "Qlty. Tests - Misc."
         ReQltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
         ReQltyInspectionHeader.Modify();
 
-        // [GIVEN] Quality Management setup with "Only the newest finished inspection/re-inspection" conditional lot find behavior
+        // [GIVEN] Quality Management setup with "Only the newest finished inspection/re-inspection" inspection selection criteria
         QltyManagementSetup.Get();
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Only the newest finished inspection/re-inspection";
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Only the newest finished inspection/re-inspection";
         QltyManagementSetup.Modify();
 
         // [WHEN] Receiving the purchase order
@@ -2283,9 +2283,9 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
         QltyInspectionHeader.Modify();
 
-        // [GIVEN] Quality Management setup with "Any finished inspection that matches" conditional lot find behavior
+        // [GIVEN] Quality Management setup with "Any finished inspection that matches" inspection selection criteria
         QltyManagementSetup.Get();
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Any finished inspection that matches";
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Any finished inspection that matches";
         QltyManagementSetup.Modify();
 
         // [WHEN] Receiving the purchase order
@@ -2377,12 +2377,12 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         Commit();
 
-        // [GIVEN] Quality Management setup with "Only the most recently modified finished inspection" conditional lot find behavior
+        // [GIVEN] Quality Management setup with "Only the most recently modified finished inspection" inspection selection criteria
         QltyManagementSetup.Get();
 
         // [GIVEN] Setup trigger defaults cleared
         QltyInspectionUtility.ClearSetupTriggerDefaults(QltyManagementSetup);
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Only the most recently modified finished inspection";
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Only the most recently modified finished inspection";
         QltyManagementSetup.Modify();
 
         // [GIVEN] Original inspection also marked as finished with blocking result (most recent modified)
@@ -2488,9 +2488,9 @@ codeunit 139964 "Qlty. Tests - Misc."
         Commit();
         Sleep(1001);
 
-        // [GIVEN] Quality Management setup with "Only the newest inspection/re-inspection" conditional lot find behavior
+        // [GIVEN] Quality Management setup with "Only the newest inspection/re-inspection" inspection selection criteria
         QltyManagementSetup.Get();
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Only the newest inspection/re-inspection";
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Only the newest inspection/re-inspection";
         QltyManagementSetup.Modify();
 
         // [GIVEN] Inventory setup with no series configured
@@ -2642,9 +2642,9 @@ codeunit 139964 "Qlty. Tests - Misc."
         DestinationBin.SetFilter(Code, '<>%1', WarehouseEntry."Bin Code");
         DestinationBin.FindFirst();
 
-        // [GIVEN] Quality Management setup with "Only the most recently modified inspection" conditional lot find behavior
+        // [GIVEN] Quality Management setup with "Only the most recently modified inspection" inspection selection criteria
         QltyManagementSetup.Get();
-        QltyManagementSetup."Conditional Lot Find Behavior" := QltyManagementSetup."Conditional Lot Find Behavior"::"Only the most recently modified inspection";
+        QltyManagementSetup."Inspection Selection Criteria" := QltyManagementSetup."Inspection Selection Criteria"::"Only the most recently modified inspection";
         QltyManagementSetup.Modify();
 
         // [GIVEN] Original inspection assigned the blocking result (most recent modified)

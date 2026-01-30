@@ -7,10 +7,10 @@ namespace Microsoft.QualityManagement.Integration.Receiving;
 /// <summary>
 /// The warehouse receipt behavior to create an inspection.
 /// </summary>
-enum 20450 "Qlty. Whse. Receive Trigger"
+enum 20450 "Qlty. Whse. Receipt Trigger"
 {
     Extensible = true;
-    Caption = 'Quality Warehouse Receive Trigger';
+    Caption = 'Quality Warehouse Receipt Trigger';
 
     value(0; NoTrigger)
     {

@@ -516,7 +516,7 @@ table 20405 "Qlty. Inspection Header"
             Caption = 'Pass Quantity';
             Description = 'A manually entered test for non-sampling inspections, or derived from the quantity of passed sampling lines for sampling inspections.';
             AutoFormatType = 10;
-            AutoFormatExpression = '<precision, 0:0><standard format,0>';
+            AutoFormatExpression = '0,<precision, 0:0><standard format,0>';
             ToolTip = 'Specifies the amount that passed inspection.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -537,7 +537,7 @@ table 20405 "Qlty. Inspection Header"
             Caption = 'Fail Quantity';
             Description = 'A manually entered test for non-sampling inspections, or derived from the quantity of failed sampling lines for sampling inspections.';
             AutoFormatType = 10;
-            AutoFormatExpression = '<precision, 0:0><standard format,0>';
+            AutoFormatExpression = '0,<precision, 0:0><standard format,0>';
             ToolTip = 'Specifies the amount that failed inspection.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -1413,13 +1413,13 @@ table 20405 "Qlty. Inspection Header"
         Rec.Modify(true);
 
         QltyManagementSetup.Get();
-        if QltyManagementSetup."Picture Upload Behavior" in [QltyManagementSetup."Picture Upload Behavior"::"Attach document", QltyManagementSetup."Picture Upload Behavior"::"Attach and upload to OneDrive"] then begin
+        if QltyManagementSetup."Additional Picture Handling" in [QltyManagementSetup."Additional Picture Handling"::"Save as attachment", QltyManagementSetup."Additional Picture Handling"::"Save as attachment and upload to OneDrive"] then begin
             RecordRefToInspection.GetTable(Rec);
             DocumentAttachment.SaveAttachmentFromStream(PictureInStream, RecordRefToInspection, FullFileNameWithExtension);
             RecordRefToInspection.Modify(true);
         end;
 
-        if QltyManagementSetup."Picture Upload Behavior" = QltyManagementSetup."Picture Upload Behavior"::"Attach and upload to OneDrive" then
+        if QltyManagementSetup."Additional Picture Handling" = QltyManagementSetup."Additional Picture Handling"::"Save as attachment and upload to OneDrive" then
             if DocumentServiceManagement.IsConfigured() then
                 DocumentServiceManagement.ShareWithOneDrive(PictureName, FileExtension, PictureInStream);
 
