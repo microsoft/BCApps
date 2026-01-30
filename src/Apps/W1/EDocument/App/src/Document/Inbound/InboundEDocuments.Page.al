@@ -10,6 +10,7 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Vendor;
 using System.Agents;
 using System.Agents.TaskPane;
+using System.Environment;
 
 page 6105 "Inbound E-Documents"
 {
@@ -444,7 +445,11 @@ page 6105 "Inbound E-Documents"
     end;
 
     local procedure PopulateTaskInfo()
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
     begin
+        if not EnvironmentInformation.IsSaaSInfrastructure() then
+            exit;
         AgentTask.SetRange("Company Name", CompanyName());
         AgentTask.SetRange("External ID", Format(Rec."Entry No"));
         if not AgentTask.FindFirst() then
