@@ -123,9 +123,14 @@ function Invoke-TestsWithCodeCoverage {
     }
     Write-Host "Using ServiceUrl: $serviceUrl"
     
-    # Code coverage output path - use standard .buildartifacts folder
-    $baseFolder = Get-BaseFolder
-    $buildArtifactFolder = Join-Path $baseFolder ".buildartifacts"
+    # Code coverage output path - use AL-Go's build artifact folder (set by RunPipeline.ps1)
+    # Falls back to workspace .buildartifacts if not set (for local testing)
+    $buildArtifactFolder = $env:AL_GO_BUILD_ARTIFACT_FOLDER
+    if (-not $buildArtifactFolder) {
+        Write-Host "Warning: AL_GO_BUILD_ARTIFACT_FOLDER not set, using workspace root"
+        $baseFolder = Get-BaseFolder
+        $buildArtifactFolder = Join-Path $baseFolder ".buildartifacts"
+    }
     $codeCoverageOutputPath = Join-Path $buildArtifactFolder "CodeCoverage"
     if (-not (Test-Path $codeCoverageOutputPath)) {
         New-Item -Path $codeCoverageOutputPath -ItemType Directory -Force | Out-Null
