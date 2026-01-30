@@ -40,6 +40,7 @@ tableextension 8750 "Document Attachment Ext.Stor." extends "Document Attachment
         {
             Caption = 'Stored in DB';
             DataClassification = SystemMetadata;
+            InitValue = true;
             Editable = false;
             ToolTip = 'Specifies if the file is stored in internal database storage.';
         }
