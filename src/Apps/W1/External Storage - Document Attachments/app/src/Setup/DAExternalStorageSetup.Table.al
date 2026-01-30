@@ -87,7 +87,7 @@ table 8750 "DA External Storage Setup"
         {
             Caption = 'Has Uploaded Files';
             FieldClass = FlowField;
-            CalcFormula = exist("Document Attachment" where("Uploaded Externally" = const(true)));
+            CalcFormula = exist("Document Attachment" where("Stored Externally" = const(true)));
             Editable = false;
             ToolTip = 'Specifies if files have been uploaded using this configuration.';
         }

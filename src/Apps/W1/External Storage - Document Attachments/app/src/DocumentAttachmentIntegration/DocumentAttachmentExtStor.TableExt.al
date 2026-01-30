@@ -15,12 +15,12 @@ tableextension 8750 "Document Attachment Ext.Stor." extends "Document Attachment
 {
     fields
     {
-        field(8750; "Uploaded Externally"; Boolean)
+        field(8750; "Stored Externally"; Boolean)
         {
-            Caption = 'Uploaded Externally';
+            Caption = 'Stored Externally';
             DataClassification = SystemMetadata;
             Editable = false;
-            ToolTip = 'Specifies if the file has been uploaded to external storage.';
+            ToolTip = 'Specifies if the file has been stored in external storage.';
         }
         field(8751; "External Upload Date"; DateTime)
         {
@@ -36,12 +36,12 @@ tableextension 8750 "Document Attachment Ext.Stor." extends "Document Attachment
             Editable = false;
             ToolTip = 'Specifies the path to the file in external storage.';
         }
-        field(8753; "Deleted Internally"; Boolean)
+        field(8753; "Stored Internally"; Boolean)
         {
-            Caption = 'Not Stored in Internal DB';
+            Caption = 'Stored in DB';
             DataClassification = SystemMetadata;
             Editable = false;
-            ToolTip = 'Specifies if the file has been removed from internal database storage.';
+            ToolTip = 'Specifies if the file is stored in internal database storage.';
         }
         field(8754; "Source Environment Hash"; Text[16])
         {
@@ -65,7 +65,7 @@ tableextension 8750 "Document Attachment Ext.Stor." extends "Document Attachment
     /// </summary>
     internal procedure MarkAsNotUploadedToExternal()
     begin
-        "Uploaded Externally" := false;
+        "Stored Externally" := false;
         "External Upload Date" := 0DT;
         "External File Path" := '';
         Modify();
@@ -73,12 +73,12 @@ tableextension 8750 "Document Attachment Ext.Stor." extends "Document Attachment
 
     /// <summary>
     /// Marks the document attachment as deleted from internal storage.
-    /// Clears the Document Reference ID and sets the deleted internally flag.
+    /// Clears the Document Reference ID and sets the stored internally flag to false.
     /// </summary>
     internal procedure MarkAsDeletedInternally()
     begin
         Clear("Document Reference ID");
-        "Deleted Internally" := true;
+        "Stored Internally" := false;
         Modify();
     end;
 }

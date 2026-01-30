@@ -48,6 +48,7 @@ report 8752 "DA External Storage Sync"
             trigger OnAfterGetRecord()
             var
                 SyncSuccess: Boolean;
+                DeleteSuccess: Boolean;
             begin
                 ProcessedCount += 1;
 
@@ -59,11 +60,24 @@ report 8752 "DA External Storage Sync"
                     SyncDirection::"To External Storage":
                         begin
                             SyncSuccess := ExternalStorageImpl.UploadToExternalStorage(DocumentAttachment);
-                            if SyncSuccess then
-                                ExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment);
+                            if SyncSuccess and (Operation = Operation::Move) then begin
+                                DeleteSuccess := ExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment);
+                                if not DeleteSuccess then
+                                    FailedCount += 1;
+                            end;
                         end;
-                    SyncDirection::"From External Storage":
-                        SyncSuccess := ExternalStorageImpl.DownloadFromExternalStorageToInternal(DocumentAttachment);
+                    SyncDirection::"To Internal Storage":
+                        begin
+                            SyncSuccess := ExternalStorageImpl.DownloadFromExternalStorageToInternal(DocumentAttachment);
+                            if SyncSuccess and (Operation = Operation::Move) then begin
+                                DocumentAttachment.SetRange("Stored Internally");
+                                DocumentAttachment.Find();
+                                DeleteSuccess := ExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment);
+                                if not DeleteSuccess then
+                                    FailedCount += 1;
+                                DocumentAttachment.SetRange("Stored Internally", false);
+                            end;
+                        end;
                 end;
 
                 if not SyncSuccess then
@@ -103,8 +117,15 @@ report 8752 "DA External Storage Sync"
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Sync Direction';
-                        OptionCaption = 'To External Storage,From External Storage';
-                        ToolTip = 'Specifies whether to sync to external storage or from external storage.';
+                        OptionCaption = 'To External Storage,To Internal Storage';
+                        ToolTip = 'Specifies whether to sync to external storage or to internal storage.';
+                    }
+                    field(OperationField; Operation)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Operation';
+                        OptionCaption = 'Copy,Move';
+                        ToolTip = 'Specifies whether to copy files (leaving them in the source) or move them (deleting from the source after successful copy).';
                     }
                     field(MaxRecordsToProcessField; MaxRecordsToProcess)
                     {
@@ -128,17 +149,19 @@ report 8752 "DA External Storage Sync"
         TotalCount: Integer;
         ProcessedMsg: Label 'Processed %1 attachments successfully. %2 failed.', Comment = '%1 - Number of Processed Attachments, %2 - Number of Failed Attachments';
         ProcessingMsg: Label 'Processing #1###### attachments...', Comment = '%1 - Total Number of Attachments';
-        SyncDirection: Option "To External Storage","From External Storage";
+        SyncDirection: Option "To External Storage","To Internal Storage";
+        Operation: Option Copy,Move;
 
     local procedure SetFilters()
     begin
         case SyncDirection of
             SyncDirection::"To External Storage":
-                DocumentAttachment.SetRange("Uploaded Externally", false);
-            SyncDirection::"From External Storage":
+                DocumentAttachment.SetRange("Stored Externally", false);
+            SyncDirection::"To Internal Storage":
                 begin
-                    DocumentAttachment.SetRange("Uploaded Externally", true);
-                    DocumentAttachment.SetRange("Deleted Internally", true);
+                    DocumentAttachment.SetRange("Stored Externally", true);
+                    if Operation = Operation::Move then
+                        DocumentAttachment.SetRange("Stored Internally", false);
                 end;
         end;
     end;

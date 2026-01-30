@@ -29,7 +29,7 @@ report 8753 "DA External Storage Migration"
             trigger OnPreDataItem()
             begin
                 // Filter for files that are uploaded externally and need migration
-                SetRange("Uploaded Externally", true);
+                SetRange("Stored Externally", true);
                 SetFilter("External File Path", '<>%1', '');
 
                 TotalCount := Count();
