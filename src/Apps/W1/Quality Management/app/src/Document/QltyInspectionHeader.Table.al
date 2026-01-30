@@ -27,9 +27,6 @@ using System.Reflection;
 using System.Security.AccessControl;
 using System.Utilities;
 
-/// <summary>
-/// The document header for a quality order.
-/// </summary>
 table 20405 "Qlty. Inspection Header"
 {
     Caption = 'Quality Inspection Header';
@@ -468,31 +465,6 @@ table 20405 "Qlty. Inspection Header"
             TableRelation = Location.Code;
             ToolTip = 'Specifies the location of the inspection.';
         }
-        field(60; "Brick Top Left"; Text[200])
-        {
-            Caption = 'Brick Top Left';
-            ToolTip = 'Specifies value shown in tile view at top left position';
-        }
-        field(61; "Brick Middle Left"; Text[200])
-        {
-            Caption = 'Brick Middle Left';
-            ToolTip = 'Specifies value shown in tile view at middle left position';
-        }
-        field(62; "Brick Middle Right"; Text[200])
-        {
-            Caption = 'Brick Middle Right';
-            ToolTip = 'Specifies value shown in tile view at middle right position';
-        }
-        field(63; "Brick Bottom Left"; Text[200])
-        {
-            Caption = 'Brick Bottom Left';
-            ToolTip = 'Specifies value shown in tile view at bottom left position';
-        }
-        field(64; "Brick Bottom Right"; Text[200])
-        {
-            Caption = 'Brick Bottom Right';
-            ToolTip = 'Specifies value shown in tile view at bottom right position';
-        }
         field(65; "Sample Size"; Integer)
         {
             Caption = 'Sample Size';
@@ -601,7 +573,7 @@ table 20405 "Qlty. Inspection Header"
         fieldgroup(DropDown; "No.", "Template Code", "Source Document No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Package No.")
         {
         }
-        fieldgroup(Brick; "Brick Top Left", "Brick Middle Left", "Brick Middle Right", "Brick Bottom Left", "Brick Bottom Right")
+        fieldgroup(Brick; "No.", Description, "Result Description", "Source Document No.", Status, "Source Item No.")
         {
         }
     }
@@ -680,7 +652,6 @@ table 20405 "Qlty. Inspection Header"
         InitEntryNoIfNeeded();
 
         OnInsertUpdateReinspectionIterationState();
-        UpdateBrickFields();
     end;
 
     /// <summary>
@@ -755,12 +726,12 @@ table 20405 "Qlty. Inspection Header"
 
     local procedure OnInsertUpdateReinspectionIterationState()
     var
-        OtherReQltyInspectionHeader: Record "Qlty. Inspection Header";
+        OtherReinspectionQltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
         Rec."Re-inspection Iteration State" := Rec."Re-inspection Iteration State"::"Most recent";
-        OtherReQltyInspectionHeader.SetRange("No.", Rec."No.");
-        OtherReQltyInspectionHeader.SetFilter("Re-inspection No.", '<>%1&<%1', Rec."Re-inspection No.");
-        OtherReQltyInspectionHeader.ModifyAll("Re-inspection Iteration State", OtherReQltyInspectionHeader."Re-inspection Iteration State"::"Newer re-inspection available", false);
+        OtherReinspectionQltyInspectionHeader.SetRange("No.", Rec."No.");
+        OtherReinspectionQltyInspectionHeader.SetFilter("Re-inspection No.", '<>%1&<%1', Rec."Re-inspection No.");
+        OtherReinspectionQltyInspectionHeader.ModifyAll("Re-inspection Iteration State", OtherReinspectionQltyInspectionHeader."Re-inspection Iteration State"::"Newer re-inspection available", false);
     end;
 
     /// <summary>
@@ -826,7 +797,6 @@ table 20405 "Qlty. Inspection Header"
         if Rec."Planned Start Date" = 0DT then
             Rec."Planned Start Date" := CurrentDateTime();
 
-        UpdateBrickFields();
         QltyStartWorkflow.StartWorkflowInspectionChanged(Rec, xRec);
         IsChangingStatus := false;
     end;
@@ -895,7 +865,6 @@ table 20405 "Qlty. Inspection Header"
                     exit;
 
                 Rec.Validate(Status, Rec.Status::Open);
-                Rec.UpdateBrickFields();
                 Rec.Modify(true);
             end;
         end;
@@ -940,7 +909,6 @@ table 20405 "Qlty. Inspection Header"
                 Rec.Validate(Status, Rec.Status::Finished);
                 Rec.Get(Rec.RecordId());
 
-                Rec.UpdateBrickFields();
                 Rec.Modify(true);
             end;
         end;
@@ -1324,28 +1292,6 @@ table 20405 "Qlty. Inspection Header"
             if not Rec.IsTemporary() then
                 Rec.Modify();
         end;
-    end;
-
-    /// <summary>
-    /// Call this procedure to update the brick fields on the Quality Inspection record.
-    /// </summary>
-    procedure UpdateBrickFields()
-    var
-        QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
-        TopLeft: Text[200];
-        MiddleLeft: Text[200];
-        MiddleRight: Text[200];
-        BottomLeft: Text[200];
-        BottomRight: Text[200];
-    begin
-        QltyManagementSetup.Get();
-        QltyManagementSetup.GetBrickExpressions(TopLeft, MiddleLeft, MiddleRight, BottomLeft, BottomRight);
-
-        Rec."Brick Top Left" := CopyStr(QltyExpressionMgmt.EvaluateExpressionForRecord(TopLeft, Rec, true), 1, MaxStrLen(Rec."Brick Top Left"));
-        Rec."Brick Middle Left" := CopyStr(QltyExpressionMgmt.EvaluateExpressionForRecord(MiddleLeft, Rec, true), 1, MaxStrLen(Rec."Brick Middle Left"));
-        Rec."Brick Middle Right" := CopyStr(QltyExpressionMgmt.EvaluateExpressionForRecord(MiddleRight, Rec, true), 1, MaxStrLen(Rec."Brick Middle Right"));
-        Rec."Brick Bottom Left" := CopyStr(QltyExpressionMgmt.EvaluateExpressionForRecord(BottomLeft, Rec, true), 1, MaxStrLen(Rec."Brick Bottom Left"));
-        Rec."Brick Bottom Right" := CopyStr(QltyExpressionMgmt.EvaluateExpressionForRecord(BottomRight, Rec, true), 1, MaxStrLen(Rec."Brick Bottom Right"));
     end;
 
     /// <summary>

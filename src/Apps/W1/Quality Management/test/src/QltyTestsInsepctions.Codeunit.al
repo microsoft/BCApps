@@ -683,59 +683,6 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         LibraryAssert.AreEqual(Page::"Qlty. Inspection List", PageManagement.GetConditionalListPageID(RecordRef), 'Should be inspections list page.');
     end;
 
-    [Test]
-    procedure HandleOnAfterGetPageSummary()
-    var
-        QltyInspectionHeader: Record "Qlty. Inspection Header";
-        QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        JsonArray: JsonArray;
-        FieldJsonObject: JsonObject;
-        FieldJsonToken: JsonToken;
-        CaptionJsonToken: JsonToken;
-    begin
-        // [SCENARIO] Get page summary for a Quality Inspection and verify brick headers are correctly populated from setup
-
-        Initialize();
-
-        // [GIVEN] Quality Management setup is initialized
-        QltyInspectionUtility.EnsureSetupExists();
-        QltyManagementSetup.Get();
-
-        // [GIVEN] Brick headers are configured in Quality Management setup
-        QltyInspectionUtility.GetBrickHeaders(QltyManagementSetup);
-        QltyManagementSetup.Modify();
-
-        // [GIVEN] A basic template and Inspection instance are created
-        QltyInspectionUtility.CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
-
-        // [GIVEN] A JSON array is prepared with brick field captions
-        FieldJsonObject.Add('caption', QltyInspectionHeader.FieldCaption("Brick Bottom Left"));
-        JsonArray.Add(FieldJsonObject);
-        Clear(FieldJsonObject);
-        FieldJsonObject.Add('caption', QltyInspectionHeader.FieldCaption("Brick Bottom Right"));
-        JsonArray.Add(FieldJsonObject);
-        Clear(FieldJsonObject);
-        FieldJsonObject.Add('caption', QltyInspectionHeader.FieldCaption("Brick Middle Left"));
-        JsonArray.Add(FieldJsonObject);
-        Clear(FieldJsonObject);
-        FieldJsonObject.Add('caption', QltyInspectionHeader.FieldCaption("Brick Middle Right"));
-        JsonArray.Add(FieldJsonObject);
-        Clear(FieldJsonObject);
-        FieldJsonObject.Add('caption', QltyInspectionHeader.FieldCaption("Brick Top Left"));
-        JsonArray.Add(FieldJsonObject);
-
-        // [WHEN] The page summary handler is invoked for the Quality Inspection
-        QltyInspectionUtility.HandleOnAfterGetPageSummary(Page::"Qlty. Inspection", QltyInspectionHeader.RecordId(), JsonArray);
-
-        // [THEN] All brick field captions are replaced with the configured brick headers from setup
-        foreach FieldJsonToken in JsonArray do begin
-            FieldJsonObject := FieldJsonToken.AsObject();
-            FieldJsonObject.Get('caption', CaptionJsonToken);
-            LibraryAssert.IsTrue(CaptionJsonToken.AsValue().AsText() in [QltyManagementSetup."Brick Bottom Left Header", QltyManagementSetup."Brick Bottom Right Header", QltyManagementSetup."Brick Middle Left Header", QltyManagementSetup."Brick Middle Right Header", QltyManagementSetup."Brick Top Left Header"], 'Should be correct header.');
-        end;
-    end;
-
     local procedure Initialize()
     begin
         if IsInitialized then

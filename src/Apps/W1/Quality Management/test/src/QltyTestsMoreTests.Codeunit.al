@@ -654,40 +654,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
     end;
 
     [Test]
-    procedure SetupTable_OnInsert_InitializeBrickHeaders()
-    var
-        QltyManagementSetup: Record "Qlty. Management Setup";
-    begin
-        // [SCENARIO] When Quality Management Setup is inserted, Brick Headers are initialized to default values
-        Initialize();
-
-        // [GIVEN] Any existing setup record is deleted
-        if QltyManagementSetup.Get() then
-            QltyManagementSetup.Delete();
-
-        // [GIVEN] A new setup record is initialized
-        QltyManagementSetup.Init();
-
-        // [WHEN] The setup record is inserted with trigger execution
-        QltyManagementSetup.Insert(true);
-
-        // [THEN] Brick Top Left Header is set to default value 'Test'
-        LibraryAssert.AreEqual(DefaultTopLeftTok, QltyManagementSetup."Brick Top Left Header", 'Top left header should be default value');
-
-        // [THEN] Brick Middle Left Header is set to default value 'Result'
-        LibraryAssert.AreEqual(DefaultMiddleLeftTok, QltyManagementSetup."Brick Middle Left Header", 'Middle left header should be default value');
-
-        // [THEN] Brick Middle Right Header is set to default value 'Details'
-        LibraryAssert.AreEqual(DefaultMiddleRightTok, QltyManagementSetup."Brick Middle Right Header", 'Middle right header should be default value');
-
-        // [THEN] Brick Bottom Left Header is set to default value 'Document'
-        LibraryAssert.AreEqual(DefaultBottomLeftTok, QltyManagementSetup."Brick Bottom Left Header", 'Bottom left header should be default value');
-
-        // [THEN] Brick Bottom Right Header is set to default value 'Status'
-        LibraryAssert.AreEqual(DefaultBottomRightTok, QltyManagementSetup."Brick Bottom Right Header", 'Bottom right header should be default value');
-    end;
-
-    [Test]
     procedure SetupTable_GetSetupVideoLink()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";

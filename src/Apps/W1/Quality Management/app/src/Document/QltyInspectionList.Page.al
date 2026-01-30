@@ -80,7 +80,6 @@ page 20408 "Qlty. Inspection List"
                 }
                 field("Source Document No."; Rec."Source Document No.")
                 {
-                    Visible = false;
                 }
                 field("Source Line No."; Rec."Source Document Line No.")
                 {

@@ -1198,21 +1198,6 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Wrapper for internal QltyManagementSetup.GetBrickHeaders.
-    /// Retrieves and updates the brick header values in the setup record.
-    /// </summary>
-    /// <param name="QltyManagementSetup">The setup record to update with brick headers.</param>
-    internal procedure GetBrickHeaders(var QltyManagementSetup: Record "Qlty. Management Setup")
-    begin
-        QltyManagementSetup.GetBrickHeaders(
-            QltyManagementSetup."Brick Top Left Header",
-            QltyManagementSetup."Brick Middle Left Header",
-            QltyManagementSetup."Brick Middle Right Header",
-            QltyManagementSetup."Brick Bottom Left Header",
-            QltyManagementSetup."Brick Bottom Right Header");
-    end;
-
-    /// <summary>
     /// Wrapper for internal QltyManagementSetup.GetAppGuid.
     /// Returns the application GUID for the Quality Management app.
     /// </summary>
