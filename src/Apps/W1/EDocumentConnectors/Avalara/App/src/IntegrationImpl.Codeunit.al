@@ -4,11 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
-using Microsoft.EServices.EDocument;
-using Microsoft.eServices.EDocument.Integration.Interfaces;
-using Microsoft.eServices.EDocument.Integration.Receive;
-using Microsoft.eServices.EDocument.Integration.Send;
 using System.Utilities;
+using Microsoft.EServices.EDocument;
+using Microsoft.eServices.EDocument.Integration.Send;
+using Microsoft.eServices.EDocument.Integration.Receive;
+using Microsoft.eServices.EDocument.Integration.Interfaces;
 
 codeunit 6372 "Integration Impl." implements IDocumentSender, IDocumentResponseHandler, IDocumentReceiver
 {
@@ -29,9 +29,14 @@ codeunit 6372 "Integration Impl." implements IDocumentSender, IDocumentResponseH
         this.AvalaraProcessing.ReceiveDocuments(EDocumentService, DocumentsMetadata, ReceiveContext);
     end;
 
-    procedure DownloadDocument(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; DocumentMetadata: codeunit "Temp Blob"; ReceiveContext: Codeunit ReceiveContext)
+    procedure DownloadDocument(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; DocumentMetadata: Codeunit "Temp Blob"; ReceiveContext: Codeunit ReceiveContext)
     begin
         this.AvalaraProcessing.DownloadDocument(EDocument, EDocumentService, DocumentMetadata, ReceiveContext);
+    end;
+
+    procedure CreateBatch(EDocService: Record "E-Document Service"; var EDocument: Record "E-Document"; var SourceDocumentHeaders: RecordRef; var SourceDocumentsLines: RecordRef; var TempBlob: Codeunit "Temp Blob");
+    begin
+        this.AvalaraProcessing.CreateBatch(EDocService, EDocument, SourceDocumentHeaders, SourceDocumentsLines, TempBlob);
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"E-Document Service", OnBeforeOpenServiceIntegrationSetupPage, '', false, false)]
@@ -48,6 +53,4 @@ codeunit 6372 "Integration Impl." implements IDocumentSender, IDocumentResponseH
 
     var
         AvalaraProcessing: Codeunit Processing;
-
-
 }

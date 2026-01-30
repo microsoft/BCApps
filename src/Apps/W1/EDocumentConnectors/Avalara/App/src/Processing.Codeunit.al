@@ -5,18 +5,19 @@
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.EServices.EDocument;
-using Microsoft.eServices.EDocument.Integration;
-using Microsoft.eServices.EDocument.Integration.Receive;
-using Microsoft.eServices.EDocument.Integration.Send;
 using Microsoft.EServices.EDocumentConnector.Avalara.Models;
 using System.Utilities;
+using Microsoft.eServices.EDocument.Integration.Send;
+using Microsoft.eServices.EDocument.Integration;
+using Microsoft.eServices.EDocument.Integration.Receive;
+using System.IO;
 
 codeunit 6379 Processing
 {
     Access = Internal;
-    Permissions = tabledata "E-Document" = m,
-                  tabledata "E-Document Service Status" = m,
-                  tabledata "Connection Setup" = rm;
+    Permissions = tabledata "Connection Setup" = rm,
+                  tabledata "E-Document" = m,
+                  tabledata "E-Document Service Status" = m;
 
     /// <summary>
     /// Call Avalara Shared API for list of companies
@@ -24,8 +25,8 @@ codeunit 6379 Processing
     /// <param name="AvalaraCompany">Records to contain returned compaines.</param>
     procedure GetCompanyList(var AvalaraCompany: Record "Avalara Company" temporary)
     var
-        Request: Codeunit Requests;
         HttpExecutor: Codeunit "Http Executor";
+        Request: Codeunit Requests;
         ResponseContent: Text;
     begin
         Request.Init();
@@ -33,6 +34,23 @@ codeunit 6379 Processing
         ResponseContent := HttpExecutor.ExecuteHttpRequest(Request);
 
         ParseCompanyList(AvalaraCompany, ResponseContent);
+    end;
+
+    /// <summary>
+    /// Call Avalara Shared API for list of companies
+    /// </summary>
+    /// <param name="AvalaraCompany">Records to contain returned compaines.</param>
+    procedure GetRegistrationList(): Text;
+    var
+        TempAvalaraCompany: Record "Avalara Company" temporary;
+        HttpExecutor: Codeunit "Http Executor";
+        Request: Codeunit Requests;
+        ResponseContent: Text;
+    begin
+        Request.Init();
+        Request.Authenticate().CreateGetRegistrationsRequest(TempAvalaraCompany);
+        ResponseContent := HttpExecutor.ExecuteHttpRequest(Request);
+        exit(ResponseContent);
     end;
 
     /// <summary>
@@ -60,7 +78,7 @@ codeunit 6379 Processing
     /// <summary>
     /// Let user select Avalara Mandate for e-document service
     /// </summary>
-    procedure UpdateMandate()
+    procedure UpdateMandate(var MandateSelected: Text)
     var
         EDocService: Record "E-Document Service";
         EDocumentServices: Page "E-Document Services";
@@ -86,6 +104,7 @@ codeunit 6379 Processing
 
         MandateList.GetRecord(TempMandates);
         EDocService."Avalara Mandate" := TempMandates."Country Mandate";
+        MandateSelected := TempMandates."Country Mandate";
         EDocService.Modify();
     end;
 
@@ -94,21 +113,50 @@ codeunit 6379 Processing
     /// </summary>
     procedure SendEDocument(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; SendContext: Codeunit SendContext)
     var
-        Request: Codeunit Requests;
+        ActivationMandate: Record "Activation Mandate";
+        ConnectionSetup: Record "Connection Setup";
         HttpExecutor: Codeunit "Http Executor";
         MetaData: Codeunit Metadata;
+        Request: Codeunit Requests;
         TempBlob: Codeunit "Temp Blob";
         InStream: InStream;
+        AvalaraMandate: Text;
+        MandateType: Text;
         RequestContent: Text;
         ResponseContent: Text;
     begin
-        TempBlob := SendContext.GetTempBlob();
+        if not ConnectionSetup.Get() then
+            exit;
 
-        Metadata.SetWorkflowId('partner-einvoicing').SetDataFormat('ubl-invoice').SetDataFormatVersion('2.1');
+        TempBlob := SendContext.GetTempBlob();
+        AvalaraMandate := EDocumentService."Avalara Mandate";
+        MandateType := GetMandateTypeFromName(AvalaraMandate);
+        ActivationMandate.SetRange("Company Id", ConnectionSetup."Company Id");
+        ActivationMandate.SetRange("Country Mandate", AvalaraMandate);
+        ActivationMandate.SetRange("Mandate Type", MandateType);
+
+        if ActivationMandate.IsEmpty() then begin
+            EDocumentErrorHelper.LogSimpleErrorMessage(EDocument, MandateNotFoundErr);
+            exit;
+        end;
+
+        ActivationMandate.FindFirst();
+
+        if not ActivationMandate.Activated then begin
+            EDocumentErrorHelper.LogSimpleErrorMessage(EDocument, MandateNotCompleteErr);
+            exit;
+        end;
+
+        if ActivationMandate.Blocked then begin
+            EDocumentErrorHelper.LogSimpleErrorMessage(EDocument, MandateBlockedErr);
+            exit;
+        end;
+
+        MetaData.SetWorkflowId(WorkflowIdTok).SetDataFormat(DataFormatInvoiceTok).SetDataFormatVersion(DataFormatVersionTok);
         case EDocument."Document Type" of
             Enum::"E-Document Type"::"Sales Credit Memo",
             Enum::"E-Document Type"::"Service Credit Memo":
-                MetaData.SetDataFormat('ubl-creditnote');
+                MetaData.SetDataFormat(DataFormatCreditNoteTok);
         end;
 
         SetMandateForMetaData(EDocumentService, MetaData);
@@ -134,8 +182,8 @@ codeunit 6379 Processing
     /// <returns>False if status is Pending, True if status is Complete.</returns>
     procedure GetDocumentStatus(var EDocument: Record "E-Document"; SendContext: Codeunit SendContext): Boolean
     var
-        Request: Codeunit Requests;
         HttpExecutor: Codeunit "Http Executor";
+        Request: Codeunit Requests;
         ResponseContent: Text;
     begin
         EDocument.TestField("Avalara Document Id");
@@ -149,20 +197,18 @@ codeunit 6379 Processing
     end;
 
     /// <summary>
-    /// Lookup documents for last XX days. 
+    /// Lookup documents for last XX days.
     /// </summary>
     procedure ReceiveDocuments(var EDocumentService: Record "E-Document Service"; ReceivedEDocuments: Codeunit "Temp Blob List"; ReceiveContext: Codeunit ReceiveContext)
     var
         TempBlob: Codeunit "Temp Blob";
-        OutStream: OutStream;
         HttpRequest: HttpRequestMessage;
         HttpResponse: HttpResponseMessage;
-        Response: JsonArray;
-        EndDate: Date;
         I: Integer;
+        Response: JsonArray;
+        OutStream: OutStream;
     begin
-        EndDate := CalcDate('<-1M>', Today());
-        Response := ReceiveDocumentInner(TempBlob, HttpRequest, HttpResponse, StrSubstNo(AvalaraGetDocsPathTxt, FormatDateTime(EndDate), FormatDateTime(Today())));
+        Response := ReceiveDocumentInner(TempBlob, HttpRequest, HttpResponse, AvalaraGetDocsPathTxt);
         ReceiveContext.Http().SetHttpRequestMessage(HttpRequest);
         ReceiveContext.Http().SetHttpResponseMessage(HttpResponse);
 
@@ -183,13 +229,16 @@ codeunit 6379 Processing
     procedure ReceiveDocumentInner(var TempBlob: Codeunit "Temp Blob"; HttpRequest: HttpRequestMessage; HttpResponse: HttpResponseMessage; Path: Text): JsonArray
     var
         ConnectionSetup: Record "Connection Setup";
-        Request: Codeunit Requests;
         HttpExecutor: Codeunit "Http Executor";
-        ResponseContent: Text;
-        ResponseJson, DocObject : JsonObject;
-        NextLink: Text;
-        ValueJson, ValueObject, CompanyId : JsonToken;
+        Request: Codeunit Requests;
         Values: JsonArray;
+        DocObject,
+        ResponseJson : JsonObject;
+        CompanyId,
+        ValueJson,
+ValueObject : JsonToken;
+        NextLink: Text;
+        ResponseContent: Text;
     begin
         if Path = '' then
             exit; // Stop recursion
@@ -201,7 +250,7 @@ codeunit 6379 Processing
 
         ResponseJson.ReadFrom(ResponseContent);
 
-        ResponseJson.Get('@nextLink', ValueJson);
+        ResponseJson.Get(JsonFieldNextLinkTok, ValueJson);
         if not ValueJson.AsValue().IsNull() then
             NextLink := ValueJson.AsValue().AsText();
         if NextLink <> '' then begin
@@ -212,11 +261,11 @@ codeunit 6379 Processing
         // No more pagination.
         // Accumulate results
         ConnectionSetup.Get();
-        ResponseJson.Get('value', ValueJson);
+        ResponseJson.Get(JsonFieldValueTok, ValueJson);
         if ValueJson.IsArray then
             foreach ValueObject in ValueJson.AsArray() do begin
                 DocObject := ValueObject.AsObject();
-                DocObject.Get('companyId', CompanyId);
+                DocObject.Get(JsonFieldCompanyIdTok, CompanyId);
                 if ConnectionSetup."Company Id" = CompanyId.AsValue().AsText() then
                     Values.Add(DocObject);
             end;
@@ -224,19 +273,26 @@ codeunit 6379 Processing
         exit(Values);
     end;
 
-
     /// <summary>
     /// Download document XML from Avalara API
     /// </summary>
-    procedure DownloadDocument(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; DocumentMetadata: codeunit "Temp Blob"; ReceiveContext: Codeunit ReceiveContext)
+    procedure DownloadDocument(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; DocumentMetadata: Codeunit "Temp Blob"; ReceiveContext: Codeunit ReceiveContext)
     var
-        Request: Codeunit Requests;
+        AvalaraFunctions: Codeunit "Avalara Functions";
         HttpExecutor: Codeunit "Http Executor";
-        ResponseContent: Text;
+        Request: Codeunit Requests;
         InStream: InStream;
-        DocumentId: Text;
+        MediaTypes: JsonArray;
         OutStream: OutStream;
+        CountryCode: Text;
+        DocumentId: Text;
+        Mandate: Text;
+        ResponseContent: Text;
     begin
+        Mandate := EDocumentService."Avalara Mandate";
+        CountryCode := Mandate.Split('-').Get(1);
+        AvalaraFunctions.GetInvoiceAvailableMediaType(Mandate, MediaTypes);
+
         DocumentMetadata.CreateInStream(InStream, TextEncoding::UTF8);
         InStream.ReadText(DocumentId);
 
@@ -263,9 +319,9 @@ codeunit 6379 Processing
     /// </summary>
     local procedure RemoveExistingDocumentsFromResponse(var Documents: JsonArray)
     var
-        DocumentId: Text;
         I: Integer;
         NewArray: JsonArray;
+        DocumentId: Text;
     begin
         for I := 0 to Documents.Count() - 1 do begin
             DocumentId := GetDocumentIdFromArray(Documents, I);
@@ -291,7 +347,8 @@ codeunit 6379 Processing
     /// </summary>
     local procedure SetMandateForMetaData(EDocumentService: Record "E-Document Service"; var Metadata: Codeunit Metadata)
     var
-        Mandate, County : Text;
+        County,
+        Mandate : Text;
     begin
         EDocumentService.TestField("Avalara Mandate");
         Mandate := EDocumentService."Avalara Mandate";
@@ -304,40 +361,92 @@ codeunit 6379 Processing
     /// </summary>
     local procedure GetMandates(var TempMandatesLocal: Record Mandate temporary)
     var
-        Request: Codeunit Requests;
         HttpExecutor: Codeunit "Http Executor";
+        Request: Codeunit Requests;
         ResponseContent: Text;
     begin
         Request.Init();
         Request.Authenticate().CreateGetMandates();
         ResponseContent := HttpExecutor.ExecuteHttpRequest(Request);
 
-        ParseMandates(TempMandatesLocal, ResponseContent);
+        ParseMandates(TempMandatesLocal, ResponseContent, false);
+    end;
+
+    procedure GetSingleMandate(var TempMandatesLocal: Record Mandate temporary; MandateText: Text)
+    var
+        HttpExecutor: Codeunit "Http Executor";
+        Request: Codeunit Requests;
+        ResponseContent: Text;
+
+    begin
+        Request.Init();
+
+        Request.Authenticate().CreateGetMandates(MandateText);
+        ResponseContent := HttpExecutor.ExecuteHttpRequest(Request);
+
+        ParseMandates(TempMandatesLocal, ResponseContent, true);
     end;
 
     /// <summary>
     /// Parse mandates from json into table
     /// </summary>
-    local procedure ParseMandates(var TempMandatesLocal: Record Mandate temporary; ResponseContent: Text)
+    local procedure ParseMandates(var TempMandatesLocal: Record Mandate temporary; ResponseContent: Text; ShouldParseFields: Boolean)
     var
-        ResponseJson: JsonObject;
-        ValueJson, MandateJson, ParsintToken : JsonToken;
+
+        Processing: Codeunit Processing;
         Id: Integer;
-        CountryMandate, CountryCode, Description : Text;
+        inputFormatsArray: JsonArray;
+        FormatObj: JsonObject;
+        ResponseJson: JsonObject;
+        FormatToken,
+MandateToken,
+ParsintToken,
+        ValueToken,
+VersionItem,
+VersionToken : JsonToken;
+        CountryCode,
+        CountryMandate,
+CreditFormatStr,
+Description,
+FormatName,
+InvoiceFormatStr,
+VersionValue : Text;
     begin
         ResponseJson.ReadFrom(ResponseContent);
-        ResponseJson.Get('value', ValueJson);
+        ResponseJson.Get(JsonFieldValueTok, ValueToken);
 
         Clear(TempMandatesLocal);
         Id := 1;
-        foreach MandateJson in ValueJson.AsArray() do begin
+        foreach MandateToken in ValueToken.AsArray() do begin
 
-            MandateJson.AsObject().Get('countryMandate', ParsintToken);
+            MandateToken.AsObject().Get(JsonFieldCountryMandateTok, ParsintToken);
             CountryMandate := ParsintToken.AsValue().AsText();
-            MandateJson.AsObject().Get('countryCode', ParsintToken);
+            MandateToken.AsObject().Get(JsonFieldCountryCodeTok, ParsintToken);
             CountryCode := ParsintToken.AsValue().AsText();
-            MandateJson.AsObject().Get('description', ParsintToken);
+            MandateToken.AsObject().Get(JsonFieldDescriptionTok, ParsintToken);
             Description := ParsintToken.AsValue().AsText();
+            MandateToken.AsObject().Get(JsonFieldInputDataFormatsTok, ParsintToken);
+            inputFormatsArray := ParsintToken.AsArray();
+            foreach FormatToken in inputFormatsArray do begin
+                //each element of the array has a json
+                FormatObj := FormatToken.AsObject();
+                if FormatObj.Get(JsonFieldFormatTok, VersionToken) then begin
+                    FormatName := VersionToken.AsValue().AsText();
+                    if FormatObj.Get(JsonFieldVersionsTok, VersionToken) then
+                        foreach VersionItem in VersionToken.AsArray() do begin
+                            VersionValue := VersionItem.AsValue().AsText();
+                            //GET FIELDS NEED TO COME HERE
+                            if ShouldParseFields then
+                                Processing.GetInvoiceFieldsForMandate(CountryMandate, FormatName, VersionValue);
+
+                            if FormatName.Contains('invoice') then
+                                InvoiceFormatStr := VersionValue;
+
+                            if FormatName.Contains('creditnote') then
+                                CreditFormatStr := VersionValue;
+                        end;
+                end;
+            end;
 
             if StrLen(CountryMandate) > MaxStrLen(TempMandatesLocal."Country Mandate") then
                 Error(AvalaraCountryMandateLongerErr);
@@ -348,13 +457,44 @@ codeunit 6379 Processing
             if StrLen(Description) > MaxStrLen(TempMandatesLocal.Description) then
                 Error(AvalaraCountryMandateDescLongerErr);
 
-            TempMandatesLocal.Init();
-            TempMandatesLocal."Country Mandate" := CopyStr(CountryMandate, 1, MaxStrLen(TempMandatesLocal."Country Mandate"));
-            TempMandatesLocal."Country Code" := CopyStr(CountryCode, 1, MaxStrLen(TempMandatesLocal."Country Code"));
-            TempMandatesLocal.Description := CopyStr(Description, 1, MaxStrLen(TempMandatesLocal.Description));
-            TempMandatesLocal.Insert(true);
+            if not ShouldParseFields then begin
+                TempMandatesLocal.Init();
+                TempMandatesLocal."Country Mandate" := CopyStr(CountryMandate, 1, MaxStrLen(TempMandatesLocal."Country Mandate"));
+                TempMandatesLocal."Country Code" := CopyStr(CountryCode, 1, MaxStrLen(TempMandatesLocal."Country Code"));
+                TempMandatesLocal.Description := CopyStr(Description, 1, MaxStrLen(TempMandatesLocal.Description));
+                TempMandatesLocal."Invoice Format" := CopyStr(InvoiceFormatStr, 1, MaxStrLen(TempMandatesLocal."Invoice Format"));
+                TempMandatesLocal."Credit Note Format" := CopyStr(CreditFormatStr, 1, MaxStrLen(TempMandatesLocal."Credit Note Format"));
+                TempMandatesLocal.Insert(true);
+            end;
+
             Id += 1;
         end;
+    end;
+
+    procedure GetInvoiceFieldsForMandate(Mandate: Text; documentType: Text; documentVersion: Text)
+    var
+        Request: Codeunit Requests;
+        HttpClient: HttpClient;
+        Response: HttpResponseMessage;
+        //HttpExecutor: Codeunit "Http Executor";
+        ResponseContent: Text;
+
+    begin
+        Request.Init();
+        Request.Authenticate().CreateGetFields(Mandate, documentType, documentVersion);
+        HttpClient.Send(Request.GetRequest(), Response);
+        Response.Content.ReadAs(ResponseContent);
+        if Response.HttpStatusCode = 200 then
+            ParseFields(ResponseContent, Mandate, documentType, documentVersion);
+    end;
+
+    local procedure ParseFields(ResponseContent: Text; Mandate: Text; documentType: Text; documentVersion: Text)
+    var
+        AvalaraFunctions: Codeunit "Avalara Functions";
+        ResponseJsonArray: JsonArray;
+    begin
+        ResponseJsonArray.ReadFrom(ResponseContent);
+        AvalaraFunctions.LoadFieldsFromJson(ResponseJsonArray, CopyStr(Mandate, 1, 40), documentType, documentVersion);
     end;
 
     /// <summary>
@@ -362,22 +502,24 @@ codeunit 6379 Processing
     /// </summary>
     local procedure ParseCompanyList(var AvalaraCompany: Record "Avalara Company" temporary; ResponseContent: Text)
     var
-        ResponseJson: JsonObject;
-        ValueJson, CompanyJson, ParsintToken : JsonToken;
         Id: Integer;
+        ResponseJson: JsonObject;
+        CompanyJson,
+ParsintToken,
+        ValueJson : JsonToken;
         CompanyId, CompanyName : Text;
     begin
         ResponseJson.ReadFrom(ResponseContent);
-        ResponseJson.Get('value', ValueJson);
+        ResponseJson.Get(JsonFieldValueTok, ValueJson);
 
         Id := 1;
         foreach CompanyJson in ValueJson.AsArray() do begin
             Clear(AvalaraCompany);
             AvalaraCompany.Init();
             AvalaraCompany.Id := Id;
-            CompanyJson.AsObject().Get('id', ParsintToken);
+            CompanyJson.AsObject().Get(JsonFieldIdTok, ParsintToken);
             CompanyId := ParsintToken.AsValue().AsText();
-            CompanyJson.AsObject().Get('companyName', ParsintToken);
+            CompanyJson.AsObject().Get(JsonFieldCompanyNameTok, ParsintToken);
             CompanyName := ParsintToken.AsValue().AsText();
 
             if StrLen(CompanyId) > MaxStrLen(AvalaraCompany."Company Id") then
@@ -398,12 +540,12 @@ codeunit 6379 Processing
     /// </summary>
     local procedure ParseDocumentId(ResponseMsg: Text): Text[50]
     var
-        DocumentId: Text;
         ResponseJson: JsonObject;
         ValueJson: JsonToken;
+        DocumentId: Text;
     begin
         ResponseJson.ReadFrom(ResponseMsg);
-        ResponseJson.Get('id', ValueJson);
+        ResponseJson.Get(JsonFieldIdTok, ValueJson);
 
         DocumentId := ValueJson.AsValue().AsText();
         if StrLen(DocumentId) > 50 then
@@ -417,31 +559,34 @@ codeunit 6379 Processing
     /// </summary>
     local procedure ParseGetDocumentStatusResponse(var EDocument: Record "E-Document"; ResponseMsg: Text): Boolean
     var
-        ResponseJson, EventObject : JsonObject;
-        ValueJson, EventToken, MessageToken : JsonToken;
         Events: JsonArray;
+        EventObject,
+        ResponseJson : JsonObject;
+        EventToken,
+MessageToken,
+        ValueJson : JsonToken;
     begin
         ResponseJson.ReadFrom(ResponseMsg);
-        ResponseJson.Get('id', ValueJson);
+        ResponseJson.Get(JsonFieldIdTok, ValueJson);
         if EDocument."Avalara Document Id" <> ValueJson.AsValue().AsText() then
             Error(IncorrectDocumentIdInResponseErr);
 
-        if ResponseJson.Get('events', ValueJson) then
+        if ResponseJson.Get(JsonFieldEventsTok, ValueJson) then
             Events := ValueJson.AsArray();
 
-        ResponseJson.Get('status', ValueJson);
+        ResponseJson.Get(JsonFieldStatusTok, ValueJson);
         case ValueJson.AsValue().AsText() of
-            'Complete':
+            StatusCompleteTok:
                 exit(true);
-            'Pending':
+            StatusPendingTok:
                 exit(false);
-            'Error':
+            StatusErrorTok:
                 begin
-                    if ResponseJson.Get('events', ValueJson) then
+                    if ResponseJson.Get(JsonFieldEventsTok, ValueJson) then
                         Events := ValueJson.AsArray();
                     foreach EventToken in Events do begin
                         EventObject := EventToken.AsObject();
-                        EventObject.Get('message', MessageToken);
+                        EventObject.Get(JsonFieldMessageTok, MessageToken);
                         EDocumentErrorHelper.LogSimpleErrorMessage(EDocument, MessageToken.AsValue().AsText());
                     end;
                     EDocumentErrorHelper.LogSimpleErrorMessage(EDocument, AvalaraProcessingDocFailedErr);
@@ -452,6 +597,121 @@ codeunit 6379 Processing
         end;
     end;
 
+    procedure LoadStatusFromJson(ResponseText: Text; EDocument: Record "E-Document")
+    var
+        TempMessageEvent: Record "Message Event";
+        MessageResponseHeader: Record "Message Response Header";
+        i: Integer;
+        EventsArray: JsonArray;
+        EventObj: JsonObject;
+        JsonObj: JsonObject;
+        EventDateTimeToken: JsonToken;
+        EventsToken: JsonToken;
+        EventToken: JsonToken;
+        MessageToken: JsonToken;
+        responseKeyToken: JsonToken;
+        responseValueToken: JsonToken;
+        RootToken: JsonToken;
+        EventDateTimeTxt, responseKeyText, responseValueText : Text;
+    begin
+        MessageResponseHeader.Init();
+        TempMessageEvent.Init();
+
+        if not JsonObj.ReadFrom(ResponseText) then
+            Error(InvalidJsonResponseErr);
+
+        // --- Header ---
+        if JsonObj.Get(JsonFieldIdTok, RootToken) and RootToken.IsValue() then
+            MessageResponseHeader.id := CopyStr(RootToken.AsValue().AsText(), 1, MaxStrLen(MessageResponseHeader.id));
+
+        if MessageResponseHeader.id = '' then
+            Error(MissingIdInResponseErr);
+
+        if JsonObj.Get(JsonFieldCompanyIdTok, RootToken) and RootToken.IsValue() then
+            MessageResponseHeader.companyId := CopyStr(RootToken.AsValue().AsText(), 1, MaxStrLen(MessageResponseHeader.companyId));
+
+        if JsonObj.Get(JsonFieldStatusTok, RootToken) and RootToken.IsValue() then
+            MessageResponseHeader.status := CopyStr(RootToken.AsValue().AsText(), 1, MaxStrLen(MessageResponseHeader.status));
+
+        if not MessageResponseHeader.Get(MessageResponseHeader.id) then
+            MessageResponseHeader.Insert();
+
+        // --- Events Array ---
+
+        if JsonObj.Get(JsonFieldEventsTok, EventsToken) and EventsToken.IsArray() then begin
+            EventsArray := EventsToken.AsArray();
+
+            for i := 0 to EventsArray.Count() - 1 do begin
+                EventsArray.Get(i, EventToken);
+                if not EventToken.IsObject() then
+                    continue;
+
+                EventObj := EventToken.AsObject();
+
+                TempMessageEvent.Init();
+                TempMessageEvent.id := MessageResponseHeader.id;
+                TempMessageEvent.MessageRow := i + 1;
+
+                // eventDateTime
+                if EventObj.Get(JsonFieldEventDateTimeTok, EventDateTimeToken) and EventDateTimeToken.IsValue() then begin
+                    EventDateTimeTxt := EventDateTimeToken.AsValue().AsText();
+                    if not TryParseIsoDateTime(EventDateTimeTxt, TempMessageEvent.eventDateTime) then
+                        TempMessageEvent.eventDateTime := 0DT;
+                end;
+
+                // responseKey
+                if EventObj.Get(JsonFieldResponseKeyTok, responseKeyToken) and responseKeyToken.IsValue() then begin
+                    responseKeyText := responseKeyToken.AsValue().AsText();
+                    TempMessageEvent.responseKey := CopyStr(responseKeyText, 1, MaxStrLen(TempMessageEvent.responseKey));
+                end;
+
+                // responseValue
+                if EventObj.Get(JsonFieldResponseValueTok, responseValueToken) and responseValueToken.IsValue() then begin
+                    responseValueText := responseValueToken.AsValue().AsText();
+                    TempMessageEvent.responseValue := CopyStr(responseValueText, 1, MaxStrLen(TempMessageEvent.responseValue));
+                end;
+
+                // message
+                if EventObj.Get(JsonFieldMessageTok, MessageToken) and MessageToken.IsValue() then
+                    TempMessageEvent.message := CopyStr(MessageToken.AsValue().AsText(), 1, MaxStrLen(TempMessageEvent.message));
+
+                TempMessageEvent.PostedDocument := EDocument."Document No.";
+                TempMessageEvent.EDocEntryNo := EDocument."Entry No";
+                if not TempMessageEvent.Get(TempMessageEvent.id, TempMessageEvent.MessageRow) then
+                    TempMessageEvent.Insert();
+            end;
+        end;
+    end; //end of procedure
+
+    local procedure TryParseIsoDateTime(IsoText: Text; var Result: DateTime): Boolean
+    var
+        DotPos: Integer;
+        Normalized: Text;
+    begin
+        Normalized := IsoText;
+
+        // Strip trailing 'Z' (UTC indicator) if present
+        if (StrLen(Normalized) > 0) and ((Normalized[StrLen(Normalized)] = 'Z') or (Normalized[StrLen(Normalized)] = 'z')) then
+            Normalized := CopyStr(Normalized, 1, StrLen(Normalized) - 1);
+
+        // Replace 'T' with space for BC Evaluate compatibility
+        Normalized := Normalized.Replace('T', ' ');
+
+        // First try full value (Evaluate in BC can usually handle millis with space separator)
+        if Evaluate(Result, Normalized) then
+            exit(true);
+
+        // If that failed, remove fractional seconds and try again
+        DotPos := StrPos(Normalized, '.');
+        if DotPos > 0 then begin
+            Normalized := CopyStr(Normalized, 1, DotPos - 1);
+            if Evaluate(Result, Normalized) then
+                exit(true);
+        end;
+
+        exit(false);
+    end;
+
     /// <summary>
     /// Returns id from json array
     /// </summary>
@@ -460,7 +720,7 @@ codeunit 6379 Processing
         DocumentJsonToken, IdToken : JsonToken;
     begin
         DocumentArray.Get(Index, DocumentJsonToken);
-        DocumentJsonToken.AsObject().Get('id', IdToken);
+        DocumentJsonToken.AsObject().Get(JsonFieldIdTok, IdToken);
         exit(IdToken.AsValue().AsText());
     end;
 
@@ -469,13 +729,13 @@ codeunit 6379 Processing
     /// </summary>
     procedure FormatDateTime(inputDate: Date): Text
     var
-        FormattedDateTime: Text;
         CurrentDateTime: DateTime;
+        FormattedDateTime: Text;
     begin
-        // Convert the input date to DateTime with the current time  
+        // Convert the input date to DateTime with the current time
         CurrentDateTime := CreateDateTime(inputDate, Time());
 
-        // Format the DateTime in the desired format  
+        // Format the DateTime in the desired format
         FormattedDateTime := Format(CurrentDateTime, 0, '<Year4>-<Month,2>-<Day,2>T<Hours24,2>:<Minutes,2>:<Seconds,2>');
 
         exit(FormattedDateTime);
@@ -486,21 +746,80 @@ codeunit 6379 Processing
         exit(AvalaraTok);
     end;
 
+    procedure CreateBatch(EDocService: Record "E-Document Service"; var EDocument: Record "E-Document"; var SourceDocumentHeaders: RecordRef; var SourceDocumentsLines: RecordRef; var TempBlob: Codeunit "Temp Blob");
+    begin
+        Message('Implementation Coming soon');
+    end;
+
+    procedure GetMandateTypeFromName(MandateText: Text): Text
+    begin
+        if MandateText.Contains(MandateTypeB2BTok) then
+            exit(MandateTypeB2BTok);
+
+        if MandateText.Contains(MandateTypeB2GTok) then
+            exit(MandateTypeB2GTok);
+
+        // Default to empty if no mandate type found
+        exit('');
+    end;
 
     var
-        TempMandates: Record Mandate temporary;
         TempAvalaraCompanies: Record "Avalara Company" temporary;
+        TempMandates: Record Mandate temporary;
         EDocumentErrorHelper: Codeunit "E-Document Error Helper";
-        IncorrectDocumentIdInResponseErr: Label 'Document ID returned by API does not match E-Document.';
-        DocumentIdNotFoundErr: Label 'Document ID not found in response.';
-        AvalaraProcessingDocFailedErr: Label 'An error has been identified in the submitted document.';
-        AvalaraCountryMandateLongerErr: Label 'Avalara country mandate is longer than what is supported by framework.';
+
+        // Error messages
+        AvalaraCountryIdLongerErr: Label 'Avalara company id is longer than what is supported by framework.';
         AvalaraCountryMandateCodeErr: Label 'Avalara country code is longer than what is supported by framework.';
         AvalaraCountryMandateDescLongerErr: Label 'Avalara mandate description is longer than what is supported by framework.';
-        AvalaraCountryIdLongerErr: Label 'Avalara company id is longer than what is supported by framework.';
-        AvaralaCountryNameLongerErr: Label 'Avalara company name is longer than what is supported by framework.';
+        AvalaraCountryMandateLongerErr: Label 'Avalara country mandate is longer than what is supported by framework.';
+        AvalaraGetDocsPathTxt: Label '/einvoicing/documents?flow=in&count=true&filter=status eq Complete', Locked = true;
         AvalaraIdLongerErr: Label 'Avalara returned id longer than supported by framework.';
-        AvalaraGetDocsPathTxt: Label '/einvoicing/documents?flow=in&count=true&filter=status eq Complete&startDate=%1&endDate=%2', Locked = true;
+
+        //   AvalaraGetDocsPathTxt: Label '/einvoicing/documents?flow=in&count=true&filter=status eq Complete&startDate=%1&endDate=%2', Locked = true;
         AvalaraPickMandateMsg: Label 'Select which Avalara service you want to update mandate for.';
+        AvalaraProcessingDocFailedErr: Label 'An error has been identified in the submitted document.';
         AvalaraTok: Label 'E-Document - Avalara', Locked = true;
+        AvaralaCountryNameLongerErr: Label 'Avalara company name is longer than what is supported by framework.';
+        DataFormatCreditNoteTok: Label 'ubl-creditnote', Locked = true;
+        DataFormatInvoiceTok: Label 'ubl-invoice', Locked = true;
+        DataFormatVersionTok: Label '2.1', Locked = true;
+        DocumentIdNotFoundErr: Label 'Document ID not found in response.';
+        IncorrectDocumentIdInResponseErr: Label 'Document ID returned by API does not match E-Document.';
+        InvalidJsonResponseErr: Label 'Invalid JSON response.';
+        JsonFieldCompanyIdTok: Label 'companyId', Locked = true;
+        JsonFieldCompanyNameTok: Label 'companyName', Locked = true;
+        JsonFieldCountryCodeTok: Label 'countryCode', Locked = true;
+        JsonFieldCountryMandateTok: Label 'countryMandate', Locked = true;
+        JsonFieldDescriptionTok: Label 'description', Locked = true;
+        JsonFieldEventDateTimeTok: Label 'eventDateTime', Locked = true;
+        JsonFieldEventsTok: Label 'events', Locked = true;
+        JsonFieldFormatTok: Label 'format', Locked = true;
+
+        // JSON field name constants
+        JsonFieldIdTok: Label 'id', Locked = true;
+        JsonFieldInputDataFormatsTok: Label 'inputDataFormats', Locked = true;
+        JsonFieldMessageTok: Label 'message', Locked = true;
+        JsonFieldNextLinkTok: Label '@nextLink', Locked = true;
+        JsonFieldResponseKeyTok: Label 'responseKey', Locked = true;
+        JsonFieldResponseValueTok: Label 'responseValue', Locked = true;
+        JsonFieldStatusTok: Label 'status', Locked = true;
+        JsonFieldValueTok: Label 'value', Locked = true;
+        JsonFieldVersionsTok: Label 'versions', Locked = true;
+        MandateBlockedErr: Label 'Mandate is set to blocked could not send.';
+        MandateNotCompleteErr: Label 'Status of Activation process for this mandate not complete could not send. Please go to Avalara ELR portal to complete activation.';
+        MandateNotFoundErr: Label 'Activation process for this mandate not found could not send. Please go to Avalara ELR portal to initiate and complete activation.';
+
+        // Mandate type constants
+        MandateTypeB2BTok: Label 'B2B', Locked = true;
+        MandateTypeB2GTok: Label 'B2G', Locked = true;
+        MissingIdInResponseErr: Label 'Missing "id" in response.';
+
+        // Status value constants
+        StatusCompleteTok: Label 'Complete', Locked = true;
+        StatusErrorTok: Label 'Error', Locked = true;
+        StatusPendingTok: Label 'Pending', Locked = true;
+
+        // Workflow and format constants
+        WorkflowIdTok: Label 'partner-einvoicing', Locked = true;
 }
