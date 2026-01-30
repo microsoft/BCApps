@@ -5,6 +5,8 @@
 
 namespace System.Agents;
 
+using System.Agents.Troubleshooting;
+
 permissionset 4300 "Agent - Objects"
 {
     Access = Internal;

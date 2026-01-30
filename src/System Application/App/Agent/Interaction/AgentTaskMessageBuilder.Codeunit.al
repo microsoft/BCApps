@@ -244,11 +244,9 @@ codeunit 4316 "Agent Task Message Builder"
     /// <returns>
     /// True if any attachments exist for the task message, false otherwise.
     /// </returns>
-#pragma warning disable AS0102
     procedure GetAttachments(var TempAttachments: Record "Agent Task File" temporary): Boolean
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
         exit(AgentTaskMsgBuilderImpl.GetAttachments(TempAttachments));
     end;
-#pragma warning restore AS0102
 }

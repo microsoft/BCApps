@@ -3,13 +3,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Agents;
+namespace System.Agents.Troubleshooting;
 
-using System.Agents.Troubleshooting;
+using System.Agents;
 
-page 4301 "Agent Task Message List"
+page 4318 "Agent Task Message ListPart"
 {
-    PageType = List;
+    PageType = ListPart;
     ApplicationArea = All;
     Caption = 'Agent Task Messages';
     SourceTable = "Agent Task Message";
@@ -20,7 +20,7 @@ page 4301 "Agent Task Message List"
     Editable = false;
     InherentEntitlements = X;
     InherentPermissions = X;
-    SourceTableView = sorting("Task Id", "Memory Entry Id") order(descending);
+    SourceTableView = sorting("Memory Entry ID") order(descending);
 
     layout
     {
@@ -28,39 +28,42 @@ page 4301 "Agent Task Message List"
         {
             repeater(GroupName)
             {
+                ShowCaption = false;
                 field(LastModifiedAt; Rec.SystemModifiedAt)
                 {
                     Caption = 'Last modified at';
                     ToolTip = 'Specifies the date and time when the message was last modified.';
+                    Visible = RenderingMode = RenderingMode::PreviousMessage;
                 }
                 field(CreatedAt; Rec.SystemCreatedAt)
                 {
                     Caption = 'Created at';
                     ToolTip = 'Specifies the date and time when the message was created.';
+                    Visible = (RenderingMode = RenderingMode::PreviousMessage)
+                            or (RenderingMode = RenderingMode::IncomingMessage);
                 }
                 field(Status; Rec.Status)
                 {
                     Caption = 'Status';
                     BlankZero = true;
                     BlankNumbers = BlankZero;
+                    Width = 10;
                 }
-                field("Created By Full Name"; Rec."Created By Full Name")
+                field(CreatedByFullName; Rec."Created By Full Name")
                 {
                     Caption = 'Created by';
+                    Visible = (RenderingMode = RenderingMode::PreviousMessage)
+                            or (RenderingMode = RenderingMode::IncomingMessage);
                 }
                 field(MessageType; Rec.Type)
                 {
                     Caption = 'Type';
+                    Visible = RenderingMode = RenderingMode::PreviousMessage;
                 }
                 field(MessageText; GlobalMessageText)
                 {
                     Caption = 'Message';
                     ToolTip = 'Specifies the message text.';
-
-                    trigger OnDrillDown()
-                    begin
-                        Message(GlobalMessageText);
-                    end;
                 }
                 field(TaskID; Rec."Task Id")
                 {
@@ -69,20 +72,9 @@ page 4301 "Agent Task Message List"
                 }
                 field(MessageId; Rec."ID")
                 {
+                    Visible = false;
                     Caption = 'ID';
                 }
-            }
-        }
-
-        area(FactBoxes)
-        {
-            part(TaskContext; "Agent Task Context Part")
-            {
-                ApplicationArea = All;
-                Caption = 'Task context';
-                AboutTitle = 'Context information about the task and agent';
-                AboutText = 'Shows context information such as the agent name, task ID, and company name.';
-                SubPageLink = ID = field("Task ID");
             }
         }
     }
@@ -99,11 +91,38 @@ page 4301 "Agent Task Message List"
 
     local procedure UpdateControls()
     var
-        AgentMessageImpl: Codeunit "Agent Message Impl.";
+        AgentMessage: Codeunit "Agent Message";
     begin
-        GlobalMessageText := AgentMessageImpl.GetText(Rec);
+        GlobalMessageText := AgentMessage.GetText(Rec);
+    end;
+
+    internal procedure DisplayMessagesEarlierThan(CurrentEntryID: Integer): Boolean;
+    begin
+        SetEntryFilter(CurrentEntryID, '<%1');
+        RenderingMode := RenderingMode::PreviousMessage;
+        exit(Rec.Count() > 0);
+    end;
+
+    internal procedure DisplayInputMessageFor(CurrentEntryID: Integer)
+    begin
+        SetEntryFilter(CurrentEntryID, '=%1');
+        RenderingMode := RenderingMode::IncomingMessage;
+    end;
+
+    internal procedure DisplayOutputMessageFor(CurrentEntryID: Integer)
+    begin
+        SetEntryFilter(CurrentEntryID, '=%1');
+        RenderingMode := RenderingMode::OutgoingMessage;
+    end;
+
+    local procedure SetEntryFilter(CurrentEntryID: Integer; Filter: Text)
+    begin
+        Rec.FilterGroup(10);
+        Rec.SetFilter("Memory Entry ID", Filter, CurrentEntryID);
+        Rec.FilterGroup(0);
     end;
 
     var
         GlobalMessageText: Text;
+        RenderingMode: Option PreviousMessage,IncomingMessage,OutgoingMessage;
 }

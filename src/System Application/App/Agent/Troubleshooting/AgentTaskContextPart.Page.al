@@ -3,11 +3,14 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Agents;
+namespace System.Agents.Troubleshooting;
 
+using System.Agents;
 using System.Agents.TaskPane;
 
+#pragma warning disable AS0007 // Aligning namespaces.
 page 4343 "Agent Task Context Part"
+#pragma warning restore AS0007
 {
     ApplicationArea = All;
     Caption = 'Context';
