@@ -13,7 +13,13 @@
   "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2206603",
   "propagateDependencies": true,
   "dependencies": [],
-  "internalsVisibleTo": [],
+  "internalsVisibleTo": [
+    {
+      "id": "e56642d4-5b38-4de1-8cf4-b2ed9513971a",
+      "name": "PEPPOL BE",
+      "publisher": "Microsoft"
+    }
+  ],
   "platform": "28.0.0.0",
   "idRanges": [
     {

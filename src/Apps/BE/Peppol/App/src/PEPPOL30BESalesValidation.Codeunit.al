@@ -16,6 +16,7 @@ using System.Reflection;
 codeunit 37311 "PEPPOL30 BE Sales Validation" implements "PEPPOL30 Validation"
 {
     TableNo = "Sales Header";
+    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
 
