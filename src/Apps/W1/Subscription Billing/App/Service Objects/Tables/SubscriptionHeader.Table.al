@@ -1802,11 +1802,11 @@ table 8057 "Subscription Header"
                         ServiceCommitment.Validate("Notice Period", ServiceCommPackageLine."Notice Period");
                         ServiceCommitment.Validate("Initial Term", ServiceCommPackageLine."Initial Term");
 
-                        if ServiceEndDate <> 0D then
-                            ServiceCommitment."Subscription Line End Date" := ServiceEndDate
-                        else
-                            ServiceCommitment.CalculateInitialServiceEndDate();
-                        ServiceCommitment.CalculateInitialTermUntilDate();
+                        if ServiceEndDate <> 0D then begin
+                            ServiceCommitment."Subscription Line End Date" := ServiceEndDate;
+                            ServiceCommitment.CalculateInitialTermUntilDate();
+                        end else
+                            ServiceCommitment.CalculateInitialSubscriptionDates();
                         ServiceCommitment.ClearTerminationPeriodsWhenServiceEnded();
                         ServiceCommitment.UpdateNextBillingDate(ServiceCommitment."Subscription Line Start Date" - 1);
                         OnAfterDatesCalculatedOnInsertSubscriptionLinesFromSubscriptionPackage(ServiceCommitment, ServiceCommPackageLine);

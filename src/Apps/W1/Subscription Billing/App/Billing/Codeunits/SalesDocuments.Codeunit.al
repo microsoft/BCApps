@@ -542,8 +542,7 @@ codeunit 8063 "Sales Documents"
                     SubscriptionLine.Validate("Calculation Base Amount", SubscriptionLine."Calculation Base Amount" * -1);
 
                 SubscriptionLine.UpdateNextPriceUpdate();
-                SubscriptionLine.CalculateInitialServiceEndDate();
-                SubscriptionLine.CalculateInitialTermUntilDate();
+                SubscriptionLine.CalculateInitialSubscriptionDates();
                 SubscriptionLine.SetCurrencyData(SalesHeader."Currency Factor", SalesHeader."Posting Date", SalesHeader."Currency Code");
                 SubscriptionLine.SetLCYFields(true);
                 if SalesLine."No." = SubscriptionLine."Invoicing Item No." then begin
