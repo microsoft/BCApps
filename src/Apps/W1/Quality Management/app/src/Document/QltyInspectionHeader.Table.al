@@ -46,7 +46,7 @@ table 20405 "Qlty. Inspection Header"
         field(2; "Re-inspection No."; Integer)
         {
             Caption = 'Re-inspection No.';
-            ToolTip = 'Specifies which re-inspection this is for.';
+            ToolTip = 'Specifies the re-inspection counter.';
             BlankZero = true;
         }
         field(3; "Template Code"; Code[20])
@@ -58,20 +58,19 @@ table 20405 "Qlty. Inspection Header"
 
             trigger OnValidate()
             begin
-                if Rec."No." = '' then
-                    InitInspectionNumber();
+                InitInspectionNumber();
             end;
         }
         field(4; "Source RecordId"; RecordId)
         {
             Caption = 'Source Record';
-            Description = 'The source record this Quality Inspection is for.';
+            ToolTip = 'Specifies the source record this Quality Inspection is for.';
             NotBlank = true;
         }
         field(5; "Trigger RecordId"; RecordId)
         {
             Caption = 'Trigger Record';
-            Description = 'The triggering record that caused this Quality Inspection to be created.';
+            ToolTip = 'Specifies the triggering record that caused this Quality Inspection to be created.';
             NotBlank = true;
         }
         field(6; Description; Text[250])
@@ -88,19 +87,18 @@ table 20405 "Qlty. Inspection Header"
         field(8; "Source RecordId 2"; RecordId)
         {
             Caption = 'Source Record 2';
-            Description = 'Secondary source record this Quality Inspection is for.';
+            ToolTip = 'Specifies the secondary source record this Quality Inspection is for.';
             NotBlank = true;
         }
         field(9; "Source RecordId 3"; RecordId)
         {
             Caption = 'Source Record 3';
-            Description = 'Tertiary source record this Quality Inspection is for.';
+            ToolTip = 'Specifies the tertiary source record this Quality Inspection is for.';
             NotBlank = true;
         }
         field(10; "Source Table No."; Integer)
         {
             Caption = 'Source Table No.';
-            Description = 'A reference to the table that the quality inspection is for. ';
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Table));
             BlankZero = true;
             Editable = false;
@@ -213,25 +211,24 @@ table 20405 "Qlty. Inspection Header"
         field(22; "Source Record Table No."; Integer)
         {
             Caption = 'Source Record Table No.';
-            Description = 'The table no. of the source record this Quality Inspection is for.';
+            ToolTip = 'Specifies the table no. of the source record this Quality Inspection is for.';
             NotBlank = true;
         }
         field(23; "Trigger Record Table No."; Integer)
         {
             Caption = 'Trigger Record Table No.';
-            Description = 'The table no. of the triggering record that caused this Quality Inspection to be created.';
+            ToolTip = 'Specifies the table no. of the triggering record that caused this Quality Inspection to be created.';
             NotBlank = true;
         }
         field(24; "Source RecordId 4"; RecordId)
         {
             Caption = 'Source Record 4';
-            Description = 'Fourth source record this Quality Inspection is for.';
+            ToolTip = 'Specifies the fourth source record this Quality Inspection is for.';
             NotBlank = true;
         }
         field(25; "Source Package No."; Code[50])
         {
             Caption = 'Package No.';
-            Description = 'A reference to the package, if supplied.';
             OptimizeForTextSearch = true;
             ToolTip = 'Specifies the package number that the quality inspection is for. This is only used for package tracked items.';
 
@@ -372,7 +369,6 @@ table 20405 "Qlty. Inspection Header"
         field(48; "Finished Date"; DateTime)
         {
             Editable = false;
-            Description = 'The date that the inspection was finished.';
             Caption = 'Finished Date';
             ToolTip = 'Specifies the date that the inspection was finished.';
         }
@@ -380,25 +376,28 @@ table 20405 "Qlty. Inspection Header"
         {
             DataClassification = EndUserIdentifiableInformation;
             Editable = false;
-            Description = 'Specifies the user that finished the inspection';
             Caption = 'Finished By User ID';
             ToolTip = 'Specifies the user that finished the inspection';
         }
-        field(50; "Re-inspection Iteration State"; Enum "Qlty. Iteration State")
+#pragma warning disable AA0232
+        field(50; "Latest Re-inspection No."; Integer)
         {
-            Caption = 'Re-inspection Iteration State';
-            Description = 'When Re-inspections are involved this indicates if it is the most recent Re-inspection.';
+            Caption = 'Latest Re-inspection No.';
             Editable = false;
+            ToolTip = 'Specifies the most recent re-inspection number for this inspection.';
+            FieldClass = FlowField;
+            CalcFormula = max("Qlty. Inspection Header"."Re-inspection No." where("No." = field("No.")));
         }
+#pragma warning restore AA0232
         field(51; "Assigned User ID"; Code[50])
         {
             DataClassification = EndUserIdentifiableInformation;
             Editable = false;
-            Description = 'The user this inspection is assigned to.';
             TableRelation = User."User Name";
             ValidateTableRelation = false;
             Caption = 'Assigned User ID';
             ToolTip = 'Specifies the user this inspection is assigned to.';
+
             trigger OnValidate()
             var
                 CanChangeAssignmentWithoutPermission: Boolean;
@@ -418,7 +417,6 @@ table 20405 "Qlty. Inspection Header"
         {
             Editable = false;
             TableRelation = "Qlty. Inspection Result".Code;
-            Description = 'The result is automatically determined based on the test value and result configuration.';
             Caption = 'Result Code';
             ToolTip = 'Specifies the result is automatically determined based on the test value and result configuration.';
 
@@ -438,29 +436,25 @@ table 20405 "Qlty. Inspection Header"
         field(53; "Result Description"; Text[100])
         {
             Caption = 'Result';
-            Description = 'The result description for this test result. The result is automatically determined based on the test value and result configuration.';
             Editable = false;
+            ToolTip = 'Specifies the result description for this test result. The result is automatically determined based on the test value and result configuration.';
             FieldClass = FlowField;
             CalcFormula = lookup("Qlty. Inspection Result"."Description" where("Code" = field("Result Code")));
-            ToolTip = 'Specifies the result description for this test result. The result is automatically determined based on the test value and result configuration.';
         }
         field(54; "Evaluation Sequence"; Integer)
         {
-            Description = 'The associated evaluation sequence for this test result. The result is automatically determined based on the test value and result configuration.';
-            Editable = false;
             Caption = 'Evaluation Sequence';
+            Editable = false;
             ToolTip = 'Specifies the associated evaluation sequence for this test result. The result is automatically determined based on the test value and result configuration.';
         }
         field(56; "Planned Start Date"; DateTime)
         {
             Editable = false;
-            Description = 'The planned start of this inspection';
             Caption = 'Planned Start Date';
             ToolTip = 'Specifies the last planned start time of the inspection.';
         }
         field(57; "Location Code"; Code[10])
         {
-            Description = 'The location of the inspection.';
             Caption = 'Location Code';
             TableRelation = Location.Code;
             ToolTip = 'Specifies the location of the inspection.';
@@ -468,7 +462,6 @@ table 20405 "Qlty. Inspection Header"
         field(65; "Sample Size"; Integer)
         {
             Caption = 'Sample Size';
-            Description = 'How many samples are included in this inspection. You can change this manually, however it can also be determined by configuring your AQL tables.';
             ToolTip = 'Specifies the number of units that must be inspected. This will be used to fill out the sample size field on a Quality Inspection when possible based on the other characteristics that were applied.';
 
             trigger OnValidate()
@@ -554,9 +547,6 @@ table 20405 "Qlty. Inspection Header"
         key(byUser; SystemCreatedBy, SystemCreatedAt, "Template Code")
         {
         }
-        key(byIterationState; "Re-inspection Iteration State")
-        {
-        }
         key(byDocumentAndItemNo; "Source Document No.", "Source Document Line No.", "Source Item No.", "Source Variant Code")
         {
         }
@@ -604,8 +594,6 @@ table 20405 "Qlty. Inspection Header"
     var
     begin
         InitInspectionNumber();
-
-        UpdateReinspectionIterationState();
     end;
 
     trigger OnModify()
@@ -777,26 +765,6 @@ table 20405 "Qlty. Inspection Header"
         QltyManagementSetup.GetRecordOnce();
         QltyManagementSetup.TestField("Quality Inspection Nos.");
         Rec."No." := NoSeries.GetNextNo(QltyManagementSetup."Quality Inspection Nos.", WorkDate(), true);
-    end;
-
-    local procedure UpdateReinspectionIterationState()
-    begin
-        Rec."Re-inspection Iteration State" := Rec."Re-inspection Iteration State"::"Most recent";
-
-        UpdateReinspectionIterationStateForPrecedingInspections();
-    end;
-
-    local procedure UpdateReinspectionIterationStateForPrecedingInspections()
-    var
-        PrecedingQltyInspectionHeader: Record "Qlty. Inspection Header";
-    begin
-        if Rec."Re-inspection No." = 0 then
-            exit;
-
-        PrecedingQltyInspectionHeader.SetRange("No.", Rec."No.");
-        PrecedingQltyInspectionHeader.SetFilter("Re-inspection No.", '<%1', Rec."Re-inspection No.");
-        if not PrecedingQltyInspectionHeader.IsEmpty() then
-            PrecedingQltyInspectionHeader.ModifyAll("Re-inspection Iteration State", PrecedingQltyInspectionHeader."Re-inspection Iteration State"::"Newer re-inspection available", false);
     end;
 
     /// <summary>
@@ -1049,12 +1017,9 @@ table 20405 "Qlty. Inspection Header"
     /// </summary>
     /// <returns></returns>
     procedure HasMoreRecentReinspection(): Boolean
-    var
-        RecencyCheckQltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
-        RecencyCheckQltyInspectionHeader.SetRange("No.", Rec."No.");
-        RecencyCheckQltyInspectionHeader.SetFilter("Re-inspection No.", '>%1', Rec."Re-inspection No.");
-        exit(not RecencyCheckQltyInspectionHeader.IsEmpty());
+        Rec.CalcFields("Latest Re-inspection No.");
+        exit(Rec."Re-inspection No." < Rec."Latest Re-inspection No.");
     end;
 
     internal procedure IsItemTrackingUsed(): Boolean
