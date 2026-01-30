@@ -35,6 +35,11 @@ page 9453 "File Scenarios FactBox"
                     ToolTip = 'Specifies the name of the file scenario.';
                     Caption = 'File scenario';
                     Editable = false;
+
+                    trigger OnDrillDown()
+                    begin
+                        OpenAdditionalScenarioSetup();
+                    end;
                 }
             }
         }
@@ -50,17 +55,22 @@ page 9453 "File Scenarios FactBox"
                 Image = Setup;
                 Scope = Repeater;
                 trigger OnAction()
-                var
-                    FileScenarioInterface: Interface "File Scenario";
-                    FileScenarioEnum: Enum "File Scenario";
-                    NoSetupAvailableMsg: Label 'No additional setup is available for this scenario.';
                 begin
-                    FileScenarioEnum := Rec.Scenario;
-                    FileScenarioInterface := FileScenarioEnum;
-                    if not FileScenarioInterface.GetAdditionalScenarioSetup(Rec.Scenario, Rec.Connector) then
-                        Message(NoSetupAvailableMsg);
+                    OpenAdditionalScenarioSetup();
                 end;
             }
         }
     }
+
+    local procedure OpenAdditionalScenarioSetup()
+    var
+        FileScenarioInterface: Interface "File Scenario";
+        FileScenarioEnum: Enum "File Scenario";
+        NoSetupAvailableMsg: Label 'No additional setup is available for this scenario.';
+    begin
+        FileScenarioEnum := Rec.Scenario;
+        FileScenarioInterface := FileScenarioEnum;
+        if not FileScenarioInterface.GetAdditionalScenarioSetup(Rec.Scenario, Rec.Connector) then
+            Message(NoSetupAvailableMsg);
+    end;
 }
