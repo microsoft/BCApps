@@ -132,12 +132,21 @@ function Invoke-TestsWithCodeCoverage {
     }
     Write-Host "Code coverage output path: $codeCoverageOutputPath"
     
+    # Map testRunnerCodeunitId to TestIsolation parameter
+    # 130450 = Codeunit isolation (default)
+    # 130451 = Disabled isolation
+    $testIsolation = "Codeunit"
+    if ($parameters.testRunnerCodeunitId -eq "130451") {
+        $testIsolation = "Disabled"
+    }
+    
     # Build test run parameters
     $testRunParams = @{
         ServiceUrl               = $serviceUrl
         Credential               = $credential
         AutorizationType         = 'NavUserPassword'
-        TestSuite                = 'DEFAULT'
+        TestSuite                = if ($parameters.testSuite) { $parameters.testSuite } else { 'DEFAULT' }
+        TestIsolation            = $testIsolation
         Detailed                 = $true
         DisableSSLVerification   = $true
         ResultsFormat            = $resultsFormat
@@ -161,12 +170,31 @@ function Invoke-TestsWithCodeCoverage {
         $testRunParams.SaveResultFile = $true
     }
     
-    if ($parameters.testRunnerCodeunitId) {
-        $testRunParams.TestRunnerId = $parameters.testRunnerCodeunitId
+    # Map testType parameter
+    if ($parameters.testType) {
+        $testRunParams.TestType = $parameters.testType
+    }
+    
+    # Map requiredTestIsolation parameter
+    if ($parameters.requiredTestIsolation) {
+        $testRunParams.RequiredTestIsolation = $parameters.requiredTestIsolation
     }
     
     if ($parameters.disabledTests) {
         $testRunParams.DisabledTests = $parameters.disabledTests
+    }
+    
+    # Map test codeunit/function filters
+    # testCodeunit can be a name pattern or ID, testCodeunitRange is a BC filter string
+    if ($parameters.testCodeunitRange) {
+        $testRunParams.TestCodeunitsRange = $parameters.testCodeunitRange
+    }
+    elseif ($parameters.testCodeunit -and $parameters.testCodeunit -ne "*") {
+        $testRunParams.TestCodeunitsRange = $parameters.testCodeunit
+    }
+    
+    if ($parameters.testFunction -and $parameters.testFunction -ne "*") {
+        $testRunParams.TestProcedureRange = $parameters.testFunction
     }
     
     # Run tests with code coverage
