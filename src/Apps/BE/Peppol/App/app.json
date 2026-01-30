@@ -1,9 +1,9 @@
 {
-  "id": "e1966889-b5fb-4fda-a84c-ea71b590e1a9",
-  "name": "PEPPOL",
+  "id": "e56642d4-5b38-4de1-8cf4-b2ed9513971a",
+  "name": "PEPPOL BE",
   "publisher": "Microsoft",
-  "description": "Export sales invoices and credit memos in PEPPOL BIS 3.0 format for electronic invoicing compliance across Europe.",
-  "brief": "PEPPOL BIS 3.0 electronic invoicing for sales documents.",
+  "description": "PEPPOL BIS 3.0 Belgium localization for electronic invoicing with Belgium-specific VAT registration formatting.",
+  "brief": "Belgium localization for PEPPOL BIS 3.0 electronic invoicing.",
   "version": "28.0.0.0",
   "logo": "ExtensionLogo.png",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
@@ -12,19 +12,20 @@
   "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
   "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2206603",
   "propagateDependencies": true,
-  "dependencies": [],
-  "internalsVisibleTo": [
+  "dependencies": [
     {
-      "id": "e56642d4-5b38-4de1-8cf4-b2ed9513971a",
-      "name": "PEPPOL BE",
-      "publisher": "Microsoft"
+      "id": "e1966889-b5fb-4fda-a84c-ea71b590e1a9",
+      "name": "PEPPOL",
+      "publisher": "Microsoft",
+      "version": "28.0.0.0"
     }
   ],
+  "internalsVisibleTo": [],
   "platform": "28.0.0.0",
   "idRanges": [
     {
-      "from": 37200,
-      "to": 37300
+      "from": 37310,
+      "to": 37350
     }
   ],
   "application": "28.0.0.0",
