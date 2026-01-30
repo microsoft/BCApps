@@ -1370,20 +1370,6 @@ codeunit 139940 "Qlty. Inspection Utility"
 
     #endregion Qlty. Filter Helpers Wrappers
 
-    #region Qlty. Utilities Integration Wrappers
-
-    /// <summary>
-    /// Wrapper for internal QltyUtilitiesIntegration.InternalHandleOnAfterGetPageSummary.
-    /// </summary>
-    internal procedure HandleOnAfterGetPageSummary(PageId: Integer; RecId: RecordId; var JsonArray: JsonArray)
-    var
-        QltyUtilitiesIntegration: Codeunit "Qlty. Utilities Integration";
-    begin
-        QltyUtilitiesIntegration.InternalHandleOnAfterGetPageSummary(PageId, RecId, JsonArray);
-    end;
-
-    #endregion Qlty. Utilities Integration Wrappers
-
     #region Qlty. Inspec. Gen. Rule Mgmt. Wrappers
 
     /// <summary>
