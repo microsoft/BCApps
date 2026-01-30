@@ -58,6 +58,7 @@ table 8059 "Subscription Line"
                 CheckServiceDates();
                 RecalculateHarmonizedBillingFieldsOnCustomerContract();
                 UpdateNextPriceUpdate();
+                CalculateInitialSubscriptionDates();
             end;
         }
         field(7; "Subscription Line End Date"; Date)
@@ -729,6 +730,12 @@ table 8059 "Subscription Line"
             Clear("Term Until");
             Clear("Cancellation Possible Until");
         end;
+    end;
+
+    internal procedure CalculateInitialSubscriptionDates()
+    begin
+        CalculateInitialServiceEndDate();
+        CalculateInitialTermUntilDate();
     end;
 
     internal procedure CalculateInitialServiceEndDate()
