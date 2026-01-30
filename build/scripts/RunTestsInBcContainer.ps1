@@ -202,17 +202,37 @@ function Invoke-TestsWithCodeCoverage {
     
     # Check test results file for pass/fail status
     if ($resultsFilePath -and (Test-Path $resultsFilePath)) {
-        [xml]$testResults = Get-Content $resultsFilePath
-        if ($testResults.testsuites) {
-            # JUnit format
-            $failures = [int]$testResults.testsuites.failures
-            $errors = [int]$testResults.testsuites.errors
-            return ($failures -eq 0 -and $errors -eq 0)
+        try {
+            [xml]$testResults = Get-Content $resultsFilePath
+            
+            # JUnit format - can be <testsuites> root or <testsuite> root
+            if ($testResults.testsuites) {
+                $failures = 0
+                $errors = 0
+                # Aggregate from all testsuites
+                foreach ($ts in $testResults.testsuites.testsuite) {
+                    if ($ts.failures) { $failures += [int]$ts.failures }
+                    if ($ts.errors) { $errors += [int]$ts.errors }
+                }
+                # Also check root level attributes
+                if ($testResults.testsuites.failures) { $failures += [int]$testResults.testsuites.failures }
+                if ($testResults.testsuites.errors) { $errors += [int]$testResults.testsuites.errors }
+                return ($failures -eq 0 -and $errors -eq 0)
+            }
+            elseif ($testResults.testsuite) {
+                # Single testsuite root
+                $failures = if ($testResults.testsuite.failures) { [int]$testResults.testsuite.failures } else { 0 }
+                $errors = if ($testResults.testsuite.errors) { [int]$testResults.testsuite.errors } else { 0 }
+                return ($failures -eq 0 -and $errors -eq 0)
+            }
+            elseif ($testResults.assemblies) {
+                # XUnit format
+                $failed = if ($testResults.assemblies.assembly.failed) { [int]$testResults.assemblies.assembly.failed } else { 0 }
+                return ($failed -eq 0)
+            }
         }
-        elseif ($testResults.assemblies) {
-            # XUnit format
-            $failed = [int]$testResults.assemblies.assembly.failed
-            return ($failed -eq 0)
+        catch {
+            Write-Host "Warning: Could not parse test results file: $_"
         }
     }
     
