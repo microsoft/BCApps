@@ -401,7 +401,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level result conditions are retrieved
@@ -513,7 +513,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level result conditions are retrieved
@@ -600,7 +600,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level result conditions are retrieved
@@ -683,7 +683,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level result conditions are retrieved
@@ -761,7 +761,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level result conditions are retrieved
@@ -851,7 +851,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level result conditions are retrieved
@@ -959,7 +959,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         LibraryAssert.AreEqual(0, SanityCheckQltyInspectionResult.Count(), 'should be no blank results - e');
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line and test-level result conditions are retrieved with no blank results
@@ -1077,7 +1077,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line for second field (uses reference) is retrieved
@@ -1215,7 +1215,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line for second field is retrieved with expression '1..{2+[TestCode]}'
@@ -1751,7 +1751,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line is retrieved for test context validation
@@ -1842,7 +1842,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line is retrieved and result conditions are set up
@@ -1946,7 +1946,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line is retrieved for validation
@@ -2069,7 +2069,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         QltyInspectionHeader.Reset();
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariantAndTemplate(ProdOrderRoutingLine, true, QltyInspectionTemplateHdr.Code);
+        QltyInspectionCreate.CreateInspectionWithVariantAndTemplate(ProdOrderRoutingLine, false, QltyInspectionTemplateHdr.Code);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Inspection line for option field is retrieved

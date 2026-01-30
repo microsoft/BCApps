@@ -48,15 +48,10 @@ codeunit 139940 "Qlty. Inspection Utility"
 
     internal procedure EnsureSetupExists()
     var
-        QltyManagementSetup: Record "Qlty. Management Setup";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
         UserPermissionsLibrary: Codeunit "User Permissions Library";
     begin
         QltyAutoConfigure.EnsureBasicSetupExists(false);
-        QltyManagementSetup.Get();
-        QltyManagementSetup."When to show inspections" := QltyManagementSetup."When to show inspections"::"Never";
-        QltyManagementSetup.Modify();
-
         UserPermissionsLibrary.AssignPermissionSetToUser(UserSecurityId(), 'QltyGeneral');
     end;
 
@@ -92,7 +87,7 @@ codeunit 139940 "Qlty. Inspection Utility"
         BeforeCount := OutCreatedQltyInspectionHeader.Count();
 
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
-        ClaimedInspectionWasCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
+        ClaimedInspectionWasCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false);
 
         OutCreatedQltyInspectionHeader.Reset();
         AfterCount := OutCreatedQltyInspectionHeader.Count();
@@ -472,7 +467,7 @@ codeunit 139940 "Qlty. Inspection Utility"
     begin
         PurchaseLineRecordRef.GetTable(PurOrdPurchaseLine);
         SpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        InspectionCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(PurchaseLineRecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        InspectionCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(PurchaseLineRecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '');
         LibraryAssert.IsTrue(InspectionCreated, 'Quality Inspection not created.');
 
         QltyInspectionCreate.GetCreatedInspection(OutQltyInspectionHeader);
@@ -496,7 +491,7 @@ codeunit 139940 "Qlty. Inspection Utility"
     begin
         RecordRef.GetTable(WarehouseEntry);
         SpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        InspectionCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        InspectionCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '');
         LibraryAssert.IsTrue(InspectionCreated, 'Quality Inspection not created.');
 
         QltyInspectionCreate.GetCreatedInspection(OutQltyInspectionHeader);
@@ -516,7 +511,7 @@ codeunit 139940 "Qlty. Inspection Utility"
         InspectionCreated: Boolean;
     begin
         PurchaseLineRecordRef.GetTable(PurOrdPurchaseLine);
-        InspectionCreated := QltyInspectionCreate.CreateInspectionWithSpecificTemplate(PurchaseLineRecordRef, true, SpecificTemplate);
+        InspectionCreated := QltyInspectionCreate.CreateInspectionWithSpecificTemplate(PurchaseLineRecordRef, false, SpecificTemplate);
         LibraryAssert.IsTrue(InspectionCreated, 'Quality Inspection not created.');
 
         QltyInspectionCreate.GetCreatedInspection(OutQltyInspectionHeader);
@@ -535,7 +530,7 @@ codeunit 139940 "Qlty. Inspection Utility"
         InspectionCreated: Boolean;
     begin
         RecordRef.GetTable(WarehouseEntry);
-        InspectionCreated := QltyInspectionCreate.CreateInspection(RecordRef, true);
+        InspectionCreated := QltyInspectionCreate.CreateInspection(RecordRef, false);
         LibraryAssert.IsTrue(InspectionCreated, 'Quality Inspection not created.');
 
         QltyInspectionCreate.GetCreatedInspection(OutQltyInspectionHeader);
@@ -1247,7 +1242,7 @@ codeunit 139940 "Qlty. Inspection Utility"
     var
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
     begin
-        QltyInspectionCreate.CreateMultipleInspectionsForMarkedTrackingSpecification(TempTrackingSpecification);
+        QltyInspectionCreate.CreateMultipleInspectionsForMarkedTrackingSpecification(TempTrackingSpecification, false);
     end;
 
     /// <summary>

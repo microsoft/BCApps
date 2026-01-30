@@ -239,7 +239,7 @@ codeunit 139941 "Qlty. Pur. Order Generator"
         CreatePurchaseOrder(PurchaseQuantity, Location, Item, Vendor, '', PurchaseHeader, PurchaseLine, OutReservationEntry);
         RecordRef.GetTable(PurchaseLine);
         SpecTrackingSpecification.CopyTrackingFromReservEntry(OutReservationEntry);
-        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '') then
+        if QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '') then
             QltyInspectionCreate.GetCreatedInspection(OutQltyInspectionHeader);
     end;
 }

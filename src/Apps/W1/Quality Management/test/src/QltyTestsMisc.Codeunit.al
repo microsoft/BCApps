@@ -494,7 +494,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionHeader.Reset();
 
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] An inspection line with a Salesperson/Purchaser code value
@@ -869,7 +869,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionHeader.Reset();
 
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] An inspection line with the lookup field and test value set to the Salesperson/Purchaser code
@@ -985,7 +985,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionHeader.Reset();
 
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] An inspection line with the lookup field and test value set to the first Salesperson/Purchaser code
@@ -1084,7 +1084,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionHeader.Reset();
 
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] An inspection line with the lookup field and test value set to the Salesperson/Purchaser code
@@ -1217,7 +1217,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionHeader.Reset();
 
         ClearLastError();
-        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, true);
+        QltyInspectionCreate.CreateInspectionWithVariant(ProdOrderRoutingLine, false);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] An inspection line with the lookup field and test value set to the first Salesperson/Purchaser code

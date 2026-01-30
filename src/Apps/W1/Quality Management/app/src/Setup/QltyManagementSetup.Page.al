@@ -80,14 +80,6 @@ page 20400 "Qlty. Management Setup"
                         AboutText = 'This is the maximum number of rows to fetch on data lookups. Keeping the number as low as possible will increase usability and performance.';
 
                     }
-                    field("When to show inspections"; Rec."When to show inspections")
-                    {
-                        ApplicationArea = All;
-                        ShowCaption = true;
-                        Importance = Promoted;
-                        AboutTitle = 'When To Show Inspections';
-                        AboutText = 'Specifies whether inspections are shown immediately or sent to a queue for quality inspectors. For demonstrations and training, it can be useful to show automatically created inspections immediately. In production scenarios, automatically created inspections are usually not shown, instead they are queued or dispatch for quality inspectors.';
-                    }
                     field("Additional Picture Handling"; Rec."Additional Picture Handling")
                     {
                         ApplicationArea = All;
