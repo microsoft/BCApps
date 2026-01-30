@@ -83,20 +83,20 @@ function Invoke-TestsWithCodeCoverage {
     
     Write-Host "Using Run-AlTests with code coverage support"
     
-    $containerName = $parameters.containerName
-    $credential = $parameters.credential
-    $extensionId = $parameters.extensionId
-    $appName = $parameters.appName
+    $containerName = $parameters["containerName"]
+    $credential = $parameters["credential"]
+    $extensionId = $parameters["extensionId"]
+    $appName = $parameters["appName"]
     
     # Handle both JUnit and XUnit result file names
     $resultsFilePath = $null
     $resultsFormat = 'JUnit'
-    if ($parameters.JUnitResultFileName) {
-        $resultsFilePath = $parameters.JUnitResultFileName
+    if ($parameters["JUnitResultFileName"]) {
+        $resultsFilePath = $parameters["JUnitResultFileName"]
         $resultsFormat = 'JUnit'
     }
-    elseif ($parameters.XUnitResultFileName) {
-        $resultsFilePath = $parameters.XUnitResultFileName
+    elseif ($parameters["XUnitResultFileName"]) {
+        $resultsFilePath = $parameters["XUnitResultFileName"]
         $resultsFormat = 'XUnit'
     }
     
@@ -109,7 +109,7 @@ function Invoke-TestsWithCodeCoverage {
     }
     
     # Ensure tenant parameter is included (required for client services connection)
-    $tenant = if ($parameters.tenant) { $parameters.tenant } else { "default" }
+    $tenant = if ($parameters["tenant"]) { $parameters["tenant"] } else { "default" }
     if ($publicWebBaseUrl -notlike "*tenant=*") {
         if ($publicWebBaseUrl.Contains("?")) {
             $serviceUrl = "$publicWebBaseUrl&tenant=$tenant"
@@ -136,7 +136,7 @@ function Invoke-TestsWithCodeCoverage {
     # 130450 = Codeunit isolation (default)
     # 130451 = Disabled isolation
     $testIsolation = "Codeunit"
-    if ($parameters.testRunnerCodeunitId -eq "130451") {
+    if ($parameters["testRunnerCodeunitId"] -eq "130451") {
         $testIsolation = "Disabled"
     }
     
@@ -145,7 +145,7 @@ function Invoke-TestsWithCodeCoverage {
         ServiceUrl               = $serviceUrl
         Credential               = $credential
         AutorizationType         = 'NavUserPassword'
-        TestSuite                = if ($parameters.testSuite) { $parameters.testSuite } else { 'DEFAULT' }
+        TestSuite                = if ($parameters["testSuite"]) { $parameters["testSuite"] } else { 'DEFAULT' }
         TestIsolation            = $testIsolation
         Detailed                 = $true
         DisableSSLVerification   = $true
@@ -171,30 +171,30 @@ function Invoke-TestsWithCodeCoverage {
     }
     
     # Map testType parameter
-    if ($parameters.testType) {
-        $testRunParams.TestType = $parameters.testType
+    if ($parameters["testType"]) {
+        $testRunParams.TestType = $parameters["testType"]
     }
     
     # Map requiredTestIsolation parameter
-    if ($parameters.requiredTestIsolation) {
-        $testRunParams.RequiredTestIsolation = $parameters.requiredTestIsolation
+    if ($parameters["requiredTestIsolation"]) {
+        $testRunParams.RequiredTestIsolation = $parameters["requiredTestIsolation"]
     }
     
-    if ($parameters.disabledTests) {
-        $testRunParams.DisabledTests = $parameters.disabledTests
+    if ($parameters["disabledTests"]) {
+        $testRunParams.DisabledTests = $parameters["disabledTests"]
     }
     
     # Map test codeunit/function filters
     # testCodeunit can be a name pattern or ID, testCodeunitRange is a BC filter string
-    if ($parameters.testCodeunitRange) {
-        $testRunParams.TestCodeunitsRange = $parameters.testCodeunitRange
+    if ($parameters["testCodeunitRange"]) {
+        $testRunParams.TestCodeunitsRange = $parameters["testCodeunitRange"]
     }
-    elseif ($parameters.testCodeunit -and $parameters.testCodeunit -ne "*") {
-        $testRunParams.TestCodeunitsRange = $parameters.testCodeunit
+    elseif ($parameters["testCodeunit"] -and $parameters["testCodeunit"] -ne "*") {
+        $testRunParams.TestCodeunitsRange = $parameters["testCodeunit"]
     }
     
-    if ($parameters.testFunction -and $parameters.testFunction -ne "*") {
-        $testRunParams.TestProcedureRange = $parameters.testFunction
+    if ($parameters["testFunction"] -and $parameters["testFunction"] -ne "*") {
+        $testRunParams.TestProcedureRange = $parameters["testFunction"]
     }
     
     # Run tests with code coverage
