@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Peppol;
 
-using Microsoft.Sales.Document;
 using Microsoft.Finance.VAT.Calculation;
+using Microsoft.Sales.Document;
 
 interface "PEPPOL Payment Info Provider"
 {
