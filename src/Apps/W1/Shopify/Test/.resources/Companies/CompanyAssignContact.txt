@@ -1,1 +1,0 @@
-{"data":{"companyAssignCustomerAsContact":{"companyContact":{"id":"gid://shopify/CompanyContact/1597800748"},"userErrors":[]}}}

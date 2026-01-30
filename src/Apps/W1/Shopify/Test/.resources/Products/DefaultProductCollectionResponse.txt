@@ -1,1 +1,0 @@
-[ { "node": { "id": "gid://shopify/Collection/%1", "title":"test collection" } } ]
