@@ -1,8 +1,0 @@
-{
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/19a90088a40cf806eaeb0878ee9aa2438b400475/Actions/.Modules/settings.schema.json",
-  "projectName": "Performance Toolkit Tests",
-  "testFolders": [
-    "../../../src/Tools/Performance Toolkit/Test"
-  ],
-  "installOnlyReferencedApps": false
-}

@@ -1,1 +1,0 @@
-{"data":{"fulfillmentOrderAcceptFulfillmentRequest":{"fulfillmentOrder":{"id":"gid://shopify/FulfillmentOrder/8683141071148","requestStatus":"ACCEPTED"},"userErrors":[]}}}
