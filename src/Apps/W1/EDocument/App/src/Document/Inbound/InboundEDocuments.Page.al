@@ -452,11 +452,11 @@ page 6105 "Inbound E-Documents"
         AgentTaskStatus := '';
         if not EnvironmentInformation.IsSaaSInfrastructure() then
             exit;
+        if not AgentTask.ReadPermission() then
+            exit;
         AgentTask.SetRange("Company Name", CompanyName());
         AgentTask.SetRange("External ID", Format(Rec."Entry No"));
-        if not AgentTask.FindFirst() then
-            Clear(AgentTask);
-        if AgentTask.ID <> 0 then
+        if AgentTask.FindFirst() and (AgentTask.ID <> 0) then
             AgentTaskStatus := Format(AgentTask.Status);
     end;
 
