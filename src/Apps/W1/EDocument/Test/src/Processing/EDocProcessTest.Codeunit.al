@@ -339,6 +339,8 @@ codeunit 139883 "E-Doc Process Test"
         EDocImportParameters: Record "E-Doc. Import Parameters";
         PurchaseHeader: Record "Purchase Header";
         EDocLogRecord: Record "E-Document Log";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
         EDocImport: Codeunit "E-Doc. Import";
         EDocumentLog: Codeunit "E-Document Log";
         EDocumentProcessing: Codeunit "E-Document Processing";
@@ -350,6 +352,14 @@ codeunit 139883 "E-Doc Process Test"
         EDocument.Modify();
         EDocumentService."Import Process" := "E-Document Import Process"::"Version 2.0";
         EDocumentService.Modify();
+
+        EDocumentPurchaseHeader."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseHeader."Vendor VAT Id" := Vendor."VAT Registration No.";
+        EDocumentPurchaseHeader.Insert();
+        EDocumentPurchaseLine."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseLine."Product Code" := '1234';
+        EDocumentPurchaseLine.Description := 'Test description';
+        EDocumentPurchaseLine.Insert();
 
         EDocumentLog.SetBlob('Test', Enum::"E-Doc. File Format"::XML, 'Data');
         EDocumentLog.SetFields(EDocument, EDocumentService);
