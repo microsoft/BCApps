@@ -573,7 +573,7 @@ table 20405 "Qlty. Inspection Header"
         fieldgroup(DropDown; "No.", "Template Code", "Source Document No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Package No.")
         {
         }
-        fieldgroup(Brick; "No.", Description, "Result Description", "Source Document No.", Status, "Source Item No.")
+        fieldgroup(Brick; "No.", Description, Status, "Source Item No.", "Source Document No.", "Most Recent Picture", "Result Description")
         {
         }
     }
