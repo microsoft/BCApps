@@ -1,0 +1,27 @@
+"Build: Automation":
+- changed-files:
+  - any-glob-to-any-file: ['.github/**', '.azuredevops/**']
+
+"Build: scripts & configs":
+- changed-files:
+  - any-glob-to-any-file: ['build/**']
+
+"AL: System Application":
+- changed-files:
+  - any-glob-to-any-file: ['src/System Application/**']
+
+"AL: Business Foundation":
+- changed-files:
+  - any-glob-to-any-file: ['src/Business Foundation/**']
+
+"AL: Apps (W1)":
+- changed-files:
+  - any-glob-to-any-file: ['src/Apps/W1/**']
+
+"AL: Tools":
+- changed-files:
+  - any-glob-to-any-file: ['src/Tools/**']
+
+"AL: Rulesets":
+- changed-files:
+  - any-glob-to-any-file: ['src/Rulesets/**']

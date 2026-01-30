@@ -1,0 +1,33 @@
+name: Get Git Branches
+author: Microsoft Corporation
+description: Get a list of git branches in a repository
+inputs:
+  include:
+    description: A JSON-formatted array of filters to apply to the branches. Wildcards are supported.
+    required: false
+    default: '[]'
+  token:
+    description: The GitHub token running the action
+    required: false
+    default: ${{ github.token }}
+outputs:
+  branchesJson:
+    description: The JSON-formatted array of git branches in the repository
+    value:  ${{ steps.getBranches.outputs.branchesJson }}
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: run
+      shell: pwsh
+      id: getBranches
+      env:
+        _include: ${{ inputs.include }}
+        GH_TOKEN: ${{ inputs.token }}
+      run: |
+        ${{ github.action_path }}/action.ps1 -include $env:_include
+branding:
+  icon: terminal
+  color: blue

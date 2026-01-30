@@ -1,0 +1,10 @@
+{
+    "type":  "al",
+    "request":  "launch",
+    "serverInstance":  "BC",
+    "breakOnError":  true,
+    "launchBrowser":  true,
+    "enableSqlInformationDebugger":  true,
+    "enableLongRunningSqlStatements":  true,
+    "dependencyPublishingOption":  "Ignore"
+}

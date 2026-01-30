@@ -1,0 +1,54 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.eServices.EDocument.DemoData;
+
+using Microsoft.DemoTool;
+
+
+#pragma warning disable AA0247
+codeunit 5373 "E-Document Contoso Module" implements "Contoso Demo Data Module"
+{
+
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
+    procedure RunConfigurationPage()
+    begin
+        Page.Run(Page::"E-Document Module Setup");
+    end;
+
+    procedure GetDependencies() Dependencies: List of [enum "Contoso Demo Data Module"]
+    begin
+        Dependencies.Add(Enum::"Contoso Demo Data Module"::"Common Module");
+        Dependencies.Add(Enum::"Contoso Demo Data Module"::Foundation);
+        Dependencies.Add(Enum::"Contoso Demo Data Module"::Finance);
+        Dependencies.Add(Enum::"Contoso Demo Data Module"::"Warehouse Module");
+        Dependencies.Add(Enum::"Contoso Demo Data Module"::Purchase);
+    end;
+
+    procedure CreateSetupData()
+    begin
+        Codeunit.Run(Codeunit::"Create E-Document Setup");
+        Codeunit.Run(Codeunit::"Create E-Doc DemoData Service");
+    end;
+
+    procedure CreateMasterData()
+    var
+        EDocumentModuleSetup: Record "E-Document Module Setup";
+    begin
+        EDocumentModuleSetup.InitEDocumentModuleSetup();
+        Codeunit.Run(Codeunit::"Create E-Document Master Data");
+    end;
+
+    procedure CreateTransactionalData()
+    begin
+        Codeunit.Run(Codeunit::"Create E-Document Transactions");
+    end;
+
+    procedure CreateHistoricalData()
+    begin
+
+    end;
+}

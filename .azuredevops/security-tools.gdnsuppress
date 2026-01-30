@@ -1,0 +1,107 @@
+{
+  "hydrated": false,
+  "properties": {
+    "helpUri": "https://eng.ms/docs/microsoft-security/security/azure-security/cloudai-security-fundamentals-engineering/security-integration/guardian-wiki/microsoft-guardian/general/suppressions",
+    "hydrationStatus": "This file does not contain identifying data. It is safe to check into your repo. To hydrate this file with identifying data, run `guardian hydrate --help` and follow the guidance."
+  },
+  "version": "1.0.0",
+  "suppressionSets": {
+    "default": {
+      "name": "default",
+      "createdDate": "2023-09-19 13:37:20Z",
+      "lastUpdatedDate": "2023-09-19 13:37:20Z"
+    }
+  },
+  "results": {
+    "e98a5d2b47803c91694e5058c500cfc52e89d274902eefd1731a5543762efbf1": {
+      "signature": "e98a5d2b47803c91694e5058c500cfc52e89d274902eefd1731a5543762efbf1",
+      "alternativeSignatures": [
+        "3f9f6cfca12ece24ba9698cc9f3e6fb18da35ee566b48c6111ad55f927daec9a"
+      ],
+      "memberOf": [
+        "default"
+      ],
+      "createdDate": "2023-09-19 13:37:20Z"
+    },
+    "06e3844ab0852c03fb091a6ee7c661e65257b0fafba012208d5f5215e30add0a": {
+      "signature": "06e3844ab0852c03fb091a6ee7c661e65257b0fafba012208d5f5215e30add0a",
+      "alternativeSignatures": [
+        "f4138130b16b3eac835387c9ddf40477d9fdf4541f6a588be74c1250bb1a7b99"
+      ],
+      "memberOf": [
+        "default"
+      ],
+      "createdDate": "2023-09-19 13:37:20Z"
+    },
+    "a17a40a7d3ac9893e2655afb2a333e1210f1959ee7494492c424fdd73b46686e": {
+      "signature": "a17a40a7d3ac9893e2655afb2a333e1210f1959ee7494492c424fdd73b46686e",
+      "alternativeSignatures": [
+        "1c51b39e428450fba45d9f3b4d5fac074a58af9f30709ed14f6f77f735ab8605"
+      ],
+      "memberOf": [
+        "default"
+      ],
+      "createdDate": "2023-09-19 13:37:20Z"
+    },
+    "edd993962b8fc019c043244d6395de9c39b8a189317fbbad3ad6cef2a0598a85": {
+      "signature": "edd993962b8fc019c043244d6395de9c39b8a189317fbbad3ad6cef2a0598a85",
+      "alternativeSignatures": [
+        "36ac264bee9d2a3d1eccfdcf65b77ac7ee4874791bed5182b26678297e1f3034"
+      ],
+      "memberOf": [
+        "default"
+      ],
+      "createdDate": "2023-09-19 13:37:20Z"
+    },
+    "9dd39a27c55cb636e4198208ce6622dcd85a8cd5a8eabc54577d2b80e2fc8646": {
+      "signature": "9dd39a27c55cb636e4198208ce6622dcd85a8cd5a8eabc54577d2b80e2fc8646",
+      "alternativeSignatures": [
+        "266795d2180e56ab74618775b1103390a76b9e019455c1c72cceb3be3c7d9b86"
+      ],
+      "memberOf": [
+        "default"
+      ],
+      "createdDate": "2023-09-19 13:37:20Z"
+    },
+    "803d71809afadb25f3550eedf7c7cccb5305ee2caa67b992200e0a6370cbcd19": {
+      "signature": "803d71809afadb25f3550eedf7c7cccb5305ee2caa67b992200e0a6370cbcd19",
+      "alternativeSignatures": [
+        "620a3d5a35acd269546e212f79fc4000e69cc92d423e9687a046170684b5cf45"
+      ],
+      "memberOf": [
+        "default"
+      ],
+      "createdDate": "2023-09-19 13:37:20Z"
+    },
+    "62e27c60bc17ba1737521dc592306554f97d996d3c399eb3532941dd976e38c4": {
+      "signature": "62e27c60bc17ba1737521dc592306554f97d996d3c399eb3532941dd976e38c4",
+      "alternativeSignatures": [
+        "f313eb48d2760d530bc257ff927d893df93c789ffe20316779a19fa7bf1dcf04"
+      ],
+      "memberOf": [
+        "default"
+      ],
+      "createdDate": "2023-09-19 13:37:20Z"
+    },
+    "f6fa03ce64ec59b247cbdbcfbc1e1089bc50e61924dccc0847ca359c245222d0": {
+      "signature": "f6fa03ce64ec59b247cbdbcfbc1e1089bc50e61924dccc0847ca359c245222d0",
+      "alternativeSignatures": [
+        "97dd8b3fc882c990713e70b739cbd0110ffbbae792c6d86b62a0025f6e0d7f15"
+      ],
+      "memberOf": [
+        "default"
+      ],
+      "createdDate": "2023-09-19 13:37:20Z"
+    },
+    "9d8a6e86b1382689312bd626488a886bbb8d6dfdb1243a56ba89e5713db6133c": {
+      "signature": "9d8a6e86b1382689312bd626488a886bbb8d6dfdb1243a56ba89e5713db6133c",
+      "alternativeSignatures": [
+        "96fb605ac26101a84bf03e7d3cee1c856e1399bf56a0ae6ffcbb0ae119013a7d"
+      ],
+      "memberOf": [
+        "default"
+      ],
+      "createdDate": "2023-09-19 13:37:20Z"
+    }
+  }
+}

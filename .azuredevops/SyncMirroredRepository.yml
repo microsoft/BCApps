@@ -1,0 +1,53 @@
+name: 1.0.$(Year:yy)$(DayOfYear).$(Rev:r) # This is the build number
+
+pr: none
+trigger: none
+schedules:
+- cron: '0 8 * * *'
+  displayName: Daily Sync
+  branches:
+    include:
+    - main
+    - releases/25.*
+    - releases/26.*
+    - releases/27.*
+
+pool:
+  name: 'd365bc-agentpool-nonprod'
+
+resources:
+  repositories:
+  - repository: PipelineTemplates
+    type: git
+    name: Infrastructure-PipelineTemplates
+    ref: master
+
+variables:
+- template: ./variables-common.yml
+- template: workitem-build-tracking-variables.yml@PipelineTemplates
+
+jobs:
+- job: SyncMirror
+  dependsOn: []
+  displayName: Sync mirror with upstream
+  steps:
+  - task: AzureCLI@2    
+    inputs:
+      azureSubscription: '1es-d365bc-agentpool-nonprod-bcapps-sync'
+      workingDirectory: $(System.DefaultWorkingDirectory)
+      useGlobalConfig: true
+      scriptType: pscore
+      scriptLocation: inlineScript      
+      inlineScript: |
+        git config --global user.email "BCApps-Sync@microsoft.com"
+        git config --global user.name "BCApps-Sync"
+        & build\scripts\SyncMirror.ps1 -SourceRepository "https://github.com/microsoft/BCApps.git" -TargetRepository $(TargetRepository) -Branch $(Build.SourceBranch)
+    displayName: Sync mirror with upstream
+  - template: workitem-build-tracking.yml@PipelineTemplates
+    parameters:
+      Priority: '2'
+      Severity: '2'
+      UseAzureCliAuth: true
+      Issue: 'Build Break'
+      SecurityImpact: 'No'
+      Condition: failed()
