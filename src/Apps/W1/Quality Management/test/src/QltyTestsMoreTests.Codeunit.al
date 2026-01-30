@@ -857,9 +857,10 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionGenRule.Init();
         QltyInspectionGenRule."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
         QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := ConditionProductionFilterTok;
         QltyInspectionGenRule."Schedule Group" := DefaultScheduleGroupTok;
         QltyInspectionGenRule.Insert(true);
+        QltyInspectionGenRule.SetConditionFilter(ConditionProductionFilterTok);
+        QltyInspectionGenRule.Modify(true);
 
         // [GIVEN] A random new schedule group code is generated
         QltyInspectionUtility.GenerateRandomCharacters(20, ScheduleGroupCode);
@@ -906,9 +907,10 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionGenRule.Init();
         QltyInspectionGenRule."Template Code" := QltyInspectionTemplateHdr.Code;
         QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := OrderTypeProductionConditionFilterTok;
         QltyInspectionGenRule."Schedule Group" := CopyStr(ScheduleGroupCode, 1, MaxStrLen(QltyInspectionGenRule."Schedule Group"));
         QltyInspectionGenRule.Insert(true);
+        QltyInspectionGenRule.SetConditionFilter(OrderTypeProductionConditionFilterTok);
+        QltyInspectionGenRule.Modify(true);
 
         // [GIVEN] Any existing job queue entries for schedule inspection are deleted
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Report);
@@ -962,8 +964,9 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionGenRule.Init();
         QltyInspectionGenRule."Template Code" := QltyInspectionTemplateHdr.Code;
         QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := OrderTypeProductionConditionFilterTok;
         QltyInspectionGenRule.Insert(true);
+        QltyInspectionGenRule.SetConditionFilter(OrderTypeProductionConditionFilterTok);
+        QltyInspectionGenRule.Modify(true);
         JobQueueEntries.Trap();
         QltyInspectionGenRule.Validate("Schedule Group", ScheduleGroupCode);
 
@@ -1014,8 +1017,9 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionGenRule.Init();
         QltyInspectionGenRule."Template Code" := QltyInspectionTemplateHdr.Code;
         QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := EntryTypeOutputConditionFilterTok;
         QltyInspectionGenRule.Insert(true);
+        QltyInspectionGenRule.SetConditionFilter(EntryTypeOutputConditionFilterTok);
+        QltyInspectionGenRule.Modify(true);
         JobQueueEntries.Trap();
         QltyInspectionGenRule.Validate("Schedule Group", ScheduleGroupCode);
 
@@ -1023,8 +1027,9 @@ codeunit 139965 "Qlty. Tests - More Tests"
         SecondQltyInspectionGenRule.Init();
         SecondQltyInspectionGenRule."Template Code" := QltyInspectionTemplateHdr.Code;
         SecondQltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        SecondQltyInspectionGenRule."Condition Filter" := OrderTypeProductionConditionFilterTok;
         SecondQltyInspectionGenRule.Insert(true);
+        SecondQltyInspectionGenRule.SetConditionFilter(OrderTypeProductionConditionFilterTok);
+        SecondQltyInspectionGenRule.Modify(true);
         JobQueueEntries.Trap();
         SecondQltyInspectionGenRule.Validate("Schedule Group", ScheduleGroupCode);
 
@@ -1074,8 +1079,9 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionGenRule.Init();
         QltyInspectionGenRule."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
         QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := ConditionProductionFilterTok;
         QltyInspectionGenRule.Insert(true);
+        QltyInspectionGenRule.SetConditionFilter(ConditionProductionFilterTok);
+        QltyInspectionGenRule.Modify(true);
 
         // [GIVEN] All existing job queue entries for schedule inspection are deleted
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Report);
@@ -1083,7 +1089,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         if JobQueueEntry.FindSet() then
             JobQueueEntry.DeleteAll();
 
-        // [GIVEN] The Generation Rules page is opened and navigated to the rule
+        // [GIVEN] The Generation Rules page is opened and navigated to the rule        
         QltyInspectionGenRules.OpenEdit();
         QltyInspectionGenRules.GoToRecord(QltyInspectionGenRule);
 
@@ -1375,7 +1381,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [THEN] The Item Filter is updated with the item number filter expression
         QltyInspectionGenRule.Get(QltyInspectionGenRule."Entry No.");
-        LibraryAssert.AreEqual(StrSubstNo(ConditionFilterItemNoTok, Item."No."), QltyInspectionGenRule."Item Filter", 'Item filter should be set to the item no.');
+        LibraryAssert.AreEqual(StrSubstNo(ConditionFilterItemNoTok, Item."No."), QltyInspectionGenRule.GetItemFilter(), 'Item filter should be set to the item no.');
     end;
 
     [Test]

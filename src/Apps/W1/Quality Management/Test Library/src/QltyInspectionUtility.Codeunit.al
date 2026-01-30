@@ -784,7 +784,7 @@ codeunit 139940 "Qlty. Inspection Utility"
         CreateLotTrackedItem(Item);
 
         Item.SetRecFilter();
-        CreatedQltyInspectionGenRule."Item Filter" := CopyStr(Item.GetView(), 1, MaxStrLen(CreatedQltyInspectionGenRule."Item Filter"));
+        CreatedQltyInspectionGenRule.SetItemFilter(Item.GetView());
         CreatedQltyInspectionGenRule."Activation Trigger" := CreatedQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic";
         CreatedQltyInspectionGenRule."Purchase Order Trigger" := CreatedQltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive;
         CreatedQltyInspectionGenRule.Modify();

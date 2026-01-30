@@ -238,8 +238,10 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
 
         // [GIVEN] The generation rule is updated with an item filter
         QltyInspectionGenRule.FindFirst();
-        QltyInspectionGenRule."Item Filter" := StrSubstNo(ItemFilterTok, Item."No.");
+        QltyInspectionGenRule.SetItemFilter(StrSubstNo(ItemFilterTok, Item."No."));
+#pragma warning disable AA0214
         QltyInspectionGenRule.Modify();
+#pragma warning restore AA0214
 
         // [WHEN] A manual rule search is performed for Purchase Line with the item
         RecordRef.Open(Database::"Purchase Line");
@@ -275,8 +277,10 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
 
         // [GIVEN] The generation rule is updated with an item attribute filter
         QltyInspectionGenRule.FindFirst();
-        QltyInspectionGenRule."Item Attribute Filter" := (StrSubstNo(ItemAttributeFilterTok, ItemAttribute.Name));
+        QltyInspectionGenRule.SetItemAttributeFilter(StrSubstNo(ItemAttributeFilterTok, ItemAttribute.Name));
+#pragma warning disable AA0214
         QltyInspectionGenRule.Modify();
+#pragma warning restore AA0214
 
         // [WHEN] A manual rule search is performed for Purchase Line with the item
         RecordRef.Open(Database::"Purchase Line");

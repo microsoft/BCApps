@@ -3690,7 +3690,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A generation rule for Item Journal Line with Entry Type filter for Output
         QltyInspectionGenRule."Source Table No." := Database::"Item Journal Line";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterOutputTok;
+        QltyInspectionGenRule.SetConditionFilter(ConditionFilterOutputTok);
 
         // [WHEN] Inferring the generation rule intent
         QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
@@ -3712,7 +3712,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A generation rule for Item Journal Line with Order Type filter for Production
         QltyInspectionGenRule."Source Table No." := Database::"Item Journal Line";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterProductionTok;
+        QltyInspectionGenRule.SetConditionFilter(ConditionFilterProductionTok);
 
         // [WHEN] Inferring the generation rule intent
         QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
@@ -3734,7 +3734,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A generation rule for Item Journal Line with Document Type filter for Purchase Receipt
         QltyInspectionGenRule."Source Table No." := Database::"Item Journal Line";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterPurchaseReceiptTok;
+        QltyInspectionGenRule.SetConditionFilter(ConditionFilterPurchaseReceiptTok);
 
         // [WHEN] Inferring the generation rule intent
         QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
@@ -3756,7 +3756,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A generation rule for Item Journal Line with Document Type filter for Sales Return Receipt
         QltyInspectionGenRule."Source Table No." := Database::"Item Journal Line";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterSalesReturnReceiptTok;
+        QltyInspectionGenRule.SetConditionFilter(ConditionFilterSalesReturnReceiptTok);
 
         // [WHEN] Inferring the generation rule intent
         QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
@@ -3778,7 +3778,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A generation rule for Item Journal Line with Document Type filter for Transfer Receipt
         QltyInspectionGenRule."Source Table No." := Database::"Item Journal Line";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterTransferReceiptTok;
+        QltyInspectionGenRule.SetConditionFilter(ConditionFilterTransferReceiptTok);
 
         // [WHEN] Inferring the generation rule intent
         QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
@@ -3800,7 +3800,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A generation rule for Item Journal Line with Document Type filter for Direct Transfer
         QltyInspectionGenRule."Source Table No." := Database::"Item Journal Line";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterDirectTransferTok;
+        QltyInspectionGenRule.SetConditionFilter(ConditionFilterDirectTransferTok);
 
         // [WHEN] Inferring the generation rule intent
         QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
@@ -3821,7 +3821,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A generation rule for Item Ledger Entry with Entry Type filter for Output
         QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterOutputTok;
+        QltyInspectionGenRule.SetConditionFilter(ConditionFilterOutputTok);
 
         // [WHEN] Inferring the generation rule intent
         QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
@@ -3842,7 +3842,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A generation rule for Item Ledger Entry with Order Type filter for Production
         QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterProductionTok;
+        QltyInspectionGenRule.SetConditionFilter(ConditionFilterProductionTok);
 
         // [WHEN] Inferring the generation rule intent
         QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
@@ -3863,7 +3863,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A generation rule for Item Ledger Entry with Entry Type filter for Purchase
         QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterPurchaseTok;
+        QltyInspectionGenRule.SetConditionFilter(ConditionFilterPurchaseTok);
 
         // [WHEN] Inferring the generation rule intent
         QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
@@ -3884,7 +3884,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A generation rule for Item Ledger Entry with Entry Type filter for Sale
         QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterSaleTok;
+        QltyInspectionGenRule.SetConditionFilter(ConditionFilterSaleTok);
 
         // [WHEN] Inferring the generation rule intent
         QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
@@ -3905,7 +3905,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A generation rule for Item Ledger Entry with Entry Type filter for Transfer
         QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterTransferTok;
+        QltyInspectionGenRule.SetConditionFilter(ConditionFilterTransferTok);
 
         // [WHEN] Inferring the generation rule intent
         QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
@@ -3926,7 +3926,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A generation rule for Item Ledger Entry with Entry Type filter for Assembly Output
         QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterAssemblyOutputTok;
+        QltyInspectionGenRule.SetConditionFilter(ConditionFilterAssemblyOutputTok);
 
         // [WHEN] Inferring the generation rule intent
         QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
@@ -3947,7 +3947,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A generation rule for Warehouse Journal Line with Warehouse Document Type filter for Receipt
         QltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterWhseReceiptTok;
+        QltyInspectionGenRule.SetConditionFilter(ConditionFilterWhseReceiptTok);
 
         // [WHEN] Inferring the generation rule intent
         QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
@@ -3968,7 +3968,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A generation rule for Warehouse Journal Line with Reference Document filter for Posted Receipt
         QltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterPostedRcptTok;
+        QltyInspectionGenRule.SetConditionFilter(ConditionFilterPostedRcptTok);
 
         // [WHEN] Inferring the generation rule intent
         QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
@@ -3989,7 +3989,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A generation rule for Warehouse Journal Line with Warehouse Document Type filter for Internal Put-away
         QltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterInternalPutAwayTok;
+        QltyInspectionGenRule.SetConditionFilter(ConditionFilterInternalPutAwayTok);
 
         // [WHEN] Inferring the generation rule intent
         QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
@@ -4010,7 +4010,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A generation rule for Warehouse Journal Line with Entry Type filter for Movement
         QltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterMovementTok;
+        QltyInspectionGenRule.SetConditionFilter(ConditionFilterMovementTok);
 
         // [WHEN] Inferring the generation rule intent
         QltyInspectionGenRule.InferGenerationRuleIntent(QltyGenRuleIntent, Certainty);
@@ -4104,7 +4104,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A generation rule for Item Ledger Entry
         QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := 'WHERE(Entry Type=FILTER(Output|Positive Adjmt.))';
+        QltyInspectionGenRule.SetConditionFilter('WHERE(Entry Type=FILTER(Output|Positive Adjmt.))');
 
         // [GIVEN] Setup with production order trigger enabled
         QltyManagementSetup.Get();
@@ -4120,7 +4120,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [WHEN] Inferring intent with Output last in filter
         QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := 'WHERE(Entry Type=FILTER(Positive Adjmt.|Output))';
+        QltyInspectionGenRule.SetConditionFilter('WHERE(Entry Type=FILTER(Positive Adjmt.|Output))');
 
         QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
@@ -4129,7 +4129,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [WHEN] Inferring intent without Output in filter
         QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := 'WHERE(Entry Type=FILTER(Positive Adjmt.|Purchase|Sale))';
+        QltyInspectionGenRule.SetConditionFilter('WHERE(Entry Type=FILTER(Positive Adjmt.|Purchase|Sale))');
 
         QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
@@ -4138,7 +4138,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [WHEN] Inferring intent with Output in middle of filter
         QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := 'WHERE(Entry Type=FILTER(Positive Adjmt.|Output|Purchase|Sale))';
+        QltyInspectionGenRule.SetConditionFilter('WHERE(Entry Type=FILTER(Positive Adjmt.|Output|Purchase|Sale))');
 
         QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
