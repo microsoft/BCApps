@@ -441,6 +441,7 @@ table 20400 "Qlty. Management Setup"
     }
 
     var
+        RecordHasBeenRead: Boolean;
         ShouldDisableInspectionGenerationRulesQst: Label 'Changing the visibility to be off should be accompanied by disabling the inspection generation rules. Do you want to disable your current enabled generation rules?';
         InspectionGenerationRulesHaveBeenDisabledMsg: Label 'All inspection generation rules have been disabled.';
         ConfirmExistingRulesQst: Label 'You have %1 existing generation rules that used the "%2" setting. Do you want to change those to be "%3"?', Comment = '%1=the count, %2=the old setting, %3=the new setting.';
@@ -572,6 +573,17 @@ table 20400 "Qlty. Management Setup"
             exit(false);
 
         exit(Rec.Get());
+    end;
+
+    /// <summary>
+    /// Retrieves the Setup record from the database, caching the result to avoid repeated reads within the same session.
+    /// </summary>
+    procedure GetRecordOnce()
+    begin
+        if RecordHasBeenRead then
+            exit;
+        Get();
+        RecordHasBeenRead := true;
     end;
 
     /// <summary>

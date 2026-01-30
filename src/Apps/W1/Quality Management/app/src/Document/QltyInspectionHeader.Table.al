@@ -59,7 +59,7 @@ table 20405 "Qlty. Inspection Header"
             trigger OnValidate()
             begin
                 if Rec."No." = '' then
-                    InitEntryNoIfNeeded();
+                    InitInspectionNumber();
             end;
         }
         field(4; "Source RecordId"; RecordId)
@@ -578,19 +578,89 @@ table 20405 "Qlty. Inspection Header"
         }
     }
 
+    trigger OnDelete()
+    var
+        QltyInspectionLine: Record "Qlty. Inspection Line";
+        QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
+    begin
+        case Rec.Status of
+            Rec.Status::Open:
+                QltyPermissionMgmt.VerifyCanDeleteOpenInspection();
+            Rec.Status::Finished:
+                QltyPermissionMgmt.VerifyCanDeleteFinishedInspection();
+        end;
+
+        QltyInspectionLine.SetRange("Inspection No.", Rec."No.");
+        QltyInspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
+        QltyInspectionLine.DeleteAll();
+
+        QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Inspection);
+        QltyIResultConditConf.SetRange("Target Code", Rec."No.");
+        QltyIResultConditConf.SetRange("Target Re-inspection No.", Rec."Re-inspection No.");
+        QltyIResultConditConf.DeleteAll();
+    end;
+
+    trigger OnInsert()
+    var
+    begin
+        InitInspectionNumber();
+
+        UpdateReinspectionIterationState();
+    end;
+
+    trigger OnModify()
+    var
+        QltyStartWorkflow: Codeunit "Qlty. Start Workflow";
+        QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
+        PromptToAssignIfPossible: Boolean;
+        UserFieldWasChanged: Boolean;
+        ShouldTryAndChangePrompt: Boolean;
+        ShouldPreventAutoAssignment: Boolean;
+    begin
+        if not IsChangingStatus then
+            Rec.TestField(Status, Status::Open);
+
+        ShouldPreventAutoAssignment := Rec.GetPreventAutoAssignment();
+
+        if not ShouldPreventAutoAssignment then begin
+            UserFieldWasChanged := xRec."Assigned User ID" <> Rec."Assigned User ID";
+            case true of
+                (xRec."Assigned User ID" = '') and (not UserFieldWasChanged):
+                    ShouldTryAndChangePrompt := true;
+                (xRec."Assigned User ID" = UserId()) and (not UserFieldWasChanged):
+                    ShouldTryAndChangePrompt := false;
+                (xRec."Assigned User ID" <> '') and (Rec."Assigned User ID" <> UserId()) and (not UserFieldWasChanged):
+                    ShouldTryAndChangePrompt := true;
+                UserFieldWasChanged:
+                    ShouldTryAndChangePrompt := false;
+            end;
+            if ShouldTryAndChangePrompt then
+                if QltyPermissionMgmt.GetShouldAutoAssign(PromptToAssignIfPossible) then
+                    if PromptToAssignIfPossible and GuiAllowed() then
+                        QltyNotificationMgmt.NotifyDoYouWantToAssignToYourself(Rec)
+                    else
+                        Rec.AssignToSelf();
+        end;
+
+        Rec.UpdateResultFromLines();
+
+        if Rec."Planned Start Date" = 0DT then
+            Rec."Planned Start Date" := CurrentDateTime();
+
+        QltyStartWorkflow.StartWorkflowInspectionChanged(Rec, xRec);
+        IsChangingStatus := false;
+    end;
+
     protected var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         QltyTraversal: Codeunit "Qlty. Traversal";
         QltySessionHelper: Codeunit "Qlty. Session Helper";
         IsChangingStatus: Boolean;
-
-    var
         TrackingCannotChangeForFinishedInspectionErr: Label 'You cannot change item tracking on a finished inspection. %1-%2 is finished. Reopen this inspection to change the tracking.', Comment = '%1=Quality Inspection No., %2=Re-inspection No.';
         SampleSizeInvalidMsg: Label 'The sample size %1 is not valid on the inspection %2 because it exceeds the Source Quantity of %3. The sample size will be changed on this inspection to be the source quantity. Please correct the configuration on the "Quality Inspection Sampling Size Configurations" and "Quality Inspection AQL Sampling Plan" pages.', Comment = '%1=original sample size, %2=the inspection, %3=the source quantity';
         YouCannotChangeTheAssignmentOfTheInspectionErr: Label '%1 does not have permission to change the assigned user field on %2-%3. Permissions can be altered on the Quality Inspection function permissions.', Comment = '%1=the user, %2=the inspection no, %3=the re-inspection';
         UnableToSetTestValueErr: Label 'Unable to set the test field [%1] on the inspection [%2], there should be one matching inspection line, there are %3', Comment = '%1=the field being set, %2=the record id of the inspection, %3=the count.';
-        PleaseConfigureNumberSeriesErr: Label 'Please configure a number series for the Quality Inspection Nos. field on the Quality Management Setup page, or set up a number series on the Quality Inspection Template.';
         ItemIsTrackingErr: Label 'The item [%1] is %2 tracked. Please define a %2 number before finishing the inspection. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Lot or serial token';
         ItemInsufficientPostedErr: Label 'The item [%1] is %2 tracked and requires posted inventory before it can be finished. The %2 %3 has inventory of %4. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Lot or serial token, %3=the lot or serial, %4=';
         ItemInsufficientPostedOrUnpostedErr: Label 'The item [%1] is %2 tracked and requires either posted inventory or a reservation entry for it before it can be finished. The %2 %3 has inventory of %4. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Lot or serial token, %3=the lot or serial, %4=';
@@ -623,36 +693,6 @@ table 20405 "Qlty. Inspection Header"
         AttachmentNameTok: Label '%1.%2', Locked = true, Comment = '%1=name,%2=extension';
         PassFailQuantityInvalidErr: Label 'The %1 and %2 cannot exceed the %3. The %3 is currently exceeded by %4.', Comment = '%1=the passed quantity caption, %2=the failed quantity caption, %3=the source quantity caption, %4=the quantity exceeded';
 
-    trigger OnDelete()
-    var
-        QltyInspectionLine: Record "Qlty. Inspection Line";
-        QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-    begin
-        case Rec.Status of
-            Rec.Status::Open:
-                QltyPermissionMgmt.VerifyCanDeleteOpenInspection();
-            Rec.Status::Finished:
-                QltyPermissionMgmt.VerifyCanDeleteFinishedInspection();
-        end;
-
-        QltyInspectionLine.SetRange("Inspection No.", Rec."No.");
-        QltyInspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
-        QltyInspectionLine.DeleteAll();
-
-        QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Inspection);
-        QltyIResultConditConf.SetRange("Target Code", Rec."No.");
-        QltyIResultConditConf.SetRange("Target Re-inspection No.", Rec."Re-inspection No.");
-        QltyIResultConditConf.DeleteAll();
-    end;
-
-    trigger OnInsert()
-    var
-    begin
-        QltyManagementSetup.Get();
-        InitEntryNoIfNeeded();
-
-        OnInsertUpdateReinspectionIterationState();
-    end;
 
     /// <summary>
     /// Helper function to set an inspection line value.
@@ -724,81 +764,39 @@ table 20405 "Qlty. Inspection Header"
         OnAfterFindLineUpdateResultFromLines(Rec, QltyInspectionLine);
     end;
 
-    local procedure OnInsertUpdateReinspectionIterationState()
-    var
-        OtherReinspectionQltyInspectionHeader: Record "Qlty. Inspection Header";
-    begin
-        Rec."Re-inspection Iteration State" := Rec."Re-inspection Iteration State"::"Most recent";
-        OtherReinspectionQltyInspectionHeader.SetRange("No.", Rec."No.");
-        OtherReinspectionQltyInspectionHeader.SetFilter("Re-inspection No.", '<>%1&<%1', Rec."Re-inspection No.");
-        OtherReinspectionQltyInspectionHeader.ModifyAll("Re-inspection Iteration State", OtherReinspectionQltyInspectionHeader."Re-inspection Iteration State"::"Newer re-inspection available", false);
-    end;
-
     /// <summary>
-    /// InitEntryNoIfNeeded will initialize the document no. on the Quality Inspection if it's needed.
-    /// If it's already set then this will not be altered.
+    /// InitInspectionNumber will initialize the document no. on the Quality Inspection if it's needed. If it's already set then this will not be altered.
     /// </summary>
-    /// <returns>Return value of type Code[20].</returns>
-    procedure InitEntryNoIfNeeded(): Code[20]
+    procedure InitInspectionNumber()
     var
-        ManagementNoSeries: Codeunit "No. Series";
+        NoSeries: Codeunit "No. Series";
     begin
         if Rec."No." <> '' then
             exit;
 
-        QltyManagementSetup.Get();
-        if QltyManagementSetup."Quality Inspection Nos." <> '' then
-            Rec."No." := ManagementNoSeries.GetNextNo(QltyManagementSetup."Quality Inspection Nos.", Today(), true)
-        else begin
-            Message(PleaseConfigureNumberSeriesErr);
-            Rec."No." := CopyStr(Format(CurrentDateTime(), 0, '<Year><Month,2><Day,2><Hours24,2><Minutes,2><Seconds,2><Second dec.>'), 1, MaxStrLen(Rec."No."));
-        end;
-
-        OnInitializeQltyInspectionDocumentNo(Rec);
-        exit(Rec."No.");
+        QltyManagementSetup.GetRecordOnce();
+        QltyManagementSetup.TestField("Quality Inspection Nos.");
+        Rec."No." := NoSeries.GetNextNo(QltyManagementSetup."Quality Inspection Nos.", WorkDate(), true);
     end;
 
-    trigger OnModify()
-    var
-        QltyStartWorkflow: Codeunit "Qlty. Start Workflow";
-        QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
-        PromptToAssignIfPossible: Boolean;
-        UserFieldWasChanged: Boolean;
-        ShouldTryAndChangePrompt: Boolean;
-        ShouldPreventAutoAssignment: Boolean;
+    local procedure UpdateReinspectionIterationState()
     begin
-        if not IsChangingStatus then
-            Rec.TestField(Status, Status::Open);
+        Rec."Re-inspection Iteration State" := Rec."Re-inspection Iteration State"::"Most recent";
 
-        ShouldPreventAutoAssignment := Rec.GetPreventAutoAssignment();
+        UpdateReinspectionIterationStateForPrecedingInspections();
+    end;
 
-        if not ShouldPreventAutoAssignment then begin
-            UserFieldWasChanged := xRec."Assigned User ID" <> Rec."Assigned User ID";
-            case true of
-                (xRec."Assigned User ID" = '') and (not UserFieldWasChanged):
-                    ShouldTryAndChangePrompt := true;
-                (xRec."Assigned User ID" = UserId()) and (not UserFieldWasChanged):
-                    ShouldTryAndChangePrompt := false;
-                (xRec."Assigned User ID" <> '') and (Rec."Assigned User ID" <> UserId()) and (not UserFieldWasChanged):
-                    ShouldTryAndChangePrompt := true;
-                UserFieldWasChanged:
-                    ShouldTryAndChangePrompt := false;
-            end;
-            if ShouldTryAndChangePrompt then
-                if QltyPermissionMgmt.GetShouldAutoAssign(PromptToAssignIfPossible) then
-                    if PromptToAssignIfPossible and GuiAllowed() then
-                        QltyNotificationMgmt.NotifyDoYouWantToAssignToYourself(Rec)
-                    else
-                        Rec.AssignToSelf();
-        end;
+    local procedure UpdateReinspectionIterationStateForPrecedingInspections()
+    var
+        PrecedingQltyInspectionHeader: Record "Qlty. Inspection Header";
+    begin
+        if Rec."Re-inspection No." = 0 then
+            exit;
 
-        Rec.UpdateResultFromLines();
-
-        if Rec."Planned Start Date" = 0DT then
-            Rec."Planned Start Date" := CurrentDateTime();
-
-        QltyStartWorkflow.StartWorkflowInspectionChanged(Rec, xRec);
-        IsChangingStatus := false;
+        PrecedingQltyInspectionHeader.SetRange("No.", Rec."No.");
+        PrecedingQltyInspectionHeader.SetFilter("Re-inspection No.", '<%1', Rec."Re-inspection No.");
+        if not PrecedingQltyInspectionHeader.IsEmpty() then
+            PrecedingQltyInspectionHeader.ModifyAll("Re-inspection Iteration State", PrecedingQltyInspectionHeader."Re-inspection Iteration State"::"Newer re-inspection available", false);
     end;
 
     /// <summary>
@@ -1721,17 +1719,6 @@ table 20405 "Qlty. Inspection Header"
     /// <param name="Handled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFinishInspection(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
-    begin
-    end;
-
-    /// <summary>
-    /// Use this to change how a quality inspection document no. is generated.
-    /// This is called via InitEntryNoIfNeeded.
-    /// Use this if you need to customize your document no. series used for quality Inspections.
-    /// </summary>
-    /// <param name="QltyInspectionHeader">The quality Inspection involved</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnInitializeQltyInspectionDocumentNo(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
     end;
 
