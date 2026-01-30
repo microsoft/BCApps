@@ -448,13 +448,14 @@ page 6105 "Inbound E-Documents"
     var
         EnvironmentInformation: Codeunit "Environment Information";
     begin
+        Clear(AgentTask);
+        AgentTaskStatus := '';
         if not EnvironmentInformation.IsSaaSInfrastructure() then
             exit;
         AgentTask.SetRange("Company Name", CompanyName());
         AgentTask.SetRange("External ID", Format(Rec."Entry No"));
         if not AgentTask.FindFirst() then
             Clear(AgentTask);
-        AgentTaskStatus := '';
         if AgentTask.ID <> 0 then
             AgentTaskStatus := Format(AgentTask.Status);
     end;
