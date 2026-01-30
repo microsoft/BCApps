@@ -47,6 +47,12 @@ codeunit 8351 "MCP Config Implementation"
         VSCodeAppNameLbl: Label 'VS Code', Locked = true;
         VSCodeAppDescriptionLbl: Label 'Visual Studio Code';
         VSCodeClientIdLbl: Label 'aebc6443-996d-45c2-90f0-388ff96faa56', Locked = true;
+        ExportFileNameTxt: Label 'MCPConfig_%1_%2.json', Locked = true, Comment = '%1 = config name, %2 = date';
+        ExportTitleTxt: Label 'Export Configuration';
+        ImportTitleTxt: Label 'Import Configuration';
+        JsonFilterTxt: Label 'JSON Files (*.json)|*.json';
+        InvalidJsonErr: Label 'The selected file is not a valid configuration file.';
+        ConfigNameExistsMsg: Label 'A configuration with the name ''%1'' already exists. Please provide a different name.', Comment = '%1 = configuration name';
 
     #region Configurations
     internal procedure GetConfigurationIdByName(Name: Text[100]): Guid
@@ -249,19 +255,6 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfiguration.DiscoverReadOnlyObjects := true;
         MCPConfiguration.AllowProdChanges := true;
         MCPConfiguration.Insert();
-    end;
-
-    internal procedure CreateVSCodeEntraApplication()
-    var
-        MCPEntraApplication: Record "MCP Entra Application";
-    begin
-        if MCPEntraApplication.Get(VSCodeAppNameLbl) then
-            exit;
-
-        MCPEntraApplication.Name := VSCodeAppNameLbl;
-        MCPEntraApplication.Description := VSCodeAppDescriptionLbl;
-        Evaluate(MCPEntraApplication."Client ID", VSCodeClientIdLbl);
-        MCPEntraApplication.Insert();
     end;
 
     internal procedure IsDefaultConfiguration(MCPConfiguration: Record "MCP Configuration"): Boolean
@@ -639,6 +632,19 @@ codeunit 8351 "MCP Config Implementation"
     #endregion
 
     #region Connection String
+    internal procedure CreateVSCodeEntraApplication()
+    var
+        MCPEntraApplication: Record "MCP Entra Application";
+    begin
+        if MCPEntraApplication.Get(VSCodeAppNameLbl) then
+            exit;
+
+        MCPEntraApplication.Name := VSCodeAppNameLbl;
+        MCPEntraApplication.Description := VSCodeAppDescriptionLbl;
+        Evaluate(MCPEntraApplication."Client ID", VSCodeClientIdLbl);
+        MCPEntraApplication.Insert();
+    end;
+
     internal procedure ShowConnectionString(ConfigurationName: Text[100])
     var
         MCPConnectionString: Page "MCP Connection String";
@@ -721,6 +727,189 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         MCPEntraApplication.Delete();
+    end;
+    #endregion
+
+    #region Export/Import
+    internal procedure ExportConfigurationToFile(ConfigId: Guid; ConfigName: Text[100])
+    var
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+        InStream: InStream;
+        FileName: Text;
+    begin
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        ExportConfiguration(ConfigId, OutStream);
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+        FileName := StrSubstNo(ExportFileNameTxt, ConfigName, Format(Today(), 0, '<Year4>-<Month,2>-<Day,2>'));
+        DownloadFromStream(InStream, ExportTitleTxt, '', JsonFilterTxt, FileName);
+    end;
+
+    internal procedure ImportConfigurationFromFile()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        TempBlob: Codeunit "Temp Blob";
+        MCPCopyConfig: Page "MCP Copy Config";
+        InStream: InStream;
+        OutStream: OutStream;
+        FileName: Text;
+        ConfigName: Text[100];
+        ConfigDescription: Text[250];
+    begin
+        if not UploadIntoStream(ImportTitleTxt, '', JsonFilterTxt, FileName, InStream) then
+            exit;
+
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        CopyStream(OutStream, InStream);
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+
+        if not GetConfigFromJson(InStream, ConfigName, ConfigDescription) then
+            Error(InvalidJsonErr);
+
+        MCPConfiguration.SetRange(Name, ConfigName);
+        if not MCPConfiguration.IsEmpty() then begin
+            MCPCopyConfig.SetConfigName(ConfigName);
+            MCPCopyConfig.SetConfigDescription(ConfigDescription);
+            MCPCopyConfig.SetInstructionMessage(StrSubstNo(ConfigNameExistsMsg, ConfigName));
+            MCPCopyConfig.LookupMode := true;
+            if MCPCopyConfig.RunModal() <> Action::LookupOK then
+                exit;
+            ConfigName := MCPCopyConfig.GetConfigName();
+            ConfigDescription := MCPCopyConfig.GetConfigDescription();
+        end;
+
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+        ImportConfiguration(InStream, ConfigName, ConfigDescription);
+    end;
+
+    internal procedure ExportConfiguration(ConfigId: Guid; var OutStream: OutStream)
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ConfigJson: JsonObject;
+        ToolsArray: JsonArray;
+        ToolJson: JsonObject;
+        OutputText: Text;
+    begin
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            exit;
+
+        ConfigJson.Add('name', MCPConfiguration.Name);
+        ConfigJson.Add('description', MCPConfiguration.Description);
+        ConfigJson.Add('enableDynamicToolMode', MCPConfiguration.EnableDynamicToolMode);
+        ConfigJson.Add('discoverReadOnlyObjects', MCPConfiguration.DiscoverReadOnlyObjects);
+        ConfigJson.Add('allowProdChanges', MCPConfiguration.AllowProdChanges);
+
+        MCPConfigurationTool.SetRange(ID, ConfigId);
+        if MCPConfigurationTool.FindSet() then
+            repeat
+                Clear(ToolJson);
+                ToolJson.Add('objectType', Format(MCPConfigurationTool."Object Type"));
+                ToolJson.Add('objectId', MCPConfigurationTool."Object ID");
+                ToolJson.Add('allowRead', MCPConfigurationTool."Allow Read");
+                ToolJson.Add('allowCreate', MCPConfigurationTool."Allow Create");
+                ToolJson.Add('allowModify', MCPConfigurationTool."Allow Modify");
+                ToolJson.Add('allowDelete', MCPConfigurationTool."Allow Delete");
+                ToolJson.Add('allowBoundActions', MCPConfigurationTool."Allow Bound Actions");
+                ToolsArray.Add(ToolJson);
+            until MCPConfigurationTool.Next() = 0;
+
+        ConfigJson.Add('tools', ToolsArray);
+        ConfigJson.WriteTo(OutputText);
+        OutStream.WriteText(OutputText);
+    end;
+
+    local procedure GetConfigFromJson(var InStream: InStream; var ConfigName: Text[100]; var ConfigDescription: Text[250]): Boolean
+    var
+        ConfigJson: JsonObject;
+        JsonToken: JsonToken;
+        InputText: Text;
+    begin
+        InStream.ReadText(InputText);
+        if not ConfigJson.ReadFrom(InputText) then
+            exit(false);
+
+        if not ConfigJson.Get('name', JsonToken) then
+            exit(false);
+
+        ConfigName := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(ConfigName));
+
+        if ConfigJson.Get('description', JsonToken) then
+            ConfigDescription := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(ConfigDescription));
+
+        exit(true);
+    end;
+
+    internal procedure ImportConfiguration(var InStream: InStream; NewName: Text[100]; NewDescription: Text[250]): Guid
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        ConfigJson: JsonObject;
+        ToolsArray: JsonArray;
+        ToolToken: JsonToken;
+        InputText: Text;
+    begin
+        InStream.ReadText(InputText);
+        if not ConfigJson.ReadFrom(InputText) then
+            exit;
+
+        MCPConfiguration.Name := NewName;
+        MCPConfiguration.Description := NewDescription;
+        MCPConfiguration.Active := false;
+
+        if ConfigJson.Contains('enableDynamicToolMode') then
+            MCPConfiguration.EnableDynamicToolMode := ConfigJson.GetBoolean('enableDynamicToolMode');
+
+        if ConfigJson.Contains('discoverReadOnlyObjects') then
+            MCPConfiguration.DiscoverReadOnlyObjects := ConfigJson.GetBoolean('discoverReadOnlyObjects');
+
+        if ConfigJson.Contains('allowProdChanges') then
+            MCPConfiguration.AllowProdChanges := ConfigJson.GetBoolean('allowProdChanges');
+
+        MCPConfiguration.Insert();
+        LogConfigurationCreated(MCPConfiguration);
+
+        if ConfigJson.Contains('tools') then begin
+            ToolsArray := ConfigJson.GetArray('tools');
+            foreach ToolToken in ToolsArray do
+                ImportTool(MCPConfiguration.SystemId, ToolToken.AsObject());
+        end;
+
+        exit(MCPConfiguration.SystemId);
+    end;
+
+    local procedure ImportTool(ConfigId: Guid; ToolJson: JsonObject)
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ObjectTypeText: Text;
+    begin
+        MCPConfigurationTool.Init();
+        MCPConfigurationTool.ID := ConfigId;
+
+        if ToolJson.Contains('objectType') then begin
+            ObjectTypeText := ToolJson.GetText('objectType');
+            if ObjectTypeText = 'Page' then
+                MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Page;
+        end;
+
+        if ToolJson.Contains('objectId') then
+            MCPConfigurationTool."Object ID" := ToolJson.GetInteger('objectId');
+
+        if ToolJson.Contains('allowRead') then
+            MCPConfigurationTool."Allow Read" := ToolJson.GetBoolean('allowRead');
+
+        if ToolJson.Contains('allowCreate') then
+            MCPConfigurationTool."Allow Create" := ToolJson.GetBoolean('allowCreate');
+
+        if ToolJson.Contains('allowModify') then
+            MCPConfigurationTool."Allow Modify" := ToolJson.GetBoolean('allowModify');
+
+        if ToolJson.Contains('allowDelete') then
+            MCPConfigurationTool."Allow Delete" := ToolJson.GetBoolean('allowDelete');
+
+        if ToolJson.Contains('allowBoundActions') then
+            MCPConfigurationTool."Allow Bound Actions" := ToolJson.GetBoolean('allowBoundActions');
+
+        MCPConfigurationTool.Insert();
     end;
     #endregion
 
