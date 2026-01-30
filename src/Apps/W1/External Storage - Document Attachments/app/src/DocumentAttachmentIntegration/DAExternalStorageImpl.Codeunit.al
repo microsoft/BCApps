@@ -33,8 +33,10 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         ExternalStorageSetup: Record "DA External Storage Setup";
         FileAccount: Record "File Account";
         FileScenarioCU: Codeunit "File Scenario";
+        ConfirmManagement: Codeunit "Confirm Management";
         ExternalStorageSetupPage: Page "DA External Storage Setup";
         CannotReassignScenarioErr: Label 'You cannot change the file storage account while External Storage is enabled and files are stored externally.\\To change the storage account:\1. Copy all files back to internal storage using the "Storage Sync" action.\2. Disable the External Storage feature.\3. Reassign the file scenario to the new storage account.\4. Re-enable the feature and sync files to the new storage.';
+        ConfigureExternalStorageQst: Label 'Do you want to configure External Storage settings now?';
     begin
         if not (Scenario = Enum::"File Scenario"::"Doc. Attach. - External Storage") then
             exit;
@@ -53,7 +55,8 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
                 end;
 
         // Open setup page for additional configuration automatically
-        ExternalStorageSetupPage.RunModal();
+        if ConfirmManagement.GetResponseOrDefault(ConfigureExternalStorageQst, true) then
+            ExternalStorageSetupPage.Run();
         SkipInsertOrModify := false;
     end;
 
