@@ -1902,7 +1902,10 @@ table 8059 "Subscription Line"
         until LastDayInNextPeriod >= EndDate;
         if FollowUpDaysExist then begin
             FollowUpDays := EndDate - LastDayInPreviousPeriod;
-            FollowUpPeriodDays := LastDayInNextPeriod - LastDayInPreviousPeriod;
+            if SinglePeriodDaysCount(StartDate, EndDate, PeriodFormula) then
+                FollowUpPeriodDays := Date2DMY(CalcDate('<CM>', EndDate), 1)
+            else
+                FollowUpPeriodDays := LastDayInNextPeriod - LastDayInPreviousPeriod;
         end;
     end;
 
@@ -2018,6 +2021,15 @@ table 8059 "Subscription Line"
                 if VendorContractLine.FindFirstSubscriptionLine(Rec) then
                     exit(VendorContractLine.Closed);
         end;
+    end;
+
+    local procedure SinglePeriodDaysCount(StartDate: Date; EndDate: Date; PeriodFormula: DateFormula): Boolean
+    begin
+        if Format(PeriodFormula) <> '1M' then
+            exit(false);
+
+        if (Date2DMY(StartDate, 2) = Date2DMY(EndDate, 2)) and (Date2DMY(StartDate, 3) = Date2DMY(EndDate, 3)) then
+            exit(true);
     end;
 
     [IntegrationEvent(false, false)]
