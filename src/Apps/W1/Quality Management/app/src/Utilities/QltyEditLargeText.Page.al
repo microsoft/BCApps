@@ -10,7 +10,7 @@ namespace Microsoft.QualityManagement.Utilities;
 page 20441 "Qlty. Edit Large Text"
 {
     PageType = StandardDialog;
-    Caption = 'Quality Edit Large Text';
+    Caption = 'Edit Large Text';
     ApplicationArea = QualityManagement;
     UsageCategory = None;
 
