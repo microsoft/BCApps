@@ -47,11 +47,10 @@ codeunit 139633 "Shpfy Bulk Operations Test"
         ShopifyVariant: Record "Shpfy Variant";
     begin
         BulkOperation.DeleteAll();
-        // BulkOpSubscriber.SetBulkOperationRunning(false);
+        BulkOpSubscriber.SetBulkOperationRunning(false);
         BulkOpSubscriber.SetBulkUploadFail(false);
         ShopifyVariant.DeleteAll();
     end;
-
 
     [Test]
     [HandlerFunctions('BulkMessageHandler')]
