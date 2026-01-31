@@ -46,6 +46,10 @@ page 20408 "Qlty. Inspection List"
                 field("Re-inspection No."; Rec."Re-inspection No.")
                 {
                 }
+                field("Most Recent Re-inspection"; Rec."Most Recent Re-inspection")
+                {
+                    Visible = false;
+                }
                 field("Template Code"; Rec."Template Code")
                 {
                 }

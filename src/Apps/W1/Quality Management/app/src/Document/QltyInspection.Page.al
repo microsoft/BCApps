@@ -21,7 +21,7 @@ using Microsoft.Warehouse.Structure;
 using System.Device;
 
 /// <summary>
-/// Primary location to enter Quality Inspection information.
+/// Quality Inspection document.
 /// </summary>
 page 20406 "Qlty. Inspection"
 {
@@ -49,6 +49,11 @@ page 20406 "Qlty. Inspection"
                 field("Re-inspection No."; Rec."Re-inspection No.")
                 {
                     Editable = false;
+                }
+                field("Most Recent Re-inspection"; Rec."Most Recent Re-inspection")
+                {
+                    Editable = false;
+                    Importance = Additional;
                 }
                 field("Template Code"; Rec."Template Code")
                 {
