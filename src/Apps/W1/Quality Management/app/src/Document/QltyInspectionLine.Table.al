@@ -36,7 +36,7 @@ table 20406 "Qlty. Inspection Line"
         field(2; "Re-inspection No."; Integer)
         {
             Caption = 'Re-inspection No.';
-            ToolTip = 'Specifies which re-inspection this is for.';
+            ToolTip = 'Specifies the re-inspection counter.';
             Editable = false;
             BlankZero = true;
         }

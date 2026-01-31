@@ -254,112 +254,6 @@ page 20400 "Qlty. Management Setup"
                     AboutText = 'Specifies the tests the system uses to decide if a document-specific transaction should be blocked.';
                 }
             }
-            group(SettingsForMobileAndBricks)
-            {
-                Caption = 'Personal Device Interface';
-                InstructionalText = 'Use this section to configure the available fields when looking at inspections on a mobile interface.';
-                Visible = false;
-
-                field("Brick Top Left Header"; Rec."Brick Top Left Header")
-                {
-                    ApplicationArea = All;
-                }
-                field("Brick Top Left Expression"; Rec."Brick Top Left Expression")
-                {
-                    ApplicationArea = All;
-
-                    trigger OnAssistEdit()
-                    begin
-                        CurrPage.Update(true);
-                        Rec.AssistEditBrickField(Rec.FieldNo("Brick Top Left Expression"));
-                        CurrPage.Update(false);
-                    end;
-                }
-                field("Brick Middle Left Header"; Rec."Brick Middle Left Header")
-                {
-                    ApplicationArea = All;
-                }
-                field("Brick Middle Left Expression"; Rec."Brick Middle Left Expression")
-                {
-                    ApplicationArea = All;
-                    trigger OnAssistEdit()
-                    begin
-                        CurrPage.Update(true);
-                        Rec.AssistEditBrickField(Rec.FieldNo("Brick Middle Left Expression"));
-                        CurrPage.Update(false);
-                    end;
-                }
-                field("Brick Middle Right Header"; Rec."Brick Middle Right Header")
-                {
-                    ApplicationArea = All;
-                }
-                field("Brick Middle Right Expression"; Rec."Brick Middle Right Expression")
-                {
-                    ApplicationArea = All;
-                    trigger OnAssistEdit()
-                    begin
-                        CurrPage.Update(true);
-                        Rec.AssistEditBrickField(Rec.FieldNo("Brick Middle Right Expression"));
-                        CurrPage.Update(false);
-                    end;
-                }
-                field("Brick Bottom Left Header"; Rec."Brick Bottom Left Header")
-                {
-                    ApplicationArea = All;
-                }
-                field("Brick Bottom Left Expression"; Rec."Brick Bottom Left Expression")
-                {
-                    ApplicationArea = All;
-                    trigger OnAssistEdit()
-                    begin
-                        CurrPage.Update(true);
-                        Rec.AssistEditBrickField(Rec.FieldNo("Brick Bottom Left Expression"));
-                        CurrPage.Update(false);
-                    end;
-                }
-                field("Brick Bottom Right Header"; Rec."Brick Bottom Right Header")
-                {
-                    ApplicationArea = All;
-                }
-                field("Brick Bottom Right Expression"; Rec."Brick Bottom Right Expression")
-                {
-                    ApplicationArea = All;
-                    trigger OnAssistEdit()
-                    begin
-                        CurrPage.Update(true);
-                        Rec.AssistEditBrickField(Rec.FieldNo("Brick Bottom Right Expression"));
-                        CurrPage.Update(false);
-                    end;
-                }
-                field(ChooseBrickRevertToDefaults; 'Revert To Defaults')
-                {
-                    ApplicationArea = All;
-                    Caption = ' ';
-                    ToolTip = 'Click this to use defaults for this Personal Device Interface group.';
-                    Editable = false;
-                    ShowCaption = false;
-
-                    trigger OnDrillDown()
-                    begin
-                        Rec.GetBrickHeaders(Rec."Brick Top Left Header", Rec."Brick Middle Left Header", Rec."Brick Middle Right Header", Rec."Brick Bottom Left Header", Rec."Brick Bottom Right Header");
-                        Rec.GetBrickExpressions(Rec."Brick Top Left Expression", Rec."Brick Middle Left Expression", Rec."Brick Middle Right Expression", Rec."Brick Bottom Left Expression", Rec."Brick Bottom Right Expression");
-                        Rec.Modify();
-                    end;
-                }
-                field(ChooseBrickUpdateExistingInspection; 'Update Existing Inspections')
-                {
-                    ApplicationArea = All;
-                    Caption = ' ';
-                    ToolTip = 'Click this to update existing inspections with your new brick expressions.';
-                    Editable = false;
-                    ShowCaption = false;
-
-                    trigger OnDrillDown()
-                    begin
-                        Rec.UpdateBrickFieldsOnAllExistingInspection();
-                    end;
-                }
-            }
         }
     }
 
@@ -416,9 +310,6 @@ page 20400 "Qlty. Management Setup"
             if Rec.Get() then;
             FeatureTelemetry.LogUptake('0000QIE', QualityManagementTok, Enum::"Feature Uptake Status"::"Set up");
         end;
-
-        Rec.GetBrickHeaders(Rec."Brick Top Left Header", Rec."Brick Middle Left Header", Rec."Brick Middle Right Header", Rec."Brick Bottom Left Header", Rec."Brick Bottom Right Header");
-        Rec.GetBrickExpressions(Rec."Brick Top Left Expression", Rec."Brick Middle Left Expression", Rec."Brick Middle Right Expression", Rec."Brick Bottom Left Expression", Rec."Brick Bottom Right Expression");
     end;
 
     trigger OnClosePage()
