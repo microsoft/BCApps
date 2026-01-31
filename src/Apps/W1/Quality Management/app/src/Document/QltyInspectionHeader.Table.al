@@ -49,7 +49,13 @@ table 20405 "Qlty. Inspection Header"
             ToolTip = 'Specifies the re-inspection counter.';
             BlankZero = true;
         }
-        field(3; "Template Code"; Code[20])
+        field(4; "Most Recent Re-inspection"; Boolean)
+        {
+            Caption = 'Most Recent Re-inspection';
+            Editable = false;
+            ToolTip = 'Specifies if this is the most recent re-inspection for the same inspection.';
+        }
+        field(5; "Template Code"; Code[20])
         {
             Caption = 'Template Code';
             NotBlank = true;
@@ -61,255 +67,12 @@ table 20405 "Qlty. Inspection Header"
                 InitInspectionNumber();
             end;
         }
-        field(4; "Source RecordId"; RecordId)
-        {
-            Caption = 'Source Record';
-            ToolTip = 'Specifies the source record this Quality Inspection is for.';
-            NotBlank = true;
-        }
-        field(5; "Trigger RecordId"; RecordId)
-        {
-            Caption = 'Trigger Record';
-            ToolTip = 'Specifies the triggering record that caused this Quality Inspection to be created.';
-            NotBlank = true;
-        }
         field(6; Description; Text[250])
         {
             Caption = 'Description';
             ToolTip = 'Specifies a description of the Quality Inspection itself.';
         }
-        field(7; "Most Recent Picture"; Media)
-        {
-            Caption = 'Most Recent Picture';
-            ExtendedDatatype = Person;
-            ToolTip = 'Specifies the most recent picture. Pictures can also be uploaded to document attachments and OneDrive automatically.';
-        }
-        field(8; "Source RecordId 2"; RecordId)
-        {
-            Caption = 'Source Record 2';
-            ToolTip = 'Specifies the secondary source record this Quality Inspection is for.';
-            NotBlank = true;
-        }
-        field(9; "Source RecordId 3"; RecordId)
-        {
-            Caption = 'Source Record 3';
-            ToolTip = 'Specifies the tertiary source record this Quality Inspection is for.';
-            NotBlank = true;
-        }
-        field(10; "Source Table No."; Integer)
-        {
-            Caption = 'Source Table No.';
-            TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Table));
-            BlankZero = true;
-            Editable = false;
-            ToolTip = 'Specifies a reference to the table that the quality inspection is for. ';
-        }
-        field(11; "Table Name"; Text[249])
-        {
-            CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Table),
-                                                                          "Object ID" = field("Source Table No.")));
-            Caption = 'Source Name';
-            Editable = false;
-            FieldClass = FlowField;
-            ToolTip = 'Specifies the target table. If a table is referenced, the name of the table.';
-        }
-        field(12; "Source Type"; Integer)
-        {
-            BlankZero = true;
-            Caption = 'Source Type';
-            ToolTip = 'Specifies an optional field used to track the source type for the source record.';
-        }
-        field(13; "Source Sub Type"; Integer)
-        {
-            BlankZero = true;
-            Caption = 'Source Sub Type';
-            ToolTip = 'Specifies an optional field used to track the source sub type for the source record.';
-        }
-        field(14; "Source Document No."; Code[20])
-        {
-            Caption = 'Document No.';
-            NotBlank = true;
-            Editable = false;
-            OptimizeForTextSearch = true;
-            ToolTip = 'Specifies a reference to the document that this Quality Inspection is referring to. This typically refers to a production order document number.';
-        }
-        field(15; "Source Document Line No."; Integer)
-        {
-            Caption = 'Document Line No.';
-            Editable = false;
-            ToolTip = 'Specifies a reference to the source document line no. that this Quality Inspection is referring to. This typically refers to a production order line no.';
-        }
-        field(16; "Source Item No."; Code[20])
-        {
-            Caption = 'Item No.';
-            TableRelation = Item."No.";
-            OptimizeForTextSearch = true;
-            ToolTip = 'Specifies the item that the Quality Inspection is for. When used with production orders this typically refers to the item being produced.';
-        }
-        field(17; "Source Variant Code"; Code[10])
-        {
-            Caption = 'Variant Code';
-            TableRelation = "Item Variant"."Code" where("Item No." = field("Source Item No."));
-            OptimizeForTextSearch = true;
-            ToolTip = 'Specifies the item variant that the Quality Inspection is for. When used with production orders this typically refers to the item being produced.';
-        }
-        field(18; "Source Serial No."; Code[50])
-        {
-            Caption = 'Serial No.';
-            OptimizeForTextSearch = true;
-            ToolTip = 'Specifies the serial number that the quality inspection is for. This is only used for serial tracked items.';
-
-            trigger OnValidate()
-            begin
-                if (Rec.Status = Rec.Status::Finished) and (Rec."Source Serial No." <> xRec."Source Serial No.") then
-                    Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Re-inspection No.");
-
-                if not GetIsCreating() then
-                    QltyPermissionMgmt.VerifyCanChangeTrackingNo();
-            end;
-        }
-        field(19; "Source Lot No."; Code[50])
-        {
-            Caption = 'Lot No.';
-            OptimizeForTextSearch = true;
-            ToolTip = 'Specifies the lot number that the quality inspection is for. This is only used for lot tracked items.';
-
-            trigger OnValidate()
-            begin
-                if (Rec.Status = Rec.Status::Finished) and (Rec."Source Lot No." <> xRec."Source Lot No.") then
-                    Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Re-inspection No.");
-
-                if not GetIsCreating() then
-                    QltyPermissionMgmt.VerifyCanChangeTrackingNo();
-            end;
-        }
-        field(20; "Source Task No."; Code[20])
-        {
-            Caption = 'Task No.';
-            ToolTip = 'Specifies a reference to the source task no. that this Quality Inspection is referring to. This typically refers to an operation.';
-        }
-        field(21; "Source Quantity (Base)"; Decimal)
-        {
-            AutoFormatType = 0;
-            Caption = 'Quantity (Base)';
-            ToolTip = 'Specifies a reference to the quantity involved.';
-            DecimalPlaces = 0 : 5;
-
-            trigger OnValidate()
-            begin
-                if not Rec.IsTemporary() then
-                    if not GetIsCreating() then
-                        QltyPermissionMgmt.VerifyCanChangeSourceQuantity();
-
-                if Rec."Source Quantity (Base)" < 0 then
-                    Rec."Source Quantity (Base)" := Abs(Rec."Source Quantity (Base)");
-
-                VerifyPassAndFailQuantities();
-                UpdateSampleSize();
-            end;
-        }
-        field(22; "Source Record Table No."; Integer)
-        {
-            Caption = 'Source Record Table No.';
-            ToolTip = 'Specifies the table no. of the source record this Quality Inspection is for.';
-            NotBlank = true;
-        }
-        field(23; "Trigger Record Table No."; Integer)
-        {
-            Caption = 'Trigger Record Table No.';
-            ToolTip = 'Specifies the table no. of the triggering record that caused this Quality Inspection to be created.';
-            NotBlank = true;
-        }
-        field(24; "Source RecordId 4"; RecordId)
-        {
-            Caption = 'Source Record 4';
-            ToolTip = 'Specifies the fourth source record this Quality Inspection is for.';
-            NotBlank = true;
-        }
-        field(25; "Source Package No."; Code[50])
-        {
-            Caption = 'Package No.';
-            OptimizeForTextSearch = true;
-            ToolTip = 'Specifies the package number that the quality inspection is for. This is only used for package tracked items.';
-
-            trigger OnValidate()
-            begin
-                if (Rec.Status = Rec.Status::Finished) and (Rec."Source Package No." <> xRec."Source Package No.") then
-                    Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Re-inspection No.");
-
-                if not GetIsCreating() then
-                    QltyPermissionMgmt.VerifyCanChangeTrackingNo();
-            end;
-        }
-        field(30; "Source Custom 1"; Text[60])
-        {
-            Caption = 'Source Custom 1';
-            Editable = false;
-            OptimizeForTextSearch = true;
-            ToolTip = 'Specifies additional information from a source record.';
-        }
-        field(31; "Source Custom 2"; Text[60])
-        {
-            Caption = 'Source Custom 2';
-            Editable = false;
-            OptimizeForTextSearch = true;
-            ToolTip = 'Specifies additional information from a source record.';
-        }
-        field(32; "Source Custom 3"; Text[60])
-        {
-            Caption = 'Source Custom 3';
-            Editable = false;
-            OptimizeForTextSearch = true;
-            ToolTip = 'Specifies additional information from a source record.';
-        }
-        field(33; "Source Custom 4"; Text[60])
-        {
-            Caption = 'Source Custom 4';
-            Editable = false;
-            OptimizeForTextSearch = true;
-            ToolTip = 'Specifies additional information from a source record.';
-        }
-        field(34; "Source Custom 5"; Text[60])
-        {
-            Caption = 'Source Custom 5';
-            Editable = false;
-            OptimizeForTextSearch = true;
-            ToolTip = 'Specifies additional information from a source record.';
-        }
-        field(35; "Source Custom 6"; Text[60])
-        {
-            Caption = 'Source Custom 6';
-            Editable = false;
-            OptimizeForTextSearch = true;
-            ToolTip = 'Specifies additional information from a source record.';
-        }
-        field(36; "Source Custom 7"; Integer)
-        {
-            Caption = 'Source Custom 7';
-            Editable = false;
-            ToolTip = 'Specifies additional information from a source record.';
-        }
-        field(37; "Source Custom 8"; Integer)
-        {
-            Caption = 'Source Custom 8';
-            Editable = false;
-            ToolTip = 'Specifies additional information from a source record.';
-        }
-        field(38; "Source Custom 9"; Decimal)
-        {
-            AutoFormatType = 0;
-            Caption = 'Source Custom 9';
-            Editable = false;
-            ToolTip = 'Specifies additional information from a source record.';
-        }
-        field(39; "Source Custom 10"; Decimal)
-        {
-            AutoFormatType = 0;
-            Caption = 'Source Custom 10';
-            Editable = false;
-            ToolTip = 'Specifies additional information from a source record.';
-        }
-        field(40; Status; Enum "Qlty. Inspection Status")
+        field(8; "Status"; Enum "Qlty. Inspection Status")
         {
             Caption = 'Status';
             Editable = false;
@@ -339,53 +102,85 @@ table 20405 "Qlty. Inspection Header"
                     end
             end;
         }
-        field(42; "Existing Inspections This Rec."; Integer)
+        field(11; "Source Quantity (Base)"; Decimal)
         {
-            CalcFormula = count("Qlty. Inspection Header" where("Source Table No." = field("Source Table No."),
-                                                                "Source Type" = field("Source Type"),
-                                                                "Source Sub Type" = field("Source Sub Type"),
-                                                                "Source Document No." = field("Source Document No."),
-                                                                "Source Document Line No." = field("Source Document Line No."),
-                                                                "Source Serial No." = field("Source Serial No."),
-                                                                "Source Lot No." = field("Source Lot No."),
-                                                                "Source Package No." = field("Source Package No.")));
-            Caption = 'Existing Inspections (this record)';
-            Editable = false;
-            FieldClass = FlowField;
-            ToolTip = 'Specifies whether or not there are existing quality inspections for this same record.';
+            AutoFormatType = 0;
+            Caption = 'Quantity (Base)';
+            ToolTip = 'Specifies a reference to the quantity involved.';
+            DecimalPlaces = 0 : 5;
+
+            trigger OnValidate()
+            begin
+                if not Rec.IsTemporary() then
+                    if not GetIsCreating() then
+                        QltyPermissionMgmt.VerifyCanChangeSourceQuantity();
+
+                if Rec."Source Quantity (Base)" < 0 then
+                    Rec."Source Quantity (Base)" := Abs(Rec."Source Quantity (Base)");
+
+                VerifyPassAndFailQuantities();
+                UpdateSampleSize();
+            end;
         }
-        field(43; "Existing Inspections This Item"; Integer)
+        field(13; "Pass Quantity"; Decimal)
         {
-            CalcFormula = count("Qlty. Inspection Header" where("Source Item No." = field("Source Item No."),
-                                                                "Source Variant Code" = field("Source Variant Code"),
-                                                                "Source Serial No." = field("Source Serial No."),
-                                                                "Source Lot No." = field("Source Lot No."),
-                                                                "Source Package No." = field("Source Package No.")));
-            Caption = 'Existing Inspections (this item)';
-            Editable = false;
-            FieldClass = FlowField;
-            ToolTip = 'Specifies whether or not there are existing existing inspections for this same item.';
+            Caption = 'Pass Quantity';
+            Description = 'A manually entered test for non-sampling inspections, or derived from the quantity of passed sampling lines for sampling inspections.';
+            AutoFormatType = 10;
+            AutoFormatExpression = '0,<precision, 0:0><standard format,0>';
+            ToolTip = 'Specifies the amount that passed inspection.';
+            DecimalPlaces = 0 : 5;
+            MinValue = 0;
+
+            trigger OnValidate()
+            begin
+                if Rec.IsTemporary() then
+                    exit;
+
+                if not Rec.GetIsCreating() then
+                    QltyPermissionMgmt.VerifyCanChangeSourceQuantity();
+
+                VerifyPassAndFailQuantities();
+            end;
         }
-        field(48; "Finished Date"; DateTime)
+        field(15; "Fail Quantity"; Decimal)
         {
-            Editable = false;
-            Caption = 'Finished Date';
-            ToolTip = 'Specifies the date that the inspection was finished.';
+            Caption = 'Fail Quantity';
+            Description = 'A manually entered test for non-sampling inspections, or derived from the quantity of failed sampling lines for sampling inspections.';
+            AutoFormatType = 10;
+            AutoFormatExpression = '0,<precision, 0:0><standard format,0>';
+            ToolTip = 'Specifies the amount that failed inspection.';
+            DecimalPlaces = 0 : 5;
+            MinValue = 0;
+
+            trigger OnValidate()
+            begin
+                if Rec.IsTemporary() then
+                    exit;
+                if not Rec.GetIsCreating() then
+                    QltyPermissionMgmt.VerifyCanChangeSourceQuantity();
+
+                VerifyPassAndFailQuantities();
+            end;
         }
-        field(49; "Finished By User ID"; Code[50])
+        field(17; "Sample Size"; Integer)
         {
-            DataClassification = EndUserIdentifiableInformation;
-            Editable = false;
-            Caption = 'Finished By User ID';
-            ToolTip = 'Specifies the user that finished the inspection.';
+            Caption = 'Sample Size';
+            ToolTip = 'Specifies the number of units that must be inspected. This will be used to fill out the sample size field on a Quality Inspection when possible based on the other characteristics that were applied.';
+
+            trigger OnValidate()
+            var
+                Math: Codeunit Math;
+            begin
+                if (Rec."Sample Size" > Rec."Source Quantity (Base)") and (Rec."Source Quantity (Base)" > 0) then begin
+                    if GuiAllowed() and not Rec.GetIsCreating() and (not Rec.IsTemporary()) then
+                        Message(SampleSizeInvalidMsg, Rec."Sample Size", Rec."No.", Rec."Source Quantity (Base)");
+
+                    Rec."Sample Size" := Math.Truncate(Rec."Source Quantity (Base)");
+                end;
+            end;
         }
-        field(50; "Most Recent Re-inspection"; Boolean)
-        {
-            Caption = 'Most Recent Re-inspection';
-            Editable = false;
-            ToolTip = 'Specifies if this is the most recent re-inspection for the same inspection.';
-        }
-        field(51; "Assigned User ID"; Code[50])
+        field(21; "Assigned User ID"; Code[50])
         {
             DataClassification = EndUserIdentifiableInformation;
             Editable = false;
@@ -409,7 +204,26 @@ table 20405 "Qlty. Inspection Header"
                     Error(YouCannotChangeTheAssignmentOfTheInspectionErr, UserId(), Rec."No.", Rec."Re-inspection No.");
             end;
         }
-        field(52; "Result Code"; Code[20])
+        field(23; "Planned Start Date"; DateTime)
+        {
+            Editable = false;
+            Caption = 'Planned Start Date';
+            ToolTip = 'Specifies the last planned start time of the inspection.';
+        }
+        field(25; "Finished Date"; DateTime)
+        {
+            Editable = false;
+            Caption = 'Finished Date';
+            ToolTip = 'Specifies the date that the inspection was finished.';
+        }
+        field(26; "Finished By User ID"; Code[50])
+        {
+            DataClassification = EndUserIdentifiableInformation;
+            Editable = false;
+            Caption = 'Finished By User ID';
+            ToolTip = 'Specifies the user that finished the inspection.';
+        }
+        field(31; "Result Code"; Code[20])
         {
             Editable = false;
             TableRelation = "Qlty. Inspection Result".Code;
@@ -429,7 +243,7 @@ table 20405 "Qlty. Inspection Header"
                 Rec.CalcFields("Result Description");
             end;
         }
-        field(53; "Result Description"; Text[100])
+        field(32; "Result Description"; Text[100])
         {
             Caption = 'Result';
             Editable = false;
@@ -437,83 +251,267 @@ table 20405 "Qlty. Inspection Header"
             FieldClass = FlowField;
             CalcFormula = lookup("Qlty. Inspection Result"."Description" where("Code" = field("Result Code")));
         }
-        field(54; "Evaluation Sequence"; Integer)
+        field(33; "Evaluation Sequence"; Integer)
         {
             Caption = 'Evaluation Sequence';
             Editable = false;
             ToolTip = 'Specifies the associated evaluation sequence for this test result. The result is automatically determined based on the test value and result configuration.';
         }
-        field(56; "Planned Start Date"; DateTime)
-        {
-            Editable = false;
-            Caption = 'Planned Start Date';
-            ToolTip = 'Specifies the last planned start time of the inspection.';
-        }
-        field(57; "Location Code"; Code[10])
+        field(35; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
             TableRelation = Location.Code;
             ToolTip = 'Specifies the location of the inspection.';
         }
-        field(65; "Sample Size"; Integer)
+        field(41; "Most Recent Picture"; Media)
         {
-            Caption = 'Sample Size';
-            ToolTip = 'Specifies the number of units that must be inspected. This will be used to fill out the sample size field on a Quality Inspection when possible based on the other characteristics that were applied.';
+            Caption = 'Most Recent Picture';
+            ToolTip = 'Specifies the most recent picture. Pictures can also be uploaded to document attachments and OneDrive automatically.';
+        }
+        field(45; "Existing Inspections This Rec."; Integer)
+        {
+            Caption = 'Existing Inspections (this record)';
+            Editable = false;
+            ToolTip = 'Specifies whether or not there are existing quality inspections for this same record.';
+            FieldClass = FlowField;
+            CalcFormula = count("Qlty. Inspection Header" where("Source Table No." = field("Source Table No."),
+                                                                "Source Type" = field("Source Type"),
+                                                                "Source Sub Type" = field("Source Sub Type"),
+                                                                "Source Document No." = field("Source Document No."),
+                                                                "Source Document Line No." = field("Source Document Line No."),
+                                                                "Source Serial No." = field("Source Serial No."),
+                                                                "Source Lot No." = field("Source Lot No."),
+                                                                "Source Package No." = field("Source Package No.")));
+        }
+        field(46; "Existing Inspections This Item"; Integer)
+        {
+            Caption = 'Existing Inspections (this item)';
+            Editable = false;
+            ToolTip = 'Specifies whether or not there are existing existing inspections for this same item.';
+            FieldClass = FlowField;
+            CalcFormula = count("Qlty. Inspection Header" where("Source Item No." = field("Source Item No."),
+                                                                "Source Variant Code" = field("Source Variant Code"),
+                                                                "Source Serial No." = field("Source Serial No."),
+                                                                "Source Lot No." = field("Source Lot No."),
+                                                                "Source Package No." = field("Source Package No.")));
+        }
+        field(51; "Source Table No."; Integer)
+        {
+            Caption = 'Source Table No.';
+            TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Table));
+            BlankZero = true;
+            Editable = false;
+            ToolTip = 'Specifies a reference to the table that the quality inspection is for. ';
+        }
+        field(52; "Source Table Name"; Text[249])
+        {
+            CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Table),
+                                                                          "Object ID" = field("Source Table No.")));
+            Caption = 'Source Table Name';
+            Editable = false;
+            FieldClass = FlowField;
+            ToolTip = 'Specifies the target table. If a table is referenced, the name of the table.';
+        }
+        field(53; "Source Type"; Integer)
+        {
+            BlankZero = true;
+            Caption = 'Source Type';
+            ToolTip = 'Specifies an optional field used to track the source type for the source record.';
+        }
+        field(54; "Source Sub Type"; Integer)
+        {
+            BlankZero = true;
+            Caption = 'Source Sub Type';
+            ToolTip = 'Specifies an optional field used to track the source sub type for the source record.';
+        }
+        field(55; "Source Document No."; Code[20])
+        {
+            Caption = 'Document No.';
+            NotBlank = true;
+            Editable = false;
+            OptimizeForTextSearch = true;
+            ToolTip = 'Specifies a reference to the document that this Quality Inspection is referring to. This typically refers to a production order document number.';
+        }
+        field(56; "Source Document Line No."; Integer)
+        {
+            Caption = 'Document Line No.';
+            Editable = false;
+            ToolTip = 'Specifies a reference to the source document line no. that this Quality Inspection is referring to. This typically refers to a production order line no.';
+        }
+        field(58; "Source Task No."; Code[20])
+        {
+            Caption = 'Task No.';
+            ToolTip = 'Specifies a reference to the source task no. that this Quality Inspection is referring to. This typically refers to an operation.';
+        }
+        field(61; "Source Item No."; Code[20])
+        {
+            Caption = 'Item No.';
+            TableRelation = Item."No.";
+            OptimizeForTextSearch = true;
+            ToolTip = 'Specifies the item that the Quality Inspection is for. When used with production orders this typically refers to the item being produced.';
+        }
+        field(62; "Source Variant Code"; Code[10])
+        {
+            Caption = 'Variant Code';
+            TableRelation = "Item Variant"."Code" where("Item No." = field("Source Item No."));
+            OptimizeForTextSearch = true;
+            ToolTip = 'Specifies the item variant that the Quality Inspection is for. When used with production orders this typically refers to the item being produced.';
+        }
+        field(65; "Source Serial No."; Code[50])
+        {
+            Caption = 'Serial No.';
+            OptimizeForTextSearch = true;
+            ToolTip = 'Specifies the serial number that the quality inspection is for. This is only used for serial tracked items.';
 
             trigger OnValidate()
-            var
-                Math: Codeunit Math;
             begin
-                if (Rec."Sample Size" > Rec."Source Quantity (Base)") and (Rec."Source Quantity (Base)" > 0) then begin
-                    if GuiAllowed() and not Rec.GetIsCreating() and (not Rec.IsTemporary()) then
-                        Message(SampleSizeInvalidMsg, Rec."Sample Size", Rec."No.", Rec."Source Quantity (Base)");
+                if (Rec.Status = Rec.Status::Finished) and (Rec."Source Serial No." <> xRec."Source Serial No.") then
+                    Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Re-inspection No.");
 
-                    Rec."Sample Size" := Math.Truncate(Rec."Source Quantity (Base)");
-                end;
+                if not GetIsCreating() then
+                    QltyPermissionMgmt.VerifyCanChangeTrackingNo();
             end;
         }
-        field(72; "Pass Quantity"; Decimal)
+        field(66; "Source Lot No."; Code[50])
         {
-            Caption = 'Pass Quantity';
-            Description = 'A manually entered test for non-sampling inspections, or derived from the quantity of passed sampling lines for sampling inspections.';
-            AutoFormatType = 10;
-            AutoFormatExpression = '0,<precision, 0:0><standard format,0>';
-            ToolTip = 'Specifies the amount that passed inspection.';
-            DecimalPlaces = 0 : 5;
-            MinValue = 0;
+            Caption = 'Lot No.';
+            OptimizeForTextSearch = true;
+            ToolTip = 'Specifies the lot number that the quality inspection is for. This is only used for lot tracked items.';
 
             trigger OnValidate()
             begin
-                if Rec.IsTemporary() then
-                    exit;
+                if (Rec.Status = Rec.Status::Finished) and (Rec."Source Lot No." <> xRec."Source Lot No.") then
+                    Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Re-inspection No.");
 
-                if not Rec.GetIsCreating() then
-                    QltyPermissionMgmt.VerifyCanChangeSourceQuantity();
-
-                VerifyPassAndFailQuantities();
+                if not GetIsCreating() then
+                    QltyPermissionMgmt.VerifyCanChangeTrackingNo();
             end;
         }
-        field(73; "Fail Quantity"; Decimal)
+        field(67; "Source Package No."; Code[50])
         {
-            Caption = 'Fail Quantity';
-            Description = 'A manually entered test for non-sampling inspections, or derived from the quantity of failed sampling lines for sampling inspections.';
-            AutoFormatType = 10;
-            AutoFormatExpression = '0,<precision, 0:0><standard format,0>';
-            ToolTip = 'Specifies the amount that failed inspection.';
-            DecimalPlaces = 0 : 5;
-            MinValue = 0;
+            Caption = 'Package No.';
+            OptimizeForTextSearch = true;
+            ToolTip = 'Specifies the package number that the quality inspection is for. This is only used for package tracked items.';
 
             trigger OnValidate()
             begin
-                if Rec.IsTemporary() then
-                    exit;
-                if not Rec.GetIsCreating() then
-                    QltyPermissionMgmt.VerifyCanChangeSourceQuantity();
+                if (Rec.Status = Rec.Status::Finished) and (Rec."Source Package No." <> xRec."Source Package No.") then
+                    Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Re-inspection No.");
 
-                VerifyPassAndFailQuantities();
+                if not GetIsCreating() then
+                    QltyPermissionMgmt.VerifyCanChangeTrackingNo();
             end;
         }
-
+        field(71; "Trigger Record Table No."; Integer)
+        {
+            Caption = 'Trigger Record Table No.';
+            ToolTip = 'Specifies the table no. of the triggering record that caused this Quality Inspection to be created.';
+            NotBlank = true;
+        }
+        field(72; "Trigger RecordId"; RecordId)
+        {
+            Caption = 'Trigger Record';
+            ToolTip = 'Specifies the triggering record that caused this Quality Inspection to be created.';
+            NotBlank = true;
+        }
+        field(75; "Source Record Table No."; Integer)
+        {
+            Caption = 'Source Record Table No.';
+            ToolTip = 'Specifies the table no. of the source record this Quality Inspection is for.';
+            NotBlank = true;
+        }
+        field(76; "Source RecordId"; RecordId)
+        {
+            Caption = 'Source Record';
+            ToolTip = 'Specifies the source record this Quality Inspection is for.';
+            NotBlank = true;
+        }
+        field(78; "Source RecordId 2"; RecordId)
+        {
+            Caption = 'Source Record 2';
+            ToolTip = 'Specifies the secondary source record this Quality Inspection is for.';
+            NotBlank = true;
+        }
+        field(79; "Source RecordId 3"; RecordId)
+        {
+            Caption = 'Source Record 3';
+            ToolTip = 'Specifies the tertiary source record this Quality Inspection is for.';
+            NotBlank = true;
+        }
+        field(80; "Source RecordId 4"; RecordId)
+        {
+            Caption = 'Source Record 4';
+            ToolTip = 'Specifies the fourth source record this Quality Inspection is for.';
+            NotBlank = true;
+        }
+        field(90; "Source Custom 1"; Text[60])
+        {
+            Caption = 'Source Custom 1';
+            Editable = false;
+            OptimizeForTextSearch = true;
+            ToolTip = 'Specifies additional information from a source record.';
+        }
+        field(91; "Source Custom 2"; Text[60])
+        {
+            Caption = 'Source Custom 2';
+            Editable = false;
+            OptimizeForTextSearch = true;
+            ToolTip = 'Specifies additional information from a source record.';
+        }
+        field(92; "Source Custom 3"; Text[60])
+        {
+            Caption = 'Source Custom 3';
+            Editable = false;
+            OptimizeForTextSearch = true;
+            ToolTip = 'Specifies additional information from a source record.';
+        }
+        field(93; "Source Custom 4"; Text[60])
+        {
+            Caption = 'Source Custom 4';
+            Editable = false;
+            OptimizeForTextSearch = true;
+            ToolTip = 'Specifies additional information from a source record.';
+        }
+        field(94; "Source Custom 5"; Text[60])
+        {
+            Caption = 'Source Custom 5';
+            Editable = false;
+            OptimizeForTextSearch = true;
+            ToolTip = 'Specifies additional information from a source record.';
+        }
+        field(95; "Source Custom 6"; Text[60])
+        {
+            Caption = 'Source Custom 6';
+            Editable = false;
+            OptimizeForTextSearch = true;
+            ToolTip = 'Specifies additional information from a source record.';
+        }
+        field(96; "Source Custom 7"; Integer)
+        {
+            Caption = 'Source Custom 7';
+            Editable = false;
+            ToolTip = 'Specifies additional information from a source record.';
+        }
+        field(97; "Source Custom 8"; Integer)
+        {
+            Caption = 'Source Custom 8';
+            Editable = false;
+            ToolTip = 'Specifies additional information from a source record.';
+        }
+        field(98; "Source Custom 9"; Decimal)
+        {
+            AutoFormatType = 0;
+            Caption = 'Source Custom 9';
+            Editable = false;
+            ToolTip = 'Specifies additional information from a source record.';
+        }
+        field(99; "Source Custom 10"; Decimal)
+        {
+            AutoFormatType = 0;
+            Caption = 'Source Custom 10';
+            Editable = false;
+            ToolTip = 'Specifies additional information from a source record.';
+        }
     }
 
     keys
@@ -637,7 +635,7 @@ table 20405 "Qlty. Inspection Header"
         IsChangingStatus := false;
     end;
 
-    protected var
+    var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         QltyTraversal: Codeunit "Qlty. Traversal";
@@ -678,7 +676,6 @@ table 20405 "Qlty. Inspection Header"
         MimeTypeTok: Label 'image/jpeg', Locked = true;
         AttachmentNameTok: Label '%1.%2', Locked = true, Comment = '%1=name,%2=extension';
         PassFailQuantityInvalidErr: Label 'The %1 and %2 cannot exceed the %3. The %3 is currently exceeded by %4.', Comment = '%1=the passed quantity caption, %2=the failed quantity caption, %3=the source quantity caption, %4=the quantity exceeded';
-
 
     local procedure UpdateMostRecentReinspection()
     begin
@@ -1443,7 +1440,7 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Intended for use with powerautomate and dataverse.
+    /// Intended for use with PowerAutomate and Dataverse.
     /// It will return the 'best' reference in the order of preference of:
     ///  -- triggering record
     ///  -- otherwise primary source record

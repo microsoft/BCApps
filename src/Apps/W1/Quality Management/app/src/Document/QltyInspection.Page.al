@@ -231,7 +231,7 @@ page 20406 "Qlty. Inspection"
                     Editable = false;
                     Importance = Additional;
                 }
-                field("Table Name"; Rec."Table Name")
+                field("Table Name"; Rec."Source Table Name")
                 {
                     Editable = false;
                     Importance = Additional;
@@ -876,7 +876,7 @@ page 20406 "Qlty. Inspection"
             end;
         CanChangeQuantity := QltyPermissionMgmt.CanChangeSourceQuantity();
 
-        Rec.CalcFields("Table Name");
+        Rec.CalcFields("Source Table Name");
         Rec.DetermineControlInformation(Rec.FieldName("Source Custom 1"));
         Rec.DetermineControlInformation(Rec.FieldName("Source Custom 2"));
         Rec.DetermineControlInformation(Rec.FieldName("Source Custom 3"));
@@ -921,7 +921,7 @@ page 20406 "Qlty. Inspection"
             if Rec."Source Item No." <> '' then
                 exit(Rec."No." + ' - ' + Rec."Template Code" + ' - ' + Rec."Source Item No." + ' - ' + Rec."Source Document No." + ' - ' + Format(Rec."Result Description") + ' - ' + Format(Rec.Status))
             else
-                exit(Rec."No." + ' - ' + Rec."Template Code" + ' - ' + Rec."Table Name" + ' - ' + Rec."Source Document No." + ' - ' + Format(Rec."Result Description") + ' - ' + Format(Rec.Status));
+                exit(Rec."No." + ' - ' + Rec."Template Code" + ' - ' + Rec."Source Table Name" + ' - ' + Rec."Source Document No." + ' - ' + Format(Rec."Result Description") + ' - ' + Format(Rec.Status));
         end else begin
             DataCaptionExpression := QltyExpressionMgmt.EvaluateTextExpression(DataCaptionExpression, Rec);
             exit(DataCaptionExpression);
