@@ -377,18 +377,14 @@ table 20405 "Qlty. Inspection Header"
             DataClassification = EndUserIdentifiableInformation;
             Editable = false;
             Caption = 'Finished By User ID';
-            ToolTip = 'Specifies the user that finished the inspection';
+            ToolTip = 'Specifies the user that finished the inspection.';
         }
-#pragma warning disable AA0232
-        field(50; "Latest Re-inspection No."; Integer)
+        field(50; "Most Recent Re-inspection"; Boolean)
         {
-            Caption = 'Latest Re-inspection No.';
+            Caption = 'Most Recent Re-inspection';
             Editable = false;
-            ToolTip = 'Specifies the most recent re-inspection number for this inspection.';
-            FieldClass = FlowField;
-            CalcFormula = max("Qlty. Inspection Header"."Re-inspection No." where("No." = field("No.")));
+            ToolTip = 'Specifies if this is the most recent re-inspection for the same inspection.';
         }
-#pragma warning restore AA0232
         field(51; "Assigned User ID"; Code[50])
         {
             DataClassification = EndUserIdentifiableInformation;
@@ -594,6 +590,8 @@ table 20405 "Qlty. Inspection Header"
     var
     begin
         InitInspectionNumber();
+
+        UpdateMostRecentReinspection();
     end;
 
     trigger OnModify()
@@ -681,6 +679,27 @@ table 20405 "Qlty. Inspection Header"
         AttachmentNameTok: Label '%1.%2', Locked = true, Comment = '%1=name,%2=extension';
         PassFailQuantityInvalidErr: Label 'The %1 and %2 cannot exceed the %3. The %3 is currently exceeded by %4.', Comment = '%1=the passed quantity caption, %2=the failed quantity caption, %3=the source quantity caption, %4=the quantity exceeded';
 
+
+    local procedure UpdateMostRecentReinspection()
+    begin
+        Rec."Most Recent Re-inspection" := true;
+
+        ClearMostRecentReinspectionForPrecedingInspections();
+    end;
+
+    local procedure ClearMostRecentReinspectionForPrecedingInspections()
+    var
+        PrecedingQltyInspectionHeader: Record "Qlty. Inspection Header";
+    begin
+        if Rec."Re-inspection No." = 0 then
+            exit;
+
+        PrecedingQltyInspectionHeader.SetRange("No.", Rec."No.");
+        PrecedingQltyInspectionHeader.SetFilter("Re-inspection No.", '<%1', Rec."Re-inspection No.");
+        PrecedingQltyInspectionHeader.SetRange("Most Recent Re-inspection", true);
+        if not PrecedingQltyInspectionHeader.IsEmpty() then
+            PrecedingQltyInspectionHeader.ModifyAll("Most Recent Re-inspection", false);
+    end;
 
     /// <summary>
     /// Helper function to set an inspection line value.
@@ -1013,13 +1032,16 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Returns true if there is a more recent Re-inspection than the current inspection.
+    /// Returns true if there is a more recent re-inspection than the current inspection.
     /// </summary>
     /// <returns></returns>
     procedure HasMoreRecentReinspection(): Boolean
+    var
+        SucceedingQltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
-        Rec.CalcFields("Latest Re-inspection No.");
-        exit(Rec."Re-inspection No." < Rec."Latest Re-inspection No.");
+        SucceedingQltyInspectionHeader.SetRange("No.", Rec."No.");
+        SucceedingQltyInspectionHeader.SetFilter("Re-inspection No.", '>%1', Rec."Re-inspection No.");
+        exit(not SucceedingQltyInspectionHeader.IsEmpty());
     end;
 
     internal procedure IsItemTrackingUsed(): Boolean

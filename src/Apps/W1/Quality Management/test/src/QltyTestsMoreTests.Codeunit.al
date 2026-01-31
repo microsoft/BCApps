@@ -52,11 +52,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
         IsInitialized: Boolean;
         TemplateCodeTok: Label 'TemplateCode', Locked = true;
         ResultCodeTxt: Label 'UNAVAILABLE';
-        DefaultTopLeftTok: Label 'Inspection', Locked = true;
-        DefaultMiddleLeftTok: Label 'Result', Locked = true;
-        DefaultMiddleRightTok: Label 'Details', Locked = true;
-        DefaultBottomLeftTok: Label 'Document', Locked = true;
-        DefaultBottomRightTok: Label 'Status', Locked = true;
         ProdLineTok: Label 'PRODLINETOROUTING', Locked = true;
         CannotHaveATemplateWithReversedFromAndToErr: Label 'There is another template ''%1'' that reverses the from table and to table. You cannot have this combination to prevent recursive logic. Please change either this source configuration, or please change ''%1''', Comment = '%1=The other template code with conflicting configuration';
         TestValueTxt: Label 'test value.';
