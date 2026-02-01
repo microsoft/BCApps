@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -74,7 +74,7 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
                     ToolTip = 'Specifies the depended Transfer Order of this Subcontracting Purchase Order.';
                     trigger OnAction()
                     begin
-                        SubcontractingFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
+                        SubcFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
                     end;
                 }
                 action("Return Transfer Order")
@@ -85,24 +85,24 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
                     ToolTip = 'Specifies the depended Return Transfer Order of this Subcontracting Purchase Order.';
                     trigger OnAction()
                     begin
-                        SubcontractingFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, true);
+                        SubcFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, true);
                     end;
                 }
             }
         }
     }
     var
-        SubcontractingFactboxMgmt: Codeunit "Subc. Factbox Mgmt.";
+        SubcFactboxMgmt: Codeunit "Subc. Factbox Mgmt.";
 
     local procedure CreateProductionOrder(CreatingCodeunitID: Integer; ShowCreatedDocument: Boolean)
     var
         ErrorMessageHandler: Codeunit "Error Message Handler";
-        ErrorMessageMgt: Codeunit "Error Message Management";
+        ErrorMessageManagement: Codeunit "Error Message Management";
         InstructionMgt: Codeunit "Instruction Mgt.";
-        NotificationMgt: Codeunit "Subc. Notification Mgmt.";
+        SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
         ProdOrderCreated: Boolean;
     begin
-        ErrorMessageMgt.Activate(ErrorMessageHandler);
+        ErrorMessageManagement.Activate(ErrorMessageHandler);
 
         Commit(); // Used for following call of codeunit run
         ProdOrderCreated := Codeunit.Run(CreatingCodeunitID, Rec);
@@ -112,7 +112,7 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
 
         if ProdOrderCreated then begin
             if ShowCreatedDocument then
-                if InstructionMgt.IsEnabled(NotificationMgt.ShowCreatedProductionOrderConfirmationMessageCode()) then
+                if InstructionMgt.IsEnabled(SubcNotificationMgmt.ShowCreatedProductionOrderConfirmationMessageCode()) then
                     ShowCreatedProdOrderConfirmationMessage()
         end else
             ErrorMessageHandler.ShowErrors();
@@ -120,32 +120,32 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
 
     local procedure ShowCreatedProdOrderConfirmationMessage()
     var
-        ProdOrder: Record "Production Order";
+        ProductionOrder: Record "Production Order";
         InstructionMgt: Codeunit "Instruction Mgt.";
         PageManagement: Codeunit "Page Management";
-        NotificationMgt: Codeunit "Subc. Notification Mgmt.";
+        SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
         OpenCreatedTransferOrderQst: Label 'The production order %1 was created from the current purchase order.\\Would you like to open the production order?', Comment = '%1=Production Order No.';
     begin
-        ProdOrder.SetRange(Status, "Production Order Status"::Released);
-        ProdOrder.SetRange("No.", Rec."Prod. Order No.");
-        if ProdOrder.FindFirst() then
-            if InstructionMgt.ShowConfirm(StrSubstNo(OpenCreatedTransferOrderQst, ProdOrder."No."),
-              NotificationMgt.ShowCreatedProductionOrderConfirmationMessageCode()) then
-                PageManagement.PageRun(ProdOrder);
+        ProductionOrder.SetRange(Status, "Production Order Status"::Released);
+        ProductionOrder.SetRange("No.", Rec."Prod. Order No.");
+        if ProductionOrder.FindFirst() then
+            if InstructionMgt.ShowConfirm(StrSubstNo(OpenCreatedTransferOrderQst, ProductionOrder."No."),
+              SubcNotificationMgmt.ShowCreatedProductionOrderConfirmationMessageCode()) then
+                PageManagement.PageRun(ProductionOrder);
     end;
 
     local procedure ShowProductionOrder(RecRelatedVariant: Variant)
     begin
-        SubcontractingFactboxMgmt.ShowProductionOrder(RecRelatedVariant);
+        SubcFactboxMgmt.ShowProductionOrder(RecRelatedVariant);
     end;
 
     local procedure ShowProductionOrderComponents(RecRelatedVariant: Variant)
     begin
-        SubcontractingFactboxMgmt.ShowProductionOrderComponents(RecRelatedVariant);
+        SubcFactboxMgmt.ShowProductionOrderComponents(RecRelatedVariant);
     end;
 
     local procedure ShowProductionOrderRouting(RecRelatedVariant: Variant)
     begin
-        SubcontractingFactboxMgmt.ShowProductionOrderRouting(RecRelatedVariant);
+        SubcFactboxMgmt.ShowProductionOrderRouting(RecRelatedVariant);
     end;
 }

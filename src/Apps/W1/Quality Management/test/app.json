@@ -19,6 +19,12 @@
       "version": "28.0.0.0"
     },
     {
+      "id": "9c32d4af-77d5-4fba-a3de-361805163a00",
+      "name": "Quality Management Test Library",
+      "publisher": "Microsoft",
+      "version": "28.0.0.0"
+    },
+    {
       "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
       "publisher": "Microsoft",
       "name": "Tests-TestLibraries",
@@ -51,7 +57,7 @@
   "application": "28.0.0.0",
   "idRanges": [
     {
-      "from": 139950,
+      "from": 139955,
       "to": 139979
     }
   ],

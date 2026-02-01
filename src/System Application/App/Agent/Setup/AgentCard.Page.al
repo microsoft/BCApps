@@ -157,7 +157,7 @@ page 4315 "Agent Card"
             action(AgentTasks)
             {
                 ApplicationArea = All;
-                Caption = 'Agent Tasks';
+                Caption = 'View tasks';
                 ToolTip = 'View agent tasks';
                 Image = Log;
 

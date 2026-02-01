@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -62,35 +62,35 @@ page 99001501 "Subc. Transfer Line Factbox"
         }
     }
     var
-        SubcontractingFactboxMgmt: Codeunit "Subc. Factbox Mgmt.";
+        SubcFactboxMgmt: Codeunit "Subc. Factbox Mgmt.";
 
     local procedure GetNoOfProductionComponents(RecRelatedVariant: Variant): Integer
     begin
-        exit(SubcontractingFactboxMgmt.CalcNoOfProductionOrderComponents(RecRelatedVariant))
+        exit(SubcFactboxMgmt.CalcNoOfProductionOrderComponents(RecRelatedVariant))
     end;
 
     local procedure GetNoOfProductionOrderRoutings(RecRelatedVariant: Variant): Integer
     begin
-        exit(SubcontractingFactboxMgmt.CalcNoOfProductionOrderRoutings(RecRelatedVariant))
+        exit(SubcFactboxMgmt.CalcNoOfProductionOrderRoutings(RecRelatedVariant))
     end;
 
     local procedure ShowProductionOrder(RecRelatedVariant: Variant)
     begin
-        SubcontractingFactboxMgmt.ShowProductionOrder(RecRelatedVariant);
+        SubcFactboxMgmt.ShowProductionOrder(RecRelatedVariant);
     end;
 
     local procedure ShowProductionOrderRouting(RecRelatedVariant: Variant)
     begin
-        SubcontractingFactboxMgmt.ShowProductionOrderRouting(RecRelatedVariant);
+        SubcFactboxMgmt.ShowProductionOrderRouting(RecRelatedVariant);
     end;
 
     local procedure ShowProductionOrderComponents(RecRelatedVariant: Variant)
     begin
-        SubcontractingFactboxMgmt.ShowProductionOrderComponents(RecRelatedVariant);
+        SubcFactboxMgmt.ShowProductionOrderComponents(RecRelatedVariant);
     end;
 
     local procedure ShowPurchaseOrder(RecRelatedVariant: Variant)
     begin
-        SubcontractingFactboxMgmt.ShowPurchaseOrder(RecRelatedVariant);
+        SubcFactboxMgmt.ShowPurchaseOrder(RecRelatedVariant);
     end;
 }
