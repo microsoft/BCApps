@@ -366,6 +366,7 @@ codeunit 20404 "Qlty. Inspection - Create"
 
             if GuiAllowed() then
                 if (not PreventShowingGeneratedInspectionEvenIfConfigured) and
+                (QltyInspectionHeader."No." <> '') and
                    ((QltyManagementSetup."When to show inspections" = QltyManagementSetup."When to show inspections"::"Always") or
                    (IsManualCreation and (QltyManagementSetup."When to show inspections" = QltyManagementSetup."When to show inspections"::"Only manually created inspections")))
                 then
