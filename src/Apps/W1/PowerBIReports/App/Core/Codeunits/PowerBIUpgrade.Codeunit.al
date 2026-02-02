@@ -16,7 +16,6 @@ codeunit 36957 "PowerBI Upgrade"
         TransferDimensionSetEntries();
         InitialSetupUpgrade();
         CloseIncomeSourceCodeUpgrade();
-        InitializeABCAnalysisSetupUpgrade();
     end;
 
     local procedure TransferDimensionSetEntries()
@@ -58,17 +57,6 @@ codeunit 36957 "PowerBI Upgrade"
             exit;
         Initialization.InitializeCloseIncomeSourceCodes();
         UpgradeTag.SetUpgradeTag(CloseIncomeSourceCodeUpgradeTag());
-    end;
-
-    local procedure InitializeABCAnalysisSetupUpgrade()
-    var
-        Initialization: Codeunit Initialization;
-        UpgradeTag: Codeunit "Upgrade Tag";
-    begin
-        if UpgradeTag.HasUpgradeTag(InitializeABCAnalysisSetupUpgradeTag()) then
-            exit;
-        Initialization.InitializeABCAnalysisSetup();
-        UpgradeTag.SetUpgradeTag(InitializeABCAnalysisSetupUpgradeTag());
     end;
 
     local procedure TransferDimensionSetEntriesUpgradeTag(): Code[250]

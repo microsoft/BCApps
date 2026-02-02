@@ -35,7 +35,6 @@ codeunit 36951 Initialization
         InitializeDimSetEntryLastUpdated();
         InitializeSetupFinancePowerBIReports();
         InitializeCloseIncomeSourceCodes();
-        InitializeABCAnalysisSetup();
     end;
 
     internal procedure RestoreDimensionSetEntryCollectionJobQueueEntry()
@@ -231,20 +230,6 @@ codeunit 36951 Initialization
                     CloseIncomeStmtSourceCode.Insert(true);
                 end;
     end;
-
-    internal procedure InitializeABCAnalysisSetup()
-    var
-        ABCAnalysisSetup: Record "PowerBI ABC Analysis Setup";
-    begin
-        if not ABCAnalysisSetup.Get() then begin
-            ABCAnalysisSetup.Init();
-            ABCAnalysisSetup."Category A" := 50;
-            ABCAnalysisSetup."Category B" := 30;
-            ABCAnalysisSetup."Category C" := 20;
-            ABCAnalysisSetup.Insert();
-        end;
-    end;
-
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Change Log Management", 'OnAfterIsAlwaysLoggedTable', '', false, false)]
     local procedure OnAfterIsAlwaysLoggedTable(TableID: Integer; var AlwaysLogTable: Boolean)
