@@ -5,7 +5,6 @@
 namespace Microsoft.PowerBIReports;
 
 using Microsoft.Finance.PowerBIReports;
-using Microsoft.Inventory.PowerBIReports;
 
 permissionset 36950 "PowerBI Report Admin"
 {
