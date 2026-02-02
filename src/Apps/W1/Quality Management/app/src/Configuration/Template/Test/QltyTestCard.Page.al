@@ -40,6 +40,7 @@ page 20479 "Qlty. Test Card"
                 {
                     AboutTitle = 'Description';
                     AboutText = 'The friendly description for the test. You can enter a maximum of 100 characters, both numbers and letters.';
+                    ShowMandatory = true;
                 }
                 field("Test Value Type"; Rec."Test Value Type")
                 {
@@ -588,6 +589,13 @@ page 20479 "Qlty. Test Card"
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
         UpdateRowData();
+    end;
+
+    trigger OnQueryClosePage(CloseAction: Action): Boolean
+    begin
+        if CloseAction in [Action::OK, Action::LookupOK] then
+            Rec.TestField(Description);
+        exit(true);
     end;
 
     local procedure UpdateRowData()
