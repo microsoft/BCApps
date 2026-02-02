@@ -581,14 +581,6 @@ page 36951 "PowerBI Reports Setup"
                 Image = CodesList;
                 RunObject = page "PBI Close Income Stmt. SC.";
             }
-            action(SetupABCAnalysis)
-            {
-                ApplicationArea = All;
-                Caption = 'ABC Analysis Setup';
-                ToolTip = 'Set up the percentage boundaries for ABC Analysis categories in the Power BI Inventory reports.';
-                Image = AnalysisView;
-                RunObject = page "PowerBI ABC Analysis Setup";
-            }
         }
 
         area(Promoted)
@@ -605,9 +597,6 @@ page 36951 "PowerBI Reports Setup"
                 {
                 }
                 actionref(CloseIncomeStatementSourceCodes_Promoted; CloseIncomeStatementSourceCodes)
-                {
-                }
-                actionref(SetupABCAnalysis_Promoted; SetupABCAnalysis)
                 {
                 }
             }
