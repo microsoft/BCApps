@@ -1199,7 +1199,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         LibraryInventory.CreateItem(Item);
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine);
         RecordRef.GetTable(PurchaseHeader);
-        QltyInspectionCreate.CreateInspection(RecordRef, true);
+        QltyInspectionCreate.CreateInspection(RecordRef, false);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] A purchase approval workflow configured to finish inspection after approval
@@ -1258,7 +1258,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         LibraryInventory.CreateItem(Item);
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine);
         RecordRef.GetTable(PurchaseHeader);
-        QltyInspectionCreate.CreateInspection(RecordRef, true);
+        QltyInspectionCreate.CreateInspection(RecordRef, false);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
         QltyInspectionHeader.FinishInspection();
 
