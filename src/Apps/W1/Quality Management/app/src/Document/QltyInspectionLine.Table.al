@@ -286,7 +286,7 @@ table 20406 "Qlty. Inspection Line"
         end;
     end;
 
-    procedure AssistEditFreeText()
+    internal procedure AssistEditFreeText()
     var
         QltyEditLargeText: Page "Qlty. Edit Large Text";
         ExistingText: Text;
@@ -297,7 +297,7 @@ table 20406 "Qlty. Inspection Line"
             SetLargeText(ExistingText, true, false);
     end;
 
-    procedure GetLargeText() Result: Text
+    internal procedure GetLargeText() Result: Text
     var
         InStreamForText: InStream;
     begin
@@ -311,7 +311,7 @@ table 20406 "Qlty. Inspection Line"
         end;
     end;
 
-    procedure SetLargeText(LargeText: Text; ValidateValue: Boolean; OnlySetBlob: Boolean)
+    internal procedure SetLargeText(LargeText: Text; ValidateValue: Boolean; OnlySetBlob: Boolean)
     var
         OutStreamForText: OutStream;
     begin
@@ -372,7 +372,7 @@ table 20406 "Qlty. Inspection Line"
     /// Returns true if the test is a numeric field type.
     /// </summary>
     /// <returns></returns>
-    procedure IsNumericFieldType(): Boolean
+    internal procedure IsNumericFieldType(): Boolean
     var
         QltyTest: Record "Qlty. Test";
     begin
@@ -381,7 +381,7 @@ table 20406 "Qlty. Inspection Line"
                 exit(QltyTest.IsNumericFieldType());
     end;
 
-    procedure GetFailedSampleCount() FailedSamples: Integer
+    internal procedure GetFailedSampleCount() FailedSamples: Integer
     begin
     end;
 
@@ -396,7 +396,7 @@ table 20406 "Qlty. Inspection Line"
             exit(QltyInspectionResult.GetResultStyle());
     end;
 
-    procedure UpdateExpressionsInOtherInspectionLinesInSameInspection()
+    internal procedure UpdateExpressionsInOtherInspectionLinesInSameInspection()
     var
         OthersInSameQltyInspectionLine: Record "Qlty. Inspection Line";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
@@ -528,7 +528,7 @@ table 20406 "Qlty. Inspection Line"
     /// <summary>
     /// Opens up a dialog to collect note text.
     /// </summary>
-    procedure RunModalEditMeasurementNote()
+    internal procedure RunModalEditMeasurementNote()
     var
         QltyEditLargeText: Page "Qlty. Edit Large Text";
         Note: Text;
@@ -544,7 +544,7 @@ table 20406 "Qlty. Inspection Line"
     /// <summary>
     /// Opens up a dialog to collect note text.
     /// </summary>
-    procedure RunModalReadOnlyComment()
+    internal procedure RunModalReadOnlyComment()
     var
         QltyEditLargeText: Page "Qlty. Edit Large Text";
         Note: Text;
