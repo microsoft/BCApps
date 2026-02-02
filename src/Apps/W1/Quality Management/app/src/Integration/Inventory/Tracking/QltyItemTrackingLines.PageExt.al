@@ -34,7 +34,7 @@ pageextension 20418 "Qlty. Item Tracking Lines" extends "Item Tracking Lines"
                         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
                     begin
                         CurrPage.SetSelectionFilter(Rec);
-                        QltyInspectionCreate.CreateMultipleInspectionsForMarkedTrackingSpecification(Rec);
+                        QltyInspectionCreate.CreateMultipleInspectionsForMarkedTrackingSpecification(Rec, true);
                         Rec.Reset();
                     end;
                 }
