@@ -104,7 +104,7 @@ jobs:
           lfs: true
 
       - name: Read settings
-        uses: microsoft/AL-Go/Actions/ReadSettings@19a90088a40cf806eaeb0878ee9aa2438b400475
+        uses: aholstrup1/AL-Go/Actions/ReadSettings@aholstrup/workspace_compilationm
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
@@ -156,7 +156,7 @@ jobs:
       - name: Download Project Dependencies
         id: DownloadProjectDependencies
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True'
-        uses: microsoft/AL-Go/Actions/DownloadProjectDependencies@19a90088a40cf806eaeb0878ee9aa2438b400475
+        uses: aholstrup1/AL-Go/Actions/DownloadProjectDependencies@aholstrup/workspace_compilationm
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
         with:
@@ -166,8 +166,25 @@ jobs:
           projectDependenciesJson: ${{ inputs.projectDependenciesJson }}
           baselineWorkflowRunId: ${{ inputs.baselineWorkflowRunId }}
 
+      - name: Compile
+        uses: aholstrup1/AL-Go/Actions/Compile@aholstrup/workspace_compilationm
+        if: steps.DetermineBuildProject.outputs.BuildIt == 'True'
+        env:
+          Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
+          BuildMode: ${{ inputs.buildMode }}
+          NeedsContext: ${{ inputs.needsContext }}
+        with:
+          shell: ${{ inputs.shell }}
+          artifact: ${{ env.artifact }}
+          project: ${{ inputs.project }}
+          buildMode: ${{ inputs.buildMode }}
+          installAppsJson: ${{ steps.DownloadProjectDependencies.outputs.DownloadedApps }}
+          installTestAppsJson: ${{ steps.DownloadProjectDependencies.outputs.DownloadedTestApps }}
+          baselineWorkflowRunId: ${{ inputs.baselineWorkflowRunId }}
+          baselineWorkflowSHA: ${{ inputs.baselineWorkflowSHA }}
+
       - name: Build
-        uses: microsoft/AL-Go/Actions/RunPipeline@19a90088a40cf806eaeb0878ee9aa2438b400475
+        uses: aholstrup1/AL-Go/Actions/RunPipeline@aholstrup/workspace_compilationm
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True'
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
