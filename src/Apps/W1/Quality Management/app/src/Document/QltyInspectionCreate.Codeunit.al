@@ -346,7 +346,6 @@ codeunit 20404 "Qlty. Inspection - Create"
             end;
 
             QltyInspectionHeader.UpdateResultFromLines();
-            QltyInspectionHeader.UpdateBrickFields();
 
             QltyInspectionHeader.SetIsCreating(true);
             QltyInspectionHeader.Modify(false);

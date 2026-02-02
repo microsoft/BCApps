@@ -423,12 +423,12 @@ table 20404 "Qlty. Inspection Gen. Rule"
             SetDefaultTriggerValuesToNoTrigger();
             if Rec."Activation Trigger" in [Rec."Activation Trigger"::"Manual or Automatic", Rec."Activation Trigger"::"Automatic only"] then begin
                 Rec."Assembly Trigger" := Rec."Assembly Trigger"::NoTrigger;
-                Rec."Production Trigger" := Rec."Production Trigger"::NoTrigger;
-                Rec."Purchase Trigger" := Rec."Purchase Trigger"::NoTrigger;
+                Rec."Production Order Trigger" := Rec."Production Order Trigger"::NoTrigger;
+                Rec."Purchase Order Trigger" := Rec."Purchase Order Trigger"::NoTrigger;
                 Rec."Sales Return Trigger" := Rec."Sales Return Trigger"::NoTrigger;
-                Rec."Transfer Trigger" := Rec."Transfer Trigger"::NoTrigger;
+                Rec."Transfer Order Trigger" := Rec."Transfer Order Trigger"::NoTrigger;
                 Rec."Warehouse Movement Trigger" := Rec."Warehouse Movement Trigger"::NoTrigger;
-                Rec."Warehouse Receive Trigger" := Rec."Warehouse Receive Trigger"::NoTrigger;
+                Rec."Warehouse Receipt Trigger" := Rec."Warehouse Receipt Trigger"::NoTrigger;
                 case InferredIntent of
                     InferredIntent::Assembly:
                         Rec."Assembly Trigger" := QltyManagementSetup."Assembly Trigger";
