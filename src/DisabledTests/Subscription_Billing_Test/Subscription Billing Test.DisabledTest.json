@@ -130,5 +130,10 @@
     "codeunitId": 148154,
     "CodeunitName": "Vendor Contracts Test",
     "Method": "CheckValueChangesOnVendorContractLines"
+  },
+  {
+    "codeunitId": 148157,
+    "codeunitName": "Service Object Test",
+    "method": "UT_UpdateServiceDatesDoesNotCalculateCancellationPossibleUntilAndTermUntilWhenNoticePeriodIsEmpty"
   }
 ]

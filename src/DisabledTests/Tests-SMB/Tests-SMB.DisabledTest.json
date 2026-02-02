@@ -173,5 +173,10 @@
     "codeunitId": 139126,
     "codeunitName": "O365 Activites Tests",
     "method": "OverduePurchInvoiceRemainingAmountLCYSortingTest"
+  },
+  {
+    "codeunitId": 139126,
+    "codeunitName": "O365 Activites Tests",
+    "method": "DrillDownSalesThisMonth"
   }
 ]

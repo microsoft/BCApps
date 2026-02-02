@@ -38,5 +38,15 @@
     "codeunitId": 134333,
     "codeunitName": "ERM Purchase Prepayments",
     "method": "PostFCYPurchPrepCreditMemo"
+  },
+  {
+    "codeunitId": 134103,
+    "codeunitName": "ERM Prepayment IV",
+    "method": "PurchasePrepamentInvoiceUsingCopyDocument"
+  },
+  {
+    "codeunitId": 134103,
+    "codeunitName": "ERM Prepayment IV",
+    "method": "SalesPrepaymentInvoiceUsingCopyDocument"
   }
 ]

@@ -378,5 +378,10 @@
     "codeunitId": 136905,
     "codeunitName": "Service Reports - II",
     "method": "ServiceProfitOrdersShowDetailMultiLines"
+  },
+  {
+    "codeunitId": 136900,
+    "codeunitName": "Service Reports",
+    "method": "PrepaidContrEntriesTestWarning"
   }
 ]

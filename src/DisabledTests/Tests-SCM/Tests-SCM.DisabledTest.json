@@ -3748,5 +3748,10 @@
     "codeunitId": 137831,
     "codeunitName": "SCM - Warehouse UT",
     "method": "WMSTestPartialPickCreatedWithSalesLotsPartialAvailablePartialReservedTwiceOnInventory"
+  },
+  {
+    "codeunitId": 137296,
+    "codeunitName": "SCM Inventory Misc. IV",
+    "method": "BiweeklyPhysInvCountingPeriodWithNoLastDate"
   }
 ]

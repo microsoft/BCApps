@@ -1698,5 +1698,25 @@
     "codeunitId": 139155,
     "codeunitName": "PEPPOL Management Tests",
     "method": "TestPeppolValidationSalesLineWithNegativeUnitPriceConfirmTrue"
+  },
+  {
+    "codeunitId": 134922,
+    "codeunitName": "ERM Budget",
+    "method": "GLBudgetEntriesLookupBudgetDimension1"
+  },
+  {
+    "codeunitId": 134922,
+    "codeunitName": "ERM Budget",
+    "method": "GLBudgetEntriesLookupBudgetDimension2"
+  },
+  {
+    "codeunitId": 134922,
+    "codeunitName": "ERM Budget",
+    "method": "GLBudgetEntriesLookupBudgetDimension3"
+  },
+  {
+    "codeunitId": 134922,
+    "codeunitName": "ERM Budget",
+    "method": "GLBudgetEntriesLookupBudgetDimension4"
   }
 ]
