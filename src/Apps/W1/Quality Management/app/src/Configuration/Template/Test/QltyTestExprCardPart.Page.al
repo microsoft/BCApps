@@ -119,7 +119,7 @@ page 20467 "Qlty. Test Expr. Card Part"
                         field(Field1; MatrixArrayConditionCellData[1])
                         {
                             ColumnSpan = 2;
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[1] + ' Cond.';
+                            CaptionClass = '3,' + MatrixArrayCaptionSet[1] + ' ' + ConditionLbl;
                             ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible1;
 
@@ -132,7 +132,7 @@ page 20467 "Qlty. Test Expr. Card Part"
                     field(Field1_Desc; MatrixArrayConditionDescriptionCellData[1])
                     {
                         ColumnSpan = 2;
-                        CaptionClass = '3,' + MatrixArrayCaptionSet[1] + ' Desc.';
+                        CaptionClass = '3,' + MatrixArrayCaptionSet[1] + ' ' + DescriptionLbl;
                         ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                         Editable = Visible1;
 
@@ -153,7 +153,7 @@ page 20467 "Qlty. Test Expr. Card Part"
 
                         field(Field2; MatrixArrayConditionCellData[2])
                         {
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[2] + ' Cond.';
+                            CaptionClass = '3,' + MatrixArrayCaptionSet[2] + ' ' + ConditionLbl;
                             ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 2';
                             Editable = Visible2;
 
@@ -165,7 +165,7 @@ page 20467 "Qlty. Test Expr. Card Part"
                     }
                     field(Field2_Desc; MatrixArrayConditionDescriptionCellData[2])
                     {
-                        CaptionClass = '3,' + MatrixArrayCaptionSet[2] + ' Desc.';
+                        CaptionClass = '3,' + MatrixArrayCaptionSet[2] + ' ' + DescriptionLbl;
                         ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 2';
                         Editable = Visible2;
 
@@ -185,7 +185,7 @@ page 20467 "Qlty. Test Expr. Card Part"
                         ShowCaption = false;
                         field(Field3; MatrixArrayConditionCellData[3])
                         {
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[3] + ' Cond.';
+                            CaptionClass = '3,' + MatrixArrayCaptionSet[3] + ' ' + ConditionLbl;
                             ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible3;
 
@@ -197,7 +197,7 @@ page 20467 "Qlty. Test Expr. Card Part"
                     }
                     field(Field3_Desc; MatrixArrayConditionDescriptionCellData[3])
                     {
-                        CaptionClass = '3,' + MatrixArrayCaptionSet[3] + ' Desc.';
+                        CaptionClass = '3,' + MatrixArrayCaptionSet[3] + ' ' + DescriptionLbl;
                         ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible3;
 
@@ -214,7 +214,7 @@ page 20467 "Qlty. Test Expr. Card Part"
 
                     field(Field4_Desc; MatrixArrayConditionDescriptionCellData[4])
                     {
-                        CaptionClass = '3,' + MatrixArrayCaptionSet[4] + ' Desc.';
+                        CaptionClass = '3,' + MatrixArrayCaptionSet[4] + ' ' + DescriptionLbl;
                         ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible4;
 
@@ -229,7 +229,7 @@ page 20467 "Qlty. Test Expr. Card Part"
 
                         field(Field4; MatrixArrayConditionCellData[4])
                         {
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[4] + ' Cond.';
+                            CaptionClass = '3,' + MatrixArrayCaptionSet[4] + ' ' + ConditionLbl;
                             ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible4;
 
@@ -247,7 +247,7 @@ page 20467 "Qlty. Test Expr. Card Part"
 
                     field(Field5_Desc; MatrixArrayConditionDescriptionCellData[5])
                     {
-                        CaptionClass = '3,' + MatrixArrayCaptionSet[5] + ' Desc.';
+                        CaptionClass = '3,' + MatrixArrayCaptionSet[5] + ' ' + DescriptionLbl;
                         ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible5;
 
@@ -262,7 +262,7 @@ page 20467 "Qlty. Test Expr. Card Part"
 
                         field(Field5; MatrixArrayConditionCellData[5])
                         {
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[5] + ' Cond.';
+                            CaptionClass = '3,' + MatrixArrayCaptionSet[5] + ' ' + ConditionLbl;
                             ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible5;
 
@@ -280,7 +280,7 @@ page 20467 "Qlty. Test Expr. Card Part"
 
                     field(Field6_Desc; MatrixArrayConditionDescriptionCellData[6])
                     {
-                        CaptionClass = '3,' + MatrixArrayCaptionSet[6] + ' Desc.';
+                        CaptionClass = '3,' + MatrixArrayCaptionSet[6] + ' ' + DescriptionLbl;
                         ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible6;
 
@@ -295,7 +295,7 @@ page 20467 "Qlty. Test Expr. Card Part"
 
                         field(Field6; MatrixArrayConditionCellData[6])
                         {
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[6] + ' Cond.';
+                            CaptionClass = '3,' + MatrixArrayCaptionSet[6] + ' ' + ConditionLbl;
                             ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible6;
 
@@ -313,7 +313,7 @@ page 20467 "Qlty. Test Expr. Card Part"
 
                     field(Field7_Desc; MatrixArrayConditionDescriptionCellData[7])
                     {
-                        CaptionClass = '3,' + MatrixArrayCaptionSet[7] + ' Desc.';
+                        CaptionClass = '3,' + MatrixArrayCaptionSet[7] + ' ' + DescriptionLbl;
                         ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible7;
 
@@ -328,7 +328,7 @@ page 20467 "Qlty. Test Expr. Card Part"
 
                         field(Field7; MatrixArrayConditionCellData[7])
                         {
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[7] + ' Cond.';
+                            CaptionClass = '3,' + MatrixArrayCaptionSet[7] + ' ' + ConditionLbl;
                             ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible7;
 
@@ -346,7 +346,7 @@ page 20467 "Qlty. Test Expr. Card Part"
 
                     field(Field8_Desc; MatrixArrayConditionDescriptionCellData[8])
                     {
-                        CaptionClass = '3,' + MatrixArrayCaptionSet[8] + ' Desc.';
+                        CaptionClass = '3,' + MatrixArrayCaptionSet[8] + ' ' + DescriptionLbl;
                         ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible8;
 
@@ -361,7 +361,7 @@ page 20467 "Qlty. Test Expr. Card Part"
 
                         field(Field8; MatrixArrayConditionCellData[8])
                         {
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[8] + ' Cond.';
+                            CaptionClass = '3,' + MatrixArrayCaptionSet[8] + ' ' + ConditionLbl;
                             ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible8;
 
@@ -379,7 +379,7 @@ page 20467 "Qlty. Test Expr. Card Part"
 
                     field(Field9_Desc; MatrixArrayConditionDescriptionCellData[9])
                     {
-                        CaptionClass = '3,' + MatrixArrayCaptionSet[9] + ' Desc.';
+                        CaptionClass = '3,' + MatrixArrayCaptionSet[9] + ' ' + DescriptionLbl;
                         ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible9;
 
@@ -394,7 +394,7 @@ page 20467 "Qlty. Test Expr. Card Part"
 
                         field(Field9; MatrixArrayConditionCellData[9])
                         {
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[9] + ' Cond.';
+                            CaptionClass = '3,' + MatrixArrayCaptionSet[9] + ' ' + ConditionLbl;
                             ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible9;
 
@@ -411,7 +411,7 @@ page 20467 "Qlty. Test Expr. Card Part"
                     Visible = Visible10;
                     field(Field10_Desc; MatrixArrayConditionDescriptionCellData[10])
                     {
-                        CaptionClass = '3,' + MatrixArrayCaptionSet[10] + ' Desc.';
+                        CaptionClass = '3,' + MatrixArrayCaptionSet[10] + ' ' + DescriptionLbl;
                         ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 3';
                         Editable = Visible10;
 
@@ -425,7 +425,7 @@ page 20467 "Qlty. Test Expr. Card Part"
                         ShowCaption = false;
                         field(Field10; MatrixArrayConditionCellData[10])
                         {
-                            CaptionClass = '3,' + MatrixArrayCaptionSet[10] + ' Cond.';
+                            CaptionClass = '3,' + MatrixArrayCaptionSet[10] + ' ' + ConditionLbl;
                             ToolTip = 'Specifies a test condition for a promoted result. This is dynamic based on the promoted results, this is result condition 1';
                             Editable = Visible10;
 
@@ -461,6 +461,8 @@ page 20467 "Qlty. Test Expr. Card Part"
         MatrixArrayConditionDescriptionCellData: array[10] of Text;
         MatrixArrayCaptionSet: array[10] of Text;
         MatrixVisibleState: array[10] of Boolean;
+        DescriptionLbl: Label 'Description';
+        ConditionLbl: Label 'Condition';
 
     procedure LoadExistingTest(CurrentTest: Code[20]; Update: Boolean)
     begin
