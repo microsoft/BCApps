@@ -74,16 +74,10 @@ codeunit 36957 "PowerBI Upgrade"
         exit('MS-GH-PY-529-POWERBI-CLSINCOME-UPGRADE-20250123');
     end;
 
-    local procedure InitializeABCAnalysisSetupUpgradeTag(): Code[250]
-    begin
-        exit('MS-606229-PowerBIABCAnalysisSetup-20251216');
-    end;
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]
     local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
         PerCompanyUpgradeTags.Add(TransferDimensionSetEntriesUpgradeTag());
-        PerCompanyUpgradeTags.Add(InitializeABCAnalysisSetupUpgradeTag());
     end;
 
 }
