@@ -48,6 +48,11 @@
         "id":  "PTE0026",
         "action":  "None",
         "justification": "TODO(#572306) - (see AS0138) This will require a multi-release effort."
+    },
+    {
+        "id":  "AL1085",
+        "action":  "None",
+        "justification": "File locking rule disabled during parallel workspace compilation."
     }
   ]
 }
