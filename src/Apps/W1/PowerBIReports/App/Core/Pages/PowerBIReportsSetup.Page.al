@@ -5,7 +5,6 @@
 namespace Microsoft.PowerBIReports;
 
 using Microsoft.Finance.PowerBIReports;
-using Microsoft.Inventory.PowerBIReports;
 using System.DateTime;
 using System.Environment;
 
