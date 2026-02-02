@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.PowerBIReports;
 
+using Microsoft.Inventory.Analysis;
+
 query 37022 "ABC Analysis Setup - PBI API"
 {
     Access = Internal;
@@ -18,7 +20,7 @@ query 37022 "ABC Analysis Setup - PBI API"
 
     elements
     {
-        dataitem(abcAnalysisSetup; "PowerBI ABC Analysis Setup")
+        dataitem(abcAnalysisSetup; "ABC Analysis Setup")
         {
             column(categoryA; "Category A")
             {
