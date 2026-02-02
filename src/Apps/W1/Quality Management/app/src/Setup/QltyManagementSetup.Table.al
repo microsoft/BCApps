@@ -12,7 +12,6 @@ using Microsoft.QualityManagement.Configuration;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Integration.Assembly;
 using Microsoft.QualityManagement.Integration.Inventory;
 using Microsoft.QualityManagement.Integration.Manufacturing;
@@ -144,61 +143,6 @@ table 20400 "Qlty. Management Setup"
                 end;
             end;
         }
-        field(60; "Brick Top Left Expression"; Text[200])
-        {
-            Caption = 'Brick Top Left Expression';
-            ToolTip = 'Specifies the top left expression. Appears in small font in its own row of the tile.';
-        }
-        field(61; "Brick Middle Left Expression"; Text[200])
-        {
-            Caption = 'Brick Middle Left Expression';
-            ToolTip = 'Specifies the middle left expression. Appears in a tile large font, with a link style lookup.';
-        }
-        field(62; "Brick Middle Right Expression"; Text[200])
-        {
-            Caption = 'Brick Middle Right Expression';
-            ToolTip = 'Specifies the middle right expression. Appears in a tile with a large font and no link, right-aligned.';
-        }
-        field(63; "Brick Bottom Left Expression"; Text[200])
-        {
-            Caption = 'Brick Bottom Left Expression';
-            ToolTip = 'Specifies the bottom left expression. Appears in a tile with a small font, not as small as Brick Top Left Expression (the first field).';
-        }
-        field(64; "Brick Bottom Right Expression"; Text[200])
-        {
-            Caption = 'Brick Bottom Right Expression';
-            ToolTip = 'Specifies the bottom right expression. Appears in a tile with a small font, not as small as Brick Top Left Expression (the first field).';
-        }
-        field(65; "Brick Top Left Header"; Text[30])
-        {
-            Description = 'Appears in small font in its own row of the tile';
-            Caption = 'Brick Top Left Header';
-            ToolTip = 'Specifies a field header for the Brick Top Left Expression.';
-        }
-        field(66; "Brick Middle Left Header"; Text[30])
-        {
-            Description = 'Appears in a tile large font, with a link style lookup';
-            Caption = 'Brick Middle Left Header';
-            ToolTip = 'Specifies the middle left header. Field header for the Brick Middle Left Expression.';
-        }
-        field(67; "Brick Middle Right Header"; Text[30])
-        {
-            Description = 'Appears in a tile with a large font and no link, right-aligned.';
-            Caption = 'Brick Middle Right Header';
-            ToolTip = 'Specifies the middle right header. Field header for the Brick Middle Right Expression.';
-        }
-        field(68; "Brick Bottom Left Header"; Text[30])
-        {
-            Description = 'Appears in a tile with a small font, not as small as field 1.';
-            Caption = 'Brick Bottom Left Header';
-            ToolTip = 'Specifies the bottom left header. Field header for the Brick Bottom Left Expression.';
-        }
-        field(69; "Brick Bottom Right Header"; Text[30])
-        {
-            Description = 'Appears in a tile with a small font, not as small as field 1.';
-            Caption = 'Brick Bottom Right Header';
-            ToolTip = 'Specifies the bottom right field header for the Brick Bottom Right Expression.';
-        }
         field(70; "Visibility"; Enum "Qlty. Management Visibility")
         {
             Description = 'Assists with toggling the application area that shows or hides the Quality Management.';
@@ -224,13 +168,6 @@ table 20400 "Qlty. Management Setup"
                     Message(InspectionGenerationRulesHaveBeenDisabledMsg);
                 end;
             end;
-        }
-        field(72; "Workflow Integration Enabled"; Boolean)
-        {
-            Description = 'When enabled, provides events and responses for working with Business Central workflows and approvals.';
-            DataClassification = SystemMetadata;
-            Caption = 'Workflow Integration';
-            ToolTip = 'Specifies whether to enable events and responses for workflows and approval requests.';
         }
         field(73; "Item Reclass. Batch Name"; Code[10])
         {
@@ -504,38 +441,13 @@ table 20400 "Qlty. Management Setup"
     }
 
     var
+        RecordHasBeenRead: Boolean;
         ShouldDisableInspectionGenerationRulesQst: Label 'Changing the visibility to be off should be accompanied by disabling the inspection generation rules. Do you want to disable your current enabled generation rules?';
         InspectionGenerationRulesHaveBeenDisabledMsg: Label 'All inspection generation rules have been disabled.';
         ConfirmExistingRulesQst: Label 'You have %1 existing generation rules that used the "%2" setting. Do you want to change those to be "%3"?', Comment = '%1=the count, %2=the old setting, %3=the new setting.';
         BatchNotFoundErr: Label 'The batch name "%1" was not found. Confirm that the batch name is correct.', Comment = '%1=the batch name';
         WorksheetNameNotFoundErr: Label 'The worksheet name "%1" was not found. Confirm that the worksheet name is correct.', Comment = '%1=the worksheet name';
         OneDriveIntegrationNotConfiguredErr: Label 'The Quality Management Setup has been configured to upload pictures to OneDrive, however you have not yet configured Business Central to work with . Please configure OneDrive setup with Business Central first before using this feature.';
-        DefaultTopLeftExpressionTxt: Label '[No.] [Re-inspection No.]', Locked = true;
-        DefaultMiddleLeftExpressionTxt: Label '[Result Description]', Locked = true;
-        DefaultMiddleRightExpressionTxt: Label '[Description] [Source Item No.] [Source Lot No.]  [Source Serial No.]', Locked = true;
-        DefaultBottomLeftExpressionTxt: Label '[Source Document No.]', Locked = true;
-        DefaultBottomRightExpressionTxt: Label '[Status] [Finished Date]', Locked = true;
-        DefaultTopLeftLbl: Label 'Inspection', Locked = true;
-        DefaultMiddleLeftLbl: Label 'Result', Locked = true;
-        DefaultMiddleRightLbl: Label 'Details', Locked = true;
-        DefaultBottomLeftLbl: Label 'Document', Locked = true;
-        DefaultBottomRightLabelLbl: Label 'Status', Locked = true;
-        ExcludeBrickFieldTok: Label '<>Brick*', Locked = true;
-        MobileFieldsHaveBeenUpdatedForAllExistingInspectionMsg: Label 'The mobile fields have been updated for all existing inspections.';
-
-    trigger OnInsert()
-    begin
-        Rec.GetBrickHeaders(Rec."Brick Top Left Header", Rec."Brick Middle Left Header", Rec."Brick Middle Right Header", Rec."Brick Bottom Left Header", Rec."Brick Bottom Right Header");
-
-        Rec.GetBrickExpressions(Rec."Brick Top Left Expression", Rec."Brick Middle Left Expression", Rec."Brick Middle Right Expression", Rec."Brick Bottom Left Expression", Rec."Brick Bottom Right Expression");
-    end;
-
-    trigger OnModify()
-    begin
-        Rec.GetBrickHeaders(Rec."Brick Top Left Header", Rec."Brick Middle Left Header", Rec."Brick Middle Right Header", Rec."Brick Bottom Left Header", Rec."Brick Bottom Right Header");
-
-        Rec.GetBrickExpressions(Rec."Brick Top Left Expression", Rec."Brick Middle Left Expression", Rec."Brick Middle Right Expression", Rec."Brick Bottom Left Expression", Rec."Brick Bottom Right Expression");
-    end;
 
     internal procedure SanityCheckReceiveSettings()
     var
@@ -555,91 +467,6 @@ table 20400 "Qlty. Management Setup"
 
         if not DocumentServiceManagement.IsConfigured() then
             Error(OneDriveIntegrationNotConfiguredErr);
-    end;
-
-    internal procedure GetBrickExpressions(var TopLeft: Text[200]; var MiddleLeft: Text[200]; var MiddleRight: Text[200]; var BottomLeft: Text[200]; var BottomRight: Text[200])
-    begin
-        TopLeft := DefaultTopLeftExpressionTxt;
-        MiddleLeft := DefaultMiddleLeftExpressionTxt;
-        MiddleRight := DefaultMiddleRightExpressionTxt;
-        BottomLeft := DefaultBottomLeftExpressionTxt;
-        BottomRight := DefaultBottomRightExpressionTxt;
-
-        if Rec."Brick Top Left Expression" <> '' then
-            TopLeft := Rec."Brick Top Left Expression";
-
-        if Rec."Brick Middle Left Expression" <> '' then
-            MiddleLeft := Rec."Brick Middle Left Expression";
-
-        if Rec."Brick Middle Right Expression" <> '' then
-            MiddleRight := Rec."Brick Middle Right Expression";
-
-        if Rec."Brick Bottom Left Expression" <> '' then
-            BottomLeft := Rec."Brick Bottom Left Expression";
-
-        if Rec."Brick Bottom Right Expression" <> '' then
-            BottomRight := Rec."Brick Bottom Right Expression";
-    end;
-
-    internal procedure GetBrickHeaders(var TopLeft: Text[30]; var MiddleLeft: Text[30]; var MiddleRight: Text[30]; var BottomLeft: Text[30]; var BottomRight: Text[30])
-    begin
-        TopLeft := DefaultTopLeftLbl;
-        MiddleLeft := DefaultMiddleLeftLbl;
-        MiddleRight := DefaultMiddleRightLbl;
-        BottomLeft := DefaultBottomLeftLbl;
-        BottomRight := DefaultBottomRightLabelLbl;
-
-        if Rec."Brick Top Left Header" <> '' then
-            TopLeft := Rec."Brick Top Left Header";
-
-        if Rec."Brick Middle Left Header" <> '' then
-            MiddleLeft := Rec."Brick Middle Left Header";
-
-        if Rec."Brick Middle Right Header" <> '' then
-            MiddleRight := Rec."Brick Middle Right Header";
-
-        if Rec."Brick Bottom Left Header" <> '' then
-            BottomLeft := Rec."Brick Bottom Left Header";
-
-        if Rec."Brick Bottom Right Header" <> '' then
-            BottomRight := Rec."Brick Bottom Right Header";
-    end;
-
-    internal procedure AssistEditBrickField(FieldNo: Integer)
-    var
-        QltyInspectionTemplateEdit: Page "Qlty. Inspection Template Edit";
-        RecordRefToInspection: RecordRef;
-        FieldRefToInspection: FieldRef;
-        Template: Text;
-    begin
-        RecordRefToInspection := Rec.RecordId().GetRecord();
-        RecordRefToInspection.SetRecFilter();
-        RecordRefToInspection.FindFirst();
-        FieldRefToInspection := RecordRefToInspection.Field(FieldNo);
-        Template := FieldRefToInspection.Value();
-        if QltyInspectionTemplateEdit.RunModalWith(Database::"Qlty. Inspection Header", ExcludeBrickFieldTok, Template) in [Action::LookupOK, Action::OK, Action::Yes] then begin
-            FieldRefToInspection.Validate(CopyStr(Template, 1, FieldRefToInspection.Length));
-            RecordRefToInspection.Modify();
-        end;
-    end;
-
-    /// <summary>
-    /// UpdateBrickFieldsOnAllExistingInspection will update the brick fields on all existing inspections.
-    /// Use this if you need to adjust the brick summary on all inspections.
-    /// </summary>
-    procedure UpdateBrickFieldsOnAllExistingInspection()
-    var
-        QltyInspectionHeader: Record "Qlty. Inspection Header";
-    begin
-        if QltyInspectionHeader.FindSet(true) then
-            repeat
-                QltyInspectionHeader.UpdateBrickFields();
-#pragma warning disable AA0214
-                QltyInspectionHeader.Modify(false);
-#pragma warning restore AA0214
-            until QltyInspectionHeader.Next() = 0;
-
-        Message(MobileFieldsHaveBeenUpdatedForAllExistingInspectionMsg);
     end;
 
     internal procedure GetAppGuid(): Guid
@@ -746,6 +573,17 @@ table 20400 "Qlty. Management Setup"
             exit(false);
 
         exit(Rec.Get());
+    end;
+
+    /// <summary>
+    /// Retrieves the Setup record from the database, caching the result to avoid repeated reads within the same session.
+    /// </summary>
+    procedure GetRecordOnce()
+    begin
+        if RecordHasBeenRead then
+            exit;
+        Get();
+        RecordHasBeenRead := true;
     end;
 
     /// <summary>

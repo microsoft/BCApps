@@ -27,7 +27,6 @@ using Microsoft.QualityManagement.Dispositions.PutAway;
 using Microsoft.QualityManagement.Dispositions.Transfer;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Integration.Inventory;
-using Microsoft.QualityManagement.Integration.Utilities;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
 using Microsoft.QualityManagement.Utilities;
@@ -1198,21 +1197,6 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Wrapper for internal QltyManagementSetup.GetBrickHeaders.
-    /// Retrieves and updates the brick header values in the setup record.
-    /// </summary>
-    /// <param name="QltyManagementSetup">The setup record to update with brick headers.</param>
-    internal procedure GetBrickHeaders(var QltyManagementSetup: Record "Qlty. Management Setup")
-    begin
-        QltyManagementSetup.GetBrickHeaders(
-            QltyManagementSetup."Brick Top Left Header",
-            QltyManagementSetup."Brick Middle Left Header",
-            QltyManagementSetup."Brick Middle Right Header",
-            QltyManagementSetup."Brick Bottom Left Header",
-            QltyManagementSetup."Brick Bottom Right Header");
-    end;
-
-    /// <summary>
     /// Wrapper for internal QltyManagementSetup.GetAppGuid.
     /// Returns the application GUID for the Quality Management app.
     /// </summary>
@@ -1384,20 +1368,6 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     #endregion Qlty. Filter Helpers Wrappers
-
-    #region Qlty. Utilities Integration Wrappers
-
-    /// <summary>
-    /// Wrapper for internal QltyUtilitiesIntegration.InternalHandleOnAfterGetPageSummary.
-    /// </summary>
-    internal procedure HandleOnAfterGetPageSummary(PageId: Integer; RecId: RecordId; var JsonArray: JsonArray)
-    var
-        QltyUtilitiesIntegration: Codeunit "Qlty. Utilities Integration";
-    begin
-        QltyUtilitiesIntegration.InternalHandleOnAfterGetPageSummary(PageId, RecId, JsonArray);
-    end;
-
-    #endregion Qlty. Utilities Integration Wrappers
 
     #region Qlty. Inspec. Gen. Rule Mgmt. Wrappers
 

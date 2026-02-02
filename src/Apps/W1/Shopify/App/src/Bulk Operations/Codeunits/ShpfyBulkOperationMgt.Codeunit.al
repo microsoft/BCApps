@@ -11,8 +11,6 @@ codeunit 30270 "Shpfy Bulk Operation Mgt."
 {
     var
         InvalidUserErr: Label 'You must sign in with a Business Central licensed user to enable the feature.';
-        CategoryTok: Label 'Shopify Integration', Locked = true;
-        BulkOperationsDontMatchLbl: Label 'Searched bulk operation (%1, %2, %3) does not match with current one (%4)', Comment = '%1 = Bulk Operation Id, %2 = Shop Code, %3 = Type, %4 = Bulk Operation Id', Locked = true;
         BulkOperationCreatedLbl: Label 'A bulk request was sent to Shopify. You can check the status of the synchronization in the Shopify Bulk Operations page.';
 
     internal procedure EnableBulkOperations(var Shop: Record "Shpfy Shop")
@@ -112,15 +110,14 @@ codeunit 30270 "Shpfy Bulk Operation Mgt."
     var
         BulkOperation: Record "Shpfy Bulk Operation";
         BulkOperationAPI: Codeunit "Shpfy Bulk Operation API";
-        BulkOperationId: BigInteger;
         ErrorCode: Text;
         CompletedAt: DateTime;
         Url: Text;
         PartialDataUrl: Text;
     begin
         BulkOperationAPI.SetShop(Shop);
-        BulkOperationAPI.GetCurrentBulkRequest(BulkOperationId, BulkOperationStatus, ErrorCode, CompletedAt, Url, PartialDataUrl);
-        if BulkOperation.Get(BulkOperationId, Shop.Code, Type) then begin
+        BulkOperationAPI.GetBulkRequest(SearchBulkOperationId, BulkOperationStatus, ErrorCode, CompletedAt, Url, PartialDataUrl);
+        if BulkOperation.Get(SearchBulkOperationId, Shop.Code, Type) then begin
             BulkOperation.Status := BulkOperationStatus;
             if ErrorCode <> '' then
                 BulkOperation."Error Code" := CopyStr(ErrorCode, 1, MaxStrLen(BulkOperation."Error Code"));
@@ -131,22 +128,6 @@ codeunit 30270 "Shpfy Bulk Operation Mgt."
             if PartialDataUrl <> '' then
                 BulkOperation."Partial Data Url" := CopyStr(PartialDataUrl, 1, MaxStrLen(BulkOperation."Partial Data Url"));
             BulkOperation.Modify(true);
-
-            if BulkOperationId <> SearchBulkOperationId then begin
-                Session.LogMessage('0000KZC', StrSubstNo(BulkOperationsDontMatchLbl, SearchBulkOperationId, Shop.Code, Type, BulkOperationId), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
-                BulkOperationAPI.GetBulkRequest(SearchBulkOperationId, BulkOperationStatus, ErrorCode, CompletedAt, Url, PartialDataUrl);
-                BulkOperation.Get(SearchBulkOperationId, Shop.Code, Type);
-                BulkOperation.Status := BulkOperationStatus;
-                if ErrorCode <> '' then
-                    BulkOperation."Error Code" := CopyStr(ErrorCode, 1, MaxStrLen(BulkOperation."Error Code"));
-                if CompletedAt <> 0DT then
-                    BulkOperation."Completed At" := CompletedAt;
-                if Url <> '' then
-                    BulkOperation.Url := CopyStr(Url, 1, MaxStrLen(BulkOperation.Url));
-                if PartialDataUrl <> '' then
-                    BulkOperation."Partial Data Url" := CopyStr(PartialDataUrl, 1, MaxStrLen(BulkOperation."Partial Data Url"));
-                BulkOperation.Modify(true);
-            end;
         end;
     end;
 
