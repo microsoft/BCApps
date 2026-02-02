@@ -7,7 +7,6 @@ namespace Microsoft.PowerBIReports;
 using Microsoft.Finance.PowerBIReports;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Period;
-using Microsoft.Inventory.PowerBIReports;
 using System.Diagnostics;
 using System.Environment.Configuration;
 using System.Media;
