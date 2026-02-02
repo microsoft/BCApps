@@ -109,8 +109,7 @@ table 20405 "Qlty. Inspection Header"
         field(13; "Pass Quantity"; Decimal)
         {
             Caption = 'Pass Quantity';
-            AutoFormatType = 10;
-            AutoFormatExpression = '0,<precision, 0:0><standard format,0>';
+            AutoFormatType = 0;
             ToolTip = 'Specifies the quantity that passed inspection. A manually entered quantity for non-sampling inspections, or derived from the quantity of passed sampling lines for sampling inspections.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
@@ -129,8 +128,7 @@ table 20405 "Qlty. Inspection Header"
         field(15; "Fail Quantity"; Decimal)
         {
             Caption = 'Fail Quantity';
-            AutoFormatType = 10;
-            AutoFormatExpression = '0,<precision, 0:0><standard format,0>';
+            AutoFormatType = 0;
             ToolTip = 'Specifies the quantity that failed inspection. A manually entered quantity for non-sampling inspections, or derived from the quantity of failed sampling lines for sampling inspections.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
