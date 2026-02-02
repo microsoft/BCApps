@@ -255,7 +255,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// <param name="SearchFor">The text to search for</param>
     /// <param name="ReplaceWith">The text to replace matches with</param>
     /// <returns>The text with all occurrences replaced</returns>
-    procedure TextReplace(Input: Text; SearchFor: Text; ReplaceWith: Text): Text
+    internal procedure TextReplace(Input: Text; SearchFor: Text; ReplaceWith: Text): Text
     begin
         exit(TextReplace(Input, SearchFor, ReplaceWith, "Qlty. Case Sensitivity"::Sensitive));
     end;
@@ -275,7 +275,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// <param name="ReplaceWith">The text to replace matches with</param>
     /// <param name="QltyCaseSensitivity">Sensitive for exact matching; Insensitive for case-insensitive matching</param>
     /// <returns>The text with all occurrences replaced</returns>
-    procedure TextReplace(Input: Text; SearchFor: Text; ReplaceWith: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity") ResultText: Text
+    internal procedure TextReplace(Input: Text; SearchFor: Text; ReplaceWith: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity") ResultText: Text
     var
         InputLen: Integer;
         SearchLen: Integer;
@@ -585,7 +585,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// Common usage: Displaying help text in UI, documenting expression capabilities, validation reference.
     /// </summary>
     /// <returns>Comma-separated list of available text formula patterns and functions</returns>
-    procedure GetTextFormulaOptions(): Text
+    internal procedure GetTextFormulaOptions(): Text
     begin
         exit(SpecialTextFormulaOptionsTok);
     end;

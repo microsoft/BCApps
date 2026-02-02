@@ -37,7 +37,7 @@ page 20441 "Qlty. Edit Large Text"
     var
         ContentText: Text;
 
-    procedure RunModalWith(var ExistingText: Text) ResultAction: Action
+    internal procedure RunModalWith(var ExistingText: Text) ResultAction: Action
     begin
         ContentText := ExistingText;
         ResultAction := CurrPage.RunModal();
