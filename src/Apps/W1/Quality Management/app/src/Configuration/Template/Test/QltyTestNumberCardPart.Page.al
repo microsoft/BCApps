@@ -197,7 +197,7 @@ page 20434 "Qlty. Test Number Card Part"
                         {
                             ColumnSpan = 2;
                             ApplicationArea = All;
-                            ToolTip = 'Specifies the minimum allowed value for this result. ';
+                            ToolTip = 'Specifies the minimum allowed value for this result.';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[1] + ' Min';
                             AutoFormatType = 0;
                             DecimalPlaces = 0 : 5;
@@ -281,7 +281,7 @@ page 20434 "Qlty. Test Number Card Part"
 
                         field(ChooseMin2; MatrixMinValue[2])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this result. ';
+                            ToolTip = 'Specifies the minimum allowed value for this result.';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[2] + ' Min';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -359,7 +359,7 @@ page 20434 "Qlty. Test Number Card Part"
 
                         field(ChooseMin3; MatrixMinValue[3])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this result. ';
+                            ToolTip = 'Specifies the minimum allowed value for this result.';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[3] + ' Min';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -453,7 +453,7 @@ page 20434 "Qlty. Test Number Card Part"
 
                         field(ChooseMin4; MatrixMinValue[4])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this result. ';
+                            ToolTip = 'Specifies the minimum allowed value for this result.';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[4] + ' Min';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -531,7 +531,7 @@ page 20434 "Qlty. Test Number Card Part"
 
                         field(ChooseMin5; MatrixMinValue[5])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this result. ';
+                            ToolTip = 'Specifies the minimum allowed value for this result.';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[5] + ' Min';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -609,7 +609,7 @@ page 20434 "Qlty. Test Number Card Part"
 
                         field(ChooseMin6; MatrixMinValue[6])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this result. ';
+                            ToolTip = 'Specifies the minimum allowed value for this result.';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[6] + ' Min';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -687,7 +687,7 @@ page 20434 "Qlty. Test Number Card Part"
 
                         field(ChooseMin7; MatrixMinValue[7])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this result. ';
+                            ToolTip = 'Specifies the minimum allowed value for this result.';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[7] + ' Min';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -765,7 +765,7 @@ page 20434 "Qlty. Test Number Card Part"
 
                         field(ChooseMin8; MatrixMinValue[8])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this result. ';
+                            ToolTip = 'Specifies the minimum allowed value for this result.';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[8] + ' Min';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -843,7 +843,7 @@ page 20434 "Qlty. Test Number Card Part"
 
                         field(ChooseMin9; MatrixMinValue[9])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this result. ';
+                            ToolTip = 'Specifies the minimum allowed value for this result.';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[9] + ' Min';
                             ShowCaption = true;
                             ShowMandatory = true;
@@ -921,7 +921,7 @@ page 20434 "Qlty. Test Number Card Part"
 
                         field(ChooseMin10; MatrixMinValue[10])
                         {
-                            ToolTip = 'Specifies the minimum allowed value for this result. ';
+                            ToolTip = 'Specifies the minimum allowed value for this result.';
                             CaptionClass = '3,' + MatrixArrayCaptionSet[10] + ' Min';
                             ShowCaption = true;
                             ShowMandatory = true;

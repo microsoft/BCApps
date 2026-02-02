@@ -109,10 +109,9 @@ table 20405 "Qlty. Inspection Header"
         field(13; "Pass Quantity"; Decimal)
         {
             Caption = 'Pass Quantity';
-            Description = 'A manually entered test for non-sampling inspections, or derived from the quantity of passed sampling lines for sampling inspections.';
             AutoFormatType = 10;
             AutoFormatExpression = '0,<precision, 0:0><standard format,0>';
-            ToolTip = 'Specifies the amount that passed inspection.';
+            ToolTip = 'Specifies the quantity that passed inspection. A manually entered quantity for non-sampling inspections, or derived from the quantity of passed sampling lines for sampling inspections.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -130,10 +129,9 @@ table 20405 "Qlty. Inspection Header"
         field(15; "Fail Quantity"; Decimal)
         {
             Caption = 'Fail Quantity';
-            Description = 'A manually entered test for non-sampling inspections, or derived from the quantity of failed sampling lines for sampling inspections.';
             AutoFormatType = 10;
             AutoFormatExpression = '0,<precision, 0:0><standard format,0>';
-            ToolTip = 'Specifies the amount that failed inspection.';
+            ToolTip = 'Specifies the quantity that failed inspection. A manually entered quantity for non-sampling inspections, or derived from the quantity of failed sampling lines for sampling inspections.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -285,7 +283,7 @@ table 20405 "Qlty. Inspection Header"
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Table));
             BlankZero = true;
             Editable = false;
-            ToolTip = 'Specifies a reference to the table that the quality inspection is for. ';
+            ToolTip = 'Specifies a reference to the table that the quality inspection is for.';
         }
         field(52; "Source Table Name"; Text[249])
         {

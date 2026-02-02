@@ -22,7 +22,7 @@ table 20403 "Qlty. Inspection Template Line"
         field(1; "Template Code"; Code[20])
         {
             Caption = 'Template Code';
-            Description = 'A template is a collection of tests which could represent questions or measurements to take.';
+            ToolTip = 'Specifies the template, which is a collection of tests that could represent questions or measurements to take.';
             NotBlank = true;
             TableRelation = "Qlty. Inspection Template Hdr.".Code;
         }
@@ -76,7 +76,7 @@ table 20403 "Qlty. Inspection Template Line"
         }
         field(10; "Copied From Template Code"; Code[20])
         {
-            Description = 'Used to track where a template was copied from.';
+            ToolTip = 'Specifies where a template was copied from.';
             Caption = 'Copied From Template Code';
         }
         field(11; "Default Value"; Text[250])
