@@ -673,8 +673,7 @@ table 20405 "Qlty. Inspection Header"
         PrecedingQltyInspectionHeader.SetRange("No.", Rec."No.");
         PrecedingQltyInspectionHeader.SetFilter("Re-inspection No.", '<%1', Rec."Re-inspection No.");
         PrecedingQltyInspectionHeader.SetRange("Most Recent Re-inspection", true);
-        if not PrecedingQltyInspectionHeader.IsEmpty() then
-            PrecedingQltyInspectionHeader.ModifyAll("Most Recent Re-inspection", false);
+        PrecedingQltyInspectionHeader.ModifyAll("Most Recent Re-inspection", false);
     end;
 
     /// <summary>
