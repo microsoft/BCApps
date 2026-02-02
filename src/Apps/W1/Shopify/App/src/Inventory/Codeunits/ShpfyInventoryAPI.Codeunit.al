@@ -121,7 +121,7 @@ codeunit 30195 "Shpfy Inventory API"
                 ShopInventory.Delete();
     end;
 
-    internal procedure ExportStock(var ShopInventory: Record "Shpfy Shop Inventory")
+    internal procedure ExportStock(var ShopInventory: Record "Shpfy Shop Inventory"; ForceExport: Boolean)
     var
         IGraphQL: Interface "Shpfy IGraphQL";
         JGraphQL: JsonObject;
@@ -135,7 +135,7 @@ codeunit 30195 "Shpfy Inventory API"
             JQuantities := JsonHelper.GetJsonArray(JGraphQL, 'variables.input.quantities');
 
             repeat
-                JQuantity := CalcStock(ShopInventory);
+                JQuantity := CalcStock(ShopInventory, ForceExport);
                 if JQuantity.Keys.Count = 4 then begin
                     JQuantities.Add(JQuantity);
                     InputSize += 1;
@@ -204,7 +204,7 @@ codeunit 30195 "Shpfy Inventory API"
                 SkippedRecord.LogSkippedRecord(EmptyRecordId, CopyStr(StrSubstNo(SkippedMsg, ErrorCode), 1, 250), ShopifyShop);
     end;
 
-    local procedure CalcStock(var ShopInventory: Record "Shpfy Shop Inventory") JQuantity: JsonObject
+    local procedure CalcStock(var ShopInventory: Record "Shpfy Shop Inventory"; ForceExport: Boolean) JQuantity: JsonObject
     var
         Item: Record Item;
         DelShopInventory: Record "Shpfy Shop Inventory";
@@ -227,7 +227,7 @@ codeunit 30195 "Shpfy Inventory API"
                 if not (Item.Type in [Item.Type::"Non-Inventory", Item.Type::Service]) then begin
                     ShopInventory.Validate(Stock, Round(GetStock(ShopInventory), 1, '<'));
                     ShopInventory.Modify();
-                    if ShopInventory.Stock <> ShopInventory."Shopify Stock" then
+                    if (ShopInventory.Stock <> ShopInventory."Shopify Stock") or ForceExport then
                         if ShopLocation.Get(ShopInventory."Shop Code", ShopInventory."Location Id") then begin
                             IStockAvailable := ShopLocation."Stock Calculation";
                             if IStockAvailable.CanHaveStock() then begin
