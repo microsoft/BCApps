@@ -1,0 +1,87 @@
+[
+  {
+    "codeunitId": 132901,
+    "codeunitName": "RTCAdmin_User_PermissionSet",
+    "method": "RTCAdmin_AddAdministratorsTest"
+  },
+  {
+    "codeunitId": 132901,
+    "codeunitName": "RTCAdmin_User_PermissionSet",
+    "method": "RTCAdmin_AddEveryoneTest"
+  },
+  {
+    "codeunitId": 135402,
+    "codeunitName": "Location Trans. Plan-based E2E",
+    "method": "TriciaSellsAnItemExistingInSpecificLocationAfterTransferringItToAnotherLocation"
+  },
+  {
+    "codeunitId": 135402,
+    "codeunitName": "Location Trans. Plan-based E2E",
+    "method": "TriciaSellsAnItemExistingInSpecificLocationAfterTransferringItToAnotherLocationAsTeamMemberISVEmb"
+  },
+  {
+    "codeunitId": 135403,
+    "codeunitName": "Assembly BOM Plan-based E2E",
+    "method": "AssemblyBOMCreateShowStructureAndExplodeAsTeamMember"
+  },
+  {
+    "codeunitId": 135403,
+    "codeunitName": "Assembly BOM Plan-based E2E",
+    "method": "AssemblyBOMCreateShowStructureAndExplodeAsTeamMemberISVEmb"
+  },
+  {
+    "codeunitId": 135405,
+    "codeunitName": "Logged Segment E2E",
+    "method": "DeleteLogSegmentAsTeamMember"
+  },
+  {
+    "codeunitId": 135408,
+    "codeunitName": "Return Order Plan-based E2E",
+    "method": "CreatePurchaseReturnOrderAsTeamMember"
+  },
+  {
+    "codeunitId": 135408,
+    "codeunitName": "Return Order Plan-based E2E",
+    "method": "CreatePurchaseReturnOrderAsTeamMemberISVEmb"
+  },
+  {
+    "codeunitId": 135408,
+    "codeunitName": "Return Order Plan-based E2E",
+    "method": "CreateSalesReturnOrderAsTeamMember"
+  },
+  {
+    "codeunitId": 135408,
+    "codeunitName": "Return Order Plan-based E2E",
+    "method": "CreateSalesReturnOrderAsTeamMemberISVEmb"
+  },
+  {
+    "codeunitId": 135414,
+    "codeunitName": "Purchase Quote Plan-based E2E",
+    "method": "TestCreatePurchaseOrderFromPurchaseQuoteAsAccountant"
+  },
+  {
+    "codeunitId": 135414,
+    "codeunitName": "Purchase Quote Plan-based E2E",
+    "method": "TestCreatePurchaseOrderFromPurchaseQuoteAsBusinessManager"
+  },
+  {
+    "codeunitId": 135414,
+    "codeunitName": "Purchase Quote Plan-based E2E",
+    "method": "TestCreatePurchaseOrderFromPurchaseQuoteAsDeviceISVEmbUser"
+  },
+  {
+    "codeunitId": 135414,
+    "codeunitName": "Purchase Quote Plan-based E2E",
+    "method": "TestCreatePurchaseOrderFromPurchaseQuoteAsEssentialISVEmbUser"
+  },
+  {
+    "codeunitId": 135414,
+    "codeunitName": "Purchase Quote Plan-based E2E",
+    "method": "TestCreatePurchaseOrderFromPurchaseQuoteAsTeamMember"
+  },
+  {
+    "codeunitId": 135414,
+    "codeunitName": "Purchase Quote Plan-based E2E",
+    "method": "TestCreatePurchaseOrderFromPurchaseQuoteAsTeamMemberISVEmb"
+  }
+]

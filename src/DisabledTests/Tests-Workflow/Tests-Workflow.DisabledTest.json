@@ -1,0 +1,62 @@
+[
+  {
+    "codeunitId": 134178,
+    "codeunitName": "WF Demo Incoming Doc",
+    "method": "TestWorkflowInsert"
+  },
+  {
+    "codeunitId": 134278,
+    "codeunitName": "Workflow Single Server Test",
+    "method": "GetDirectApproverForRequestor"
+  },
+  {
+    "codeunitId": 134278,
+    "codeunitName": "Workflow Single Server Test",
+    "method": "GetDirectApproverWrongEmailRequestor"
+  },
+  {
+    "codeunitId": 134301,
+    "codeunitName": "Workflow Notification Test",
+    "method": "TestOverdueApprovalsGenerateNotificationEntry"
+  },
+  {
+    "codeunitId": 139027,
+    "codeunitName": "Test Background Posting",
+    "method": "DataPrivacyWizardExportExcelActivityLogSuccess"
+  },
+  {
+    "codeunitId": 139027,
+    "codeunitName": "Test Background Posting",
+    "method": "MailManagementSubscriptionInTwoSessions"
+  },
+  {
+    "codeunitId": 139027,
+    "codeunitName": "Test Background Posting",
+    "method": "PostPurchOrderNotificationTest"
+  },
+  {
+    "codeunitId": 139027,
+    "codeunitName": "Test Background Posting",
+    "method": "PostPurchOrderNotificationWithCalcInvDiscount"
+  },
+  {
+    "codeunitId": 139027,
+    "codeunitName": "Test Background Posting",
+    "method": "PostPurchOrderSameCategoryTest"
+  },
+  {
+    "codeunitId": 139027,
+    "codeunitName": "Test Background Posting",
+    "method": "PostSalesOrderNotificationTest"
+  },
+  {
+    "codeunitId": 139027,
+    "codeunitName": "Test Background Posting",
+    "method": "PostSalesOrderNotificationWithCalcInvDiscount"
+  },
+  {
+    "codeunitId": 139027,
+    "codeunitName": "Test Background Posting",
+    "method": "PostSalesOrderSameCategoryTest"
+  }
+]

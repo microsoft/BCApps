@@ -1,0 +1,107 @@
+[
+  {
+    "codeunitId": 148183,
+    "codeunitName": "Sustainability Check Test",
+    "method": "TestCheckJournalLine"
+  },
+  {
+    "codeunitId": 148183,
+    "codeunitName": "Sustainability Check Test",
+    "method": "TestCheckJournalLineWithErrorCollection"
+  },
+  {
+    "codeunitId": 148183,
+    "codeunitName": "Sustainability Check Test",
+    "method": "TestCheckMultipleJournalLinesWithErrorCollection"
+  },
+  {
+    "codeunitId": 148185,
+    "codeunitName": "Sustainability API Tests",
+    "method": "TestGetSustainabilityAccounts"
+  },
+  {
+    "codeunitId": 148185,
+    "codeunitName": "Sustainability API Tests",
+    "method": "TestGetSustainabilityCategory"
+  },
+  {
+    "codeunitId": 148185,
+    "codeunitName": "Sustainability API Tests",
+    "method": "TestGetSustainabilityEntries"
+  },
+  {
+    "codeunitId": 148185,
+    "codeunitName": "Sustainability API Tests",
+    "method": "TestGetSustainabilityJournalLines"
+  },
+  {
+    "codeunitId": 148185,
+    "codeunitName": "Sustainability API Tests",
+    "method": "TestGetSustainabilitySubcategory"
+  },
+  {
+    "codeunitId": 148185,
+    "codeunitName": "Sustainability API Tests",
+    "method": "TestPostSustainabilityAccount"
+  },
+  {
+    "codeunitId": 148185,
+    "codeunitName": "Sustainability API Tests",
+    "method": "TestPostSustainabilityCategory"
+  },
+  {
+    "codeunitId": 148185,
+    "codeunitName": "Sustainability API Tests",
+    "method": "TestPostSustainabilityJournalLine"
+  },
+  {
+    "codeunitId": 148185,
+    "codeunitName": "Sustainability API Tests",
+    "method": "TestPostSustainabilitySubcategory"
+  },
+  {
+    "codeunitId": 148213,
+    "codeunitName": "Sust. ESG Integration Test",
+    "method": "TestReportingNameListCRMControlsVisibility"
+  },
+  {
+    "codeunitId": 148215,
+    "codeunitName": "PowerBI Sustainability Test",
+    "method": "TestEmployeeLedgerEntry"
+  },
+  {
+    "codeunitId": 148215,
+    "codeunitName": "PowerBI Sustainability Test",
+    "method": "TestSustainabilityGoal"
+  },
+  {
+    "codeunitId": 148215,
+    "codeunitName": "PowerBI Sustainability Test",
+    "method": "TestSustainLedgerEntry"
+  },
+  {
+    "codeunitId": 148219,
+    "codeunitName": "Sust. Value Chain Fixed Asset",
+    "method": "TestFAReclassJournalLineWithFAGLJournalLine"
+  },
+  {
+    "codeunitId": 148219,
+    "codeunitName": "Sust. Value Chain Fixed Asset",
+    "method": "TestFAReclassJournalLineWithFAJournalLine"
+  },
+  {
+    "codeunitId": 148207,
+    "codeunitName": "WF Sustainability Jnl. Batch",
+    "method": "RequestorCancelsRequestToDirectApproverForSustainabilityJournalBatch"
+  },
+  {
+    "codeunitId": 148207,
+    "codeunitName": "WF Sustainability Jnl. Batch",
+    "method": "RequestorCancelsFilteredRequestToDirectApproverForSustainabilityJournalBatch"
+  },
+  {
+    "codeunitId": 148209,
+    "codeunitName": "Sust. Caption Class Test",
+    "method": "VerifyCaptionWhenUnitOfMeasureIsNotBlank"
+  }
+]

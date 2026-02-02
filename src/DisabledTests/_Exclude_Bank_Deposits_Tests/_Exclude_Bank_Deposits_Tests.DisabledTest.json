@@ -1,0 +1,17 @@
+[
+  {
+    "codeunitId": 139768,
+    "codeunitName": "UT Page Bank Deposit",
+    "method": "FCYDepositWithTwoLinesChangeBankToFCY2"
+  },
+  {
+    "codeunitId": 139768,
+    "codeunitName": "UT Page Bank Deposit",
+    "method": "FCYDepositWithTwoLinesChangeBankToLCY"
+  },
+  {
+    "codeunitId": 139768,
+    "codeunitName": "UT Page Bank Deposit",
+    "method": "FCYDepositWithTwoLinesChangePostingDate"
+  }
+]

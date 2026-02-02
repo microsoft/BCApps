@@ -1,0 +1,32 @@
+[
+  {
+    "codeunitId": 135528,
+    "codeunitName": "WFWH Subscription E2E Tests",
+    "method": "CanCreateWorkflowWebhookSubscriptionWithWorkflow"
+  },
+  {
+    "codeunitId": 135528,
+    "codeunitName": "WFWH Subscription E2E Tests",
+    "method": "CanGetWorkflowWebhookSubscriptionNoWorkflow"
+  },
+  {
+    "codeunitId": 135528,
+    "codeunitName": "WFWH Subscription E2E Tests",
+    "method": "CanUpdateWorkflowWebhookSubscriptionWithWorkflow_DeleteThenPost"
+  },
+  {
+    "codeunitId": 135528,
+    "codeunitName": "WFWH Subscription E2E Tests",
+    "method": "CanUpdateWorkflowWebhookSubscriptionWithWorkflow_PostThenDelete"
+  },
+  {
+    "codeunitId": 135528,
+    "codeunitName": "WFWH Subscription E2E Tests",
+    "method": "CanUpdateWorkflowWebhookSubscriptionWithWorkflow_PostWithoutDelete"
+  },
+  {
+    "codeunitId": 139319,
+    "codeunitName": "O365 Integration Record UT",
+    "method": "EntityTablesAreNotEmpty"
+  }
+]

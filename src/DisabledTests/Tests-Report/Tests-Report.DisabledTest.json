@@ -1,0 +1,382 @@
+[
+  {
+    "codeunitId": 132600,
+    "codeunitName": "Report Layout",
+    "method": "TestBalanceCompPrevYear"
+  },
+  {
+    "codeunitId": 132600,
+    "codeunitName": "Report Layout",
+    "method": "TestVATVIESDeclarationTaxAuth"
+  },
+  {
+    "codeunitId": 133769,
+    "codeunitName": "Daily Report Tests",
+    "method": "DayBookCustLedgerEntryTaxEntries"
+  },
+  {
+    "codeunitId": 133769,
+    "codeunitName": "Daily Report Tests",
+    "method": "DayBookVATEntryCustomerVendorWithSameNos"
+  },
+  {
+    "codeunitId": 133769,
+    "codeunitName": "Daily Report Tests",
+    "method": "DayBookVendorLedgerEntryTaxEntries"
+  },
+  {
+    "codeunitId": 133769,
+    "codeunitName": "Daily Report Tests",
+    "method": "OnAfterGetRecordGLEntryDayBookCustLedgerEntry"
+  },
+  {
+    "codeunitId": 133769,
+    "codeunitName": "Daily Report Tests",
+    "method": "OnAfterGetRecordGLEntryDayBookVendorLedgerEntry"
+  },
+  {
+    "codeunitId": 133769,
+    "codeunitName": "Daily Report Tests",
+    "method": "OnAfterGetRecordLedgerEntryDayBookCustLedgerEntry"
+  },
+  {
+    "codeunitId": 133769,
+    "codeunitName": "Daily Report Tests",
+    "method": "OnAfterGetRecordLedgerEntryDayBookVendorLedgerEntry"
+  },
+  {
+    "codeunitId": 133769,
+    "codeunitName": "Daily Report Tests",
+    "method": "OnAfterGetRecordVATEntryPurchWithoutVendorDayBookVATEntry"
+  },
+  {
+    "codeunitId": 133769,
+    "codeunitName": "Daily Report Tests",
+    "method": "OnAfterGetRecordVATEntryPurchWithVendorDayBookVATEntry"
+  },
+  {
+    "codeunitId": 133769,
+    "codeunitName": "Daily Report Tests",
+    "method": "OnAfterGetRecordVATEntrySaleWithCustDayBookVATEntry"
+  },
+  {
+    "codeunitId": 133769,
+    "codeunitName": "Daily Report Tests",
+    "method": "OnAfterGetRecordVATEntrySaleWithoutCustDayBookVATEntry"
+  },
+  {
+    "codeunitId": 133769,
+    "codeunitName": "Daily Report Tests",
+    "method": "OnAfterGetRecordVATEntryTypeSettlementDayBookVATEntry"
+  },
+  {
+    "codeunitId": 133769,
+    "codeunitName": "Daily Report Tests",
+    "method": "TestDayBookVATEntry"
+  },
+  {
+    "codeunitId": 134600,
+    "codeunitName": "Report Layout Test",
+    "method": "JobTaskNosInStandardSalesInvoiceReport"
+  },
+  {
+    "codeunitId": 134600,
+    "codeunitName": "Report Layout Test",
+    "method": "SalesOrder_Print_OrderConfirmation"
+  },
+  {
+    "codeunitId": 134600,
+    "codeunitName": "Report Layout Test",
+    "method": "TestValidateCustomRrdlcOk"
+  },
+  {
+    "codeunitId": 134605,
+    "codeunitName": "Test Report Layout Selection",
+    "method": "TestPageServerPrinters"
+  },
+  {
+    "codeunitId": 134761,
+    "codeunitName": "Test Custom Reports",
+    "method": "ExcelReport"
+  },
+  {
+    "codeunitId": 134761,
+    "codeunitName": "Test Custom Reports",
+    "method": "XMLReport"
+  },
+  {
+    "codeunitId": 134775,
+    "codeunitName": "Word & RDLC Report Selections",
+    "method": "OneCustomer_TwoSelections_RDLC_Ok_WORD_Ok"
+  },
+  {
+    "codeunitId": 134775,
+    "codeunitName": "Word & RDLC Report Selections",
+    "method": "OneCustomer_TwoSelections_WORD_Ok_RDLC_Ok"
+  },
+  {
+    "codeunitId": 134775,
+    "codeunitName": "Word & RDLC Report Selections",
+    "method": "TwoCustomers_OneSelection_RDLC_Ok"
+  },
+  {
+    "codeunitId": 134775,
+    "codeunitName": "Word & RDLC Report Selections",
+    "method": "TwoCustomers_OneSelection_WORD_Ok"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "CustomerBalanceToDateShowsCorrectInvoicesWhenInvoicehasUnappliedAndReapplied"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "DraftSalesInvoiceCustomerItemReferenceNo"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "DraftSalesInvoiceWithExternalDocNo"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "PrintExternalDocNoOnDraftSalesInvoiceReport"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "ReceiptsExistsWhenSaveAsXMLStandardSalesCrMemoReport"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "ShipmentsExistsWhenSaveAsXMLStandardSalesInvoiceReport"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StandardSalesCreditMemoVATAmountSpecification"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StandardSalesDraftInvoiceShowsTranslatedVATClause"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StandardSalesDraftInvoiceShowsVATClausesFromLines"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StandardSalesInvoiceCurrDataGLSetup"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StandardSalesInvoiceCurrDataSalesHeaderCurrency"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StandardSalesInvoiceExternalDocumentNoIsNotPrinted"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StandardSalesInvoiceExternalDocumentNoIsPrinted"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StandardSalesInvoiceHasPhoneAndFaxInDataset"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StandardSalesInvoiceJobNoAndJobTaskNo"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StandardSalesInvoiceShowsSingleVATClausesForMultipleLineWithSameVATPostingSetup"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StandardSalesInvoiceShowsTranslatedVATClause"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StandardSalesInvoiceShowsVATClausesFromLines"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StandardSalesInvoiceVATAmountSpecification"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StandardSalesOrderConfExternalDocumentNoIsPrinted"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StandardSalesOrderConfPlannedShipmentDateIsPrinted"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StandardSalesOrderConfYourReference"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StandardSalesOrderHasPhoneAndFaxInDataset"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StdSalesCreditMemoCustomerItemReferenceNo"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StdSalesCreditMemoDoesNotHaveEmptyPage"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StdSalesCrMemoPmtMethodTranslation"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StdSalesDraftInvoiceDoesNotHaveEmptyPage"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StdSalesDraftInvoicePmtMethodTranslation"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StdSalesInvoiceAssemblyComponentsRDLC"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StdSalesInvoiceCustomerItemReferenceNo"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StdSalesInvoiceDocumentCustomCaption"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StdSalesInvoiceDoesNotHaveEmptyPage"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StdSalesInvoicePaymentTerms"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StdSalesInvoicePmtMethodTranslation"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StdSalesInvoiceShippingMethod"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StdSalesOrderConfArchiveDocFlagStateIsSavedAfterRun"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StdSalesOrderConfAssemblyComponentsRDLC"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StdSalesOrderConfPmtMethodTranslation"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StdSalesQuoteArchiveDocFlagStateIsSavedAfterRun"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StdSalesQuoteCustomerItemReferenceNo"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StdSalesQuoteDoesNotHaveEmptyPage"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "StdSalesQuotePmtMethodTranslation"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "TestReportStandardSalesDraftInvoice_DefinedInteractionTemplate_WithLogInteraction"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "TestReportStandardSalesDraftInvoice_DefinedInteractionTemplate_WithoutLogInteraction"
+  },
+  {
+    "codeunitId": 134976,
+    "codeunitName": "ERM Sales Report",
+    "method": "TestReportStandardSalesDraftInvoice_NotDefinedInteractionTemplate"
+  },
+  {
+    "codeunitId": 134982,
+    "codeunitName": "ERM Financial Reports",
+    "method": "VATVIESDeclarationAddCurrFalse"
+  },
+  {
+    "codeunitId": 134982,
+    "codeunitName": "ERM Financial Reports",
+    "method": "VATVIESDeclarationAddCurrTrue"
+  },
+  {
+    "codeunitId": 134982,
+    "codeunitName": "ERM Financial Reports",
+    "method": "VATVIESDeclarationSkipsCountryFromCompanyInformation"
+  },
+  {
+    "codeunitId": 134983,
+    "codeunitName": "ERM Purchase Reports",
+    "method": "PurchInvoiceTotalAmountWithPricesIncludingVAT"
+  },
+  {
+    "codeunitId": 134984,
+    "codeunitName": "ERM Sales Report III",
+    "method": "StandardSalesCreditMemoWithEmptyShiptoInformation"
+  },
+  {
+    "codeunitId": 136905,
+    "codeunitName": "Service Reports - II",
+    "method": "ServiceProfitOrdersShowDetailMultiLines"
+  }
+]

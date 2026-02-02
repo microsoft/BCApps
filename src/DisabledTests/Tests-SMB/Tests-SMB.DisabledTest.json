@@ -1,0 +1,177 @@
+[
+  {
+    "codeunitId": 137281,
+    "codeunitName": "O365 Location Transfers",
+    "method": "DeselectDirectTransferForNonPostedTransferOrder"
+  },
+  {
+    "codeunitId": 137281,
+    "codeunitName": "O365 Location Transfers",
+    "method": "DeselectDirectTransferForPartlyPostedTransferOrder"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "MakeOrderFromQuoteKeepsUserEnteredInformation"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "MakeOrderFromQuoteSetsSameFieldsAsCreatingInvoiceWithSameData"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "MakeOrderFromQuoteTransfersAllFields"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "MakeOrderFromQuoteTransfersAllFieldsWithAmountDisc"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "MakeOrderFromQuoteTransfersAllFieldsWithPctDisc"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "MakeOrderFromQuoteTransfersComments"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "SelectNoWhenMakingOrderFromQuote"
+  },
+  {
+    "codeunitId": 138007,
+    "codeunitName": "O365 Shipping Agent",
+    "method": "PostSalesInvoiceForCustomerWithShippingAgentService"
+  },
+  {
+    "codeunitId": 138007,
+    "codeunitName": "O365 Shipping Agent",
+    "method": "PostSalesInvoiceWithShippingAgentService"
+  },
+  {
+    "codeunitId": 138007,
+    "codeunitName": "O365 Shipping Agent",
+    "method": "PostSalesOrderForCustomerWithShippingAgentService"
+  },
+  {
+    "codeunitId": 138007,
+    "codeunitName": "O365 Shipping Agent",
+    "method": "PostSalesOrderWithShippingAgentService"
+  },
+  {
+    "codeunitId": 138007,
+    "codeunitName": "O365 Shipping Agent",
+    "method": "PostSalesQuoteAsSalesOrderForCustomerWithShippingAgentService"
+  },
+  {
+    "codeunitId": 138007,
+    "codeunitName": "O365 Shipping Agent",
+    "method": "PostSalesQuoteAsSalesOrderWithShippingAgent"
+  },
+  {
+    "codeunitId": 138007,
+    "codeunitName": "O365 Shipping Agent",
+    "method": "PostSalesQuoteAsSalesOrderWithShippingAgentService"
+  },
+  {
+    "codeunitId": 138008,
+    "codeunitName": "Cust/Vend/Item/Empl Templates",
+    "method": "ItemTemplCardControls"
+  },
+  {
+    "codeunitId": 138023,
+    "codeunitName": "O365 Generic Chart Page Tests",
+    "method": "Top10CustPointClickedTest"
+  },
+  {
+    "codeunitId": 138023,
+    "codeunitName": "O365 Generic Chart Page Tests",
+    "method": "Top5CustPointClickedTest"
+  },
+  {
+    "codeunitId": 138029,
+    "codeunitName": "O365 Trial Balance",
+    "method": "AccountScheduleColumnHeaderPartOfColumnHeadersInTrialBalance"
+  },
+  {
+    "codeunitId": 138029,
+    "codeunitName": "O365 Trial Balance",
+    "method": "TestDrillDownOnFormulas"
+  },
+  {
+    "codeunitId": 138029,
+    "codeunitName": "O365 Trial Balance",
+    "method": "TestDrillDownOnGLAccounts"
+  },
+  {
+    "codeunitId": 138029,
+    "codeunitName": "O365 Trial Balance",
+    "method": "TestNoErrorsOnEmptyAccountingPeriod"
+  },
+  {
+    "codeunitId": 138029,
+    "codeunitName": "O365 Trial Balance",
+    "method": "TestPreviousNext"
+  },
+  {
+    "codeunitId": 138029,
+    "codeunitName": "O365 Trial Balance",
+    "method": "TestTrialBalanceIsCachedWhenTrialBalancePageIsOpened"
+  },
+  {
+    "codeunitId": 138029,
+    "codeunitName": "O365 Trial Balance",
+    "method": "TestTrialBalanceMatchesAccSchedOverview"
+  },
+  {
+    "codeunitId": 138048,
+    "codeunitName": "O365 Inv. Item Availability",
+    "method": "CreatePurchOrderItemVendorNoIsEmptyVendorSelected"
+  },
+  {
+    "codeunitId": 138048,
+    "codeunitName": "O365 Inv. Item Availability",
+    "method": "CreatePurchOrderItemVendorNoIsEmptyVendorSelectionCanceled"
+  },
+  {
+    "codeunitId": 138048,
+    "codeunitName": "O365 Inv. Item Availability",
+    "method": "CreatePurchOrderUsesTheVendorNoFromItem"
+  },
+  {
+    "codeunitId": 139125,
+    "codeunitName": "ReportCatalogTests",
+    "method": "DetailTrialBalanceReport"
+  },
+  {
+    "codeunitId": 139126,
+    "codeunitName": "O365 Activites Tests",
+    "method": "AmountsAreCalculatedWhenLastModifiedIsSetTo0"
+  },
+  {
+    "codeunitId": 139126,
+    "codeunitName": "O365 Activites Tests",
+    "method": "AmountsAreRefreshedWhenActivitiesPageIsOpened"
+  },
+  {
+    "codeunitId": 139126,
+    "codeunitName": "O365 Activites Tests",
+    "method": "AmountsAreRefreshedWhenDataIsStale"
+  },
+  {
+    "codeunitId": 139126,
+    "codeunitName": "O365 Activites Tests",
+    "method": "DrillDownOverduePurchaseInvoiceAmount"
+  },
+  {
+    "codeunitId": 139126,
+    "codeunitName": "O365 Activites Tests",
+    "method": "OverduePurchInvoiceRemainingAmountLCYSortingTest"
+  }
+]

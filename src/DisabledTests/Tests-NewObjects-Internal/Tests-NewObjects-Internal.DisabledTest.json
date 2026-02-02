@@ -1,0 +1,52 @@
+[
+  {
+    "codeunitName": "Test Granules",
+    "method": "AllLocalAppObjectsAreInLocalPermissionSet",
+    "codeunitId": 132532
+  },
+  {
+    "codeunitName": "Test Granules",
+    "method": "AllLocalAppObjectsAreInO365FullPermissionSet",
+    "codeunitId": 132532
+  },
+  {
+    "codeunitName": "Test Granules",
+    "method": "AllLocalAppObjectsAreInO365BusFullPermissionSet",
+    "codeunitId": 132532
+  },
+  {
+    "codeunitName": "Test Granules",
+    "method": "AllPermissionsAreObjects",
+    "codeunitId": 132532
+  },
+  {
+    "codeunitName": "Test Granules",
+    "method": "AllD365PermissionsAreInD365PremiumBus",
+    "codeunitId": 132532
+  },
+  {
+    "codeunitName": "Test Granules",
+    "method": "AllO365PermissionsAreInO365BusFull",
+    "codeunitId": 132532
+  },
+  {
+    "codeunitName": "Test Granules",
+    "method": "AllO365PermissionsAreInO365Full",
+    "codeunitId": 132532
+  },
+  {
+    "codeunitName": "Test Granules",
+    "method": "BackupRestorePermissionSetIsPartOfAdminPlans",
+    "codeunitId": 132532
+  },
+  {
+    "codeunitName": "Test Granules",
+    "method": "TestTeamsUsersContainLoginOnly",
+    "codeunitId": 132532
+  },
+  {
+    "codeunitName": "Cloud Migration Property Test",
+    "method": "TestReplicateDataProperty",
+    "codeunitId": 135160
+  }
+]

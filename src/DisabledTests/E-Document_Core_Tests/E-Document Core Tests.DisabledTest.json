@@ -1,0 +1,116 @@
+[
+  {
+    "bug": "Not Provided",
+    "codeunitId": 133528,
+    "codeunitName": "EDocCopilotPOGeneralHarms",
+    "method": "*"
+  },
+  {
+    "bug": "Not Provided",
+    "codeunitId": 133501,
+    "codeunitName": "EDocCopilotPORedTeaming",
+    "method": "*"
+  },
+  {
+    "bug": "Not Provided",
+    "codeunitId": 133527,
+    "codeunitName": "EDocCopilotPOUPIAHarms",
+    "method": "*"
+  },
+  {
+    "bug": "Not Provided",
+    "codeunitId": 133508,
+    "codeunitName": "EDocLineMatchAccPromptInj",
+    "method": "*"
+  },
+  {
+    "bug": "Not Provided",
+    "codeunitId": 133502,
+    "codeunitName": "EDocCopilotPOAccuracy",
+    "method": "*"
+  },
+  {
+    "bug": "Not Provided",
+    "codeunitId": 135575,
+    "codeunitName": "E-Doc. API Test",
+    "method": "*"
+  },
+  {
+    "bug": "613698",
+    "codeunitId": 139746,
+    "codeunitName": "E-Doc. Email Tests",
+    "method": "TestSendFromPostedSalesInvoice"
+  },
+  {
+    "bug": "613698",
+    "codeunitId": 139746,
+    "codeunitName": "E-Doc. Email Tests",
+    "method": "TestPostAndSendFromSalesInvoice"
+  },
+  {
+    "bug": "613698",
+    "codeunitId": 139659,
+    "codeunitName": "E-Doc. Line Matching Test",
+    "method": "MatchOneImportLineToOnePOLineSuccess"
+  },
+  {
+    "bug": "613698",
+    "codeunitId": 139659,
+    "codeunitName": "E-Doc. Line Matching Test",
+    "method": "MatchOneImportLineToOnePOLineThroughCreatePOLineSuccessItem"
+  },
+  {
+    "bug": "613698",
+    "codeunitId": 139659,
+    "codeunitName": "E-Doc. Line Matching Test",
+    "method": "MatchOneImportLineToOnePOLineThroughCreatePOLineSuccessGLAccount"
+  },
+  {
+    "bug": "613698",
+    "codeunitId": 139659,
+    "codeunitName": "E-Doc. Line Matching Test",
+    "method": "MatchTwoImportLineToOnePOLineSuccess"
+  },
+  {
+    "bug": "613698",
+    "codeunitId": 139659,
+    "codeunitName": "E-Doc. Line Matching Test",
+    "method": "MatchTwoImportLineToOnePOLineFailure"
+  },
+  {
+    "bug": "613698",
+    "codeunitId": 139659,
+    "codeunitName": "E-Doc. Line Matching Test",
+    "method": "CreateMatchingRulesFromCopilotScenario"
+  },
+  {
+    "bug": "613698",
+    "codeunitId": 139659,
+    "codeunitName": "E-Doc. Line Matching Test",
+    "method": "MatchOneImportLineToOnePOLineSuccess26"
+  },
+  {
+    "bug": "613698",
+    "codeunitId": 139659,
+    "codeunitName": "E-Doc. Line Matching Test",
+    "method": "MatchDecimalQuantitySuccess"
+  },
+  {
+    "bug": "613698",
+    "codeunitId": 139883,
+    "codeunitName": "E-Doc Process Test",
+    "method": "FinishDraftCanBeUndone"
+  },
+  {
+    "bug": "Not Provided",
+    "codeunitId": 139628,
+    "codeunitName": "E-Doc. Receive Test",
+    "method": "ReceiveSinglePurchaseInvoice_PEPPOLDataExch_WithAttachment"
+  },
+  {
+    "bug": "Not Provided",
+    "codeunitId": 139628,
+    "codeunitName": "E-Doc. Receive Test",
+    "method": "ReceiveSinglePurchaseInvoice_PEPPOLDataExch_WithAttachment26"
+  }
+]

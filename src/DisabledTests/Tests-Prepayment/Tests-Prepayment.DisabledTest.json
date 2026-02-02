@@ -1,0 +1,42 @@
+[
+  {
+    "codeunitId": 134101,
+    "codeunitName": "ERM Prepayment II",
+    "method": "PurchasePrepmtLineAmountErrorOnPartialPostedInvoice"
+  },
+  {
+    "codeunitId": 134101,
+    "codeunitName": "ERM Prepayment II",
+    "method": "SalesPrepmtLineAmountErrorOnPartialPostedInvoice"
+  },
+  {
+    "codeunitId": 134101,
+    "codeunitName": "ERM Prepayment II",
+    "method": "SalesPrepmtWithCurrency"
+  },
+  {
+    "codeunitId": 134101,
+    "codeunitName": "ERM Prepayment II",
+    "method": "SalesPrepmtWithModifyCurrency"
+  },
+  {
+    "codeunitId": 134106,
+    "codeunitName": "ERM Prepayment V",
+    "method": "ErrorGLAccountMustHaveAValueIsShownForPurchasePrepaymentInvoiceWithMissingGenBusPostingGroupInGLAccount"
+  },
+  {
+    "codeunitId": 134106,
+    "codeunitName": "ERM Prepayment V",
+    "method": "ErrorGLAccountMustHaveAValueIsShownForSalesPrepaymentInvoiceWithMissingGenBusPostingGroupInGLAccount"
+  },
+  {
+    "codeunitId": 134333,
+    "codeunitName": "ERM Purchase Prepayments",
+    "method": "PostFCYPurchasePrepayment"
+  },
+  {
+    "codeunitId": 134333,
+    "codeunitName": "ERM Purchase Prepayments",
+    "method": "PostFCYPurchPrepCreditMemo"
+  }
+]

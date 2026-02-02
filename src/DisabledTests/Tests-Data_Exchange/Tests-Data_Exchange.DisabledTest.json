@@ -1,0 +1,227 @@
+[
+  {
+    "codeunitId": 132543,
+    "codeunitName": "Data Exch. Def UT",
+    "method": "CheckLineTypesExport"
+  },
+  {
+    "codeunitId": 134161,
+    "codeunitName": "Pmt Export Mgt Gen. Jnl Test",
+    "method": "ExportAgainPmtJnlLineAutoApplied"
+  },
+  {
+    "codeunitId": 134161,
+    "codeunitName": "Pmt Export Mgt Gen. Jnl Test",
+    "method": "ExportPmtJnlLineManuallyApplied"
+  },
+  {
+    "codeunitId": 134161,
+    "codeunitName": "Pmt Export Mgt Gen. Jnl Test",
+    "method": "ExportPmtJnlLineNotApplied"
+  },
+  {
+    "codeunitId": 139154,
+    "codeunitName": "Incoming Doc. To Data Exch.UT",
+    "method": "StatusRemainsCreatedIfHasLinkedDocWhenReopenIncomingDoc"
+  },
+  {
+    "codeunitId": 139154,
+    "codeunitName": "Incoming Doc. To Data Exch.UT",
+    "method": "TestHeaderFieldsExtractedForDefaultAttachment"
+  },
+  {
+    "codeunitId": 139154,
+    "codeunitName": "Incoming Doc. To Data Exch.UT",
+    "method": "TestPeppolCreditMemoImportLCY"
+  },
+  {
+    "codeunitId": 139154,
+    "codeunitName": "Incoming Doc. To Data Exch.UT",
+    "method": "TestPeppolCreditMemoImportNonLCY"
+  },
+  {
+    "codeunitId": 139154,
+    "codeunitName": "Incoming Doc. To Data Exch.UT",
+    "method": "TestPeppolCreditMemoToGenJnlLineLCY"
+  },
+  {
+    "codeunitId": 139154,
+    "codeunitName": "Incoming Doc. To Data Exch.UT",
+    "method": "TestPeppolCreditMemotoGenJnlLineNonLCY"
+  },
+  {
+    "codeunitId": 139154,
+    "codeunitName": "Incoming Doc. To Data Exch.UT",
+    "method": "TestPEPPOLDataExchDef"
+  },
+  {
+    "codeunitId": 139154,
+    "codeunitName": "Incoming Doc. To Data Exch.UT",
+    "method": "TestPeppolImportFails"
+  },
+  {
+    "codeunitId": 139154,
+    "codeunitName": "Incoming Doc. To Data Exch.UT",
+    "method": "TestPeppolImportMultipleFails"
+  },
+  {
+    "codeunitId": 139154,
+    "codeunitName": "Incoming Doc. To Data Exch.UT",
+    "method": "TestPeppolInvoiceImportLCY"
+  },
+  {
+    "codeunitId": 139154,
+    "codeunitName": "Incoming Doc. To Data Exch.UT",
+    "method": "TestPeppolInvoiceImportNonLCY"
+  },
+  {
+    "codeunitId": 139154,
+    "codeunitName": "Incoming Doc. To Data Exch.UT",
+    "method": "TestPEPPOLInvoiceToGenJnlLineFailsNoMapping"
+  },
+  {
+    "codeunitId": 139154,
+    "codeunitName": "Incoming Doc. To Data Exch.UT",
+    "method": "TestPeppolInvoiceToGenJnlLineLCY"
+  },
+  {
+    "codeunitId": 139154,
+    "codeunitName": "Incoming Doc. To Data Exch.UT",
+    "method": "TestPeppolInvoiceToGenJnlLineNonLCY"
+  },
+  {
+    "codeunitId": 139154,
+    "codeunitName": "Incoming Doc. To Data Exch.UT",
+    "method": "TestPeppolServiceCreditMemoImportLCY"
+  },
+  {
+    "codeunitId": 139154,
+    "codeunitName": "Incoming Doc. To Data Exch.UT",
+    "method": "TestPeppolServiceCreditMemoImportNonLCY"
+  },
+  {
+    "codeunitId": 139154,
+    "codeunitName": "Incoming Doc. To Data Exch.UT",
+    "method": "TestPeppolServiceInvoiceImportLCY"
+  },
+  {
+    "codeunitId": 139154,
+    "codeunitName": "Incoming Doc. To Data Exch.UT",
+    "method": "TestPeppolServiceInvoiceImportNonLCY"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
+    "method": "TestBuyFromNoGLNUnknownVATRegNo"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
+    "method": "TestBuyFromUnknownGLNEmptyVATRegNo"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
+    "method": "TestBuyFromUnknownGLNNoVATRegNo"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
+    "method": "TestBuyFromUnknownGLNUnknownVATRegNo"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
+    "method": "TestBuyFromWithNoGLNAndNoVATRegNoAndBadName"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
+    "method": "TestCompanyInfoGLNMismatch"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
+    "method": "TestCompanyInfoNameMismatch"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
+    "method": "TestCompanyInfoVATMismatch"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
+    "method": "TestCurrencyMismatchOnHeader"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
+    "method": "TestDocumentCurrencyCodeMissing"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
+    "method": "TestInvoicePremappingNonItemLinesMissingSetup"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
+    "method": "TestItemCurrencyMismatch"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
+    "method": "TestMissingDocumentTypeInDataExchangeDefinition"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
+    "method": "TestMultipleErrorMessages"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
+    "method": "TestPayToWithEmptyGLNUnknownVATRegNo"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
+    "method": "TestPayToWithNoGLNAndNoVATRegNoAndBadName"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
+    "method": "TestReferencedInvoiceMustBePosted"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
+    "method": "TestUnableToFindReferencedInvoice"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
+    "method": "TestUnknownItemByGTIN"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
+    "method": "TestUnknownItemByGTINAndVendorItemNo"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
+    "method": "TestUnknownItemByVendorItemNo"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
+    "method": "TestUnknownUnitOfMeasure"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
+    "method": "TestUnsupportedDocumentTypeInDataExchangeDefinition"
+  }
+]

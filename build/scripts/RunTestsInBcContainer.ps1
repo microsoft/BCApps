@@ -1,7 +1,7 @@
 Param(
     [Hashtable] $parameters,
     [switch] $DisableTestIsolation,
-    [validateSet("UnitTest","IntegrationTest", "Uncategorized")]
+    [validateSet("UnitTest","IntegrationTest", "Uncategorized", "Legacy")]
     [string] $TestType
 )
 
@@ -9,13 +9,27 @@ Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 
 function Get-DisabledTests
 {
+    param(
+        [string] $AppName
+    )
+
     $baseFolder = Get-BaseFolder
 
-    $disabledCodeunits = Get-ChildItem -Path $baseFolder -Filter "DisabledTests" -Recurse -Directory | ForEach-Object { Get-ChildItem -Path $_.FullName -Filter "*.json" }
+    # Convert app name to folder name format (replace spaces with underscores)
+    $appFolderName = $AppName -replace ' ', '_'
+
     $disabledTests = @()
-    foreach($disabledCodeunit in $disabledCodeunits)
-    {
-        $disabledTests += (Get-Content -Raw -Path $disabledCodeunit.FullName | ConvertFrom-Json)
+
+    # Look for DisabledTests folders and find the app-specific subfolder
+    $disabledTestsFolders = Get-ChildItem -Path $baseFolder -Filter "DisabledTests" -Recurse -Directory
+    foreach ($disabledTestsFolder in $disabledTestsFolders) {
+        $appFolder = Join-Path $disabledTestsFolder.FullName $appFolderName
+        if (Test-Path $appFolder) {
+            $jsonFiles = Get-ChildItem -Path $appFolder -Filter "*.json"
+            foreach ($jsonFile in $jsonFiles) {
+                $disabledTests += (Get-Content -Raw -Path $jsonFile.FullName | ConvertFrom-Json)
+            }
+        }
     }
 
     return @($disabledTests)
@@ -54,12 +68,12 @@ function Invoke-TestsWithReruns {
     }
 }
 
-if ($null -ne $TestType) {
+if (($null -ne $TestType) -and ($TestType -ne "Legacy")) {
     Write-Host "Using test type $TestType"
     $parameters["testType"] = $TestType
 }
 
-$parameters["disabledTests"] = @(Get-DisabledTests) # Add disabled tests to parameters
+$parameters["disabledTests"] = @(Get-DisabledTests -AppName $parameters["appName"]) # Add disabled tests to parameters
 $parameters["renewClientContextBetweenTests"] = $true
 
 if ($DisableTestIsolation)

@@ -1,0 +1,142 @@
+[
+  {
+    "codeunitId": 136100,
+    "codeunitName": "Service Contract",
+    "method": "LockSignedContractWith100PctLineDisc"
+  },
+  {
+    "codeunitId": 136103,
+    "codeunitName": "Service Items",
+    "method": "ServiceItemAfterPostingSalesReturnOrderWithExistingOpenServiceEntry"
+  },
+  {
+    "codeunitId": 136121,
+    "codeunitName": "Service Reservation",
+    "method": "PostOrderReserveFirmProduction"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "CreditLimitLCYOnPostedInvoice"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "CreditLimitLCYOnPostedMemo"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "PostedCreditMemoStatistics"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "PostedInvoiceStatistics"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "ServiceShipmentStatistics"
+  },
+  {
+    "codeunitId": 136135,
+    "codeunitName": "Service Order Management",
+    "method": "AcceptOnServiceOrderPromising"
+  },
+  {
+    "codeunitId": 136135,
+    "codeunitName": "Service Order Management",
+    "method": "AcceptOnServiceOrderPromisingWithPurchaseOrder"
+  },
+  {
+    "codeunitId": 136135,
+    "codeunitName": "Service Order Management",
+    "method": "AcceptOnServiceOrderPromisingWithSupply"
+  },
+  {
+    "codeunitId": 136135,
+    "codeunitName": "Service Order Management",
+    "method": "AvailableToPromiseOnServiceOrderPromising"
+  },
+  {
+    "codeunitId": 136135,
+    "codeunitName": "Service Order Management",
+    "method": "AvailableToPromiseOnServiceOrderPromisingWithPurchaseOrder"
+  },
+  {
+    "codeunitId": 136135,
+    "codeunitName": "Service Order Management",
+    "method": "AvailableToPromiseOnServiceOrderPromisingWithSupply"
+  },
+  {
+    "codeunitId": 136135,
+    "codeunitName": "Service Order Management",
+    "method": "CapableToPromiseOnServiceOrderPromising"
+  },
+  {
+    "codeunitId": 136146,
+    "codeunitName": "Service Item Tracking",
+    "method": "AvailabilityWarningAfterLotNoLookupOnItemTrackingPage"
+  },
+  {
+    "codeunitId": 136146,
+    "codeunitName": "Service Item Tracking",
+    "method": "CreditMemosOnServiceHistSellToFactBox"
+  },
+  {
+    "codeunitId": 136146,
+    "codeunitName": "Service Item Tracking",
+    "method": "InvoiceOnServiceHistSellToFactBoxServiceOrder"
+  },
+  {
+    "codeunitId": 136146,
+    "codeunitName": "Service Item Tracking",
+    "method": "ItemTrackingNumberTypedManuallyWrongLotNo"
+  },
+  {
+    "codeunitId": 136146,
+    "codeunitName": "Service Item Tracking",
+    "method": "OrderOnServiceHistSellToFactBoxServiceOrder"
+  },
+  {
+    "codeunitId": 136146,
+    "codeunitName": "Service Item Tracking",
+    "method": "PostedServiceCreditMemosOnServiceHistSellToFactBox"
+  },
+  {
+    "codeunitId": 136146,
+    "codeunitName": "Service Item Tracking",
+    "method": "PostedServiceInvoicesOnServiceHistSellToFactBox"
+  },
+  {
+    "codeunitId": 136146,
+    "codeunitName": "Service Item Tracking",
+    "method": "PostedServiceShipmentsOnServiceHistSellToFactBox"
+  },
+  {
+    "codeunitId": 136146,
+    "codeunitName": "Service Item Tracking",
+    "method": "QuoteOnServiceHistSellToFactBoxServiceOrder"
+  },
+  {
+    "codeunitId": 136146,
+    "codeunitName": "Service Item Tracking",
+    "method": "ServiceItemTrackingIsManagedByWhse"
+  },
+  {
+    "codeunitId": 136146,
+    "codeunitName": "Service Item Tracking",
+    "method": "ServiceOrderWithItemTrackingAvailabilityWarning"
+  },
+  {
+    "codeunitId": 136146,
+    "codeunitName": "Service Item Tracking",
+    "method": "SkilledResourceOnServiceItemLineFactBoxServiceOrder"
+  },
+  {
+    "codeunitId": 136146,
+    "codeunitName": "Service Item Tracking",
+    "method": "WarningWithChangedSerialNo"
+  }
+]

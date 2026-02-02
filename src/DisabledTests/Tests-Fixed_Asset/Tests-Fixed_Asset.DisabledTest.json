@@ -1,0 +1,87 @@
+[
+  {
+    "codeunitId": 134049,
+    "codeunitName": "ERM Date Compression FA",
+    "method": "DateCompressClosedFiscalYear"
+  },
+  {
+    "codeunitId": 134049,
+    "codeunitName": "ERM Date Compression FA",
+    "method": "DateCompressFixedAssetLedger"
+  },
+  {
+    "codeunitId": 134049,
+    "codeunitName": "ERM Date Compression FA",
+    "method": "DateCompressMaintenanceLedger"
+  },
+  {
+    "codeunitId": 134049,
+    "codeunitName": "ERM Date Compression FA",
+    "method": "DateCompressOpenFiscalYear"
+  },
+  {
+    "codeunitId": 134049,
+    "codeunitName": "ERM Date Compression FA",
+    "method": "DeleteEmptyFARegisters"
+  },
+  {
+    "codeunitId": 134049,
+    "codeunitName": "ERM Date Compression FA",
+    "method": "EmptyFARegistersMaintenance"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "CalculateDepreciationWithErrorMessages"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "WriteDownDepreciationTypeDisabled"
+  },
+  {
+    "codeunitId": 134456,
+    "codeunitName": "ERM Fixed Asset Card",
+    "method": "TestFACardSaveSimpleBookOnClose"
+  },
+  {
+    "codeunitId": 134990,
+    "codeunitName": "ERM Fixed Assets Reports - III",
+    "method": "FABookValue02WithCustomSections"
+  },
+  {
+    "codeunitId": 134990,
+    "codeunitName": "ERM Fixed Assets Reports - III",
+    "method": "FixedAssetJournalTestWarning"
+  },
+  {
+    "codeunitId": 135401,
+    "codeunitName": "Fixed Assets Plan-based E2E",
+    "method": "FixedAssetJourneyAsBusinessManager"
+  },
+  {
+    "codeunitId": 135401,
+    "codeunitName": "Fixed Assets Plan-based E2E",
+    "method": "FixedAssetJourneyAsDeviceISVEmbUser"
+  },
+  {
+    "codeunitId": 135401,
+    "codeunitName": "Fixed Assets Plan-based E2E",
+    "method": "FixedAssetJourneyAsEssentialISVEmbUser"
+  },
+  {
+    "codeunitId": 135401,
+    "codeunitName": "Fixed Assets Plan-based E2E",
+    "method": "FixedAssetJourneyAsExternalAccountant"
+  },
+  {
+    "codeunitId": 135401,
+    "codeunitName": "Fixed Assets Plan-based E2E",
+    "method": "FixedAssetJourneyAsTeamMember"
+  },
+  {
+    "codeunitId": 135401,
+    "codeunitName": "Fixed Assets Plan-based E2E",
+    "method": "FixedAssetJourneyAsTeamMemberISVEmb"
+  }
+]

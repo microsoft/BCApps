@@ -1,0 +1,232 @@
+[
+  {
+    "codeunitId": 134401,
+    "codeunitName": "ERM KPI Web Service",
+    "method": "GetPeriodLengthViewByPeriod"
+  },
+  {
+    "codeunitId": 134401,
+    "codeunitName": "ERM KPI Web Service",
+    "method": "GetPeriodLengthViewByYear"
+  },
+  {
+    "codeunitId": 134401,
+    "codeunitName": "ERM KPI Web Service",
+    "method": "LastUpdatedEntryResetOnDeletingService"
+  },
+  {
+    "codeunitId": 134401,
+    "codeunitName": "ERM KPI Web Service",
+    "method": "TestAccountingPeriodExistsFalse"
+  },
+  {
+    "codeunitId": 134401,
+    "codeunitName": "ERM KPI Web Service",
+    "method": "TestAccountingPeriodExistsTrue"
+  },
+  {
+    "codeunitId": 134401,
+    "codeunitName": "ERM KPI Web Service",
+    "method": "TestCalcNextStartDate"
+  },
+  {
+    "codeunitId": 134401,
+    "codeunitName": "ERM KPI Web Service",
+    "method": "TestDeleteWebService"
+  },
+  {
+    "codeunitId": 134401,
+    "codeunitName": "ERM KPI Web Service",
+    "method": "TestGetLastModifiedBudgetDateNoBudget"
+  },
+  {
+    "codeunitId": 134401,
+    "codeunitName": "ERM KPI Web Service",
+    "method": "TestGetLastModifiedBudgetDateWithBudget"
+  },
+  {
+    "codeunitId": 134401,
+    "codeunitName": "ERM KPI Web Service",
+    "method": "TestGetPeriod"
+  },
+  {
+    "codeunitId": 134401,
+    "codeunitName": "ERM KPI Web Service",
+    "method": "TestLastClosedAccDate"
+  },
+  {
+    "codeunitId": 134401,
+    "codeunitName": "ERM KPI Web Service",
+    "method": "TestOnModifyAccSchedKpiLine"
+  },
+  {
+    "codeunitId": 134401,
+    "codeunitName": "ERM KPI Web Service",
+    "method": "TestOnModifyAccSchedLineNotUsedAsKpi"
+  },
+  {
+    "codeunitId": 134401,
+    "codeunitName": "ERM KPI Web Service",
+    "method": "TestOnModifyAccSchedLineUsedAsKpi"
+  },
+  {
+    "codeunitId": 134401,
+    "codeunitName": "ERM KPI Web Service",
+    "method": "TestOnModifyGlBudgetEntryKpiBudget"
+  },
+  {
+    "codeunitId": 134401,
+    "codeunitName": "ERM KPI Web Service",
+    "method": "TestOnModifyGlBudgetEntryOtherBudget"
+  },
+  {
+    "codeunitId": 134401,
+    "codeunitName": "ERM KPI Web Service",
+    "method": "TestPublishWebService"
+  },
+  {
+    "codeunitId": 134401,
+    "codeunitName": "ERM KPI Web Service",
+    "method": "TestWebServiceDimsPage"
+  },
+  {
+    "codeunitId": 134401,
+    "codeunitName": "ERM KPI Web Service",
+    "method": "TestWebServicePage"
+  },
+  {
+    "codeunitId": 134401,
+    "codeunitName": "ERM KPI Web Service",
+    "method": "TestWebServicePageIncrementalUpdate"
+  },
+  {
+    "codeunitId": 134765,
+    "codeunitName": "TestAccountantPortalWS",
+    "method": "TestActivitiesCues"
+  },
+  {
+    "codeunitId": 134765,
+    "codeunitName": "TestAccountantPortalWS",
+    "method": "TestActivitiesCuesRequestToApprove"
+  },
+  {
+    "codeunitId": 134765,
+    "codeunitName": "TestAccountantPortalWS",
+    "method": "TestFinanceCues"
+  },
+  {
+    "codeunitId": 134765,
+    "codeunitName": "TestAccountantPortalWS",
+    "method": "TestFinanceCuesRequestToApprove"
+  },
+  {
+    "codeunitId": 135060,
+    "codeunitName": "Document Mailing Tests",
+    "method": "SendPostedSalesInvoiceWhenPdfAndElectronicDocAndCombineEmailsNo"
+  },
+  {
+    "codeunitId": 135060,
+    "codeunitName": "Document Mailing Tests",
+    "method": "SendPostedSalesInvoiceWhenPdfAndElectronicDocAndCombineEmailsYes"
+  },
+  {
+    "codeunitId": 135215,
+    "codeunitName": "Item From Picture Tests",
+    "method": "NoSetupAndSaas_Successful"
+  },
+  {
+    "codeunitId": 135215,
+    "codeunitName": "Item From Picture Tests",
+    "method": "ValidSetup_NoTags"
+  },
+  {
+    "codeunitId": 135215,
+    "codeunitName": "Item From Picture Tests",
+    "method": "ValidSetup_OverLimit"
+  },
+  {
+    "codeunitId": 135215,
+    "codeunitName": "Item From Picture Tests",
+    "method": "ValidSetup_Successful"
+  },
+  {
+    "codeunitId": 135547,
+    "codeunitName": "Webhook Logs E2E",
+    "method": "TestDeleteWebhookLogsNotAllowed"
+  },
+  {
+    "codeunitId": 135547,
+    "codeunitName": "Webhook Logs E2E",
+    "method": "TestGetWebhookLogsMany"
+  },
+  {
+    "codeunitId": 135547,
+    "codeunitName": "Webhook Logs E2E",
+    "method": "TestGetWebhookLogsSingle"
+  },
+  {
+    "codeunitId": 135547,
+    "codeunitName": "Webhook Logs E2E",
+    "method": "TestPatchWebhookLogsNotAllowed"
+  },
+  {
+    "codeunitId": 135547,
+    "codeunitName": "Webhook Logs E2E",
+    "method": "TestPostWebhookLogsNotAllowed"
+  },
+  {
+    "codeunitId": 135548,
+    "codeunitName": "API Routes E2E",
+    "method": "TestDeleteApiRoutesNotAllowed"
+  },
+  {
+    "codeunitId": 135548,
+    "codeunitName": "API Routes E2E",
+    "method": "TestGetApiRoutesMany"
+  },
+  {
+    "codeunitId": 135548,
+    "codeunitName": "API Routes E2E",
+    "method": "TestGetApiRoutesSingle"
+  },
+  {
+    "codeunitId": 135548,
+    "codeunitName": "API Routes E2E",
+    "method": "TestPatchApiRoutesNotAllowed"
+  },
+  {
+    "codeunitId": 135548,
+    "codeunitName": "API Routes E2E",
+    "method": "TestPostApiRoutesNotAllowed"
+  },
+  {
+    "codeunitId": 139025,
+    "codeunitName": "Test Email Logging on Exchange",
+    "method": "TestExchangeWebServicesGetPublicFolders"
+  },
+  {
+    "codeunitId": 139025,
+    "codeunitName": "Test Email Logging on Exchange",
+    "method": "TestExchangeWebServicesInitializeOk"
+  },
+  {
+    "codeunitId": 139025,
+    "codeunitName": "Test Email Logging on Exchange",
+    "method": "TestExchangeWebServicesReadBuffer"
+  },
+  {
+    "codeunitId": 139048,
+    "codeunitName": "SMB Office Pages",
+    "method": "InvoiceExistsPageShowPostedInvoice"
+  },
+  {
+    "codeunitId": 139053,
+    "codeunitName": "Office Addin Popout",
+    "method": "MailEngineApplyVendorEntries"
+  },
+  {
+    "codeunitId": 139058,
+    "codeunitName": "Office OCR Test",
+    "method": "SendIncomingDocApprovalRequest"
+  }
+]

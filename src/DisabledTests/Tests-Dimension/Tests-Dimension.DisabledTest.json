@@ -1,0 +1,292 @@
+[
+  {
+    "codeunitId": 134076,
+    "codeunitName": "ERM Suggest Vendor Payment",
+    "method": "SuggestVendorPaymentAfterVoidExportedPaymentsWithSummarizePerVendor"
+  },
+  {
+    "codeunitId": 134076,
+    "codeunitName": "ERM Suggest Vendor Payment",
+    "method": "SuggestVendorPaymentWithLineRemovedAndReadded"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestAddDimensionOnGLEntries"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestChangeDimensionOnGLEntries"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestChangeDimensionOnGLEntriesAddsDimensionWhereItDidNotExist"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestCorrectionWithErrorsFails"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestCorrectionWithPassesWithoutReopening"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestDimCorrectionEntryLogAppendsToEndAndStart"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestDimCorrectionEntryLogAreGeneratedMultipeRanges"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestDimCorrectionEntryLogAreGeneratedSingleRange"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestDimCorrectionEntryLogAreGeneratedTwoRanges"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestDimCorrectionEntryLogMergesRanges"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestDimCorrectionEntryLogMergesTwoRanges"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestDimensionCorrectionEntriesWithSameTargetSet"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestDimensionCorrectionUndoEntriesWithSameTargetSet"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestGLEntriesRefreshWhenNavigatingBetweenDimensionCorrections"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestMultipleLevelUndo"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestRemoveDimensionOnGLEntries"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestRunCorrectionAfterVerifyChangesOnDimensionCorrection"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestSetDimensionsOnGLEntriesWithoutDimensionSet"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestUndoDimensionCorrectionIsNotBlockedByUnrelatedCorrection"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestUndoDimensionCorrectionOnGLEntries"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestUndoDimensionCorrectionOnGLEntriesIsBlockedByOtherCorrections"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestUndoDimensionCorrectionOnGLEntriesToNoDimensionSetID"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestUserAddsGLEntriesManually"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestUserExcludesGLEntries"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestUserRunsCorrectionWithExcludedEntries"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestUserRunsUndoCorrectionWithExcludedEntries"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestUserSelectsDimensionSetEntriesByDimension"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestUserSelectsDimensionSetEntriesByTransaction"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestVerifyChangesOnDimensionCorrection"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestVerifyDimensionCorrectionFindsErrors"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestVerifyUndoDimensionCorrection"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestVerifyUndoDimensionCorrectionAfterValidation"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestVerifyUndoDimensionCorrectionFindsErrors"
+  },
+  {
+    "codeunitId": 134371,
+    "codeunitName": "Dimension Correction Tests",
+    "method": "TestVerifyUndoDimensionCorrectionIgnoresValidationErrors"
+  },
+  {
+    "codeunitId": 134381,
+    "codeunitName": "ERM Dimension Priority",
+    "method": "ProdOrderComponentDimensionsInPlanningWorksheet"
+  },
+  {
+    "codeunitId": 134382,
+    "codeunitName": "ERM Dimension Journals",
+    "method": "RunFixReportFromErrorMessagesForDimBalanceLine"
+  },
+  {
+    "codeunitId": 134382,
+    "codeunitName": "ERM Dimension Journals",
+    "method": "ValidateDimensionsOnPurchaseOrder"
+  },
+  {
+    "codeunitId": 134382,
+    "codeunitName": "ERM Dimension Journals",
+    "method": "ValidateDimensionsOnPurchaseInvoice"
+  },
+  {
+    "codeunitId": 134382,
+    "codeunitName": "ERM Dimension Journals",
+    "method": "ValidateDimensionsOnPurchaseQuote"
+  },
+  {
+    "codeunitId": 134382,
+    "codeunitName": "ERM Dimension Journals",
+    "method": "ValidateDimensionsOnPurchaseCreditMemo"
+  },
+  {
+    "codeunitId": 134382,
+    "codeunitName": "ERM Dimension Journals",
+    "method": "ValidateDimensionsOnSalesOrder"
+  },
+  {
+    "codeunitId": 134382,
+    "codeunitName": "ERM Dimension Journals",
+    "method": "ValidateDimensionsOnSalesInvoice"
+  },
+  {
+    "codeunitId": 134382,
+    "codeunitName": "ERM Dimension Journals",
+    "method": "ValidateDimensionsOnSalesQuote"
+  },
+  {
+    "codeunitId": 134382,
+    "codeunitName": "ERM Dimension Journals",
+    "method": "ValidateDimensionsOnSalesCreditMemo"
+  },
+  {
+    "codeunitId": 134382,
+    "codeunitName": "ERM Dimension Journals",
+    "method": "ValidateDimensionsOnServiceOrder"
+  },
+  {
+    "codeunitId": 134382,
+    "codeunitName": "ERM Dimension Journals",
+    "method": "ValidateDimensionsOnServiceInvoice"
+  },
+  {
+    "codeunitId": 134382,
+    "codeunitName": "ERM Dimension Journals",
+    "method": "ValidateDimensionsOnServiceQuote"
+  },
+  {
+    "codeunitId": 134382,
+    "codeunitName": "ERM Dimension Journals",
+    "method": "ValidateDimensionsOnServiceCreditMemo"
+  },
+  {
+    "codeunitId": 134475,
+    "codeunitName": "ERM Dimension Sales",
+    "method": "PostPhysInvWithDefaultDimension"
+  },
+  {
+    "codeunitId": 134475,
+    "codeunitName": "ERM Dimension Sales",
+    "method": "PostSalesOrderWithDefaultDimension"
+  },
+  {
+    "codeunitId": 134476,
+    "codeunitName": "ERM Dimension Purchase",
+    "method": "PurchaseInvoiceFCYMultipleLinesAndDimensionsWithReverseChargeVATACYIsFCY"
+  },
+  {
+    "codeunitId": 134479,
+    "codeunitName": "ERM Dimension Combination",
+    "method": "PostPurchaseInvoiceWithBlockedDimensionsOnHeader"
+  },
+  {
+    "codeunitId": 134479,
+    "codeunitName": "ERM Dimension Combination",
+    "method": "PostPurchaseInvoiceWithBlockedDimensionsOnLine"
+  },
+  {
+    "codeunitId": 134479,
+    "codeunitName": "ERM Dimension Combination",
+    "method": "PostSalesInvoiceWithBlockedDimensionsOnLine"
+  },
+  {
+    "codeunitId": 134483,
+    "codeunitName": "ERM Change Global Dimensions",
+    "method": "T113_ActionPrepareOpensSessionListPagefromNotification"
+  },
+  {
+    "codeunitId": 134483,
+    "codeunitName": "ERM Change Global Dimensions",
+    "method": "T140_ActionRerunEnabledForIncompleteOrBlankJob"
+  }
+]

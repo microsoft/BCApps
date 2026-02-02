@@ -1,0 +1,87 @@
+[
+  {
+    "codeunitId": 134551,
+    "codeunitName": "ERM Cash Flow Filling I",
+    "method": "FillCFJnlWithTaxAfterTaxPayment"
+  },
+  {
+    "codeunitId": 134553,
+    "codeunitName": "ERM Cash Flow - Filling II",
+    "method": "VerifyCFWorksheetLinesCannotBeCreatedIfCFAccountNumberNotExist"
+  },
+  {
+    "codeunitId": 134554,
+    "codeunitName": "ERM Cash Flow - Posting",
+    "method": "Test_CF_OnDelete"
+  },
+  {
+    "codeunitId": 134554,
+    "codeunitName": "ERM Cash Flow - Posting",
+    "method": "Test_CFJnlPostBatch"
+  },
+  {
+    "codeunitId": 134555,
+    "codeunitName": "ERM CF Accounts",
+    "method": "PayablesAccount"
+  },
+  {
+    "codeunitId": 134555,
+    "codeunitName": "ERM CF Accounts",
+    "method": "PurchaseAccount"
+  },
+  {
+    "codeunitId": 134555,
+    "codeunitName": "ERM CF Accounts",
+    "method": "ReceivablesAccount"
+  },
+  {
+    "codeunitId": 134555,
+    "codeunitName": "ERM CF Accounts",
+    "method": "SalesAccount"
+  },
+  {
+    "codeunitId": 134555,
+    "codeunitName": "ERM CF Accounts",
+    "method": "ServiceAccount"
+  },
+  {
+    "codeunitId": 134558,
+    "codeunitName": "ERM Cash Flow Pages",
+    "method": "OpenDimensionSetEntriesFromCashFlowWorkSheet"
+  },
+  {
+    "codeunitId": 134559,
+    "codeunitName": "ERM Cash Flow Navigate",
+    "method": "NavigateJournalCustLE"
+  },
+  {
+    "codeunitId": 134559,
+    "codeunitName": "ERM Cash Flow Navigate",
+    "method": "NavigateJournalVendLE"
+  },
+  {
+    "codeunitId": 134989,
+    "codeunitName": "ERM Cash Flow - Reports",
+    "method": "DimensionDetailCashFlowForecast"
+  },
+  {
+    "codeunitId": 139315,
+    "codeunitName": "CF Forecast Wizard Tests",
+    "method": "VerifyLiquidFundsGLAccountFilterDefaultValue"
+  },
+  {
+    "codeunitId": 139315,
+    "codeunitName": "CF Forecast Wizard Tests",
+    "method": "VerifyStatusNotCompletedWhenExitRightAway"
+  },
+  {
+    "codeunitId": 139315,
+    "codeunitName": "CF Forecast Wizard Tests",
+    "method": "VerifyStatusNotCompletedWhenNotFinished"
+  },
+  {
+    "codeunitId": 139315,
+    "codeunitName": "CF Forecast Wizard Tests",
+    "method": "VerifyWizardNotExitedWhenConfirmIsNo"
+  }
+]

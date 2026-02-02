@@ -1,0 +1,132 @@
+[
+  {
+    "codeunitId": 132558,
+    "codeunitName": "AMC Banking Credential UT",
+    "method": "AssistedSetupWithDemoUser"
+  },
+  {
+    "codeunitId": 132558,
+    "codeunitName": "AMC Banking Credential UT",
+    "method": "AssistedSetupWithLicensedUserNoModule"
+  },
+  {
+    "codeunitId": 132558,
+    "codeunitName": "AMC Banking Credential UT",
+    "method": "AssistedSetupWithLicensedUserWithModule"
+  },
+  {
+    "codeunitId": 132558,
+    "codeunitName": "AMC Banking Credential UT",
+    "method": "TestMissingCredentialsUpdatedBankStmt"
+  },
+  {
+    "codeunitId": 132558,
+    "codeunitName": "AMC Banking Credential UT",
+    "method": "TestMissingCredentialsUpdatedPmtExport"
+  },
+  {
+    "codeunitId": 132558,
+    "codeunitName": "AMC Banking Credential UT",
+    "method": "TestMissingSetupUpdatedPmtExport"
+  },
+  {
+    "codeunitId": 135080,
+    "codeunitName": "AMC Bank Stmt E2E Web Serv",
+    "method": "SendBankStmtToWebService"
+  },
+  {
+    "codeunitId": 135081,
+    "codeunitName": "Base64 Decoding / Encoding",
+    "method": "DecodePaymentExportFileUsingBase64"
+  },
+  {
+    "codeunitId": 135081,
+    "codeunitName": "Base64 Decoding / Encoding",
+    "method": "EncodeNordeaCorpBankStatementFileUsingBase64"
+  },
+  {
+    "codeunitId": 135084,
+    "codeunitName": "Bank Name Lookup E2E",
+    "method": "RequestBankListFromWebService"
+  },
+  {
+    "codeunitId": 135084,
+    "codeunitName": "Bank Name Lookup E2E",
+    "method": "RequestBankListFromWebServiceWithCountryFilter"
+  },
+  {
+    "codeunitId": 135084,
+    "codeunitName": "Bank Name Lookup E2E",
+    "method": "RequestBankListFromWebServiceWithWrongCountryFilter"
+  },
+  {
+    "codeunitId": 135085,
+    "codeunitName": "Bank Name Conv Serv Lookup",
+    "method": "FilterBankNameList"
+  },
+  {
+    "codeunitId": 135085,
+    "codeunitName": "Bank Name Conv Serv Lookup",
+    "method": "FilterThenClearFilterBankNameList"
+  },
+  {
+    "codeunitId": 135085,
+    "codeunitName": "Bank Name Conv Serv Lookup",
+    "method": "GetBankNameList"
+  },
+  {
+    "codeunitId": 135085,
+    "codeunitName": "Bank Name Conv Serv Lookup",
+    "method": "OpenBankListPageAndRefreshListBecauseDataIsOld"
+  },
+  {
+    "codeunitId": 135085,
+    "codeunitName": "Bank Name Conv Serv Lookup",
+    "method": "SelectBankNameFilteredByBankAccountCountryRegionCode"
+  },
+  {
+    "codeunitId": 135085,
+    "codeunitName": "Bank Name Conv Serv Lookup",
+    "method": "SelectBankNameFilteredByBankAccountCountryRegionCodeTwice"
+  },
+  {
+    "codeunitId": 135085,
+    "codeunitName": "Bank Name Conv Serv Lookup",
+    "method": "SelectBankNameFilteredByCompanyCountryRegionCode"
+  },
+  {
+    "codeunitId": 135087,
+    "codeunitName": "AMC CT E2E Web Service Test",
+    "method": "MyTestSaveFileConvResponseErrors"
+  },
+  {
+    "codeunitId": 135087,
+    "codeunitName": "AMC CT E2E Web Service Test",
+    "method": "SendMissingFinstaBankStmtToWebService"
+  },
+  {
+    "codeunitId": 135087,
+    "codeunitName": "AMC CT E2E Web Service Test",
+    "method": "TestPaymentRequestWithBlankEncoding"
+  },
+  {
+    "codeunitId": 135087,
+    "codeunitName": "AMC CT E2E Web Service Test",
+    "method": "TestPaymentRequestWithEncoding"
+  },
+  {
+    "codeunitId": 135087,
+    "codeunitName": "AMC CT E2E Web Service Test",
+    "method": "TestPaymentRequestWithMissingEncoding"
+  },
+  {
+    "codeunitId": 135087,
+    "codeunitName": "AMC CT E2E Web Service Test",
+    "method": "TestSaveFileConvResponseErrors"
+  },
+  {
+    "codeunitId": 135087,
+    "codeunitName": "AMC CT E2E Web Service Test",
+    "method": "TestSyslogResponseErrors"
+  }
+]

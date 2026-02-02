@@ -1,0 +1,77 @@
+[
+  {
+    "codeunitId": 134264,
+    "codeunitName": "Applied Payment Entries Test",
+    "method": "AcceptApplication"
+  },
+  {
+    "codeunitId": 134264,
+    "codeunitName": "Applied Payment Entries Test",
+    "method": "AcceptApplicationFromPaymentJournal"
+  },
+  {
+    "codeunitId": 134264,
+    "codeunitName": "Applied Payment Entries Test",
+    "method": "AccountNameOnPaymentReconciliationJournal"
+  },
+  {
+    "codeunitId": 134264,
+    "codeunitName": "Applied Payment Entries Test",
+    "method": "ApplyToDifferentEntry"
+  },
+  {
+    "codeunitId": 134264,
+    "codeunitName": "Applied Payment Entries Test",
+    "method": "ApplyToMultipleEntries"
+  },
+  {
+    "codeunitId": 134264,
+    "codeunitName": "Applied Payment Entries Test",
+    "method": "AutomaticApplyToEntry"
+  },
+  {
+    "codeunitId": 134264,
+    "codeunitName": "Applied Payment Entries Test",
+    "method": "ChangeAmountToApply"
+  },
+  {
+    "codeunitId": 134264,
+    "codeunitName": "Applied Payment Entries Test",
+    "method": "ReapplyUnappliedApplication"
+  },
+  {
+    "codeunitId": 134264,
+    "codeunitName": "Applied Payment Entries Test",
+    "method": "RejectApplication"
+  },
+  {
+    "codeunitId": 134264,
+    "codeunitName": "Applied Payment Entries Test",
+    "method": "RejectApplicationFromPaymentJournal"
+  },
+  {
+    "codeunitId": 134264,
+    "codeunitName": "Applied Payment Entries Test",
+    "method": "UnableToApplyAmountWithDifferentSign"
+  },
+  {
+    "codeunitId": 134264,
+    "codeunitName": "Applied Payment Entries Test",
+    "method": "UnableToApplyMoreThanRemainingAmount"
+  },
+  {
+    "codeunitId": 134264,
+    "codeunitName": "Applied Payment Entries Test",
+    "method": "UnapplyApplication"
+  },
+  {
+    "codeunitId": 134264,
+    "codeunitName": "Applied Payment Entries Test",
+    "method": "UnapplyByApplyingZeroAmount"
+  },
+  {
+    "codeunitId": 134279,
+    "codeunitName": "Bank Rec. Test Report UT",
+    "method": "TestGetTotalOutstandingTransactions"
+  }
+]

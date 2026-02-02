@@ -1,0 +1,172 @@
+[
+  {
+    "codeunitId": 137089,
+    "codeunitName": "SCM Kitting - Planning",
+    "method": "ATP_ATO_LoweredQtyToATO"
+  },
+  {
+    "codeunitId": 137089,
+    "codeunitName": "SCM Kitting - Planning",
+    "method": "ATP_SOCoveredByInventoryAndAO"
+  },
+  {
+    "codeunitId": 137089,
+    "codeunitName": "SCM Kitting - Planning",
+    "method": "ATP_SomeInventoryNoAO"
+  },
+  {
+    "codeunitId": 137089,
+    "codeunitName": "SCM Kitting - Planning",
+    "method": "CTP_ATO"
+  },
+  {
+    "codeunitId": 137089,
+    "codeunitName": "SCM Kitting - Planning",
+    "method": "CTP_SOPartiallyCoveredByInventory"
+  },
+  {
+    "codeunitId": 137089,
+    "codeunitName": "SCM Kitting - Planning",
+    "method": "CTP_Variant"
+  },
+  {
+    "codeunitId": 137089,
+    "codeunitName": "SCM Kitting - Planning",
+    "method": "OrderPlanning_TwoProducedComps"
+  },
+  {
+    "codeunitId": 137093,
+    "codeunitName": "SCM Kitting - D4",
+    "method": "EarliestAvailDateTransfers"
+  },
+  {
+    "codeunitId": 137093,
+    "codeunitName": "SCM Kitting - D4",
+    "method": "FutureReservationCausesAvailWarning"
+  },
+  {
+    "codeunitId": 137110,
+    "codeunitName": "SCM Kitting - Cost Shares Tree",
+    "method": "TopItemAssemblyBasic"
+  },
+  {
+    "codeunitId": 137110,
+    "codeunitName": "SCM Kitting - Cost Shares Tree",
+    "method": "TopItemAssemblyBOMScrap"
+  },
+  {
+    "codeunitId": 137110,
+    "codeunitName": "SCM Kitting - Cost Shares Tree",
+    "method": "TopItemAssemblyMCenterScrap"
+  },
+  {
+    "codeunitId": 137110,
+    "codeunitName": "SCM Kitting - Cost Shares Tree",
+    "method": "TopItemAssemblyOverhead"
+  },
+  {
+    "codeunitId": 137110,
+    "codeunitName": "SCM Kitting - Cost Shares Tree",
+    "method": "TopItemAssemblyRoutingScrap"
+  },
+  {
+    "codeunitId": 137110,
+    "codeunitName": "SCM Kitting - Cost Shares Tree",
+    "method": "TopItemAssemblySubcontr"
+  },
+  {
+    "codeunitId": 137110,
+    "codeunitName": "SCM Kitting - Cost Shares Tree",
+    "method": "TopItemProdOrderBasic"
+  },
+  {
+    "codeunitId": 137110,
+    "codeunitName": "SCM Kitting - Cost Shares Tree",
+    "method": "TopItemProdOrderBOMScrap"
+  },
+  {
+    "codeunitId": 137110,
+    "codeunitName": "SCM Kitting - Cost Shares Tree",
+    "method": "TopItemProdOrderMCenterScrap"
+  },
+  {
+    "codeunitId": 137110,
+    "codeunitName": "SCM Kitting - Cost Shares Tree",
+    "method": "TopItemProdOrderOverhead"
+  },
+  {
+    "codeunitId": 137110,
+    "codeunitName": "SCM Kitting - Cost Shares Tree",
+    "method": "TopItemProdOrderRoutingScrap"
+  },
+  {
+    "codeunitId": 137110,
+    "codeunitName": "SCM Kitting - Cost Shares Tree",
+    "method": "TopItemProdOrderSubcontr"
+  },
+  {
+    "codeunitId": 137390,
+    "codeunitName": "SCM Kitting -  Reports",
+    "method": "CostSharesTopItemAssembly"
+  },
+  {
+    "codeunitId": 137390,
+    "codeunitName": "SCM Kitting -  Reports",
+    "method": "DemandOverviewTopItemAssembly"
+  },
+  {
+    "codeunitId": 137390,
+    "codeunitName": "SCM Kitting -  Reports",
+    "method": "DemandOverviewTopItemProduced"
+  },
+  {
+    "codeunitId": 137390,
+    "codeunitName": "SCM Kitting -  Reports",
+    "method": "InvtGLRecTopItemAssemblySTD"
+  },
+  {
+    "codeunitId": 137390,
+    "codeunitName": "SCM Kitting -  Reports",
+    "method": "InvtGLRecTopItemProducedAVG"
+  },
+  {
+    "codeunitId": 137390,
+    "codeunitName": "SCM Kitting -  Reports",
+    "method": "InvtValCostSpecTopItemAssembly"
+  },
+  {
+    "codeunitId": 137390,
+    "codeunitName": "SCM Kitting -  Reports",
+    "method": "InvtValCostSpecTopItemProduced"
+  },
+  {
+    "codeunitId": 137390,
+    "codeunitName": "SCM Kitting -  Reports",
+    "method": "InvtValuationTopItemAssembly"
+  },
+  {
+    "codeunitId": 137390,
+    "codeunitName": "SCM Kitting -  Reports",
+    "method": "InvtValuationTopItemProduced"
+  },
+  {
+    "codeunitId": 137390,
+    "codeunitName": "SCM Kitting -  Reports",
+    "method": "ItemRegValueTopItemAssembly"
+  },
+  {
+    "codeunitId": 137390,
+    "codeunitName": "SCM Kitting -  Reports",
+    "method": "ItemRegValueTopItemProduced"
+  },
+  {
+    "codeunitId": 137908,
+    "codeunitName": "SCM Assembly Order",
+    "method": "VSTF294294"
+  },
+  {
+    "codeunitId": 137912,
+    "codeunitName": "SCM Assembly Availability II",
+    "method": "CheckAvailWarning"
+  }
+]

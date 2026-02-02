@@ -1,0 +1,102 @@
+[
+  {
+    "codeunitId": 136302,
+    "codeunitName": "Job Consumption Purchase",
+    "method": "DimensionCodeMandatoryError"
+  },
+  {
+    "codeunitId": 136302,
+    "codeunitName": "Job Consumption Purchase",
+    "method": "DimensionNoCodeError"
+  },
+  {
+    "codeunitId": 136302,
+    "codeunitName": "Job Consumption Purchase",
+    "method": "DimensionSameCodeError"
+  },
+  {
+    "codeunitId": 136302,
+    "codeunitName": "Job Consumption Purchase",
+    "method": "PurchaseCreditMemoWithItemReserveAsAlways"
+  },
+  {
+    "codeunitId": 136302,
+    "codeunitName": "Job Consumption Purchase",
+    "method": "PurchaseOrderWithItemReserveAsAlways"
+  },
+  {
+    "codeunitId": 136304,
+    "codeunitName": "Job Performance WIP",
+    "method": "CalculateWIPWithErrorMessage"
+  },
+  {
+    "codeunitId": 136308,
+    "codeunitName": "Job Order Tracking",
+    "method": "AcceptOnJobPlanningLine"
+  },
+  {
+    "codeunitId": 136308,
+    "codeunitName": "Job Order Tracking",
+    "method": "AcceptOnPlanningLineWithPurchaseOrder"
+  },
+  {
+    "codeunitId": 136308,
+    "codeunitName": "Job Order Tracking",
+    "method": "AcceptOnPlanningLineWithSupply"
+  },
+  {
+    "codeunitId": 136308,
+    "codeunitName": "Job Order Tracking",
+    "method": "AvailableToPromiseOnJobPlanningLine"
+  },
+  {
+    "codeunitId": 136308,
+    "codeunitName": "Job Order Tracking",
+    "method": "AvailableToPromiseOnPlanningLineWithPurchaseOrder"
+  },
+  {
+    "codeunitId": 136308,
+    "codeunitName": "Job Order Tracking",
+    "method": "AvailableToPromiseOnPlanningLineWithSupply"
+  },
+  {
+    "codeunitId": 136308,
+    "codeunitName": "Job Order Tracking",
+    "method": "CapableToPromiseOnJobPlanningLine"
+  },
+  {
+    "codeunitId": 136309,
+    "codeunitName": "Job Posting",
+    "method": "AutomaticCostPostingAdjustmentAlways"
+  },
+  {
+    "codeunitId": 136309,
+    "codeunitName": "Job Posting",
+    "method": "PostingPurchaseCreditMemoWithJobAndTracking"
+  },
+  {
+    "codeunitId": 136309,
+    "codeunitName": "Job Posting",
+    "method": "PurchaseCreditMemoWithTrackingAndJob"
+  },
+  {
+    "codeunitId": 136312,
+    "codeunitName": "Job Reservation",
+    "method": "ChangePurchaseLineExpectedReceiptDateAfterReserve"
+  },
+  {
+    "codeunitId": 136350,
+    "codeunitName": "UT T Job",
+    "method": "MyJobAfterModifyJobProjectManager"
+  },
+  {
+    "codeunitId": 136353,
+    "codeunitName": "UT T Job Planning Line",
+    "method": "CreateOrderPromisingFromJobPlanningLineWithLocationMandatory"
+  },
+  {
+    "codeunitId": 136353,
+    "codeunitName": "UT T Job Planning Line",
+    "method": "CreateOrderPromisingFromJobPlanningLineWithoutLocationMandatoryWhileNeeded"
+  }
+]

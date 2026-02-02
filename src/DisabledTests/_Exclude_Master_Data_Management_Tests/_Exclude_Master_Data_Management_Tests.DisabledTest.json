@@ -1,0 +1,12 @@
+[
+  {
+    "codeunitId": 139770,
+    "codeunitName": "Master Data Mgt. Setup Tests",
+    "method": "DisableSetupDeleteCouplingTable"
+  },
+  {
+    "codeunitId": 139770,
+    "codeunitName": "Master Data Mgt. Setup Tests",
+    "method": "SynchronizeAdditionalTable"
+  }
+]

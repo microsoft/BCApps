@@ -1,0 +1,52 @@
+[
+  {
+    "codeunitId": 139902,
+    "codeunitName": "Service Declaration UI Tests",
+    "method": "ShowErorMessageOnServDeclarationsPageWhenFeatureIsDisabled"
+  },
+  {
+    "codeunitId": 139902,
+    "codeunitName": "Service Declaration UI Tests",
+    "method": "ShowErorMessageOnServDeclSetupPageWhenFeatureIsDisabled"
+  },
+  {
+    "codeunitId": 139902,
+    "codeunitName": "Service Declaration UI Tests",
+    "method": "ShowErorMessageOnServTransTypesPageWhenFeatureIsDisabled"
+  },
+  {
+    "codeunitId": 139904,
+    "codeunitName": "Service Declaration Posting",
+    "method": "PurchDocApplicableForServDeclBasicPosting"
+  },
+  {
+    "codeunitId": 139904,
+    "codeunitName": "Service Declaration Posting",
+    "method": "PurchDocWithItemChargeApplicableForServDeclBasicPosting"
+  },
+  {
+    "codeunitId": 139904,
+    "codeunitName": "Service Declaration Posting",
+    "method": "SalesDocWithItemChargeApplicableForServDeclBasicPosting"
+  },
+  {
+    "codeunitId": 139905,
+    "codeunitName": "Serv. Decl. Suggest Lines",
+    "method": "PurchFCYInvoice"
+  },
+  {
+    "codeunitId": 139905,
+    "codeunitName": "Serv. Decl. Suggest Lines",
+    "method": "ServDeclWithMixOfSalesAndPurchaseLines"
+  },
+  {
+    "codeunitId": 139905,
+    "codeunitName": "Serv. Decl. Suggest Lines",
+    "method": "SuggestLinesWithOriginalVATRegNoOfCustAndVend"
+  },
+  {
+    "codeunitId": 139905,
+    "codeunitName": "Serv. Decl. Suggest Lines",
+    "method": "SuggestLinesWithVATRegWithCountryNoOfCustAndVend"
+  }
+]

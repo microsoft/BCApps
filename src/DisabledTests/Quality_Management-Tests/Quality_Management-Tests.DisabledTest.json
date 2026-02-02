@@ -1,0 +1,17 @@
+[
+  {
+    "codeunitId": 139960,
+    "codeunitName": "Qlty. Tests - Dispositions",
+    "method": "PurchaseReturnFullPackageAdvLocation"
+  },
+  {
+    "codeunitId": 139960,
+    "codeunitName": "Qlty. Tests - Dispositions",
+    "method": "PurchaseReturnPackageTrackedAdvLocation"
+  },
+  {
+    "codeunitId": 139960,
+    "codeunitName": "Qlty. Tests - Dispositions",
+    "method": "PurchaseReturnUntrackedBasicLocation"
+  }
+]

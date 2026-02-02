@@ -1,0 +1,97 @@
+[
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "RemainingVATFirstPurchaseFCY"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "UnrealizedVATWithACY"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "PostGenJournalLineOutOfAllowedPostingPeriod"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "PostSalesDocInClosedPeriodError"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "PostSalesDocInClosedPeriodError2"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "PostSalesDocOutOfAllowedPostingPeriod"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "PostServiceDocOutOfAllowedPostingPeriod"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnPurchaseOrder"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnSalesCreditMemo"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnServiceInvoice"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnServiceOrder"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "UpdateVATDateMultipleVATEntriesSameDocNo"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolProdOrderGen"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolProdOrderNo"
+  },
+  {
+    "codeunitId": 134053,
+    "codeunitName": "ERM VAT Tool - Serv. Doc",
+    "method": "VATToollServOrderPartShipAndConsume"
+  },
+  {
+    "codeunitId": 134090,
+    "codeunitName": "ERM Pmt Disc And VAT Cust/Vend",
+    "method": "PurchPmtDiscountWithVAT"
+  },
+  {
+    "codeunitId": 134090,
+    "codeunitName": "ERM Pmt Disc And VAT Cust/Vend",
+    "method": "SalesPmtDiscountWithVAT"
+  },
+  {
+    "codeunitId": 134096,
+    "codeunitName": "ERM VAT Return",
+    "method": "TestVATReturnSuggestLines"
+  },
+  {
+    "codeunitId": 134096,
+    "codeunitName": "ERM VAT Return",
+    "method": "TestVATReturnSuggestLinesUpdateLines"
+  }
+]
