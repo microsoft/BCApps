@@ -4,21 +4,21 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
-page 6370 "Mandate List"
+page 6804 "Mandate List"
 {
-    PageType = List;
-    SourceTable = "Mandate";
-    SourceTableTemporary = true;
     ApplicationArea = All;
-    UsageCategory = None;
     Caption = 'Avalara Mandate List';
+    DeleteAllowed = false;
     InsertAllowed = false;
     ModifyAllowed = false;
-    DeleteAllowed = false;
+    PageType = List;
+    SourceTable = Mandate;
+    SourceTableTemporary = true;
+    UsageCategory = None;
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {
@@ -32,10 +32,15 @@ page 6370 "Mandate List"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the code of the country.';
                 }
-                field("Description"; Rec."Description")
+                field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the description of the mandate.';
+                }
+                field("Invoice Format"; Rec."Invoice Format")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the value of the Invoice Format field.', Comment = '%';
                 }
             }
         }
