@@ -22,7 +22,7 @@ codeunit 5430 "Create E-Doc. Sample Invoices"
         CreateGLAccount: Codeunit "Create G/L Account";
         RecurrentExpenseAccountNo, DeliveryExpenseGLAccNo : Code[20];
     begin
-        EDocumentModuleSetup.Get();
+        if EDocumentModuleSetup.Get() then;
         if EDocumentModuleSetup."Recurring Expense G/L Acc. No" = '' then
             RecurrentExpenseAccountNo := CreateGLAccount.OtherComputerExpenses()
         else
@@ -55,43 +55,43 @@ codeunit 5430 "Create E-Doc. Sample Invoices"
         SavedWorkDate := WorkDate();
         SampleInvoiceDate := EDocSamplePurchaseInvoice.GetSampleInvoicePostingDate();
         WorkDate(SampleInvoiceDate);
-        ContosoInboundEDocument.AddEDocPurchaseHeader(CreateVendor.EUGraphicDesign(), SampleInvoiceDate, '245', 0);
+        ContosoInboundEDocument.AddEDocPurchaseHeader(CreateVendor.EUGraphicDesign(), SampleInvoiceDate, '245');
         ContosoInboundEDocument.AddEDocPurchaseLine(
             Enum::"Purchase Line Type"::"Allocation Account", CreateAllocationAccount.Licenses(),
             CreateAllocationAccount.LicensesDescription(), 6, 500, CreateDeferralTemplate.DeferralCode1Y(), '');
         ContosoInboundEDocument.Generate();
 
-        ContosoInboundEDocument.AddEDocPurchaseHeader(CreateVendor.DomesticFirstUp(), SampleInvoiceDate, '1419', 252);
+        ContosoInboundEDocument.AddEDocPurchaseHeader(CreateVendor.DomesticFirstUp(), SampleInvoiceDate, '1419');
         ContosoInboundEDocument.AddEDocPurchaseLine(
             Enum::"Purchase Line Type"::"G/L Account", RecurrentExpenseAccountNo,
             AccountingServicesJanuaryLbl, 6, 200, '', CreateCommonUnitOfMeasure.Hour());
         ContosoInboundEDocument.Generate();
 
-        ContosoInboundEDocument.AddEDocPurchaseHeader(CreateVendor.DomesticFirstUp(), SampleInvoiceDate, '1425', 798);
+        ContosoInboundEDocument.AddEDocPurchaseHeader(CreateVendor.DomesticFirstUp(), SampleInvoiceDate, '1425');
         ContosoInboundEDocument.AddEDocPurchaseLine(
             Enum::"Purchase Line Type"::"G/L Account", RecurrentExpenseAccountNo,
             AccountingServicesFebruaryLbl, 19, 200, '', CreateCommonUnitOfMeasure.Hour());
         ContosoInboundEDocument.Generate();
 
-        ContosoInboundEDocument.AddEDocPurchaseHeader(CreateVendor.DomesticFirstUp(), SampleInvoiceDate, '1437', 84);
+        ContosoInboundEDocument.AddEDocPurchaseHeader(CreateVendor.DomesticFirstUp(), SampleInvoiceDate, '1437');
         ContosoInboundEDocument.AddEDocPurchaseLine(
             Enum::"Purchase Line Type"::"G/L Account", RecurrentExpenseAccountNo,
             AccountingServicesMarchLbl, 2, 200, '', CreateCommonUnitOfMeasure.Hour());
         ContosoInboundEDocument.Generate();
 
-        ContosoInboundEDocument.AddEDocPurchaseHeader(CreateVendor.DomesticFirstUp(), SampleInvoiceDate, '1479', 672);
+        ContosoInboundEDocument.AddEDocPurchaseHeader(CreateVendor.DomesticFirstUp(), SampleInvoiceDate, '1479');
         ContosoInboundEDocument.AddEDocPurchaseLine(
             Enum::"Purchase Line Type"::"G/L Account", RecurrentExpenseAccountNo,
             AccountingServicesMayLbl, 16, 200, '', CreateCommonUnitOfMeasure.Hour());
         ContosoInboundEDocument.Generate();
 
-        ContosoInboundEDocument.AddEDocPurchaseHeader(CreateVendor.DomesticFirstUp(), SampleInvoiceDate, '1456', 294);
+        ContosoInboundEDocument.AddEDocPurchaseHeader(CreateVendor.DomesticFirstUp(), SampleInvoiceDate, '1456');
         ContosoInboundEDocument.AddEDocPurchaseLine(
             Enum::"Purchase Line Type"::"G/L Account", RecurrentExpenseAccountNo,
             AccountingServicesDecemberLbl, 7, 200, '', CreateCommonUnitOfMeasure.Hour());
         ContosoInboundEDocument.Generate();
 
-        ContosoInboundEDocument.AddEDocPurchaseHeader(CreateVendor.ExportFabrikam(), SampleInvoiceDate, 'F12938', 0);
+        ContosoInboundEDocument.AddEDocPurchaseHeader(CreateVendor.ExportFabrikam(), SampleInvoiceDate, 'F12938');
         ContosoInboundEDocument.AddEDocPurchaseLine(
             Enum::"Purchase Line Type"::Item, CreateEDocumentMasterData.WholeDecafBeansColombia(),
             '', 50, 5, '', CreateCommonUnitOfMeasure.Piece());
@@ -103,7 +103,7 @@ codeunit 5430 "Create E-Doc. Sample Invoices"
             CreateAllocationAccount.LicensesDescription(), 1, 60, '', '');
         ContosoInboundEDocument.Generate();
 
-        ContosoInboundEDocument.AddEDocPurchaseHeader(CreateVendor.DomesticWorldImporter(), SampleInvoiceDate, '000982', 8368.5);
+        ContosoInboundEDocument.AddEDocPurchaseHeader(CreateVendor.DomesticWorldImporter(), SampleInvoiceDate, '000982');
         ContosoInboundEDocument.AddEDocPurchaseLine(
             Enum::"Purchase Line Type"::Item, CreateEDocumentMasterData.SmartGrindHome(),
             '', 100, 299, '', CreateCommonUnitOfMeasure.Piece());
@@ -126,7 +126,7 @@ codeunit 5430 "Create E-Doc. Sample Invoices"
         BasicCoffeeEquipmentLbl: Label 'Basic coffee equipment mapped to vendor''s Item References';
         CoffeeBeansAndPartsLbl: Label 'Coffee beans and parts with shipping cost that needs human intervention';
     begin
-        EDocSamplePurchaseInvoice.AddInvoice(CreateVendor.ExportFabrikam(), '108925', CoffeeBeansAndPartsLbl, 7.8);
+        EDocSamplePurchaseInvoice.AddInvoice(CreateVendor.ExportFabrikam(), '108925', CoffeeBeansAndPartsLbl);
         EDocSamplePurchaseInvoice.AddLine(
             Enum::"Purchase Line Type"::Item, CreateEDocumentMasterData.WholeDecafBeansColombia(), '', 50, 5, '', CreateCommonUnitOfMeasure.Piece());
         EDocSamplePurchaseInvoice.AddLine(
@@ -142,7 +142,7 @@ codeunit 5430 "Create E-Doc. Sample Invoices"
             Enum::"Purchase Line Type"::Item, CreateEDocumentMasterData.PrecisionGrindHome(), '', 50, 199, '', CreateCommonUnitOfMeasure.Piece());
         EDocSamplePurchaseInvoice.Generate();
 
-        EDocSamplePurchaseInvoice.AddInvoice(CreateVendor.EUGraphicDesign(), '108427', YearlyLicenstCostLbl, 390);
+        EDocSamplePurchaseInvoice.AddInvoice(CreateVendor.EUGraphicDesign(), '108427', YearlyLicenstCostLbl);
         EDocSamplePurchaseInvoice.AddLine(
             Enum::"Purchase Line Type"::" ", '', CreateAllocationAccount.LicensesDescription(), 6, 500, '', CreateCommonUnitOfMeasure.Piece());
         EDocSamplePurchaseInvoice.Generate();
