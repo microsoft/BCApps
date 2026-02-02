@@ -102,7 +102,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
                     SetIntentAndDefaultTriggerValuesFromSetup();
             end;
         }
-        field(13; "Condition Filter"; Text[400])
+        field(13; "Condition Filter"; Text[2048])
         {
             Caption = 'Condition Filter';
             Description = 'Specifies the criteria for defining when to use this template. For example, if you wanted to only use a template for a certain item then you would define that item here.';
@@ -127,12 +127,12 @@ table 20404 "Qlty. Inspection Gen. Rule"
             FieldClass = FlowFilter;
             Caption = 'Table ID Filter';
         }
-        field(19; "Item Filter"; Text[400])
+        field(19; "Item Filter"; Text[2048])
         {
             Caption = 'Item Filter';
             ToolTip = 'Specifies the item specific criteria for defining when to use this template. ';
         }
-        field(20; "Item Attribute Filter"; Text[400])
+        field(20; "Item Attribute Filter"; Text[2048])
         {
             Caption = 'Attribute Filter';
             ToolTip = 'Specifies the item attribute specific criteria for defining when to use this template. ';
@@ -376,7 +376,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
     var
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
     begin
-        QltyFilterHelpers.BuildItemAttributeFilter400(Rec."Item Attribute Filter");
+        QltyFilterHelpers.BuildItemAttributeFilter2048(Rec."Item Attribute Filter");
     end;
 
     /// <summary>
