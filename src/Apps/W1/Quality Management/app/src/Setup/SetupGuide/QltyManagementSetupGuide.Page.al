@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.QualityManagement.Setup.SetupWizard;
+namespace Microsoft.QualityManagement.Setup.SetupGuide;
 
 using Microsoft.QualityManagement.Configuration;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
@@ -15,12 +15,9 @@ using System.Environment.Configuration;
 using System.Telemetry;
 using System.Utilities;
 
-/// <summary>
-/// This setup wizard is used to help configure the system initially.
-/// </summary>
-page 20438 "Qlty. Management Setup Wizard"
+page 20438 "Qlty. Management Setup Guide"
 {
-    Caption = 'Quality Management Setup Wizard';
+    Caption = 'Quality Management Setup Guide';
     PageType = NavigatePage;
     UsageCategory = Administration;
     ApplicationArea = Basic, Suite;
@@ -512,7 +509,7 @@ page 20438 "Qlty. Management Setup Wizard"
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
         CustomDimensions: Dictionary of [Text, Text];
     begin
-        GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"Qlty. Management Setup Wizard");
+        GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"Qlty. Management Setup Guide");
         CustomDimensions.Add('RegDetail5', EnvironmentInformation.GetEnvironmentName());
         CustomDimensions.Add('RegDetail6', CompanyName());
         CustomDimensions.Add('RegDetail7', UserId());
