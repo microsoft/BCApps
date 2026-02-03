@@ -320,8 +320,8 @@ page 20464 "Qlty. Asm. Gen. Rule Wizard"
         CategoryCodeFilter: Code[20];
         InventoryPostingGroupCode: Code[20];
         QltyAssemblyTrigger: Enum "Qlty. Assembly Trigger";
-        PostedAssemblyOrderRuleFilter: Text[400];
-        ItemRuleFilter: Text[400];
+        PostedAssemblyOrderRuleFilter: Text[2048];
+        ItemRuleFilter: Text[2048];
         IsBackEnabledd: Boolean;
         IsNextEnabledd: Boolean;
         IsFinishEnabledd: Boolean;
