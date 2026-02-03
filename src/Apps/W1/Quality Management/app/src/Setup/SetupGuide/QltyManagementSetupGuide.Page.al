@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Setup.SetupGuide;
 
+using Microsoft.QualityManagement.RoleCenters;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
 using Microsoft.QualityManagement.Utilities;
 using System.Environment;
@@ -53,7 +54,7 @@ page 20438 "Qlty. Management Setup Guide"
                 group(LetsGoText)
                 {
                     Caption = 'Let''s go!';
-                    InstructionalText = 'Select the link below to explore the Quality Management Role Center and checklist in a new browser tab at your own pace. Your current Role Center remains available.';
+                    InstructionalText = 'Select the link below to open the Quality Management Role Center in a new browser tab and follow the guided tours.';
                 }
                 field(LetsGoLink; LetsGoLinkLbl)
                 {
@@ -67,7 +68,7 @@ page 20438 "Qlty. Management Setup Guide"
                     var
                         TargetURL: Text;
                     begin
-                        TargetURL := GetUrl(ClientType::Web, CompanyName, ObjectType::Page, 20426) + URLProfileLbl;
+                        TargetURL := GetUrl(ClientType::Web, CompanyName, ObjectType::Page, Page::"Qlty. Manager Role Center") + URLProfileLbl;
                         Hyperlink(TargetURL);
                     end;
 
@@ -102,7 +103,6 @@ page 20438 "Qlty. Management Setup Guide"
         FeatureTelemetry: Codeunit "Feature Telemetry";
         TopBannerVisible: Boolean;
         MainPageVisible: Boolean;
-        FinishedSetupGuideLbl: Label 'Quality Management Setup Guide finished.', Locked = true;
         QualityManagementTok: Label 'Quality Management', Locked = true;
         LetsGoLinkLbl: Label 'Explore Quality Management';
         URLProfileLbl: Label '&profile=QLTY.%20MANAGER', Locked = true;
@@ -113,14 +113,6 @@ page 20438 "Qlty. Management Setup Guide"
         LoadTopBanners();
     end;
 
-    trigger OnQueryClosePage(CloseAction: Action): Boolean
-    begin
-        if CloseAction = Action::OK then begin
-            FeatureTelemetry.LogUptake('0000QIB', QualityManagementTok, Enum::"Feature Uptake Status"::"Set up");
-            exit(true);
-        end;
-    end;
-
     trigger OnOpenPage();
     begin
         FeatureTelemetry.LogUptake('0000QIC', QualityManagementTok, Enum::"Feature Uptake Status"::Discovered);
@@ -129,17 +121,12 @@ page 20438 "Qlty. Management Setup Guide"
     local procedure FinishAction();
     var
         GuidedExperience: Codeunit "Guided Experience";
-        EnvironmentInformation: Codeunit "Environment Information";
         QltyApplicationAreaMgmt: Codeunit "Qlty. Application Area Mgmt.";
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
-        CustomDimensions: Dictionary of [Text, Text];
     begin
         GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"Qlty. Management Setup Guide");
-        CustomDimensions.Add('RegDetail5', EnvironmentInformation.GetEnvironmentName());
-        CustomDimensions.Add('RegDetail6', CompanyName());
-        CustomDimensions.Add('RegDetail7', UserId());
 
-        LogMessage('QMUSG001', FinishedSetupGuideLbl, Verbosity::Warning, DataClassification::CustomerContent, TelemetryScope::All, CustomDimensions);
+        FeatureTelemetry.LogUptake('0000QIB', QualityManagementTok, Enum::"Feature Uptake Status"::"Set up");
 
         QltyNotificationMgmt.EnsureDefaultNotifications();
         QltyApplicationAreaMgmt.RefreshExperienceTierCurrentCompany();
