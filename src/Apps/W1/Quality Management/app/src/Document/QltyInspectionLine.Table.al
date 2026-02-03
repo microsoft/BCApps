@@ -295,12 +295,16 @@ table 20406 "Qlty. Inspection Line"
     begin
         Result := Rec."Test Value";
 
-        if Rec.CalcFields("Test Value Blob") then begin
-            Rec."Test Value Blob".CreateInStream(InStreamForText);
-            InStreamForText.Read(Result);
-            if (StrLen(Result) < 1) and (StrLen(Rec."Test Value") > 0) then
-                Result := Rec."Test Value";
-        end;
+        if not Rec.CalcFields("Test Value Blob") then
+            exit;
+
+        if not Rec."Test Value Blob".HasValue() then
+            exit;
+
+        Rec."Test Value Blob".CreateInStream(InStreamForText);
+        InStreamForText.Read(Result);
+        if (StrLen(Result) < 1) and (StrLen(Rec."Test Value") > 0) then
+            Result := Rec."Test Value";
     end;
 
     procedure SetLargeText(LargeText: Text; ValidateValue: Boolean; OnlySetBlob: Boolean)
