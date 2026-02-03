@@ -27,7 +27,6 @@ using Microsoft.QualityManagement.Dispositions.PutAway;
 using Microsoft.QualityManagement.Dispositions.Transfer;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Integration.Inventory;
-using Microsoft.QualityManagement.Integration.Utilities;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
 using Microsoft.QualityManagement.Utilities;
@@ -48,15 +47,10 @@ codeunit 139940 "Qlty. Inspection Utility"
 
     internal procedure EnsureSetupExists()
     var
-        QltyManagementSetup: Record "Qlty. Management Setup";
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
         UserPermissionsLibrary: Codeunit "User Permissions Library";
     begin
         QltyAutoConfigure.EnsureBasicSetupExists(false);
-        QltyManagementSetup.Get();
-        QltyManagementSetup."When to show inspections" := QltyManagementSetup."When to show inspections"::"Never";
-        QltyManagementSetup.Modify();
-
         UserPermissionsLibrary.AssignPermissionSetToUser(UserSecurityId(), 'QltyGeneral');
     end;
 
@@ -92,7 +86,7 @@ codeunit 139940 "Qlty. Inspection Utility"
         BeforeCount := OutCreatedQltyInspectionHeader.Count();
 
         ProdOrderRoutingLineRecordRefRecordRef.GetTable(ProdOrderRoutingLine);
-        ClaimedInspectionWasCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, true);
+        ClaimedInspectionWasCreated := QltyInspectionCreate.CreateInspection(ProdOrderRoutingLineRecordRefRecordRef, false);
 
         OutCreatedQltyInspectionHeader.Reset();
         AfterCount := OutCreatedQltyInspectionHeader.Count();
@@ -472,7 +466,7 @@ codeunit 139940 "Qlty. Inspection Utility"
     begin
         PurchaseLineRecordRef.GetTable(PurOrdPurchaseLine);
         SpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        InspectionCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(PurchaseLineRecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        InspectionCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(PurchaseLineRecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '');
         LibraryAssert.IsTrue(InspectionCreated, 'Quality Inspection not created.');
 
         QltyInspectionCreate.GetCreatedInspection(OutQltyInspectionHeader);
@@ -496,7 +490,7 @@ codeunit 139940 "Qlty. Inspection Utility"
     begin
         RecordRef.GetTable(WarehouseEntry);
         SpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        InspectionCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        InspectionCreated := QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '');
         LibraryAssert.IsTrue(InspectionCreated, 'Quality Inspection not created.');
 
         QltyInspectionCreate.GetCreatedInspection(OutQltyInspectionHeader);
@@ -516,7 +510,7 @@ codeunit 139940 "Qlty. Inspection Utility"
         InspectionCreated: Boolean;
     begin
         PurchaseLineRecordRef.GetTable(PurOrdPurchaseLine);
-        InspectionCreated := QltyInspectionCreate.CreateInspectionWithSpecificTemplate(PurchaseLineRecordRef, true, SpecificTemplate);
+        InspectionCreated := QltyInspectionCreate.CreateInspectionWithSpecificTemplate(PurchaseLineRecordRef, false, SpecificTemplate);
         LibraryAssert.IsTrue(InspectionCreated, 'Quality Inspection not created.');
 
         QltyInspectionCreate.GetCreatedInspection(OutQltyInspectionHeader);
@@ -535,7 +529,7 @@ codeunit 139940 "Qlty. Inspection Utility"
         InspectionCreated: Boolean;
     begin
         RecordRef.GetTable(WarehouseEntry);
-        InspectionCreated := QltyInspectionCreate.CreateInspection(RecordRef, true);
+        InspectionCreated := QltyInspectionCreate.CreateInspection(RecordRef, false);
         LibraryAssert.IsTrue(InspectionCreated, 'Quality Inspection not created.');
 
         QltyInspectionCreate.GetCreatedInspection(OutQltyInspectionHeader);
@@ -1198,21 +1192,6 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Wrapper for internal QltyManagementSetup.GetBrickHeaders.
-    /// Retrieves and updates the brick header values in the setup record.
-    /// </summary>
-    /// <param name="QltyManagementSetup">The setup record to update with brick headers.</param>
-    internal procedure GetBrickHeaders(var QltyManagementSetup: Record "Qlty. Management Setup")
-    begin
-        QltyManagementSetup.GetBrickHeaders(
-            QltyManagementSetup."Brick Top Left Header",
-            QltyManagementSetup."Brick Middle Left Header",
-            QltyManagementSetup."Brick Middle Right Header",
-            QltyManagementSetup."Brick Bottom Left Header",
-            QltyManagementSetup."Brick Bottom Right Header");
-    end;
-
-    /// <summary>
     /// Wrapper for internal QltyManagementSetup.GetAppGuid.
     /// Returns the application GUID for the Quality Management app.
     /// </summary>
@@ -1247,7 +1226,7 @@ codeunit 139940 "Qlty. Inspection Utility"
     var
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
     begin
-        QltyInspectionCreate.CreateMultipleInspectionsForMarkedTrackingSpecification(TempTrackingSpecification);
+        QltyInspectionCreate.CreateMultipleInspectionsForMarkedTrackingSpecification(TempTrackingSpecification, false);
     end;
 
     /// <summary>
@@ -1384,20 +1363,6 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     #endregion Qlty. Filter Helpers Wrappers
-
-    #region Qlty. Utilities Integration Wrappers
-
-    /// <summary>
-    /// Wrapper for internal QltyUtilitiesIntegration.InternalHandleOnAfterGetPageSummary.
-    /// </summary>
-    internal procedure HandleOnAfterGetPageSummary(PageId: Integer; RecId: RecordId; var JsonArray: JsonArray)
-    var
-        QltyUtilitiesIntegration: Codeunit "Qlty. Utilities Integration";
-    begin
-        QltyUtilitiesIntegration.InternalHandleOnAfterGetPageSummary(PageId, RecId, JsonArray);
-    end;
-
-    #endregion Qlty. Utilities Integration Wrappers
 
     #region Qlty. Inspec. Gen. Rule Mgmt. Wrappers
 

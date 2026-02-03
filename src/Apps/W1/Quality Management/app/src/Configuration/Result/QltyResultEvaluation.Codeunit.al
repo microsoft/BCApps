@@ -157,7 +157,7 @@ codeunit 20410 "Qlty. Result Evaluation"
     /// <param name="OptionalQltyInspectionHeader"></param>
     /// <returns></returns>
     [TryFunction]
-    procedure TryValidateQltyInspectionLine(var QltyInspectionLine: Record "Qlty. Inspection Line"; var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header")
+    internal procedure TryValidateQltyInspectionLine(var QltyInspectionLine: Record "Qlty. Inspection Line"; var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
         ValidateQltyInspectionLine(QltyInspectionLine, OptionalQltyInspectionHeader, false);
     end;

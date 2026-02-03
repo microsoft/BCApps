@@ -226,6 +226,161 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
     end;
 
     [Test]
+    procedure LoadAvailablePOLinesFiltersByUoMWhenEDocLineHasUoMSpecified()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine1, PurchaseLine2 : Record "Purchase Line";
+        TempPurchaseLine: Record "Purchase Line" temporary;
+        Item: Record Item;
+        UnitOfMeasure1, UnitOfMeasure2 : Record "Unit of Measure";
+        ItemUnitOfMeasure1, ItemUnitOfMeasure2 : Record "Item Unit of Measure";
+    begin
+        // [SCENARIO 619582] Loading available PO lines filters by UoM when E-Document line has UoM specified
+        Initialize();
+        ClearPurchaseDocumentsForVendor();
+
+        // [GIVEN] Item "I" with two units of measure "UOM1" and "UOM2"
+        LibraryEDocument.GetGenericItem(Item);
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure1);
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure2);
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure1, Item."No.", UnitOfMeasure1.Code, 1);
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure2, Item."No.", UnitOfMeasure2.Code, 1);
+
+        // [GIVEN] Purchase order with line "PL1" having UoM "UOM1" and line "PL2" having UoM "UOM2"
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine1, PurchaseHeader, PurchaseLine1.Type::Item, Item."No.", 10);
+        PurchaseLine1.Validate("Unit of Measure Code", UnitOfMeasure1.Code);
+        PurchaseLine1.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine2, PurchaseHeader, PurchaseLine2.Type::Item, Item."No.", 10);
+        PurchaseLine2.Validate("Unit of Measure Code", UnitOfMeasure2.Code);
+        PurchaseLine2.Modify(true);
+
+        // [GIVEN] E-Document line with UoM "UOM1" specified
+        LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
+        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
+        EDocumentPurchaseHeader.Modify();
+        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+        EDocumentPurchaseLine."[BC] Unit of Measure" := UnitOfMeasure1.Code;
+        EDocumentPurchaseLine.Modify();
+
+        // [WHEN] LoadAvailablePOLinesForEDocumentLine is called
+        EDocPOMatching.LoadAvailablePOLinesForEDocumentLine(EDocumentPurchaseLine, TempPurchaseLine);
+
+        // [THEN] Only PO line "PL1" with matching UoM "UOM1" is returned
+        Assert.AreEqual(1, TempPurchaseLine.Count(), 'Expected only 1 purchase line with matching UoM');
+        TempPurchaseLine.FindFirst();
+        Assert.AreEqual(PurchaseLine1.SystemId, TempPurchaseLine.SystemId, 'Expected purchase line with matching UoM to be returned');
+    end;
+
+    [Test]
+    procedure LoadAvailablePOLinesReturnsAllLinesWhenEDocLineHasNoUoMSpecified()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine1, PurchaseLine2 : Record "Purchase Line";
+        TempPurchaseLine: Record "Purchase Line" temporary;
+        Item: Record Item;
+        UnitOfMeasure1, UnitOfMeasure2 : Record "Unit of Measure";
+        ItemUnitOfMeasure1, ItemUnitOfMeasure2 : Record "Item Unit of Measure";
+    begin
+        // [SCENARIO 619582] Loading available PO lines returns all lines when E-Document line has no UoM specified
+        Initialize();
+        ClearPurchaseDocumentsForVendor();
+
+        // [GIVEN] Item "I" with two units of measure "UOM1" and "UOM2"
+        LibraryEDocument.GetGenericItem(Item);
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure1);
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure2);
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure1, Item."No.", UnitOfMeasure1.Code, 1);
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure2, Item."No.", UnitOfMeasure2.Code, 1);
+
+        // [GIVEN] Purchase order with line "PL1" having UoM "UOM1" and line "PL2" having UoM "UOM2"
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine1, PurchaseHeader, PurchaseLine1.Type::Item, Item."No.", 10);
+        PurchaseLine1.Validate("Unit of Measure Code", UnitOfMeasure1.Code);
+        PurchaseLine1.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine2, PurchaseHeader, PurchaseLine2.Type::Item, Item."No.", 10);
+        PurchaseLine2.Validate("Unit of Measure Code", UnitOfMeasure2.Code);
+        PurchaseLine2.Modify(true);
+
+        // [GIVEN] E-Document line with no UoM specified
+        LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
+        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
+        EDocumentPurchaseHeader.Modify();
+        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+        EDocumentPurchaseLine."[BC] Unit of Measure" := '';
+        EDocumentPurchaseLine.Modify();
+
+        // [WHEN] LoadAvailablePOLinesForEDocumentLine is called
+        EDocPOMatching.LoadAvailablePOLinesForEDocumentLine(EDocumentPurchaseLine, TempPurchaseLine);
+
+        // [THEN] Both PO lines "PL1" and "PL2" are returned
+        Assert.AreEqual(2, TempPurchaseLine.Count(), 'Expected 2 purchase lines when E-Document line has no UoM specified');
+        TempPurchaseLine.SetRange(SystemId, PurchaseLine1.SystemId);
+        Assert.IsFalse(TempPurchaseLine.IsEmpty(), 'First purchase line should be included');
+        TempPurchaseLine.SetRange(SystemId, PurchaseLine2.SystemId);
+        Assert.IsFalse(TempPurchaseLine.IsEmpty(), 'Second purchase line should be included');
+    end;
+
+    [Test]
+    procedure LoadAvailablePOLinesReturnsNoLinesWhenNoMatchingUoMExists()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine1, PurchaseLine2 : Record "Purchase Line";
+        TempPurchaseLine: Record "Purchase Line" temporary;
+        Item: Record Item;
+        UnitOfMeasure1, UnitOfMeasure2, UnitOfMeasure3 : Record "Unit of Measure";
+        ItemUnitOfMeasure1, ItemUnitOfMeasure2, ItemUnitOfMeasure3 : Record "Item Unit of Measure";
+    begin
+        // [SCENARIO 619582] Loading available PO lines returns no lines when E-Document line has UoM specified but no PO lines have matching UoM
+        Initialize();
+        ClearPurchaseDocumentsForVendor();
+
+        // [GIVEN] Item "I" with three units of measure "UOM1", "UOM2", and "UOM3"
+        LibraryEDocument.GetGenericItem(Item);
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure1);
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure2);
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure3);
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure1, Item."No.", UnitOfMeasure1.Code, 1);
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure2, Item."No.", UnitOfMeasure2.Code, 1);
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure3, Item."No.", UnitOfMeasure3.Code, 1);
+
+        // [GIVEN] Purchase order with line "PL1" having UoM "UOM1" and line "PL2" having UoM "UOM2"
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine1, PurchaseHeader, PurchaseLine1.Type::Item, Item."No.", 10);
+        PurchaseLine1.Validate("Unit of Measure Code", UnitOfMeasure1.Code);
+        PurchaseLine1.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine2, PurchaseHeader, PurchaseLine2.Type::Item, Item."No.", 10);
+        PurchaseLine2.Validate("Unit of Measure Code", UnitOfMeasure2.Code);
+        PurchaseLine2.Modify(true);
+
+        // [GIVEN] E-Document line with UoM "UOM3" specified (not matching any PO line)
+        LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
+        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
+        EDocumentPurchaseHeader.Modify();
+        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+        EDocumentPurchaseLine."[BC] Unit of Measure" := UnitOfMeasure3.Code;
+        EDocumentPurchaseLine.Modify();
+
+        // [WHEN] LoadAvailablePOLinesForEDocumentLine is called
+        EDocPOMatching.LoadAvailablePOLinesForEDocumentLine(EDocumentPurchaseLine, TempPurchaseLine);
+
+        // [THEN] No PO lines are returned
+        Assert.IsTrue(TempPurchaseLine.IsEmpty(), 'Expected no purchase lines when no PO lines have matching UoM');
+    end;
+
+    [Test]
     procedure LoadPOLinesMatchedToEDocLineWithNoMatches()
     var
         EDocument: Record "E-Document";
@@ -377,6 +532,10 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
         LibraryPurchase.CreatePurchaseLine(PurchaseLine1, PurchaseHeader, PurchaseLine1.Type::Item, Item."No.", 5);
         LibraryPurchase.CreatePurchaseLine(PurchaseLine2, PurchaseHeader, PurchaseLine2.Type::Item, Item."No.", 10);
+        PurchaseLine1."Unit of Measure Code" := ItemUnitOfMeasure.Code;
+        PurchaseLine1.Modify();
+        PurchaseLine2."Unit of Measure Code" := ItemUnitOfMeasure.Code;
+        PurchaseLine2.Modify();
 
         // Match E-Document lines to purchase order lines
         MatchEDocumentLineToPOLine(EDocumentPurchaseLine1, PurchaseLine1);
@@ -411,7 +570,6 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         Item: Record Item;
-        ItemUnitOfMeasure: Record "Item Unit of Measure";
         TempPOMatchWarnings: Record "E-Doc PO Match Warning" temporary;
     begin
         Initialize();
@@ -424,26 +582,17 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 10);
 
-        // Create item with UOM that has different qty per unit of measure
-        ItemUnitOfMeasure.Init();
-        ItemUnitOfMeasure."Item No." := Item."No.";
-        ItemUnitOfMeasure.Code := 'BIGBOX';
-        ItemUnitOfMeasure."Qty. per Unit of Measure" := 10;
-        ItemUnitOfMeasure.Insert();
-
         // Create E-Document Purchase Header
         EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
         EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
         EDocumentPurchaseHeader.Modify();
 
-        // Set up E-Document line to create quantity mismatch also with 10 units but different UOM
+        // Set up E-Document line to create quantity mismatch
         EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
         EDocumentPurchaseLine."[BC] Purchase Line Type" := Enum::"Purchase Line Type"::Item;
         EDocumentPurchaseLine."[BC] Purchase Type No." := Item."No.";
-        EDocumentPurchaseLine."[BC] Unit of Measure" := 'BIGBOX';
-        EDocumentPurchaseLine.Quantity := 10;
+        EDocumentPurchaseLine.Quantity := 100;
         EDocumentPurchaseLine.Modify();
-
 
         MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseLine);
 
