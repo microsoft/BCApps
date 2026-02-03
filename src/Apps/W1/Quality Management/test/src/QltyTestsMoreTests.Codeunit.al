@@ -44,6 +44,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryAssert: Codeunit "Library Assert";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
+        LibraryUtility: Codeunit "Library - Utility";
         AssistEditTemplateValue: Text;
         ChooseFromLookupValue: Text;
         ChooseFromLookupValueVendorNo: Text;
@@ -99,6 +100,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [GIVEN] A new quality test with Test Value Type "Table Lookup" is created
         ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
         ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Table Lookup");
         ToLoadQltyTest.Insert();
 
@@ -133,6 +135,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [GIVEN] A new quality test with Test Value Type "Boolean" is created
         ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
         ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Boolean");
         ToLoadQltyTest.Insert();
 
@@ -160,6 +163,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [GIVEN] A new quality test with Test Value Type "Table Lookup" targeting Vendor table is created
         ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
         ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Table Lookup");
         ToLoadQltyTest.Validate("Lookup Table No.", Database::Vendor);
         ToLoadQltyTest.Validate("Lookup Field No.", Vendor.FieldNo("No."));
@@ -200,6 +204,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [GIVEN] A new quality test with Test Value Type "Table Lookup" targeting Vendor table is configured
         ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
         ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Table Lookup");
         ToLoadQltyTest.Validate("Lookup Table No.", Database::Vendor);
         ToLoadQltyTest.Validate("Lookup Field No.", Vendor.FieldNo("No."));
@@ -229,6 +234,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [GIVEN] A new quality test with Test Value Type "Boolean" is created
         ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
         ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Boolean");
         ToLoadQltyTest.Insert();
 
@@ -269,6 +275,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [GIVEN] A quality test with Field Type "Table Lookup" targeting Vendor table is created
         QltyInspectionUtility.CreateTest(ToLoadQltyTest, ToLoadQltyTest."Test Value Type"::"Value Type Table Lookup");
+        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
         ToLoadQltyTest.Validate("Lookup Table No.", Database::Vendor);
         ToLoadQltyTest.Validate("Lookup Field No.", Vendor.FieldNo("No."));
         ToLoadQltyTest.Modify();
@@ -305,6 +312,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [GIVEN] A new quality test with Test Value Type "Text Expression" is created
         ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
         ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Text Expression");
         ToLoadQltyTest.Insert();
 
@@ -470,6 +478,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [GIVEN] A new quality test with Test Value Type "Table Lookup" targeting Vendor table is created
         ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
         ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Table Lookup");
         ToLoadQltyTest.Validate("Lookup Table No.", Database::Vendor);
         ToLoadQltyTest.Insert();
@@ -507,6 +516,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [GIVEN] A new quality test with Test Value Type "Table Lookup" targeting Vendor table is created
         ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
+        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
         ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Table Lookup");
         ToLoadQltyTest.Validate("Lookup Table No.", Database::Vendor);
         ToLoadQltyTest.Insert();

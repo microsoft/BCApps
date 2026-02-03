@@ -101,7 +101,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="FilterString">File type filter for the upload dialog (e.g., "*.xml|*.txt")</param>
     /// <param name="InStream">Output: InStream containing the uploaded file contents</param>
     /// <returns>True if file was successfully selected and uploaded; False if user cancelled or upload failed</returns>
-    procedure PromptAndImportIntoInStream(FilterString: Text; var InStream: InStream) Worked: Boolean
+    internal procedure PromptAndImportIntoInStream(FilterString: Text; var InStream: InStream) Worked: Boolean
     var
         ServerFile: Text;
     begin
@@ -491,7 +491,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// </summary>
     /// <param name="InputText">The text to check for boolean-like characteristics</param>
     /// <returns>True if text appears to be a boolean representation; False otherwise</returns>
-    procedure CanTextBeInterpretedAsBooleanIsh(InputText: Text): Boolean
+    internal procedure CanTextBeInterpretedAsBooleanIsh(InputText: Text): Boolean
     begin
         exit(IsTextValuePositiveBoolean(InputText) or IsTextValueNegativeBoolean(InputText));
     end;
