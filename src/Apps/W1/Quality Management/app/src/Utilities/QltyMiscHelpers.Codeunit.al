@@ -26,7 +26,7 @@ codeunit 20599 "Qlty. Misc Helpers"
         TranslatableNoLbl: Label 'No';
         LockedYesLbl: Label 'Yes', Locked = true;
         LockedNoLbl: Label 'No', Locked = true;
-        ImportFromLbl: Label 'Import From File';
+        ImportFromLbl: Label 'Import from File';
         DateKeywordTxt: Label 'Date';
         YesNoKeyword1Txt: Label 'Does the';
         YesNoKeyword2Txt: Label 'Do the';
@@ -101,11 +101,9 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="FilterString">File type filter for the upload dialog (e.g., "*.xml|*.txt")</param>
     /// <param name="InStream">Output: InStream containing the uploaded file contents</param>
     /// <returns>True if file was successfully selected and uploaded; False if user cancelled or upload failed</returns>
-    internal procedure PromptAndImportIntoInStream(FilterString: Text; var InStream: InStream) Worked: Boolean
-    var
-        ServerFile: Text;
+    internal procedure PromptAndImportIntoInStream(FilterString: Text; var InStream: InStream; var ServerFileName: Text) Worked: Boolean
     begin
-        Worked := UploadIntoStream(ImportFromLbl, '', FilterString, ServerFile, InStream);
+        Worked := UploadIntoStream(ImportFromLbl, '', FilterString, ServerFileName, InStream);
     end;
 
     /// <summary>
