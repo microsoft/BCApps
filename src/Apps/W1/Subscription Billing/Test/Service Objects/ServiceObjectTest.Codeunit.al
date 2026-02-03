@@ -632,7 +632,7 @@ codeunit 148157 "Service Object Test"
         ExpectedServiceEndDate := CalcDate('<-1D>', ExpectedServiceEndDate);
 
         // [WHEN] CalculateInitialServiceEndDate is called
-        SubscriptionLine.CalculateInitialServiceEndDate();
+        SubscriptionLine.CalculateServiceEndDate();
 
         // [THEN] Subscription Line End Date is set to Start Date + Initial Term - 1 day
         SubscriptionLine.TestField("Subscription Line End Date", ExpectedServiceEndDate);
@@ -642,7 +642,7 @@ codeunit 148157 "Service Object Test"
         Clear(SubscriptionLine."Initial Term");
 
         // [WHEN] CalculateInitialServiceEndDate is called with empty Initial Term
-        SubscriptionLine.CalculateInitialServiceEndDate();
+        SubscriptionLine.CalculateServiceEndDate();
 
         // [THEN] Subscription Line End Date remains empty (0D)
         SubscriptionLine.TestField("Subscription Line End Date", 0D);
@@ -706,14 +706,15 @@ codeunit 148157 "Service Object Test"
 
         // [GIVEN] A Subscription Line created 5 years ago with Initial Term of 12M, Extension Term of 12M, and Notice Period of 1M
         ServiceAndCalculationStartDate := CalcDate('<-5Y>', WorkDate());
-        CreateSubscriptionLineWithTerms(SubscriptionHeader, SubscriptionLine, ServiceAndCalculationStartDate, '<12M>', '<12M>', '<1M>');
+        ContractTestLibrary.CreateServiceObjectForItemWithTerms(SubscriptionHeader, ServiceAndCalculationStartDate, '<12M>', '<12M>', '<1M>');
+        FindServiceCommitment(SubscriptionLine, SubscriptionHeader."No.");
 
         // [WHEN] Repeatedly applying UpdateTermUntilUsingExtensionTerm and UpdateCancellationPossibleUntil
         // [WHEN] Until the Cancellation Possible Until date reaches or exceeds WorkDate
         repeat
             OldSubscriptionLine := SubscriptionLine;
-            SubscriptionLine.UpdateTermUntilUsingExtensionTerm();
-            SubscriptionLine.UpdateCancellationPossibleUntil();
+            SubscriptionLine.CalculateTermUntilUsingExtensionTerm();
+            SubscriptionLine.CalculateCancellationPossibleUntil();
             SubscriptionLine.Modify(false);
 
             // [THEN] Termination dates are calculated correctly based on Extension Term and Notice Period
@@ -734,7 +735,8 @@ codeunit 148157 "Service Object Test"
 
         // [GIVEN] A Subscription Line with Initial Term of 12M, Extension Term of 6M, and Notice Period of 1M
         InitialStartDate := WorkDate();
-        CreateSubscriptionLineWithTerms(SubscriptionHeader, SubscriptionLine, InitialStartDate, '<12M>', '<6M>', '<1M>');
+        ContractTestLibrary.CreateServiceObjectForItemWithTerms(SubscriptionHeader, InitialStartDate, '<12M>', '<6M>', '<1M>');
+        FindServiceCommitment(SubscriptionLine, SubscriptionHeader."No.");
 
         // [THEN] Initial dates are calculated correctly
         VerifySubscriptionLineDates(SubscriptionLine, InitialStartDate, '<12M>', '<1M>');
@@ -1778,11 +1780,7 @@ codeunit 148157 "Service Object Test"
         ExpectedTermUntilDate: Date;
         ExpectedCancellationPossibleUntilDate: Date;
     begin
-        if OldSubscriptionLine."Term Until" = 0D then begin // Term Until was not set because the initial term end date has already passed the workdate
-            OldSubscriptionLine.CalculateInitialTermUntilDate();
-            ExpectedTermUntilDate := OldSubscriptionLine."Term Until";
-        end else
-            ExpectedTermUntilDate := CalcDate(OldSubscriptionLine."Extension Term", OldSubscriptionLine."Term Until");
+        ExpectedTermUntilDate := CalcDate(OldSubscriptionLine."Extension Term", OldSubscriptionLine."Term Until");
         Assert.AreEqual(ExpectedTermUntilDate, UpdatedSubscriptionLine."Term Until", '"Term Until" Date is not calculated correctly.');
         ExpectedCancellationPossibleUntilDate := GetUpdatedCancellationPossibleUntilDate(UpdatedSubscriptionLine."Term Until", UpdatedSubscriptionLine);
         Assert.AreEqual(ExpectedCancellationPossibleUntilDate, UpdatedSubscriptionLine."Cancellation Possible Until", '"Cancellation Possible Until" Date is not calculated correctly.');
@@ -1809,33 +1807,6 @@ codeunit 148157 "Service Object Test"
         Assert.AreEqual(ExpectedPriceGroupServiceObject, ServiceObjectPriceGroup, 'Unexpected Customer Price Group in Service Object');
         FindServiceCommitment(SubscriptionLine, ServiceObjectCode);
         Assert.AreEqual(ExpectedPriceGroupServiceCommitment, SubscriptionLine."Customer Price Group", 'Unexpected Customer Price Group in Service Commitment');
-    end;
-
-    local procedure CreateSubscriptionLineWithTerms(var SubscriptionHeader: Record "Subscription Header"; var SubscriptionLine: Record "Subscription Line"; StartDate: Date; InitialTerm: Text; ExtensionTerm: Text; NoticePeriod: Text)
-    var
-        Item: Record Item;
-        ItemSubscriptionPackage: Record "Item Subscription Package";
-        SubscriptionPackage: Record "Subscription Package";
-        SubscriptionPackageLine: Record "Subscription Package Line";
-        SubPackageLineTemplate: Record "Sub. Package Line Template";
-    begin
-        ContractTestLibrary.CreateServiceObjectForItem(SubscriptionHeader, Item, false);
-        ContractTestLibrary.CreateServiceCommitmentTemplate(SubPackageLineTemplate);
-        Evaluate(SubPackageLineTemplate."Billing Base Period", '<12M>');
-        SubPackageLineTemplate.Modify(false);
-        ContractTestLibrary.CreateServiceCommitmentPackageWithLine(SubPackageLineTemplate.Code, SubscriptionPackage, SubscriptionPackageLine);
-        ContractTestLibrary.AssignItemToServiceCommitmentPackage(Item, SubscriptionPackage.Code);
-
-        Evaluate(SubscriptionPackageLine."Initial Term", InitialTerm);
-        Evaluate(SubscriptionPackageLine."Extension Term", ExtensionTerm);
-        Evaluate(SubscriptionPackageLine."Notice Period", NoticePeriod);
-        Evaluate(SubscriptionPackageLine."Billing Rhythm", '<1M>');
-        SubscriptionPackageLine.Modify(false);
-
-        SubscriptionPackage.SetFilter(Code, ItemSubscriptionPackage.GetPackageFilterForItem(SubscriptionHeader."Source No."));
-        SubscriptionHeader.InsertServiceCommitmentsFromServCommPackage(StartDate, SubscriptionPackage);
-
-        FindServiceCommitment(SubscriptionLine, SubscriptionHeader."No.");
     end;
 
     local procedure VerifySubscriptionLineDates(var SubscriptionLine: Record "Subscription Line"; StartDate: Date; InitialTerm: Text; NoticePeriod: Text)
