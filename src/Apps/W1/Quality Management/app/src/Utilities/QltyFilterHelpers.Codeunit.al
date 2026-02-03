@@ -723,7 +723,7 @@ codeunit 20403 "Qlty. Filter Helpers"
         end;
     end;
 
-    procedure AssistEditUnitOfMeasure(var UnitOfMeasureCode: Code[10]): Boolean
+    internal procedure AssistEditUnitOfMeasure(var UnitOfMeasureCode: Code[10]): Boolean
     var
         UnitOfMeasure: Record "Unit of Measure";
         UnitsOfMeasure: Page "Units of Measure";
@@ -749,7 +749,7 @@ codeunit 20403 "Qlty. Filter Helpers"
         ResultText := CopyStr(CleanUpWhereClause(Input), 1, MaxStrLen(ResultText));
     end;
 
-    procedure CleanUpWhereClause400(Input: Text) ResultText: Text[400]
+    procedure CleanUpWhereClause2048(Input: Text) ResultText: Text[2048]
     begin
         ResultText := CopyStr(CleanUpWhereClause(Input), 1, MaxStrLen(ResultText));
     end;
@@ -815,7 +815,7 @@ codeunit 20403 "Qlty. Filter Helpers"
             until TempFilterItemAttributesBuffer.Next() = 0;
     end;
 
-    internal procedure BuildItemAttributeFilter400(var ItemAttributeFilter: Text[400])
+    internal procedure BuildItemAttributeFilter2048(var ItemAttributeFilter: Text[2048])
     var
         FullItemAttributeFilter: Text;
     begin
@@ -949,7 +949,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// <param name="FieldNo"></param>
     /// <param name="ExpectedVariant"></param>
     /// <returns></returns>
-    procedure GetIsFilterSetToValue(TableNo: Integer; Filter: Text; FieldNo: Integer; ExpectedVariant: Variant): Boolean;
+    internal procedure GetIsFilterSetToValue(TableNo: Integer; Filter: Text; FieldNo: Integer; ExpectedVariant: Variant): Boolean;
     var
         RecordRef: RecordRef;
         FieldRef: FieldRef;

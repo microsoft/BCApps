@@ -230,7 +230,7 @@ table 20411 "Qlty. Inspection Result"
         UpdateExistingConditions();
     end;
 
-    procedure AutoSetResultCategoryFromName()
+    internal procedure AutoSetResultCategoryFromName()
     begin
         if Rec."Result Category" <> Rec."Result Category"::Uncategorized then
             exit;

@@ -779,7 +779,7 @@ codeunit 20404 "Qlty. Inspection - Create"
     /// Returns the last created status.
     /// </summary>
     /// <returns></returns>
-    procedure GetLastCreatedStatus(): Enum "Qlty. Inspection Create Status"
+    internal procedure GetLastCreatedStatus(): Enum "Qlty. Inspection Create Status"
     begin
         exit(LastQltyInspectionCreateStatus);
     end;

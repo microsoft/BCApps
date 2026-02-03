@@ -558,7 +558,7 @@ table 20400 "Qlty. Management Setup"
     /// <summary>
     /// Retrieves the Setup record from the database, caching the result to avoid repeated reads within the same session.
     /// </summary>
-    procedure GetRecordOnce()
+    internal procedure GetRecordOnce()
     begin
         if RecordHasBeenRead then
             exit;

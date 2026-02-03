@@ -2040,17 +2040,17 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
     end;
 
     [Test]
-    procedure CleanupWhereClause400()
+    procedure CleanupWhereClause2048()
     var
         Output: Text;
     begin
-        // [SCENARIO] Validate where clause cleanup reducing length to 400 characters or less
+        // [SCENARIO] Validate where clause cleanup reducing length to 2048 characters or less
 
-        // [WHEN] CleanUpWhereClause400 is called with input where clause
-        Output := QltyFilterHelpers.CleanUpWhereClause400(InputWhereClause400Tok);
+        // [WHEN] CleanUpWhereClause2048 is called with input where clause
+        Output := QltyFilterHelpers.CleanUpWhereClause2048(InputWhereClause400Tok);
 
-        // [THEN] The output length is 400 characters or less
-        LibraryAssert.IsTrue(StrLen(Output) <= 400, 'Should reduce length to 250 characters or less');
+        // [THEN] The output length is 2048 characters or less
+        LibraryAssert.IsTrue(StrLen(Output) <= 2048, 'Should reduce length to 2048 characters or less');
     end;
 
     [Test]
