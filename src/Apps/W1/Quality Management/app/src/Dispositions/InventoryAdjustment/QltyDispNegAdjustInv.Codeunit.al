@@ -21,8 +21,6 @@ using Microsoft.Warehouse.Tracking;
 /// </summary>
 codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
 {
-    Description = 'Negative Adjust inventory.';
-
     var
         WarehouseJournalLineDescriptionTemplateLbl: Label 'Inspection [%1] negative adjusted quantity', Comment = '%1 = Quality Inspection';
         MissingBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the adjustment batch.';

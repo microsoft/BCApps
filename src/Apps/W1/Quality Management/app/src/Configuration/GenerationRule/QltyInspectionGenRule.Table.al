@@ -54,7 +54,6 @@ table 20404 "Qlty. Inspection Gen. Rule"
         }
         field(4; "Schedule Group"; Code[20])
         {
-            Description = 'Specifies a group which allows a schedule to refer to multiple inspection generation rules.';
             Caption = 'Schedule Group';
             ToolTip = 'Specifies a group which allows a schedule to refer to multiple inspection generation rules.';
 
@@ -105,7 +104,6 @@ table 20404 "Qlty. Inspection Gen. Rule"
         field(13; "Condition Filter"; Text[2048])
         {
             Caption = 'Condition Filter';
-            Description = 'Specifies the criteria for defining when to use this template. For example, if you wanted to only use a template for a certain item then you would define that item here.';
             ToolTip = 'Specifies the criteria for defining when to use this template. For example, if you wanted to only use a template for a certain item then you would define that item here.';
         }
         field(14; Description; Text[100])
@@ -130,12 +128,12 @@ table 20404 "Qlty. Inspection Gen. Rule"
         field(19; "Item Filter"; Text[2048])
         {
             Caption = 'Item Filter';
-            ToolTip = 'Specifies the item specific criteria for defining when to use this template. ';
+            ToolTip = 'Specifies the item specific criteria for defining when to use this template.';
         }
         field(20; "Item Attribute Filter"; Text[2048])
         {
             Caption = 'Attribute Filter';
-            ToolTip = 'Specifies the item attribute specific criteria for defining when to use this template. ';
+            ToolTip = 'Specifies the item attribute specific criteria for defining when to use this template.';
         }
         field(21; "Activation Trigger"; Enum "Qlty. Gen. Rule Act. Trigger")
         {

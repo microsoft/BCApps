@@ -27,7 +27,6 @@ table 20406 "Qlty. Inspection Line"
     {
         field(1; "Inspection No."; Code[20])
         {
-            Description = 'The inspection header';
             Editable = false;
             OptimizeForTextSearch = true;
             Caption = 'Inspection No.';
@@ -85,7 +84,6 @@ table 20406 "Qlty. Inspection Line"
         field(13; Description; Text[100])
         {
             Caption = 'Description';
-            Description = 'Specifies a description of the field as it is used on the test.';
             OptimizeForTextSearch = true;
             ToolTip = 'Specifies a description of the field as it is used on the test.';
         }
@@ -93,7 +91,6 @@ table 20406 "Qlty. Inspection Line"
         {
             CalcFormula = lookup("Qlty. Test"."Test Value Type" where(Code = field("Test Code")));
             Caption = 'Test Value Type';
-            Description = 'Specifies the data type of the values you can enter or select for this test. Use Decimal for numerical measurements. Use Choice to give a list of options to choose from. If you want to choose options from an existing table, use Table Lookup.';
             Editable = false;
             FieldClass = FlowField;
             ToolTip = 'Specifies the data type of the values you can enter or select for this test. Use Decimal for numerical measurements. Use Choice to give a list of options to choose from. If you want to choose options from an existing table, use Table Lookup.';
@@ -107,7 +104,6 @@ table 20406 "Qlty. Inspection Line"
         field(18; "Test Value"; Text[250])
         {
             Caption = 'Test Value';
-            Description = 'The recorded test value.';
             OptimizeForTextSearch = true;
             ToolTip = 'Specifies the recorded test value.';
 
@@ -130,12 +126,11 @@ table 20406 "Qlty. Inspection Line"
         }
         field(19; "Test Value Blob"; Blob)
         {
-            Description = 'When set, large test value data. Typically used for larger text that is captured.';
             Caption = 'Test Value Blob';
+            ToolTip = 'Specifies large test value data. Typically used for larger text that is captured.';
         }
         field(25; "Numeric Value"; Decimal)
         {
-            Description = 'Specifies an evaluated numeric value of Test Value for use in calculations. eg: easier to use for Business Central charting.';
             Editable = false;
             AutoFormatType = 0;
             DecimalPlaces = 0 : 5;
@@ -145,7 +140,6 @@ table 20406 "Qlty. Inspection Line"
         field(28; "Result Code"; Code[20])
         {
             Editable = false;
-            Description = 'The result is automatically determined based on the test value and result configuration.';
             TableRelation = "Qlty. Inspection Result".Code;
             Caption = 'Result Code';
             ToolTip = 'Specifies the result is automatically determined based on the test value and result configuration.';
@@ -163,7 +157,6 @@ table 20406 "Qlty. Inspection Line"
         field(29; "Result Description"; Text[100])
         {
             Caption = 'Result';
-            Description = 'The result description for this test result. The result is automatically determined based on the test value and result configuration.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Qlty. Inspection Result"."Description" where("Code" = field("Result Code")));
@@ -172,7 +165,6 @@ table 20406 "Qlty. Inspection Line"
         field(30; "Evaluation Sequence"; Integer)
         {
             Editable = false;
-            Description = 'The associated evaluation sequence for this test result. The result is automatically determined based on the test value and result configuration.';
             Caption = 'Evaluation Sequence';
             ToolTip = 'Specifies the associated evaluation sequence for this test result. The result is automatically determined based on the test value and result configuration.';
         }
@@ -303,12 +295,16 @@ table 20406 "Qlty. Inspection Line"
     begin
         Result := Rec."Test Value";
 
-        if Rec.CalcFields("Test Value Blob") then begin
-            Rec."Test Value Blob".CreateInStream(InStreamForText);
-            InStreamForText.Read(Result);
-            if (StrLen(Result) < 1) and (StrLen(Rec."Test Value") > 0) then
-                Result := Rec."Test Value";
-        end;
+        if not Rec.CalcFields("Test Value Blob") then
+            exit;
+
+        if not Rec."Test Value Blob".HasValue() then
+            exit;
+
+        Rec."Test Value Blob".CreateInStream(InStreamForText);
+        InStreamForText.Read(Result);
+        if (StrLen(Result) < 1) and (StrLen(Rec."Test Value") > 0) then
+            Result := Rec."Test Value";
     end;
 
     internal procedure SetLargeText(LargeText: Text; ValidateValue: Boolean; OnlySetBlob: Boolean)

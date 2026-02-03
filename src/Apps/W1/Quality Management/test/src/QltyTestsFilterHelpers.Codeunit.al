@@ -278,7 +278,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         TableReference := Format(TableAllObjWithCaption."Object ID");
 
         // [WHEN] IdentifyTableIDFromText is called with the table number
-        CurrentTable := QltyFilterHelpers.IdentifyTableIDFromText(TableReference);
+        CurrentTable := QltyInspectionUtility.IdentifyTableIDFromText(TableReference);
 
         // [THEN] The correct table ID is identified
         LibraryAssert.AreEqual(TableAllObjWithCaption."Object ID", CurrentTable, 'The table no. should be the same.');
@@ -299,7 +299,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         TableReference := TableAllObjWithCaption."Object Name";
 
         // [WHEN] IdentifyTableIDFromText is called with the table name
-        CurrentTable := QltyFilterHelpers.IdentifyTableIDFromText(TableReference);
+        CurrentTable := QltyInspectionUtility.IdentifyTableIDFromText(TableReference);
 
         // [THEN] The correct table ID is identified
         LibraryAssert.AreEqual(TableAllObjWithCaption."Object ID", CurrentTable, 'The table no. should be the same.');
@@ -320,7 +320,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         TableReference := TableAllObjWithCaption."Object Caption";
 
         // [WHEN] IdentifyTableIDFromText is called with the table caption
-        CurrentTable := QltyFilterHelpers.IdentifyTableIDFromText(TableReference);
+        CurrentTable := QltyInspectionUtility.IdentifyTableIDFromText(TableReference);
 
         // [THEN] The correct table ID is identified
         LibraryAssert.AreEqual(TableAllObjWithCaption."Object ID", CurrentTable, 'The table no. should be the same.');
@@ -341,7 +341,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         TableReference := CopyStr(TableReference, 2, (MaxStrLen(TableReference) - 1));
 
         // [WHEN] IdentifyTableIDFromText is called with the partial name
-        CurrentTable := QltyFilterHelpers.IdentifyTableIDFromText(TableReference);
+        CurrentTable := QltyInspectionUtility.IdentifyTableIDFromText(TableReference);
 
         // [THEN] The correct table ID is identified through fuzzy matching
         LibraryAssert.AreEqual(TableAllObjWithCaption."Object ID", CurrentTable, 'The table no. should be the same.');
@@ -362,7 +362,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         TableReference := CopyStr(TableReference, 1, 5);
 
         // [WHEN] IdentifyTableIDFromText is called with the too-short name
-        CurrentTable := QltyFilterHelpers.IdentifyTableIDFromText(TableReference);
+        CurrentTable := QltyInspectionUtility.IdentifyTableIDFromText(TableReference);
 
         // [THEN] No table is returned due to too many matches
         LibraryAssert.AreEqual(0, CurrentTable, 'There should be no table returned due to too many matches.');
@@ -383,7 +383,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         TableReference := CopyStr(TableReference, 2, (MaxStrLen(TableReference) - 1));
 
         // [WHEN] IdentifyTableIDFromText is called with the partial caption
-        CurrentTable := QltyFilterHelpers.IdentifyTableIDFromText(TableReference);
+        CurrentTable := QltyInspectionUtility.IdentifyTableIDFromText(TableReference);
 
         // [THEN] The correct table ID is identified through fuzzy caption matching
         LibraryAssert.AreEqual(TableAllObjWithCaption."Object ID", CurrentTable, 'The table no. should be the same.');
@@ -404,7 +404,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         TableReference := CopyStr(TableReference, 1, 5);
 
         // [WHEN] IdentifyTableIDFromText is called with the too-short caption
-        CurrentTable := QltyFilterHelpers.IdentifyTableIDFromText(TableReference);
+        CurrentTable := QltyInspectionUtility.IdentifyTableIDFromText(TableReference);
 
         // [THEN] No table is returned due to too many matches
         LibraryAssert.AreEqual(0, CurrentTable, 'There should be no table returned due to too many matches.');
@@ -427,7 +427,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         FieldReference := '1';
 
         // [WHEN] IdentifyFieldIDFromText is called with the field number
-        FieldNumberNumber := QltyFilterHelpers.IdentifyFieldIDFromText(TableAllObjWithCaption."Object ID", FieldReference);
+        FieldNumberNumber := QltyInspectionUtility.IdentifyFieldIDFromText(TableAllObjWithCaption."Object ID", FieldReference);
 
         // [THEN] The correct field ID is identified
         ToLoadField.SetRange(TableNo, TableAllObjWithCaption."Object ID");
@@ -454,7 +454,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         FieldReference := ToLoadField.FieldName;
 
         // [WHEN] IdentifyFieldIDFromText is called with the field name
-        FieldNumber := QltyFilterHelpers.IdentifyFieldIDFromText(TableAllObjWithCaption."Object ID", FieldReference);
+        FieldNumber := QltyInspectionUtility.IdentifyFieldIDFromText(TableAllObjWithCaption."Object ID", FieldReference);
 
         // [THEN] The correct field ID is identified
         LibraryAssert.AreEqual(ToLoadField."No.", FieldNumber, 'The field no. should be the same.');
@@ -479,7 +479,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         FieldReference := ToLoadField."Field Caption";
 
         // [WHEN] IdentifyFieldIDFromText is called with the field caption
-        FieldNumber := QltyFilterHelpers.IdentifyFieldIDFromText(TableAllObjWithCaption."Object ID", FieldReference);
+        FieldNumber := QltyInspectionUtility.IdentifyFieldIDFromText(TableAllObjWithCaption."Object ID", FieldReference);
 
         // [THEN] The correct field ID is identified
         LibraryAssert.AreEqual(ToLoadField."No.", FieldNumber, 'The field no. should be the same.');
@@ -500,7 +500,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         FieldReference := CopyStr(FieldReference, 2, (MaxStrLen(FieldReference) - 1));
 
         // [WHEN] IdentifyFieldIDFromText is called with the partial field name
-        FieldNumber := QltyFilterHelpers.IdentifyFieldIDFromText(ToLoadField.TableNo, FieldReference);
+        FieldNumber := QltyInspectionUtility.IdentifyFieldIDFromText(ToLoadField.TableNo, FieldReference);
 
         // [THEN] The correct field ID is identified through fuzzy matching
         LibraryAssert.AreEqual(ToLoadField."No.", FieldNumber, 'The field no. should be the same.');
@@ -521,7 +521,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         FieldReference := CopyStr(FieldReference, 1, 3);
 
         // [WHEN] IdentifyFieldIDFromText is called with the too-short field name
-        FieldNumber := QltyFilterHelpers.IdentifyFieldIDFromText(ToLoadField.TableNo, FieldReference);
+        FieldNumber := QltyInspectionUtility.IdentifyFieldIDFromText(ToLoadField.TableNo, FieldReference);
 
         // [THEN] No field is returned due to too many matches
         LibraryAssert.AreEqual(0, FieldNumber, 'There should be no field returned due to too many matches.');
@@ -542,7 +542,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         FieldReference := CopyStr(FieldReference, 2, (MaxStrLen(FieldReference) - 1));
 
         // [WHEN] IdentifyFieldIDFromText is called with the partial field caption
-        FieldNumber := QltyFilterHelpers.IdentifyFieldIDFromText(ToLoadField.TableNo, FieldReference);
+        FieldNumber := QltyInspectionUtility.IdentifyFieldIDFromText(ToLoadField.TableNo, FieldReference);
 
         // [THEN] The correct field ID is identified through fuzzy caption matching
         LibraryAssert.AreEqual(ToLoadField."No.", FieldNumber, 'The field no. should be the same.');
@@ -563,7 +563,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         FieldReference := CopyStr(FieldReference, 1, 3);
 
         // [WHEN] IdentifyFieldIDFromText is called with the too-short field caption
-        FieldNumber := QltyFilterHelpers.IdentifyFieldIDFromText(ToLoadField.TableNo, FieldReference);
+        FieldNumber := QltyInspectionUtility.IdentifyFieldIDFromText(ToLoadField.TableNo, FieldReference);
 
         // [THEN] No field is returned due to too many matches
         LibraryAssert.AreEqual(0, FieldNumber, 'There should be no field returned due to too many matches.');
