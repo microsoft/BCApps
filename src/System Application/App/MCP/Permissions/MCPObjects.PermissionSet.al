@@ -14,5 +14,7 @@ permissionset 8350 "MCP - Objects"
     Permissions = table "MCP API Publisher Group" = X,
                   table "MCP Configuration" = X,
                   table "MCP Configuration Tool" = X,
-                  table "MCP Entra Application" = X;
+                  table "MCP Config Warning" = X,
+                  table "MCP Entra Application" = X,
+                  table "MCP System Tool" = X;
 }

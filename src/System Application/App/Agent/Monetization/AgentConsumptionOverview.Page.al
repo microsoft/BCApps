@@ -5,6 +5,7 @@
 
 namespace System.Agents;
 
+using System.Agents.Troubleshooting;
 using System.Environment.Consumption;
 using System.Security.AccessControl;
 
@@ -233,8 +234,8 @@ page 4333 "Agent Consumption Overview"
                 Image = PreviousSet;
                 trigger OnAction()
                 begin
-                    EndDate := CalcDate(PeriodBackTok, EndDate);
-                    StartDate := CalcDate(PeriodBackTok, EndDate);
+                    StartDate := CalcDate('<-1M-CM>', StartDate);
+                    EndDate := CalcDate('<CM>', StartDate);
                     UpdateDateRange(StartDate, EndDate);
                     Clear(TaskNameTxt);
                     Clear(TotalTaskConsumedCredits);
@@ -250,16 +251,16 @@ page 4333 "Agent Consumption Overview"
                 Image = NextSet;
                 trigger OnAction()
                 begin
-                    if EndDate = Today() then begin
+                    if EndDate >= CalcDate('<CM>', Today()) then begin
                         Message(TheEndDateIsTodayMsg);
                         exit;
                     end;
 
-                    EndDate := CalcDate(PeriodForwardTok, EndDate);
+                    StartDate := CalcDate('<+1M-CM>', StartDate);
+                    EndDate := CalcDate('<CM>', StartDate);
                     if EndDate > Today() then
                         EndDate := Today();
 
-                    StartDate := CalcDate(PeriodBackTok, EndDate);
                     UpdateDateRange(StartDate, EndDate);
                     CurrPage.Update(false);
                 end;
@@ -474,7 +475,5 @@ page 4333 "Agent Consumption Overview"
         AgentTaskNameTxt: Label 'Task #%1 - %2', Comment = '%1 - ID of the agent task, %2 - Title of the agent task';
         YourNotAuthorizedToViewMonetizationDataErr: Label 'You are missing the required permissions to view monetization data.';
         TheEndDateIsTodayMsg: Label 'The end date is already set to today. You cannot move the date range filter further.';
-        PeriodBackTok: Label '<-1M>', Locked = true;
-        PeriodForwardTok: Label '<+1M>', Locked = true;
-        StartDateTok: Label '<-1M>', Locked = true;
+        StartDateTok: Label '<-CM>', Locked = true;
 }

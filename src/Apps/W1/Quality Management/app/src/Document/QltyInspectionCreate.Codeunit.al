@@ -272,6 +272,7 @@ codeunit 20404 "Qlty. Inspection - Create"
         RelatedItem: Record Item;
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         QltyStartWorkflow: Codeunit "Qlty. Start Workflow";
+        QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
         RecordRefToBufferTriggeringRecord: RecordRef;
         OriginalRecordId: RecordId;
         NullRecordId: RecordId;
@@ -346,7 +347,6 @@ codeunit 20404 "Qlty. Inspection - Create"
             end;
 
             QltyInspectionHeader.UpdateResultFromLines();
-            QltyInspectionHeader.UpdateBrickFields();
 
             QltyInspectionHeader.SetIsCreating(true);
             QltyInspectionHeader.Modify(false);
@@ -364,12 +364,11 @@ codeunit 20404 "Qlty. Inspection - Create"
             if IsNewlyCreatedInspection then
                 QltyStartWorkflow.StartWorkflowInspectionCreated(QltyInspectionHeader);
 
-            if GuiAllowed() then
-                if (not PreventShowingGeneratedInspectionEvenIfConfigured) and
-                   ((QltyManagementSetup."Show Inspection Behavior" = QltyManagementSetup."Show Inspection Behavior"::"Automatic and manually created inspections") or
-                   (IsManualCreation and (QltyManagementSetup."Show Inspection Behavior" = QltyManagementSetup."Show Inspection Behavior"::"Only manually created inspections")))
-                then
-                    Page.Run(Page::"Qlty. Inspection", QltyInspectionHeader);
+            if GuiAllowed() and not PreventShowingGeneratedInspectionEvenIfConfigured then
+                if IsManualCreation then
+                    Page.Run(Page::"Qlty. Inspection", QltyInspectionHeader)
+                else
+                    QltyNotificationMgmt.NotifyInspectionCreated(QltyInspectionHeader);
         end else begin
             LogCreateInspectionProblem(TargetRecordRef, UnableToCreateInspectionForErr, Format(OriginalRecordId));
             if IsManualCreation and (not AvoidThrowingErrorWhenPossible) then
@@ -495,24 +494,24 @@ codeunit 20404 "Qlty. Inspection - Create"
         InspectionIsNew := false;
 
         QltyManagementSetup.Get();
-        if QltyManagementSetup."Create Inspection Behavior" = QltyManagementSetup."Create Inspection Behavior"::"Always create new inspection" then begin
+        if QltyManagementSetup."Inspection Creation Option" = QltyManagementSetup."Inspection Creation Option"::"Always create new inspection" then begin
             NeedNewInspection := true;
             HasExistingInspection := false;
         end else begin
             HasExistingInspection := FindExistingInspectionWithStub(TempSourceFieldsFilledStubInspectionBufferQltyInspectionHeader, TempQltyInspectionGenRule, ExistingQltyInspectionHeader, false);
 
-            case QltyManagementSetup."Create Inspection Behavior" of
-                QltyManagementSetup."Create Inspection Behavior"::"Always create new inspection":
+            case QltyManagementSetup."Inspection Creation Option" of
+                QltyManagementSetup."Inspection Creation Option"::"Always create new inspection":
                     begin
                         NeedNewInspection := true;
                         ShouldCreateReinspection := false;
                     end;
-                QltyManagementSetup."Create Inspection Behavior"::"Always create re-inspection":
+                QltyManagementSetup."Inspection Creation Option"::"Always create re-inspection":
                     begin
                         ShouldCreateReinspection := true;
                         NeedNewInspection := true;
                     end;
-                QltyManagementSetup."Create Inspection Behavior"::"Create re-inspection if matching inspection is finished":
+                QltyManagementSetup."Inspection Creation Option"::"Create re-inspection if matching inspection is finished":
                     if not HasExistingInspection then begin
                         NeedNewInspection := true;
                         ShouldCreateReinspection := false;
@@ -521,7 +520,7 @@ codeunit 20404 "Qlty. Inspection - Create"
                         ShouldCreateReinspection := ExistingQltyInspectionHeader.Status = ExistingQltyInspectionHeader.Status::Finished;
                         HasInspection := not NeedNewInspection;
                     end;
-                QltyManagementSetup."Create Inspection Behavior"::"Use existing open inspection if available":
+                QltyManagementSetup."Inspection Creation Option"::"Use existing open inspection if available":
                     if not HasExistingInspection then begin
                         NeedNewInspection := true;
                         ShouldCreateReinspection := false;
@@ -530,7 +529,7 @@ codeunit 20404 "Qlty. Inspection - Create"
                         ShouldCreateReinspection := false;
                         HasInspection := not NeedNewInspection;
                     end;
-                QltyManagementSetup."Create Inspection Behavior"::"Use any existing inspection if available":
+                QltyManagementSetup."Inspection Creation Option"::"Use any existing inspection if available":
                     begin
                         NeedNewInspection := not HasExistingInspection;
                         ShouldCreateReinspection := false;
@@ -676,14 +675,14 @@ codeunit 20404 "Qlty. Inspection - Create"
             TempInStubSearchForSimilarInspectionBufferQltyInspectionHeader."Template Code" := TempQltyInspectionGenRule."Template Code";
 
         ExistingQltyInspectionHeader.TransferFields(TempInStubSearchForSimilarInspectionBufferQltyInspectionHeader, false);
-        case QltyManagementSetup."Find Existing Behavior" of
-            QltyManagementSetup."Find Existing Behavior"::"By Standard Source Fields":
+        case QltyManagementSetup."Inspection Search Criteria" of
+            QltyManagementSetup."Inspection Search Criteria"::"By Standard Source Fields":
                 ExistingQltyInspectionHeader.SetCurrentKey("Template Code", "Source Table No.", "Source Type", "Source Sub Type", "Source Document No.", "Source Document Line No.", "Source Item No.", "Source Variant Code", "Source Serial No.", "Source Lot No.", "Source Task No.", "Source Package No.");
-            QltyManagementSetup."Find Existing Behavior"::"By Source Record":
+            QltyManagementSetup."Inspection Search Criteria"::"By Source Record":
                 ExistingQltyInspectionHeader.SetCurrentKey("Template Code", "Source RecordId", "Source Record Table No.");
-            QltyManagementSetup."Find Existing Behavior"::"By Item Tracking":
+            QltyManagementSetup."Inspection Search Criteria"::"By Item Tracking":
                 ExistingQltyInspectionHeader.SetCurrentKey("Source Item No.", "Source Variant Code", "Source Serial No.", "Source Lot No.", "Template Code", "Source Package No.");
-            QltyManagementSetup."Find Existing Behavior"::"By Document and Item only":
+            QltyManagementSetup."Inspection Search Criteria"::"By Document and Item only":
                 ExistingQltyInspectionHeader.SetCurrentKey("Source Document No.", "Source Document Line No.", "Source Item No.", "Source Variant Code");
         end;
 
@@ -692,10 +691,10 @@ codeunit 20404 "Qlty. Inspection - Create"
         ExistingQltyInspectionHeader.SetRange("Re-inspection No.");
         ExistingQltyInspectionHeader.SetRange("Template Code");
 
-        if QltyManagementSetup."Find Existing Behavior" <> QltyManagementSetup."Find Existing Behavior"::"By Source Record" then
+        if QltyManagementSetup."Inspection Search Criteria" <> QltyManagementSetup."Inspection Search Criteria"::"By Source Record" then
             ExistingQltyInspectionHeader.SetRange("Source Table No.");
 
-        if QltyManagementSetup."Find Existing Behavior" = QltyManagementSetup."Find Existing Behavior"::"By Document and Item only" then begin
+        if QltyManagementSetup."Inspection Search Criteria" = QltyManagementSetup."Inspection Search Criteria"::"By Document and Item only" then begin
             ExistingQltyInspectionHeader.SetRange("Source Lot No.");
             ExistingQltyInspectionHeader.SetRange("Source Serial No.");
             ExistingQltyInspectionHeader.SetRange("Source Package No.");
@@ -716,6 +715,7 @@ codeunit 20404 "Qlty. Inspection - Create"
     procedure CreateReinspection(FromThisQltyInspectionHeader: Record "Qlty. Inspection Header"; var CreatedReinspectionQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         ExistingQltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
         Handled: Boolean;
     begin
         QltyManagementSetup.Get();
@@ -735,8 +735,7 @@ codeunit 20404 "Qlty. Inspection - Create"
         LastCreatedQltyInspectionHeader := CreatedReinspectionQltyInspectionHeader;
 
         if GuiAllowed() then
-            if QltyManagementSetup."Show Inspection Behavior" in [QltyManagementSetup."Show Inspection Behavior"::"Automatic and manually created inspections", QltyManagementSetup."Show Inspection Behavior"::"Only manually created inspections"] then
-                Page.Run(Page::"Qlty. Inspection", CreatedReinspectionQltyInspectionHeader);
+            QltyNotificationMgmt.NotifyInspectionCreated(CreatedReinspectionQltyInspectionHeader);
 
         OnAfterCreateReinspection(FromThisQltyInspectionHeader, CreatedReinspectionQltyInspectionHeader);
     end;
@@ -804,6 +803,16 @@ codeunit 20404 "Qlty. Inspection - Create"
     /// </summary>
     /// <param name="TempTrackingSpecification">You must mark your records as a pre-requisite.</param>
     internal procedure CreateMultipleInspectionsForMarkedTrackingSpecification(var TempTrackingSpecification: Record "Tracking Specification" temporary)
+    begin
+        CreateMultipleInspectionsForMarkedTrackingSpecification(TempTrackingSpecification, true);
+    end;
+
+    /// <summary>
+    /// Use this with Marked records.
+    /// </summary>
+    /// <param name="TempTrackingSpecification">You must mark your records as a pre-requisite.</param>
+    /// <param name="IsManualCreation">Whether this is a manual test creation or automated.</param>
+    internal procedure CreateMultipleInspectionsForMarkedTrackingSpecification(var TempTrackingSpecification: Record "Tracking Specification" temporary; IsManualCreation: Boolean)
     var
         TempNotUsedOptionalFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
         TempRecCopyOfTrackingSpecificationRecordRef: RecordRef;
@@ -819,7 +828,7 @@ codeunit 20404 "Qlty. Inspection - Create"
                 TempRecCopyOfTrackingSpecificationRecordRef.Insert();
             until TempTrackingSpecification.Next() = 0;
 
-        CreateMultipleInspectionsForMultipleRecords(TempRecCopyOfTrackingSpecificationRecordRef, true, TempNotUsedOptionalFiltersQltyInspectionGenRule);
+        CreateMultipleInspectionsForMultipleRecords(TempRecCopyOfTrackingSpecificationRecordRef, IsManualCreation, TempNotUsedOptionalFiltersQltyInspectionGenRule);
     end;
 
     internal procedure CreateMultipleInspectionsForMultipleRecords(var SetOfRecordsRecordRef: RecordRef; IsManualCreation: Boolean)
@@ -842,15 +851,13 @@ codeunit 20404 "Qlty. Inspection - Create"
     internal procedure DisplayInspectionsIfConfigured(IsManualCreation: Boolean; var CreatedQltyInspectionIds: List of [Code[20]])
     var
         CreatedQltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
         InspectionNo: Code[20];
         PipeSeparatedFilter: Text;
     begin
         QltyManagementSetup.Get();
 
-        if GuiAllowed() and
-           ((QltyManagementSetup."Show Inspection Behavior" in [QltyManagementSetup."Show Inspection Behavior"::"Automatic and manually created inspections"]) or
-           (IsManualCreation and (QltyManagementSetup."Show Inspection Behavior" in [QltyManagementSetup."Show Inspection Behavior"::"Only manually created inspections"])))
-        then begin
+        if GuiAllowed() then begin
             foreach InspectionNo in CreatedQltyInspectionIds do
                 if InspectionNo <> '' then begin
                     if StrLen(PipeSeparatedFilter) > 1 then
@@ -862,10 +869,16 @@ codeunit 20404 "Qlty. Inspection - Create"
             if CreatedQltyInspectionIds.Count() = 1 then begin
                 CreatedQltyInspectionHeader.SetCurrentKey("No.", "Re-inspection No.");
                 CreatedQltyInspectionHeader.FindLast();
-                Page.Run(Page::"Qlty. Inspection", CreatedQltyInspectionHeader);
+                if IsManualCreation then
+                    Page.Run(Page::"Qlty. Inspection", CreatedQltyInspectionHeader)
+                else
+                    QltyNotificationMgmt.NotifyInspectionCreated(CreatedQltyInspectionHeader);
             end else begin
                 CreatedQltyInspectionHeader.FindSet();
-                Page.Run(Page::"Qlty. Inspection List", CreatedQltyInspectionHeader);
+                if IsManualCreation then
+                    Page.Run(Page::"Qlty. Inspection List", CreatedQltyInspectionHeader)
+                else
+                    QltyNotificationMgmt.NotifyMultipleInspectionsCreated(CreatedQltyInspectionHeader);
             end;
         end;
     end;
@@ -1129,8 +1142,8 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
-    /// Implement OnCustomCreateInspectionBehavior if you have also extended enum 20402 "Qlty. Create Inspect. Behavior"
-    /// This is where you will provide any custom create inspection behaviors to match your enum extension.
+    /// Implement OnCustomCreateInspectionBehavior if you have also extended enum 20402 "Qlty. Inspect. Creation Option"
+    /// This is where you will provide any custom Inspection Creation Options to match your enum extension.
     /// Only set handled to true if you want to skip the remaining behavior.
     /// </summary>
     /// <param name="TargetRecordRef">The record the inspection is being created against</param>

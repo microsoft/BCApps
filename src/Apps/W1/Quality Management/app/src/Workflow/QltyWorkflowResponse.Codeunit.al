@@ -74,9 +74,6 @@ codeunit 20424 "Qlty. Workflow Response"
         TableFilter: Text;
         Handled: Boolean;
     begin
-        if not QltyWorkflowSetup.IsWorkflowIntegrationEnabledAndSufficientPermission() then
-            exit;
-
         Peek := ResponseWorkflowStepInstance."Function Name";
         if not Peek.StartsWith(QltyWorkflowSetup.GetQualityInspectionPrefix()) then
             exit;
@@ -133,7 +130,7 @@ codeunit 20424 "Qlty. Workflow Response"
             case WorkflowResponse."Function Name" of
                 QltyWorkflowSetup.GetWorkflowResponseCreateInspection():
                     begin
-                        if QltyInspectionCreate.CreateInspection(PrimaryRecordRefInWorkflow, GuiAllowed()) then
+                        if QltyInspectionCreate.CreateInspection(PrimaryRecordRefInWorkflow, false) then
                             QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
                         ResponseExecuted := true;

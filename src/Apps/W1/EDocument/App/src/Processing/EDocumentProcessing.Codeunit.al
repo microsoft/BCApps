@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument;
 
 using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Foundation.Reporting;
@@ -684,6 +685,55 @@ codeunit 6108 "E-Document Processing"
             end
         end;
         exit(RecCaption);
+    end;
+
+    internal procedure ErrorIfNotAllowedToLinkToExistingDoc(EDocument: Record "E-Document"; EDocumentPurchaseHeader: Record "E-Document Purchase Header")
+    var
+        Vendor: Record Vendor;
+        NoVendorErr: Label 'Cannot link e-document to existing purchase document because vendor number is missing in e-document purchase header.';
+    begin
+        if EDocumentPurchaseHeader."[BC] Vendor No." = '' then
+            Error(NoVendorErr);
+        if Vendor.Get(EDocumentPurchaseHeader."[BC] Vendor No.") then
+            Vendor.TestField("IC Partner Code");
+    end;
+
+    procedure OpenPurchaseDocumentList(EDocumentType: Enum "E-Document Type"; var PurchaseHeader: Record "Purchase Header"): Boolean
+    var
+        PurchaseInvoices: Page "Purchase Invoices";
+        PurchaseOrders: Page "Purchase Orders";
+        PurchaseCreditMemos: Page "Purchase Credit Memos";
+    begin
+        case EDocumentType of
+            EDocumentType::"Purchase Invoice":
+                begin
+                    PurchaseInvoices.SetTableView(PurchaseHeader);
+                    PurchaseInvoices.LookupMode := true;
+                    if PurchaseInvoices.RunModal() = Action::LookupOK then begin
+                        PurchaseInvoices.GetRecord(PurchaseHeader);
+                        exit(true);
+                    end;
+                end;
+            EDocumentType::"Purchase Credit Memo":
+                begin
+                    PurchaseCreditMemos.SetTableView(PurchaseHeader);
+                    PurchaseCreditMemos.LookupMode := true;
+                    if PurchaseCreditMemos.RunModal() = Action::LookupOK then begin
+                        PurchaseCreditMemos.GetRecord(PurchaseHeader);
+                        exit(true);
+                    end;
+                end;
+            EDocumentType::"Purchase Order":
+                begin
+                    PurchaseOrders.SetTableView(PurchaseHeader);
+                    PurchaseOrders.LookupMode := true;
+                    if PurchaseOrders.RunModal() = Action::LookupOK then begin
+                        PurchaseOrders.GetRecord(PurchaseHeader);
+                        exit(true);
+                    end;
+                end;
+        end;
+        exit(false);
     end;
 
     [IntegrationEvent(false, false)]

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -84,12 +84,12 @@ codeunit 99001546 "Subc. Whse Direct Posting"
         PostDirectTransferInTryPosting(CounterSourceDocOK, TransferPostShipment, TransHeader, Result);
     end;
 
-    local procedure PostDirectTransferInTryPosting(var CounterSourceDocOK: Integer; var TransferPostShipment: Codeunit "TransferOrder-Post Shipment"; var TransHeader: Record "Transfer Header"; Result: Boolean)
+    local procedure PostDirectTransferInTryPosting(var CounterSourceDocOK: Integer; var TransferOrderPostShipment: Codeunit "TransferOrder-Post Shipment"; var TransferHeader: Record "Transfer Header"; Result: Boolean)
     begin
         if Result then
             exit;
-        if IsDirectTransfer(TransHeader) then begin
-            TransferPostShipment.Run(TransHeader);
+        if IsDirectTransfer(TransferHeader) then begin
+            TransferOrderPostShipment.Run(TransferHeader);
             CounterSourceDocOK := CounterSourceDocOK + 1;
         end;
     end;
@@ -129,25 +129,25 @@ codeunit 99001546 "Subc. Whse Direct Posting"
 
     local procedure PostRelatedInboundTransfer(var TransferHeader: Record "Transfer Header")
     var
-        TransferPostReceipt: Codeunit "TransferOrder-Post Receipt";
+        TransferOrderPostReceipt: Codeunit "TransferOrder-Post Receipt";
     begin
-        TransferPostReceipt.SetSuppressCommit(true);
-        TransferPostReceipt.SetHideValidationDialog(true);
-        TransferPostReceipt.Run(TransferHeader);
+        TransferOrderPostReceipt.SetSuppressCommit(true);
+        TransferOrderPostReceipt.SetHideValidationDialog(true);
+        TransferOrderPostReceipt.Run(TransferHeader);
     end;
 
-    local procedure WhseActYesNoQuestion(var WhseActivLine: Record "Warehouse Activity Line"; var Result: Boolean; var IsHandled: Boolean)
+    local procedure WhseActYesNoQuestion(var WarehouseActivityLine: Record "Warehouse Activity Line"; var Result: Boolean; var IsHandled: Boolean)
     var
         WarehouseActivityHeader: Record "Warehouse Activity Header";
         PostingQst: Label 'Do you want to post the %1 for the %2 and the %3?', Comment = '%1=Activity Type, %2=Source Document, %3=Target Document';
     begin
-        if WhseActivLine."Source Document" <> "Warehouse Activity Source Document"::"Outbound Transfer" then
+        if WarehouseActivityLine."Source Document" <> "Warehouse Activity Source Document"::"Outbound Transfer" then
             exit;
-        WarehouseActivityHeader.Get(WhseActivLine."Activity Type", WhseActivLine."No.");
+        WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
         if not PostInboundTransferInOneStep(WarehouseActivityHeader) then
             exit;
 
-        Result := Confirm(PostingQst, false, WhseActivLine."Activity Type", WhseActivLine."Source Document", "Warehouse Activity Source Document"::"Inbound Transfer");
+        Result := Confirm(PostingQst, false, WarehouseActivityLine."Activity Type", WarehouseActivityLine."Source Document", "Warehouse Activity Source Document"::"Inbound Transfer");
         IsHandled := true;
     end;
 }

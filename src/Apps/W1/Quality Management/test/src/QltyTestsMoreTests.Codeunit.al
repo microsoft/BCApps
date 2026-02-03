@@ -24,7 +24,6 @@ using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup;
-using Microsoft.QualityManagement.Setup.ApplicationAreas;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.Sales.Document;
 using Microsoft.Test.QualityManagement.TestLibraries;
@@ -53,11 +52,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
         IsInitialized: Boolean;
         TemplateCodeTok: Label 'TemplateCode', Locked = true;
         ResultCodeTxt: Label 'UNAVAILABLE';
-        DefaultTopLeftTok: Label 'Inspection', Locked = true;
-        DefaultMiddleLeftTok: Label 'Result', Locked = true;
-        DefaultMiddleRightTok: Label 'Details', Locked = true;
-        DefaultBottomLeftTok: Label 'Document', Locked = true;
-        DefaultBottomRightTok: Label 'Status', Locked = true;
         ProdLineTok: Label 'PRODLINETOROUTING', Locked = true;
         CannotHaveATemplateWithReversedFromAndToErr: Label 'There is another template ''%1'' that reverses the from table and to table. You cannot have this combination to prevent recursive logic. Please change either this source configuration, or please change ''%1''', Comment = '%1=The other template code with conflicting configuration';
         TestValueTxt: Label 'test value.';
@@ -534,59 +528,59 @@ codeunit 139965 "Qlty. Tests - More Tests"
     end;
 
     [Test]
-    procedure SetupTable_ValidatePictureUploadBehavior()
+    procedure SetupTable_ValidateAdditionalPictureHandling()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
     begin
-        // [SCENARIO] Picture Upload Behavior can be validated and changed to "Attach document"
+        // [SCENARIO] Additional Picture Handling can be validated and changed to "Save as attachment"
         Initialize();
 
         // [GIVEN] Quality Management setup exists
         QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] The setup record is retrieved and Picture Upload Behavior is set to "Do nothing"
+        // [GIVEN] The setup record is retrieved and Additional Picture Handling is set to "None"
         QltyManagementSetup.Get();
-        QltyManagementSetup."Picture Upload Behavior" := QltyManagementSetup."Picture Upload Behavior"::"Do nothing";
+        QltyManagementSetup."Additional Picture Handling" := QltyManagementSetup."Additional Picture Handling"::None;
         QltyManagementSetup.Modify();
 
-        // [WHEN] Picture Upload Behavior is validated and set to "Attach document"
-        QltyManagementSetup.Validate("Picture Upload Behavior", QltyManagementSetup."Picture Upload Behavior"::"Attach document");
+        // [WHEN] Additional Picture Handling is validated and set to "Save as attachment"
+        QltyManagementSetup.Validate("Additional Picture Handling", QltyManagementSetup."Additional Picture Handling"::"Save as attachment");
 
-        // [THEN] The Picture Upload Behavior is successfully updated to "Attach document"
-        LibraryAssert.IsTrue(QltyManagementSetup."Picture Upload Behavior" = QltyManagementSetup."Picture Upload Behavior"::"Attach document", 'Picture upload behavior should be valid and updated')
+        // [THEN] The Additional Picture Handling is successfully updated to "Save as attachment"
+        LibraryAssert.IsTrue(QltyManagementSetup."Additional Picture Handling" = QltyManagementSetup."Additional Picture Handling"::"Save as attachment", 'Additional picture handling should be valid and updated')
     end;
 
     [Test]
-    procedure SetupTable_ValidatePictureUploadBehavior_StoreInOneDrive()
+    procedure SetupTable_ValidateAdditionalPictureHandling_StoreInOneDrive()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         DocumentServiceManagement: Codeunit "Document Service Management";
 
     begin
-        // [SCENARIO] Setting Picture Upload Behavior to "Attach and upload to OneDrive" requires OneDrive configuration
+        // [SCENARIO] Setting Additional Picture Handling to "Save as attachment and upload to OneDrive" requires OneDrive configuration
         Initialize();
 
         // [GIVEN] Quality Management setup exists
         QltyInspectionUtility.EnsureSetupExists();
 
-        // [GIVEN] The setup record is retrieved and Picture Upload Behavior is set to "Do nothing"
+        // [GIVEN] The setup record is retrieved and Additional Picture Handling is set to "None"
         QltyManagementSetup.Get();
-        QltyManagementSetup."Picture Upload Behavior" := QltyManagementSetup."Picture Upload Behavior"::"Do nothing";
+        QltyManagementSetup."Additional Picture Handling" := QltyManagementSetup."Additional Picture Handling"::None;
         QltyManagementSetup.Modify();
 
         // [WHEN] OneDrive is not configured
         if not DocumentServiceManagement.IsConfigured() then begin
-            // [WHEN] Attempting to set Picture Upload Behavior to "Attach and upload to OneDrive"
-            asserterror QltyManagementSetup.Validate("Picture Upload Behavior", QltyManagementSetup."Picture Upload Behavior"::"Attach and upload to OneDrive");
+            // [WHEN] Attempting to set Additional Picture Handling to "Save as attachment and upload to OneDrive"
+            asserterror QltyManagementSetup.Validate("Additional Picture Handling", QltyManagementSetup."Additional Picture Handling"::"Save as attachment and upload to OneDrive");
 
             // [THEN] An error is raised indicating OneDrive must be configured first
             LibraryAssert.ExpectedError(OneDriveIntegrationNotConfiguredErr);
         end else begin
-            // [WHEN] OneDrive is configured and Picture Upload Behavior is set to "Attach and upload to OneDrive"
-            QltyManagementSetup.Validate("Picture Upload Behavior", QltyManagementSetup."Picture Upload Behavior"::"Attach and upload to OneDrive");
+            // [WHEN] OneDrive is configured and Additional Picture Handling is set to "Save as attachment and upload to OneDrive"
+            QltyManagementSetup.Validate("Additional Picture Handling", QltyManagementSetup."Additional Picture Handling"::"Save as attachment and upload to OneDrive");
 
-            // [THEN] The Picture Upload Behavior is successfully updated
-            LibraryAssert.IsTrue(QltyManagementSetup."Picture Upload Behavior" = QltyManagementSetup."Picture Upload Behavior"::"Attach and upload to OneDrive", 'Picture upload behavior should be valid and updated')
+            // [THEN] The Additional Picture Handling is successfully updated
+            LibraryAssert.IsTrue(QltyManagementSetup."Additional Picture Handling" = QltyManagementSetup."Additional Picture Handling"::"Save as attachment and upload to OneDrive", 'Additional picture handling should be valid and updated')
         end;
     end;
 
@@ -598,7 +592,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ItemJournalBatch: Record "Item Journal Batch";
         LibraryInventory: Codeunit "Library - Inventory";
     begin
-        // [SCENARIO] Bin Move Batch Name can be validated and set to a Transfer journal batch
+        // [SCENARIO] Item Reclass. Batch Name can be validated and set to a Transfer journal batch
         Initialize();
 
         // [GIVEN] Quality Management setup exists
@@ -615,11 +609,11 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [GIVEN] The setup record is retrieved
         QltyManagementSetup.Get();
 
-        // [WHEN] Bin Move Batch Name is validated and set to the created batch
-        QltyManagementSetup.Validate("Bin Move Batch Name", ItemJournalBatch.Name);
+        // [WHEN] Item Reclass. Batch Name is validated and set to the created batch
+        QltyManagementSetup.Validate("Item Reclass. Batch Name", ItemJournalBatch.Name);
 
-        // [THEN] The Bin Move Batch Name is successfully updated
-        LibraryAssert.AreEqual(ItemJournalBatch.Name, QltyManagementSetup."Bin Move Batch Name", 'Bin move batch name should be valid and updated')
+        // [THEN] The Item Reclass. Batch Name is successfully updated
+        LibraryAssert.AreEqual(ItemJournalBatch.Name, QltyManagementSetup."Item Reclass. Batch Name", 'Item Reclass. Batch Name should be valid and updated')
     end;
 
     [Test]
@@ -630,7 +624,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ItemJournalBatch: Record "Item Journal Batch";
         LibraryInventory: Codeunit "Library - Inventory";
     begin
-        // [SCENARIO] Adjustment Batch Name can be validated and set to an Item journal batch
+        // [SCENARIO] Item Journal Batch Name can be validated and set to an Item journal batch
         Initialize();
 
         // [GIVEN] Quality Management setup exists
@@ -647,45 +641,11 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [GIVEN] The setup record is retrieved
         QltyManagementSetup.Get();
 
-        // [WHEN] Adjustment Batch Name is validated and set to the created batch
-        QltyManagementSetup.Validate("Adjustment Batch Name", ItemJournalBatch.Name);
+        // [WHEN] Item Journal Batch Name is validated and set to the created batch
+        QltyManagementSetup.Validate("Item Journal Batch Name", ItemJournalBatch.Name);
 
-        // [THEN] The Adjustment Batch Name is successfully updated
-        LibraryAssert.AreEqual(ItemJournalBatch.Name, QltyManagementSetup."Adjustment Batch Name", 'Adjustment batch name should be valid and updated')
-    end;
-
-    [Test]
-    procedure SetupTable_OnInsert_InitializeBrickHeaders()
-    var
-        QltyManagementSetup: Record "Qlty. Management Setup";
-    begin
-        // [SCENARIO] When Quality Management Setup is inserted, Brick Headers are initialized to default values
-        Initialize();
-
-        // [GIVEN] Any existing setup record is deleted
-        if QltyManagementSetup.Get() then
-            QltyManagementSetup.Delete();
-
-        // [GIVEN] A new setup record is initialized
-        QltyManagementSetup.Init();
-
-        // [WHEN] The setup record is inserted with trigger execution
-        QltyManagementSetup.Insert(true);
-
-        // [THEN] Brick Top Left Header is set to default value 'Test'
-        LibraryAssert.AreEqual(DefaultTopLeftTok, QltyManagementSetup."Brick Top Left Header", 'Top left header should be default value');
-
-        // [THEN] Brick Middle Left Header is set to default value 'Result'
-        LibraryAssert.AreEqual(DefaultMiddleLeftTok, QltyManagementSetup."Brick Middle Left Header", 'Middle left header should be default value');
-
-        // [THEN] Brick Middle Right Header is set to default value 'Details'
-        LibraryAssert.AreEqual(DefaultMiddleRightTok, QltyManagementSetup."Brick Middle Right Header", 'Middle right header should be default value');
-
-        // [THEN] Brick Bottom Left Header is set to default value 'Document'
-        LibraryAssert.AreEqual(DefaultBottomLeftTok, QltyManagementSetup."Brick Bottom Left Header", 'Bottom left header should be default value');
-
-        // [THEN] Brick Bottom Right Header is set to default value 'Status'
-        LibraryAssert.AreEqual(DefaultBottomRightTok, QltyManagementSetup."Brick Bottom Right Header", 'Bottom right header should be default value');
+        // [THEN] The Item Journal Batch Name is successfully updated
+        LibraryAssert.AreEqual(ItemJournalBatch.Name, QltyManagementSetup."Item Journal Batch Name", 'Item Journal Batch Name should be valid and updated')
     end;
 
     [Test]
@@ -704,7 +664,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [WHEN] GetSetupVideoLink is called
         // [THEN] An empty string is returned
-        LibraryAssert.AreEqual('', QltyManagementSetup.GetSetupVideoLink(), 'Setup video link should be empty');
+        LibraryAssert.AreEqual('', QltyInspectionUtility.GetSetupVideoLink(QltyManagementSetup), 'Setup video link should be empty');
     end;
 
     [Test]
@@ -1109,7 +1069,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
-        // [SCENARIO] Production Trigger can be validated and set to OnProductionOrderRelease
+        // [SCENARIO] Production Order Trigger can be validated and set to OnProductionOrderRelease
         Initialize();
 
         // [GIVEN] Quality Management setup exists
@@ -1121,11 +1081,11 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::Disabled;
         QltyInspectionGenRule."Source Table No." := Database::"Prod. Order Routing Line";
 
-        // [WHEN] Production Trigger is validated and set to OnProductionOrderRelease
-        QltyInspectionGenRule.Validate("Production Trigger", QltyInspectionGenRule."Production Trigger"::OnProductionOrderRelease);
+        // [WHEN] Production Order Trigger is validated and set to OnProductionOrderRelease
+        QltyInspectionGenRule.Validate("Production Order Trigger", QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease);
 
-        // [THEN] The Production Trigger is successfully set to OnProductionOrderRelease
-        LibraryAssert.AreEqual(QltyInspectionGenRule."Production Trigger"::OnProductionOrderRelease, QltyInspectionGenRule."Production Trigger", 'Production trigger should be set to on release');
+        // [THEN] The Production Order Trigger is successfully set to OnProductionOrderRelease
+        LibraryAssert.AreEqual(QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease, QltyInspectionGenRule."Production Order Trigger", 'Production Order Trigger should be set to on release');
     end;
 
     [Test]
@@ -1133,7 +1093,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
-        // [SCENARIO] Warehouse Receive Trigger can be validated and set to OnWarehouseReceiptCreate
+        // [SCENARIO] Warehouse Receipt Trigger can be validated and set to OnWarehouseReceiptCreate
         Initialize();
 
         // [GIVEN] Quality Management setup exists
@@ -1145,11 +1105,11 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::Disabled;
         QltyInspectionGenRule."Source Table No." := Database::"Warehouse Receipt Line";
 
-        // [WHEN] Warehouse Receive Trigger is validated and set to OnWarehouseReceiptCreate
-        QltyInspectionGenRule.Validate("Warehouse Receive Trigger", QltyInspectionGenRule."Warehouse Receive Trigger"::OnWarehouseReceiptCreate);
+        // [WHEN] Warehouse Receipt Trigger is validated and set to OnWarehouseReceiptCreate
+        QltyInspectionGenRule.Validate("Warehouse Receipt Trigger", QltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate);
 
-        // [THEN] The Warehouse Receive Trigger is successfully set
-        LibraryAssert.AreEqual(QltyInspectionGenRule."Warehouse Receive Trigger"::OnWarehouseReceiptCreate, QltyInspectionGenRule."Warehouse Receive Trigger", 'Warehouse Receipt trigger should be set to on receipt create');
+        // [THEN] The Warehouse Receipt Trigger is successfully set
+        LibraryAssert.AreEqual(QltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate, QltyInspectionGenRule."Warehouse Receipt Trigger", 'Warehouse Receipt trigger should be set to on receipt create');
     end;
 
     [Test]
@@ -1181,7 +1141,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
-        // [SCENARIO] Purchase Trigger can be validated and set to OnPurchaseOrderPostReceive
+        // [SCENARIO] Purchase Order Trigger can be validated and set to OnPurchaseOrderPostReceive
         Initialize();
 
         // [GIVEN] Quality Management setup exists
@@ -1193,11 +1153,11 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::Disabled;
         QltyInspectionGenRule."Source Table No." := Database::"Purchase Line";
 
-        // [WHEN] Purchase Trigger is validated and set to OnPurchaseOrderPostReceive
-        QltyInspectionGenRule.Validate("Purchase Trigger", QltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderPostReceive);
+        // [WHEN] Purchase Order Trigger is validated and set to OnPurchaseOrderPostReceive
+        QltyInspectionGenRule.Validate("Purchase Order Trigger", QltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive);
 
-        // [THEN] The Purchase Trigger is successfully set
-        LibraryAssert.AreEqual(QltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderPostReceive, QltyInspectionGenRule."Purchase Trigger", 'Purchase trigger should be set to on purchase post');
+        // [THEN] The Purchase Order Trigger is successfully set
+        LibraryAssert.AreEqual(QltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive, QltyInspectionGenRule."Purchase Order Trigger", 'Purchase Order Trigger should be set to on purchase post');
     end;
 
     [Test]
@@ -1229,7 +1189,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
-        // [SCENARIO] Transfer Trigger can be validated and set to OnTransferOrderPostReceive
+        // [SCENARIO] Transfer Order Trigger can be validated and set to OnTransferOrderPostReceive
         Initialize();
 
         // [GIVEN] Quality Management setup exists
@@ -1241,11 +1201,11 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::Disabled;
         QltyInspectionGenRule."Source Table No." := Database::"Transfer Line";
 
-        // [WHEN] Transfer Trigger is validated and set to OnTransferOrderPostReceive
-        QltyInspectionGenRule.Validate("Transfer Trigger", QltyInspectionGenRule."Transfer Trigger"::OnTransferOrderPostReceive);
+        // [WHEN] Transfer Order Trigger is validated and set to OnTransferOrderPostReceive
+        QltyInspectionGenRule.Validate("Transfer Order Trigger", QltyInspectionGenRule."Transfer Order Trigger"::OnTransferOrderPostReceive);
 
-        // [THEN] The Transfer Trigger is successfully set
-        LibraryAssert.AreEqual(QltyInspectionGenRule."Transfer Trigger"::OnTransferOrderPostReceive, QltyInspectionGenRule."Transfer Trigger", 'Transfer trigger should be set to on transfer receive post');
+        // [THEN] The Transfer Order Trigger is successfully set
+        LibraryAssert.AreEqual(QltyInspectionGenRule."Transfer Order Trigger"::OnTransferOrderPostReceive, QltyInspectionGenRule."Transfer Order Trigger", 'Transfer Order Trigger should be set to on transfer receive post');
     end;
 
     [Test]
@@ -1616,10 +1576,9 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Source field configuration for Purchase Line "No." field is deleted
-        SpecificQltyInspectSrcFldConf.SetRange("From Table No.", Database::"Purchase Line");
-        SpecificQltyInspectSrcFldConf.SetRange("From Field No.", PurchaseLine.FieldNo("No."));
-        if SpecificQltyInspectSrcFldConf.FindFirst() then
-            SpecificQltyInspectSrcFldConf.Delete();
+        SpecificQltyInspectSrcFldConf.SetRange("To Table No.", Database::"Qlty. Inspection Header");
+        SpecificQltyInspectSrcFldConf.SetRange("To Field No.", QltyInspectionHeader.FieldNo("Source Item No."));
+        SpecificQltyInspectSrcFldConf.DeleteAll(false);
 
         // [GIVEN] A location and item are created
         LibraryWarehouse.CreateLocation(Location);
@@ -1694,10 +1653,9 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine);
 
         // [GIVEN] Source field configuration for Purchase Line "Document No." field is deleted
-        SpecificQltyInspectSrcFldConf.SetRange("From Table No.", Database::"Purchase Line");
-        SpecificQltyInspectSrcFldConf.SetRange("From Field No.", PurchaseLine.FieldNo("Document No."));
-        if SpecificQltyInspectSrcFldConf.FindFirst() then
-            SpecificQltyInspectSrcFldConf.Delete();
+        SpecificQltyInspectSrcFldConf.SetRange("To Table No.", Database::"Qlty. Inspection Header");
+        SpecificQltyInspectSrcFldConf.SetRange("To Field No.", QltyInspectionHeader.FieldNo("Source Document No."));
+        SpecificQltyInspectSrcFldConf.DeleteAll(false);
 
         // [GIVEN] Inspection header has variant, lot, serial, and package tracking set
         QltyInspectionHeader."Source Variant Code" := 'Variant';
@@ -2210,7 +2168,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         SpecificQltyInspectSourceConfig."From Table No." := Database::"Reservation Entry";
 
         // [WHEN] DetectInterestingConfiguration is called
-        asserterror SpecificQltyInspectSourceConfig.DetectInterestingConfiguration();
+        asserterror QltyInspectionUtility.DetectInterestingConfiguration(SpecificQltyInspectSourceConfig);
 
         // [THEN] An error is thrown indicating interesting configuration detected
         LibraryAssert.ExpectedError(InterestingDetectionErr);
@@ -2235,7 +2193,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         SpecificQltyInspectSourceConfig."To Table No." := Database::"Reservation Entry";
 
         // [WHEN] DetectInterestingConfiguration is called
-        asserterror SpecificQltyInspectSourceConfig.DetectInterestingConfiguration();
+        asserterror QltyInspectionUtility.DetectInterestingConfiguration(SpecificQltyInspectSourceConfig);
 
         // [THEN] An error is thrown indicating interesting configuration detected
         LibraryAssert.ExpectedError(InterestingDetectionErr);
@@ -2344,7 +2302,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ApplicationAreaSetup: Record "Application Area Setup";
         ConfPersonalizationMgt: Codeunit "Conf./Personalization Mgt.";
         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
-        QltyApplicationAreaMgmt: Codeunit "Qlty. Application Area Mgmt.";
     begin
         // [SCENARIO] Quality Management application area is enabled by default on Essential experience
         Initialize();
@@ -2361,7 +2318,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [WHEN] Checking if Quality Management application area is enabled
         // [THEN] The application area is enabled
-        LibraryAssert.AreEqual(true, QltyApplicationAreaMgmt.IsQualityManagementApplicationAreaEnabled(), 'Should be enabled.');
+        LibraryAssert.AreEqual(true, QltyInspectionUtility.IsQualityManagementApplicationAreaEnabled(), 'Should be enabled.');
     end;
 
     local procedure Initialize()

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -67,7 +67,7 @@ report 99001503 "Subc. Create Prod. Routing"
 
             trigger OnPreDataItem()
             var
-                ConfirmMgt: Codeunit "Confirm Management";
+                ConfirmManagement: Codeunit "Confirm Management";
                 ConfirmBOMQst: Label 'Do you really want to create BOMs for %1 items?', Comment = '%1=Number of Items';
                 ConfirmBothQst: Label 'Do you really want to create routings and BOMs for %1 items?', Comment = '%1=Number of Items';
                 ConfirmRoutingQst: Label 'Do you really want to create routings for %1 items?', Comment = '%1=Number of Items';
@@ -79,14 +79,14 @@ report 99001503 "Subc. Create Prod. Routing"
                     ItemCount := Item.Count();
                     if ItemCount > 1 then
                         if CreateProdBOM and CreateRouting then begin
-                            if not ConfirmMgt.GetResponse(StrSubstNo(ConfirmBothQst, ItemCount), true) then
+                            if not ConfirmManagement.GetResponse(StrSubstNo(ConfirmBothQst, ItemCount), true) then
                                 Error('');
                         end else begin
                             if CreateProdBOM then
-                                if not ConfirmMgt.GetResponse(StrSubstNo(ConfirmBOMQst, ItemCount), true) then
+                                if not ConfirmManagement.GetResponse(StrSubstNo(ConfirmBOMQst, ItemCount), true) then
                                     Error('');
                             if CreateRouting then
-                                if not ConfirmMgt.GetResponse(StrSubstNo(ConfirmRoutingQst, ItemCount), true) then
+                                if not ConfirmManagement.GetResponse(StrSubstNo(ConfirmRoutingQst, ItemCount), true) then
                                     Error('');
                         end;
                 end;
@@ -158,7 +158,7 @@ report 99001503 "Subc. Create Prod. Routing"
 
     local procedure HandleProductionBOM(var CurrentItem: Record Item)
     var
-        ProdBOMHeader: Record "Production BOM Header";
+        ProductionBOMHeader: Record "Production BOM Header";
         CreateBOMLbl: Label 'Create Production BOM.';
         ProdBOMCreatedMsg: Label 'Production BOM %1 was created for item %2.', Comment = '%1=Production BOM No., %2=Item No.';
         ProdBOMExistsMsg: Label 'Production BOM %1 already exists.', Comment = '%1=Production BOM No.';
@@ -169,15 +169,15 @@ report 99001503 "Subc. Create Prod. Routing"
 
         if CurrentItem."Production BOM No." = '' then begin
             if CurrentItem."Production BOM No." = '' then begin
-                ProdBOMHeader.Init();
-                ProdBOMHeader."No." := GetNextNo(NextNoType::ProdBOM);
-                ProdBOMHeader.Validate(Description, CurrentItem.Description);
-                ProdBOMHeader."Description 2" := CurrentItem."Description 2";
-                ProdBOMHeader."Unit of Measure Code" := CurrentItem."Base Unit of Measure";
-                if ProdBOMHeader.Insert(true) then begin
-                    CurrentItem."Production BOM No." := ProdBOMHeader."No.";
+                ProductionBOMHeader.Init();
+                ProductionBOMHeader."No." := GetNextNo(NextNoType::ProdBOM);
+                ProductionBOMHeader.Validate(Description, CurrentItem.Description);
+                ProductionBOMHeader."Description 2" := CurrentItem."Description 2";
+                ProductionBOMHeader."Unit of Measure Code" := CurrentItem."Base Unit of Measure";
+                if ProductionBOMHeader.Insert(true) then begin
+                    CurrentItem."Production BOM No." := ProductionBOMHeader."No.";
                     CurrentItem.Modify();
-                    StatusProdBOMList.Add(StrSubstNo(ProdBOMCreatedMsg, ProdBOMHeader."No.", CurrentItem."No."));
+                    StatusProdBOMList.Add(StrSubstNo(ProdBOMCreatedMsg, ProductionBOMHeader."No.", CurrentItem."No."));
                 end;
             end
         end else

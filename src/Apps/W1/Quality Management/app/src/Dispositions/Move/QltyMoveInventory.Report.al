@@ -12,7 +12,7 @@ using Microsoft.Warehouse.Structure;
 report 20404 "Qlty. Move Inventory"
 {
     Caption = 'Quality Management - Move Inventory';
-    AdditionalSearchTerms = 'Move To Bin,Quarantine lot,quarantine';
+    AdditionalSearchTerms = 'Quarantine';
     ProcessingOnly = true;
     ApplicationArea = QualityManagement;
     UsageCategory = Tasks;
