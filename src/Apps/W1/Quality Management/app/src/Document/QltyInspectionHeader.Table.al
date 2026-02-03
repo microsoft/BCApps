@@ -771,7 +771,7 @@ table 20405 "Qlty. Inspection Header"
     /// <summary>
     /// InitInspectionNumber will initialize the document no. on the Quality Inspection if it's needed. If it's already set then this will not be altered.
     /// </summary>
-    procedure InitInspectionNumber()
+    internal procedure InitInspectionNumber()
     var
         NoSeries: Codeunit "No. Series";
     begin
@@ -788,7 +788,7 @@ table 20405 "Qlty. Inspection Header"
     /// Decision decision: because we're passing this around as a recordref everywhere and we need that flag, we're storing in the session state instead.
     /// </summary>
     /// <param name="IsCreating"></param>
-    procedure SetIsCreating(IsCreating: Boolean)
+    internal procedure SetIsCreating(IsCreating: Boolean)
     begin
         QltySessionHelper.SetSessionValue(GetIsCreatingKey(), Format(IsCreating));
     end;
@@ -797,7 +797,7 @@ table 20405 "Qlty. Inspection Header"
     /// Returns true if this record is in the middle of being created.
     /// </summary>
     /// <returns></returns>
-    procedure GetIsCreating(): Boolean
+    internal procedure GetIsCreating(): Boolean
     begin
         exit(QltySessionHelper.GetSessionValue(GetIsCreatingKey()) = Format(true));
     end;
@@ -957,7 +957,7 @@ table 20405 "Qlty. Inspection Header"
     /// Returns the posted inventory for the item/variant
     /// </summary>
     /// <returns></returns>
-    procedure GetPostedInventory() PostedInventory: Decimal
+    internal procedure GetPostedInventory() PostedInventory: Decimal
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
@@ -980,7 +980,7 @@ table 20405 "Qlty. Inspection Header"
         PostedInventory := ItemLedgerEntry.Quantity;
     end;
 
-    procedure GetReservedInventory() ReservedInventory: Decimal
+    internal procedure GetReservedInventory() ReservedInventory: Decimal
     var
         ReservationEntry: Record "Reservation Entry";
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
@@ -1032,7 +1032,7 @@ table 20405 "Qlty. Inspection Header"
     /// Returns true if there is a more recent re-inspection than the current inspection.
     /// </summary>
     /// <returns></returns>
-    procedure HasMoreRecentReinspection(): Boolean
+    internal procedure HasMoreRecentReinspection(): Boolean
     var
         SucceedingQltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
@@ -1317,7 +1317,7 @@ table 20405 "Qlty. Inspection Header"
     /// <param name="FileExtension"></param>
     /// <returns></returns>
     [TryFunction]
-    procedure AddPicture(var PictureInStream: InStream; PictureName: Text; FileExtension: Text)
+    internal procedure AddPicture(var PictureInStream: InStream; PictureName: Text; FileExtension: Text)
     var
         DocumentAttachment: Record "Document Attachment";
 
@@ -1410,7 +1410,7 @@ table 20405 "Qlty. Inspection Header"
         OnAfterSetRecordFiltersToFindInspectionFor(Rec, ErrorIfMissingFilter, RecordVariant, UseItem, UseTracking, UseDocument);
     end;
 
-    procedure GetMostRecentInspectionFor(RecordVariant: Variant) Success: Boolean
+    internal procedure GetMostRecentInspectionFor(RecordVariant: Variant) Success: Boolean
     begin
         Rec.SetRecordFiltersToFindInspectionFor(false, RecordVariant, true, true, true);
         Rec.SetCurrentKey("No.", "Re-inspection No.");
@@ -1418,21 +1418,21 @@ table 20405 "Qlty. Inspection Header"
         Success := Rec.FindFirst();
     end;
 
-    procedure PrintCertificateOfAnalysis()
+    internal procedure PrintCertificateOfAnalysis()
     var
         QltyReportMgmt: Codeunit "Qlty. Report Mgmt.";
     begin
         QltyReportMgmt.PrintCertificateOfAnalysis(Rec);
     end;
 
-    procedure PrintNonConformance()
+    internal procedure PrintNonConformance()
     var
         QltyReportMgmt: Codeunit "Qlty. Report Mgmt.";
     begin
         QltyReportMgmt.PrintNonConformance(Rec);
     end;
 
-    procedure PrintGeneralPurposeInspection()
+    internal procedure PrintGeneralPurposeInspection()
     var
         QltyReportMgmt: Codeunit "Qlty. Report Mgmt.";
     begin
@@ -1505,7 +1505,7 @@ table 20405 "Qlty. Inspection Header"
     /// Use SetPreventAutoAssignment to set whether or not we should prevent auto-assignment for this inspection
     /// </summary>
     /// <param name="ShouldPrevent"></param>
-    procedure SetPreventAutoAssignment(ShouldPrevent: Boolean)
+    internal procedure SetPreventAutoAssignment(ShouldPrevent: Boolean)
     begin
         QltySessionHelper.SetSessionValue(GetPreventAutoAssignmentKey(), Format(ShouldPrevent));
     end;
@@ -1596,7 +1596,7 @@ table 20405 "Qlty. Inspection Header"
     ///If no sampling fields, will return the sample size if all measures are acceptable.
     /// </summary>
     /// <returns>Quantity of samples</returns>
-    procedure GetPassSampleQuantity() PassQuantity: Decimal
+    internal procedure GetPassSampleQuantity() PassQuantity: Decimal
     begin
     end;
 
@@ -1605,14 +1605,14 @@ table 20405 "Qlty. Inspection Header"
     ///If no sampling fields, will return the sample size if any measures are not acceptable.
     /// </summary>
     /// <returns>Quantity of samples</returns>
-    procedure GetFailedSampleQuantity() FailQuantity: Decimal
+    internal procedure GetFailedSampleQuantity() FailQuantity: Decimal
     begin
     end;
 
     /// <summary>
     /// Initializes the Qlty. Related Transfers page with the Quality Inspection record and runs it
     /// </summary>
-    procedure RunModalRelatedTransfers()
+    internal procedure RunModalRelatedTransfers()
     var
         QltyRelatedTransferOrders: Page "Qlty. Related Transfer Orders";
     begin

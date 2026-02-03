@@ -723,7 +723,7 @@ codeunit 20403 "Qlty. Filter Helpers"
         end;
     end;
 
-    procedure AssistEditUnitOfMeasure(var UnitOfMeasureCode: Code[10]): Boolean
+    internal procedure AssistEditUnitOfMeasure(var UnitOfMeasureCode: Code[10]): Boolean
     var
         UnitOfMeasure: Record "Unit of Measure";
         UnitsOfMeasure: Page "Units of Measure";
@@ -949,7 +949,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// <param name="FieldNo"></param>
     /// <param name="ExpectedVariant"></param>
     /// <returns></returns>
-    procedure GetIsFilterSetToValue(TableNo: Integer; Filter: Text; FieldNo: Integer; ExpectedVariant: Variant): Boolean;
+    internal procedure GetIsFilterSetToValue(TableNo: Integer; Filter: Text; FieldNo: Integer; ExpectedVariant: Variant): Boolean;
     var
         RecordRef: RecordRef;
         FieldRef: FieldRef;
