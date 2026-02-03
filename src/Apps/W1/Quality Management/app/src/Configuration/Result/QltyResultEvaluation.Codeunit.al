@@ -400,7 +400,7 @@ codeunit 20410 "Qlty. Result Evaluation"
                 begin
                     TempBufferQltyLookupCode.Reset();
                     TempBufferQltyLookupCode.SetRange("Custom 1", TextToValidate);
-                    if (TempBufferQltyLookupCode.IsEmpty()) and (QltyCaseSensitivity = QltyCaseSensitivity::Insensitive) then begin
+                    if TempBufferQltyLookupCode.IsEmpty() and (QltyCaseSensitivity = QltyCaseSensitivity::Insensitive) then begin
                         TempBufferQltyLookupCode.Reset();
                         TempBufferQltyLookupCode.SetRange("Custom 2", TextToValidate.ToLower());
                     end;

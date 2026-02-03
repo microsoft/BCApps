@@ -80,7 +80,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                     {
                         ApplicationArea = All;
                         Caption = 'Return Receipt';
-                        ToolTip = 'Specifies to create a rule for a return receipt. Check this box to if you want this rule to apply to a return receipt. ';
+                        ToolTip = 'Specifies to create a rule for a return receipt. Check this box to if you want this rule to apply to a return receipt.';
 
                         trigger OnValidate()
                         begin

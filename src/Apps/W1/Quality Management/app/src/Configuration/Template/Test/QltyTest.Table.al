@@ -162,13 +162,11 @@ table 20401 "Qlty. Test"
         field(17; "Case Sensitive"; Enum "Qlty. Case Sensitivity")
         {
             Caption = 'Case Sensitivity';
-            Description = 'Specifies if case sensitivity will be enabled for text-based fields.';
             ToolTip = 'Specifies if case sensitivity will be enabled for text-based fields.';
         }
         field(18; "Expression Formula"; Text[500])
         {
             Caption = 'Expression Formula';
-            Description = 'Used with expression field types, this contains the formula for the expression content.';
             ToolTip = 'Specifies the formula for the expression content when using expression field types.';
 
             trigger OnValidate()
@@ -211,9 +209,9 @@ table 20401 "Qlty. Test"
         OnlyFieldExpressionErr: Label 'The Expression Formula can only be used with fields that are a type of Expression';
         BooleanChoiceListLbl: Label 'No,Yes';
         ExistingInspectionErr: Label 'The test %1 exists on %2 inspections (such as %3 with template %4). The test can not be deleted if it is being used on a Quality Inspection.', Comment = '%1=the test, %2=count of inspections, %3=one example inspection, %4=example template.';
-        DeleteQst: Label 'The test %3 exists on %1 Quality Inspection Template(s) (such as template %2) that will be deleted. Do you wish to proceed? ', Comment = '%1 = the lines, %2= the Template Code, %3=the test';
+        DeleteQst: Label 'The test %3 exists on %1 Quality Inspection Template(s) (such as template %2) that will be deleted. Do you wish to proceed?', Comment = '%1 = the lines, %2= the Template Code, %3=the test';
         DeleteErr: Label 'The test %3 exists on %1 Quality Inspection Template(s) (such as template %2) and can not be deleted until it is no longer used on templates.', Comment = '%1 = the lines, %2= the Template Code, %3=the test';
-        TestValueTypeErrTitleMsg: Label 'Test Value Type cannot be changed for a test that has been used in inspections. ';
+        TestValueTypeErrTitleMsg: Label 'Test Value Type cannot be changed for a test that has been used in inspections.';
         TestValueTypeErrInfoMsg: Label '%1Consider replacing this test in the template with a new one, or deleting existing inspections (if allowed). The test was last used on inspection %2.', Comment = '%1 = Error Title, %2 = Quality Inspection No.';
 
     /// <summary>
@@ -528,11 +526,11 @@ table 20401 "Qlty. Test"
                         if not TempBufferQltyLookupCode.Get(Rec.Code, CopyStr(Choice, 1, MaxStrLen(TempBufferQltyLookupCode.Code))) then begin
                             TempBufferQltyLookupCode.Init();
                             TempBufferQltyLookupCode."Group Code" := Rec.Code;
-                        TempBufferQltyLookupCode.Code := CopyStr(Choice, 1, MaxStrLen(TempBufferQltyLookupCode.Code));
-                        TempBufferQltyLookupCode.Description := CopyStr(Choice, 1, MaxStrLen(TempBufferQltyLookupCode.Description));
-                        TempBufferQltyLookupCode."Custom 1" := CopyStr(Choice, 1, MaxStrLen(TempBufferQltyLookupCode."Custom 1"));
-                        TempBufferQltyLookupCode."Custom 2" := TempBufferQltyLookupCode."Custom 1".ToLower();
-                        TempBufferQltyLookupCode."Custom 3" := TempBufferQltyLookupCode."Custom 1".ToUpper();
+                            TempBufferQltyLookupCode.Code := CopyStr(Choice, 1, MaxStrLen(TempBufferQltyLookupCode.Code));
+                            TempBufferQltyLookupCode.Description := CopyStr(Choice, 1, MaxStrLen(TempBufferQltyLookupCode.Description));
+                            TempBufferQltyLookupCode."Custom 1" := CopyStr(Choice, 1, MaxStrLen(TempBufferQltyLookupCode."Custom 1"));
+                            TempBufferQltyLookupCode."Custom 2" := TempBufferQltyLookupCode."Custom 1".ToLower();
+                            TempBufferQltyLookupCode."Custom 3" := TempBufferQltyLookupCode."Custom 1".ToUpper();
                             TempBufferQltyLookupCode.Insert();
                         end;
                     end;
