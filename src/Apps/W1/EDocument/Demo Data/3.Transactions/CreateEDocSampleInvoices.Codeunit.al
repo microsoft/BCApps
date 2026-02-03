@@ -31,11 +31,11 @@ codeunit 5430 "Create E-Doc. Sample Invoices"
             DeliveryExpenseGLAccNo := CreateGLAccount.DeliveryExpenses()
         else
             DeliveryExpenseGLAccNo := EDocumentModuleSetup."Delivery Expense G/L Acc. No";
-        GenerateContosoInboundEDocuments(RecurrentExpenseAccountNo, DeliveryExpenseGLAccNo);
+        GenerateContosoInboundEDocuments(RecurrentExpenseAccountNo, DeliveryExpenseGLAccNo, EDocumentModuleSetup."Sample Invoice Date");
         GenerateSampleInvoices();
     end;
 
-    local procedure GenerateContosoInboundEDocuments(RecurrentExpenseAccountNo: Code[20]; DeliveryExpenseGLAccNo: Code[20])
+    local procedure GenerateContosoInboundEDocuments(RecurrentExpenseAccountNo: Code[20]; DeliveryExpenseGLAccNo: Code[20]; SampleInvoiceDate: Date)
     var
         ContosoInboundEDocument: Codeunit "Contoso Inbound E-Document";
         CreateVendor: Codeunit "Create Vendor";
@@ -50,10 +50,11 @@ codeunit 5430 "Create E-Doc. Sample Invoices"
         AccountingServicesMarchLbl: Label 'Accounting support period: March', MaxLength = 100;
         AccountingServicesDecemberLbl: Label 'Accounting support period: December', MaxLength = 100;
         AccountingServicesMayLbl: Label 'Accounting support period: May', MaxLength = 100;
-        SavedWorkDate, SampleInvoiceDate : Date;
+        SavedWorkDate: Date;
     begin
         SavedWorkDate := WorkDate();
-        SampleInvoiceDate := EDocSamplePurchaseInvoice.GetSampleInvoicePostingDate();
+        if SampleInvoiceDate = 0D then
+            SampleInvoiceDate := EDocSamplePurchaseInvoice.GetSampleInvoicePostingDate();
         WorkDate(SampleInvoiceDate);
         ContosoInboundEDocument.AddEDocPurchaseHeader(CreateVendor.EUGraphicDesign(), SampleInvoiceDate, '245');
         ContosoInboundEDocument.AddEDocPurchaseLine(

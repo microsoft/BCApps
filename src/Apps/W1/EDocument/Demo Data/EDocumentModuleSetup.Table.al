@@ -49,6 +49,10 @@ table 5375 "E-Document Module Setup"
             Caption = 'Delivery Expense G/L Acc. No.';
             TableRelation = "G/L Account";
         }
+        field(7; "Sample Invoice Date"; Date)
+        {
+            Caption = 'Sample Invoice Date';
+        }
     }
 
     keys
