@@ -32,5 +32,17 @@
 			"name": "System Application Tests",
 			"path": "System Application\\Test"
 		}
-	]
+	],
+		"settings": {
+        "al.assemblyProbingPaths": [
+            "./.netpackages",
+            "C:/Users/ben.plunkett/Business central installs/260.29145/Service/Add-ins",
+            "C:/Users/ben.plunkett/Business central installs/260.29145/Service/Admin",
+			"C:/Users/ben.plunkett/Business central installs/280.42318/ServiceTier/PFiles64/Microsoft Dynamics NAV/280/Service",
+			"C:/Users/ben.plunkett/Business central installs/280.42318/ServiceTier/PFiles64/Microsoft Dynamics NAV/280/Service/Add-ins",
+			"C:/Users/ben.plunkett/Business central installs/280.42318/ServiceTier/PFiles64/Microsoft Dynamics NAV/280/Service/Admin",
+            "C:/Program Files/dotnet/shared/Microsoft.AspNetCore.App/8.0.22",
+            "C:/Program Files/dotnet/shared/Microsoft.NETCore.App/8.0.22"
+        ],
+	}
 }

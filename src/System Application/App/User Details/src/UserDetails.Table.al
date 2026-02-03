@@ -116,6 +116,39 @@ table 774 "User Details"
             Editable = false;
             FieldClass = FlowField;
         }
+        /// <summary>
+        /// The last login date of the user.
+        /// </summary>
+        field(24; "Last Login Date"; DateTime)
+        {
+            Caption = 'Last Login Date';
+            FieldClass = FlowField;
+            CalcFormula = Lookup("User Login"."Last Login Date" where("User SID" = field("User Security ID")));
+        }
+        /// <summary>
+        /// Flow filter for determining users who logged in within the last 7 days.
+        /// </summary>
+        field(25; "7 Days Date Filter"; DateTime)
+        {
+            Caption = 'Last 7 Days Filter';
+            FieldClass = FlowFilter;
+        }
+        /// <summary>
+        /// Flow filter for determining users who logged in within the last 30 days.
+        /// </summary>
+        field(26; "30 Days Date Filter"; DateTime)
+        {
+            Caption = 'Last 30 Days Filter';
+            FieldClass = FlowFilter;
+        }
+        /// <summary>
+        /// Flow filter for determining users who logged in within the last 90 days.
+        /// </summary>
+        field(27; "90 Days Date Filter"; DateTime)
+        {
+            Caption = 'Last 90 Days Filter';
+            FieldClass = FlowFilter;
+        }
     }
 
     keys
