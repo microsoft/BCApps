@@ -1792,9 +1792,10 @@ table 8057 "Subscription Header"
 
                         if ServiceEndDate <> 0D then begin
                             ServiceCommitment."Subscription Line End Date" := ServiceEndDate;
-                            ServiceCommitment.CalculateInitialTermUntilDate();
+                            ServiceCommitment.RefreshRenewalTerm();
+                            ServiceCommitment.CalculateTermUntilDate();
                         end else
-                            ServiceCommitment.CalculateInitialSubscriptionDates();
+                            ServiceCommitment.CalculateSubscriptionDates();
                         ServiceCommitment.ClearTerminationPeriodsWhenServiceEnded();
                         ServiceCommitment.UpdateNextBillingDate(ServiceCommitment."Subscription Line Start Date" - 1);
                         OnAfterDatesCalculatedOnInsertSubscriptionLinesFromSubscriptionPackage(ServiceCommitment, ServiceCommPackageLine);
@@ -1939,8 +1940,8 @@ table 8057 "Subscription Header"
                         repeat
                             ServiceCommitmentUpdated := false;
                             if Format(ServiceCommitment."Notice Period") <> '' then
-                                if ServiceCommitment.UpdateTermUntilUsingExtensionTerm() then begin
-                                    ServiceCommitment.UpdateCancellationPossibleUntil();
+                                if ServiceCommitment.CalculateTermUntilUsingExtensionTerm() then begin
+                                    ServiceCommitment.CalculateCancellationPossibleUntil();
                                     ServiceCommitment.Modify(false);
                                     ServiceCommitmentUpdated := true;
                                     ReferenceDateForComparison := ServiceCommitment.GetReferenceDate();

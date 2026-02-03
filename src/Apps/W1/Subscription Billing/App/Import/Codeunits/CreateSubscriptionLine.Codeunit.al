@@ -119,9 +119,9 @@ codeunit 8006 "Create Subscription Line"
             ServiceCommitment."Calculation Base Amount (LCY)" := ImportedServiceCommitment."Calculation Base Amount (LCY)";
 
         if ServiceCommitment."Subscription Line End Date" = 0D then
-            ServiceCommitment.CalculateInitialSubscriptionDates()
+            ServiceCommitment.CalculateSubscriptionDates()
         else
-            ServiceCommitment.CalculateInitialTermUntilDate();
+            ServiceCommitment.CalculateTermUntilDate();
 
         ServiceCommitment.SetDefaultDimensions(true);
         ServiceCommitment."Renewal Term" := ServiceCommitment."Initial Term";
