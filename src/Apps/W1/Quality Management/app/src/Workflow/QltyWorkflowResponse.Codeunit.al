@@ -72,7 +72,7 @@ codeunit 20424 "Qlty. Workflow Response"
         Peek: Text;
         ValueToSet: Text;
         TableFilter: Text;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
         Peek := ResponseWorkflowStepInstance."Function Name";
         if not Peek.StartsWith(QltyWorkflowSetup.GetQualityInspectionPrefix()) then
@@ -119,8 +119,8 @@ codeunit 20424 "Qlty. Workflow Response"
         if OriginalWorkflowStep.FindFirst() then
             if ForOriginalWorkflowStepArgument.Get(OriginalWorkflowStep.Argument) then;
 
-        OnWorkflowHandleOnExecuteWorkflowResponseAfterFindRelatedRecord(ResponseExecuted, Variant, xVariant, ResponseWorkflowStepInstance, PrimaryRecordRefInWorkflow, Handled);
-        if Handled then
+        OnWorkflowHandleOnExecuteWorkflowResponseAfterFindRelatedRecord(ResponseExecuted, Variant, xVariant, ResponseWorkflowStepInstance, PrimaryRecordRefInWorkflow, IsHandled);
+        if IsHandled then
             exit;
 
         if PrimaryRecordRefInWorkflow.Number() = Database::"Qlty. Inspection Header" then
@@ -857,9 +857,9 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <param name="pxVariant">Variant.</param>
     /// <param name="ResponseWorkflowStepInstance">Record "Workflow Step Instance".</param>
     /// <param name="TargetRecordRef">var RecordRef.</param>
-    /// <param name="Handled">Set to true to replace the default behavior.</param>
+    /// <param name="IsHandled">Set to true to replace the default behavior.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnWorkflowHandleOnExecuteWorkflowResponseAfterFindRelatedRecord(var ResponseExecuted: Boolean; var pVariant: Variant; pxVariant: Variant; ResponseWorkflowStepInstance: Record "Workflow Step Instance"; var TargetRecordRef: RecordRef; var Handled: Boolean)
+    local procedure OnWorkflowHandleOnExecuteWorkflowResponseAfterFindRelatedRecord(var ResponseExecuted: Boolean; var pVariant: Variant; pxVariant: Variant; ResponseWorkflowStepInstance: Record "Workflow Step Instance"; var TargetRecordRef: RecordRef; var IsHandled: Boolean)
     begin
     end;
 }

@@ -34,7 +34,7 @@ codeunit 20415 "Qlty. Tracking Integration"
         QltyInspectionResult: Record "Qlty. Inspection Result";
         Blocked: Boolean;
         IsFinished: Boolean;
-        Handled: Boolean;
+        IsHandled: Boolean;
         TrackingDetails: Text;
     begin
         case true of
@@ -49,8 +49,8 @@ codeunit 20415 "Qlty. Tracking Integration"
         QltyInspectionHeader.SetRange("Source Lot No.", TrackingSpecification."Lot No.");
         QltyInspectionHeader.SetRange("Source Serial No.", TrackingSpecification."Serial No.");
         QltyInspectionHeader.SetRange("Source Package No.", TrackingSpecification."Package No.");
-        OnHandleCheckItemTrackingAfterFilters(ItemJnlLine2, TrackingSpecification, QltyInspectionHeader, Handled);
-        if Handled then
+        OnHandleCheckItemTrackingAfterFilters(ItemJnlLine2, TrackingSpecification, QltyInspectionHeader, IsHandled);
+        if IsHandled then
             exit;
 
         case QltyManagementSetup."Inspection Selection Criteria" of
@@ -183,7 +183,7 @@ codeunit 20415 "Qlty. Tracking Integration"
         QltyInspectionResult: Record "Qlty. Inspection Result";
         Blocked: Boolean;
         IsFinished: Boolean;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
         case true of
             not QltyInspectionHeader.ReadPermission(),
@@ -198,8 +198,8 @@ codeunit 20415 "Qlty. Tracking Integration"
         QltyInspectionHeader.SetRange("Source Serial No.", WarehouseActivityLine."Serial No.");
         QltyInspectionHeader.SetRange("Source Package No.", WarehouseActivityLine."Package No.");
 
-        OnHandleCheckWhseItemTrackingAfterFilters(WarehouseActivityLine, QltyInspectionHeader, Handled);
-        if Handled then
+        OnHandleCheckWhseItemTrackingAfterFilters(WarehouseActivityLine, QltyInspectionHeader, IsHandled);
+        if IsHandled then
             exit;
 
         case QltyManagementSetup."Inspection Selection Criteria" of
@@ -435,9 +435,9 @@ codeunit 20415 "Qlty. Tracking Integration"
     /// <param name="ItemJournalLine"></param>
     /// <param name="TrackingSpecification"></param>
     /// <param name="QltyInspectionHeader">Adjust filters to find the relevant inspection here as needed</param>
-    /// <param name="Handled">Only set to true if you want to replace the entire behavior. Keep with false if you want the system to keep evaluating after adding or removing filters.</param>
+    /// <param name="IsHandled">Only set to true if you want to replace the entire behavior. Keep with false if you want the system to keep evaluating after adding or removing filters.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnHandleCheckItemTrackingAfterFilters(var ItemJournalLine: Record "Item Journal Line"; var TrackingSpecification: Record "Tracking Specification"; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
+    local procedure OnHandleCheckItemTrackingAfterFilters(var ItemJournalLine: Record "Item Journal Line"; var TrackingSpecification: Record "Tracking Specification"; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var IsHandled: Boolean)
     begin
     end;
 
@@ -463,9 +463,9 @@ codeunit 20415 "Qlty. Tracking Integration"
     /// </summary>
     /// <param name="WarehouseActivityLine"></param>
     /// <param name="QltyInspectionHeader">Adjust filters to find the relevant inspection here as needed</param>
-    /// <param name="Handled">Only set to true if you want to replace the entire behavior. Keep with false if you want the system to keep evaluating after adding or removing filters.</param>
+    /// <param name="IsHandled">Only set to true if you want to replace the entire behavior. Keep with false if you want the system to keep evaluating after adding or removing filters.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnHandleCheckWhseItemTrackingAfterFilters(var WarehouseActivityLine: Record "Warehouse Activity Line"; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
+    local procedure OnHandleCheckWhseItemTrackingAfterFilters(var WarehouseActivityLine: Record "Warehouse Activity Line"; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var IsHandled: Boolean)
     begin
     end;
 

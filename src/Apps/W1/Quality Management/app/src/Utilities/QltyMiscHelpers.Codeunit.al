@@ -78,11 +78,11 @@ codeunit 20599 "Qlty. Misc Helpers"
     internal procedure GetDefaultMaximumRowsFieldLookup() ResultRowsCount: Integer
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
         ResultRowsCount := 100;
-        OnBeforeGetDefaultMaximumRowsToShowInLookup(ResultRowsCount, Handled);
-        if Handled then
+        OnBeforeGetDefaultMaximumRowsToShowInLookup(ResultRowsCount, IsHandled);
+        if IsHandled then
             exit;
 
         if not QltyManagementSetup.GetSetupRecord() then
@@ -760,10 +760,10 @@ codeunit 20599 "Qlty. Misc Helpers"
         RecordRefToNavigateTo: RecordRef;
         VariantContainer: Variant;
         CurrentPage: Integer;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnBeforeNavigateToSourceDocument(QltyInspectionHeader, Handled);
-        if Handled then
+        OnBeforeNavigateToSourceDocument(QltyInspectionHeader, IsHandled);
+        if IsHandled then
             exit;
 
         if QltyInspectionHeader."Source RecordId".TableNo() = 0 then
@@ -926,9 +926,9 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// Provides an ability to override the handling of navigating to a source document.
     /// </summary>
     /// <param name="QltyInspectionHeader"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeNavigateToSourceDocument(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
+    local procedure OnBeforeNavigateToSourceDocument(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var IsHandled: Boolean)
     begin
     end;
 
@@ -938,9 +938,9 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// Changing the default to a larger number can introduce performance issues.
     /// </summary>
     /// <param name="Rows"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetDefaultMaximumRowsToShowInLookup(var Rows: Integer; var Handled: Boolean)
+    local procedure OnBeforeGetDefaultMaximumRowsToShowInLookup(var Rows: Integer; var IsHandled: Boolean)
     begin
     end;
 }

@@ -172,12 +172,12 @@ table 20403 "Qlty. Inspection Template Line"
     /// </summary>
     procedure ValidateExpressionFormula()
     var
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
         Rec.CalcFields("Test Value Type");
 
-        OnValidateExpressionFormula(Rec, Handled);
-        if Handled then
+        OnValidateExpressionFormula(Rec, IsHandled);
+        if IsHandled then
             exit;
     end;
 
@@ -185,9 +185,9 @@ table 20403 "Qlty. Inspection Template Line"
     /// Validates the expression formula.
     /// </summary>
     /// <param name="QltyInspectionTemplateLine"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnValidateExpressionFormula(var QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"; var Handled: Boolean)
+    local procedure OnValidateExpressionFormula(var QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"; var IsHandled: Boolean)
     begin
     end;
 }

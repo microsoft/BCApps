@@ -45,11 +45,11 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
         CurrentSignFactor: Integer;
         ReservationStatus: Enum "Reservation Status";
         ReceiptDate: Date;
-        Handled: Boolean;
+        IsHandled: Boolean;
         ShipDate: Date;
     begin
-        OnBeforeCreateItemJournalLineReservationEntry(ItemJournalLine, CreatedActualReservationEntry, Handled);
-        if Handled then
+        OnBeforeCreateItemJournalLineReservationEntry(ItemJournalLine, CreatedActualReservationEntry, IsHandled);
+        if IsHandled then
             exit;
 
         if (ItemJournalLine."Serial No." = '') and (ItemJournalLine."Lot No." = '') and (ItemJournalLine."Package No." = '') then
@@ -504,10 +504,10 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
         CreateReservEntry: Codeunit "Create Reserv. Entry";
         ReservationStatus: Enum "Reservation Status";
         ExistingQuantity: Decimal;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnBeforeCreatePurchaseReturnReservationEntries(PurchPurchaseLine, SerialNo, LotNo, PackageNo, ExpirationDate, ChangeQty, Handled);
-        if Handled then
+        OnBeforeCreatePurchaseReturnReservationEntries(PurchPurchaseLine, SerialNo, LotNo, PackageNo, ExpirationDate, ChangeQty, IsHandled);
+        if IsHandled then
             exit;
 
         if ChangeQty = 0 then
@@ -595,12 +595,12 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     procedure CreateWarehouseJournalLineReservationEntry(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line")
     var
         ExpirationDate: Date;
-        Handled: Boolean;
+        IsHandled: Boolean;
         NextEntryNo: Integer;
     begin
         Clear(WhseItemTrackingLine);
-        OnBeforeCreateWarehouseJournalLineReservationEntry(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, WarehouseJournalLine, Handled);
-        if Handled then
+        OnBeforeCreateWarehouseJournalLineReservationEntry(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, WarehouseJournalLine, IsHandled);
+        if IsHandled then
             exit;
 
         ExpirationDate := 0D;
@@ -655,7 +655,7 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreatePurchaseReturnReservationEntries(var PurchPurchaseLine: Record "Purchase Line"; var SerialNo: Code[50]; var LotNo: Code[50]; var PackageNo: Code[50]; var ExpirationDate: Date; var ChangeQty: Decimal; var Handled: Boolean)
+    local procedure OnBeforeCreatePurchaseReturnReservationEntries(var PurchPurchaseLine: Record "Purchase Line"; var SerialNo: Code[50]; var LotNo: Code[50]; var PackageNo: Code[50]; var ExpirationDate: Date; var ChangeQty: Decimal; var IsHandled: Boolean)
     begin
     end;
 
@@ -665,9 +665,9 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempQuantityToActQltyDispositionBuffer"></param>
     /// <param name="WhseJnlWarehouseJournalLine"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateWarehouseJournalLineReservationEntry(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WhseJnlWarehouseJournalLine: Record "Warehouse Journal Line"; var Handled: Boolean)
+    local procedure OnBeforeCreateWarehouseJournalLineReservationEntry(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WhseJnlWarehouseJournalLine: Record "Warehouse Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
@@ -677,9 +677,9 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     /// </summary>
     /// <param name="ItemJournalLine"></param>
     /// <param name="CreatedActualReservationEntry"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateItemJournalLineReservationEntry(var ItemJournalLine: Record "Item Journal Line"; var CreatedActualReservationEntry: Record "Reservation Entry"; var Handled: Boolean)
+    local procedure OnBeforeCreateItemJournalLineReservationEntry(var ItemJournalLine: Record "Item Journal Line"; var CreatedActualReservationEntry: Record "Reservation Entry"; var IsHandled: Boolean)
     begin
     end;
 
