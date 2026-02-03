@@ -62,7 +62,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// Used for UI display and user-facing text where localization is required.
     /// </summary>
     /// <returns>The localized "Yes" text (up to 250 characters)</returns>
-    procedure GetTranslatedYes250(): Text[250]
+    internal procedure GetTranslatedYes250(): Text[250]
     begin
         exit(TranslatableYesLbl);
     end;
@@ -72,7 +72,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// Used for UI display and user-facing text where localization is required.
     /// </summary>
     /// <returns>The localized "No" text (up to 250 characters)</returns>
-    procedure GetTranslatedNo250(): Text[250]
+    internal procedure GetTranslatedNo250(): Text[250]
     begin
         exit(TranslatableNoLbl);
     end;
@@ -378,7 +378,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// </summary>
     /// <param name="Input">The text value to convert to boolean</param>
     /// <returns>True if input matches any positive boolean representation; False otherwise</returns>
-    procedure GetBooleanFor(Input: Text) IsTrue: Boolean
+    internal procedure GetBooleanFor(Input: Text) IsTrue: Boolean
     begin
         if Input <> '' then begin
             if not Evaluate(IsTrue, Input) then
@@ -407,7 +407,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// </summary>
     /// <param name="ValueToCheckIfPositiveBoolean">The text value to check</param>
     /// <returns>True if the value represents a positive/affirmative boolean; False otherwise</returns>
-    procedure IsTextValuePositiveBoolean(ValueToCheckIfPositiveBoolean: Text): Boolean
+    internal procedure IsTextValuePositiveBoolean(ValueToCheckIfPositiveBoolean: Text): Boolean
     var
         ConvertedBoolean: Boolean;
     begin
@@ -533,7 +533,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="PhoneNo">Output: The person's phone number</param>
     /// <param name="SourceRecordId">Output: RecordId of the source person record</param>
     /// <returns>True if inspection line references a person and details were retrieved; False otherwise</returns>
-    procedure GetBasicPersonDetailsFromInspectionLine(QltyInspectionLine: Record "Qlty. Inspection Line"; var FullName: Text; var JobTitle: Text; var EmailAddress: Text; var PhoneNo: Text; var SourceRecordId: RecordId): Boolean
+    internal procedure GetBasicPersonDetailsFromInspectionLine(QltyInspectionLine: Record "Qlty. Inspection Line"; var FullName: Text; var JobTitle: Text; var EmailAddress: Text; var PhoneNo: Text; var SourceRecordId: RecordId): Boolean
     var
         QltyTest: Record "Qlty. Test";
     begin
@@ -592,7 +592,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="PhoneNo">Output: The person's phone number</param>
     /// <param name="SourceRecordId">Output: RecordId of the source record where details were found</param>
     /// <returns>True if person details were found in any supported table; False otherwise</returns>
-    procedure GetBasicPersonDetails(Input: Text; var FullName: Text; var JobTitle: Text; var EmailAddress: Text; var PhoneNo: Text; var SourceRecordId: RecordId) HasDetails: Boolean
+    internal procedure GetBasicPersonDetails(Input: Text; var FullName: Text; var JobTitle: Text; var EmailAddress: Text; var PhoneNo: Text; var SourceRecordId: RecordId) HasDetails: Boolean
     var
         Contact: Record Contact;
         Employee: Record Employee;
