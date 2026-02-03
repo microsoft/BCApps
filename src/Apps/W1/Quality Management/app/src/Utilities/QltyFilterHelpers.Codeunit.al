@@ -749,7 +749,7 @@ codeunit 20403 "Qlty. Filter Helpers"
         ResultText := CopyStr(CleanUpWhereClause(Input), 1, MaxStrLen(ResultText));
     end;
 
-    procedure CleanUpWhereClause400(Input: Text) ResultText: Text[400]
+    procedure CleanUpWhereClause2048(Input: Text) ResultText: Text[2048]
     begin
         ResultText := CopyStr(CleanUpWhereClause(Input), 1, MaxStrLen(ResultText));
     end;
@@ -815,7 +815,7 @@ codeunit 20403 "Qlty. Filter Helpers"
             until TempFilterItemAttributesBuffer.Next() = 0;
     end;
 
-    internal procedure BuildItemAttributeFilter400(var ItemAttributeFilter: Text[400])
+    internal procedure BuildItemAttributeFilter2048(var ItemAttributeFilter: Text[2048])
     var
         FullItemAttributeFilter: Text;
     begin
