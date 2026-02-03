@@ -1,9 +1,15 @@
+namespace Microsoft.EServices.EDocumentConnector.Avalara;
+
+using Microsoft.eServices.EDocument;
+using System.Utilities;
 codeunit 6373 Maintenance
 {
     var
+        DocumentDownloadFailedLogMsg: Label 'Document download failed for E-Document %1, Document ID: %2', Comment = '%1 = E-Document Entry No, %2 = Document ID';
         // Error messages
         DocumentDownloadFailedMsg: Label 'Failed to download document %1 for E-Document %2', Comment = '%1 = Document ID, %2 = E-Document Entry No';
         ProcessingCompletedMsg: Label 'Processed %1 E-Documents, successfully downloaded %2', Comment = '%1 = Total processed, %2 = Successful downloads';
+        SuccessfullyDownloadedDocumentMsg: Label 'Successfully downloaded document %1 for E-Document %2', Comment = '%1 = Document ID, %2 = E-Document Entry No';
 
     trigger OnRun()
     begin
@@ -61,7 +67,7 @@ codeunit 6373 Maintenance
         // and attachments to both E-Document and source document
         if AvalaraDocumentManagement.DownloadDocumentWithAllMediaTypes(EDocument, EDocumentService, DocumentId) then begin
             Session.LogMessage('0000AVL016',
-                StrSubstNo('Successfully downloaded document %1 for E-Document %2', DocumentId, EDocument."Entry No"),
+                StrSubstNo(SuccessfullyDownloadedDocumentMsg, DocumentId, EDocument."Entry No"),
                 Verbosity::Normal,
                 DataClassification::SystemMetadata,
                 TelemetryScope::ExtensionPublisher,
@@ -86,7 +92,7 @@ codeunit 6373 Maintenance
         EDocumentErrorHelper.LogSimpleErrorMessage(EDocument, ErrorText);
 
         Session.LogMessage('0000AVL017',
-            StrSubstNo('Document download failed for E-Document %1, Document ID: %2', EDocument."Entry No", DocumentId),
+            StrSubstNo(DocumentDownloadFailedLogMsg, EDocument."Entry No", DocumentId),
             Verbosity::Warning,
             DataClassification::SystemMetadata,
             TelemetryScope::ExtensionPublisher,

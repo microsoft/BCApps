@@ -2,6 +2,10 @@
 /// Extends E-Document Service page with Avalara-specific configuration.
 /// Adds mandate activation status monitoring and field configuration capabilities.
 /// </summary>
+namespace Microsoft.EServices.EDocumentConnector.Avalara;
+
+using Microsoft.eServices.EDocument;
+
 pageextension 6371 "E-Doc. Service" extends "E-Document Service"
 {
     layout

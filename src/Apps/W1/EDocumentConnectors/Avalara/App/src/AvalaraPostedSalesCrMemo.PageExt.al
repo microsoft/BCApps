@@ -1,3 +1,7 @@
+namespace Microsoft.EServices.EDocumentConnector.Avalara;
+
+using Microsoft.Sales.History;
+
 pageextension 6377 "Avalara Posted Sales Cr.Memo" extends "Posted Sales Credit Memo"
 {
     layout

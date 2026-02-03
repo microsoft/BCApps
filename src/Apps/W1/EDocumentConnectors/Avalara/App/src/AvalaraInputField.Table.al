@@ -1,47 +1,49 @@
-table 6374 "AvalaraInput Field"
+namespace Microsoft.EServices.EDocumentConnector.Avalara;
+
+table 6374 "Avalara Input Field"
 {
     Caption = 'Input Field';
     DataClassification = SystemMetadata;
     DataPerCompany = false;
     fields
     {
-        field(1; fieldId; Integer)
+        field(1; FieldId; Integer)
         {
             Caption = 'Field ID';
         }
-        field(2; documentType; Text[30])
+        field(2; DocumentType; Text[30])
         {
             Caption = 'Document Type';
         }
-        field(3; documentVersion; Text[30])
+        field(3; DocumentVersion; Text[30])
         {
             Caption = 'Document Version';
         }
-        field(4; path; Text[256])
+        field(4; Path; Text[256])
         {
             Caption = 'Path';
         }
-        field(5; pathType; Text[20])
+        field(5; PathType; Text[20])
         {
             Caption = 'Path Type';
         }
-        field(6; fieldName; Text[50])
+        field(6; FieldName; Text[50])
         {
             Caption = 'Field Name';
         }
-        field(7; namespace_prefix; Text[20])
+        field(7; NamespacePrefix; Text[20])
         {
-            Caption = 'Namespace prefix';
+            Caption = 'Namespace Prefix';
         }
-        field(8; namespace_value; Text[512])
+        field(8; NamespaceValue; Text[512])
         {
-            Caption = 'name space Value';
+            Caption = 'Namespace Value';
         }
-        field(9; exampleOrFixedValue; Text[256])
+        field(9; ExampleOrFixedValue; Text[256])
         {
-            Caption = 'Example Or FixedValue';
+            Caption = 'Example Or Fixed Value';
         }
-        field(10; acceptedValues; Text[256])
+        field(10; AcceptedValues; Text[256])
         {
             Caption = 'Accepted Values';
         }
@@ -49,7 +51,7 @@ table 6374 "AvalaraInput Field"
         {
             Caption = 'Documentation Link';
         }
-        field(12; dataType; Text[40])
+        field(12; DataType; Text[40])
         {
             Caption = 'Data Type';
         }
@@ -57,13 +59,13 @@ table 6374 "AvalaraInput Field"
         {
             Caption = 'Description';
         }
-        field(14; optionality; Text[30])
+        field(14; Optionality; Text[30])
         {
-            Caption = 'optionality';
+            Caption = 'Optionality';
         }
-        field(15; cardinality; Text[30])
+        field(15; Cardinality; Text[30])
         {
-            Caption = 'optionality';
+            Caption = 'Cardinality';
         }
         field(16; "Data Exch. Line Def Code"; Text[20])
         {
@@ -85,10 +87,10 @@ table 6374 "AvalaraInput Field"
 
     keys
     {
-        key(PK; fieldId, Mandate, documentType, documentVersion)
+        key(PK; FieldId, Mandate, DocumentType, DocumentVersion)
         {
             Clustered = true;
         }
-        key(PathIdx; path) { }
+        key(PathIdx; Path) { }
     }
 }

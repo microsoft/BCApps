@@ -1,3 +1,7 @@
+namespace Microsoft.EServices.EDocumentConnector.Avalara;
+
+using Microsoft.eServices.EDocument;
+
 page 6379 "Avalara Documents"
 {
     ApplicationArea = All;

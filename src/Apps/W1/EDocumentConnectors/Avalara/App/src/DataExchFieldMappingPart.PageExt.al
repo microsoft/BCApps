@@ -1,3 +1,7 @@
+namespace Microsoft.EServices.EDocumentConnector.Avalara;
+
+using System.IO;
+
 pageextension 6372 "Data Exch Field Mapping Part" extends "Data Exch Field Mapping Part"
 {
     layout

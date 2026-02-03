@@ -1,6 +1,7 @@
-/// <summary>
-/// Extends E-Documents page with Avalara document receiving and download capabilities.
-/// </summary>
+namespace Microsoft.EServices.EDocumentConnector.Avalara;
+
+using Microsoft.eServices.EDocument;
+
 pageextension 6373 "E-Docs." extends "E-Documents"
 {
     actions
@@ -92,7 +93,7 @@ pageextension 6373 "E-Docs." extends "E-Documents"
     var
         EDocServicesPage: Page "E-Document Services";
     begin
-        EDocService.SetRange("Service Integration V2", Enum::"Service Integration"::Avalara);
+        EDocService.SetRange("Service Integration V2", EDocService."Service Integration V2"::Avalara);
         EDocServicesPage.SetTableView(EDocService);
         EDocServicesPage.LookupMode := true;
         EDocServicesPage.Caption := ServiceSelectionCaptionTxt;

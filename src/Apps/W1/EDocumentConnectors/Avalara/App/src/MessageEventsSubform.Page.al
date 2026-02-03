@@ -2,6 +2,8 @@
 /// List part displaying message events from Avalara API responses.
 /// Shows chronological event history with timestamps and messages.
 /// </summary>
+
+namespace Microsoft.EServices.EDocumentConnector.Avalara;
 page 6803 "Message Events Subform"
 {
     ApplicationArea = All;

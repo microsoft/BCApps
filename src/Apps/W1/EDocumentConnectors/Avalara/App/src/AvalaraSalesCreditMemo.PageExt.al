@@ -1,3 +1,7 @@
+namespace Microsoft.EServices.EDocumentConnector.Avalara;
+
+using Microsoft.Sales.Document;
+
 pageextension 6380 "Avalara Sales Credit Memo" extends "Sales Credit Memo"
 {
     layout

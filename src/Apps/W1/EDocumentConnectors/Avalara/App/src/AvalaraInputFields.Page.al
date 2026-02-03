@@ -1,10 +1,12 @@
+namespace Microsoft.EServices.EDocumentConnector.Avalara;
+
 page 6374 "Avalara Input Fields"
 {
     ApplicationArea = All;
     Caption = 'Avalara Input Fields';
     PageType = List;
     ShowFilter = true;
-    SourceTable = "AvalaraInput Field";
+    SourceTable = "Avalara Input Field";
     UsageCategory = Lists;
 
     layout
@@ -18,47 +20,47 @@ page 6374 "Avalara Input Fields"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the value of the Mandate field.';
                 }
-                field(fieldId; Rec.fieldId)
+                field(FieldId; Rec.FieldId)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the value of the Field ID field.';
                 }
-                field(documentType; Rec.documentType)
+                field(DocumentType; Rec.DocumentType)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the value of the Document Type field.';
                 }
-                field(documentVersion; Rec.documentVersion)
+                field(DocumentVersion; Rec.DocumentVersion)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the value of the Document Version field.';
                 }
-                field(path; Rec.path)
+                field(Path; Rec.Path)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the value of the Path field.';
                 }
-                field(pathType; Rec.pathType)
+                field(PathType; Rec.PathType)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the value of the Path Type field.';
                 }
-                field(fieldName; Rec.fieldName)
+                field(FieldName; Rec.FieldName)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the value of the Field Name field.';
                 }
-                field(namespace_prefix; Rec.namespace_prefix)
+                field(NamespacePrefix; Rec.NamespacePrefix)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the value of the Namespace prefix field.';
+                    ToolTip = 'Specifies the value of the Namespace Prefix field.';
                 }
-                field(namespace_value; Rec.namespace_value)
+                field(NamespaceValue; Rec.NamespaceValue)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the value of the name space Value field.';
+                    ToolTip = 'Specifies the value of the Namespace Value field.';
                 }
-                field(acceptedValues; Rec.acceptedValues)
+                field(AcceptedValues; Rec.AcceptedValues)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the value of the Accepted Values field.';
@@ -68,7 +70,7 @@ page 6374 "Avalara Input Fields"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the value of the Documentation Link field.';
                 }
-                field(dataType; Rec.dataType)
+                field(DataType; Rec.DataType)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the value of the Data Type field.';
@@ -78,29 +80,29 @@ page 6374 "Avalara Input Fields"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the value of the Description field.';
                 }
-                field(optionality; Rec.optionality)
+                field(Optionality; Rec.Optionality)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the value of the optionality field.';
+                    ToolTip = 'Specifies the value of the Optionality field.';
                 }
-                field(cardinality; Rec.cardinality)
+                field(Cardinality; Rec.Cardinality)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the value of the optionality field.';
+                    ToolTip = 'Specifies the value of the Cardinality field.';
                 }
-                field(exampleOrFixedValue; Rec.exampleOrFixedValue)
+                field(ExampleOrFixedValue; Rec.ExampleOrFixedValue)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the value of the Example Or FixedValue field.';
+                    ToolTip = 'Specifies the value of the Example Or Fixed Value field.';
                 }
             }
         }
     }
-    procedure SetFilterByMandate(MandateCode: Text; DocumentType: Text)
+    procedure SetFilterByMandate(MandateCode: Text; MandateDocumentType: Text)
     begin
-        Rec.SetFilter(Mandate, MandateCode);
-        if DocumentType <> '' then
-            Rec.SetFilter(documentType, DocumentType);
+        Rec.SetRange(Mandate, MandateCode);
+        if MandateDocumentType <> '' then
+            Rec.SetRange(DocumentType, MandateDocumentType);
         Rec.FindFirst();
         CurrPage.Update(false);
     end;

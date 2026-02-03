@@ -1,15 +1,38 @@
+namespace Microsoft.EServices.EDocumentConnector.Avalara;
+
+using Microsoft.eServices.EDocument;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Foundation.Attachment;
+using Microsoft.Foundation.Reporting;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.FinanceCharge;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Posting;
+using Microsoft.Sales.Reminder;
+using Microsoft.Service.Document;
+using Microsoft.Service.History;
+using Microsoft.Utilities;
+using System.Automation;
+using System.IO;
+using System.Threading;
+using System.Utilities;
+
 codeunit 6800 "Avalara Functions"
 {
     var
         AvalaraCategoryTok: Label 'Avalara', Locked = true;
         CannotAttachEmptyErr: Label 'Cannot attach empty content to E-Document %1', Comment = '%1 = E-Document Entry No';
         ConfirmOverwriteFieldsQst: Label 'The fields exist for %1. Do you want to over-write?', Comment = '%1 = Mandate code';
-        DocumentDownloadedMsg: Label 'Document %1 downloaded with media type %2', Comment = '%1 = Document ID, %2 = Media Type';
-        DownloadFailedErr: Label 'Failed to download document %1. HTTP Status: %2', Comment = '%1 = Document ID, %2 = HTTP Status Code';
-        EmptyResponseContentErr: Label 'Empty response content received from Avalara API';
+
+        // Format strings for StrSubstNo
+        FailedToRetrieveMediaTypesMsg: Label 'Failed to retrieve media types for mandate %1', Comment = '%1 = Mandate';
         FetchAvalaraDocsDescTxt: Label 'Fetch Avalara documents for E-Documents';
         FieldsLoadedMsg: Label 'Loaded %1 fields for mandate %2', Comment = '%1 = Field count, %2 = Mandate code';
         FilterValueTrueTok: Label 'true', Locked = true;
+        InvalidJsonResponseMsg: Label 'Invalid JSON response for mandate %1', Comment = '%1 = Mandate';
         JobQueueCreatedMsg: Label 'Job Queue Entry %1 created and set to Ready to run Codeunit %2 every %3 minutes.', Comment = '%1 = Job Queue Entry ID, %2 = Codeunit ID, %3 = Frequency in minutes';
         JobQueueExistsMsg: Label 'Job Queue Entry %1 already exists for Codeunit %2.', Comment = '%1 = Job Queue Entry ID, %2 = Codeunit ID';
         JsonFieldAcceptedValuesTok: Label 'acceptedValues', Locked = true;
@@ -22,8 +45,8 @@ codeunit 6800 "Avalara Functions"
         MediaTypePdfTok: Label 'application/pdf', Locked = true;
         MediaTypeUblXmlTok: Label 'application/vnd.oasis.ubl+xml', Locked = true;
         MediaTypeXmlTok: Label 'application/xml', Locked = true;
-        MediaTypeZipTok: Label 'application/zip', Locked = true;
-        MissingDocumentIdErr: Label 'Missing Document ID';
+        RetrievedMediaTypesMsg: Label 'Retrieved %1 media types for mandate %2', Comment = '%1 = Count, %2 = Mandate';
+        SafeFilenameFormatMsg: Label '%1-%2%3', Comment = '%1 = File ID, %2 = Normalized media type, %3 = File extension', Locked = true;
         WorkflowCategoryEDocTok: Label 'EDOC', Locked = true;
 
     procedure AttachFromText(EDocument: Record "E-Document"; XmlText: Text; FileName: Text)
@@ -115,18 +138,17 @@ codeunit 6800 "Avalara Functions"
             until DocumentAttachment.Next() = 0;
     end;
 
-    procedure LoadFieldsFromJson(FieldsArray: JsonArray; Mandate: Text[40]; documentType: Text; documentVersion: Text)
+    procedure LoadFieldsFromJson(FieldsArray: JsonArray; Mandate: Text[40]; DocumentType: Text; DocumentVersion: Text)
     var
-        AvalaraInputField: Record "AvalaraInput Field";
+        AvalaraInputField: Record "Avalara Input Field";
         i: Integer;
         ItemObj: JsonObject;
-
         ItemToken: JsonToken;
     begin
 
         AvalaraInputField.SetRange(Mandate, Mandate);
-        AvalaraInputField.SetRange(documentType, documentType);
-        AvalaraInputField.SetRange(documentVersion, documentVersion);
+        AvalaraInputField.SetRange(DocumentType, DocumentType);
+        AvalaraInputField.SetRange(DocumentVersion, DocumentVersion);
 
         if not AvalaraInputField.IsEmpty() then
             if Confirm(StrSubstNo(ConfirmOverwriteFieldsQst, Mandate), true) then
@@ -146,38 +168,38 @@ codeunit 6800 "Avalara Functions"
             // fieldId
             SetIntegerField(
                 AvalaraInputField,
-                AvalaraInputField.FieldNo(fieldId),
+                AvalaraInputField.FieldNo(FieldId),
                 GetInt(ItemObj, JsonFieldFieldIdTok));
 
             // Straight mappings
             SetTextField(
                 AvalaraInputField,
-                AvalaraInputField.FieldNo(documentType),
+                AvalaraInputField.FieldNo(DocumentType),
                 GetText(ItemObj, JsonFieldDocumentTypeTok));
 
             SetTextField(
                 AvalaraInputField,
-                AvalaraInputField.FieldNo(documentVersion),
+                AvalaraInputField.FieldNo(DocumentVersion),
                 GetText(ItemObj, 'documentVersion'));
 
             SetTextField(
                 AvalaraInputField,
-                AvalaraInputField.FieldNo(path),
+                AvalaraInputField.FieldNo(Path),
                 GetText(ItemObj, 'path'));
 
             SetTextField(
                 AvalaraInputField,
-                AvalaraInputField.FieldNo(pathType),
+                AvalaraInputField.FieldNo(PathType),
                 GetText(ItemObj, 'pathType'));
 
             SetTextField(
                 AvalaraInputField,
-                AvalaraInputField.FieldNo(fieldName),
+                AvalaraInputField.FieldNo(FieldName),
                 GetText(ItemObj, 'fieldName'));
 
             SetTextField(
                 AvalaraInputField,
-                AvalaraInputField.FieldNo(exampleOrFixedValue),
+                AvalaraInputField.FieldNo(ExampleOrFixedValue),
                 GetText(ItemObj, 'exampleOrFixedValue'));
 
             SetTextField(
@@ -187,7 +209,7 @@ codeunit 6800 "Avalara Functions"
 
             SetTextField(
                 AvalaraInputField,
-                AvalaraInputField.FieldNo(dataType),
+                AvalaraInputField.FieldNo(DataType),
                 GetText(ItemObj, 'dataType'));
 
             SetTextField(
@@ -197,12 +219,12 @@ codeunit 6800 "Avalara Functions"
 
             SetTextField(
                 AvalaraInputField,
-                AvalaraInputField.FieldNo(optionality),
+                AvalaraInputField.FieldNo(Optionality),
                 GetText(ItemObj, 'optionality'));
 
             SetTextField(
                 AvalaraInputField,
-                AvalaraInputField.FieldNo(cardinality),
+                AvalaraInputField.FieldNo(Cardinality),
                 GetText(ItemObj, 'cardinality'));
 
             // namespace -> namespacePrefix / namespaceValue
@@ -211,7 +233,7 @@ codeunit 6800 "Avalara Functions"
             // acceptedValues[] -> pipe-separated
             SetTextField(
                 AvalaraInputField,
-                AvalaraInputField.FieldNo(acceptedValues),
+                AvalaraInputField.FieldNo(AcceptedValues),
                 GetAcceptedValues(ItemObj));
 
             SetTextField(
@@ -272,13 +294,13 @@ codeunit 6800 "Avalara Functions"
 
         // Handle API failure
         if ResponseContent = '' then begin
-            Session.LogMessage('0000AVL', StrSubstNo('Failed to retrieve media types for mandate %1', Mandate), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
+            Session.LogMessage('0000AVL', StrSubstNo(FailedToRetrieveMediaTypesMsg, Mandate), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
             exit(GetDefaultMediaTypes());
         end;
 
         // Parse JSON response
         if not TryParseMediaTypesResponse(ResponseContent, ResponseJson, ValueArray) then begin
-            Session.LogMessage('0000AVL', StrSubstNo('Invalid JSON response for mandate %1', Mandate), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
+            Session.LogMessage('0000AVL', StrSubstNo(InvalidJsonResponseMsg, Mandate), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
             exit(GetDefaultMediaTypes());
         end;
 
@@ -289,7 +311,7 @@ codeunit 6800 "Avalara Functions"
         if MediaTypeList.Count = 0 then
             exit(GetDefaultMediaTypes());
 
-        Session.LogMessage('0000AVL', StrSubstNo('Retrieved %1 media types for mandate %2', MediaTypeList.Count, Mandate), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
+        Session.LogMessage('0000AVL', StrSubstNo(RetrievedMediaTypesMsg, MediaTypeList.Count, Mandate), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
 
         exit(MediaTypeList);
     end;
@@ -450,7 +472,7 @@ codeunit 6800 "Avalara Functions"
 
     // -------- Namespace mapping --------
 
-    local procedure SetNamespace(var ItemObj: JsonObject; var Rec: Record "AvalaraInput Field")
+    local procedure SetNamespace(var ItemObj: JsonObject; var AvalaraInputField: Record "Avalara Input Field")
     var
         NsObj: JsonObject;
         T: JsonToken;
@@ -459,26 +481,26 @@ codeunit 6800 "Avalara Functions"
             NsObj := T.AsObject();
 
             SetTextField(
-                Rec,
-                Rec.FieldNo(namespace_prefix),
+                AvalaraInputField,
+                AvalaraInputField.FieldNo(NamespacePrefix),
                 GetText(NsObj, JsonFieldPrefixTok));
 
             SetTextField(
-                Rec,
-                Rec.FieldNo(namespace_value),
+                AvalaraInputField,
+                AvalaraInputField.FieldNo(NamespaceValue),
                 GetText(NsObj, 'value'));
         end;
     end;
 
     // -------- Generic setter with length safety --------
 
-    local procedure SetTextField(var Rec: Record "AvalaraInput Field"; FieldNo: Integer; Value: Text)
+    local procedure SetTextField(var AvalaraInputField: Record "Avalara Input Field"; FieldNo: Integer; Value: Text)
     var
         RecRef: RecordRef;
         FRef: FieldRef;
         MaxLen: Integer;
     begin
-        RecRef.GetTable(Rec);
+        RecRef.GetTable(AvalaraInputField);
         FRef := RecRef.Field(FieldNo);
 
         if FRef.Type in [FieldType::Text, FieldType::Code] then begin
@@ -488,15 +510,15 @@ codeunit 6800 "Avalara Functions"
         end;
 
         FRef.Value := Value;
-        RecRef.SetTable(Rec);
+        RecRef.SetTable(AvalaraInputField);
     end;
 
-    local procedure SetIntegerField(var Rec: Record "AvalaraInput Field"; FieldNo: Integer; Value: Integer)
+    local procedure SetIntegerField(var AvalaraInputField: Record "Avalara Input Field"; FieldNo: Integer; Value: Integer)
     var
         RecRef: RecordRef;
         FRef: FieldRef;
     begin
-        RecRef.GetTable(Rec);
+        RecRef.GetTable(AvalaraInputField);
         FRef := RecRef.Field(FieldNo);
 
         // Only set if the field is an Integer or BigInteger type
@@ -508,7 +530,7 @@ codeunit 6800 "Avalara Functions"
                 Error('SetIntegerField called on non-integer field %1.', FieldNo);
         end;
 
-        RecRef.SetTable(Rec);
+        RecRef.SetTable(AvalaraInputField);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Export", OnBeforeEDocumentCheck, '', false, false)]
@@ -757,7 +779,7 @@ codeunit 6800 "Avalara Functions"
         // Determine file extension
         FileExt := GetFileExtensionFromMediaType(MediaType);
 
-        exit(StrSubstNo('%1-%2%3', FileId, Normalized, FileExt));
+        exit(StrSubstNo(SafeFilenameFormatMsg, FileId, Normalized, FileExt));
     end;
 
     local procedure GetFileExtensionFromMediaType(MediaType: Text): Text

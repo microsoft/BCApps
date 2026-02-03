@@ -1,3 +1,5 @@
+namespace Microsoft.EServices.EDocumentConnector.Avalara;
+
 table 6377 "Activation Mandate"
 {
     Caption = 'Activation Mandate';
@@ -47,6 +49,7 @@ table 6377 "Activation Mandate"
     keys
     {
         key(PK; "Activation ID", "Country Mandate", "Mandate Type") { Clustered = true; }
+        key(CompanyMandate; "Company Id", "Country Mandate", "Mandate Type") { }
     }
 
     trigger OnDelete()

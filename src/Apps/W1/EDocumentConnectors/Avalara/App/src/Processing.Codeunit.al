@@ -5,12 +5,12 @@
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.EServices.EDocument;
-using Microsoft.EServices.EDocumentConnector.Avalara.Models;
-using System.Utilities;
-using Microsoft.eServices.EDocument.Integration.Send;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Integration.Receive;
-using System.IO;
+using Microsoft.eServices.EDocument.Integration.Send;
+using Microsoft.EServices.EDocumentConnector.Avalara.Models;
+
+using System.Utilities;
 
 codeunit 6379 Processing
 {
@@ -177,7 +177,7 @@ codeunit 6379 Processing
 
     /// <summary>
     /// Calls Avalara API for GetDocumentStatus.
-    /// If request is successfull, but status is Error, then errors are logged and error is thrown to set document to Sending Error state
+    /// If request is successful, but status is Error, then errors are logged and error is thrown to set document to Sending Error state
     /// </summary>
     /// <returns>False if status is Pending, True if status is Complete.</returns>
     procedure GetDocumentStatus(var EDocument: Record "E-Document"; SendContext: Codeunit SendContext): Boolean
@@ -282,7 +282,7 @@ ValueObject : JsonToken;
         HttpExecutor: Codeunit "Http Executor";
         Request: Codeunit Requests;
         InStream: InStream;
-        MediaTypes: JsonArray;
+        MediaTypes: List of [Text];
         OutStream: OutStream;
         CountryCode: Text;
         DocumentId: Text;
@@ -291,7 +291,7 @@ ValueObject : JsonToken;
     begin
         Mandate := EDocumentService."Avalara Mandate";
         CountryCode := Mandate.Split('-').Get(1);
-        AvalaraFunctions.GetInvoiceAvailableMediaType(Mandate, MediaTypes);
+        MediaTypes := AvalaraFunctions.GetAvailableMediaTypesForMandate(Mandate);
 
         DocumentMetadata.CreateInStream(InStream, TextEncoding::UTF8);
         InStream.ReadText(DocumentId);
@@ -392,33 +392,29 @@ ValueObject : JsonToken;
     /// </summary>
     local procedure ParseMandates(var TempMandatesLocal: Record Mandate temporary; ResponseContent: Text; ShouldParseFields: Boolean)
     var
-
         Processing: Codeunit Processing;
-        Id: Integer;
-        inputFormatsArray: JsonArray;
+        InputFormatsArray: JsonArray;
         FormatObj: JsonObject;
         ResponseJson: JsonObject;
         FormatToken,
-MandateToken,
-ParsintToken,
+        MandateToken,
+        ParsintToken,
         ValueToken,
-VersionItem,
-VersionToken : JsonToken;
+        VersionItem,
+        VersionToken : JsonToken;
         CountryCode,
         CountryMandate,
-CreditFormatStr,
-Description,
-FormatName,
-InvoiceFormatStr,
-VersionValue : Text;
+        CreditFormatStr,
+        Description,
+        FormatName,
+        InvoiceFormatStr,
+        VersionValue : Text;
     begin
         ResponseJson.ReadFrom(ResponseContent);
         ResponseJson.Get(JsonFieldValueTok, ValueToken);
 
         Clear(TempMandatesLocal);
-        Id := 1;
         foreach MandateToken in ValueToken.AsArray() do begin
-
             MandateToken.AsObject().Get(JsonFieldCountryMandateTok, ParsintToken);
             CountryMandate := ParsintToken.AsValue().AsText();
             MandateToken.AsObject().Get(JsonFieldCountryCodeTok, ParsintToken);
@@ -426,16 +422,14 @@ VersionValue : Text;
             MandateToken.AsObject().Get(JsonFieldDescriptionTok, ParsintToken);
             Description := ParsintToken.AsValue().AsText();
             MandateToken.AsObject().Get(JsonFieldInputDataFormatsTok, ParsintToken);
-            inputFormatsArray := ParsintToken.AsArray();
-            foreach FormatToken in inputFormatsArray do begin
-                //each element of the array has a json
+            InputFormatsArray := ParsintToken.AsArray();
+            foreach FormatToken in InputFormatsArray do begin
                 FormatObj := FormatToken.AsObject();
                 if FormatObj.Get(JsonFieldFormatTok, VersionToken) then begin
                     FormatName := VersionToken.AsValue().AsText();
                     if FormatObj.Get(JsonFieldVersionsTok, VersionToken) then
                         foreach VersionItem in VersionToken.AsArray() do begin
                             VersionValue := VersionItem.AsValue().AsText();
-                            //GET FIELDS NEED TO COME HERE
                             if ShouldParseFields then
                                 Processing.GetInvoiceFieldsForMandate(CountryMandate, FormatName, VersionValue);
 
@@ -466,12 +460,10 @@ VersionValue : Text;
                 TempMandatesLocal."Credit Note Format" := CopyStr(CreditFormatStr, 1, MaxStrLen(TempMandatesLocal."Credit Note Format"));
                 TempMandatesLocal.Insert(true);
             end;
-
-            Id += 1;
         end;
     end;
 
-    procedure GetInvoiceFieldsForMandate(Mandate: Text; documentType: Text; documentVersion: Text)
+    procedure GetInvoiceFieldsForMandate(Mandate: Text; DocumentType: Text; DocumentVersion: Text)
     var
         Request: Codeunit Requests;
         HttpClient: HttpClient;
@@ -481,14 +473,14 @@ VersionValue : Text;
 
     begin
         Request.Init();
-        Request.Authenticate().CreateGetFields(Mandate, documentType, documentVersion);
+        Request.Authenticate().CreateGetFields(Mandate, DocumentType, DocumentVersion);
         HttpClient.Send(Request.GetRequest(), Response);
         Response.Content.ReadAs(ResponseContent);
         if Response.HttpStatusCode = 200 then
-            ParseFields(ResponseContent, Mandate, documentType, documentVersion);
+            ParseFields(ResponseContent, Mandate, DocumentType, DocumentVersion);
     end;
 
-    local procedure ParseFields(ResponseContent: Text; Mandate: Text; documentType: Text; documentVersion: Text)
+    local procedure ParseFields(ResponseContent: Text; Mandate: Text; DocumentType: Text; DocumentVersion: Text)
     var
         AvalaraFunctions: Codeunit "Avalara Functions";
         ResponseJsonArray: JsonArray;
@@ -599,7 +591,7 @@ MessageToken,
 
     procedure LoadStatusFromJson(ResponseText: Text; EDocument: Record "E-Document")
     var
-        TempMessageEvent: Record "Message Event";
+        MessageEvent: Record "Message Event";
         MessageResponseHeader: Record "Message Response Header";
         i: Integer;
         EventsArray: JsonArray;
@@ -609,31 +601,31 @@ MessageToken,
         EventsToken: JsonToken;
         EventToken: JsonToken;
         MessageToken: JsonToken;
-        responseKeyToken: JsonToken;
-        responseValueToken: JsonToken;
+        ResponseKeyToken: JsonToken;
+        ResponseValueToken: JsonToken;
         RootToken: JsonToken;
-        EventDateTimeTxt, responseKeyText, responseValueText : Text;
+        EventDateTimeTxt, ResponseKeyText, ResponseValueText : Text;
     begin
         MessageResponseHeader.Init();
-        TempMessageEvent.Init();
+        MessageEvent.Init();
 
         if not JsonObj.ReadFrom(ResponseText) then
             Error(InvalidJsonResponseErr);
 
         // --- Header ---
         if JsonObj.Get(JsonFieldIdTok, RootToken) and RootToken.IsValue() then
-            MessageResponseHeader.id := CopyStr(RootToken.AsValue().AsText(), 1, MaxStrLen(MessageResponseHeader.id));
+            MessageResponseHeader.Id := CopyStr(RootToken.AsValue().AsText(), 1, MaxStrLen(MessageResponseHeader.Id));
 
-        if MessageResponseHeader.id = '' then
+        if MessageResponseHeader.Id = '' then
             Error(MissingIdInResponseErr);
 
         if JsonObj.Get(JsonFieldCompanyIdTok, RootToken) and RootToken.IsValue() then
-            MessageResponseHeader.companyId := CopyStr(RootToken.AsValue().AsText(), 1, MaxStrLen(MessageResponseHeader.companyId));
+            MessageResponseHeader.CompanyId := CopyStr(RootToken.AsValue().AsText(), 1, MaxStrLen(MessageResponseHeader.CompanyId));
 
         if JsonObj.Get(JsonFieldStatusTok, RootToken) and RootToken.IsValue() then
-            MessageResponseHeader.status := CopyStr(RootToken.AsValue().AsText(), 1, MaxStrLen(MessageResponseHeader.status));
+            MessageResponseHeader.Status := CopyStr(RootToken.AsValue().AsText(), 1, MaxStrLen(MessageResponseHeader.Status));
 
-        if not MessageResponseHeader.Get(MessageResponseHeader.id) then
+        if not MessageResponseHeader.Get(MessageResponseHeader.Id) then
             MessageResponseHeader.Insert();
 
         // --- Events Array ---
@@ -648,37 +640,37 @@ MessageToken,
 
                 EventObj := EventToken.AsObject();
 
-                TempMessageEvent.Init();
-                TempMessageEvent.id := MessageResponseHeader.id;
-                TempMessageEvent.MessageRow := i + 1;
+                MessageEvent.Init();
+                MessageEvent.Id := MessageResponseHeader.Id;
+                MessageEvent.MessageRow := i + 1;
 
                 // eventDateTime
                 if EventObj.Get(JsonFieldEventDateTimeTok, EventDateTimeToken) and EventDateTimeToken.IsValue() then begin
                     EventDateTimeTxt := EventDateTimeToken.AsValue().AsText();
-                    if not TryParseIsoDateTime(EventDateTimeTxt, TempMessageEvent.eventDateTime) then
-                        TempMessageEvent.eventDateTime := 0DT;
+                    if not TryParseIsoDateTime(EventDateTimeTxt, MessageEvent.EventDateTime) then
+                        MessageEvent.EventDateTime := 0DT;
                 end;
 
                 // responseKey
-                if EventObj.Get(JsonFieldResponseKeyTok, responseKeyToken) and responseKeyToken.IsValue() then begin
-                    responseKeyText := responseKeyToken.AsValue().AsText();
-                    TempMessageEvent.responseKey := CopyStr(responseKeyText, 1, MaxStrLen(TempMessageEvent.responseKey));
+                if EventObj.Get(JsonFieldResponseKeyTok, ResponseKeyToken) and ResponseKeyToken.IsValue() then begin
+                    ResponseKeyText := ResponseKeyToken.AsValue().AsText();
+                    MessageEvent.ResponseKey := CopyStr(ResponseKeyText, 1, MaxStrLen(MessageEvent.ResponseKey));
                 end;
 
                 // responseValue
-                if EventObj.Get(JsonFieldResponseValueTok, responseValueToken) and responseValueToken.IsValue() then begin
-                    responseValueText := responseValueToken.AsValue().AsText();
-                    TempMessageEvent.responseValue := CopyStr(responseValueText, 1, MaxStrLen(TempMessageEvent.responseValue));
+                if EventObj.Get(JsonFieldResponseValueTok, ResponseValueToken) and ResponseValueToken.IsValue() then begin
+                    ResponseValueText := ResponseValueToken.AsValue().AsText();
+                    MessageEvent.ResponseValue := CopyStr(ResponseValueText, 1, MaxStrLen(MessageEvent.ResponseValue));
                 end;
 
                 // message
                 if EventObj.Get(JsonFieldMessageTok, MessageToken) and MessageToken.IsValue() then
-                    TempMessageEvent.message := CopyStr(MessageToken.AsValue().AsText(), 1, MaxStrLen(TempMessageEvent.message));
+                    MessageEvent.Message := CopyStr(MessageToken.AsValue().AsText(), 1, MaxStrLen(MessageEvent.Message));
 
-                TempMessageEvent.PostedDocument := EDocument."Document No.";
-                TempMessageEvent.EDocEntryNo := EDocument."Entry No";
-                if not TempMessageEvent.Get(TempMessageEvent.id, TempMessageEvent.MessageRow) then
-                    TempMessageEvent.Insert();
+                MessageEvent.PostedDocument := EDocument."Document No.";
+                MessageEvent.EDocEntryNo := EDocument."Entry No";
+                if not MessageEvent.Get(MessageEvent.Id, MessageEvent.MessageRow) then
+                    MessageEvent.Insert();
             end;
         end;
     end; //end of procedure
@@ -727,13 +719,13 @@ MessageToken,
     /// <summary>
     /// Format specific date with the current time, for Avalara API
     /// </summary>
-    procedure FormatDateTime(inputDate: Date): Text
+    procedure FormatDateTime(InputDate: Date): Text
     var
         CurrentDateTime: DateTime;
         FormattedDateTime: Text;
     begin
         // Convert the input date to DateTime with the current time
-        CurrentDateTime := CreateDateTime(inputDate, Time());
+        CurrentDateTime := CreateDateTime(InputDate, Time());
 
         // Format the DateTime in the desired format
         FormattedDateTime := Format(CurrentDateTime, 0, '<Year4>-<Month,2>-<Day,2>T<Hours24,2>:<Minutes,2>:<Seconds,2>');

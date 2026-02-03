@@ -93,7 +93,7 @@ page 6372 "Connection Setup Card"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Token Expiry';
+                    ToolTip = 'Specifies the Token Expiry field.';
                 }
                 field("Avalara Send Mode"; Rec."Avalara Send Mode")
                 {
@@ -148,14 +148,14 @@ page 6372 "Connection Setup Card"
 
                 trigger OnAction()
                 var
-                    tempMandate: Record Mandate;
+                    Mandate: Record Mandate;
                     MandateSelected: Text;
                 begin
                     MandateSelected := '';
 
                     AvalaraProcessing.UpdateMandate(MandateSelected);
                     if MandateSelected <> '' then
-                        AvalaraProcessing.GetSingleMandate(tempMandate, MandateSelected);
+                        AvalaraProcessing.GetSingleMandate(Mandate, MandateSelected);
                 end;
             }
 

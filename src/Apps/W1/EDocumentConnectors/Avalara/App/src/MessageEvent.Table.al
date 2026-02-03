@@ -1,32 +1,33 @@
+namespace Microsoft.EServices.EDocumentConnector.Avalara;
 table 6380 "Message Event"
 {
     Caption = 'Message Event';
     DataClassification = ToBeClassified;
     fields
     {
-        field(1; id; Text[50])
+        field(1; Id; Text[50])
         {
-            Caption = 'id';
+            Caption = 'Id';
         }
         field(2; MessageRow; Integer)
         {
             Caption = 'Row';
         }
-        field(3; eventDateTime; DateTime)
+        field(3; EventDateTime; DateTime)
         {
-            Caption = 'eventDateTime';
+            Caption = 'Event Date Time';
         }
-        field(4; message; Text[256])
+        field(4; Message; Text[256])
         {
-            Caption = 'message';
+            Caption = 'Message';
         }
-        field(5; responseKey; Text[256])
+        field(5; ResponseKey; Text[256])
         {
-            Caption = 'responseKey';
+            Caption = 'Response Key';
         }
-        field(6; responseValue; Text[256])
+        field(6; ResponseValue; Text[256])
         {
-            Caption = 'responseValue';
+            Caption = 'Response Value';
         }
         field(7; PostedDocument; Text[40])
         {
@@ -39,7 +40,7 @@ table 6380 "Message Event"
     }
     keys
     {
-        key(PK; id, MessageRow)
+        key(PK; Id, MessageRow)
         {
             Clustered = true;
         }

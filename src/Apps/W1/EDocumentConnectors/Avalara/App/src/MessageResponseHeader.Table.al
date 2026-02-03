@@ -1,3 +1,5 @@
+namespace Microsoft.EServices.EDocumentConnector.Avalara;
+
 table 6379 "Message Response Header"
 {
     Caption = 'Message Response Header';
@@ -5,22 +7,22 @@ table 6379 "Message Response Header"
 
     fields
     {
-        field(1; id; Text[50])
+        field(1; Id; Text[50])
         {
-            Caption = 'id';
+            Caption = 'Id';
         }
-        field(2; companyId; Text[50])
+        field(2; CompanyId; Text[50])
         {
-            Caption = 'companyId';
+            Caption = 'Company Id';
         }
-        field(3; status; Text[20])
+        field(3; Status; Text[20])
         {
-            Caption = 'status';
+            Caption = 'Status';
         }
     }
     keys
     {
-        key(PK; id)
+        key(PK; Id)
         {
             Clustered = true;
         }

@@ -1,3 +1,5 @@
+namespace Microsoft.EServices.EDocumentConnector.Avalara;
+
 table 6376 "Activation Header"
 {
     Caption = 'Activation Header';

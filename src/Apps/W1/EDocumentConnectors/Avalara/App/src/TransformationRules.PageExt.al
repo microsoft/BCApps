@@ -1,3 +1,6 @@
+namespace Microsoft.EServices.EDocumentConnector.Avalara;
+
+using System.IO;
 pageextension 6376 "Transformation Rules" extends "Transformation Rules"
 {
     layout
@@ -19,7 +22,7 @@ pageextension 6376 "Transformation Rules" extends "Transformation Rules"
             field("Lookup Table Name"; Rec."Lookup Table Name")
             {
                 ApplicationArea = All;
-                ToolTip = 'Shows the name of the selected lookup table.';
+                ToolTip = 'Specifies the name of the selected lookup table.';
                 Visible = Rec."Transformation Type" = Rec."Transformation Type"::"Avalara Lookup";
             }
 
@@ -38,7 +41,7 @@ pageextension 6376 "Transformation Rules" extends "Transformation Rules"
             field("Primary Field Name"; Rec."Primary Field Name")
             {
                 ApplicationArea = All;
-                ToolTip = 'Shows the name of the primary field.';
+                ToolTip = 'Specifies the name of the primary field.';
                 Visible = Rec."Transformation Type" = Rec."Transformation Type"::"Avalara Lookup";
             }
 
@@ -57,7 +60,7 @@ pageextension 6376 "Transformation Rules" extends "Transformation Rules"
             field("Secondary Field Name"; Rec."Secondary Field Name")
             {
                 ApplicationArea = All;
-                ToolTip = 'Shows the name of the secondary field.';
+                ToolTip = 'Specifies the name of the secondary field.';
                 Visible = Rec."Transformation Type" = Rec."Transformation Type"::"Avalara Lookup";
             }
 
@@ -83,7 +86,7 @@ pageextension 6376 "Transformation Rules" extends "Transformation Rules"
             field("Result Field Name"; Rec."Result Field Name")
             {
                 ApplicationArea = All;
-                ToolTip = 'Shows the name of the result field.';
+                ToolTip = 'Specifies the name of the result field.';
                 Visible = Rec."Transformation Type" = Rec."Transformation Type"::"Avalara Lookup";
             }
         }

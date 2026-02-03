@@ -1,3 +1,5 @@
+namespace Microsoft.EServices.EDocumentConnector.Avalara;
+
 codeunit 6378 Activation
 {
     var

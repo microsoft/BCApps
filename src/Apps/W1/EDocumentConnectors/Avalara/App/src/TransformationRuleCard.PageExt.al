@@ -1,3 +1,7 @@
+namespace Microsoft.EServices.EDocumentConnector.Avalara;
+
+using System.IO;
+
 pageextension 6375 "Transformation Rule Card" extends "Transformation Rule Card"
 {
     layout
@@ -29,7 +33,7 @@ pageextension 6375 "Transformation Rule Card" extends "Transformation Rule Card"
                 field("Lookup Table Name"; Rec."Lookup Table Name")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Shows the name of the selected lookup table.';
+                    ToolTip = 'Specifies the name of the selected lookup table.';
                 }
                 field("Primary Field No."; Rec."Primary Field No.")
                 {
@@ -44,7 +48,7 @@ pageextension 6375 "Transformation Rule Card" extends "Transformation Rule Card"
                 field("Primary Field Name"; Rec."Primary Field Name")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Shows the name of the primary field.';
+                    ToolTip = 'Specifies the name of the primary field.';
                 }
                 field("Secondary Field No."; Rec."Secondary Field No.")
                 {
@@ -59,7 +63,7 @@ pageextension 6375 "Transformation Rule Card" extends "Transformation Rule Card"
                 field("Secondary Field Name"; Rec."Secondary Field Name")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Shows the name of the secondary field.';
+                    ToolTip = 'Specifies the name of the secondary field.';
                 }
                 field("Secondary Filter Value"; Rec."Secondary Filter Value")
                 {
@@ -79,7 +83,7 @@ pageextension 6375 "Transformation Rule Card" extends "Transformation Rule Card"
                 field("Result Field Name"; Rec."Result Field Name")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Shows the name of the result field.';
+                    ToolTip = 'Specifies the name of the result field.';
                 }
             }
         }

@@ -9,7 +9,7 @@ codeunit 6374 Authenticator
 {
     Access = Internal;
     Permissions = tabledata "Connection Setup" = rim,
-tabledata "OAuth 2.0 Setup" = im;
+                  tabledata "OAuth 2.0 Setup" = im;
 
     procedure CreateConnectionSetupRecord()
     var

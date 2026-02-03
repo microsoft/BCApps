@@ -1,3 +1,7 @@
+namespace Microsoft.EServices.EDocumentConnector.Avalara;
+
+using System.IO;
+using System.Reflection;
 tableextension 6374 "Transformation Rule" extends "Transformation Rule"
 {
     fields

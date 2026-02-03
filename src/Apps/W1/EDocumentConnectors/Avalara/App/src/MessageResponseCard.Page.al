@@ -2,6 +2,9 @@
 /// Displays message response data from Avalara API.
 /// Read-only diagnostic page showing message status and events.
 /// </summary>
+namespace Microsoft.EServices.EDocumentConnector.Avalara;
+
+using Microsoft.eServices.EDocument;
 page 6380 "Message Response Card"
 {
     ApplicationArea = All;

@@ -2,6 +2,11 @@
 /// Extends E-Document Service Data Exchange Subpage with Avalara-specific field mapping.
 /// Adds AssistEdit to Document Type field to configure mandate-specific input fields.
 /// </summary>
+namespace Microsoft.EServices.EDocumentConnector.Avalara;
+
+using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.IO.Peppol;
+
 pageextension 6374 "E-Doc. Service Data Exch. Sub" extends "E-Doc. Service Data Exch. Sub"
 {
     layout

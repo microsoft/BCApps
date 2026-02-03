@@ -21,10 +21,10 @@ codeunit 6376 Requests
         HttpRequestMessage: HttpRequestMessage;
         AccessToken: SecretText;
         ApiVersion,
-AuthUrl,
-AvalaraClient,
+        AuthUrl,
+        AvalaraClient,
         BaseUrl,
-DataBoundary : Text;
+        DataBoundary : Text;
 
     /// <summary>
     /// Create request for /einvoicing/documents API
@@ -122,12 +122,12 @@ DataBoundary : Text;
     procedure CreateGetRegistrationsRequest(var AvalaraCompany: Record "Avalara Company" temporary): Codeunit Requests
     var
         HttpHeaders: HttpHeaders;
-        companyID: Text;
+        CompanyID: Text;
     begin
-        companyID := AvalaraCompany."Company Id";
+        CompanyID := AvalaraCompany."Company Id";
 
         Clear(this.HttpRequestMessage);
-        this.HttpRequestMessage.SetRequestUri(this.BaseUrl + '/orl/registrations/' + companyID);
+        this.HttpRequestMessage.SetRequestUri(this.BaseUrl + '/orl/registrations/' + CompanyID);
         this.HttpRequestMessage.Method := 'GET';
 
         this.HttpRequestMessage.GetHeaders(HttpHeaders);
@@ -281,7 +281,6 @@ DataBoundary : Text;
         //NEED to get document versions from getMandate
 
         ReqStr := '/einvoicing/mandates/' + MandateStr + '/data-input-fields?documentType=' + documentType + '&documentVersion=' + documentVersion;
-        // ReqStr := '/einvoicing/mandates/' + MandateStr + '/data-input-fields?documentType=ubl-invoice&documentVersion=2.1';
 
         this.HttpRequestMessage.SetRequestUri(this.BaseUrl + ReqStr);
         this.HttpRequestMessage.Method := 'GET';

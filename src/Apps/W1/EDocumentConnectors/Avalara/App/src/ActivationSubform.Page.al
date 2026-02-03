@@ -1,3 +1,5 @@
+namespace Microsoft.EServices.EDocumentConnector.Avalara;
+
 page 6375 "Activation Subform"
 {
     ApplicationArea = All;

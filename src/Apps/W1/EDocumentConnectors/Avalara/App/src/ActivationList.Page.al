@@ -1,3 +1,5 @@
+namespace Microsoft.EServices.EDocumentConnector.Avalara;
+
 page 6378 "Activation List"
 {
     ApplicationArea = All;
@@ -16,7 +18,7 @@ page 6378 "Activation List"
                 {
                     ApplicationArea = All;
                     Caption = 'Activation ID';
-                    ToolTip = 'Activation ID';
+                    ToolTip = 'Specifies the Activation ID field.';
                 }
                 field("Company Name"; Rec."Company Name")
                 {
