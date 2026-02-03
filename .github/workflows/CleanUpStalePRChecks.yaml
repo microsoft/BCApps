@@ -2,7 +2,7 @@ name: 'Clean Up Stale PR Status Checks'
 
 on:
   schedule:
-    - cron: '0 0 */3 * *' # Run every 3 days at midnight UTC
+    - cron: '5 0 * * *' # Run every day at 00:05 UTC
   workflow_dispatch: # Allow manual trigger for testing
 
 permissions:
