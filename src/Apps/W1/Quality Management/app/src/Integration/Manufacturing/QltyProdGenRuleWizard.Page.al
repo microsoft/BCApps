@@ -835,7 +835,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
     /// </summary>
     /// <param name="QltyInspectionGenRule"></param>
     /// <returns></returns>
-    procedure RunModalWithGenerationRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Action
+    internal procedure RunModalWithGenerationRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Action
     begin
         TempQltyInspectionGenRule := QltyInspectionGenRule;
         Clear(TempProdOrderRoutingLine);
