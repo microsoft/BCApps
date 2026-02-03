@@ -128,9 +128,7 @@ codeunit 20410 "Qlty. Result Evaluation"
 
         until QltyInspectionResult.Next() = 0;
 
-        OnAfterEvaluateResult(QltyIResultConditConf, QltyTestValueType, TestValue, Result, TempHighestQltyIResultConditConf, IsHandled);
-        if IsHandled then
-            exit;
+        OnAfterEvaluateResult(QltyIResultConditConf, QltyTestValueType, TestValue, Result, TempHighestQltyIResultConditConf);
 
         if AnyConditionMet then
             exit(TempHighestQltyIResultConditConf."Result Code");
@@ -615,9 +613,8 @@ codeunit 20410 "Qlty. Result Evaluation"
     /// <param name="TestValue">var Text.</param>
     /// <param name="Result">var Code[20].</param>
     /// <param name="TempHighestQltyIResultConditConf">var Record "Qlty. I. Result Condit. Conf." temporary.</param>
-    /// <param name="IsHandled">Set to true to replace the default behavior.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterEvaluateResult(var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf."; var QltyTestValueType: Enum "Qlty. Test Value Type"; var TestValue: Text; var Result: Code[20]; var TempHighestQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf." temporary; var IsHandled: Boolean)
+    local procedure OnAfterEvaluateResult(var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf."; var QltyTestValueType: Enum "Qlty. Test Value Type"; var TestValue: Text; var Result: Code[20]; var TempHighestQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf." temporary)
     begin
     end;
 
