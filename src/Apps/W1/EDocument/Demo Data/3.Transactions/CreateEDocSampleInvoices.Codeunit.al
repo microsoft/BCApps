@@ -127,6 +127,7 @@ codeunit 5430 "Create E-Doc. Sample Invoices"
         BasicCoffeeEquipmentLbl: Label 'Basic coffee equipment mapped to vendor''s Item References';
         CoffeeBeansAndPartsLbl: Label 'Coffee beans and parts with shipping cost that needs human intervention';
     begin
+        EDocSamplePurchaseInvoice.SetMixLayoutsForPDFGeneration();
         EDocSamplePurchaseInvoice.AddInvoice(CreateVendor.ExportFabrikam(), '108925', CoffeeBeansAndPartsLbl);
         EDocSamplePurchaseInvoice.AddLine(
             Enum::"Purchase Line Type"::Item, CreateEDocumentMasterData.WholeDecafBeansColombia(), '', 50, 5, '', CreateCommonUnitOfMeasure.Piece());
