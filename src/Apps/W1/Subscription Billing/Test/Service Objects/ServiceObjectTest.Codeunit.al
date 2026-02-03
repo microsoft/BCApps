@@ -1553,7 +1553,7 @@ codeunit 148157 "Service Object Test"
         SubscriptionLine.SetRange("Subscription Header No.", SubscriptionHeader."No.");
         SubscriptionLine.FindFirst();
         SubscriptionLine.Validate("Subscription Line Start Date", CalcDate('<-CM>', Today()));
-        SubscriptionLine.Validate("Cancellation possible until", CalcDate('<+1D>', SubscriptionLine."Subscription Line Start Date"));
+        SubscriptionLine.Validate("Cancellation possible until", CalcDate('<-1D>', SubscriptionLine."Subscription Line Start Date"));
         Evaluate(SubscriptionLine."Extension Term", '<1Y>');
         SubscriptionLine.Modify(false);
 
