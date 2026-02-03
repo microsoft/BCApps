@@ -148,6 +148,7 @@ codeunit 20411 "Qlty. Receiving Integration"
         if not QltyInspectionGenRule.IsEmpty() then begin
             SourceVariant := SalesLine;
             QltyWarehouseIntegration.CollectSourceItemTracking(SourceVariant, TempTrackingSpecification);
+            IsHandled := false;
             OnBeforeSalesReturnCreateInspectionWithSalesLine(SalesHeader, SalesLine, TempItemLedgEntryNotInvoiced, TempTrackingSpecification, IsHandled);
             if IsHandled then
                 exit;
