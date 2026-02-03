@@ -178,7 +178,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// </summary>
     /// <param name="CurrentTable">Input/Output: Table reference as text; updated to Object Name if found</param>
     /// <returns>The table ID if found; 0 if table cannot be identified</returns>
-    procedure IdentifyTableIDFromText(var CurrentTable: Text) ResultTableID: Integer
+    internal procedure IdentifyTableIDFromText(var CurrentTable: Text) ResultTableID: Integer
     var
         TablesAllObjWithCaption: Record AllObjWithCaption;
     begin
@@ -243,7 +243,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// <param name="CurrentTable">The table.</param>
     /// <param name="NumberOrNameOfField">Will be the field name as an output if found. If unfound will be left unaltered.</param>
     /// <returns></returns>
-    procedure IdentifyFieldIDFromText(CurrentTable: Integer; var NumberOrNameOfField: Text) ResultFieldNo: Integer
+    internal procedure IdentifyFieldIDFromText(CurrentTable: Integer; var NumberOrNameOfField: Text) ResultFieldNo: Integer
     var
         ToFindField: Record Field;
     begin
