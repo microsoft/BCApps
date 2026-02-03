@@ -1219,17 +1219,6 @@ codeunit 8060 "Create Billing Documents"
         OnAfterIsNewHeaderNeededPerContract(CreateNewHeader, TempBillingLine, PreviousSubContractNo);
     end;
 
-    internal procedure ErrorIfItemUnitOfMeasureCodeDoesNotExist(ItemNo: Code[20]; ServiceObject: Record "Subscription Header")
-    var
-        ItemUnitOfMeasure: Record "Item Unit of Measure";
-        ItemUOMDoesNotExistErr: Label 'The Unit of Measure of the Subscription (%1) contains a value (%2) that cannot be found in the Item Unit of Measure of the corresponding Invoicing Item (%3).', Comment = '%1 = Subscription No., %2 = Unit Of Measure Code, %3 = Item No.';
-    begin
-        ItemUnitOfMeasure.SetRange("Item No.", ItemNo);
-        ItemUnitOfMeasure.SetRange(Code, ServiceObject."Unit of Measure");
-        if ItemUnitOfMeasure.IsEmpty() then
-            Error(ItemUOMDoesNotExistErr, ServiceObject."No.", ServiceObject."Unit of Measure", ItemNo);
-    end;
-
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateSalesHeaderFromContract(CustomerSubscriptionContract: Record "Customer Subscription Contract"; var SalesHeader: Record "Sales Header")
     begin
