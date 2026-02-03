@@ -164,8 +164,8 @@ page 6103 "E-Document Services"
             action(OpenAppSourceInstallableServices)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Install E-Document integrations from AppSource';
-                Tooltip = 'Open AppSource to install services.';
+                Caption = 'Install E-Document integrations from Marketplace';
+                Tooltip = 'Open Marketplace to install services.';
                 Image = Insert;
 
                 trigger OnAction()

@@ -57,7 +57,7 @@ page 1480 "Excel Centralized Depl. Wizard"
                         group(IntroductionGroup)
                         {
                             Caption = '';
-                            InstructionalText = 'If your organization does not allow users to access the Office Store (AppSource), administrators can configure Centralized Deployment to control which users or groups can continue accessing the Excel add-in.';
+                            InstructionalText = 'If your organization does not allow users to access the Office Store (Marketplace), administrators can configure Centralized Deployment to control which users or groups can continue accessing the Excel add-in.';
                         }
                         field(LearnHowExcelFilesAreImpactedField; LearnHowExcelFilesAreImpactedTxt)
                         {
@@ -332,7 +332,7 @@ page 1480 "Excel Centralized Depl. Wizard"
         Step2Visible: Boolean;
         Step3Visible: Boolean;
         CentralizedDeploymentLinkTxt: Label 'Requirements for Centralized Deployment of Add-ins';
-        LearnHowExcelFilesAreImpactedTxt: Label 'Learn how Excel files are impacted by removing AppSource access';
+        LearnHowExcelFilesAreImpactedTxt: Label 'Learn how Excel files are impacted by removing Marketplace access';
         GoToIntegratedAppsLinkTxt: Label '1. In the Microsoft 365 admin center, go to Integrated Apps.';
         LearnAboutConfiguringBcForCentralizedDeploymentLinkTxt: Label 'Learn more about Configuring Business Central for Centralized Deployment​';
 }
