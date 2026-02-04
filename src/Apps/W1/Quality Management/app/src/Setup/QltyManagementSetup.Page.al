@@ -39,7 +39,7 @@ page 20400 "Qlty. Management Setup"
                         ApplicationArea = All;
                         ShowCaption = true;
                         AboutTitle = 'No. Series';
-                        AboutText = 'The default number series for quality inspection documents is used when there isn''t a number series defined on the quality inspection template.';
+                        AboutText = 'The default number series for quality inspection documents.';
                     }
                 }
                 group(SettingsForInspections)

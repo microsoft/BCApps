@@ -20,9 +20,9 @@ pageextension 20428 "Qlty. Item Tracing" extends "Item Tracing"
                 Caption = 'Quality Inspections';
                 Image = TaskQualityMeasure;
                 ToolTip = 'View quality inspections filtered by the selected item, variant, location, and tracking details.';
-                Visible = QltyReadTestResults;
+                Visible = QltyReadQualityInspections;
 
-                trigger OnAction()                    
+                trigger OnAction()
                 begin
                     ShowQualityInspections();
                 end;
@@ -31,17 +31,13 @@ pageextension 20428 "Qlty. Item Tracing" extends "Item Tracing"
     }
 
     var
-        QltyReadTestResults: Boolean;
+        QltyReadQualityInspections: Boolean;
 
     trigger OnOpenPage()
     var
-        CheckLicensePermissionQltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
-        if not CheckLicensePermissionQltyInspectionHeader.ReadPermission() then
-            exit;
-
-        QltyReadTestResults := QltyPermissionMgmt.CanReadInspectionResults();
+        QltyReadQualityInspections := QltyPermissionMgmt.CanReadInspectionResults();
     end;
 
     local procedure ShowQualityInspections()
@@ -50,7 +46,7 @@ pageextension 20428 "Qlty. Item Tracing" extends "Item Tracing"
     begin
         QltyInspectionHeader.SetFilter("Source Item No.", ItemNoFilter);
         if VariantFilter <> '' then
-            QltyInspectionHeader.SetFilter("Source Variant Code", VariantFilter);                    
+            QltyInspectionHeader.SetFilter("Source Variant Code", VariantFilter);
         if SerialNoFilter <> '' then
             QltyInspectionHeader.SetFilter("Source Serial No.", SerialNoFilter);
         if LotNoFilter <> '' then

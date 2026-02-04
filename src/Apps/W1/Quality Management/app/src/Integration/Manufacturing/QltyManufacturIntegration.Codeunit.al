@@ -246,39 +246,29 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             exit;
         end;
 
+        // Use filter groups to find records where any of the Source RecordId fields match
+        QltyInspectionHeader.FilterGroup(-1); // Cross-column filtering
         QltyInspectionHeader.SetRange("Source RecordId", OldProdOrderLine.RecordId());
+        QltyInspectionHeader.SetRange("Source RecordId 2", OldProdOrderLine.RecordId());
+        QltyInspectionHeader.SetRange("Source RecordId 3", OldProdOrderLine.RecordId());
+        QltyInspectionHeader.SetRange("Source RecordId 4", OldProdOrderLine.RecordId());
+        QltyInspectionHeader.FilterGroup(0);
+
         if QltyInspectionHeader.FindSet(true) then
             repeat
-                QltyInspectionHeader."Source RecordId" := NewProdOrderLine.RecordId();
+                if QltyInspectionHeader."Source RecordId" = OldProdOrderLine.RecordId() then
+                    QltyInspectionHeader."Source RecordId" := NewProdOrderLine.RecordId()
+                else
+                    if QltyInspectionHeader."Source RecordId 2" = OldProdOrderLine.RecordId() then
+                        QltyInspectionHeader."Source RecordId 2" := NewProdOrderLine.RecordId()
+                    else
+                        if QltyInspectionHeader."Source RecordId 3" = OldProdOrderLine.RecordId() then
+                            QltyInspectionHeader."Source RecordId 3" := NewProdOrderLine.RecordId()
+                        else
+                            if QltyInspectionHeader."Source RecordId 4" = OldProdOrderLine.RecordId() then
+                                QltyInspectionHeader."Source RecordId 4" := NewProdOrderLine.RecordId();
                 UpdateSourceDocumentForSpecificInspectionOnLine(QltyInspectionHeader, TargetRecordRef, OldProdOrderLine, NewProdOrderLine);
-            until QltyInspectionHeader.Next() = 0
-        else begin
-            QltyInspectionHeader.Reset();
-            QltyInspectionHeader.SetRange("Source RecordId 2", OldProdOrderLine.RecordId());
-            if QltyInspectionHeader.FindSet(true) then
-                repeat
-                    QltyInspectionHeader."Source RecordId 2" := NewProdOrderLine.RecordId();
-                    UpdateSourceDocumentForSpecificInspectionOnLine(QltyInspectionHeader, TargetRecordRef, OldProdOrderLine, NewProdOrderLine);
-                until QltyInspectionHeader.Next() = 0
-            else begin
-                QltyInspectionHeader.Reset();
-                QltyInspectionHeader.SetRange("Source RecordId 3", OldProdOrderLine.RecordId());
-                if QltyInspectionHeader.FindSet(true) then
-                    repeat
-                        QltyInspectionHeader."Source RecordId 3" := NewProdOrderLine.RecordId();
-                        UpdateSourceDocumentForSpecificInspectionOnLine(QltyInspectionHeader, TargetRecordRef, OldProdOrderLine, NewProdOrderLine);
-                    until QltyInspectionHeader.Next() = 0
-                else begin
-                    QltyInspectionHeader.Reset();
-                    QltyInspectionHeader.SetRange("Source RecordId 4", OldProdOrderLine.RecordId());
-                    if QltyInspectionHeader.FindSet(true) then
-                        repeat
-                            QltyInspectionHeader."Source RecordId 4" := NewProdOrderLine.RecordId();
-                            UpdateSourceDocumentForSpecificInspectionOnLine(QltyInspectionHeader, TargetRecordRef, OldProdOrderLine, NewProdOrderLine);
-                        until QltyInspectionHeader.Next() = 0
-                end;
-            end;
-        end;
+            until QltyInspectionHeader.Next() = 0;
     end;
 
     /// <summary>
@@ -297,39 +287,29 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             exit;
         end;
 
+        // Use filter groups to find records where any of the Source RecordId fields match
+        QltyInspectionHeader.FilterGroup(-1); // OR filtering
         QltyInspectionHeader.SetRange("Source RecordId", OldProdOrderRoutingLine.RecordId());
+        QltyInspectionHeader.SetRange("Source RecordId 2", OldProdOrderRoutingLine.RecordId());
+        QltyInspectionHeader.SetRange("Source RecordId 3", OldProdOrderRoutingLine.RecordId());
+        QltyInspectionHeader.SetRange("Source RecordId 4", OldProdOrderRoutingLine.RecordId());
+        QltyInspectionHeader.FilterGroup(0);
+
         if QltyInspectionHeader.FindSet(true) then
             repeat
-                QltyInspectionHeader."Source RecordId" := NewProdOrderRoutingLine.RecordId();
+                if QltyInspectionHeader."Source RecordId" = OldProdOrderRoutingLine.RecordId() then
+                    QltyInspectionHeader."Source RecordId" := NewProdOrderRoutingLine.RecordId()
+                else
+                    if QltyInspectionHeader."Source RecordId 2" = OldProdOrderRoutingLine.RecordId() then
+                        QltyInspectionHeader."Source RecordId 2" := NewProdOrderRoutingLine.RecordId()
+                    else
+                        if QltyInspectionHeader."Source RecordId 3" = OldProdOrderRoutingLine.RecordId() then
+                            QltyInspectionHeader."Source RecordId 3" := NewProdOrderRoutingLine.RecordId()
+                        else
+                            if QltyInspectionHeader."Source RecordId 4" = OldProdOrderRoutingLine.RecordId() then
+                                QltyInspectionHeader."Source RecordId 4" := NewProdOrderRoutingLine.RecordId();
                 UpdateSourceDocumentForSpecificInspectionOnOperation(QltyInspectionHeader, TargetRecordRef, OldProdOrderRoutingLine, NewProdOrderRoutingLine);
-            until QltyInspectionHeader.Next() = 0
-        else begin
-            QltyInspectionHeader.Reset();
-            QltyInspectionHeader.SetRange("Source RecordId 2", OldProdOrderRoutingLine.RecordId());
-            if QltyInspectionHeader.FindSet(true) then
-                repeat
-                    QltyInspectionHeader."Source RecordId 2" := NewProdOrderRoutingLine.RecordId();
-                    UpdateSourceDocumentForSpecificInspectionOnOperation(QltyInspectionHeader, TargetRecordRef, OldProdOrderRoutingLine, NewProdOrderRoutingLine);
-                until QltyInspectionHeader.Next() = 0
-            else begin
-                QltyInspectionHeader.Reset();
-                QltyInspectionHeader.SetRange("Source RecordId 3", OldProdOrderRoutingLine.RecordId());
-                if QltyInspectionHeader.FindSet(true) then
-                    repeat
-                        QltyInspectionHeader."Source RecordId 3" := NewProdOrderRoutingLine.RecordId();
-                        UpdateSourceDocumentForSpecificInspectionOnOperation(QltyInspectionHeader, TargetRecordRef, OldProdOrderRoutingLine, NewProdOrderRoutingLine);
-                    until QltyInspectionHeader.Next() = 0
-                else begin
-                    QltyInspectionHeader.Reset();
-                    QltyInspectionHeader.SetRange("Source RecordId 4", OldProdOrderRoutingLine.RecordId());
-                    if QltyInspectionHeader.FindSet(true) then
-                        repeat
-                            QltyInspectionHeader."Source RecordId 4" := NewProdOrderRoutingLine.RecordId();
-                            UpdateSourceDocumentForSpecificInspectionOnOperation(QltyInspectionHeader, TargetRecordRef, OldProdOrderRoutingLine, NewProdOrderRoutingLine);
-                        until QltyInspectionHeader.Next() = 0
-                end;
-            end;
-        end;
+            until QltyInspectionHeader.Next() = 0;
     end;
 
     local procedure UpdateSourceDocumentForSpecificInspectionOnOrder(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TargetRecordRef: RecordRef; OldProductionOrder: Record "Production Order"; NewProductionOrder: Record "Production Order")
