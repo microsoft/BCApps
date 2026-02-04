@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 
+using Microsoft.Finance.AllocationAccount;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
@@ -210,6 +211,8 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
         Vendor: Record Vendor;
         GLAccount: Record "G/L Account";
         Item: Record Item;
+        AllocationAccount: Record "Allocation Account";
+        AllocAccountDistribution: Record "Alloc. Account Distribution";
         VATPostingSetup: Record "VAT Posting Setup";
         TotalVATAmount: Decimal;
         NoLinesAddedLbl: Label 'No lines have been added to lines buffer to generate inbound e-document invoice.';
@@ -231,6 +234,16 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
                     begin
                         Item.Get(EDocPurchaseLine."[BC] Purchase Type No.");
                         if not VATPostingSetup.Get(Vendor."VAT Bus. Posting Group", Item."VAT Prod. Posting Group") then
+                            VATPostingSetup.Init();
+                    end;
+                EDocPurchaseLine."[BC] Purchase Line Type"::"Allocation Account":
+                    begin
+                        AllocationAccount.Get(EDocPurchaseLine."[BC] Purchase Type No.");
+                        AllocAccountDistribution.SetRange("Allocation Account No.", AllocationAccount."No.");
+                        AllocAccountDistribution.FindFirst();
+                        AllocAccountDistribution.TestField("Destination Account Type", AllocAccountDistribution."Destination Account Type"::"G/L Account");
+                        GLAccount.Get(AllocAccountDistribution."Destination Account Number");
+                        if not VATPostingSetup.Get(Vendor."VAT Bus. Posting Group", GLAccount."VAT Prod. Posting Group") then
                             VATPostingSetup.Init();
                     end;
             end;
