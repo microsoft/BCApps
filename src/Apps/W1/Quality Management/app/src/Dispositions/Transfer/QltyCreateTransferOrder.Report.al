@@ -16,7 +16,7 @@ report 20410 "Qlty. Create Transfer Order"
     ProcessingOnly = true;
     UsageCategory = Tasks;
     AllowScheduling = false;
-    Description = 'Use this to transfer items to another location.';
+    ToolTip = 'Use this to transfer items to another location.';
 
     dataset
     {

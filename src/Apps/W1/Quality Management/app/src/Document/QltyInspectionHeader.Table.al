@@ -79,27 +79,11 @@ table 20405 "Qlty. Inspection Header"
             ToolTip = 'Specifies the status of the inspection. No additional changes can be made to a finished Quality Inspection.';
 
             trigger OnValidate()
-            var
-                QltyInspectionResult: Record "Qlty. Inspection Result";
-                QltyStartWorkflow: Codeunit "Qlty. Start Workflow";
             begin
-                if Rec.Status = Rec.Status::Finished then begin
-                    if QltyInspectionResult.Get(Rec."Result Code") then
-                        if QltyInspectionResult."Finish Allowed" <> QltyInspectionResult."Finish Allowed"::"Allow Finish" then
-                            Error(CannotFinishInspectionBecauseTheInspectionIsInResultErr, Rec."No.", QltyInspectionResult.Code);
-
-                    Rec."Finished By User ID" := CopyStr(UserId(), 1, MaxStrLen(Rec."Finished By User ID"));
-                    Rec."Finished Date" := CurrentDateTime();
-                    Rec.Modify(false);
-                    OnInspectionFinished(Rec);
-
-                    QltyStartWorkflow.StartWorkflowInspectionFinished(Rec);
-                end else
-                    if (xRec.Status = xRec.Status::Finished) and (Rec.Status = Rec.Status::Open) then begin
-                        Rec.Modify(false);
-                        OnInspectionReopen(Rec);
-                        QltyStartWorkflow.StartWorkflowInspectionReopens(Rec);
-                    end
+                if Rec.Status = Rec.Status::Finished then
+                    ProcessFinishInspection()
+                else
+                    ProcessReopenInspection();
             end;
         }
         field(11; "Source Quantity (Base)"; Decimal)
@@ -125,10 +109,8 @@ table 20405 "Qlty. Inspection Header"
         field(13; "Pass Quantity"; Decimal)
         {
             Caption = 'Pass Quantity';
-            Description = 'A manually entered test for non-sampling inspections, or derived from the quantity of passed sampling lines for sampling inspections.';
-            AutoFormatType = 10;
-            AutoFormatExpression = '0,<precision, 0:0><standard format,0>';
-            ToolTip = 'Specifies the amount that passed inspection.';
+            AutoFormatType = 0;
+            ToolTip = 'Specifies the quantity that passed inspection. A manually entered quantity for non-sampling inspections, or derived from the quantity of passed sampling lines for sampling inspections.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -146,10 +128,8 @@ table 20405 "Qlty. Inspection Header"
         field(15; "Fail Quantity"; Decimal)
         {
             Caption = 'Fail Quantity';
-            Description = 'A manually entered test for non-sampling inspections, or derived from the quantity of failed sampling lines for sampling inspections.';
-            AutoFormatType = 10;
-            AutoFormatExpression = '0,<precision, 0:0><standard format,0>';
-            ToolTip = 'Specifies the amount that failed inspection.';
+            AutoFormatType = 0;
+            ToolTip = 'Specifies the quantity that failed inspection. A manually entered quantity for non-sampling inspections, or derived from the quantity of failed sampling lines for sampling inspections.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -185,7 +165,6 @@ table 20405 "Qlty. Inspection Header"
             DataClassification = EndUserIdentifiableInformation;
             Editable = false;
             TableRelation = User."User Name";
-            ValidateTableRelation = false;
             Caption = 'Assigned User ID';
             ToolTip = 'Specifies the user this inspection is assigned to.';
 
@@ -301,7 +280,7 @@ table 20405 "Qlty. Inspection Header"
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Table));
             BlankZero = true;
             Editable = false;
-            ToolTip = 'Specifies a reference to the table that the quality inspection is for. ';
+            ToolTip = 'Specifies a reference to the table that the quality inspection is for.';
         }
         field(52; "Source Table Name"; Text[249])
         {
@@ -602,7 +581,7 @@ table 20405 "Qlty. Inspection Header"
         ShouldPreventAutoAssignment: Boolean;
     begin
         if not IsChangingStatus then
-            Rec.TestField(Status, Status::Open);
+            TestStatusOpen();
 
         ShouldPreventAutoAssignment := Rec.GetPreventAutoAssignment();
 
@@ -642,7 +621,7 @@ table 20405 "Qlty. Inspection Header"
         QltySessionHelper: Codeunit "Qlty. Session Helper";
         IsChangingStatus: Boolean;
         TrackingCannotChangeForFinishedInspectionErr: Label 'You cannot change item tracking on a finished inspection. %1-%2 is finished. Reopen this inspection to change the tracking.', Comment = '%1=Quality Inspection No., %2=Re-inspection No.';
-        SampleSizeInvalidMsg: Label 'The sample size %1 is not valid on the inspection %2 because it exceeds the Source Quantity of %3. The sample size will be changed on this inspection to be the source quantity. Please correct the configuration on the "Quality Inspection Sampling Size Configurations" and "Quality Inspection AQL Sampling Plan" pages.', Comment = '%1=original sample size, %2=the inspection, %3=the source quantity';
+        SampleSizeInvalidMsg: Label 'The sample size %1 is not valid on the inspection %2 because it exceeds the Source Quantity of %3. The sample size will be changed on this inspection to be the source quantity.', Comment = '%1=original sample size, %2=the inspection, %3=the source quantity';
         YouCannotChangeTheAssignmentOfTheInspectionErr: Label '%1 does not have permission to change the assigned user field on %2-%3. Permissions can be altered on the Quality Inspection function permissions.', Comment = '%1=the user, %2=the inspection no, %3=the re-inspection';
         UnableToSetTestValueErr: Label 'Unable to set the test field [%1] on the inspection [%2], there should be one matching inspection line, there are %3', Comment = '%1=the field being set, %2=the record id of the inspection, %3=the count.';
         ItemIsTrackingErr: Label 'The item [%1] is %2 tracked. Please define a %2 number before finishing the inspection. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Lot or serial token';
@@ -694,8 +673,7 @@ table 20405 "Qlty. Inspection Header"
         PrecedingQltyInspectionHeader.SetRange("No.", Rec."No.");
         PrecedingQltyInspectionHeader.SetFilter("Re-inspection No.", '<%1', Rec."Re-inspection No.");
         PrecedingQltyInspectionHeader.SetRange("Most Recent Re-inspection", true);
-        if not PrecedingQltyInspectionHeader.IsEmpty() then
-            PrecedingQltyInspectionHeader.ModifyAll("Most Recent Re-inspection", false);
+        PrecedingQltyInspectionHeader.ModifyAll("Most Recent Re-inspection", false);
     end;
 
     /// <summary>
@@ -771,7 +749,7 @@ table 20405 "Qlty. Inspection Header"
     /// <summary>
     /// InitInspectionNumber will initialize the document no. on the Quality Inspection if it's needed. If it's already set then this will not be altered.
     /// </summary>
-    procedure InitInspectionNumber()
+    internal procedure InitInspectionNumber()
     var
         NoSeries: Codeunit "No. Series";
     begin
@@ -788,7 +766,7 @@ table 20405 "Qlty. Inspection Header"
     /// Decision decision: because we're passing this around as a recordref everywhere and we need that flag, we're storing in the session state instead.
     /// </summary>
     /// <param name="IsCreating"></param>
-    procedure SetIsCreating(IsCreating: Boolean)
+    internal procedure SetIsCreating(IsCreating: Boolean)
     begin
         QltySessionHelper.SetSessionValue(GetIsCreatingKey(), Format(IsCreating));
     end;
@@ -797,7 +775,7 @@ table 20405 "Qlty. Inspection Header"
     /// Returns true if this record is in the middle of being created.
     /// </summary>
     /// <returns></returns>
-    procedure GetIsCreating(): Boolean
+    internal procedure GetIsCreating(): Boolean
     begin
         exit(QltySessionHelper.GetSessionValue(GetIsCreatingKey()) = Format(true));
     end;
@@ -957,7 +935,7 @@ table 20405 "Qlty. Inspection Header"
     /// Returns the posted inventory for the item/variant
     /// </summary>
     /// <returns></returns>
-    procedure GetPostedInventory() PostedInventory: Decimal
+    internal procedure GetPostedInventory() PostedInventory: Decimal
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
@@ -980,7 +958,7 @@ table 20405 "Qlty. Inspection Header"
         PostedInventory := ItemLedgerEntry.Quantity;
     end;
 
-    procedure GetReservedInventory() ReservedInventory: Decimal
+    internal procedure GetReservedInventory() ReservedInventory: Decimal
     var
         ReservationEntry: Record "Reservation Entry";
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
@@ -1032,7 +1010,7 @@ table 20405 "Qlty. Inspection Header"
     /// Returns true if there is a more recent re-inspection than the current inspection.
     /// </summary>
     /// <returns></returns>
-    procedure HasMoreRecentReinspection(): Boolean
+    internal procedure HasMoreRecentReinspection(): Boolean
     var
         SucceedingQltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
@@ -1276,6 +1254,48 @@ table 20405 "Qlty. Inspection Header"
         end;
     end;
 
+    local procedure TestStatusOpen()
+    begin
+        Rec.TestField(Status, Rec.Status::Open);
+    end;
+
+    local procedure ProcessFinishInspection()
+    var
+        QltyInspectionResult: Record "Qlty. Inspection Result";
+        QltyStartWorkflow: Codeunit "Qlty. Start Workflow";
+    begin
+        if Rec.Status <> Rec.Status::Finished then
+            exit;
+
+        if QltyInspectionResult.Get(Rec."Result Code") then
+            if QltyInspectionResult."Finish Allowed" <> QltyInspectionResult."Finish Allowed"::"Allow Finish" then
+                Error(CannotFinishInspectionBecauseTheInspectionIsInResultErr, Rec."No.", QltyInspectionResult.Code);
+
+        Rec."Finished By User ID" := CopyStr(UserId(), 1, MaxStrLen(Rec."Finished By User ID"));
+        Rec."Finished Date" := CurrentDateTime();
+        Rec.Modify(false);
+
+        OnInspectionFinished(Rec);
+
+        QltyStartWorkflow.StartWorkflowInspectionFinished(Rec);
+    end;
+
+    local procedure ProcessReopenInspection()
+    var
+        QltyStartWorkflow: Codeunit "Qlty. Start Workflow";
+    begin
+        if xRec.Status <> xRec.Status::Finished then
+            exit;
+        if Rec.Status <> Rec.Status::Open then
+            exit;
+
+        Rec.Modify(false);
+
+        OnInspectionReopen(Rec);
+
+        QltyStartWorkflow.StartWorkflowInspectionReopens(Rec);
+    end;
+
     /// <summary>
     /// This will use the camera to take a picture and add it to the inspection.
     /// </summary>
@@ -1288,7 +1308,7 @@ table 20405 "Qlty. Inspection Header"
         Handled: Boolean;
         PictureName: Text;
     begin
-        Rec.TestField(Status, Rec.Status::Open);
+        TestStatusOpen();
 
         QltyManagementSetup.Get();
         QltyManagementSetup.SanityCheckPictureAndCameraSettings();
@@ -1317,7 +1337,7 @@ table 20405 "Qlty. Inspection Header"
     /// <param name="FileExtension"></param>
     /// <returns></returns>
     [TryFunction]
-    procedure AddPicture(var PictureInStream: InStream; PictureName: Text; FileExtension: Text)
+    internal procedure AddPicture(var PictureInStream: InStream; PictureName: Text; FileExtension: Text)
     var
         DocumentAttachment: Record "Document Attachment";
 
@@ -1326,7 +1346,7 @@ table 20405 "Qlty. Inspection Header"
         FullFileNameWithExtension: Text;
         Handled: Boolean;
     begin
-        Rec.TestField(Status, Rec.Status::Open);
+        TestStatusOpen();
 
         FullFileNameWithExtension := PictureName;
         if not FullFileNameWithExtension.Contains('.') then
@@ -1410,7 +1430,7 @@ table 20405 "Qlty. Inspection Header"
         OnAfterSetRecordFiltersToFindInspectionFor(Rec, ErrorIfMissingFilter, RecordVariant, UseItem, UseTracking, UseDocument);
     end;
 
-    procedure GetMostRecentInspectionFor(RecordVariant: Variant) Success: Boolean
+    internal procedure GetMostRecentInspectionFor(RecordVariant: Variant) Success: Boolean
     begin
         Rec.SetRecordFiltersToFindInspectionFor(false, RecordVariant, true, true, true);
         Rec.SetCurrentKey("No.", "Re-inspection No.");
@@ -1418,21 +1438,21 @@ table 20405 "Qlty. Inspection Header"
         Success := Rec.FindFirst();
     end;
 
-    procedure PrintCertificateOfAnalysis()
+    internal procedure PrintCertificateOfAnalysis()
     var
         QltyReportMgmt: Codeunit "Qlty. Report Mgmt.";
     begin
         QltyReportMgmt.PrintCertificateOfAnalysis(Rec);
     end;
 
-    procedure PrintNonConformance()
+    internal procedure PrintNonConformance()
     var
         QltyReportMgmt: Codeunit "Qlty. Report Mgmt.";
     begin
         QltyReportMgmt.PrintNonConformance(Rec);
     end;
 
-    procedure PrintGeneralPurposeInspection()
+    internal procedure PrintGeneralPurposeInspection()
     var
         QltyReportMgmt: Codeunit "Qlty. Report Mgmt.";
     begin
@@ -1505,7 +1525,7 @@ table 20405 "Qlty. Inspection Header"
     /// Use SetPreventAutoAssignment to set whether or not we should prevent auto-assignment for this inspection
     /// </summary>
     /// <param name="ShouldPrevent"></param>
-    procedure SetPreventAutoAssignment(ShouldPrevent: Boolean)
+    internal procedure SetPreventAutoAssignment(ShouldPrevent: Boolean)
     begin
         QltySessionHelper.SetSessionValue(GetPreventAutoAssignmentKey(), Format(ShouldPrevent));
     end;
@@ -1596,7 +1616,7 @@ table 20405 "Qlty. Inspection Header"
     ///If no sampling fields, will return the sample size if all measures are acceptable.
     /// </summary>
     /// <returns>Quantity of samples</returns>
-    procedure GetPassSampleQuantity() PassQuantity: Decimal
+    internal procedure GetPassSampleQuantity() PassQuantity: Decimal
     begin
     end;
 
@@ -1605,14 +1625,14 @@ table 20405 "Qlty. Inspection Header"
     ///If no sampling fields, will return the sample size if any measures are not acceptable.
     /// </summary>
     /// <returns>Quantity of samples</returns>
-    procedure GetFailedSampleQuantity() FailQuantity: Decimal
+    internal procedure GetFailedSampleQuantity() FailQuantity: Decimal
     begin
     end;
 
     /// <summary>
     /// Initializes the Qlty. Related Transfers page with the Quality Inspection record and runs it
     /// </summary>
-    procedure RunModalRelatedTransfers()
+    internal procedure RunModalRelatedTransfers()
     var
         QltyRelatedTransferOrders: Page "Qlty. Related Transfer Orders";
     begin

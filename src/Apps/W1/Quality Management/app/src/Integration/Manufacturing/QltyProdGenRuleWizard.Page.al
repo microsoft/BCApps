@@ -552,9 +552,9 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
         InventoryPostingGroupCode: Code[20];
         QltyProductionTrigger: Enum "Qlty. Production Order Trigger";
         QltyAssemblyTrigger: Enum "Qlty. Assembly Trigger";
-        ProdOrderRoutingLineRuleFilter: Text[400];
-        PostedAssemblyOrderRuleFilter: Text[400];
-        ItemRuleFilter: Text[400];
+        ProdOrderRoutingLineRuleFilter: Text[2048];
+        PostedAssemblyOrderRuleFilter: Text[2048];
+        ItemRuleFilter: Text[2048];
         IsBackEnabledd: Boolean;
         IsNextEnabledd: Boolean;
         IsFinishEnabledd: Boolean;
@@ -765,10 +765,10 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
     local procedure CleanUpWhereClause()
     begin
         if IsProductionOrder then
-            ProdOrderRoutingLineRuleFilter := QltyFilterHelpers.CleanUpWhereClause400(ProdOrderRoutingLineRuleFilter);
+            ProdOrderRoutingLineRuleFilter := QltyFilterHelpers.CleanUpWhereClause2048(ProdOrderRoutingLineRuleFilter);
         if IsAssemblyOrder then
-            PostedAssemblyOrderRuleFilter := QltyFilterHelpers.CleanUpWhereClause400(PostedAssemblyOrderRuleFilter);
-        ItemRuleFilter := QltyFilterHelpers.CleanUpWhereClause400(ItemRuleFilter);
+            PostedAssemblyOrderRuleFilter := QltyFilterHelpers.CleanUpWhereClause2048(PostedAssemblyOrderRuleFilter);
+        ItemRuleFilter := QltyFilterHelpers.CleanUpWhereClause2048(ItemRuleFilter);
     end;
 
     local procedure BackAction();
@@ -835,7 +835,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
     /// </summary>
     /// <param name="QltyInspectionGenRule"></param>
     /// <returns></returns>
-    procedure RunModalWithGenerationRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Action
+    internal procedure RunModalWithGenerationRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Action
     begin
         TempQltyInspectionGenRule := QltyInspectionGenRule;
         Clear(TempProdOrderRoutingLine);
@@ -874,27 +874,27 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
             TempProdOrderRoutingLine.SetFilter("To-Production Bin Code", ToBinCodeFilter);
             TempProdOrderRoutingLine.SetFilter("Operation No.", OperationNo);
             TempProdOrderRoutingLine.SetFilter("Description", DescriptionPattern);
-            ProdOrderRoutingLineRuleFilter := CopyStr(QltyFilterHelpers.CleanUpWhereClause400(TempProdOrderRoutingLine.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
+            ProdOrderRoutingLineRuleFilter := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempProdOrderRoutingLine.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
         end else begin
             TempPostedAssemblyHeader.SetFilter("Location Code", LocationCodeFilter);
             TempPostedAssemblyHeader.SetFilter(Description, DescriptionPattern);
-            PostedAssemblyOrderRuleFilter := CopyStr(QltyFilterHelpers.CleanUpWhereClause400(TempPostedAssemblyHeader.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
+            PostedAssemblyOrderRuleFilter := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempPostedAssemblyHeader.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
         end;
 
         TempItem.SetFilter("No.", ItemNoFilter);
         TempItem.SetFilter("Item Category Code", CategoryCodeFilter);
         TempItem.SetFilter("Inventory Posting Group", InventoryPostingGroupCode);
 
-        ItemRuleFilter := CopyStr(QltyFilterHelpers.CleanUpWhereClause400(TempItem.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Item Filter"));
+        ItemRuleFilter := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempItem.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Item Filter"));
         CleanUpWhereClause();
 
-        if StrLen(QltyFilterHelpers.CleanUpWhereClause400(TempProdOrderRoutingLine.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Condition Filter") then
+        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempProdOrderRoutingLine.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Condition Filter") then
             Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
 
-        if StrLen(QltyFilterHelpers.CleanUpWhereClause400(TempPostedAssemblyHeader.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Condition Filter") then
+        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempPostedAssemblyHeader.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Condition Filter") then
             Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
 
-        if StrLen(QltyFilterHelpers.CleanUpWhereClause400(TempItem.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Item Filter") then
+        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempItem.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Item Filter") then
             Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Item Filter"));
     end;
 

@@ -345,8 +345,8 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
         InventoryPostingGroupCode: Code[20];
         VendorNoFilter: Code[20];
         QltyWarehouseTrigger: Enum "Qlty. Warehouse Trigger";
-        WhseRule: Text[400];
-        ItemRule: Text[400];
+        WhseRule: Text[2048];
+        ItemRule: Text[2048];
         IsIsBackEnabledd: Boolean;
         IsIsNextEnabledd: Boolean;
         IsIsFinishEnabledd: Boolean;
@@ -616,27 +616,27 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
         TempWarehouseJournalLine.SetFilter("Location Code", LocationCodeFilter);
         TempWarehouseJournalLine.SetFilter("To Zone Code", ToZoneCodeFilter);
         TempWarehouseJournalLine.SetFilter("To Bin Code", ToBinCodeFilter);
-        WhseRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause400(TempWarehouseJournalLine.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
+        WhseRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempWarehouseJournalLine.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
 
         TempItem.SetFilter("No.", ItemNoFilter);
         TempItem.SetFilter("Item Category Code", CategoryCodeFilter);
         TempItem.SetFilter("Inventory Posting Group", InventoryPostingGroupCode);
         TempItem.SetFilter("Vendor No.", VendorNoFilter);
-        ItemRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause400(TempItem.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Item Filter"));
+        ItemRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempItem.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Item Filter"));
 
         CleanUpWhereClause();
 
-        if StrLen(QltyFilterHelpers.CleanUpWhereClause400(TempWarehouseJournalLine.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Condition Filter") then
+        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempWarehouseJournalLine.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Condition Filter") then
             Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
 
-        if StrLen(QltyFilterHelpers.CleanUpWhereClause400(TempItem.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Item Filter") then
+        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempItem.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Item Filter") then
             Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Item Filter"));
     end;
 
     local procedure CleanUpWhereClause()
     begin
-        WhseRule := QltyFilterHelpers.CleanUpWhereClause400(WhseRule);
-        ItemRule := QltyFilterHelpers.CleanUpWhereClause400(ItemRule);
+        WhseRule := QltyFilterHelpers.CleanUpWhereClause2048(WhseRule);
+        ItemRule := QltyFilterHelpers.CleanUpWhereClause2048(ItemRule);
     end;
 
     local procedure BackAction();
@@ -693,7 +693,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
     /// </summary>
     /// <param name="QltyInspectionGenRule"></param>
     /// <returns></returns>
-    procedure RunModalWithGenerationRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Action
+    internal procedure RunModalWithGenerationRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Action
     begin
         TempQltyInspectionGenRule := QltyInspectionGenRule;
         Clear(TempWarehouseJournalLine);
