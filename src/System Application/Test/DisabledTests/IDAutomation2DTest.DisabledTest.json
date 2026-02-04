@@ -2,22 +2,7 @@
   {
     "codeunitId": 135059,
     "codeunitName": "IDAutomation 2D Test",
-    "method": "TestEncodingWithUnsupportedSymbology"
-  },
-  {
-    "codeunitId": 135059,
-    "codeunitName": "IDAutomation 2D Test",
-    "method": "TestAztecEncoding"
-  },
-  {
-    "codeunitId": 135059,
-    "codeunitName": "IDAutomation 2D Test",
     "method": "TestDataMatrixEncoding"
-  },
-  {
-    "codeunitId": 135059,
-    "codeunitName": "IDAutomation 2D Test",
-    "method": "TestMaxiCodeEncoding"
   },
   {
     "codeunitId": 135059,
