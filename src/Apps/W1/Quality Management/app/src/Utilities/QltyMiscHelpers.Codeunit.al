@@ -41,6 +41,21 @@ codeunit 20599 "Qlty. Misc Helpers"
         UnableToSetTableValueFieldNotFoundErr: Label 'Unable to set a value because the field [%1] in table [%2] was not found.', Comment = '%1=the field name, %2=the table name';
         BadTableTok: Label '?table?', Locked = true;
         BadFieldTok: Label '?t:%1?f:%2?', Locked = true, Comment = '%1=the table, %2=the requested field';
+        QltyGoodLbl: Label 'GOOD';
+        QltyPassLbl: Label 'PASS';
+        QltyAcceptableLbl: Label 'ACCEPTABLE';
+        QltyPassedLbl: Label 'PASSED';
+        QltyBadLbl: Label 'BAD';
+        QltyFailLbl: Label 'FAIL';
+        QltyUnacceptableLbl: Label 'UNACCEPTABLE';
+        QltyFailedLbl: Label 'FAILED';
+        QltyNotOkLbl: Label 'NOTOK';
+        PositiveLbl: Label 'POSITIVE';
+        EnabledLbl: Label 'ENABLED';
+        CheckLbl: Label 'CHECK';
+        CheckedLbl: Label 'CHECKED';
+        YesLbl: Label 'YES';
+        OnLbl: Label 'ON';
 
     /// <summary>
     /// Returns the translatable "Yes" label with maximum length of 250 characters.
@@ -369,8 +384,8 @@ codeunit 20599 "Qlty. Misc Helpers"
 
             case UpperCase(Input) of
                 UpperCase(TranslatableYesLbl), UpperCase(LockedYesLbl),
-                'Y', 'YES', 'T', 'TRUE', '1', 'POSITIVE', 'ENABLED', 'CHECK', 'CHECKED',
-                'GOOD', 'PASS', 'ACCEPTABLE', 'PASSED', 'OK', 'ON',
+                'Y', YesLbl, 'T', 'TRUE', '1', PositiveLbl, EnabledLbl, CheckLbl, CheckedLbl,
+                QltyGoodLbl, QltyPassLbl, QltyAcceptableLbl, QltyPassedLbl, 'OK', OnLbl,
                 'V', ':SELECTED:':
                     IsTrue := true;
             end;
@@ -404,20 +419,20 @@ codeunit 20599 "Qlty. Misc Helpers"
             UpperCase(TranslatableYesLbl),
             UpperCase(LockedYesLbl),
             'Y',
-            'YES',
+            YesLbl,
             'T',
             'TRUE',
             '1',
-            'POSITIVE',
-            'ENABLED',
-            'CHECK',
-            'CHECKED',
-            'GOOD',
-            'PASS',
-            'ACCEPTABLE',
-            'PASSED',
+            PositiveLbl,
+            EnabledLbl,
+            CheckLbl,
+            CheckedLbl,
+            QltyGoodLbl,
+            QltyPassLbl,
+            QltyAcceptableLbl,
+            QltyPassedLbl,
             'OK',
-            'ON',
+            OnLbl,
             'V',
             ':SELECTED:':
                 exit(true);
@@ -463,11 +478,11 @@ codeunit 20599 "Qlty. Misc Helpers"
             'DISABLED',
             'UNCHECK',
             'UNCHECKED',
-            'BAD',
-            'FAIL',
-            'UNACCEPTABLE',
-            'FAILED',
-            'NOTOK',
+            QltyBadLbl,
+            QltyFailLbl,
+            QltyUnacceptableLbl,
+            QltyFailedLbl,
+            QltyNotOkLbl,
             'OFF',
             ':UNSELECTED:':
                 exit(true);
