@@ -362,7 +362,8 @@ codeunit 20404 "Qlty. Inspection - Create"
             if IsNewlyCreatedInspection then
                 QltyStartWorkflow.StartWorkflowInspectionCreated(QltyInspectionHeader);
 
-            if GuiAllowed() and not PreventShowingGeneratedInspectionEvenIfConfigured then
+            if GuiAllowed() and not PreventShowingGeneratedInspectionEvenIfConfigured
+                and (QltyInspectionHeader."No." <> '') then
                 if IsManualCreation then
                     Page.Run(Page::"Qlty. Inspection", QltyInspectionHeader)
                 else

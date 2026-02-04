@@ -51,6 +51,7 @@ page 8350 "MCP Config List"
                 ToolTip = 'Creates a copy of the current MCP configuration, including its tools and permissions.';
                 Image = Copy;
                 AccessByPermission = tabledata "MCP Configuration" = IM;
+                Scope = Repeater;
 
                 trigger OnAction()
                 var
@@ -71,7 +72,7 @@ page 8350 "MCP Config List"
                 {
                     Caption = 'Connection String';
                     ToolTip = 'Generate a connection string for this MCP configuration to use in your MCP client.';
-                    Image = Export;
+                    Image = Link;
                     Scope = Repeater;
 
                     trigger OnAction()
@@ -88,6 +89,35 @@ page 8350 "MCP Config List"
                     Image = Setup;
                     RunObject = page "MCP Entra Application List";
                 }
+                action(ExportConfiguration)
+                {
+                    Caption = 'Export';
+                    ToolTip = 'Export the selected MCP configuration and its tools to a JSON file.';
+                    Image = Export;
+                    Scope = Repeater;
+
+                    trigger OnAction()
+                    var
+                        MCPConfigImplementation: Codeunit "MCP Config Implementation";
+                    begin
+                        MCPConfigImplementation.ExportConfigurationToFile(Rec.SystemId, Rec.Name);
+                    end;
+                }
+                action(ImportConfiguration)
+                {
+                    Caption = 'Import';
+                    ToolTip = 'Import an MCP configuration and its tools from a JSON file.';
+                    Image = Import;
+                    AccessByPermission = tabledata "MCP Configuration" = IM;
+
+                    trigger OnAction()
+                    var
+                        MCPConfigImplementation: Codeunit "MCP Config Implementation";
+                    begin
+                        MCPConfigImplementation.ImportConfigurationFromFile();
+                        CurrPage.Update(false);
+                    end;
+                }
             }
         }
         area(Promoted)
@@ -99,6 +129,8 @@ page 8350 "MCP Config List"
 
                 actionref(Promoted_GenerateConnectionString; GenerateConnectionString) { }
                 actionref(Promoted_MCPEntraApplications; MCPEntraApplications) { }
+                actionref(Promoted_ExportConfiguration; ExportConfiguration) { }
+                actionref(Promoted_ImportConfiguration; ImportConfiguration) { }
             }
         }
     }
@@ -131,4 +163,5 @@ page 8350 "MCP Config List"
         FeatureNotEnabledErr: Label 'MCP server feature is not enabled. Please contact your system administrator to enable the feature.';
         GoToFeatureManagementLbl: Label 'Go to Feature Management';
 #endif
+
 }

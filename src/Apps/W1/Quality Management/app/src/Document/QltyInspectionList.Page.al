@@ -225,7 +225,7 @@ page 20408 "Qlty. Inspection List"
 
                 trigger OnAction()
                 begin
-                    Rec.TakeNewPicture();
+                    Rec.TakeNewMostRecentPicture();
                 end;
             }
             action(ChangeStatusFinish)
