@@ -360,6 +360,7 @@ page 4312 "Agent Task Log Entry"
         AgentSystemPermissionsImpl: Codeunit "Agent System Permissions Impl.";
         Root: JsonObject;
         TaskPageContextObj: JsonObject;
+        RawSerializedPageJson: Text;
     begin
         ContextTxt := AgentTaskLogEntry.ReadContext(Rec);
         if ContextTxt = '' then
@@ -373,9 +374,13 @@ page 4312 "Agent Task Log Entry"
             exit;
         end;
 
-        SerializedPageJson := AgentSystemPermissionsImpl.CurrentUserHasTroubleshootAllAgents()
-            ? AgentTaskLogEntry.FormatJsonTextForRichContent(Root.GetText(SerializedPageLbl, true))
-            : AgentTroubleshooterMissingPermissionTxt;
+        RawSerializedPageJson := Root.GetText(SerializedPageLbl, true);
+        if RawSerializedPageJson <> '' then
+            SerializedPageJson := AgentSystemPermissionsImpl.CurrentUserHasTroubleshootAllAgents()
+                ? AgentTaskLogEntry.FormatJsonTextForRichContent(RawSerializedPageJson)
+                : AgentTroubleshooterMissingPermissionTxt
+        else
+            IsSerializedPageVisible := false;
 
         IsDecisionTxt := Root.Contains(IsDecisionPointLbl)
             ? Format(Root.GetBoolean(IsDecisionPointLbl, true))
