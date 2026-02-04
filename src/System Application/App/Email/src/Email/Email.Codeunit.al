@@ -353,6 +353,73 @@ codeunit 8901 Email
 
     #endregion
 
+    #region Categories
+
+    /// <summary>
+    /// Gets email categories from the specified email account.
+    /// </summary>
+    /// <param name="EmailAccountId">The ID of the email account to retrieve categories from.</param>
+    /// <param name="EmailConnector">The email connector to use.</param>
+    /// <param name="EmailCategories">The return record of all categories that were retrieved.</param>
+    procedure GetEmailCategories(EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailCategories: Record "Email Categories" temporary)
+    begin
+        EmailImpl.GetEmailCategories(EmailAccountId, EmailConnector, EmailCategories);
+    end;
+
+    /// <summary>
+    /// Creates a new email category in the specified email account.
+    /// </summary>
+    /// <param name="EmailAccountId">The ID of the email account to create the category in.</param>
+    /// <param name="EmailConnector">The email connector to use.</param>
+    /// <param name="CategoryDisplayName">The display name of the category to create.</param>
+    /// <returns>The ID of the created category.</returns>
+    procedure CreateEmailCategory(EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; CategoryDisplayName: Text): Text
+    begin
+        exit(EmailImpl.CreateEmailCategory(EmailAccountId, EmailConnector, CategoryDisplayName, ''));
+    end;
+
+    /// <summary>
+    /// Creates a new email category with a specified color in the specified email account.
+    /// </summary>
+    /// <param name="EmailAccountId">The ID of the email account to create the category in.</param>
+    /// <param name="EmailConnector">The email connector to use.</param>
+    /// <param name="CategoryDisplayName">The display name of the category to create.</param>
+    /// <param name="CategoryColor">The color of the category.</param>
+    /// <returns>The ID of the created category.</returns>
+    procedure CreateEmailCategory(EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; CategoryDisplayName: Text; CategoryColor: Text): Text
+    begin
+        exit(EmailImpl.CreateEmailCategory(EmailAccountId, EmailConnector, CategoryDisplayName, CategoryColor));
+    end;
+
+    /// <summary>
+    /// Applies email categories to an email message.
+    /// </summary>
+    /// <param name="EmailAccountId">The ID of the email account containing the email.</param>
+    /// <param name="EmailConnector">The email connector to use.</param>
+    /// <param name="ExternalId">The external message ID of the email to update.</param>
+    /// <param name="CategoryDisplayName">The display name of the category to apply.</param>
+    procedure ApplyEmailCategory(EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; ExternalId: Text; CategoryDisplayName: Text)
+    var
+        Categories: List of [Text];
+    begin
+        Categories.Add(CategoryDisplayName);
+        EmailImpl.ApplyEmailCategory(EmailAccountId, EmailConnector, ExternalId, Categories);
+    end;
+
+    /// <summary>
+    /// Applies email categories to an email message.
+    /// </summary>
+    /// <param name="EmailAccountId">The ID of the email account containing the email.</param>
+    /// <param name="EmailConnector">The email connector to use.</param>
+    /// <param name="ExternalId">The external message ID of the email to update.</param>
+    /// <param name="Categories">The list of category display names to apply to the email.</param>
+    procedure ApplyEmailCategory(EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; ExternalId: Text; Categories: List of [Text])
+    begin
+        EmailImpl.ApplyEmailCategory(EmailAccountId, EmailConnector, ExternalId, Categories);
+    end;
+
+    #endregion
+
     #region OpenInEditor
 
     /// <summary>

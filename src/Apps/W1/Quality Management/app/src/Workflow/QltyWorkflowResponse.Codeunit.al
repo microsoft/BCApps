@@ -345,7 +345,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <param name="WorkflowStepArgument"></param>
     /// <param name="CurrentKey"></param>
     /// <returns></returns>
-    procedure GetStepConfigurationValueAsDecimal(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultDecimal: Decimal
+    internal procedure GetStepConfigurationValueAsDecimal(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultDecimal: Decimal
     var
         StepConfigurationValue: Text;
     begin
@@ -359,7 +359,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <param name="WorkflowStepArgument"></param>
     /// <param name="CurrentKey"></param>
     /// <returns></returns>
-    procedure GetStepConfigurationValueAsBoolean(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultBoolean: Boolean
+    internal procedure GetStepConfigurationValueAsBoolean(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultBoolean: Boolean
     var
         StepConfigurationValue: Text;
     begin
@@ -373,7 +373,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <param name="WorkflowStepArgument"></param>
     /// <param name="CurrentKey"></param>
     /// <returns></returns>
-    procedure GetStepConfigurationValueAsCode10(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultCode: Code[10]
+    internal procedure GetStepConfigurationValueAsCode10(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultCode: Code[10]
     var
         StepConfigurationValue: Text;
     begin
@@ -387,7 +387,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <param name="WorkflowStepArgument"></param>
     /// <param name="CurrentKey"></param>
     /// <returns></returns>
-    procedure GetStepConfigurationValueAsCode20(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultCode: Code[20]
+    internal procedure GetStepConfigurationValueAsCode20(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultCode: Code[20]
     var
         StepConfigurationValue: Text;
     begin
@@ -469,7 +469,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <param name="WorkflowStepArgument">Workflow Step Argument</param>
     /// <param name="CurrentKey">Configuration Key</param>
     /// <returns>Value as Date</returns>
-    procedure GetStepConfigurationValueAsDate(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultDate: Date
+    internal procedure GetStepConfigurationValueAsDate(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultDate: Date
     var
         StepConfigurationValue: Text;
     begin
@@ -629,7 +629,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// Returns the key value for new serial no.
     /// </summary>
     /// <returns></returns>
-    procedure GetWellKnownNewSerialNo(): Text
+    internal procedure GetWellKnownNewSerialNo(): Text
     begin
         exit('NEWSERIALNO');
     end;
@@ -638,7 +638,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// Returns the key value for new package no.
     /// </summary>
     /// <returns></returns>
-    procedure GetWellKnownNewPackageNo(): Text
+    internal procedure GetWellKnownNewPackageNo(): Text
     begin
         exit('NEWPACKAGENO');
     end;
@@ -674,7 +674,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// Returns the key value for the in-transit code.
     /// </summary>
     /// <returns></returns>
-    procedure GetWellKnownInTransit(): Text
+    internal procedure GetWellKnownInTransit(): Text
     begin
         exit('INTRANSIT');
     end;
