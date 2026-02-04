@@ -3,13 +3,18 @@ namespace Microsoft.SubscriptionBilling;
 using Microsoft.CRM.BusinessRelation;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Outlook;
+using Microsoft.CRM.Team;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
+using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Setup;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Pricing;
@@ -71,6 +76,8 @@ table 8057 "Subscription Header"
 
                 if not SkipEndUserContact then
                     UpdateEndUserCont("End-User Customer No.");
+
+                "Salesperson Code" := Cust."Salesperson Code";
 
                 if (xRec."End-User Customer No." <> '') and (xRec."End-User Customer No." <> "End-User Customer No.") then
                     RecallModifyAddressNotification(GetModifyCustomerAddressNotificationId());
@@ -436,6 +443,7 @@ table 8057 "Subscription Header"
                                     Error(ItemBlockedOrWithoutServiceCommitmentsErr, "Source No.");
                                 Description := ContractsItemManagement.GetItemTranslation("Source No.", "Variant Code", "End-User Customer No.");
                                 Validate("Unit of Measure", Item."Sales Unit of Measure");
+                                UpdateVendorAndManufacturerFromItem(Item);
                                 if CurrFieldNo = FieldNo("Source No.") then
                                     InsertServiceCommitmentsFromStandardServCommPackages();
                                 if "Serial No." <> '' then
@@ -908,12 +916,126 @@ table 8057 "Subscription Header"
             else
             if (Type = const("G/L Account")) "Unit of Measure";
         }
+        field(8000; "Vendor No."; Code[20])
+        {
+            Caption = 'Vendor No.';
+            TableRelation = Vendor;
+            ToolTip = 'Specifies the no. of the default vendor of this item.';
+            Editable = true;
+
+            trigger OnValidate()
+            begin
+                UpdateVendorName();
+            end;
+        }
+        field(8001; "Vendor Name"; Text[100])
+        {
+            Caption = 'Vendor Name';
+            FieldClass = Normal;
+            ToolTip = 'Specifies the name of the default vendor of this item.';
+            Editable = true;
+            TableRelation = Vendor.Name;
+            ValidateTableRelation = false;
+
+            trigger OnValidate()
+            var
+                Vendor: Record Vendor;
+            begin
+                if Rec."Vendor Name" <> xRec."Vendor Name" then
+                    if ShouldSearchForVendorByName("Vendor No.") then
+                        Validate("Vendor No.", Vendor.GetVendorNo("Vendor Name"));
+            end;
+
+            trigger OnLookup()
+            var
+                Vendor: Record Vendor;
+            begin
+                if Page.RunModal(Page::"Vendor List", Vendor) = Action::LookupOK then
+                    Validate("Vendor No.", Vendor."No.");
+            end;
+        }
+        field(8002; "Vendor Item No."; Text[50])
+        {
+            Caption = 'Vendor Item No.';
+            FieldClass = Normal;
+            Editable = false;
+            ToolTip = 'Specifies the the default vendor''s item no.';
+        }
+        field(8003; "Manufacturer Code"; Code[10])
+        {
+            Caption = 'Manufacturer Code';
+            TableRelation = Manufacturer;
+            ToolTip = 'Specifies the code of the manufacturer of this item.';
+            Editable = true;
+
+            trigger OnValidate()
+            begin
+                UpdateManufacturerName();
+            end;
+        }
+        field(8004; "Manufacturer Name"; Text[50])
+        {
+            Caption = 'Manufacturer Name';
+            FieldClass = Normal;
+            ToolTip = 'Specifies the name of the manufacturer of this item.';
+            Editable = true;
+            TableRelation = Manufacturer.Name;
+            ValidateTableRelation = false;
+
+            trigger OnValidate()
+            var
+                Manufacturer: Record Manufacturer;
+            begin
+                if "Manufacturer Name" <> '' then begin
+                    Manufacturer.SetRange(Name, "Manufacturer Name");
+                    if Manufacturer.FindFirst() then
+                        Validate("Manufacturer Code", Manufacturer.Code);
+                end;
+            end;
+
+            trigger OnLookup()
+            var
+                Manufacturer: Record Manufacturer;
+            begin
+                if Page.RunModal(0, Manufacturer) = Action::LookupOK then
+                    Validate("Manufacturer Code", Manufacturer.Code);
+            end;
+        }
+        field(8005; "Salesperson Code"; Code[20])
+        {
+            Caption = 'Salesperson Code';
+            TableRelation = "Salesperson/Purchaser";
+            ToolTip = 'Specifies the salesperson who is assigned to the customer.';
+            Editable = true;
+        }
+        field(8006; "Sales Order No."; Code[20])
+        {
+            Caption = 'Sales Order No.';
+            Editable = false;
+            ToolTip = 'Indicates the sales order used to create the subscription.';
+        }
+        field(8008; "Item Ledger Entry No."; Integer)
+        {
+            Caption = 'Item Ledger Entry No.';
+            TableRelation = "Item Ledger Entry";
+            Editable = false;
+            ToolTip = 'Specifies the item ledger entry number that was used to create the subscription.';
+        }
+        field(8009; "Last Sales Invoice No."; Code[20])
+        {
+            Caption = 'Last Sales Invoice No.';
+            Editable = false;
+            ToolTip = 'Indicates the last sales invoice for the sales order that was used to create the subscription.';
+        }
     }
     keys
     {
         key(PK; "No.")
         {
             Clustered = true;
+        }
+        key(SK1; "Item Ledger Entry No.")
+        {
         }
     }
 
@@ -939,6 +1061,7 @@ table 8057 "Subscription Header"
         ServiceContractSetup: Record "Subscription Contract Setup";
         Cust: Record Customer;
         PostCode: Record "Post Code";
+        PurchSetup: Record "Purchases & Payables Setup";
         NoSeries: Codeunit "No. Series";
         ContractsItemManagement: Codeunit "Sub. Contracts Item Management";
         ConfirmManagement: Codeunit "Confirm Management";
@@ -2262,6 +2385,54 @@ table 8057 "Subscription Header"
         PrimaryAttributeValueCaption: Text;
     begin
         Rec.SetPrimaryAttributeValueAndCaption(PrimaryAttributeValue, PrimaryAttributeValueCaption);
+    end;
+
+    internal procedure UpdateVendorAndManufacturerFromItem(Item: Record Item)
+    begin
+        "Vendor No." := Item."Vendor No.";
+        UpdateVendorName();
+        "Vendor Item No." := Item."Vendor Item No.";
+
+        "Manufacturer Code" := Item."Manufacturer Code";
+        UpdateManufacturerName();
+    end;
+
+    local procedure UpdateVendorName()
+    var
+        Vendor: Record Vendor;
+    begin
+        if ("Vendor No." <> '') and Vendor.Get("Vendor No.") then
+            "Vendor Name" := Vendor.Name
+        else
+            "Vendor Name" := '';
+    end;
+
+    local procedure UpdateManufacturerName()
+    var
+        Manufacturer: Record Manufacturer;
+    begin
+        if ("Manufacturer Code" <> '') and Manufacturer.Get("Manufacturer Code") then
+            "Manufacturer Name" := Manufacturer.Name
+        else
+            "Manufacturer Name" := '';
+    end;
+
+    local procedure ShouldSearchForVendorByName(VendorNo: Code[20]): Boolean
+    var
+        Vendor: Record Vendor;
+    begin
+        if VendorNo = '' then
+            exit(true);
+
+        if not PurchSetup.Get() then
+            PurchSetup.Init();
+        if PurchSetup."Disable Search by Name" then
+            exit(false);
+
+        if not Vendor.Get(VendorNo) then
+            exit(true);
+
+        exit(not Vendor."Disable Search by Name");
     end;
 
     [IntegrationEvent(false, false)]

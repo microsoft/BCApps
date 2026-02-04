@@ -5,6 +5,8 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Inventory;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Posting;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Purchases.Posting;
 using Microsoft.Sales.Document;
@@ -20,8 +22,12 @@ codeunit 8063 "Sales Documents"
 
     var
         TempSubscriptionItemSalesLine: Record "Sales Line" temporary;
+        GlobalSalesHeader: Record "Sales Header";
+        GlobalSalesLine: Record "Sales Line";
         SalesServiceCommMgmt: Codeunit "Sales Subscription Line Mgmt.";
         CalledFromContractRenewal: Boolean;
+        NegativeQuantityMsgShown: Boolean;
+        SubscriptionHeaderNotCreatedMsg: Label 'For negative quantity the Subscription is not created.';
 
     local procedure DeleteAllTempSubscriptionItemSalesLines()
     begin
@@ -337,30 +343,59 @@ codeunit 8063 "Sales Documents"
         OnAfterSkipInsertingSalesInvoiceLineIfServiceCommitmentItemsExist(SalesHeader, SalesLine, IsHandled);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnAfterInsertShipmentLine, '', false, false)]
-    local procedure CreateServiceObjectWithSerialNoOnAfterInsertShipmentLine(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var SalesShptLine: Record "Sales Shipment Line")
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnBeforePostItemJnlLine, '', false, false)]
+    local procedure CacheSalesLineContextFromSalesPost(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
     begin
-        //The function creates Subscription for Sales Line with Subscription Lines
-        CreateServiceObjectFromSales(SalesHeader, SalesLine, SalesShptLine);
+        GlobalSalesHeader := SalesHeader;
+        GlobalSalesLine := SalesLine;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnAfterSalesShptLineInsert, '', false, false)]
-    local procedure CreateServiceObjectWithSerialNoOnAfterSalesShptLineInsert(var SalesShptLine: Record "Sales Shipment Line"; SalesShptHeader: Record "Sales Shipment Header"; SalesOrderLine: Record "Sales Line")
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnPostAssocItemJnlLineOnBeforePost, '', false, false)]
+    local procedure CacheSalesLineContextFromDropShipment(SalesOrderLine: Record "Sales Line")
+    begin
+        GlobalSalesHeader.Get(SalesOrderLine."Document Type", SalesOrderLine."Document No.");
+        GlobalSalesLine := SalesOrderLine;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", OnAfterPostItemJnlLine, '', false, false)]
+    local procedure CreateSubscriptionHeaderFromItemJournalLine(var ItemJournalLine: Record "Item Journal Line")
     var
-        SalesHeader: Record "Sales Header";
+        SubscriptionHeader: Record "Subscription Header";
     begin
-        //The function creates Subscription for Sales Line with Subscription Lines
-        SalesHeader.Get(SalesOrderLine."Document Type", SalesOrderLine."Document No.");
-        CreateServiceObjectFromSales(SalesHeader, SalesOrderLine, SalesShptLine);
+        if ItemJournalLine.Adjustment then
+            exit;
+        if ItemJournalLine."Entry Type" <> ItemJournalLine."Entry Type"::Sale then
+            exit;
+        if not SalesServiceCommMgmt.IsSalesLineWithSalesServiceCommitments(GlobalSalesLine, false) then
+            exit;
+        if ItemJournalLine.Quantity < 0 then begin
+            ShowNegativeQuantityMessageIfNeeded(ItemJournalLine.Quantity);
+            exit;
+        end;
+
+        if ItemJournalLine.Quantity > 0 then
+            CreateServiceObjectFromSalesLine(GlobalSalesHeader, GlobalSalesLine, ItemJournalLine."Serial No.", ItemJournalLine.Quantity, ItemJournalLine."Item Shpt. Entry No.");
+        if ItemJournalLine."Invoiced Quantity" <> 0 then
+            if ItemJournalLine."Invoice No." <> '' then begin
+                SubscriptionHeader.SetRange("Item Ledger Entry No.", ItemJournalLine."Item Shpt. Entry No.");
+                SubscriptionHeader.ModifyAll("Last Sales Invoice No.", ItemJournalLine."Invoice No.", false);
+            end;
     end;
 
+#if not CLEAN28
+    [Obsolete('Use OnAfterPostItemJnlLine event subscriber to create Subscription Headers during item journal posting', '28.0')]
     procedure CreateServiceObjectFromSales(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var SalesShptLine: Record "Sales Shipment Line")
     var
         TempTrackingSpecBuffer: Record "Tracking Specification" temporary;
         ItemTrackingDocMgt: Codeunit "Item Tracking Doc. Management";
     begin
         //The function creates Subscription for Sales Line with Subscription Lines
-        if SalesServiceCommMgmt.IsSalesLineWithSalesServiceCommitmentsToShip(SalesLine, SalesShptLine.Quantity) then begin
+        if SalesServiceCommMgmt.IsSalesLineWithSalesServiceCommitmentsToShip(SalesLine) then begin
+            if SalesShptLine.Quantity < 0 then begin
+                ShowNegativeQuantityMessageIfNeeded(SalesShptLine.Quantity);
+                exit;
+            end;
+
             ItemTrackingDocMgt.RetrieveDocumentItemTracking(TempTrackingSpecBuffer, SalesShptLine."Document No.", Database::"Sales Shipment Header", 0);
             TempTrackingSpecBuffer.SetRange("Source Ref. No.", SalesShptLine."Line No.");
             if not TempTrackingSpecBuffer.IsEmpty() then
@@ -369,6 +404,7 @@ codeunit 8063 "Sales Documents"
                 CreateServiceObjectFromSalesLine(SalesHeader, SalesLine);
         end;
     end;
+#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnPostUpdateOrderLineOnSetDefaultQtyBlank, '', false, false)]
     local procedure UpdateQuantitiesOnPostUpdateOrderLineOnSetDefaultQtyBlank(var TempSalesLine: Record "Sales Line" temporary)
@@ -440,6 +476,8 @@ codeunit 8063 "Sales Documents"
         exit(SalesServiceCommMgmt.IsSalesLineWithServiceCommitmentItem(TempSalesLine, true) or ContractRenewalMgt.IsContractRenewal(TempSalesLine));
     end;
 
+#if not CLEAN28
+    [Obsolete('Use OnAfterPostItemJnlLine event subscriber to create Subscription Headers during item journal posting', '28.0')]
     local procedure CreateServiceObjectFromSalesLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line")
     var
         Item: Record Item;
@@ -450,10 +488,11 @@ codeunit 8063 "Sales Documents"
             exit;
         if Item.HasSNSpecificItemTracking() then
             exit;
-        CreateServiceObjectFromSalesLine(SalesHeader, SalesLine, '', 0);
+        CreateServiceObjectFromSalesLine(SalesHeader, SalesLine, '', 0, 0);
     end;
+#endif
 
-    local procedure CreateServiceObjectFromSalesLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; SerialNo: Code[50]; QtyPerSerialNo: Decimal)
+    local procedure CreateServiceObjectFromSalesLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; SerialNo: Code[50]; QtyPerSerialNo: Decimal; ItemLedgerEntryNo: Integer)
     var
         ServiceObject: Record "Subscription Header";
         IsHandled: Boolean;
@@ -464,16 +503,17 @@ codeunit 8063 "Sales Documents"
             exit;
 
         if SerialNo = '' then
-            CreateServiceObject(ServiceObject, SalesHeader, SalesLine, SalesLine."Qty. to Ship", SerialNo)
+            CreateServiceObject(ServiceObject, SalesHeader, SalesLine, SalesLine."Qty. to Ship", SerialNo, ItemLedgerEntryNo)
         else
-            CreateServiceObject(ServiceObject, SalesHeader, SalesLine, QtyPerSerialNo, SerialNo);
+            CreateServiceObject(ServiceObject, SalesHeader, SalesLine, QtyPerSerialNo, SerialNo, ItemLedgerEntryNo);
 
         CreateSubscriptionLineFromSalesLine(ServiceObject, SalesHeader, SalesLine);
         OnAfterCreateSubscriptionHeaderFromSalesLine(ServiceObject, SalesHeader, SalesLine);
     end;
 
-    local procedure CreateServiceObject(var ServiceObject: Record "Subscription Header"; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; Quantity: Decimal; SerialNo: Code[50])
+    local procedure CreateServiceObject(var ServiceObject: Record "Subscription Header"; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; Quantity: Decimal; SerialNo: Code[50]; ItemLedgerEntryNo: Integer)
     var
+        Item: Record Item;
     begin
         ServiceObject.Init();
         ServiceObject.SetHideValidationDialog(true);
@@ -512,6 +552,13 @@ codeunit 8063 "Sales Documents"
         ServiceObject."Customer Price Group" := SalesHeader."Customer Price Group";
         ServiceObject."Customer Reference" := SalesHeader."Your Reference";
         ServiceObject."Variant Code" := SalesLine."Variant Code";
+
+        if Item.Get(SalesLine."No.") then
+            ServiceObject.UpdateVendorAndManufacturerFromItem(Item);
+        ServiceObject."Salesperson Code" := SalesHeader."Salesperson Code";
+        ServiceObject."Sales Order No." := SalesHeader."No.";
+        ServiceObject."Item Ledger Entry No." := ItemLedgerEntryNo;
+
         OnCreateSubscriptionHeaderFromSalesLineBeforeInsertSubscriptionHeader(ServiceObject, SalesHeader, SalesLine);
         ServiceObject.Insert(true);
         OnCreateSubscriptionHeaderFromSalesLineAfterInsertSubscriptionHeader(ServiceObject, SalesHeader, SalesLine);
@@ -604,15 +651,18 @@ codeunit 8063 "Sales Documents"
         end;
     end;
 
+#if not CLEAN28
+    [Obsolete('Creation of Subscription Header happens in OnAfterPostItemJnlLine when Item Journal Line is posted', '28.0')]
     local procedure CreateServiceObjectFromTrackingSpecification(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempTrackingSpecBuffer: Record "Tracking Specification" temporary)
     begin
         if TempTrackingSpecBuffer.FindSet() then
             repeat
-                CreateServiceObjectFromSalesLine(SalesHeader, SalesLine, TempTrackingSpecBuffer."Serial No.", TempTrackingSpecBuffer."Quantity (Base)");
+                CreateServiceObjectFromSalesLine(SalesHeader, SalesLine, TempTrackingSpecBuffer."Serial No.", TempTrackingSpecBuffer."Quantity (Base)", 0);
             until TempTrackingSpecBuffer.Next() = 0;
         TempTrackingSpecBuffer.Reset();
         TempTrackingSpecBuffer.DeleteAll(false);
     end;
+#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", OnUpdateSourceDocumentOnAfterSalesLineModify, '', false, false)]
     local procedure ModifyShipmentDateFromInventoryPickPostingDate(var SalesLine: Record "Sales Line"; WarehouseActivityLine: Record "Warehouse Activity Line")
@@ -791,6 +841,35 @@ codeunit 8063 "Sales Documents"
         SearchFieldNo[1] := SubscriptionHeader.FieldNo("No.");
         SearchFieldNo[2] := SubscriptionHeader.FieldNo(Description);
         SearchFieldNo[3] := 0;
+    end;
+
+    local procedure ShowNegativeQuantityMessageIfNeeded(Quantity: Decimal)
+    begin
+        if Quantity < 0 then
+            if not NegativeQuantityMsgShown then begin
+                Message(SubscriptionHeaderNotCreatedMsg);
+                NegativeQuantityMsgShown := true;
+            end;
+    end;
+
+    local procedure ResetGlobalVariables()
+    begin
+        CalledFromContractRenewal := false;
+        NegativeQuantityMsgShown := false;
+        Clear(GlobalSalesHeader);
+        Clear(GlobalSalesLine);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnBeforePostSalesDoc, '', false, false)]
+    local procedure ResetVariablesOnBeforePostSalesDoc()
+    begin
+        ResetGlobalVariables();
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnAfterPostSalesDoc, '', false, false)]
+    local procedure ResetVariablesOnAfterPostSalesDoc()
+    begin
+        ResetGlobalVariables();
     end;
 
     [IntegrationEvent(false, false)]
