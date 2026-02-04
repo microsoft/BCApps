@@ -80,7 +80,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                     {
                         ApplicationArea = All;
                         Caption = 'Return Receipt';
-                        ToolTip = 'Specifies to create a rule for a return receipt. Check this box to if you want this rule to apply to a return receipt. ';
+                        ToolTip = 'Specifies to create a rule for a return receipt. Check this box to if you want this rule to apply to a return receipt.';
 
                         trigger OnValidate()
                         begin
@@ -630,15 +630,15 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
         TransferToCode: Code[20];
         ToZoneCodeFilter: Code[20];
         ToBinCodeFilter: Code[20];
-        QltyPurchaseTrigger: Enum "Qlty. Purchase Trigger";
-        QltyTransferTrigger: Enum "Qlty. Transfer Trigger";
-        QltyWhseReceiveTrigger: Enum "Qlty. Whse. Receive Trigger";
+        QltyPurchaseTrigger: Enum "Qlty. Purchase Order Trigger";
+        QltyTransferTrigger: Enum "Qlty. Transfer Order Trigger";
+        QltyWhseReceiveTrigger: Enum "Qlty. Whse. Receipt Trigger";
         QltySalesReturnTrigger: Enum "Qlty. Sales Return Trigger";
-        PurchaseLineRule: Text[400];
-        SalesReturnLineRule: Text[400];
-        ItemRule: Text[400];
-        TransferLineRule: Text[400];
-        WarehouseJournalLineRule: Text[400];
+        PurchaseLineRule: Text[2048];
+        SalesReturnLineRule: Text[2048];
+        ItemRule: Text[2048];
+        TransferLineRule: Text[2048];
+        WarehouseJournalLineRule: Text[2048];
         IsReturnReceipt: Boolean;
         IsPurchaseLine: Boolean;
         IsIsBackEnabledd: Boolean;
@@ -680,10 +680,10 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
         IsPurchaseLine := true;
 
-        QltyPurchaseTrigger := QltyManagementSetup."Purchase Trigger";
-        QltyTransferTrigger := QltyManagementSetup."Transfer Trigger";
+        QltyPurchaseTrigger := QltyManagementSetup."Purchase Order Trigger";
+        QltyTransferTrigger := QltyManagementSetup."Transfer Order Trigger";
         QltySalesReturnTrigger := QltyManagementSetup."Sales Return Trigger";
-        QltyWhseReceiveTrigger := QltyManagementSetup."Warehouse Receive Trigger";
+        QltyWhseReceiveTrigger := QltyManagementSetup."Warehouse Receipt Trigger";
         MaxStep := StepDoneCounter;
     end;
 
@@ -843,18 +843,18 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
     local procedure CleanUpWhereClause()
     begin
         if IsPurchaseLine then
-            PurchaseLineRule := QltyFilterHelpers.CleanUpWhereClause400(PurchaseLineRule);
+            PurchaseLineRule := QltyFilterHelpers.CleanUpWhereClause2048(PurchaseLineRule);
 
         if IsReturnReceipt then
-            SalesReturnLineRule := QltyFilterHelpers.CleanUpWhereClause400(SalesReturnLineRule);
+            SalesReturnLineRule := QltyFilterHelpers.CleanUpWhereClause2048(SalesReturnLineRule);
 
         if IsTransferLine then
-            TransferLineRule := QltyFilterHelpers.CleanUpWhereClause400(TransferLineRule);
+            TransferLineRule := QltyFilterHelpers.CleanUpWhereClause2048(TransferLineRule);
 
         if IsWarehouseReceipt then
-            WarehouseJournalLineRule := QltyFilterHelpers.CleanUpWhereClause400(WarehouseJournalLineRule);
+            WarehouseJournalLineRule := QltyFilterHelpers.CleanUpWhereClause2048(WarehouseJournalLineRule);
 
-        ItemRule := QltyFilterHelpers.CleanUpWhereClause400(ItemRule);
+        ItemRule := QltyFilterHelpers.CleanUpWhereClause2048(ItemRule);
     end;
 
     local procedure BackAction();
@@ -892,8 +892,8 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                     QltyInspectionGenRule.Intent := QltyInspectionGenRule.Intent::Purchase;
                     QltyInspectionGenRule."Condition Filter" := PurchaseLineRule;
                     QltyInspectionGenRule.SetIntentAndDefaultTriggerValuesFromSetup();
-                    QltyInspectionGenRule."Purchase Trigger" := QltyPurchaseTrigger;
-                    QltyManagementSetup."Purchase Trigger" := QltyPurchaseTrigger;
+                    QltyInspectionGenRule."Purchase Order Trigger" := QltyPurchaseTrigger;
+                    QltyManagementSetup."Purchase Order Trigger" := QltyPurchaseTrigger;
                 end;
             IsReturnReceipt:
                 begin
@@ -910,8 +910,8 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                     QltyInspectionGenRule.Intent := QltyInspectionGenRule.Intent::Transfer;
                     QltyInspectionGenRule."Condition Filter" := TransferLineRule;
                     QltyInspectionGenRule.SetIntentAndDefaultTriggerValuesFromSetup();
-                    QltyInspectionGenRule."Transfer Trigger" := QltyTransferTrigger;
-                    QltyManagementSetup."Transfer Trigger" := QltyTransferTrigger;
+                    QltyInspectionGenRule."Transfer Order Trigger" := QltyTransferTrigger;
+                    QltyManagementSetup."Transfer Order Trigger" := QltyTransferTrigger;
                 end;
             IsWarehouseReceipt:
                 begin
@@ -919,8 +919,8 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                     QltyInspectionGenRule.Intent := QltyInspectionGenRule.Intent::"Warehouse Receipt";
                     QltyInspectionGenRule."Condition Filter" := WarehouseJournalLineRule;
                     QltyInspectionGenRule.SetIntentAndDefaultTriggerValuesFromSetup();
-                    QltyInspectionGenRule."Warehouse Receive Trigger" := QltyWhseReceiveTrigger;
-                    QltyManagementSetup."Warehouse Receive Trigger" := QltyWhseReceiveTrigger;
+                    QltyInspectionGenRule."Warehouse Receipt Trigger" := QltyWhseReceiveTrigger;
+                    QltyManagementSetup."Warehouse Receipt Trigger" := QltyWhseReceiveTrigger;
                 end;
         end;
 
@@ -946,7 +946,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
     /// </summary>
     /// <param name="QltyInspectionGenRule"></param>
     /// <returns></returns>
-    procedure RunModalWithGenerationRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Action
+    internal procedure RunModalWithGenerationRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Action
     begin
         TempQltyInspectionGenRule := QltyInspectionGenRule;
         Clear(TempPurchaseLine);
@@ -996,20 +996,20 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
             TempPurchaseLine.SetFilter("Location Code", LocationCodeFilter);
             TempPurchaseLine.SetFilter("Buy-from Vendor No.", VendorNoFilter);
             TempPurchaseLine.SetFilter("Purchasing Code", PurchasingCode);
-            PurchaseLineRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause400(TempPurchaseLine.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
+            PurchaseLineRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempPurchaseLine.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
         end;
 
         if IsReturnReceipt then begin
             TempReturnSalesLine.SetFilter("Location Code", LocationCodeFilter);
             TempReturnSalesLine.SetFilter("Return Reason Code", ReturnReasonCode);
             TempReturnSalesLine.SetFilter("Sell-to Customer No.", CustomerNoFilter);
-            SalesReturnLineRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause400(TempReturnSalesLine.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
+            SalesReturnLineRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempReturnSalesLine.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
         end;
 
         if IsTransferLine then begin
             TempTransferLine.SetFilter("Transfer-to Code", TransferToCode);
             TempTransferLine.SetFilter("Transfer-from Code", TransferFromCode);
-            TransferLineRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause400(TempTransferLine.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
+            TransferLineRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempTransferLine.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
         end;
 
         if IsWarehouseReceipt then begin
@@ -1017,27 +1017,27 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
             TempWarehouseJournalLine.SetFilter("Location Code", LocationCodeFilter);
             TempWarehouseJournalLine.SetFilter("To Zone Code", ToZoneCodeFilter);
             TempWarehouseJournalLine.SetFilter("To Bin Code", ToBinCodeFilter);
-            WarehouseJournalLineRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause400(TempWarehouseJournalLine.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
+            WarehouseJournalLineRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempWarehouseJournalLine.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
         end;
 
         TempItem.SetFilter("No.", ItemNoFilter);
         TempItem.SetFilter("Item Category Code", CategoryCodeFilter);
         TempItem.SetFilter("Inventory Posting Group", InventoryPostingGroupCode);
 
-        ItemRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause400(TempItem.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Item Filter"));
+        ItemRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempItem.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Item Filter"));
 
         CleanUpWhereClause();
 
-        if StrLen(QltyFilterHelpers.CleanUpWhereClause400(TempReturnSalesLine.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Condition Filter") then
+        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempReturnSalesLine.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Condition Filter") then
             Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
 
-        if StrLen(QltyFilterHelpers.CleanUpWhereClause400(TempTransferLine.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Condition Filter") then
+        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempTransferLine.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Condition Filter") then
             Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
 
-        if StrLen(QltyFilterHelpers.CleanUpWhereClause400(TempWarehouseJournalLine.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Condition Filter") then
+        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempWarehouseJournalLine.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Condition Filter") then
             Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
 
-        if StrLen(QltyFilterHelpers.CleanUpWhereClause400(TempItem.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Item Filter") then
+        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempItem.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Item Filter") then
             Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Item Filter"));
     end;
 

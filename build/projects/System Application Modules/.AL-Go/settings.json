@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/6f564fa18b52c98eebc26fb118f1402c0d781dd1/Actions/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a/Actions/.Modules/settings.schema.json",
   "projectName": "System Application Modules",
   "appFolders": [
     "../../../src/System Application/App/*",

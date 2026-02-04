@@ -5,7 +5,6 @@
 namespace Microsoft.QualityManagement.Workflow;
 
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup;
 using System.Automation;
 using System.Security.AccessControl;
 
@@ -16,7 +15,6 @@ using System.Security.AccessControl;
 codeunit 20423 "Qlty. Workflow Setup"
 {
     var
-        QltyManagementSetup: Record "Qlty. Management Setup";
         QltyPrefixTok: Label 'QLTY-', Locked = true;
         InspectionFinishesEventTok: Label 'QLTY-E-FINISH-1', Locked = true;
         InspectionReopenedEventTok: Label 'QLTY-E-REOPEN-1', Locked = true;
@@ -66,18 +64,6 @@ codeunit 20423 "Qlty. Workflow Setup"
         QMWorkflowResponseDescriptionCreateTransferOrderLbl: Label 'Create Transfer Order', Locked = true;
         QMWorkflowResponseDescriptionCreatePurchaseReturnOrderLbl: Label 'Create Purchase Return', Locked = true;
         QMWorkflowDescriptionOptionalSuffixLbl: Label ' - Foundation', Locked = true;
-
-    /// <summary>
-    /// IsWorkflowIntegrationEnabledAndSufficientPermission returns true if workflow integration is enabled and the current user has sufficient permission to use it.
-    /// </summary>
-    /// <returns>Return value of type Boolean.</returns>
-    procedure IsWorkflowIntegrationEnabledAndSufficientPermission(): Boolean
-    begin
-        if not QltyManagementSetup.GetSetupRecord() then
-            exit(false);
-
-        exit(QltyManagementSetup."Workflow Integration Enabled");
-    end;
 
     /// <summary>
     /// Returns the token for a workflow response to create an inspection.
@@ -178,7 +164,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// Returns the token for a workflow response to quarantine a license plate
     /// </summary>
     /// <returns>Return value of type Text.</returns>
-    procedure GetWorkflowResponseQuarantineLicensePlate(): Text
+    internal procedure GetWorkflowResponseQuarantineLicensePlate(): Text
     begin
         exit(QMWorkflowResponseQuarantineLicensePlateTok);
     end;
@@ -187,7 +173,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// Returns the token for a workflow response to un-quarantine a license plate.
     /// </summary>
     /// <returns>Return value of type Text.</returns>
-    procedure GetWorkflowResponseUnQuarantineLicensePlate(): Text
+    internal procedure GetWorkflowResponseUnQuarantineLicensePlate(): Text
     begin
         exit(QMWorkflowResponseUnQuarantineLicensePlateTok);
     end;
@@ -250,7 +236,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// Returns the generic quality inspection workflow prefix.
     /// </summary>
     /// <returns>Return value of type Text.</returns>
-    procedure GetQualityInspectionPrefix(): Text
+    internal procedure GetQualityInspectionPrefix(): Text
     begin
         exit(QltyPrefixTok);
     end;
@@ -259,7 +245,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// The token for the event when an inspection has been created.
     /// </summary>
     /// <returns>Return value of type Code[128].</returns>
-    procedure GetInspectionCreatedEvent(): Code[128]
+    internal procedure GetInspectionCreatedEvent(): Code[128]
     begin
         exit(InspectionCreatedEventTok);
     end;
@@ -295,7 +281,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// The token for the event when an inspection has been rejected in an approval.
     /// </summary>
     /// <returns>Return value of type Code[128].</returns>
-    procedure GetInspectionRejectEventTok(): Code[128]
+    internal procedure GetInspectionRejectEventTok(): Code[128]
     begin
         exit(QltyInspectionRejectWorkflowEventTok);
     end;
@@ -304,7 +290,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// The token for the event when an inspection has been approved in an approval system.
     /// </summary>
     /// <returns>Return value of type Code[128].</returns>
-    procedure GetInspectionApproveEventTok(): Code[128]
+    internal procedure GetInspectionApproveEventTok(): Code[128]
     begin
         exit(QltyInspectionApproveWorkflowEventTok);
     end;
@@ -313,7 +299,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// The token for the event when an inspection has been delegated in an approval.
     /// </summary>
     /// <returns>Return value of type Code[128].</returns>
-    procedure GetInspectionDelegateEventTok(): Code[128]
+    internal procedure GetInspectionDelegateEventTok(): Code[128]
     begin
         exit(QltyInspectionDelegateWorkflowEventTok);
     end;
@@ -321,9 +307,6 @@ codeunit 20423 "Qlty. Workflow Setup"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Event Handling", 'OnAddWorkflowTableRelationsToLibrary', '', true, true)]
     local procedure HandleOnAddWorkflowTableRelationsToLibrary()
     begin
-        if not IsWorkflowIntegrationEnabledAndSufficientPermission() then
-            exit;
-
         AddEmployeeUserRelationships();
     end;
 
@@ -347,9 +330,6 @@ codeunit 20423 "Qlty. Workflow Setup"
         WorkflowEventHandling: Codeunit "Workflow Event Handling";
         OptionalSuffix: Text;
     begin
-        if not IsWorkflowIntegrationEnabledAndSufficientPermission() then
-            exit;
-
         WorkflowEvent.SetFilter("Function Name", QltyPrefixTok + '*');
         WorkflowEvent.DeleteAll(false);
 
@@ -369,9 +349,6 @@ codeunit 20423 "Qlty. Workflow Setup"
     var
         WorkflowEventHandling: Codeunit "Workflow Event Handling";
     begin
-        if not IsWorkflowIntegrationEnabledAndSufficientPermission() then
-            exit;
-
         case EventFunctionName of
             'RUNWORKFLOWONAPPROVEAPPROVALREQUEST',
             'RUNWORKFLOWONREJECTAPPROVALREQUEST',
@@ -396,9 +373,6 @@ codeunit 20423 "Qlty. Workflow Setup"
         QualityEventIds: List of [Text];
         QualityEvent: Text;
     begin
-        if not IsWorkflowIntegrationEnabledAndSufficientPermission() then
-            exit;
-
         FunctionName := ResponseFunctionName;
 
         QualityEventIds.Add(GetInspectionCreatedEvent());
@@ -422,9 +396,6 @@ codeunit 20423 "Qlty. Workflow Setup"
         QualityResponse: Text;
         OptionalSuffix: Text;
     begin
-        if not IsWorkflowIntegrationEnabledAndSufficientPermission() then
-            exit;
-
         WorkflowResponse.SetFilter("Function Name", QltyPrefixTok + '*');
         if WorkflowResponse.FindSet() then
             repeat

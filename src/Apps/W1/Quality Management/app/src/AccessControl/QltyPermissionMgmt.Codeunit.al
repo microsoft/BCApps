@@ -228,7 +228,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// </summary>
     /// <param name="ShouldPrompt">Only set with interaction ability is available ( GuiAllowed() is true ) and also prompt when possible is chosen.</param>
     /// <returns>Whether or not auto-assignment should occur.</returns>
-    procedure GetShouldAutoAssign(var ShouldPrompt: Boolean) ShouldAssign: Boolean
+    internal procedure GetShouldAutoAssign(var ShouldPrompt: Boolean) ShouldAssign: Boolean
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
@@ -248,7 +248,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// </summary>
     /// <param name="FunctionalPermission"></param>
     /// <returns></returns>
-    procedure GetSuggestedAllowedValueForFunction(FunctionalPermission: Text) Result: Boolean
+    internal procedure GetSuggestedAllowedValueForFunction(FunctionalPermission: Text) Result: Boolean
     begin
         case FunctionalPermission of
             GetCaptionCreateInspectionAuto():
@@ -359,7 +359,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// If they can, nothing happens.
     /// If they cannot then an error will be thrown.
     /// </summary>
-    procedure VerifyCanEditLineComments()
+    internal procedure VerifyCanEditLineComments()
     begin
         if not CanEditLineComments() then
             Error(UserDoesNotHavePermissionToErr, CurrentUserId, GetCaptionEditLineComments());
@@ -378,7 +378,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// CanReadLineComments. True if the user can read or write line comments.
     /// </summary>
     /// <returns>Return value of type Boolean.</returns>
-    procedure CanReadLineComments(): Boolean
+    internal procedure CanReadLineComments(): Boolean
     begin
         exit(LoadPermissionDetails(GetCaptionEditLineComments()));
     end;

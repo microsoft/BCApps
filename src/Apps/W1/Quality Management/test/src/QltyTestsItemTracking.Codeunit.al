@@ -110,11 +110,11 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         LibraryWarehouse.CreateWhseJournalBatch(InitialInventoryWarehouseJournalBatch, InitialInventoryWhseItemWarehouseJournalTemplate.Name, Location.Code);
 
-        QltyManagementSetup."Whse. Adjustment Batch Name" := InitialInventoryWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Item Journal Batch Name" := InitialInventoryWarehouseJournalBatch.Name;
 
         LibraryWarehouse.CreateWhseJournalTemplate(ReclassWhseItemWarehouseJournalTemplate, ReclassWhseItemWarehouseJournalTemplate.Type::Reclassification);
         LibraryWarehouse.CreateWhseJournalBatch(ReclassWarehouseJournalBatch, ReclassWhseItemWarehouseJournalTemplate.Name, Location.Code);
-        QltyManagementSetup."Bin Whse. Move Batch Name" := ReclassWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Reclass. Batch Name" := ReclassWarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] Initial inventory of 100 units with lot number is created in pick bin
@@ -1063,7 +1063,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
         LibraryInventory.CreateItemJournalBatch(ReclassItemJournalBatch, ReclassItemJournalTemplate.Name);
         ReclassItemJournalBatch.CalcFields("Template Type");
-        QltyManagementSetup."Bin Move Batch Name" := ReclassItemJournalBatch.Name;
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] New lot number is generated for reclassification
@@ -1084,7 +1084,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [THEN] One reclassification journal line is created in the batch
         ReclassJnlItemJournalLine.Reset();
-        ReclassJnlItemJournalLine.SetRange("Journal Batch Name", QltyManagementSetup."Bin Move Batch Name");
+        ReclassJnlItemJournalLine.SetRange("Journal Batch Name", QltyManagementSetup."Item Reclass. Batch Name");
         LibraryAssert.AreEqual(1, ReclassJnlItemJournalLine.Count(), 'There should be one journal line in the reclass batch.');
         ReclassJnlItemJournalLine.FindLast();
 
@@ -1176,7 +1176,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         ItemLedgerEntry.FindLast();
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
         LibraryInventory.CreateItemJournalBatch(ReclassItemJournalBatch, ReclassItemJournalTemplate.Name);
-        QltyManagementSetup."Bin Move Batch Name" := ReclassItemJournalBatch.Name;
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         ReclassLotNo := NoSeries.GetNextNo(LotNoSeries.Code);
@@ -1194,7 +1194,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [THEN] One reclassification journal line is created
         ReclassJnlItemJournalLine.Reset();
-        ReclassJnlItemJournalLine.SetRange("Journal Batch Name", QltyManagementSetup."Bin Move Batch Name");
+        ReclassJnlItemJournalLine.SetRange("Journal Batch Name", QltyManagementSetup."Item Reclass. Batch Name");
         LibraryAssert.AreEqual(1, ReclassJnlItemJournalLine.Count(), 'There should be one journal line in the reclass batch.');
         ReclassJnlItemJournalLine.FindLast();
 
@@ -1292,7 +1292,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
         LibraryInventory.CreateItemJournalBatch(ReclassItemJournalBatch, ReclassItemJournalTemplate.Name);
 
-        QltyManagementSetup."Bin Move Batch Name" := ReclassItemJournalBatch.Name;
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [WHEN] Reclassification disposition is performed to change both lot number and expiration date
@@ -1312,7 +1312,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [THEN] One reclassification journal line is created
         ReclassJnlItemJournalLine.Reset();
-        ReclassJnlItemJournalLine.SetRange("Journal Batch Name", QltyManagementSetup."Bin Move Batch Name");
+        ReclassJnlItemJournalLine.SetRange("Journal Batch Name", QltyManagementSetup."Item Reclass. Batch Name");
         LibraryAssert.AreEqual(1, ReclassJnlItemJournalLine.Count(), 'There should be one journal line in the reclass batch.');
         ReclassJnlItemJournalLine.FindLast();
 
@@ -1398,7 +1398,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
         LibraryInventory.CreateItemJournalBatch(ReclassItemJournalBatch, ReclassItemJournalTemplate.Name);
-        QltyManagementSetup."Bin Move Batch Name" := ReclassItemJournalBatch.Name;
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [WHEN] Reclassification disposition is performed to change serial number
@@ -1416,7 +1416,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [THEN] One reclassification journal line is created
         ReclassJnlItemJournalLine.Reset();
-        ReclassJnlItemJournalLine.SetRange("Journal Batch Name", QltyManagementSetup."Bin Move Batch Name");
+        ReclassJnlItemJournalLine.SetRange("Journal Batch Name", QltyManagementSetup."Item Reclass. Batch Name");
         LibraryAssert.AreEqual(1, ReclassJnlItemJournalLine.Count(), 'There should be one journal line in the reclass batch.');
         ReclassJnlItemJournalLine.FindLast();
 
@@ -1510,7 +1510,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
         LibraryInventory.CreateItemJournalBatch(ReclassItemJournalBatch, ReclassItemJournalTemplate.Name);
 
-        QltyManagementSetup."Bin Move Batch Name" := ReclassItemJournalBatch.Name;
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [WHEN] Reclassification disposition is performed to change the serial number while keeping the expiration date
@@ -1528,7 +1528,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [THEN] One reclassification journal line is created
         ReclassJnlItemJournalLine.Reset();
-        ReclassJnlItemJournalLine.SetRange("Journal Batch Name", QltyManagementSetup."Bin Move Batch Name");
+        ReclassJnlItemJournalLine.SetRange("Journal Batch Name", QltyManagementSetup."Item Reclass. Batch Name");
         LibraryAssert.AreEqual(1, ReclassJnlItemJournalLine.Count(), 'There should be one journal line in the reclass batch.');
         ReclassJnlItemJournalLine.FindLast();
 
@@ -1623,7 +1623,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
         LibraryInventory.CreateItemJournalBatch(ReclassItemJournalBatch, ReclassItemJournalTemplate.Name);
 
-        QltyManagementSetup."Bin Move Batch Name" := ReclassItemJournalBatch.Name;
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [WHEN] Reclassification disposition is performed to change both serial number and expiration date
@@ -1643,7 +1643,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [THEN] One reclassification journal line is created
         ReclassJnlItemJournalLine.Reset();
-        ReclassJnlItemJournalLine.SetRange("Journal Batch Name", QltyManagementSetup."Bin Move Batch Name");
+        ReclassJnlItemJournalLine.SetRange("Journal Batch Name", QltyManagementSetup."Item Reclass. Batch Name");
         LibraryAssert.AreEqual(1, ReclassJnlItemJournalLine.Count(), 'There should be one journal line in the reclass batch.');
         ReclassJnlItemJournalLine.FindLast();
 
@@ -1741,7 +1741,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         // [GIVEN] Transfer journal template and batch for reclassification are created
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
         LibraryInventory.CreateItemJournalBatch(ReclassItemJournalBatch, ReclassItemJournalTemplate.Name);
-        QltyManagementSetup."Bin Move Batch Name" := ReclassItemJournalBatch.Name;
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] New package number is generated
@@ -1762,7 +1762,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [THEN] One reclassification journal line is created in the batch
         ReclassJnlItemJournalLine.Reset();
-        ReclassJnlItemJournalLine.SetRange("Journal Batch Name", QltyManagementSetup."Bin Move Batch Name");
+        ReclassJnlItemJournalLine.SetRange("Journal Batch Name", QltyManagementSetup."Item Reclass. Batch Name");
         LibraryAssert.AreEqual(1, ReclassJnlItemJournalLine.Count(), 'There should be one journal line in the reclass batch.');
         ReclassJnlItemJournalLine.FindLast();
 
@@ -2500,7 +2500,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         RecordRef.GetTable(PurOrderPurchaseLine);
         SpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
         LotNo := ReservationEntry."Lot No.";
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '');
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Purchase return order is created and lines are copied from receipt
@@ -2581,7 +2581,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line");
         RecordRef.GetTable(PurOrderPurchaseLine);
         SpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '');
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Purchase return order is created and lines are copied from receipt
@@ -2655,7 +2655,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         RecordRef.GetTable(PurOrderPurchaseLine);
         SpecTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
         Serial := ReservationEntry."Serial No.";
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, true, '');
+        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(RecordRef, SpecTrackingSpecification, UnusedVariant1, UnusedVariant2, false, '');
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] Purchase return order is created and lines are copied from receipt
@@ -3065,7 +3065,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
 
         // [GIVEN] The generation rule is set to trigger on purchase order receive and automatic only
         QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::"Automatic only";
-        QltyInspectionGenRule."Purchase Trigger" := QltyInspectionGenRule."Purchase Trigger"::OnPurchaseOrderPostReceive;
+        QltyInspectionGenRule."Purchase Order Trigger" := QltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive;
         QltyInspectionGenRule.Modify();
 
         // [GIVEN] A location is created

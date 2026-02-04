@@ -30,7 +30,6 @@ page 20408 "Qlty. Inspection List"
     PageType = List;
     SourceTable = "Qlty. Inspection Header";
     SourceTableView = sorting("No.", "Re-inspection No.") order(descending);
-    AdditionalSearchTerms = 'Test Results,Certificates,Quality Tests,Inspections,inspection results';
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
 
@@ -46,6 +45,10 @@ page 20408 "Qlty. Inspection List"
                 }
                 field("Re-inspection No."; Rec."Re-inspection No.")
                 {
+                }
+                field("Most Recent Re-inspection"; Rec."Most Recent Re-inspection")
+                {
+                    Visible = false;
                 }
                 field("Template Code"; Rec."Template Code")
                 {
@@ -81,7 +84,6 @@ page 20408 "Qlty. Inspection List"
                 }
                 field("Source Document No."; Rec."Source Document No.")
                 {
-                    Visible = false;
                 }
                 field("Source Line No."; Rec."Source Document Line No.")
                 {
@@ -223,7 +225,7 @@ page 20408 "Qlty. Inspection List"
 
                 trigger OnAction()
                 begin
-                    Rec.TakeNewPicture();
+                    Rec.TakeNewMostRecentPicture();
                 end;
             }
             action(ChangeStatusFinish)

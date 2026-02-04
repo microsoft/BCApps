@@ -101,7 +101,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
 
         // [GIVEN] A workflow is configured to create purchase return on inspection finished event
         QltyManagementSetup.Get();
-        CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseCreatePurchaseReturn(), false);
+        CreateWorkflowWithSingleResponse(Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseCreatePurchaseReturn(), false);
         CreateWorkflowResponseArgument(Workflow, CopyStr(QltyWorkflowSetup.GetWorkflowResponseCreatePurchaseReturn(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
         QltyWorkflowResponse.SetStepConfigurationValueAsQuantityBehaviorEnum(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownMoveAll(), MoveBehavior::"Specific Quantity");
         QltyWorkflowResponse.SetStepConfigurationValueAsDecimal(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownKeyQuantity(), PurchaseLine."Quantity (Base)");
@@ -179,10 +179,10 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Qlty. Inspection Header");
 
         QltyManagementSetup.Get();
-        QltyManagementSetup."Create Inspection Behavior" := QltyManagementSetup."Create Inspection Behavior"::"Always create new inspection";
+        QltyManagementSetup."Inspection Creation Option" := QltyManagementSetup."Inspection Creation Option"::"Always create new inspection";
         QltyManagementSetup.Modify();
 
-        CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseCreateInspection(), true);
+        CreateWorkflowWithSingleResponse(Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseCreateInspection(), true);
         BeforeCount := QltyInspectionHeader.Count();
         OriginalQltyInspectionHeader.SetRange(Status, OriginalQltyInspectionHeader.Status::Open);
 
@@ -271,7 +271,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
 
         // [GIVEN] A workflow configured to create internal put-away on inspection reopened event
         QltyManagementSetup.Get();
-        CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionReopenedEvent(), QltyWorkflowSetup.GetWorkflowResponseInternalPutAway(), false);
+        CreateWorkflowWithSingleResponse(Workflow, QltyWorkflowSetup.GetInspectionReopenedEvent(), QltyWorkflowSetup.GetWorkflowResponseInternalPutAway(), false);
         CreateWorkflowResponseArgument(Workflow, CopyStr(QltyWorkflowSetup.GetWorkflowResponseInternalPutAway(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
         QltyWorkflowResponse.SetStepConfigurationValueAsQuantityBehaviorEnum(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownMoveAll(), MoveBehavior::"Specific Quantity");
         QltyWorkflowResponse.SetStepConfigurationValueAsDecimal(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownKeyQuantity(), PurchaseLine."Quantity (Base)");
@@ -366,12 +366,12 @@ codeunit 139969 "Qlty. Tests - Workflows"
         LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
 
         QltyManagementSetup.Get();
-        QltyManagementSetup."Adjustment Batch Name" := ItemJournalBatch.Name;
+        QltyManagementSetup."Item Journal Batch Name" := ItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] A workflow configured to create and post inventory adjustment on inspection finished
         QltyManagementSetup.Get();
-        CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseInventoryAdjustment(), false);
+        CreateWorkflowWithSingleResponse(Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseInventoryAdjustment(), false);
         CreateWorkflowResponseArgument(Workflow, CopyStr(QltyWorkflowSetup.GetWorkflowResponseInventoryAdjustment(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
         QltyWorkflowResponse.SetStepConfigurationValueAsQuantityBehaviorEnum(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownMoveAll(), MoveBehavior::"Specific Quantity");
         QltyWorkflowResponse.SetStepConfigurationValueAsDecimal(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownKeyQuantity(), 50);
@@ -453,7 +453,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
 
         // [GIVEN] A workflow configured to create transfer for failed quantity on inspection change
         QltyManagementSetup.Get();
-        CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionHasChangedEvent(), QltyWorkflowSetup.GetWorkflowResponseCreateTransfer(), false);
+        CreateWorkflowWithSingleResponse(Workflow, QltyWorkflowSetup.GetInspectionHasChangedEvent(), QltyWorkflowSetup.GetWorkflowResponseCreateTransfer(), false);
         CreateWorkflowResponseArgument(Workflow, CopyStr(QltyWorkflowSetup.GetWorkflowResponseCreateTransfer(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
         QltyWorkflowResponse.SetStepConfigurationValueAsQuantityBehaviorEnum(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownMoveAll(), MoveBehavior::"Failed Quantity");
         QltyWorkflowResponse.SetStepConfigurationValue(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownKeyLocation(), DestinationLocation.Code);
@@ -536,7 +536,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
 
         // [GIVEN] A workflow configured to set database value (blocking purchasing) on inspection finished
         QltyManagementSetup.Get();
-        CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseSetDatabaseValue(), false);
+        CreateWorkflowWithSingleResponse(Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseSetDatabaseValue(), false);
         CreateWorkflowResponseArgument(Workflow, CopyStr(QltyWorkflowSetup.GetWorkflowResponseSetDatabaseValue(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
         QltyWorkflowResponse.SetStepConfigurationValue(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownKeyDatabaseTable(), Item.TableCaption());
         QltyWorkflowResponse.SetStepConfigurationValue(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownKeyDatabaseTableFilter(), FilterTok);
@@ -612,7 +612,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         WhseWorksheetTemplate.Insert();
         LibraryWarehouse.CreateWhseWorksheetName(WhseWorksheetName, WhseWorksheetTemplate.Name, Location.Code);
         QltyManagementSetup.Get();
-        QltyManagementSetup."Whse. Wksh. Name" := WhseWorksheetName.Name;
+        QltyManagementSetup."Movement Worksheet Name" := WhseWorksheetName.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] A purchase order received with inspection from warehouse entry
@@ -638,7 +638,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         Bin.FindFirst();
 
         // [GIVEN] A workflow configured to move passed quantity using worksheet on inspection finished
-        CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseMoveInventory(), false);
+        CreateWorkflowWithSingleResponse(Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseMoveInventory(), false);
         CreateWorkflowResponseArgument(Workflow, CopyStr(QltyWorkflowSetup.GetWorkflowResponseMoveInventory(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
         QltyWorkflowResponse.SetStepConfigurationValueAsBoolean(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownUseMoveSheet(), true);
         QltyWorkflowResponse.SetStepConfigurationValueAsQuantityBehaviorEnum(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownMoveAll(), QuantityBehavior::"Passed Quantity");
@@ -712,7 +712,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyManagementSetup.Get();
         LibraryWarehouse.CreateWhseJournalTemplate(ReclassWhseItemWarehouseJournalTemplate, ReclassWhseItemWarehouseJournalTemplate.Type::Reclassification);
         LibraryWarehouse.CreateWhseJournalBatch(ReclassWarehouseJournalBatch, ReclassWhseItemWarehouseJournalTemplate.Name, Location.Code);
-        QltyManagementSetup."Bin Whse. Move Batch Name" := ReclassWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Reclass. Batch Name" := ReclassWarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] A purchase order received with inspection from warehouse entry
@@ -738,7 +738,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         Bin.FindFirst();
 
         // [GIVEN] A workflow configured to move sample quantity using reclassification journal on inspection finished
-        CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseMoveInventory(), false);
+        CreateWorkflowWithSingleResponse(Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseMoveInventory(), false);
         CreateWorkflowResponseArgument(Workflow, CopyStr(QltyWorkflowSetup.GetWorkflowResponseMoveInventory(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
         QltyWorkflowResponse.SetStepConfigurationValueAsBoolean(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownUseMoveSheet(), false);
         QltyWorkflowResponse.SetStepConfigurationValueAsQuantityBehaviorEnum(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownMoveAll(), QuantityBehavior::"Sample Quantity");
@@ -774,7 +774,6 @@ codeunit 139969 "Qlty. Tests - Workflows"
     [Test]
     procedure Move_NonDPP_UseWorksheet_Fail_OnInspectionFinish()
     var
-        QltyManagementSetup: Record "Qlty. Management Setup";
         InventorySetup: Record "Inventory Setup";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -841,7 +840,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyInspectionHeader.Modify();
 
         // [GIVEN] A workflow configured to move failed quantity using internal movement on inspection finished
-        CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseMoveInventory(), false);
+        CreateWorkflowWithSingleResponse(Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseMoveInventory(), false);
         CreateWorkflowResponseArgument(Workflow, CopyStr(QltyWorkflowSetup.GetWorkflowResponseMoveInventory(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
         QltyWorkflowResponse.SetStepConfigurationValueAsBoolean(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownUseMoveSheet(), true);
         QltyWorkflowResponse.SetStepConfigurationValueAsQuantityBehaviorEnum(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownMoveAll(), QuantityBehavior::"Failed Quantity");
@@ -908,7 +907,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyManagementSetup.Get();
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
         LibraryInventory.CreateItemJournalBatch(ReclassItemJournalBatch, ReclassItemJournalTemplate.Name);
-        QltyManagementSetup."Bin Move Batch Name" := ReclassItemJournalBatch.Name;
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] A location with bins and a lot tracked item
@@ -956,7 +955,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         Bin.FindFirst();
 
         // [GIVEN] A workflow configured to move tracked quantity with source bin filter on inspection finished
-        CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseMoveInventory(), false);
+        CreateWorkflowWithSingleResponse(Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseMoveInventory(), false);
         CreateWorkflowResponseArgument(Workflow, CopyStr(QltyWorkflowSetup.GetWorkflowResponseMoveInventory(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
         QltyWorkflowResponse.SetStepConfigurationValueAsBoolean(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownUseMoveSheet(), false);
         QltyWorkflowResponse.SetStepConfigurationValueAsQuantityBehaviorEnum(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownMoveAll(), QuantityBehavior::"Item Tracked Quantity");
@@ -1040,7 +1039,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyManagementSetup.Get();
         LibraryWarehouse.CreateWhseJournalTemplate(ReclassWhseItemWarehouseJournalTemplate, ReclassWhseItemWarehouseJournalTemplate.Type::Reclassification);
         LibraryWarehouse.CreateWhseJournalBatch(ReclassWarehouseJournalBatch, ReclassWhseItemWarehouseJournalTemplate.Name, Location.Code);
-        QltyManagementSetup."Bin Whse. Move Batch Name" := ReclassWarehouseJournalBatch.Name;
+        QltyManagementSetup."Whse. Reclass. Batch Name" := ReclassWarehouseJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] A purchase order received with inspection created from warehouse entry
@@ -1055,7 +1054,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyInspectionUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
 
         // [GIVEN] A workflow configured to change item tracking (lot and expiration date) on inspection finished
-        CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseChangeItemTracking(), false);
+        CreateWorkflowWithSingleResponse(Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseChangeItemTracking(), false);
         CreateWorkflowResponseArgument(Workflow, CopyStr(QltyWorkflowSetup.GetWorkflowResponseChangeItemTracking(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
         QltyWorkflowResponse.SetStepConfigurationValueAsQuantityBehaviorEnum(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownMoveAll(), QuantityBehavior::"Item Tracked Quantity");
         QltyWorkflowResponse.SetStepConfigurationValue(WorkflowStepArgument, QltyWorkflowResponse.GetWellKnownNewLotNo(), NewLotTok);
@@ -1145,7 +1144,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
 
         // [GIVEN] A workflow configured to create re-inspection on inspection finished event
         QltyManagementSetup.Get();
-        CreateWorkflowWithSingleResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseCreateReinspection(), false);
+        CreateWorkflowWithSingleResponse(Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseCreateReinspection(), false);
         CreateWorkflowResponseArgument(Workflow, CopyStr(QltyWorkflowSetup.GetWorkflowResponseCreateReinspection(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
         Workflow.Enabled := true;
         Workflow.Modify();
@@ -1200,12 +1199,12 @@ codeunit 139969 "Qlty. Tests - Workflows"
         LibraryInventory.CreateItem(Item);
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine);
         RecordRef.GetTable(PurchaseHeader);
-        QltyInspectionCreate.CreateInspection(RecordRef, true);
+        QltyInspectionCreate.CreateInspection(RecordRef, false);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
         // [GIVEN] A purchase approval workflow configured to finish inspection after approval
         QltyManagementSetup.Get();
-        CreatePurchaseApprovalRequestWorkflowWithResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetWorkflowResponseFinishInspection(), true);
+        CreatePurchaseApprovalRequestWorkflowWithResponse(Workflow, QltyWorkflowSetup.GetWorkflowResponseFinishInspection(), true);
         UserSetup.LockTable();
         if UserSetup.Get(UserId()) then
             UserSetup.Delete(false);
@@ -1259,13 +1258,13 @@ codeunit 139969 "Qlty. Tests - Workflows"
         LibraryInventory.CreateItem(Item);
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine);
         RecordRef.GetTable(PurchaseHeader);
-        QltyInspectionCreate.CreateInspection(RecordRef, true);
+        QltyInspectionCreate.CreateInspection(RecordRef, false);
         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
         QltyInspectionHeader.FinishInspection();
 
         // [GIVEN] A purchase approval workflow configured to reopen inspection after approval
         QltyManagementSetup.Get();
-        CreatePurchaseApprovalRequestWorkflowWithResponse(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetWorkflowResponseReopenInspection(), true);
+        CreatePurchaseApprovalRequestWorkflowWithResponse(Workflow, QltyWorkflowSetup.GetWorkflowResponseReopenInspection(), true);
         UserSetup.LockTable();
         if UserSetup.Get(UserId()) then
             UserSetup.Delete(false);
@@ -1327,7 +1326,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         // [GIVEN] A workflow configured to block lot on inspection finished with failing result condition
         ToLoadQltyInspectionResult.Get(DefaultResult1FailCodeTok);
         QltyManagementSetup.Get();
-        CreateWorkflowWithSingleResponseAndEventCondition(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseBlockLot(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionResult.Code), true);
+        CreateWorkflowWithSingleResponseAndEventCondition(Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseBlockLot(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionResult.Code), true);
 
         // [WHEN] The inspection result is set to failing result and inspection is finished
         QltyInspectionHeader.Validate("Result Code", ToLoadQltyInspectionResult.Code);
@@ -1392,7 +1391,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
 
         // [GIVEN] A workflow configured to unblock lot on inspection finished with passing result condition
         QltyManagementSetup.Get();
-        CreateWorkflowWithSingleResponseAndEventCondition(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseUnBlockLot(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionResult.Code), true);
+        CreateWorkflowWithSingleResponseAndEventCondition(Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseUnBlockLot(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionResult.Code), true);
 
         // [WHEN] The inspection result is set to passing result and inspection is finished
         QltyInspectionHeader.Validate("Result Code", ToLoadQltyInspectionResult.Code);
@@ -1453,7 +1452,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
 
         // [GIVEN] A workflow configured to block serial on inspection finished with failing result condition
         QltyManagementSetup.Get();
-        CreateWorkflowWithSingleResponseAndEventCondition(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseBlockSerial(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionResult.Code), true);
+        CreateWorkflowWithSingleResponseAndEventCondition(Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseBlockSerial(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionResult.Code), true);
 
         // [WHEN] The inspection result is set to failing result and inspection is finished
         QltyInspectionHeader.Validate("Result Code", ToLoadQltyInspectionResult.Code);
@@ -1519,7 +1518,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
 
         // [GIVEN] A workflow configured to unblock serial on inspection finished with passing result condition
         QltyManagementSetup.Get();
-        CreateWorkflowWithSingleResponseAndEventCondition(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseUnBlockSerial(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionResult.Code), true);
+        CreateWorkflowWithSingleResponseAndEventCondition(Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseUnBlockSerial(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionResult.Code), true);
 
         // [WHEN] The inspection result is set to passing result and inspection is finished
         QltyInspectionHeader.Validate("Result Code", ToLoadQltyInspectionResult.Code);
@@ -1580,7 +1579,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
 
         // [GIVEN] A workflow configured to block package on inspection finished with failing result condition
         QltyManagementSetup.Get();
-        CreateWorkflowWithSingleResponseAndEventCondition(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseBlockPackage(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionResult.Code), true);
+        CreateWorkflowWithSingleResponseAndEventCondition(Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseBlockPackage(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionResult.Code), true);
 
         // [WHEN] The inspection result is set to failing result and inspection is finished
         QltyInspectionHeader.Validate("Result Code", ToLoadQltyInspectionResult.Code);
@@ -1647,7 +1646,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
 
         // [GIVEN] A workflow configured to unblock package on inspection finished with passing result condition
         QltyManagementSetup.Get();
-        CreateWorkflowWithSingleResponseAndEventCondition(QltyManagementSetup, Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseUnBlockPackage(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionResult.Code), true);
+        CreateWorkflowWithSingleResponseAndEventCondition(Workflow, QltyWorkflowSetup.GetInspectionFinishedEvent(), QltyWorkflowSetup.GetWorkflowResponseUnBlockPackage(), StrSubstNo(EventFilterTok, ToLoadQltyInspectionResult.Code), true);
 
         // [WHEN] The inspection result is set to passing result and inspection is finished
         QltyInspectionHeader.Validate("Result Code", ToLoadQltyInspectionResult.Code);
@@ -1751,16 +1750,12 @@ codeunit 139969 "Qlty. Tests - Workflows"
         IsInitialized := true;
     end;
 
-    local procedure CreateWorkflowWithSingleResponse(var QltyManagementSetup: Record "Qlty. Management Setup"; var Workflow: Record Workflow; WorkflowEvent: Code[128]; WorkflowResponseName: Text; Enable: Boolean)
+    local procedure CreateWorkflowWithSingleResponse(var Workflow: Record Workflow; WorkflowEvent: Code[128]; WorkflowResponseName: Text; Enable: Boolean)
     var
         WorkflowEventHandling: Codeunit "Workflow Event Handling";
         WorkflowResponseHandling: Codeunit "Workflow Response Handling";
         WorkflowEventStepID: Integer;
     begin
-        QltyManagementSetup.Get();
-        QltyManagementSetup."Workflow Integration Enabled" := true;
-        QltyManagementSetup.Modify();
-
         WorkflowEventHandling.CreateEventsLibrary();
         WorkflowResponseHandling.CreateResponsesLibrary();
         LibraryWorkflow.CreateWorkflow(Workflow);
@@ -1771,16 +1766,12 @@ codeunit 139969 "Qlty. Tests - Workflows"
             LibraryWorkflow.EnableWorkflow(Workflow);
     end;
 
-    local procedure CreateWorkflowWithSingleResponseAndEventCondition(var QltyManagementSetup: Record "Qlty. Management Setup"; var Workflow: Record Workflow; WorkflowEvent: Code[128]; WorkflowResponseName: Text; EventCondition: Text; Enable: Boolean)
+    local procedure CreateWorkflowWithSingleResponseAndEventCondition(var Workflow: Record Workflow; WorkflowEvent: Code[128]; WorkflowResponseName: Text; EventCondition: Text; Enable: Boolean)
     var
         WorkflowEventHandling: Codeunit "Workflow Event Handling";
         WorkflowResponseHandling: Codeunit "Workflow Response Handling";
         WorkflowEventStepID: Integer;
     begin
-        QltyManagementSetup.Get();
-        QltyManagementSetup."Workflow Integration Enabled" := true;
-        QltyManagementSetup.Modify();
-
         WorkflowEventHandling.CreateEventsLibrary();
         WorkflowResponseHandling.CreateResponsesLibrary();
         LibraryWorkflow.CreateWorkflow(Workflow);
@@ -1792,16 +1783,12 @@ codeunit 139969 "Qlty. Tests - Workflows"
             LibraryWorkflow.EnableWorkflow(Workflow);
     end;
 
-    local procedure CreatePurchaseApprovalRequestWorkflowWithResponse(var QltyManagementSetup: Record "Qlty. Management Setup"; var Workflow: Record Workflow; WorkflowResponseName: Text; Enable: Boolean)
+    local procedure CreatePurchaseApprovalRequestWorkflowWithResponse(var Workflow: Record Workflow; WorkflowResponseName: Text; Enable: Boolean)
     var
         WorkflowEventHandling: Codeunit "Workflow Event Handling";
         WorkflowResponseHandling: Codeunit "Workflow Response Handling";
         WorkflowEventStepID: Integer;
     begin
-        QltyManagementSetup.Get();
-        QltyManagementSetup."Workflow Integration Enabled" := true;
-        QltyManagementSetup.Modify();
-
         WorkflowEventHandling.CreateEventsLibrary();
         WorkflowResponseHandling.CreateResponsesLibrary();
         LibraryWorkflow.CreateWorkflow(Workflow);
@@ -1845,20 +1832,27 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         PurchaseHeader: Record "Purchase Header";
         SpecificQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
+        SpecificQltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
+        ConfigCode: Text;
     begin
-        QltyInspectionUtility.CreateSourceConfig(
-            SpecificQltyInspectSourceConfig,
-            Database::"Purchase Header",
-            Enum::"Qlty. Target Type"::Inspection,
-            Database::"Qlty. Inspection Header");
+        SpecificQltyInspectSourceConfig.Init();
+        QltyInspectionUtility.GenerateRandomCharacters(MaxStrLen(SpecificQltyInspectSourceConfig.Code), ConfigCode);
+        SpecificQltyInspectSourceConfig.Code := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
+        SpecificQltyInspectSourceConfig.Description := CopyStr(ConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Description));
+        SpecificQltyInspectSourceConfig.Validate("From Table No.", Database::"Purchase Header");
+        SpecificQltyInspectSourceConfig."To Type" := SpecificQltyInspectSourceConfig."To Type"::Inspection;
+        SpecificQltyInspectSourceConfig.Validate("To Table No.", Database::"Qlty. Inspection Header");
+        SpecificQltyInspectSourceConfig.Insert();
 
-        QltyInspectionUtility.CreateSourceFieldConfig(
-            SpecificQltyInspectSourceConfig.Code,
-            Database::"Purchase Header",
-            PurchaseHeader.FieldNo("No."),
-            Enum::"Qlty. Target Type"::Inspection,
-            Database::"Qlty. Inspection Header",
-            QltyInspectionHeader.FieldNo("Source Document No."));
+        SpecificQltyInspectSrcFldConf.Init();
+        SpecificQltyInspectSrcFldConf.Code := SpecificQltyInspectSourceConfig.Code;
+        SpecificQltyInspectSrcFldConf.InitLineNoIfNeeded();
+        SpecificQltyInspectSrcFldConf."From Table No." := SpecificQltyInspectSourceConfig."From Table No.";
+        SpecificQltyInspectSrcFldConf."From Field No." := PurchaseHeader.FieldNo("No.");
+        SpecificQltyInspectSrcFldConf."To Type" := SpecificQltyInspectSrcFldConf."To Type"::Inspection;
+        SpecificQltyInspectSrcFldConf."To Table No." := Database::"Qlty. Inspection Header";
+        SpecificQltyInspectSrcFldConf."To Field No." := QltyInspectionHeader.FieldNo("Source Document No.");
+        SpecificQltyInspectSrcFldConf.Insert();
     end;
 
     [ConfirmHandler]

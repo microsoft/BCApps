@@ -21,8 +21,6 @@ using Microsoft.Warehouse.Tracking;
 /// </summary>
 codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
 {
-    Description = 'Negative Adjust inventory.';
-
     var
         WarehouseJournalLineDescriptionTemplateLbl: Label 'Inspection [%1] negative adjusted quantity', Comment = '%1 = Quality Inspection';
         MissingBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the adjustment batch.';
@@ -110,10 +108,10 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
             if TempQuantityToActQltyDispositionBuffer."Location Filter" <> '' then
                 Location.Get(TempQuantityToActQltyDispositionBuffer.GetFromLocationCode());
             if Location."Directed Put-away and Pick" then begin
-                if QltyManagementSetup."Whse. Adjustment Batch Name" = '' then
+                if QltyManagementSetup."Whse. Item Journal Batch Name" = '' then
                     Error(MissingBatchErr);
-                if not WhseJnlWarehouseJournalBatch.Get(QltyManagementSetup.GetWarehouseInventoryAdjustmentJournalTemplate(), QltyManagementSetup."Whse. Adjustment Batch Name", Location.Code) then
-                    Error(CannotGetJournalBatchErr, QltyManagementSetup.GetWarehouseInventoryAdjustmentJournalTemplate(), QltyManagementSetup."Whse. Adjustment Batch Name", StrSubstNo(LocationLbl, Location.Code));
+                if not WhseJnlWarehouseJournalBatch.Get(QltyManagementSetup.GetWarehouseInventoryAdjustmentJournalTemplate(), QltyManagementSetup."Whse. Item Journal Batch Name", Location.Code) then
+                    Error(CannotGetJournalBatchErr, QltyManagementSetup.GetWarehouseInventoryAdjustmentJournalTemplate(), QltyManagementSetup."Whse. Item Journal Batch Name", StrSubstNo(LocationLbl, Location.Code));
 
                 Clear(WhseWarehouseJournalLine);
                 CreateNegativeWarehouseAdjustmentLine(
@@ -134,14 +132,14 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
                     end else
                         DidSomething := true;
 
-                    QltyNotificationMgmt.NotifyNegativeAdjustmentOccurred(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Whse. Adjustment Batch Name");
+                    QltyNotificationMgmt.NotifyNegativeAdjustmentOccurred(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Whse. Item Journal Batch Name");
                 end;
             end else begin
-                if QltyManagementSetup."Adjustment Batch Name" = '' then
+                if QltyManagementSetup."Item Journal Batch Name" = '' then
                     Error(MissingBatchErr);
                 NegativeAdjustItemJournalBatch.SetAutoCalcFields("Template Type");
-                if not NegativeAdjustItemJournalBatch.Get(QltyManagementSetup.GetInventoryAdjustmentJournalTemplate(), QltyManagementSetup."Adjustment Batch Name") then
-                    Error(CannotGetJournalBatchErr, QltyManagementSetup.GetInventoryAdjustmentJournalTemplate(), QltyManagementSetup."Adjustment Batch Name", '');
+                if not NegativeAdjustItemJournalBatch.Get(QltyManagementSetup.GetInventoryAdjustmentJournalTemplate(), QltyManagementSetup."Item Journal Batch Name") then
+                    Error(CannotGetJournalBatchErr, QltyManagementSetup.GetInventoryAdjustmentJournalTemplate(), QltyManagementSetup."Item Journal Batch Name", '');
                 Clear(ItemJournalLine);
                 CreateNegativeItemAdjustmentLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, NegativeAdjustItemJournalBatch, ItemJournalLine, ItemReservationEntry);
                 CreatedLine := ItemJournalLine."Line No." <> 0;
@@ -158,7 +156,7 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
                     end else
                         DidSomething := true;
 
-                    QltyNotificationMgmt.NotifyNegativeAdjustmentOccurred(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Adjustment Batch Name");
+                    QltyNotificationMgmt.NotifyNegativeAdjustmentOccurred(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Item Journal Batch Name");
                 end;
             end;
 

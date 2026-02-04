@@ -82,7 +82,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     /// <param name="Template">The template</param>
     /// <param name="LineNo">The template line</param>
     /// <param name="OptionalSpecificResult">Leave empty to copy all applicable results</param>
-    procedure CopyResultConditionsFromTestToTemplateLine(Template: Code[20]; LineNo: Integer; OptionalSpecificResult: Code[20]; OverwriteConditionIfExisting: Boolean)
+    internal procedure CopyResultConditionsFromTestToTemplateLine(Template: Code[20]; LineNo: Integer; OptionalSpecificResult: Code[20]; OverwriteConditionIfExisting: Boolean)
     begin
         CopyResultConditionsFromTestToTemplateLine(Template, LineNo, OptionalSpecificResult, OverwriteConditionIfExisting, '', '');
     end;
@@ -236,6 +236,28 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
             end;
 
         until FromTemplateQltyIResultConditConf.Next() = 0;
+    end;
+
+    /// <summary>
+    /// This will copy any grade configurations configured to automatically copy to all existing templates.
+    /// This leverages how CopyGradeConditionsFromFieldToTemplateLine will already update fields via CopyGradeConditionsFromDefaultToField 
+    /// when a specific grade is supplied.
+    /// </summary>
+    procedure CopyGradeConditionsFromDefaultToAllTemplates()
+    var
+        QltyInspectionResult: Record "Qlty. Inspection Result";
+        QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+    begin
+        QltyInspectionResult.SetRange("Copy Behavior", QltyInspectionResult."Copy Behavior"::"Automatically copy the result");
+        if QltyInspectionResult.FindSet() then
+            repeat
+                if QltyInspectionTemplateLine.FindSet(false) then
+                    repeat
+                        // We're using 'false' here because we do not want to replace the conditions, only add new ones.
+                        // We do not want to remove grades that were previously added to templates.
+                        CopyResultConditionsFromTestToTemplateLine(QltyInspectionTemplateLine."Template Code", QltyInspectionTemplateLine."Line No.", QltyInspectionResult.Code, false);
+                    until (QltyInspectionTemplateLine.Next() = 0);
+            until (QltyInspectionResult.Next() = 0);
     end;
 
     /// <summary>
@@ -415,7 +437,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     /// <param name="MatrixArrayToSetConditionDescriptionCellData"></param>
     /// <param name="MatrixArrayToSetCaptionSet"></param>
     /// <param name="MatrixVisibleStateToSet"></param>
-    procedure GetDefaultPromotedResults(
+    internal procedure GetDefaultPromotedResults(
         AllPromoted: Boolean;
         var MatrixArraySourceRecordId: array[10] of RecordId;
         var MatrixArrayToSetConditionCellData: array[10] of Text;

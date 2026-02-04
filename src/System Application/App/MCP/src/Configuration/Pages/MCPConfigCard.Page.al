@@ -112,6 +112,7 @@ page 8351 "MCP Config Card"
                 Caption = 'Copy';
                 ToolTip = 'Creates a copy of the current MCP configuration, including its tools and permissions.';
                 Image = Copy;
+                AccessByPermission = tabledata "MCP Configuration" = IM;
 
                 trigger OnAction()
                 begin
@@ -132,31 +133,34 @@ page 8351 "MCP Config Card"
                     MCPConfigImplementation.ValidateConfiguration(Rec, false);
                 end;
             }
-            action(MCPEntraApplications)
+            group(Advanced)
             {
-                Caption = 'Entra Applications';
-                ToolTip = 'View registered Entra applications and their Client IDs for MCP client configuration.';
+                Caption = 'Advanced';
                 Image = Setup;
-                RunObject = page "MCP Entra Application List";
-            }
-            action(GenerateConnectionString)
-            {
-                Caption = 'Connection String';
-                ToolTip = 'Generate a connection string for this MCP configuration to use in your MCP client.';
-                Image = Export;
 
-                trigger OnAction()
-                begin
-                    MCPConfigImplementation.ShowConnectionString(Rec.Name);
-                end;
+                action(GenerateConnectionString)
+                {
+                    Caption = 'Connection String';
+                    ToolTip = 'Generate a connection string for this MCP configuration to use in your MCP client.';
+                    Image = Link;
+
+                    trigger OnAction()
+                    begin
+                        MCPConfigImplementation.ShowConnectionString(Rec.Name);
+                    end;
+                }
             }
         }
         area(Promoted)
         {
             actionref(Promoted_Copy; Copy) { }
             actionref(Promoted_Validate; Validate) { }
-            actionref(Promoted_MCPEntraApplications; MCPEntraApplications) { }
-            actionref(Promoted_GenerateConnectionString; GenerateConnectionString) { }
+            group(Promoted_Advanced)
+            {
+                Caption = 'Advanced';
+
+                actionref(Promoted_GenerateConnectionString; GenerateConnectionString) { }
+            }
         }
     }
 
