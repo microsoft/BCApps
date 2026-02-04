@@ -523,7 +523,7 @@ page 20406 "Qlty. Inspection"
 
                 trigger OnAction()
                 begin
-                    Rec.TakeNewPicture();
+                    Rec.TakeNewMostRecentPicture();
                 end;
             }
             action(MoveToBin)

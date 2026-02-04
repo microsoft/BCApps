@@ -23,6 +23,7 @@ using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.QualityManagement.Workflow;
 using System.Device;
+using System.IO;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Utilities;
@@ -245,7 +246,7 @@ table 20405 "Qlty. Inspection Header"
         field(41; "Most Recent Picture"; Media)
         {
             Caption = 'Most Recent Picture';
-            ToolTip = 'Specifies the most recent picture. Pictures can also be uploaded to document attachments and OneDrive automatically.';
+            ToolTip = 'Specifies the most recent picture. Additionally, pictures can be uploaded to document attachments and OneDrive automatically.';
         }
         field(45; "Existing Inspections This Rec."; Integer)
         {
@@ -654,6 +655,8 @@ table 20405 "Qlty. Inspection Header"
         CannotFinishInspectionBecauseTheInspectionIsInResultErr: Label 'Cannot finish the inspection %1 because the inspection currently has the result %2, which is configured to disallow finishing.', Comment = '%1=the inspection, %2=the result code.';
         MimeTypeTok: Label 'image/jpeg', Locked = true;
         AttachmentNameTok: Label '%1.%2', Locked = true, Comment = '%1=name,%2=extension';
+        PictureFileFilterTok: Label 'Pictures |*.jpg;*.png;*.jpeg;*.bmp', Locked = true;
+        ImageTok: Label 'Image', Locked = true;
         PassFailQuantityInvalidErr: Label 'The %1 and %2 cannot exceed the %3. The %3 is currently exceeded by %4.', Comment = '%1=the passed quantity caption, %2=the failed quantity caption, %3=the source quantity caption, %4=the quantity exceeded';
 
     local procedure UpdateMostRecentReinspection()
@@ -1297,84 +1300,6 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// This will use the camera to take a picture and add it to the inspection.
-    /// </summary>
-    /// <returns></returns>
-    [TryFunction]
-    procedure TakeNewPicture()
-    var
-        Camera: Codeunit Camera;
-        PictureInStream: InStream;
-        Handled: Boolean;
-        PictureName: Text;
-    begin
-        TestStatusOpen();
-
-        QltyManagementSetup.Get();
-        QltyManagementSetup.SanityCheckPictureAndCameraSettings();
-        OnBeforeTakePicture(Rec, Handled);
-        if Handled then
-            exit;
-
-        if not Camera.IsAvailable() then
-            Error(CameraNotAvailableErr);
-
-        if not Camera.GetPicture(PictureInStream, PictureName) then
-            Error(UnableToSavePictureErr);
-        PictureName := StrSubstNo(PictureNameTok, Rec."No.", Rec."Re-inspection No.", CurrentDateTime());
-        PictureName := DelChr(PictureName, '=', ' ><{}.@!`~''"|\/?&*():');
-
-        AddPicture(PictureInStream, PictureName, FileExtensionTok);
-
-        OnAfterTakePicture(Rec);
-    end;
-
-    /// <summary>
-    /// Adds the supplied instream to the inspection.
-    /// </summary>
-    /// <param name="PictureInStream"></param>
-    /// <param name="PictureName"></param>
-    /// <param name="FileExtension"></param>
-    /// <returns></returns>
-    [TryFunction]
-    internal procedure AddPicture(var PictureInStream: InStream; PictureName: Text; FileExtension: Text)
-    var
-        DocumentAttachment: Record "Document Attachment";
-
-        DocumentServiceManagement: Codeunit "Document Service Management";
-        RecordRefToInspection: RecordRef;
-        FullFileNameWithExtension: Text;
-        Handled: Boolean;
-    begin
-        TestStatusOpen();
-
-        FullFileNameWithExtension := PictureName;
-        if not FullFileNameWithExtension.Contains('.') then
-            FullFileNameWithExtension := StrSubstNo(AttachmentNameTok, FullFileNameWithExtension, FileExtension);
-
-        OnBeforeAddPicture(Rec, PictureInStream, PictureName, FileExtension, FullFileNameWithExtension, Handled);
-        if Handled then
-            exit;
-
-        Clear(Rec."Most Recent Picture");
-        Rec."Most Recent Picture".ImportStream(PictureInStream, PictureName, MimeTypeTok);
-        Rec.Modify(true);
-
-        QltyManagementSetup.Get();
-        if QltyManagementSetup."Additional Picture Handling" in [QltyManagementSetup."Additional Picture Handling"::"Save as attachment", QltyManagementSetup."Additional Picture Handling"::"Save as attachment and upload to OneDrive"] then begin
-            RecordRefToInspection.GetTable(Rec);
-            DocumentAttachment.SaveAttachmentFromStream(PictureInStream, RecordRefToInspection, FullFileNameWithExtension);
-            RecordRefToInspection.Modify(true);
-        end;
-
-        if QltyManagementSetup."Additional Picture Handling" = QltyManagementSetup."Additional Picture Handling"::"Save as attachment and upload to OneDrive" then
-            if DocumentServiceManagement.IsConfigured() then
-                DocumentServiceManagement.ShareWithOneDrive(PictureName, FileExtension, PictureInStream);
-
-        OnAfterAddPicture(Rec, PictureInStream, PictureName, FileExtension, FullFileNameWithExtension);
-    end;
-
-    /// <summary>
     /// Sets record filters based on the supplied variant and flags on whether it should be finding related inspections for the item, document, or something else.
     /// </summary>
     /// <param name="ErrorIfMissingFilter"></param>
@@ -1659,6 +1584,105 @@ table 20405 "Qlty. Inspection Header"
         end;
     end;
 
+    #region Most Recent Picture Management
+    /// <summary>
+    /// This will use the camera to take a picture and add it to the Inspection document.
+    /// </summary>
+    /// <returns></returns>
+    internal procedure TakeNewMostRecentPicture()
+    var
+        Camera: Codeunit Camera;
+        PictureInStream: InStream;
+        PictureName, FullFileNameWithExtension : Text;
+    begin
+        TestStatusOpen();
+
+        QltyManagementSetup.GetRecordOnce();
+        QltyManagementSetup.SanityCheckPictureAndCameraSettings();
+
+        if not Camera.IsAvailable() then
+            Error(CameraNotAvailableErr);
+
+        if not Camera.GetPicture(PictureInStream, PictureName) then
+            Error(UnableToSavePictureErr);
+
+        PictureName := StrSubstNo(PictureNameTok, Rec."No.", Rec."Re-inspection No.", CurrentDateTime());
+        PictureName := DelChr(PictureName, '=', ' ><{}.@!`~''"|\/?&*():');
+
+        FullFileNameWithExtension := PictureName;
+        if not FullFileNameWithExtension.Contains('.') then
+            FullFileNameWithExtension := StrSubstNo(AttachmentNameTok, FullFileNameWithExtension, FileExtensionTok);
+
+        AddMostRecentPicture(PictureInStream, PictureName, MimeTypeTok);
+        ProcessAdditionalPictureHandling(PictureInStream, PictureName, FileExtensionTok, FullFileNameWithExtension);
+    end;
+
+    internal procedure ImportMostRecentPicture()
+    var
+        FileManagement: Codeunit "File Management";
+        QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        PictureInStream: InStream;
+        PictureName, FileExtension, FullFileNameWithExtension : Text;
+    begin
+        TestStatusOpen();
+
+        if not QltyMiscHelpers.PromptAndImportIntoInStream(PictureFileFilterTok, PictureInStream, FullFileNameWithExtension) then
+            exit;
+
+        if not FullFileNameWithExtension.Contains('.') then begin
+            PictureName := FileManagement.GetFileName(FullFileNameWithExtension);
+            FileExtension := FileExtensionTok;
+            FullFileNameWithExtension := StrSubstNo(AttachmentNameTok, FullFileNameWithExtension, FileExtensionTok);
+        end else begin
+            PictureName := FileManagement.GetFileName(FullFileNameWithExtension);
+            FileExtension := FileManagement.GetExtension(FullFileNameWithExtension);
+        end;
+
+        AddMostRecentPicture(PictureInStream, ImageTok, '');
+        ProcessAdditionalPictureHandling(PictureInStream, PictureName, FileExtension, FullFileNameWithExtension);
+    end;
+
+    internal procedure DeleteMostRecentPicture()
+    begin
+        Clear(Rec."Most Recent Picture");
+        Rec.Modify(true);
+    end;
+
+    /// <summary>
+    /// Adds the supplied InStream to the Inspection document as "Most Recent Picture".
+    /// </summary>
+    /// <param name="PictureInStream"></param>
+    /// <param name="PictureName"></param>
+    /// <param name="MimeType"></param>
+    /// <returns></returns>
+    local procedure AddMostRecentPicture(var PictureInStream: InStream; PictureName: Text; MimeType: Text)
+    begin
+        Clear(Rec."Most Recent Picture");
+        if MimeType <> '' then
+            Rec."Most Recent Picture".ImportStream(PictureInStream, PictureName, MimeType)
+        else
+            Rec."Most Recent Picture".ImportStream(PictureInStream, PictureName);
+        Rec.Modify();
+    end;
+
+    local procedure ProcessAdditionalPictureHandling(var PictureInStream: InStream; PictureName: Text; FileExtension: Text; FullFileNameWithExtension: Text)
+    var
+        DocumentAttachment: Record "Document Attachment";
+        DocumentServiceManagement: Codeunit "Document Service Management";
+        RecordRefToQltyInspectionHeader: RecordRef;
+    begin
+        QltyManagementSetup.GetRecordOnce();
+        if QltyManagementSetup."Additional Picture Handling" in [QltyManagementSetup."Additional Picture Handling"::"Save as attachment", QltyManagementSetup."Additional Picture Handling"::"Save as attachment and upload to OneDrive"] then begin
+            RecordRefToQltyInspectionHeader.GetTable(Rec);
+            DocumentAttachment.SaveAttachmentFromStream(PictureInStream, RecordRefToQltyInspectionHeader, FullFileNameWithExtension);
+        end;
+
+        if QltyManagementSetup."Additional Picture Handling" = QltyManagementSetup."Additional Picture Handling"::"Save as attachment and upload to OneDrive" then
+            if DocumentServiceManagement.IsConfigured() then
+                DocumentServiceManagement.ShareWithOneDrive(PictureName, FileExtension, PictureInStream);
+    end;
+    #endregion Most Recent Picture Management
+
     /// <summary>
     /// Use to supplement or replace default system behavior of finding related inspections.
     /// </summary>
@@ -1723,54 +1747,6 @@ table 20405 "Qlty. Inspection Header"
     /// <param name="Handled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFinishInspection(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
-    begin
-    end;
-
-    /// <summary>
-    /// OnBeforeTakePicture occurs before a picture has been taken.
-    /// Use this to replace with your own picture taking dialog.
-    /// </summary>
-    /// <param name="QltyInspectionHeader">var Record "Qlty. Inspection Header".</param>
-    /// <param name="Handled">Set to true to replace the default behavior.</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeTakePicture(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
-    begin
-    end;
-
-    /// <summary>
-    /// OnAfterTakePicture occurs after a picture has been taken.
-    /// Picture storage will depend on the "Picture Upload Behavior" setting.
-    /// </summary>
-    /// <param name="QltyInspectionHeader">var Record "Qlty. Inspection Header".</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTakePicture(var QltyInspectionHeader: Record "Qlty. Inspection Header")
-    begin
-    end;
-
-    /// <summary>
-    /// OnBeforeAddPicture occurs before the supplied picture instream is added to the inspection.
-    /// </summary>
-    /// <param name="QltyInspectionHeader">var Record "Qlty. Inspection Header"</param>
-    /// <param name="PictureInStream">var InStream</param>
-    /// <param name="PictureName">var Text</param>
-    /// <param name="FileExtension">var Text</param>
-    /// <param name="FullFileNameWithExtension">var Text</param>
-    /// <param name="Handled">Set to true to replace the default behavior</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeAddPicture(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var PictureInStream: InStream; var PictureName: Text; var FileExtension: Text; var FullFileNameWithExtension: Text; var Handled: Boolean)
-    begin
-    end;
-
-    /// <summary>
-    /// OnAfterAddPicture occurs after the supplied picture instream is added to the inspection.
-    /// </summary>
-    /// <param name="QltyInspectionHeader">var Record "Qlty. Inspection Header"</param>
-    /// <param name="PictureInStream">var InStream</param>
-    /// <param name="PictureName">var Text</param>
-    /// <param name="FileExtension">var Text</param>
-    /// <param name="FullFileNameWithExtension">var Text</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterAddPicture(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var PictureInStream: InStream; var PictureName: Text; var FileExtension: Text; var FullFileNameWithExtension: Text)
     begin
     end;
 
