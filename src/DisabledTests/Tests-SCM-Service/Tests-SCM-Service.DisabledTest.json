@@ -138,5 +138,10 @@
     "codeunitId": 136146,
     "codeunitName": "Service Item Tracking",
     "method": "WarningWithChangedSerialNo"
+  },
+  {
+    "method": "TestPrtCrdtMmCrtnFrmCrteCrdtMm",
+    "codeunitName": "Service Posting - Credit Memo",
+    "codeunitId": 136104
   }
 ]

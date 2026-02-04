@@ -83,5 +83,20 @@
     "codeunitId": 135414,
     "codeunitName": "Purchase Quote Plan-based E2E",
     "method": "TestCreatePurchaseOrderFromPurchaseQuoteAsTeamMemberISVEmb"
+  },
+  {
+    "codeunitId": 135415,
+    "codeunitName": "Reserv. & Order Promising E2E",
+    "method": "CreateReservationAndOrderPromisingAsBusinessManager"
+  },
+  {
+    "codeunitId": 135415,
+    "codeunitName": "Reserv. & Order Promising E2E",
+    "method": "CreateReservationAndOrderPromisingAsAccountant"
+  },
+  {
+    "codeunitId": 135415,
+    "codeunitName": "Reserv. & Order Promising E2E",
+    "method": "CreateReservationAndOrderPromisingAsTeamMember"
   }
 ]

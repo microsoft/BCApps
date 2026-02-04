@@ -383,5 +383,10 @@
     "codeunitId": 136900,
     "codeunitName": "Service Reports",
     "method": "PrepaidContrEntriesTestWarning"
+  },
+  {
+    "codeunitId": 132600,
+    "codeunitName": "Report Layout",
+    "method": "TestClosingTrialBalance"
   }
 ]

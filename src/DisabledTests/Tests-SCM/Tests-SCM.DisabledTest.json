@@ -3753,5 +3753,15 @@
     "codeunitId": 137296,
     "codeunitName": "SCM Inventory Misc. IV",
     "method": "BiweeklyPhysInvCountingPeriodWithNoLastDate"
+  },
+  {
+    "codeunitId": 137059,
+    "method": "VerifyReservationEntryMustExistWhenItemTrackingPageIsClosed",
+    "codeunitName": "SCM RTAM Item Tracking-II"
+  },
+  {
+    "codeunitId": 137075,
+    "method": "CheckLotForLotItemPlanningWorksheetAction",
+    "codeunitName": "SCM Planning Order Tracking"
   }
 ]

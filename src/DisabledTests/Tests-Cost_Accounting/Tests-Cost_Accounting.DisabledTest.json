@@ -408,5 +408,10 @@
     "codeunitId": 134821,
     "codeunitName": "ERM Cost Accounting - Pages",
     "method": "TestCostTypeBalanceRoundingFactor"
+  },
+  {
+    "codeunitId": 134821,
+    "codeunitName": "ERM Cost Accounting - Pages",
+    "method": "TestCostBudgetByCostCenterAmountTypeNetChangeForPeriodMonth"
   }
 ]
