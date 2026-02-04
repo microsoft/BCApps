@@ -215,6 +215,14 @@ table 20411 "Qlty. Inspection Result"
         PromptFirstExistingTemplateQst: Label 'This result is currently defined on some Quality Inspection Templates. Are you sure you want to remove this result? This cannot be undone.';
         PromptFirstExistingTestQst: Label 'This result is currently defined on some tests. Are you sure you want to remove this result? This cannot be undone.';
         DefaultResultInProgressCodeLbl: Label 'INPROGRESS', Locked = true, MaxLength = 20;
+        ResultCodePassLbl: Label 'PASS', MaxLength = 20;
+        ResultCodeGoodLbl: Label 'GOOD', MaxLength = 20;
+        ResultCodeAcceptableLbl: Label 'ACCEPTABLE', MaxLength = 20;
+        ResultCodeFailLbl: Label 'FAIL', MaxLength = 20;
+        ResultCodeBadLbl: Label 'BAD', MaxLength = 20;
+        ResultCodeUnacceptableLbl: Label 'UNACCEPTABLE', MaxLength = 20;
+        ResultCodeErrorLbl: Label 'ERROR', MaxLength = 20;
+        ResultCodeRejectLbl: Label 'REJECT', MaxLength = 20;
 
     trigger OnInsert()
     begin
@@ -236,9 +244,9 @@ table 20411 "Qlty. Inspection Result"
             exit;
 
         case Rec.Code of
-            'PASS', 'GOOD', 'ACCEPTABLE':
+            ResultCodePassLbl, ResultCodeGoodLbl, ResultCodeAcceptableLbl:
                 Rec."Result Category" := Rec."Result Category"::Acceptable;
-            'FAIL', 'BAD', 'UNACCEPTABLE', 'ERROR', 'REJECT':
+            ResultCodeFailLbl, ResultCodeBadLbl, ResultCodeUnacceptableLbl, ResultCodeErrorLbl, ResultCodeRejectLbl:
                 Rec."Result Category" := Rec."Result Category"::"Not acceptable";
         end;
     end;

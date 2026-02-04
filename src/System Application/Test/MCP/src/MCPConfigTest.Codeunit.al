@@ -9,6 +9,7 @@ using System.MCP;
 using System.Reflection;
 using System.TestLibraries.MCP;
 using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 130130 "MCP Config Test"
 {
@@ -758,6 +759,83 @@ codeunit 130130 "MCP Config Test"
         // [THEN] No Missing Read Tool warning is created
         MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Read Tool");
         Assert.RecordIsEmpty(MCPConfigWarning);
+    end;
+
+    [Test]
+    procedure TestExportConfiguration()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+        InStream: InStream;
+        ConfigId: Guid;
+        JsonText: Text;
+        ConfigJson: JsonObject;
+        JsonToken: JsonToken;
+    begin
+        // [GIVEN] Configuration with two tools is created
+        ConfigId := CreateMCPConfig(false, true, true, true);
+        CreateMCPConfigTool(ConfigId);
+        CreateMCPConfigTool(ConfigId);
+        MCPConfiguration.GetBySystemId(ConfigId);
+
+        // [WHEN] Export configuration is called
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        MCPConfig.ExportConfiguration(ConfigId, OutStream);
+
+        // [THEN] JSON contains configuration data
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+        InStream.ReadText(JsonText);
+        Assert.IsTrue(ConfigJson.ReadFrom(JsonText), 'Invalid JSON exported');
+
+        ConfigJson.Get('name', JsonToken);
+        Assert.AreEqual(MCPConfiguration.Name, JsonToken.AsValue().AsText(), 'Name mismatch');
+
+        ConfigJson.Get('enableDynamicToolMode', JsonToken);
+        Assert.AreEqual(true, JsonToken.AsValue().AsBoolean(), 'EnableDynamicToolMode mismatch');
+
+        ConfigJson.Get('tools', JsonToken);
+        Assert.AreEqual(2, JsonToken.AsArray().Count(), 'Tools count mismatch');
+    end;
+
+    [Test]
+    procedure TestImportConfiguration()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+        InStream: InStream;
+        SourceConfigId: Guid;
+        ImportedConfigId: Guid;
+        NewName: Text[100];
+        NewDescription: Text[250];
+    begin
+        // [GIVEN] Configuration with two tools is created and exported
+        SourceConfigId := CreateMCPConfig(false, true, true, true);
+        CreateMCPConfigTool(SourceConfigId);
+        CreateMCPConfigTool(SourceConfigId);
+
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        MCPConfig.ExportConfiguration(SourceConfigId, OutStream);
+
+        // [WHEN] Import configuration is called with new name
+        NewName := CopyStr(Format(CreateGuid()), 1, 100);
+        NewDescription := 'Imported configuration';
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+        ImportedConfigId := MCPConfig.ImportConfiguration(InStream, NewName, NewDescription);
+
+        // [THEN] New configuration is created with imported settings
+        MCPConfiguration.GetBySystemId(ImportedConfigId);
+        Assert.AreEqual(NewName, MCPConfiguration.Name, 'Name mismatch');
+        Assert.AreEqual(NewDescription, MCPConfiguration.Description, 'Description mismatch');
+        Assert.IsFalse(MCPConfiguration.Active, 'Imported config should be inactive');
+        Assert.IsTrue(MCPConfiguration.EnableDynamicToolMode, 'EnableDynamicToolMode mismatch');
+        Assert.IsTrue(MCPConfiguration.DiscoverReadOnlyObjects, 'DiscoverReadOnlyObjects mismatch');
+
+        // [THEN] Tools are imported
+        MCPConfigurationTool.SetRange(ID, ImportedConfigId);
+        Assert.RecordCount(MCPConfigurationTool, 2);
     end;
 
     local procedure CreateMCPConfig(Active: Boolean; DynamicToolMode: Boolean; AllowCreateUpdateDeleteTools: Boolean; DiscoverReadOnlyObjects: Boolean): Guid
