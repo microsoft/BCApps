@@ -221,71 +221,7 @@ page 20462 "Qlty. Prod. Gen. Rule Wizard"
                     end;
                 }
             }
-            group(SettingsFor_StepWhichAssemblyOrder)
-            {
-                ShowCaption = false;
-                InstructionalText = 'An inspection should be created for an assembly order when these filters match. You can choose other fields on the last step.';
-                Visible = (StepWhichAssemblyOrderCounter = CurrentStepCounter);
-
-                field(ChoosechooseAssemblyLocation; LocationCodeFilter)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Location';
-                    ToolTip = 'Specifies a location filter';
-
-                    trigger OnAssistEdit()
-                    begin
-                        QltyFilterHelpers.AssistEditLocation(LocationCodeFilter);
-                    end;
-
-                    trigger OnValidate()
-                    begin
-                        if not UpdateFullTextRuleStringsFromFilters() then
-                            Error(LocationFilterErr, GetLastErrorText());
-                    end;
-                }
-                field(ToBinCodeFilter; ToBinCodeFilter)
-                {
-                    ApplicationArea = All;
-                    Caption = 'To Bin';
-                    ToolTip = 'Specifies a destination bin.';
-
-                    trigger OnAssistEdit()
-                    begin
-                        QltyFilterHelpers.AssistEditBin(LocationCodeFilter, '', ToBinCodeFilter);
-                    end;
-
-                    trigger OnValidate()
-                    begin
-                        if not UpdateFullTextRuleStringsFromFilters() then
-                            Error(ToBinFilterErr, GetLastErrorText());
-                    end;
-                }
-                field(ChooseAssemblyDescriptionPattern; DescriptionPattern)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Description';
-                    ToolTip = 'Specifies a filter for description';
-
-                    trigger OnValidate()
-                    begin
-                        UpdateFullTextRuleStringsFromFilters();
-                    end;
-                }
-                field(ChooseAdvancedAssembly; 'Click here to choose advanced fields...')
-                {
-                    ApplicationArea = All;
-                    ShowCaption = false;
-
-                    trigger OnDrillDown()
-                    begin
-                        UpdateFullTextRuleStringsFromFilters();
-                        AssistEditFullPostedAssemblyHeaderFilter();
-                        UpdateTableVariablesFromRecordFilters();
-                    end;
-                }
-            }
-            group(SettingsFor_StepWhichItem)
+            group(SettingsFor_iStepWhichItem)
             {
                 Caption = ' ';
                 ShowCaption = false;
