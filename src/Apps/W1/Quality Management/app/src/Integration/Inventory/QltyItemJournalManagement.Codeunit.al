@@ -189,6 +189,7 @@ codeunit 20454 "Qlty. Item Journal Management"
                 ToPostWarehouseJournalLine.SetRecFilter();
                 if not ConsideredLines.Contains(Format(ToPostWarehouseJournalLine.RecordId())) then begin
                     Commit();
+                    ClearLastError();
                     if not WhseJnlRegisterBatch.Run(ToPostWarehouseJournalLine) then begin
                         ErrorMessage := GetLastErrorText();
                         ErrorStack := GetLastErrorCallStack();
@@ -354,6 +355,7 @@ codeunit 20454 "Qlty. Item Journal Management"
 
                 if not ConsideredLines.Contains(Format(ToPostItemJournalLine.RecordId())) then begin
                     Commit();
+                    ClearLastError();
                     if not ItemJnlPostBatch.Run(ToPostItemJournalLine) then begin
                         ErrorMessage := GetLastErrorText();
                         ErrorStack := GetLastErrorCallStack();
