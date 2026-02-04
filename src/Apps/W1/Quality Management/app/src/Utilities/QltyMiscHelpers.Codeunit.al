@@ -26,7 +26,7 @@ codeunit 20599 "Qlty. Misc Helpers"
         TranslatableNoLbl: Label 'No';
         LockedYesLbl: Label 'Yes', Locked = true;
         LockedNoLbl: Label 'No', Locked = true;
-        ImportFromLbl: Label 'Import From File';
+        ImportFromLbl: Label 'Import from File';
         DateKeywordTxt: Label 'Date';
         YesNoKeyword1Txt: Label 'Does the';
         YesNoKeyword2Txt: Label 'Do the';
@@ -41,13 +41,28 @@ codeunit 20599 "Qlty. Misc Helpers"
         UnableToSetTableValueFieldNotFoundErr: Label 'Unable to set a value because the field [%1] in table [%2] was not found.', Comment = '%1=the field name, %2=the table name';
         BadTableTok: Label '?table?', Locked = true;
         BadFieldTok: Label '?t:%1?f:%2?', Locked = true, Comment = '%1=the table, %2=the requested field';
+        QltyGoodLbl: Label 'GOOD';
+        QltyPassLbl: Label 'PASS';
+        QltyAcceptableLbl: Label 'ACCEPTABLE';
+        QltyPassedLbl: Label 'PASSED';
+        QltyBadLbl: Label 'BAD';
+        QltyFailLbl: Label 'FAIL';
+        QltyUnacceptableLbl: Label 'UNACCEPTABLE';
+        QltyFailedLbl: Label 'FAILED';
+        QltyNotOkLbl: Label 'NOTOK';
+        PositiveLbl: Label 'POSITIVE';
+        EnabledLbl: Label 'ENABLED';
+        CheckLbl: Label 'CHECK';
+        CheckedLbl: Label 'CHECKED';
+        YesLbl: Label 'YES';
+        OnLbl: Label 'ON';
 
     /// <summary>
     /// Returns the translatable "Yes" label with maximum length of 250 characters.
     /// Used for UI display and user-facing text where localization is required.
     /// </summary>
     /// <returns>The localized "Yes" text (up to 250 characters)</returns>
-    procedure GetTranslatedYes250(): Text[250]
+    internal procedure GetTranslatedYes250(): Text[250]
     begin
         exit(TranslatableYesLbl);
     end;
@@ -57,7 +72,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// Used for UI display and user-facing text where localization is required.
     /// </summary>
     /// <returns>The localized "No" text (up to 250 characters)</returns>
-    procedure GetTranslatedNo250(): Text[250]
+    internal procedure GetTranslatedNo250(): Text[250]
     begin
         exit(TranslatableNoLbl);
     end;
@@ -101,11 +116,9 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="FilterString">File type filter for the upload dialog (e.g., "*.xml|*.txt")</param>
     /// <param name="InStream">Output: InStream containing the uploaded file contents</param>
     /// <returns>True if file was successfully selected and uploaded; False if user cancelled or upload failed</returns>
-    internal procedure PromptAndImportIntoInStream(FilterString: Text; var InStream: InStream) Worked: Boolean
-    var
-        ServerFile: Text;
+    internal procedure PromptAndImportIntoInStream(FilterString: Text; var InStream: InStream; var ServerFileName: Text) Worked: Boolean
     begin
-        Worked := UploadIntoStream(ImportFromLbl, '', FilterString, ServerFile, InStream);
+        Worked := UploadIntoStream(ImportFromLbl, '', FilterString, ServerFileName, InStream);
     end;
 
     /// <summary>
@@ -363,7 +376,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// </summary>
     /// <param name="Input">The text value to convert to boolean</param>
     /// <returns>True if input matches any positive boolean representation; False otherwise</returns>
-    procedure GetBooleanFor(Input: Text) IsTrue: Boolean
+    internal procedure GetBooleanFor(Input: Text) IsTrue: Boolean
     begin
         if Input <> '' then begin
             if not Evaluate(IsTrue, Input) then
@@ -371,8 +384,8 @@ codeunit 20599 "Qlty. Misc Helpers"
 
             case UpperCase(Input) of
                 UpperCase(TranslatableYesLbl), UpperCase(LockedYesLbl),
-                'Y', 'YES', 'T', 'TRUE', '1', 'POSITIVE', 'ENABLED', 'CHECK', 'CHECKED',
-                'GOOD', 'PASS', 'ACCEPTABLE', 'PASSED', 'OK', 'ON',
+                'Y', YesLbl, 'T', 'TRUE', '1', PositiveLbl, EnabledLbl, CheckLbl, CheckedLbl,
+                QltyGoodLbl, QltyPassLbl, QltyAcceptableLbl, QltyPassedLbl, 'OK', OnLbl,
                 'V', ':SELECTED:':
                     IsTrue := true;
             end;
@@ -392,7 +405,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// </summary>
     /// <param name="ValueToCheckIfPositiveBoolean">The text value to check</param>
     /// <returns>True if the value represents a positive/affirmative boolean; False otherwise</returns>
-    procedure IsTextValuePositiveBoolean(ValueToCheckIfPositiveBoolean: Text): Boolean
+    internal procedure IsTextValuePositiveBoolean(ValueToCheckIfPositiveBoolean: Text): Boolean
     var
         ConvertedBoolean: Boolean;
     begin
@@ -406,20 +419,20 @@ codeunit 20599 "Qlty. Misc Helpers"
             UpperCase(TranslatableYesLbl),
             UpperCase(LockedYesLbl),
             'Y',
-            'YES',
+            YesLbl,
             'T',
             'TRUE',
             '1',
-            'POSITIVE',
-            'ENABLED',
-            'CHECK',
-            'CHECKED',
-            'GOOD',
-            'PASS',
-            'ACCEPTABLE',
-            'PASSED',
+            PositiveLbl,
+            EnabledLbl,
+            CheckLbl,
+            CheckedLbl,
+            QltyGoodLbl,
+            QltyPassLbl,
+            QltyAcceptableLbl,
+            QltyPassedLbl,
             'OK',
-            'ON',
+            OnLbl,
             'V',
             ':SELECTED:':
                 exit(true);
@@ -465,11 +478,11 @@ codeunit 20599 "Qlty. Misc Helpers"
             'DISABLED',
             'UNCHECK',
             'UNCHECKED',
-            'BAD',
-            'FAIL',
-            'UNACCEPTABLE',
-            'FAILED',
-            'NOTOK',
+            QltyBadLbl,
+            QltyFailLbl,
+            QltyUnacceptableLbl,
+            QltyFailedLbl,
+            QltyNotOkLbl,
             'OFF',
             ':UNSELECTED:':
                 exit(true);
@@ -518,7 +531,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="PhoneNo">Output: The person's phone number</param>
     /// <param name="SourceRecordId">Output: RecordId of the source person record</param>
     /// <returns>True if inspection line references a person and details were retrieved; False otherwise</returns>
-    procedure GetBasicPersonDetailsFromInspectionLine(QltyInspectionLine: Record "Qlty. Inspection Line"; var FullName: Text; var JobTitle: Text; var EmailAddress: Text; var PhoneNo: Text; var SourceRecordId: RecordId): Boolean
+    internal procedure GetBasicPersonDetailsFromInspectionLine(QltyInspectionLine: Record "Qlty. Inspection Line"; var FullName: Text; var JobTitle: Text; var EmailAddress: Text; var PhoneNo: Text; var SourceRecordId: RecordId): Boolean
     var
         QltyTest: Record "Qlty. Test";
     begin
@@ -577,7 +590,7 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// <param name="PhoneNo">Output: The person's phone number</param>
     /// <param name="SourceRecordId">Output: RecordId of the source record where details were found</param>
     /// <returns>True if person details were found in any supported table; False otherwise</returns>
-    procedure GetBasicPersonDetails(Input: Text; var FullName: Text; var JobTitle: Text; var EmailAddress: Text; var PhoneNo: Text; var SourceRecordId: RecordId) HasDetails: Boolean
+    internal procedure GetBasicPersonDetails(Input: Text; var FullName: Text; var JobTitle: Text; var EmailAddress: Text; var PhoneNo: Text; var SourceRecordId: RecordId) HasDetails: Boolean
     var
         Contact: Record Contact;
         Employee: Record Employee;

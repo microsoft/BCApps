@@ -80,7 +80,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
                     {
                         ApplicationArea = All;
                         Caption = 'Return Receipt';
-                        ToolTip = 'Specifies to create a rule for a return receipt. Check this box to if you want this rule to apply to a return receipt. ';
+                        ToolTip = 'Specifies to create a rule for a return receipt. Check this box to if you want this rule to apply to a return receipt.';
 
                         trigger OnValidate()
                         begin
@@ -946,7 +946,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
     /// </summary>
     /// <param name="QltyInspectionGenRule"></param>
     /// <returns></returns>
-    procedure RunModalWithGenerationRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Action
+    internal procedure RunModalWithGenerationRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Action
     begin
         TempQltyInspectionGenRule := QltyInspectionGenRule;
         Clear(TempPurchaseLine);

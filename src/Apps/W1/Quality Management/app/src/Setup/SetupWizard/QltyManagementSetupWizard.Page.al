@@ -515,7 +515,6 @@ page 20438 "Qlty. Management Setup Wizard"
         GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"Qlty. Management Setup Wizard");
         CustomDimensions.Add('RegDetail5', EnvironmentInformation.GetEnvironmentName());
         CustomDimensions.Add('RegDetail6', CompanyName());
-        CustomDimensions.Add('RegDetail7', UserId());
 
         LogMessage('QMUSG001', FinishWizardLbl, Verbosity::Warning, DataClassification::CustomerContent, TelemetryScope::All, CustomDimensions);
 
