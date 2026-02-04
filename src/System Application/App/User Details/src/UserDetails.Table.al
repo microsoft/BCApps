@@ -126,27 +126,11 @@ table 774 "User Details"
             CalcFormula = Lookup("User Login"."Last Login Date" where("User SID" = field("User Security ID")));
         }
         /// <summary>
-        /// Flow filter for determining users who logged in within the last 7 days.
+        /// Flow filter for filtering users based on Last Login Date.
         /// </summary>
-        field(25; "7 Days Date Filter"; DateTime)
+        field(25; "Inactive Days Date Filter"; Enum "User Detail Date Filter")
         {
-            Caption = 'Last 7 Days Filter';
-            FieldClass = FlowFilter;
-        }
-        /// <summary>
-        /// Flow filter for determining users who logged in within the last 30 days.
-        /// </summary>
-        field(26; "30 Days Date Filter"; DateTime)
-        {
-            Caption = 'Last 30 Days Filter';
-            FieldClass = FlowFilter;
-        }
-        /// <summary>
-        /// Flow filter for determining users who logged in within the last 90 days.
-        /// </summary>
-        field(27; "90 Days Date Filter"; DateTime)
-        {
-            Caption = 'Last 90 Days Filter';
+            Caption = 'Inactive Days Date Filter';
             FieldClass = FlowFilter;
         }
     }

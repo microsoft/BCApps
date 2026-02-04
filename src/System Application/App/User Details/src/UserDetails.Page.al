@@ -14,7 +14,7 @@ using System.Utilities;
 /// </summary>
 page 774 "User Details"
 {
-    AboutText = 'View the additional information about users in a list view, which allows for easy searching and filtering.';
+    AboutText = 'View detailed user information, such as unique identifiers, information about permission sets, login activity etc. in a list view, which allows for easy searching and filtering.';
     AboutTitle = 'About the users detailed view';
     ApplicationArea = Basic, Suite;
     Caption = 'Users (detailed view)';
@@ -123,18 +123,18 @@ page 774 "User Details"
         }
         view("7 Days")
         {
-            Caption = '7 days (last week)';
-            Filters = where("Last Login Date" = field("7 Days Date Filter"));
+            Caption = 'Inactive 7 days';
+            Filters = where("Inactive Days Date Filter" = const("7Days"));
         }
         view("30 Days")
         {
-            Caption = '30 days (last month)';
-            Filters = where("Last Login Date" = field("30 Days Date Filter"));
+            Caption = 'Inactive 30 days';
+            Filters = where("Inactive Days Date Filter" = const("30Days"));
         }
         view("90 Days")
         {
-            Caption = '90 days (quarter)';
-            Filters = where("Last Login Date" = field("90 Days Date Filter"));
+            Caption = 'Inactive 90 days';
+            Filters = where("Inactive Days Date Filter" = const("90Days"));
         }
     }
 
@@ -145,10 +145,27 @@ page 774 "User Details"
     begin
         IsSaaS := EnvironmentInformation.IsSaaS();
         UserDetails.Get(Rec);
+    end;
 
-        Rec.SetFilter("7 Days Date Filter", '>%1', CreateDateTime(CalcDate('<-7D>', Today()), CurrentDateTime().Time));
-        Rec.SetFilter("30 Days Date Filter", '>%1', CreateDateTime(CalcDate('<-30D>', Today()), CurrentDateTime().Time));
-        Rec.SetFilter("90 Days Date Filter", '>%1', CreateDateTime(CalcDate('<-90D>', Today()), CurrentDateTime().Time));
+    trigger OnFindRecord(Which: Text): Boolean
+    var
+        UserDetails: Record "User Details";
+    begin
+        Rec.SetRange("Last Login Date");
+        if Rec.GetFilter("Inactive Days Date Filter") <> '' then
+            if Evaluate(UserDetails."Inactive Days Date Filter", Rec.GetFilter("Inactive Days Date Filter")) then
+                case UserDetails."Inactive Days Date Filter" of
+                    Rec."Inactive Days Date Filter"::"7Days":
+                        Rec.SetFilter("Last Login Date", '<=%1', CreateDateTime(CalcDate('<-7D>', Today()), CurrentDateTime().Time));
+                    Rec."Inactive Days Date Filter"::"30Days":
+                        Rec.SetFilter("Last Login Date", '<=%1', CreateDateTime(CalcDate('<-30D>', Today()), CurrentDateTime().Time));
+                    Rec."Inactive Days Date Filter"::"90Days":
+                        Rec.SetFilter("Last Login Date", '<=%1', CreateDateTime(CalcDate('<-90D>', Today()), CurrentDateTime().Time));
+                    else
+                        OnInactiveDaysFilterCaseElse(UserDetails."Inactive Days Date Filter", Rec);
+                end;
+
+        exit(Rec.Find(Which));
     end;
 
     trigger OnAfterGetRecord()
@@ -168,4 +185,9 @@ page 774 "User Details"
 
     protected var
         IsSaaS: Boolean;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnInactiveDaysFilterCaseElse(DateFilter: Enum "User Detail Date Filter"; var Rec: Record "User Details")
+    begin
+    end;
 }
