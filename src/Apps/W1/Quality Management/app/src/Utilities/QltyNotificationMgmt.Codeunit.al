@@ -75,7 +75,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// <summary>
     /// Ensures that configurable notifications are inserted.
     /// </summary>
-    procedure EnsureDefaultNotifications()
+    internal procedure EnsureDefaultNotifications()
     var
         MyNotifications: Record "My Notifications";
     begin
@@ -87,7 +87,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// Creates a notification that an inspection has been created.
     /// </summary>
     /// <param name="QltyInspectionHeader"></param>
-    procedure NotifyInspectionCreated(QltyInspectionHeader: Record "Qlty. Inspection Header")
+    internal procedure NotifyInspectionCreated(QltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         MyNotifications: Record "My Notifications";
         NotificationInspectionCreated: Notification;
@@ -109,7 +109,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// Creates a notification that multiple inspections have been created.
     /// </summary>
     /// <param name="QltyInspectionHeader"></param>
-    procedure NotifyMultipleInspectionsCreated(QltyInspectionHeader: Record "Qlty. Inspection Header")
+    internal procedure NotifyMultipleInspectionsCreated(QltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         MyNotifications: Record "My Notifications";
         NotificationTestCreated: Notification;
@@ -208,7 +208,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <param name="DocumentType">Used to display in the action.</param>
-    procedure NotifyDocumentCreationFailed(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; DocumentType: Text)
+    internal procedure NotifyDocumentCreationFailed(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; DocumentType: Text)
     var
         DummyVariant: Variant;
     begin
@@ -223,7 +223,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// <param name="DocumentType"></param>
     /// <param name="OptionalAdditionalMessageContext"></param>
     /// <param name="OptionalRelatedDocumentVariant"></param>
-    procedure NotifyDocumentCreationFailed(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; DocumentType: Text; OptionalAdditionalMessageContext: Text; OptionalRelatedDocumentVariant: Variant)
+    internal procedure NotifyDocumentCreationFailed(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; DocumentType: Text; OptionalAdditionalMessageContext: Text; OptionalRelatedDocumentVariant: Variant)
     var
         Item: Record Item;
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
@@ -274,7 +274,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// <param name="Success"></param>
     /// <param name="ChangedBaseQuantity"></param>
     /// <param name="DocumentOrBatchName"></param>
-    procedure NotifyItemTrackingChanged(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; LineCreated: Boolean; Success: Boolean; ChangedBaseQuantity: Decimal; DocumentOrBatchName: Text; OptionalSourceExpirationDate: Date)
+    internal procedure NotifyItemTrackingChanged(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; LineCreated: Boolean; Success: Boolean; ChangedBaseQuantity: Decimal; DocumentOrBatchName: Text; OptionalSourceExpirationDate: Date)
     var
         Item: Record Item;
         Source: Text;
@@ -309,7 +309,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <param name="DocumentOrBatchName"></param>   
-    procedure NotifyMovementOccurred(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; DocumentOrBatchName: Text)
+    internal procedure NotifyMovementOccurred(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; DocumentOrBatchName: Text)
     var
         Item: Record Item;
         Source: Text;
@@ -522,7 +522,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// <param name="Type">The label for Lot or Serial or Package</param>
     /// <param name="ItemTrackingDetail">The content for Lot or Serial or Package</param>
     /// <param name="BlockedState"></param>
-    procedure NotifyItemTrackingBlockStateChanged(
+    internal procedure NotifyItemTrackingBlockStateChanged(
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         InformationType: RecordId;
         Type: Text;
@@ -601,7 +601,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// </summary>
     /// <param name="QltyInspectionHeader"></param>
     /// <returns></returns>   
-    procedure GetSourceSummaryText(var QltyInspectionHeader: Record "Qlty. Inspection Header"): Text
+    internal procedure GetSourceSummaryText(var QltyInspectionHeader: Record "Qlty. Inspection Header"): Text
     var
         TextBuilder: TextBuilder;
     begin

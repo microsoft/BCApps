@@ -106,6 +106,7 @@ permissionset 20403 QltyGeneral
         page "Qlty. Lookup Code Part" = X,
         page "Qlty. Manager Role Center" = X,
         page "Qlty. Management Setup" = X,
+        page "Qlty. Asm. Gen. Rule Wizard" = X,
         page "Qlty. Most Recent Picture" = X,
         page "Qlty. Prod. Gen. Rule Wizard" = X,
         page "Qlty. Rec. Gen. Rule Wizard" = X,

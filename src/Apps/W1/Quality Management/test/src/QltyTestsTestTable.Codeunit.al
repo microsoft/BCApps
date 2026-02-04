@@ -527,7 +527,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 200, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
         // [THEN] Sample size equals 198 (99% of 200, rounded)
-        LibraryAssert.AreEqual(198, QltyInspectionHeader."Sample Size", 'Sample size should be a rounded up discrete amount based on the input size against the percentage defined on the template. ');
+        LibraryAssert.AreEqual(198, QltyInspectionHeader."Sample Size", 'Sample size should be a rounded up discrete amount based on the input size against the percentage defined on the template.');
     end;
 
     [Test]
