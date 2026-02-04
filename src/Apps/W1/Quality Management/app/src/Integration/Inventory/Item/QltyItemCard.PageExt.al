@@ -12,7 +12,7 @@ pageextension 20430 "Qlty. Item Card" extends "Item Card"
 {
     actions
     {
-        addlast(Navigation_Item)
+        addlast(navigation)
         {
             action(Qlty_QualityInspections)
             {
@@ -20,35 +20,21 @@ pageextension 20430 "Qlty. Item Card" extends "Item Card"
                 Caption = 'Quality Inspections';
                 Image = TaskQualityMeasure;
                 ToolTip = 'View quality inspections filtered by the selected item.';
-                Visible = QltyReadTestResults;
-
-                trigger OnAction()
-                begin
-                    ShowQualityInspections();
-                end;
+                Visible = QltyReadQualityInspections;
+                RunObject = Page "Qlty. Inspection List";
+                RunPageLink = "Source Item No." = field("No.");
+                RunPageView = sorting("Source Item No.");
             }
         }
     }
 
     var
-        QltyReadTestResults: Boolean;
+        QltyReadQualityInspections: Boolean;
 
     trigger OnOpenPage()
     var
-        CheckLicensePermissionQltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
-        if not CheckLicensePermissionQltyInspectionHeader.ReadPermission() then
-            exit;
-
-        QltyReadTestResults := QltyPermissionMgmt.CanReadInspectionResults();
-    end;
-
-    local procedure ShowQualityInspections()
-    var
-        QltyInspectionHeader: Record "Qlty. Inspection Header";
-    begin
-        QltyInspectionHeader.SetRange("Source Item No.", Rec."No.");
-        Page.Run(Page::"Qlty. Inspection List", QltyInspectionHeader);
+        QltyReadQualityInspections := QltyPermissionMgmt.CanReadInspectionResults();
     end;
 }
