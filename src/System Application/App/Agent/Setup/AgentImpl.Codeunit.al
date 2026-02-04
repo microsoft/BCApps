@@ -5,6 +5,7 @@
 
 namespace System.Agents;
 
+using System.AI;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Environment.Consumption;
@@ -525,8 +526,24 @@ codeunit 4301 "Agent Impl."
         exit(true);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Copilot Settings", 'R')]
+    procedure GetCopilotAvailabilityDisplayText(Agent: Record Agent) CopilotAvailabilityTxt: Text
+    var
+        CopilotSettings: Record "Copilot Settings";
+        IAgentFactory: Interface IAgentFactory;
+        CopilotCapability: Enum "Copilot Capability";
+    begin
+        IAgentFactory := Agent."Agent Metadata Provider";
+        CopilotCapability := IAgentFactory.GetCopilotCapability();
+
+        CopilotAvailabilityTxt := CopilotSettings.Get(CopilotCapability, Agent."App ID")
+            ? Format(CopilotSettings.Availability)
+            : UnknownCopilotAvailabilityLbl;
+    end;
+
     var
         AgentDoesNotExistErr: Label 'Agent does not exist.';
+        UnknownCopilotAvailabilityLbl: Label 'Unknown ';
         NoActiveAgentsErr: Label 'There are no active agents setup on the system.';
         NoAgentsAvailableNotificationLbl: Label 'Business Central agents are currently not available in your country.';
         NoAgentsAvailableNotificationGuidLbl: Label 'bde1d653-40e6-4081-b2cf-f21b1a8622d1', Locked = true;

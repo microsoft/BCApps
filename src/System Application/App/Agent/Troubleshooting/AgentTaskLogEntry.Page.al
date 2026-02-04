@@ -6,6 +6,7 @@
 namespace System.Agents.Troubleshooting;
 
 using System.Agents;
+using System.Security.AccessControl;
 
 page 4312 "Agent Task Log Entry"
 {
@@ -32,6 +33,8 @@ page 4312 "Agent Task Log Entry"
                 AboutTitle = 'General information';
                 AboutText = 'General information about the log entry. Click show more to see advanced details about the execution.';
                 Editable = false;
+                Visible = IsAgentAction;
+
                 field(Description; Rec.Description)
                 {
                     Caption = 'Description';
@@ -108,6 +111,48 @@ page 4312 "Agent Task Log Entry"
                     Importance = Additional;
                 }
             }
+            group("General - Other")
+            {
+                Caption = 'What happened';
+                AboutTitle = 'General information';
+                AboutText = 'General information about the log entry. Click show more to see advanced details about the execution.';
+                Editable = false;
+                Visible = not IsAgentAction;
+
+                field("Description - Other"; Rec.Description)
+                {
+                    Caption = 'Description';
+                    Importance = Promoted;
+                }
+                field("Details - Other"; LogEntryDetailsTxt)
+                {
+                    Caption = 'Details';
+                    ToolTip = 'Specifies the details of the log entry.';
+                    Importance = Promoted;
+
+                    trigger OnDrillDown()
+                    begin
+                        Message(LogEntryDetailsTxt);
+                    end;
+                }
+                field("Type - Other"; Rec.Type)
+                {
+                    Caption = 'Type';
+                    Importance = Additional;
+                }
+                field("Timestamp - Other"; Rec.SystemCreatedAt)
+                {
+                    Caption = 'Timestamp';
+                    ToolTip = 'Specifies the date and time when the log entry was created.';
+                    Importance = Additional;
+                }
+                field("Name - Other"; Rec."User Full Name")
+                {
+                    Caption = 'User full name';
+                    Tooltip = 'Specifies the full name of the user that took the decision.';
+                    Importance = Promoted;
+                }
+            }
             part(InputMessagePart; "Agent Task Message ListPart")
             {
                 Caption = 'What the agent received';
@@ -161,14 +206,14 @@ page 4312 "Agent Task Log Entry"
                 Enabled = false;
                 AboutTitle = 'What tools the agent had available for the current page and context';
                 AboutText = 'Lists the tools that were available to the agent at this point. The set of available tools may change over time; do not rely on this list being exhaustive or permanent in instructions.';
-                Visible = IsAvailableToolsVisible;
+                Visible = IsAvailableToolsVisible and IsAgentAction;
             }
             part("Agent Memorized Data"; "Agent Memorized Data Part")
             {
                 Caption = 'What data the agent memorized';
                 AboutTitle = 'What data the agent memorized';
                 AboutText = 'Lists the key-value data that the agent had memorized as part of the current task at this point.';
-                Visible = IsMemorizedDataVisible;
+                Visible = IsMemorizedDataVisible and IsAgentAction;
             }
             part(EarlierMessagesPart; "Agent Task Message ListPart")
             {
@@ -221,6 +266,7 @@ page 4312 "Agent Task Log Entry"
         ContentInStream: InStream;
     begin
         LogEntryDetailsTxt := AgentTaskImpl.GetDetailsForAgentTaskLogEntry(Rec);
+        SetIsAgentAction();
 
         if not MemoryEntry.Get(Rec."Task ID", Rec."Memory Entry ID") then begin
             MemoryEntryDetailsTxt := '';
@@ -273,6 +319,36 @@ page 4312 "Agent Task Log Entry"
         end;
 
         AgentName := Agent."Display Name";
+    end;
+
+    local procedure SetIsAgentAction()
+    var
+        User: Record User;
+        Default: Boolean;
+    begin
+        Default := false;
+
+        case Rec.Type of
+            // Operations always performed by a user.
+            Rec.Type::"Input Message",
+            Rec.Type::Resume,
+            Rec.Type::"User Intervention":
+                IsAgentAction := false;
+            // Operations always performed by the agent.
+            Rec.Type::"Page Operation",
+            Rec.Type::"Output Message",
+            Rec.Type::"Output Message Draft",
+            Rec.Type::"User Intervention Request":
+                IsAgentAction := true;
+            // Operations performed by a user or the agent.
+            Rec.Type::Stop:
+                IsAgentAction := User.Get(Rec."User Security ID")
+                    ? User."License Type" = User."License Type"::Agent
+                    : Default;
+            // By default, consider it was a user action.
+            else
+                IsAgentAction := Default;
+        end;
     end;
 
     local procedure GetPageContext()
@@ -364,6 +440,7 @@ page 4312 "Agent Task Log Entry"
         SerializedPageJson: text;
         IsDecisionTxt: Text;
         IsSuccess: Text;
+        IsAgentAction: Boolean;
         IsAvailableToolsVisible: Boolean;
         IsEarlierMessagesPartVisible: Boolean;
         IsSerializedPageVisible: Boolean;
