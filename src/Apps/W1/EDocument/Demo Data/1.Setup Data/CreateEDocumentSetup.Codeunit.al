@@ -62,8 +62,6 @@ codeunit 5374 "Create E-Document Setup"
         EDocumentsSetup: Record "E-Documents Setup";
         EnvironmentInformation: Codeunit "Environment Information";
     begin
-        if EDocumentsSetup.IsNewEDocumentExperienceActive() then
-            exit;
         if EnvironmentInformation.IsOnPrem() then
             EDocumentsSetup.InsertNewExperienceSetup();
     end;
