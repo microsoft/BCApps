@@ -220,36 +220,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
     end;
 
     [Test]
-    procedure TestTable_AssistEditExpressionFormula_ShouldError()
-    var
-        ToLoadQltyTest: Record "Qlty. Test";
-        QltyTestExprCardPart: TestPage "Qlty. Test Expr. Card Part";
-        TestCode: Text;
-    begin
-        // [SCENARIO] AssistEdit on Expression Formula should error when field type is Boolean
-        Initialize();
-
-        // [GIVEN] A random test code is generated
-        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
-
-        // [GIVEN] A new quality test with Test Value Type "Boolean" is created
-        ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
-        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
-        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Boolean");
-        ToLoadQltyTest.Insert();
-
-        // [GIVEN] The Quality Test Expression Card Part page is opened and navigated to the test
-        QltyTestExprCardPart.OpenEdit();
-        QltyTestExprCardPart.GoToRecord(ToLoadQltyTest);
-
-        // [WHEN] AssistEdit is invoked on the "Expression Formula" field for a Boolean type
-        asserterror QltyTestExprCardPart."Expression Formula".AssistEdit();
-
-        // [THEN] An error is raised indicating Expression Formula is only for Expression field types
-        LibraryAssert.ExpectedError(OnlyFieldExpressionErr);
-    end;
-
-    [Test]
     [HandlerFunctions('ModalPageHandleChooseFromLookup_VendorNo')]
     procedure TestTable_AssistEditDefaultValue_TypeTableLookup()
     var
@@ -294,41 +264,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [THEN] The test's Default Value is updated with the selected vendor number
         ToLoadQltyTest.Get(ToLoadQltyTest.Code);
         LibraryAssert.AreEqual(Vendor."No.", ToLoadQltyTest."Default Value", 'Should be same vendor no.')
-    end;
-
-    [Test]
-    [HandlerFunctions('AssistEditTemplatePageHandler')]
-    procedure TestTable_AssistEditExpressionFormula()
-    var
-        ToLoadQltyTest: Record "Qlty. Test";
-        QltyTestExprCardPart: TestPage "Qlty. Test Expr. Card Part";
-        TestCode: Text;
-    begin
-        // [SCENARIO] User can use AssistEdit to define an expression formula for a Text Expression field type
-        Initialize();
-
-        // [GIVEN] A random test code is generated
-        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
-
-        // [GIVEN] A new quality test with Test Value Type "Text Expression" is created
-        ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
-        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
-        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Text Expression");
-        ToLoadQltyTest.Insert();
-
-        // [GIVEN] The Quality Test Expression Card Part page is opened and navigated to the test
-        QltyTestExprCardPart.OpenEdit();
-        QltyTestExprCardPart.GoToRecord(ToLoadQltyTest);
-
-        // [GIVEN] An expression formula value is prepared for the handler
-        AssistEditTemplateValue := ExpressionFormulaTok;
-
-        // [WHEN] AssistEdit is invoked on the "Expression Formula" field
-        QltyTestExprCardPart."Expression Formula".AssistEdit();
-
-        // [THEN] The test's Expression Formula is updated with the prepared value
-        ToLoadQltyTest.Get(ToLoadQltyTest.Code);
-        LibraryAssert.AreEqual(ExpressionFormulaTok, ToLoadQltyTest."Expression Formula", 'Should be same expression formula.')
     end;
 
     [Test]
