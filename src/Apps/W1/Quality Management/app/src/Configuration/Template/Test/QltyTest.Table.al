@@ -616,7 +616,7 @@ table 20401 "Qlty. Test"
     var
         Handled: Boolean;
     begin
-        OnGetIsNumericFieldType(Rec, IsNumeric, Handled);
+        OnBeforeIsNumericFieldType(Rec, IsNumeric, Handled);
         if Handled then
             exit;
 
@@ -633,7 +633,7 @@ table 20401 "Qlty. Test"
     /// <param name="IsNumeric"></param>
     /// <param name="Handled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnGetIsNumericFieldType(var QltyTest: Record "Qlty. Test"; var IsNumeric: Boolean; var Handled: Boolean)
+    local procedure OnBeforeIsNumericFieldType(var QltyTest: Record "Qlty. Test"; var IsNumeric: Boolean; var Handled: Boolean)
     begin
     end;
 

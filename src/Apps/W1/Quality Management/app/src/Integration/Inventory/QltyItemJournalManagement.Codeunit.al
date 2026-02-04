@@ -428,10 +428,10 @@ codeunit 20454 "Qlty. Item Journal Management"
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <param name="ItemJournalLine"></param>
-    /// <param name="prbAllLinesPosted"></param>
+    /// <param name="AllLinesPosted"></param>
     /// <param name="Handled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePostItemJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalLine: Record "Item Journal Line"; var prbAllLinesPosted: Boolean; var Handled: Boolean)
+    local procedure OnBeforePostItemJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalLine: Record "Item Journal Line"; var AllLinesPosted: Boolean; var Handled: Boolean)
     begin
     end;
 
@@ -441,9 +441,9 @@ codeunit 20454 "Qlty. Item Journal Management"
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <param name="ItemJournalLine"></param>
-    /// <param name="prbAllLinesPosted"></param>
+    /// <param name="AllLinesPosted"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterPostItemJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalLine: Record "Item Journal Line"; var prbAllLinesPosted: Boolean)
+    local procedure OnAfterPostItemJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalLine: Record "Item Journal Line"; var AllLinesPosted: Boolean)
     begin
     end;
 
@@ -453,10 +453,10 @@ codeunit 20454 "Qlty. Item Journal Management"
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <param name="WarehouseJournalLine"></param>
-    /// <param name="prbAllLinesPosted"></param>
+    /// <param name="AllLinesPosted"></param>
     /// <param name="Handled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePostWarehouseJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line"; var prbAllLinesPosted: Boolean; var Handled: Boolean)
+    local procedure OnBeforePostWarehouseJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line"; var AllLinesPosted: Boolean; var Handled: Boolean)
     begin
     end;
 
@@ -466,9 +466,9 @@ codeunit 20454 "Qlty. Item Journal Management"
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <param name="WarehouseJournalLine"></param>
-    /// <param name="prbAllLinesPosted"></param>
+    /// <param name="AllLinesPosted"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterPostWarehouseJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line"; var prbAllLinesPosted: Boolean)
+    local procedure OnAfterPostWarehouseJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line"; var AllLinesPosted: Boolean)
     begin
     end;
 }

@@ -110,10 +110,10 @@ codeunit 20442 "Qlty. Disp. Move Auto Choose" implements "Qlty. Disposition"
     /// </summary>
     /// <param name="QltyInspectionHeader">Quality Inspection</param>
     /// <param name="TempInstructionQltyDispositionBuffer">The instruction</param>
-    /// <param name="prbDidSomething">Provides an opportunity to replace the default boolean success/fail of if it worked.</param>
+    /// <param name="DidSomething">Provides an opportunity to replace the default boolean success/fail of if it worked.</param>
     /// <param name="Handled">Provides an opportunity to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var prbDidSomething: Boolean; var Handled: Boolean)
+    local procedure OnBeforeProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var DidSomething: Boolean; var Handled: Boolean)
     begin
     end;
 
@@ -122,9 +122,9 @@ codeunit 20442 "Qlty. Disp. Move Auto Choose" implements "Qlty. Disposition"
     /// </summary>
     /// <param name="QltyInspectionHeader">Quality Inspection</param>
     /// <param name="TempInstructionQltyDispositionBuffer">The instruction</param>
-    /// <param name="prbDidSomething">Provides an opportunity to replace the default boolean success/fail of if it worked.</param>
+    /// <param name="DidSomething">Provides an opportunity to replace the default boolean success/fail of if it worked.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var prbDidSomething: Boolean)
+    local procedure OnAfterProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var DidSomething: Boolean)
     begin
     end;
 }
