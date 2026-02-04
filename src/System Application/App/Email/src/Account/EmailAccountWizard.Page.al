@@ -197,7 +197,7 @@ page 8886 "Email Account Wizard"
                     ShowCaption = false;
                     Visible = AppSourceAvailable;
                     Caption = ' ';
-                    ToolTip = 'Navigate to Marketplace.';
+                    ToolTip = 'Go to Marketplace.';
 
                     trigger OnDrillDown()
                     begin
