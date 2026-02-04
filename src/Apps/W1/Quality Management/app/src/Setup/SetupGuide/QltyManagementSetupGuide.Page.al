@@ -54,11 +54,11 @@ page 20438 "Qlty. Management Setup Guide"
                 group(LetsGoText)
                 {
                     Caption = 'Let''s go!';
-                    InstructionalText = 'Select the link below to open the Quality Management Role Center in a new browser tab and follow the guided tours.';
+                    InstructionalText = 'Select the link below to open the Quality Manager Role Center in a new browser tab and follow the guided tours.';
                 }
                 field(LetsGoLink; LetsGoLinkLbl)
                 {
-                    Caption = 'Explore Quality Management';
+                    Caption = 'Open the Quality Manager Role Center';
                     ShowCaption = false;
                     ToolTip = 'Open Quality Management Role Center and checklist in a new browser tab.';
                     Editable = false;
@@ -104,7 +104,7 @@ page 20438 "Qlty. Management Setup Guide"
         TopBannerVisible: Boolean;
         MainPageVisible: Boolean;
         QualityManagementTok: Label 'Quality Management', Locked = true;
-        LetsGoLinkLbl: Label 'Explore Quality Management';
+        LetsGoLinkLbl: Label 'Open the Quality Manager Role Center';
         URLProfileLbl: Label '&profile=QLTY.%20MANAGER', Locked = true;
 
     trigger OnInit();
