@@ -14,6 +14,7 @@ codeunit 139799 "E-Doc. Helper Test"
 {
     Subtype = Test;
     Access = Internal;
+    TestPermissions = Disabled;
 
     var
         Assert: Codeunit "Assert";
