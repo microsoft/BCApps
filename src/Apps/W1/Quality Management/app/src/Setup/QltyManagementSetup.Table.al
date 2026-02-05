@@ -64,14 +64,14 @@ table 20400 "Qlty. Management Setup"
 
             trigger OnValidate()
             var
-                QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+                QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
             begin
                 if (Rec."Production Order Trigger" <> xRec."Production Order Trigger") and (xRec."Production Order Trigger" <> xRec."Production Order Trigger"::NoTrigger) then begin
-                    QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Production);
-                    QltyInspectionGenRule.SetRange("Production Order Trigger", xRec."Production Order Trigger");
-                    if (not QltyInspectionGenRule.IsEmpty()) and GuiAllowed() then
-                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Production Order Trigger", Rec."Production Order Trigger")) then
-                            QltyInspectionGenRule.ModifyAll("Production Order Trigger", Rec."Production Order Trigger", false);
+                    QltyInspectCreationRule.SetRange(Intent, QltyInspectCreationRule.Intent::Production);
+                    QltyInspectCreationRule.SetRange("Production Order Trigger", xRec."Production Order Trigger");
+                    if (not QltyInspectCreationRule.IsEmpty()) and GuiAllowed() then
+                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectCreationRule.Count(), xRec."Production Order Trigger", Rec."Production Order Trigger")) then
+                            QltyInspectCreationRule.ModifyAll("Production Order Trigger", Rec."Production Order Trigger", false);
                 end;
             end;
         }
@@ -114,18 +114,18 @@ table 20400 "Qlty. Management Setup"
 
             trigger OnValidate()
             var
-                QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+                QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
                 QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
             begin
                 if Rec."Warehouse Trigger" <> Rec."Warehouse Trigger"::NoTrigger then
                     QltyAutoConfigure.CreateDefaultWarehousingConfiguration();
 
                 if (Rec."Warehouse Trigger" <> xRec."Warehouse Trigger") and (xRec."Warehouse Trigger" <> xRec."Warehouse Trigger"::NoTrigger) then begin
-                    QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::"Warehouse Movement");
-                    QltyInspectionGenRule.SetRange("Warehouse Movement Trigger", xRec."Warehouse Trigger");
-                    if (not QltyInspectionGenRule.IsEmpty()) and GuiAllowed() then
-                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Warehouse Trigger", Rec."Warehouse Trigger")) then
-                            QltyInspectionGenRule.ModifyAll("Warehouse Movement Trigger", Rec."Warehouse Trigger", false);
+                    QltyInspectCreationRule.SetRange(Intent, QltyInspectCreationRule.Intent::"Warehouse Movement");
+                    QltyInspectCreationRule.SetRange("Warehouse Movement Trigger", xRec."Warehouse Trigger");
+                    if (not QltyInspectCreationRule.IsEmpty()) and GuiAllowed() then
+                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectCreationRule.Count(), xRec."Warehouse Trigger", Rec."Warehouse Trigger")) then
+                            QltyInspectCreationRule.ModifyAll("Warehouse Movement Trigger", Rec."Warehouse Trigger", false);
                 end;
             end;
         }
@@ -137,20 +137,20 @@ table 20400 "Qlty. Management Setup"
 
             trigger OnValidate()
             var
-                QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+                QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
             begin
                 if Rec.Visibility <> Rec.Visibility::Hide then
                     exit;
 
-                QltyInspectionGenRule.SetFilter("Activation Trigger", '<>%1', QltyInspectionGenRule."Activation Trigger"::Disabled);
-                if QltyInspectionGenRule.IsEmpty() then
+                QltyInspectCreationRule.SetFilter("Activation Trigger", '<>%1', QltyInspectCreationRule."Activation Trigger"::Disabled);
+                if QltyInspectCreationRule.IsEmpty() then
                     exit;
 
                 if not GuiAllowed() then
                     exit;
 
                 if Confirm(ShouldDisableInspectionGenerationRulesQst) then begin
-                    QltyInspectionGenRule.ModifyAll("Activation Trigger", QltyInspectionGenRule."Activation Trigger"::Disabled);
+                    QltyInspectCreationRule.ModifyAll("Activation Trigger", QltyInspectCreationRule."Activation Trigger"::Disabled);
                     Message(InspectionGenerationRulesHaveBeenDisabledMsg);
                 end;
             end;
@@ -326,16 +326,16 @@ table 20400 "Qlty. Management Setup"
 
             trigger OnValidate()
             var
-                QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+                QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
             begin
                 SanityCheckReceiveSettings();
 
                 if (Rec."Warehouse Receipt Trigger" <> xRec."Warehouse Receipt Trigger") and (xRec."Warehouse Receipt Trigger" <> xRec."Warehouse Receipt Trigger"::NoTrigger) then begin
-                    QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::"Warehouse Receipt");
-                    QltyInspectionGenRule.SetRange("Warehouse Receipt Trigger", xRec."Warehouse Receipt Trigger");
-                    if (not QltyInspectionGenRule.IsEmpty()) and GuiAllowed() then
-                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Warehouse Receipt Trigger", Rec."Warehouse Receipt Trigger")) then
-                            QltyInspectionGenRule.ModifyAll("Warehouse Receipt Trigger", Rec."Warehouse Receipt Trigger", false);
+                    QltyInspectCreationRule.SetRange(Intent, QltyInspectCreationRule.Intent::"Warehouse Receipt");
+                    QltyInspectCreationRule.SetRange("Warehouse Receipt Trigger", xRec."Warehouse Receipt Trigger");
+                    if (not QltyInspectCreationRule.IsEmpty()) and GuiAllowed() then
+                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectCreationRule.Count(), xRec."Warehouse Receipt Trigger", Rec."Warehouse Receipt Trigger")) then
+                            QltyInspectCreationRule.ModifyAll("Warehouse Receipt Trigger", Rec."Warehouse Receipt Trigger", false);
                 end;
             end;
         }
@@ -345,14 +345,14 @@ table 20400 "Qlty. Management Setup"
             ToolTip = 'Specifies a default purchase order trigger value for Inspection Generation Rules to create an inspection.';
             trigger OnValidate()
             var
-                QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+                QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
             begin
                 if (Rec."Purchase Order Trigger" <> xRec."Purchase Order Trigger") and (xRec."Purchase Order Trigger" <> xRec."Purchase Order Trigger"::NoTrigger) then begin
-                    QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Purchase);
-                    QltyInspectionGenRule.SetRange("Purchase Order Trigger", xRec."Purchase Order Trigger");
-                    if (not QltyInspectionGenRule.IsEmpty()) and GuiAllowed() then
-                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Purchase Order Trigger", Rec."Purchase Order Trigger")) then
-                            QltyInspectionGenRule.ModifyAll("Purchase Order Trigger", Rec."Purchase Order Trigger", false);
+                    QltyInspectCreationRule.SetRange(Intent, QltyInspectCreationRule.Intent::Purchase);
+                    QltyInspectCreationRule.SetRange("Purchase Order Trigger", xRec."Purchase Order Trigger");
+                    if (not QltyInspectCreationRule.IsEmpty()) and GuiAllowed() then
+                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectCreationRule.Count(), xRec."Purchase Order Trigger", Rec."Purchase Order Trigger")) then
+                            QltyInspectCreationRule.ModifyAll("Purchase Order Trigger", Rec."Purchase Order Trigger", false);
                 end;
             end;
         }
@@ -363,14 +363,14 @@ table 20400 "Qlty. Management Setup"
 
             trigger OnValidate()
             var
-                QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+                QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
             begin
                 if (Rec."Sales Return Trigger" <> xRec."Sales Return Trigger") and (xRec."Sales Return Trigger" <> xRec."Sales Return Trigger"::NoTrigger) then begin
-                    QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::"Sales Return");
-                    QltyInspectionGenRule.SetRange("Sales Return Trigger", xRec."Sales Return Trigger");
-                    if (not QltyInspectionGenRule.IsEmpty()) and GuiAllowed() then
-                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Sales Return Trigger", Rec."Sales Return Trigger")) then
-                            QltyInspectionGenRule.ModifyAll("Sales Return Trigger", Rec."Sales Return Trigger", false);
+                    QltyInspectCreationRule.SetRange(Intent, QltyInspectCreationRule.Intent::"Sales Return");
+                    QltyInspectCreationRule.SetRange("Sales Return Trigger", xRec."Sales Return Trigger");
+                    if (not QltyInspectCreationRule.IsEmpty()) and GuiAllowed() then
+                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectCreationRule.Count(), xRec."Sales Return Trigger", Rec."Sales Return Trigger")) then
+                            QltyInspectCreationRule.ModifyAll("Sales Return Trigger", Rec."Sales Return Trigger", false);
                 end;
             end;
         }
@@ -381,14 +381,14 @@ table 20400 "Qlty. Management Setup"
 
             trigger OnValidate()
             var
-                QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+                QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
             begin
                 if (Rec."Transfer Order Trigger" <> xRec."Transfer Order Trigger") and (xRec."Transfer Order Trigger" <> xRec."Transfer Order Trigger"::NoTrigger) then begin
-                    QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Transfer);
-                    QltyInspectionGenRule.SetRange("Transfer Order Trigger", xRec."Transfer Order Trigger");
-                    if (not QltyInspectionGenRule.IsEmpty()) and GuiAllowed() then
-                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Transfer Order Trigger", Rec."Transfer Order Trigger")) then
-                            QltyInspectionGenRule.ModifyAll("Transfer Order Trigger", Rec."Transfer Order Trigger", false);
+                    QltyInspectCreationRule.SetRange(Intent, QltyInspectCreationRule.Intent::Transfer);
+                    QltyInspectCreationRule.SetRange("Transfer Order Trigger", xRec."Transfer Order Trigger");
+                    if (not QltyInspectCreationRule.IsEmpty()) and GuiAllowed() then
+                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectCreationRule.Count(), xRec."Transfer Order Trigger", Rec."Transfer Order Trigger")) then
+                            QltyInspectCreationRule.ModifyAll("Transfer Order Trigger", Rec."Transfer Order Trigger", false);
                 end;
             end;
         }
@@ -399,14 +399,14 @@ table 20400 "Qlty. Management Setup"
 
             trigger OnValidate()
             var
-                QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+                QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
             begin
                 if (Rec."Assembly Trigger" <> xRec."Assembly Trigger") and (xRec."Assembly Trigger" <> xRec."Assembly Trigger"::NoTrigger) then begin
-                    QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Assembly);
-                    QltyInspectionGenRule.SetRange("Assembly Trigger", xRec."Assembly Trigger");
-                    if (not QltyInspectionGenRule.IsEmpty()) and GuiAllowed() then
-                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Assembly Trigger", Rec."Assembly Trigger")) then
-                            QltyInspectionGenRule.ModifyAll("Assembly Trigger", Rec."Assembly Trigger", false);
+                    QltyInspectCreationRule.SetRange(Intent, QltyInspectCreationRule.Intent::Assembly);
+                    QltyInspectCreationRule.SetRange("Assembly Trigger", xRec."Assembly Trigger");
+                    if (not QltyInspectCreationRule.IsEmpty()) and GuiAllowed() then
+                        if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectCreationRule.Count(), xRec."Assembly Trigger", Rec."Assembly Trigger")) then
+                            QltyInspectCreationRule.ModifyAll("Assembly Trigger", Rec."Assembly Trigger", false);
                 end;
             end;
         }

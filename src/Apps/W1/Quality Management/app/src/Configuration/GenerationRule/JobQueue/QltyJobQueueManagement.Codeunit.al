@@ -102,7 +102,7 @@ codeunit 20455 "Qlty. Job Queue Management"
     /// Performs safety checks to prevent orphaned job queue entries while protecting entries still in use.
     /// 
     /// Logic flow:
-    /// 1. Check if other inspection generation rules use this schedule group (excluding ToExcludeQltyInspectionGenRule)
+    /// 1. Check if other inspection generation rules use this schedule group (excluding ToExcludeQltyInspectCreationRule)
     /// 2. If other rules exist → exit without deletion
     /// 3. Find all job queue entries for this schedule group
     /// 4. If exactly one entry found and interactive → confirm deletion with user
@@ -111,18 +111,18 @@ codeunit 20455 "Qlty. Job Queue Management"
     /// 
     /// Common usage: Called when deleting or modifying inspection generation rules to clean up unused job queue entries.
     /// </summary>
-    /// <param name="ToExcludeQltyInspectionGenRule">The rule to exclude from the check (typically the rule being deleted or modified)</param>
+    /// <param name="ToExcludeQltyInspectCreationRule">The rule to exclude from the check (typically the rule being deleted or modified)</param>
     /// <param name="ScheduleGroupToConsiderRemoving">The schedule group code whose job queue entries should be considered for removal</param>
-    internal procedure DeleteJobQueueIfNothingElseIsUsingThisGroup(ToExcludeQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"; ScheduleGroupToConsiderRemoving: Code[20])
+    internal procedure DeleteJobQueueIfNothingElseIsUsingThisGroup(ToExcludeQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule"; ScheduleGroupToConsiderRemoving: Code[20])
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         JobQueueEntry: Record "Job Queue Entry";
     begin
-        QltyInspectionGenRule.SetRange("Schedule Group", ScheduleGroupToConsiderRemoving);
-        if ToExcludeQltyInspectionGenRule."Entry No." <> 0 then
-            QltyInspectionGenRule.SetFilter("Entry No.", '<>%1', ToExcludeQltyInspectionGenRule."Entry No.");
+        QltyInspectCreationRule.SetRange("Schedule Group", ScheduleGroupToConsiderRemoving);
+        if ToExcludeQltyInspectCreationRule."Entry No." <> 0 then
+            QltyInspectCreationRule.SetFilter("Entry No.", '<>%1', ToExcludeQltyInspectCreationRule."Entry No.");
 
-        if not QltyInspectionGenRule.IsEmpty() then
+        if not QltyInspectCreationRule.IsEmpty() then
             exit;
 
         if not FindJobQueueEntriesForScheduleGroup(ScheduleGroupToConsiderRemoving, JobQueueEntry) then
@@ -178,16 +178,16 @@ codeunit 20455 "Qlty. Job Queue Management"
     local procedure CreateJobQueueEntry(ScheduleGroup: Code[20])
     var
         JobQueueEntry: Record "Job Queue Entry";
-        FilterOnScheduleGroupQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        FilterOnScheduleGroupQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ReportParameterData: Text;
     begin
         JobQueueEntry.Init();
         JobQueueEntry.Insert(true);
         JobQueueEntry.Validate("Object Type to Run", JobQueueEntry."Object Type to Run"::Report);
         JobQueueEntry.Validate("Object ID to Run", Report::"Qlty. Schedule Inspection");
-        FilterOnScheduleGroupQltyInspectionGenRule.SetRange("Schedule Group", ScheduleGroup);
+        FilterOnScheduleGroupQltyInspectCreationRule.SetRange("Schedule Group", ScheduleGroup);
 
-        ReportParameterData := GetXmlFilterContents(FilterOnScheduleGroupQltyInspectionGenRule);
+        ReportParameterData := GetXmlFilterContents(FilterOnScheduleGroupQltyInspectCreationRule);
         JobQueueEntry.SetReportParameters(ReportParameterData);
         JobQueueEntry.SetStatus(JobQueueEntry.Status::"On Hold");
         JobQueueEntry.Modify(true);
@@ -218,9 +218,9 @@ codeunit 20455 "Qlty. Job Queue Management"
     /// - InspectionGenerationRuleDataItemTok: XPath to the DataItem node
     /// - DataItemOfInspectionGenerationRuleTok: The name attribute value of the DataItem
     /// </summary>
-    /// <param name="FilterOfQltyInspectionGenRule">The inspection generation rule record with filters applied (only filter view is used, not data)</param>
+    /// <param name="FilterOfQltyInspectCreationRule">The inspection generation rule record with filters applied (only filter view is used, not data)</param>
     /// <returns>XML string containing the report parameters suitable for job queue entry storage</returns>
-    local procedure GetXmlFilterContents(var FilterOfQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule") XmlOfReportParameters: Text
+    local procedure GetXmlFilterContents(var FilterOfQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule") XmlOfReportParameters: Text
     var
         ReportParamsXmlDocument: XmlDocument;
         NodeReportParametersXmlNode: XmlElement;
@@ -239,7 +239,7 @@ codeunit 20455 "Qlty. Job Queue Management"
         NodeDataItemOfXmlNode := XmlElement.Create('DataItem');
         NodeDataItemOfXmlNode.SetAttribute('name', DataItemOfInspectionGenerationRuleTok);
 
-        TextOfFilterString := XmlText.Create(FilterOfQltyInspectionGenRule.GetView(false));
+        TextOfFilterString := XmlText.Create(FilterOfQltyInspectCreationRule.GetView(false));
         NodeDataItemOfXmlNode.Add(TextOfFilterString);
         NodeDataItemsXmlNode.Add(NodeDataItemOfXmlNode);
         ReportParamsXmlDocument.WriteTo(XmlOfReportParameters);
@@ -260,11 +260,11 @@ codeunit 20455 "Qlty. Job Queue Management"
     /// 
     /// Error thrown: FilterMandatoryErr with schedule group in message
     /// </summary>
-    /// <param name="ThisQltyInspectionGenRule">The inspection generation rule to validate for scheduling</param>
-    internal procedure CheckIfGenerationRuleCanBeScheduled(var ThisQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
+    /// <param name="ThisQltyInspectCreationRule">The inspection generation rule to validate for scheduling</param>
+    internal procedure CheckIfGenerationRuleCanBeScheduled(var ThisQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule")
     begin
-        if (ThisQltyInspectionGenRule."Condition Filter" = '') and (ThisQltyInspectionGenRule."Item Filter" = '') and (ThisQltyInspectionGenRule."Item Attribute Filter" = '') then
-            Error(FilterMandatoryErr, ThisQltyInspectionGenRule."Schedule Group");
+        if (ThisQltyInspectCreationRule."Condition Filter" = '') and (ThisQltyInspectCreationRule."Item Filter" = '') and (ThisQltyInspectCreationRule."Item Attribute Filter" = '') then
+            Error(FilterMandatoryErr, ThisQltyInspectCreationRule."Schedule Group");
     end;
 
     /// <summary>
@@ -288,7 +288,7 @@ codeunit 20455 "Qlty. Job Queue Management"
     /// <returns>True if at least one matching job queue entry was found; False otherwise</returns>
     local procedure FindJobQueueEntriesForScheduleGroup(ScheduleGroup: Code[20]; var MarkedJobQueueEntry: Record "Job Queue Entry") AtLeastOne: Boolean
     var
-        SearchForQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        SearchForQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
         XmlOfReportParameters: Text;
         TestFilter: Text;
@@ -314,15 +314,15 @@ codeunit 20455 "Qlty. Job Queue Management"
                     TestFilter := ElementOfTest.InnerText();
                     TestFilter := QltyFilterHelpers.CleanUpWhereClause(TestFilter);
                     if TestFilter <> '' then begin
-                        Clear(SearchForQltyInspectionGenRule);
-                        SearchForQltyInspectionGenRule.Reset();
-                        SearchForQltyInspectionGenRule.FilterGroup(0);
-                        SearchForQltyInspectionGenRule.SetView(TestFilter);
-                        if SearchForQltyInspectionGenRule.GetFilter("Schedule Group") <> '' then begin
-                            SearchForQltyInspectionGenRule.FilterGroup(10);
-                            SearchForQltyInspectionGenRule.SetFilter("Schedule Group", ScheduleGroup);
-                            SearchForQltyInspectionGenRule.FilterGroup(0);
-                            if not SearchForQltyInspectionGenRule.IsEmpty() then begin
+                        Clear(SearchForQltyInspectCreationRule);
+                        SearchForQltyInspectCreationRule.Reset();
+                        SearchForQltyInspectCreationRule.FilterGroup(0);
+                        SearchForQltyInspectCreationRule.SetView(TestFilter);
+                        if SearchForQltyInspectCreationRule.GetFilter("Schedule Group") <> '' then begin
+                            SearchForQltyInspectCreationRule.FilterGroup(10);
+                            SearchForQltyInspectCreationRule.SetFilter("Schedule Group", ScheduleGroup);
+                            SearchForQltyInspectCreationRule.FilterGroup(0);
+                            if not SearchForQltyInspectCreationRule.IsEmpty() then begin
                                 MarkedJobQueueEntry.Mark();
                                 if StrLen(IDFilter) > 0 then
                                     IDFilter += '|';

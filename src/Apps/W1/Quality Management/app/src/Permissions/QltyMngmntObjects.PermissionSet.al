@@ -97,7 +97,7 @@ permissionset 20406 "QltyMngmnt - Objects"
         page "Qlty. Test Number Card Part" = X,
         page "Qlty. Test Wizard" = X,
         page "Qlty. Tests" = X,
-        page "Qlty. Inspection Gen. Rules" = X,
+        page "Qlty. Inspect. Creation Rules" = X,
         page "Qlty. Inspection Result List" = X,
         page "Qlty. Lookup Code List" = X,
         page "Qlty. Lookup Code Part" = X,
@@ -140,7 +140,7 @@ permissionset 20406 "QltyMngmnt - Objects"
 
         // Tables
         table "Qlty. Express Config. Value" = X,
-        table "Qlty. Inspection Gen. Rule" = X,
+        table "Qlty. Inspect. Creation Rule" = X,
         table "Qlty. I. Result Condit. Conf." = X,
         table "Qlty. Inspection Result" = X,
         table "Qlty. Lookup Code" = X,

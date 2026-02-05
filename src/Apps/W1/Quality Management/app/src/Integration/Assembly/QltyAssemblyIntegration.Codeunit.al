@@ -23,9 +23,9 @@ codeunit 20412 "Qlty. Assembly Integration"
     local procedure HandleOnAfterPost(var AssemblyHeader: Record "Assembly Header"; var AssemblyLine: Record "Assembly Line"; PostedAssemblyHeader: Record "Posted Assembly Header"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var ResJnlPostLine: Codeunit "Res. Jnl.-Post Line"; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line")
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         TempSpecTrackingSpecification: Record "Tracking Specification" temporary;
-        TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        TempQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary;
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         MgtItemTrackingDocManagement: Codeunit "Item Tracking Doc. Management";
         UnusedVariant1: Variant;
@@ -33,9 +33,9 @@ codeunit 20412 "Qlty. Assembly Integration"
         HasInspection: Boolean;
         Handled: Boolean;
     begin
-        QltyInspectionGenRule.SetRange("Assembly Trigger", QltyInspectionGenRule."Assembly Trigger"::OnAssemblyOutputPost);
-        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if QltyInspectionGenRule.IsEmpty() then
+        QltyInspectCreationRule.SetRange("Assembly Trigger", QltyInspectCreationRule."Assembly Trigger"::OnAssemblyOutputPost);
+        QltyInspectCreationRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectCreationRule."Activation Trigger"::"Manual or Automatic", QltyInspectCreationRule."Activation Trigger"::"Automatic only");
+        if QltyInspectCreationRule.IsEmpty() then
             exit;
 
         MgtItemTrackingDocManagement.FindShptRcptEntries(TempSpecTrackingSpecification, Database::"Posted Assembly Header", 0, PostedAssemblyHeader."No.", '', 0, 0, '');
@@ -45,7 +45,7 @@ codeunit 20412 "Qlty. Assembly Integration"
 
         if not TempSpecTrackingSpecification.IsEmpty() then
             repeat
-                HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(PostedAssemblyHeader, TempSpecTrackingSpecification, AssemblyHeader, UnusedVariant1, false, QltyInspectionGenRule);
+                HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(PostedAssemblyHeader, TempSpecTrackingSpecification, AssemblyHeader, UnusedVariant1, false, QltyInspectCreationRule);
                 if HasInspection then begin
                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                     QltyInspectionHeader."Source Quantity (Base)" := TempSpecTrackingSpecification."Quantity (Base)";
@@ -54,11 +54,11 @@ codeunit 20412 "Qlty. Assembly Integration"
                 OnAfterAttemptCreateInspectionFromPostedAssembly(AssemblyHeader, PostedAssemblyHeader, TempSpecTrackingSpecification, QltyInspectionHeader);
             until TempSpecTrackingSpecification.Next(-1) = 0
         else begin
-            TempQltyInspectionGenRule.CopyFilters(QltyInspectionGenRule);
+            TempQltyInspectCreationRule.CopyFilters(QltyInspectCreationRule);
             OnBeforeAttemptCreateInspectionFromPostedAssembly(AssemblyHeader, PostedAssemblyHeader, TempSpecTrackingSpecification, QltyInspectionHeader, Handled);
             if Handled then
                 exit;
-            HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(PostedAssemblyHeader, AssemblyHeader, UnusedVariant1, UnusedVariant2, false, TempQltyInspectionGenRule);
+            HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(PostedAssemblyHeader, AssemblyHeader, UnusedVariant1, UnusedVariant2, false, TempQltyInspectCreationRule);
             if HasInspection then
                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
             OnAfterAttemptCreateInspectionFromPostedAssembly(AssemblyHeader, PostedAssemblyHeader, TempSpecTrackingSpecification, QltyInspectionHeader);

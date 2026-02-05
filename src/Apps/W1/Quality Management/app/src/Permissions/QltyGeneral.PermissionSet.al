@@ -96,7 +96,7 @@ permissionset 20403 QltyGeneral
         page "Qlty. Test Number Card Part" = X,
         page "Qlty. Test Wizard" = X,
         page "Qlty. Tests" = X,
-        page "Qlty. Inspection Gen. Rules" = X,
+        page "Qlty. Inspect. Creation Rules" = X,
         page "Qlty. Inspection Result List" = X,
         page "Qlty. Inspection Template" = X,
         page "Qlty. Inspection Template Edit" = X,
@@ -136,7 +136,7 @@ permissionset 20403 QltyGeneral
         // tables
         table "Qlty. Express Config. Value" = X,
         table "Qlty. Test" = X,
-        table "Qlty. Inspection Gen. Rule" = X,
+        table "Qlty. Inspect. Creation Rule" = X,
         table "Qlty. I. Result Condit. Conf." = X,
         table "Qlty. Inspection Result" = X,
         table "Qlty. Inspection Template Hdr." = X,
@@ -151,7 +151,7 @@ permissionset 20403 QltyGeneral
         table "Qlty. Inspection Header" = X,
         // table data
         tabledata "Qlty. Express Config. Value" = RIMD,
-        tabledata "Qlty. Inspection Gen. Rule" = RIMD,
+        tabledata "Qlty. Inspect. Creation Rule" = RIMD,
         tabledata "Qlty. I. Result Condit. Conf." = RIMD,
         tabledata "Qlty. Inspection Result" = RIMD,
         tabledata "Qlty. Inspection Template Hdr." = RIMD,

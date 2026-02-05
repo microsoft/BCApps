@@ -760,7 +760,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
     procedure GenerationRule_ValidateScheduleGroup_NoFilters_ShouldError()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         TemplateCode: Text;
         ScheduleGroupCode: Text;
     begin
@@ -776,18 +776,18 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ConfigurationToLoadQltyInspectionTemplateHdr.Insert();
 
         // [GIVEN] All existing generation rules are deleted
-        QltyInspectionGenRule.DeleteAll();
+        QltyInspectCreationRule.DeleteAll();
 
         // [GIVEN] A new generation rule is created without any filters
-        QltyInspectionGenRule.Init();
-        QltyInspectionGenRule."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
-        QltyInspectionGenRule.Insert();
+        QltyInspectCreationRule.Init();
+        QltyInspectCreationRule."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
+        QltyInspectCreationRule.Insert();
 
         // [GIVEN] A random schedule group code is generated
         QltyInspectionUtility.GenerateRandomCharacters(20, ScheduleGroupCode);
 
         // [WHEN] Attempting to validate Schedule Group without filters
-        asserterror QltyInspectionGenRule.Validate("Schedule Group", ScheduleGroupCode);
+        asserterror QltyInspectCreationRule.Validate("Schedule Group", ScheduleGroupCode);
 
         // [THEN] An error is raised indicating at least one filter is mandatory
         LibraryAssert.ExpectedError(StrSubstNo(FilterMandatoryErr, ScheduleGroupCode));
@@ -798,7 +798,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
     procedure GenerationRule_ValidateScheduleGroup_NewScheduleGroup()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         JobQueueEntry: Record "Job Queue Entry";
         JobQueueEntries: TestPage "Job Queue Entries";
         TemplateCode: Text;
@@ -822,15 +822,15 @@ codeunit 139965 "Qlty. Tests - More Tests"
             JobQueueEntry.DeleteAll();
 
         // [GIVEN] All existing generation rules are deleted
-        QltyInspectionGenRule.DeleteAll();
+        QltyInspectCreationRule.DeleteAll();
 
         // [GIVEN] A new generation rule with filters and default schedule group is created
-        QltyInspectionGenRule.Init();
-        QltyInspectionGenRule."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
-        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := ConditionProductionFilterTok;
-        QltyInspectionGenRule."Schedule Group" := DefaultScheduleGroupTok;
-        QltyInspectionGenRule.Insert(true);
+        QltyInspectCreationRule.Init();
+        QltyInspectCreationRule."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
+        QltyInspectCreationRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectCreationRule."Condition Filter" := ConditionProductionFilterTok;
+        QltyInspectCreationRule."Schedule Group" := DefaultScheduleGroupTok;
+        QltyInspectCreationRule.Insert(true);
 
         // [GIVEN] A random new schedule group code is generated
         QltyInspectionUtility.GenerateRandomCharacters(20, ScheduleGroupCode);
@@ -839,10 +839,10 @@ codeunit 139965 "Qlty. Tests - More Tests"
         JobQueueEntries.Trap();
 
         // [WHEN] Schedule Group is validated with the new schedule group code
-        QltyInspectionGenRule.Validate("Schedule Group", ScheduleGroupCode);
+        QltyInspectCreationRule.Validate("Schedule Group", ScheduleGroupCode);
 
         // [THEN] The Schedule Group is successfully updated
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Schedule Group" = ScheduleGroupCode, 'Schedule group should be updated');
+        LibraryAssert.IsTrue(QltyInspectCreationRule."Schedule Group" = ScheduleGroupCode, 'Schedule group should be updated');
 
         // [THEN] A job queue entry is created for the schedule inspection report
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Report);
@@ -855,10 +855,10 @@ codeunit 139965 "Qlty. Tests - More Tests"
     procedure GenerationRule_CreateJobQueueEntry()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         JobQueueEntry: Record "Job Queue Entry";
         JobQueueEntries: TestPage "Job Queue Entries";
-        QltyInspectionGenRules: TestPage "Qlty. Inspection Gen. Rules";
+        QltyInspectCreationRules: TestPage "Qlty. Inspect. Creation Rules";
         TemplateCode: Text;
         ScheduleGroupCode: Text;
     begin
@@ -873,13 +873,13 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [GIVEN] A new generation rule with schedule group is created
         QltyInspectionUtility.GenerateRandomCharacters(20, ScheduleGroupCode);
-        QltyInspectionGenRule.DeleteAll();
-        QltyInspectionGenRule.Init();
-        QltyInspectionGenRule."Template Code" := QltyInspectionTemplateHdr.Code;
-        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := OrderTypeProductionConditionFilterTok;
-        QltyInspectionGenRule."Schedule Group" := CopyStr(ScheduleGroupCode, 1, MaxStrLen(QltyInspectionGenRule."Schedule Group"));
-        QltyInspectionGenRule.Insert(true);
+        QltyInspectCreationRule.DeleteAll();
+        QltyInspectCreationRule.Init();
+        QltyInspectCreationRule."Template Code" := QltyInspectionTemplateHdr.Code;
+        QltyInspectCreationRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectCreationRule."Condition Filter" := OrderTypeProductionConditionFilterTok;
+        QltyInspectCreationRule."Schedule Group" := CopyStr(ScheduleGroupCode, 1, MaxStrLen(QltyInspectCreationRule."Schedule Group"));
+        QltyInspectCreationRule.Insert(true);
 
         // [GIVEN] Any existing job queue entries for schedule inspection are deleted
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Report);
@@ -891,9 +891,9 @@ codeunit 139965 "Qlty. Tests - More Tests"
         JobQueueEntries.Trap();
 
         // [WHEN] CreateAnotherJobQueue action is invoked on the Generation Rules page
-        QltyInspectionGenRules.OpenView();
-        QltyInspectionGenRules.GoToRecord(QltyInspectionGenRule);
-        QltyInspectionGenRules.CreateAnotherJobQueue.Invoke();
+        QltyInspectCreationRules.OpenView();
+        QltyInspectCreationRules.GoToRecord(QltyInspectCreationRule);
+        QltyInspectCreationRules.CreateAnotherJobQueue.Invoke();
 
         // [THEN] A job queue entry is created for the schedule inspection report
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Report);
@@ -906,7 +906,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
     procedure GenerationRule_DeleteScheduleGroup_ShouldDeleteEntry()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         JobQueueEntry: Record "Job Queue Entry";
         JobQueueEntries: TestPage "Job Queue Entries";
         TemplateCode: Text;
@@ -929,14 +929,14 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [GIVEN] A generation rule with schedule group is created
         QltyInspectionUtility.GenerateRandomCharacters(20, ScheduleGroupCode);
-        QltyInspectionGenRule.DeleteAll();
-        QltyInspectionGenRule.Init();
-        QltyInspectionGenRule."Template Code" := QltyInspectionTemplateHdr.Code;
-        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := OrderTypeProductionConditionFilterTok;
-        QltyInspectionGenRule.Insert(true);
+        QltyInspectCreationRule.DeleteAll();
+        QltyInspectCreationRule.Init();
+        QltyInspectCreationRule."Template Code" := QltyInspectionTemplateHdr.Code;
+        QltyInspectCreationRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectCreationRule."Condition Filter" := OrderTypeProductionConditionFilterTok;
+        QltyInspectCreationRule.Insert(true);
         JobQueueEntries.Trap();
-        QltyInspectionGenRule.Validate("Schedule Group", ScheduleGroupCode);
+        QltyInspectCreationRule.Validate("Schedule Group", ScheduleGroupCode);
 
         // [GIVEN] A job queue entry is created for the schedule group
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Report);
@@ -944,7 +944,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryAssert.IsTrue(JobQueueEntry.Count() = 1, 'Should have created a job queue entry');
 
         // [WHEN] The schedule group is cleared from the generation rule
-        QltyInspectionGenRule.Validate("Schedule Group", '');
+        QltyInspectCreationRule.Validate("Schedule Group", '');
 
         // [THEN] The job queue entry is deleted since no other rules use this schedule group
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Report);
@@ -956,9 +956,9 @@ codeunit 139965 "Qlty. Tests - More Tests"
     [HandlerFunctions('ConfirmHandler')]
     procedure GenerationRule_DeleteScheduleGroup_ShouldNotDeleteEntry()
     var
-        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        SecondQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionTemplateHdr: Record "QInspect.ction Template Hdr.";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
+        Qlty.Inspect.tyInspectionGenRule: Record "Qlty. Inspect. Creation Rule";
         JobQueueEntry: Record "Job Queue Entry";
         JobQueueEntries: TestPage "Job Queue Entries";
         TemplateCode: Text;
@@ -981,23 +981,23 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [GIVEN] A first generation rule with schedule group is created
         QltyInspectionUtility.GenerateRandomCharacters(20, ScheduleGroupCode);
-        QltyInspectionGenRule.DeleteAll();
-        QltyInspectionGenRule.Init();
-        QltyInspectionGenRule."Template Code" := QltyInspectionTemplateHdr.Code;
-        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := EntryTypeOutputConditionFilterTok;
-        QltyInspectionGenRule.Insert(true);
+        QltyInspectCreationRule.DeleteAll();
+        QltyInspectCreationRule.Init();
+        QltyInspectCreationRule."Template Code" := QltyInspectionTemplateHdr.Code;
+        QltyInspectCreationRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectCreationRule."Condition Filter" := EntryTypeOutputConditionFilterTok;
+        QltyInspectCreationRule.Insert(true);
         JobQueueEntries.Trap();
-        QltyInspectionGenRule.Validate("Schedule Group", ScheduleGroupCode);
+        QltyInspectCreationRule.Validate("Schedule Group", ScheduleGroupCode);
 
         // [GIVEN] A second generation rule with the same schedule group is created
-        SecondQltyInspectionGenRule.Init();
-        SecondQltyInspectionGenRule."Template Code" := QltyInspectionTemplateHdr.Code;
-        SecondQltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        SecondQltyInspectionGenRule."Condition Filter" := OrderTypeProductionConditionFilterTok;
-        SecondQltyInspectionGenRule.Insert(true);
+        SecondQltyInspectCreationRule.Init();
+        SecondQltyInspectCreationRule."Template Code" := QltyInspectionTemplateHdr.Code;
+        SecondQltyInspectCreationRule."Source Table No." := Database::"Item Ledger Entry";
+        SecondQltyInspectCreationRule."Condition Filter" := OrderTypeProductionConditionFilterTok;
+        SecondQltyInspectCreationRule.Insert(true);
         JobQueueEntries.Trap();
-        SecondQltyInspectionGenRule.Validate("Schedule Group", ScheduleGroupCode);
+        SecondQltyInspectCreationRule.Validate("Schedule Group", ScheduleGroupCode);
 
         // [GIVEN] A job queue entry is created for the shared schedule group
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Report);
@@ -1005,7 +1005,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryAssert.IsTrue(JobQueueEntry.Count() = 1, 'Should have created a job queue entry');
 
         // [WHEN] The schedule group is cleared from the first generation rule only
-        QltyInspectionGenRule.Validate("Schedule Group", '');
+        QltyInspectCreationRule.Validate("Schedule Group", '');
 
         // [THEN] The job queue entry is preserved because the second rule still uses the same schedule group
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Report);
@@ -1018,9 +1018,9 @@ codeunit 139965 "Qlty. Tests - More Tests"
     procedure GenerationRule_LookupJobQueue_Default()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        JobQueueEntry: Record "Job Queue Entry";
-        QltyInspectionGenRules: TestPage "Qlty. Inspection Gen. Rules";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
+        JobQueueEntry: Record "Job Queue E Qlty.Inspect.
+        QltyInspectCreationRules: TestPage "Qlty. Inspect. Creation Rules";
         JobQueueEntries: TestPage "Job Queue Entries";
         TemplateCode: Text;
     begin
@@ -1039,14 +1039,14 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ConfigurationToLoadQltyInspectionTemplateHdr.Insert();
 
         // [GIVEN] All existing generation rules are deleted
-        QltyInspectionGenRule.DeleteAll();
+        QltyInspectCreationRule.DeleteAll();
 
         // [GIVEN] A new generation rule with filters but no schedule group is created
-        QltyInspectionGenRule.Init();
-        QltyInspectionGenRule."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
-        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := ConditionProductionFilterTok;
-        QltyInspectionGenRule.Insert(true);
+        QltyInspectCreationRule.Init();
+        QltyInspectCreationRule."Template Code" := ConfigurationToLoadQltyInspectionTemplateHdr.Code;
+        QltyInspectCreationRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectCreationRule."Condition Filter" := ConditionProductionFilterTok;
+        QltyInspectCreationRule.Insert(true);
 
         // [GIVEN] All existing job queue entries for schedule inspection are deleted
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Report);
@@ -1055,20 +1055,20 @@ codeunit 139965 "Qlty. Tests - More Tests"
             JobQueueEntry.DeleteAll();
 
         // [GIVEN] The Generation Rules page is opened and navigated to the rule
-        QltyInspectionGenRules.OpenEdit();
-        QltyInspectionGenRules.GoToRecord(QltyInspectionGenRule);
+        QltyInspectCreationRules.OpenEdit();
+        QltyInspectCreationRules.GoToRecord(QltyInspectCreationRule);
 
         // [GIVEN] Job Queue Entries page is trapped for verification
         JobQueueEntries.Trap();
 
         // [WHEN] Lookup is invoked on the Schedule Group field
-        QltyInspectionGenRules."Schedule Group".Drilldown();
+        QltyInspectCreationRules."Schedule Group".Drilldown();
         JobQueueEntries.Close();
-        QltyInspectionGenRules.Close();
+        QltyInspectCreationRules.Close();
 
         // [THEN] The default schedule group 'QM' is assigned to the rule
-        QltyInspectionGenRule.Get(QltyInspectionGenRule."Entry No.");
-        LibraryAssert.AreEqual(DefaultScheduleGroupTok, QltyInspectionGenRule."Schedule Group", 'Default schedule group should be created');
+        QltyInspectCreationRule.Get(QltyInspectCreationRule."Entry No.");
+        LibraryAssert.AreEqual(DefaultScheduleGroupTok, QltyInspectCreationRule."Schedule Group", 'Default schedule group should be created');
 
         // [THEN] A job queue entry is created for the schedule inspection report
         LibraryAssert.IsTrue(JobQueueEntry.Count() = 1, 'Should have created a job queue entry');
@@ -1077,7 +1077,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
     [Test]
     procedure GenerationRuleList_ValidateProductionTrigger()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
         // [SCENARIO] Production Order Trigger can be validated and set to OnProductionOrderRelease
         Initialize();
@@ -1086,22 +1086,22 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A new generation rule for Prod. Order Routing Line with Disabled activation trigger is initialized
-        QltyInspectionGenRule.Init();
-        QltyInspectionGenRule."Template Code" := TemplateCodeTok;
-        QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::Disabled;
-        QltyInspectionGenRule."Source Table No." := Database::"Prod. Order Routing Line";
+        QltyInspectCreationRule.Init();
+        QltyInspectCreationRule."Template Code" := TemplateCodeTok;
+        QltyInspectCreationRule."Activation Trigger" := QltyInspectCreationRule."Activation Trigger"::Disabled;
+        QltyInspectCreationRule."Source Table No." := Database::"Prod. Order Routing Line";
 
         // [WHEN] Production Order Trigger is validated and set to OnProductionOrderRelease
-        QltyInspectionGenRule.Validate("Production Order Trigger", QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease);
+        QltyInspectCreationRule.Validate("Production Order Trigger", QltyInspectCreationRule."Production Order Trigger"::OnProductionOrderRelease);
 
         // [THEN] The Production Order Trigger is successfully set to OnProductionOrderRelease
-        LibraryAssert.AreEqual(QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease, QltyInspectionGenRule."Production Order Trigger", 'Production Order Trigger should be set to on release');
+        LibraryAssert.AreEqual(QltyInspectCreationRule."Production Order Trigger"::OnProductionOrderRelease, QltyInspectCreationRule."Production Order Trigger", 'Production Order Trigger should be set to on release');
     end;
 
     [Test]
     procedure GenerationRuleList_ValidateWarehouseReceiveTrigger()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
         // [SCENARIO] Warehouse Receipt Trigger can be validated and set to OnWarehouseReceiptCreate
         Initialize();
@@ -1110,22 +1110,22 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A new generation rule for Warehouse Receipt Line with Disabled activation trigger is initialized
-        QltyInspectionGenRule.Init();
-        QltyInspectionGenRule."Template Code" := TemplateCodeTok;
-        QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::Disabled;
-        QltyInspectionGenRule."Source Table No." := Database::"Warehouse Receipt Line";
+        QltyInspectCreationRule.Init();
+        QltyInspectCreationRule."Template Code" := TemplateCodeTok;
+        QltyInspectCreationRule."Activation Trigger" := QltyInspectCreationRule."Activation Trigger"::Disabled;
+        QltyInspectCreationRule."Source Table No." := Database::"Warehouse Receipt Line";
 
         // [WHEN] Warehouse Receipt Trigger is validated and set to OnWarehouseReceiptCreate
-        QltyInspectionGenRule.Validate("Warehouse Receipt Trigger", QltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate);
+        QltyInspectCreationRule.Validate("Warehouse Receipt Trigger", QltyInspectCreationRule."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate);
 
         // [THEN] The Warehouse Receipt Trigger is successfully set
-        LibraryAssert.AreEqual(QltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate, QltyInspectionGenRule."Warehouse Receipt Trigger", 'Warehouse Receipt trigger should be set to on receipt create');
+        LibraryAssert.AreEqual(QltyInspectCreationRule."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate, QltyInspectCreationRule."Warehouse Receipt Trigger", 'Warehouse Receipt trigger should be set to on receipt create');
     end;
 
     [Test]
     procedure GenerationRuleList_ValidateWarehouseMovementTrigger()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
         // [SCENARIO] Warehouse Movement Trigger can be validated and set to OnWhseMovementRegister
         Initialize();
@@ -1134,22 +1134,22 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A new generation rule for Warehouse Entry with Disabled activation trigger is initialized
-        QltyInspectionGenRule.Init();
-        QltyInspectionGenRule."Template Code" := TemplateCodeTok;
-        QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::Disabled;
-        QltyInspectionGenRule."Source Table No." := Database::"Warehouse Entry";
+        QltyInspectCreationRule.Init();
+        QltyInspectCreationRule."Template Code" := TemplateCodeTok;
+        QltyInspectCreationRule."Activation Trigger" := QltyInspectCreationRule."Activation Trigger"::Disabled;
+        QltyInspectCreationRule."Source Table No." := Database::"Warehouse Entry";
 
         // [WHEN] Warehouse Movement Trigger is validated and set to OnWhseMovementRegister
-        QltyInspectionGenRule.Validate("Warehouse Movement Trigger", QltyInspectionGenRule."Warehouse Movement Trigger"::OnWhseMovementRegister);
+        QltyInspectCreationRule.Validate("Warehouse Movement Trigger", QltyInspectCreationRule."Warehouse Movement Trigger"::OnWhseMovementRegister);
 
         // [THEN] The Warehouse Movement Trigger is successfully set
-        LibraryAssert.AreEqual(QltyInspectionGenRule."Warehouse Movement Trigger"::OnWhseMovementRegister, QltyInspectionGenRule."Warehouse Movement Trigger", 'Warehouse Movement trigger should be set to into bin');
+        LibraryAssert.AreEqual(QltyInspectCreationRule."Warehouse Movement Trigger"::OnWhseMovementRegister, QltyInspectCreationRule."Warehouse Movement Trigger", 'Warehouse Movement trigger should be set to into bin');
     end;
 
     [Test]
     procedure GenerationRuleList_ValidatePurchaseTrigger()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
         // [SCENARIO] Purchase Order Trigger can be validated and set to OnPurchaseOrderPostReceive
         Initialize();
@@ -1158,22 +1158,22 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A new generation rule for Purchase Line with Disabled activation trigger is initialized
-        QltyInspectionGenRule.Init();
-        QltyInspectionGenRule."Template Code" := TemplateCodeTok;
-        QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::Disabled;
-        QltyInspectionGenRule."Source Table No." := Database::"Purchase Line";
+        QltyInspectCreationRule.Init();
+        QltyInspectCreationRule."Template Code" := TemplateCodeTok;
+        QltyInspectCreationRule."Activation Trigger" := QltyInspectCreationRule."Activation Trigger"::Disabled;
+        QltyInspectCreationRule."Source Table No." := Database::"Purchase Line";
 
         // [WHEN] Purchase Order Trigger is validated and set to OnPurchaseOrderPostReceive
-        QltyInspectionGenRule.Validate("Purchase Order Trigger", QltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive);
+        QltyInspectCreationRule.Validate("Purchase Order Trigger", QltyInspectCreationRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive);
 
         // [THEN] The Purchase Order Trigger is successfully set
-        LibraryAssert.AreEqual(QltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive, QltyInspectionGenRule."Purchase Order Trigger", 'Purchase Order Trigger should be set to on purchase post');
+        LibraryAssert.AreEqual(QltyInspectCreationRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive, QltyInspectCreationRule."Purchase Order Trigger", 'Purchase Order Trigger should be set to on purchase post');
     end;
 
     [Test]
     procedure GenerationRuleList_ValidateSalesReturnTrigger()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
         // [SCENARIO] Sales Return Trigger can be validated and set to OnSalesReturnOrderPostReceive
         Initialize();
@@ -1182,22 +1182,22 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A new generation rule for Sales Line with Disabled activation trigger is initialized
-        QltyInspectionGenRule.Init();
-        QltyInspectionGenRule."Template Code" := TemplateCodeTok;
-        QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::Disabled;
-        QltyInspectionGenRule."Source Table No." := Database::"Sales Line";
+        QltyInspectCreationRule.Init();
+        QltyInspectCreationRule."Template Code" := TemplateCodeTok;
+        QltyInspectCreationRule."Activation Trigger" := QltyInspectCreationRule."Activation Trigger"::Disabled;
+        QltyInspectCreationRule."Source Table No." := Database::"Sales Line";
 
         // [WHEN] Sales Return Trigger is validated and set to OnSalesReturnOrderPostReceive
-        QltyInspectionGenRule.Validate("Sales Return Trigger", QltyInspectionGenRule."Sales Return Trigger"::OnSalesReturnOrderPostReceive);
+        QltyInspectCreationRule.Validate("Sales Return Trigger", QltyInspectCreationRule."Sales Return Trigger"::OnSalesReturnOrderPostReceive);
 
         // [THEN] The Sales Return Trigger is successfully set
-        LibraryAssert.AreEqual(QltyInspectionGenRule."Sales Return Trigger"::OnSalesReturnOrderPostReceive, QltyInspectionGenRule."Sales Return Trigger", 'Sales Return trigger should be set to on sales return post');
+        LibraryAssert.AreEqual(QltyInspectCreationRule."Sales Return Trigger"::OnSalesReturnOrderPostReceive, QltyInspectCreationRule."Sales Return Trigger", 'Sales Return trigger should be set to on sales return post');
     end;
 
     [Test]
     procedure GenerationRuleList_ValidateTransferTrigger()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
         // [SCENARIO] Transfer Order Trigger can be validated and set to OnTransferOrderPostReceive
         Initialize();
@@ -1206,22 +1206,22 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A new generation rule for Transfer Line with Disabled activation trigger is initialized
-        QltyInspectionGenRule.Init();
-        QltyInspectionGenRule."Template Code" := TemplateCodeTok;
-        QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::Disabled;
-        QltyInspectionGenRule."Source Table No." := Database::"Transfer Line";
+        QltyInspectCreationRule.Init();
+        QltyInspectCreationRule."Template Code" := TemplateCodeTok;
+        QltyInspectCreationRule."Activation Trigger" := QltyInspectCreationRule."Activation Trigger"::Disabled;
+        QltyInspectCreationRule."Source Table No." := Database::"Transfer Line";
 
         // [WHEN] Transfer Order Trigger is validated and set to OnTransferOrderPostReceive
-        QltyInspectionGenRule.Validate("Transfer Order Trigger", QltyInspectionGenRule."Transfer Order Trigger"::OnTransferOrderPostReceive);
+        QltyInspectCreationRule.Validate("Transfer Order Trigger", QltyInspectCreationRule."Transfer Order Trigger"::OnTransferOrderPostReceive);
 
         // [THEN] The Transfer Order Trigger is successfully set
-        LibraryAssert.AreEqual(QltyInspectionGenRule."Transfer Order Trigger"::OnTransferOrderPostReceive, QltyInspectionGenRule."Transfer Order Trigger", 'Transfer Order Trigger should be set to on transfer receive post');
+        LibraryAssert.AreEqual(QltyInspectCreationRule."Transfer Order Trigger"::OnTransferOrderPostReceive, QltyInspectCreationRule."Transfer Order Trigger", 'Transfer Order Trigger should be set to on transfer receive post');
     end;
 
     [Test]
     procedure GenerationRuleList_ValidateAssemblyTrigger()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
         // [SCENARIO] Assembly Trigger can be validated and set to OnAssemblyOutputPost
         Initialize();
@@ -1230,23 +1230,23 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A new generation rule for Assembly Line with Disabled activation trigger is initialized
-        QltyInspectionGenRule.Init();
-        QltyInspectionGenRule."Template Code" := TemplateCodeTok;
-        QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::Disabled;
-        QltyInspectionGenRule."Source Table No." := Database::"Assembly Line";
+        QltyInspectCreationRule.Init();
+        QltyInspectCreationRule."Template Code" := TemplateCodeTok;
+        QltyInspectCreationRule."Activation Trigger" := QltyInspectCreationRule."Activation Trigger"::Disabled;
+        QltyInspectCreationRule."Source Table No." := Database::"Assembly Line";
 
         // [WHEN] Assembly Trigger is validated and set to OnAssemblyOutputPost
-        QltyInspectionGenRule.Validate("Assembly Trigger", QltyInspectionGenRule."Assembly Trigger"::OnAssemblyOutputPost);
+        QltyInspectCreationRule.Validate("Assembly Trigger", QltyInspectCreationRule."Assembly Trigger"::OnAssemblyOutputPost);
 
         // [THEN] The Assembly Trigger is successfully set
-        LibraryAssert.AreEqual(QltyInspectionGenRule."Assembly Trigger"::OnAssemblyOutputPost, QltyInspectionGenRule."Assembly Trigger", 'Assembly trigger should be set to on any output posted ledger');
+        LibraryAssert.AreEqual(QltyInspectCreationRule."Assembly Trigger"::OnAssemblyOutputPost, QltyInspectCreationRule."Assembly Trigger", 'Assembly trigger should be set to on any output posted ledger');
     end;
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
     procedure GenerationRuleList_ValidateAssemblyTrigger_ChangetoManualOrAuto()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
         // [SCENARIO] Setting Assembly Trigger changes Activation Trigger from "Manual only" to "Manual or Automatic"
         Initialize();
@@ -1255,27 +1255,27 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A new generation rule for Assembly Line with "Manual only" activation trigger is initialized
-        QltyInspectionGenRule.Init();
-        QltyInspectionGenRule."Template Code" := TemplateCodeTok;
-        QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::"Manual only";
-        QltyInspectionGenRule."Source Table No." := Database::"Assembly Line";
+        QltyInspectCreationRule.Init();
+        QltyInspectCreationRule."Template Code" := TemplateCodeTok;
+        QltyInspectCreationRule."Activation Trigger" := QltyInspectCreationRule."Activation Trigger"::"Manual only";
+        QltyInspectCreationRule."Source Table No." := Database::"Assembly Line";
 
         // [WHEN] Assembly Trigger is validated and set to OnAssemblyOutputPost
-        QltyInspectionGenRule.Validate("Assembly Trigger", QltyInspectionGenRule."Assembly Trigger"::OnAssemblyOutputPost);
+        QltyInspectCreationRule.Validate("Assembly Trigger", QltyInspectCreationRule."Assembly Trigger"::OnAssemblyOutputPost);
 
         // [THEN] The Assembly Trigger is successfully set
-        LibraryAssert.AreEqual(QltyInspectionGenRule."Assembly Trigger"::OnAssemblyOutputPost, QltyInspectionGenRule."Assembly Trigger", 'Assembly trigger should be set to on any output posted ledger');
+        LibraryAssert.AreEqual(QltyInspectCreationRule."Assembly Trigger"::OnAssemblyOutputPost, QltyInspectCreationRule."Assembly Trigger", 'Assembly trigger should be set to on any output posted ledger');
 
         // [THEN] The Activation Trigger is automatically changed to "Manual or Automatic"
-        LibraryAssert.AreEqual(QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger", 'Activation trigger should be set to manual or automatic');
+        LibraryAssert.AreEqual(QltyInspectCreationRule."Activation Trigger"::"Manual or Automatic", QltyInspectCreationRule."Activation Trigger", 'Activation trigger should be set to manual or automatic');
     end;
 
     [Test]
     [HandlerFunctions('FilterPageHandler')]
     procedure GenerationRuleList_AssistEditConditionTableFilter()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        QltyInspectionGenRules: TestPage "Qlty. Inspection Gen. Rules";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
+        QltyInspectCreationRules: TestPage "Qlty. Inspect. Creation Rules";
     begin
         // [SCENARIO] User can use AssistEdit to define a Condition Filter for generation rule
         Initialize();
@@ -1284,37 +1284,37 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] All existing generation rules are deleted
-        QltyInspectionGenRule.DeleteAll();
+        QltyInspectCreationRule.DeleteAll();
 
         // [GIVEN] A new generation rule for Item Ledger Entry is created
-        QltyInspectionGenRule.Init();
-        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule.Insert(true);
+        QltyInspectCreationRule.Init();
+        QltyInspectCreationRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectCreationRule.Insert(true);
 
         // [GIVEN] The Generation Rules page is opened and navigated to the rule
-        QltyInspectionGenRules.OpenEdit();
-        QltyInspectionGenRules.GoToRecord(QltyInspectionGenRule);
+        QltyInspectCreationRules.OpenEdit();
+        QltyInspectCreationRules.GoToRecord(QltyInspectCreationRule);
 
         // [GIVEN] A production filter expression is prepared for the handler
         AssistEditTemplateValue := ConditionProductionFilterTok;
 
         // [WHEN] AssistEdit is invoked on the "Condition Filter" field
-        QltyInspectionGenRules."Condition Filter".AssistEdit();
-        QltyInspectionGenRules.Close();
+        QltyInspectCreationRules."Condition Filter".AssistEdit();
+        QltyInspectCreationRules.Close();
 
         // [THEN] The Condition Filter is updated with the production filter expression
-        QltyInspectionGenRule.Get(QltyInspectionGenRule."Entry No.");
-        LibraryAssert.AreEqual(ConditionProductionFilterTok, QltyInspectionGenRule."Condition Filter", 'Condition filter should be set to the default');
+        QltyInspectCreationRule.Get(QltyInspectCreationRule."Entry No.");
+        LibraryAssert.AreEqual(ConditionProductionFilterTok, QltyInspectCreationRule."Condition Filter", 'Condition filter should be set to the default');
     end;
 
     [Test]
     [HandlerFunctions('FilterPageHandler')]
     procedure GenerationRuleList_AssistEditConditionItemFilter()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Item: Record Item;
         LibraryInventory: Codeunit "Library - Inventory";
-        QltyInspectionGenRules: TestPage "Qlty. Inspection Gen. Rules";
+        QltyInspectCreationRules: TestPage "Qlty. Inspect. Creation Rules";
     begin
         // [SCENARIO] User can use AssistEdit to define an Item Filter for generation rule
         Initialize();
@@ -1326,38 +1326,38 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryInventory.CreateItem(Item);
 
         // [GIVEN] All existing generation rules are deleted
-        QltyInspectionGenRule.DeleteAll();
+        QltyInspectCreationRule.DeleteAll();
 
         // [GIVEN] A new generation rule for Item Ledger Entry is created
-        QltyInspectionGenRule.Init();
-        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule.Insert(true);
+        QltyInspectCreationRule.Init();
+        QltyInspectCreationRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectCreationRule.Insert(true);
 
         // [GIVEN] The Generation Rules page is opened and navigated to the rule
-        QltyInspectionGenRules.OpenEdit();
-        QltyInspectionGenRules.GoToRecord(QltyInspectionGenRule);
+        QltyInspectCreationRules.OpenEdit();
+        QltyInspectCreationRules.GoToRecord(QltyInspectCreationRule);
 
         // [GIVEN] An item filter expression for the created item is prepared for the handler
         AssistEditTemplateValue := StrSubstNo(ConditionFilterItemNoTok, Item."No.");
 
         // [WHEN] AssistEdit is invoked on the "Item Filter" field
-        QltyInspectionGenRules."Item Filter".AssistEdit();
-        QltyInspectionGenRules.Close();
+        QltyInspectCreationRules."Item Filter".AssistEdit();
+        QltyInspectCreationRules.Close();
 
         // [THEN] The Item Filter is updated with the item number filter expression
-        QltyInspectionGenRule.Get(QltyInspectionGenRule."Entry No.");
-        LibraryAssert.AreEqual(StrSubstNo(ConditionFilterItemNoTok, Item."No."), QltyInspectionGenRule."Item Filter", 'Item filter should be set to the item no.');
+        QltyInspectCreationRule.Get(QltyInspectCreationRule."Entry No.");
+        LibraryAssert.AreEqual(StrSubstNo(ConditionFilterItemNoTok, Item."No."), QltyInspectCreationRule."Item Filter", 'Item filter should be set to the item no.');
     end;
 
     [Test]
     [HandlerFunctions('FilterItemsbyAttributeModalPageHandler')]
     procedure GenerationRuleList_AssistEditConditionAttributeFilter()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ItemAttribute: Record "Item Attribute";
         ItemAttributeValue: Record "Item Attribute Value";
         LibraryInventory: Codeunit "Library - Inventory";
-        QltyInspectionGenRules: TestPage "Qlty. Inspection Gen. Rules";
+        QltyInspectCreationRules: TestPage "Qlty. Inspect. Creation Rules";
     begin
         // [SCENARIO] User can use AssistEdit to define an Item Attribute Filter for generation rule
         Initialize();
@@ -1366,27 +1366,27 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryInventory.CreateItemAttributeWithValue(ItemAttribute, ItemAttributeValue, ItemAttribute.Type::Option, 'Red');
 
         // [GIVEN] All existing generation rules are deleted
-        QltyInspectionGenRule.DeleteAll();
+        QltyInspectCreationRule.DeleteAll();
 
         // [GIVEN] A new generation rule for Item Ledger Entry is created
-        QltyInspectionGenRule.Init();
-        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule.Insert(true);
+        QltyInspectCreationRule.Init();
+        QltyInspectCreationRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectCreationRule.Insert(true);
 
         // [GIVEN] The Generation Rules page is opened and navigated to the rule
-        QltyInspectionGenRules.OpenEdit();
-        QltyInspectionGenRules.GoToRecord(QltyInspectionGenRule);
+        QltyInspectCreationRules.OpenEdit();
+        QltyInspectCreationRules.GoToRecord(QltyInspectCreationRule);
 
         // [GIVEN] The attribute name and value are prepared for selection via modal handler
         AttributeNameToValue.Add(ItemAttribute.Name, ItemAttributeValue.Value);
 
         // [WHEN] AssistEdit is invoked on the "Item Attribute Filter" field
-        QltyInspectionGenRules."Item Attribute Filter".AssistEdit();
-        QltyInspectionGenRules.Close();
+        QltyInspectCreationRules."Item Attribute Filter".AssistEdit();
+        QltyInspectCreationRules.Close();
 
         // [THEN] The Item Attribute Filter is updated with the attribute filter expression
-        QltyInspectionGenRule.Get(QltyInspectionGenRule."Entry No.");
-        LibraryAssert.AreEqual(StrSubstNo(ConditionFilterAttributeTok, ItemAttribute.Name, ItemAttributeValue.Value), QltyInspectionGenRule."Item Attribute Filter", 'Attribute filter should be set to the attribute value.');
+        QltyInspectCreationRule.Get(QltyInspectCreationRule."Entry No.");
+        LibraryAssert.AreEqual(StrSubstNo(ConditionFilterAttributeTok, ItemAttribute.Name, ItemAttributeValue.Value), QltyInspectCreationRule."Item Attribute Filter", 'Attribute filter should be set to the attribute value.');
     end;
 
     [Test]
@@ -1789,7 +1789,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ToLoadQltyTest: Record "Qlty. Test";
         Location: Record Location;
@@ -1822,7 +1822,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
 
         // [GIVEN] A generation rule is created and an inspection is created from the purchase line
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
         QltyInspectionUtility.CreateInspectionWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
         // [GIVEN] The inspection line is retrieved and the inspection page is opened
@@ -1839,17 +1839,17 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 10000);
         LibraryAssert.AreEqual('Option1', QltyInspectionLine."Test Value", 'Test value should be set.');
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
         ConfigurationToLoadQltyInspectionTemplateHdr.Delete();
     end;
 
-    [Test]
+    [Test]Inspect.
     [HandlerFunctions('ModalPageHandleChooseFromLookup')]
     procedure LineTable_AssistEditChooseFromTableLookup()
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         LookupQltyTest: Record "Qlty. Test";
         Location: Record Location;
@@ -1883,7 +1883,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
 
         // [GIVEN] A generation rule is created and an inspection is created from the purchase line
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
         QltyInspectionUtility.CreateInspectionWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
         // [GIVEN] The inspection line is retrieved and the inspection page is opened
@@ -1903,7 +1903,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 10000);
         LibraryAssert.AreEqual(Location.Code, QltyInspectionLine."Test Value", 'Test value should be set.');
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
         ConfigurationToLoadQltyInspectionTemplateHdr.Delete();
     end;
 
@@ -1912,7 +1912,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ExpressionQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         TextQltyTest: Record "Qlty. Test";
@@ -1960,7 +1960,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
 
         // [GIVEN] A generation rule is created and an inspection is created from the purchase line
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
         QltyInspectionUtility.CreateInspectionWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
         // [GIVEN] The inspection line for the text field is retrieved and the inspection page is opened
@@ -1981,7 +1981,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 20000);
         LibraryAssert.AreEqual('test', QltyInspectionLine."Test Value", 'Test value should be set.');
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
         ConfigurationToLoadQltyInspectionTemplateHdr.Delete();
     end;
 

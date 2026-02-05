@@ -159,7 +159,7 @@ page 20402 "Qlty. Inspection Template"
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
-                RunObject = Page "Qlty. Inspection Gen. Rules";
+                RunObject = Page "Qlty. Inspect. Creation Rules";
                 RunPageLink = "Template Code" = field(Code);
                 RunPageMode = Edit;
                 PromotedOnly = true;

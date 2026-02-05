@@ -273,7 +273,7 @@ page 20400 "Qlty. Management Setup"
                 Image = EditFilter;
                 AboutTitle = 'Quality Inspection Generation Rule';
                 AboutText = 'A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect it to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template it finds, based on the sort order.';
-                RunObject = Page "Qlty. Inspection Gen. Rules";
+                RunObject = Page "Qlty. Inspect. Creation Rules";
                 RunPageMode = Edit;
             }
             action(Results)

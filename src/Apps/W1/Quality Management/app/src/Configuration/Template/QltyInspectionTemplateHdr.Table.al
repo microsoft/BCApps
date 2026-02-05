@@ -75,13 +75,13 @@ table 20402 "Qlty. Inspection Template Hdr."
     trigger OnDelete()
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
         QltyInspectionTemplateLine.SetRange("Template Code", Code);
         QltyInspectionTemplateLine.DeleteAll(true);
 
-        QltyInspectionGenRule.SetRange("Template Code", Code);
-        QltyInspectionGenRule.DeleteAll();
+        QltyInspectCreationRule.SetRange("Template Code", Code);
+        QltyInspectCreationRule.DeleteAll();
     end;
 
     trigger OnRename()

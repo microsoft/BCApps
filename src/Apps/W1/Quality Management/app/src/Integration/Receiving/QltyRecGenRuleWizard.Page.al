@@ -614,7 +614,7 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
         TempWarehouseJournalLine: Record "Warehouse Journal Line" temporary;
         TempTransferLine: Record "Transfer Line" temporary;
         TempItem: Record "Item" temporary;
-        TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        TempQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary;
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
         CurrentStepCounter: Integer;
         LocationCodeFilter: Code[20];
@@ -774,11 +774,11 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
     local procedure AssistEditFullPurchaseLineFilter()
     begin
-        TempQltyInspectionGenRule."Source Table No." := Database::"Purchase Line";
-        TempQltyInspectionGenRule."Condition Filter" := PurchaseLineRule;
+        TempQltyInspectCreationRule."Source Table No." := Database::"Purchase Line";
+        TempQltyInspectCreationRule."Condition Filter" := PurchaseLineRule;
 
-        if TempQltyInspectionGenRule.AssistEditConditionTableFilter() then begin
-            PurchaseLineRule := TempQltyInspectionGenRule."Condition Filter";
+        if TempQltyInspectCreationRule.AssistEditConditionTableFilter() then begin
+            PurchaseLineRule := TempQltyInspectCreationRule."Condition Filter";
 
             TempPurchaseLine.SetView(PurchaseLineRule);
             UpdateTableVariablesFromRecordFilters();
@@ -788,11 +788,11 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
     local procedure AssistEditFullSalesReturnLineFilter()
     begin
-        TempQltyInspectionGenRule."Source Table No." := Database::"Sales Line";
-        TempQltyInspectionGenRule."Condition Filter" := SalesReturnLineRule;
+        TempQltyInspectCreationRule."Source Table No." := Database::"Sales Line";
+        TempQltyInspectCreationRule."Condition Filter" := SalesReturnLineRule;
 
-        if TempQltyInspectionGenRule.AssistEditConditionTableFilter() then begin
-            SalesReturnLineRule := TempQltyInspectionGenRule."Condition Filter";
+        if TempQltyInspectCreationRule.AssistEditConditionTableFilter() then begin
+            SalesReturnLineRule := TempQltyInspectCreationRule."Condition Filter";
 
             TempReturnSalesLine.SetView(SalesReturnLineRule);
             UpdateTableVariablesFromRecordFilters();
@@ -802,11 +802,11 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
     local procedure AssistEditFullTransferLineFilter()
     begin
-        TempQltyInspectionGenRule."Source Table No." := Database::"Transfer Line";
-        TempQltyInspectionGenRule."Condition Filter" := TransferLineRule;
+        TempQltyInspectCreationRule."Source Table No." := Database::"Transfer Line";
+        TempQltyInspectCreationRule."Condition Filter" := TransferLineRule;
 
-        if TempQltyInspectionGenRule.AssistEditConditionTableFilter() then begin
-            TransferLineRule := TempQltyInspectionGenRule."Condition Filter";
+        if TempQltyInspectCreationRule.AssistEditConditionTableFilter() then begin
+            TransferLineRule := TempQltyInspectCreationRule."Condition Filter";
 
             TempTransferLine.SetView(TransferLineRule);
             UpdateTableVariablesFromRecordFilters();
@@ -816,11 +816,11 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
     local procedure AssistEditFullWarehouseJournalLineFilter()
     begin
-        TempQltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
-        TempQltyInspectionGenRule."Condition Filter" := WarehouseJournalLineRule;
+        TempQltyInspectCreationRule."Source Table No." := Database::"Warehouse Journal Line";
+        TempQltyInspectCreationRule."Condition Filter" := WarehouseJournalLineRule;
 
-        if TempQltyInspectionGenRule.AssistEditConditionTableFilter() then begin
-            WarehouseJournalLineRule := TempQltyInspectionGenRule."Condition Filter";
+        if TempQltyInspectCreationRule.AssistEditConditionTableFilter() then begin
+            WarehouseJournalLineRule := TempQltyInspectCreationRule."Condition Filter";
 
             TempWarehouseJournalLine.SetView(WarehouseJournalLineRule);
             UpdateTableVariablesFromRecordFilters();
@@ -830,9 +830,9 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
     local procedure AssistEditFullItemFilter()
     begin
-        TempQltyInspectionGenRule."Item Filter" := ItemRule;
-        if TempQltyInspectionGenRule.AssistEditConditionItemFilter() then begin
-            ItemRule := TempQltyInspectionGenRule."Item Filter";
+        TempQltyInspectCreationRule."Item Filter" := ItemRule;
+        if TempQltyInspectCreationRule.AssistEditConditionItemFilter() then begin
+            ItemRule := TempQltyInspectCreationRule."Item Filter";
 
             TempItem.SetView(ItemRule);
             UpdateTableVariablesFromRecordFilters();
@@ -871,68 +871,68 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
 
     local procedure FinishAction();
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        ExistingQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
+        ExistingQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
-        if not QltyInspectionGenRule.Get(TempQltyInspectionGenRule.RecordId()) then begin
-            QltyInspectionGenRule.Init();
-            QltyInspectionGenRule.SetEntryNo();
-            QltyInspectionGenRule.UpdateSortOrder();
-            QltyInspectionGenRule."Source Table No." := 0;
-            QltyInspectionGenRule.Insert(true);
+        if not QltyInspectCreationRule.Get(TempQltyInspectCreationRule.RecordId()) then begin
+            QltyInspectCreationRule.Init();
+            QltyInspectCreationRule.SetEntryNo();
+            QltyInspectCreationRule.UpdateSortOrder();
+            QltyInspectCreationRule."Source Table No." := 0;
+            QltyInspectCreationRule.Insert(true);
         end;
-        QltyInspectionGenRule.Validate("Template Code", TemplateCode);
+        QltyInspectCreationRule.Validate("Template Code", TemplateCode);
 
         QltyManagementSetup.Get();
 
         case true of
             IsPurchaseLine:
                 begin
-                    QltyInspectionGenRule."Source Table No." := Database::"Purchase Line";
-                    QltyInspectionGenRule.Intent := QltyInspectionGenRule.Intent::Purchase;
-                    QltyInspectionGenRule."Condition Filter" := PurchaseLineRule;
-                    QltyInspectionGenRule.SetIntentAndDefaultTriggerValuesFromSetup();
-                    QltyInspectionGenRule."Purchase Order Trigger" := QltyPurchaseTrigger;
+                    QltyInspectCreationRule."Source Table No." := Database::"Purchase Line";
+                    QltyInspectCreationRule.Intent := QltyInspectCreationRule.Intent::Purchase;
+                    QltyInspectCreationRule."Condition Filter" := PurchaseLineRule;
+                    QltyInspectCreationRule.SetIntentAndDefaultTriggerValuesFromSetup();
+                    QltyInspectCreationRule."Purchase Order Trigger" := QltyPurchaseTrigger;
                     QltyManagementSetup."Purchase Order Trigger" := QltyPurchaseTrigger;
                 end;
             IsReturnReceipt:
                 begin
-                    QltyInspectionGenRule."Source Table No." := Database::"Sales Line";
-                    QltyInspectionGenRule.Intent := QltyInspectionGenRule.Intent::"Sales Return";
-                    QltyInspectionGenRule."Condition Filter" := SalesReturnLineRule;
-                    QltyInspectionGenRule.SetIntentAndDefaultTriggerValuesFromSetup();
-                    QltyInspectionGenRule."Sales Return Trigger" := QltySalesReturnTrigger;
+                    QltyInspectCreationRule."Source Table No." := Database::"Sales Line";
+                    QltyInspectCreationRule.Intent := QltyInspectCreationRule.Intent::"Sales Return";
+                    QltyInspectCreationRule."Condition Filter" := SalesReturnLineRule;
+                    QltyInspectCreationRule.SetIntentAndDefaultTriggerValuesFromSetup();
+                    QltyInspectCreationRule."Sales Return Trigger" := QltySalesReturnTrigger;
                     QltyManagementSetup."Sales Return Trigger" := QltySalesReturnTrigger;
                 end;
             IsTransferLine:
                 begin
-                    QltyInspectionGenRule."Source Table No." := Database::"Transfer Line";
-                    QltyInspectionGenRule.Intent := QltyInspectionGenRule.Intent::Transfer;
-                    QltyInspectionGenRule."Condition Filter" := TransferLineRule;
-                    QltyInspectionGenRule.SetIntentAndDefaultTriggerValuesFromSetup();
-                    QltyInspectionGenRule."Transfer Order Trigger" := QltyTransferTrigger;
+                    QltyInspectCreationRule."Source Table No." := Database::"Transfer Line";
+                    QltyInspectCreationRule.Intent := QltyInspectCreationRule.Intent::Transfer;
+                    QltyInspectCreationRule."Condition Filter" := TransferLineRule;
+                    QltyInspectCreationRule.SetIntentAndDefaultTriggerValuesFromSetup();
+                    QltyInspectCreationRule."Transfer Order Trigger" := QltyTransferTrigger;
                     QltyManagementSetup."Transfer Order Trigger" := QltyTransferTrigger;
                 end;
             IsWarehouseReceipt:
                 begin
-                    QltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
-                    QltyInspectionGenRule.Intent := QltyInspectionGenRule.Intent::"Warehouse Receipt";
-                    QltyInspectionGenRule."Condition Filter" := WarehouseJournalLineRule;
-                    QltyInspectionGenRule.SetIntentAndDefaultTriggerValuesFromSetup();
-                    QltyInspectionGenRule."Warehouse Receipt Trigger" := QltyWhseReceiveTrigger;
+                    QltyInspectCreationRule."Source Table No." := Database::"Warehouse Journal Line";
+                    QltyInspectCreationRule.Intent := QltyInspectCreationRule.Intent::"Warehouse Receipt";
+                    QltyInspectCreationRule."Condition Filter" := WarehouseJournalLineRule;
+                    QltyInspectCreationRule.SetIntentAndDefaultTriggerValuesFromSetup();
+                    QltyInspectCreationRule."Warehouse Receipt Trigger" := QltyWhseReceiveTrigger;
                     QltyManagementSetup."Warehouse Receipt Trigger" := QltyWhseReceiveTrigger;
                 end;
         end;
 
         QltyManagementSetup.Modify(false);
-        QltyInspectionGenRule."Item Filter" := ItemRule;
-        QltyInspectionGenRule.Modify();
+        QltyInspectCreationRule."Item Filter" := ItemRule;
+        QltyInspectCreationRule.Modify();
 
-        ExistingQltyInspectionGenRule.SetRange("Template Code", QltyInspectionGenRule."Template Code");
-        ExistingQltyInspectionGenRule.SetRange("Source Table No.", QltyInspectionGenRule."Source Table No.");
-        ExistingQltyInspectionGenRule.SetRange("Condition Filter", QltyInspectionGenRule."Condition Filter");
-        ExistingQltyInspectionGenRule.SetRange("Item Filter", QltyInspectionGenRule."Item Filter");
-        if ExistingQltyInspectionGenRule.Count() > 1 then
+        ExistingQltyInspectCreationRule.SetRange("Template Code", QltyInspectCreationRule."Template Code");
+        ExistingQltyInspectCreationRule.SetRange("Source Table No.", QltyInspectCreationRule."Source Table No.");
+        ExistingQltyInspectCreationRule.SetRange("Condition Filter", QltyInspectCreationRule."Condition Filter");
+        ExistingQltyInspectCreationRule.SetRange("Item Filter", QltyInspectCreationRule."Item Filter");
+        if ExistingQltyInspectCreationRule.Count() > 1 then
             if not Confirm(AlreadyThereQst) then
                 Error('');
 
@@ -944,46 +944,46 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
     /// Use this to edit an existing rule.
     /// You can also use it to start a new rule with a default template by supplying a template filter.
     /// </summary>
-    /// <param name="QltyInspectionGenRule"></param>
+    /// <param name="QltyInspectCreationRule"></param>
     /// <returns></returns>
-    internal procedure RunModalWithGenerationRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Action
+    internal procedure RunModalWithGenerationRule(var QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule"): Action
     begin
-        TempQltyInspectionGenRule := QltyInspectionGenRule;
+        TempQltyInspectCreationRule := QltyInspectCreationRule;
         Clear(TempPurchaseLine);
         Clear(TempItem);
 
-        if QltyInspectionGenRule."Source Table No." = Database::"Purchase Line" then begin
-            TempPurchaseLine.SetView(TempQltyInspectionGenRule."Condition Filter");
+        if QltyInspectCreationRule."Source Table No." = Database::"Purchase Line" then begin
+            TempPurchaseLine.SetView(TempQltyInspectCreationRule."Condition Filter");
             IsPurchaseLine := true;
             IsReturnReceipt := false;
             IsTransferLine := false;
             IsWarehouseReceipt := false;
         end;
-        if QltyInspectionGenRule."Source Table No." = Database::"Sales Line" then begin
-            TempReturnSalesLine.SetView(TempQltyInspectionGenRule."Condition Filter");
+        if QltyInspectCreationRule."Source Table No." = Database::"Sales Line" then begin
+            TempReturnSalesLine.SetView(TempQltyInspectCreationRule."Condition Filter");
             IsPurchaseLine := false;
             IsReturnReceipt := true;
             IsTransferLine := false;
             IsWarehouseReceipt := false;
         end;
-        if QltyInspectionGenRule."Source Table No." = Database::"Transfer Line" then begin
-            TempTransferLine.SetView(TempQltyInspectionGenRule."Condition Filter");
+        if QltyInspectCreationRule."Source Table No." = Database::"Transfer Line" then begin
+            TempTransferLine.SetView(TempQltyInspectCreationRule."Condition Filter");
             IsTransferLine := true;
             IsPurchaseLine := false;
             IsReturnReceipt := false;
             IsWarehouseReceipt := false;
         end;
-        if QltyInspectionGenRule."Source Table No." = Database::"Warehouse Journal Line" then begin
-            TempWarehouseJournalLine.SetView(TempQltyInspectionGenRule."Condition Filter");
+        if QltyInspectCreationRule."Source Table No." = Database::"Warehouse Journal Line" then begin
+            TempWarehouseJournalLine.SetView(TempQltyInspectCreationRule."Condition Filter");
             IsWarehouseReceipt := true;
             IsPurchaseLine := false;
             IsReturnReceipt := false;
             IsTransferLine := false;
         end;
-        TempItem.SetView(TempQltyInspectionGenRule."Item Filter");
+        TempItem.SetView(TempQltyInspectCreationRule."Item Filter");
         UpdateTableVariablesFromRecordFilters();
 
-        TemplateCode := QltyInspectionGenRule.GetTemplateCodeFromRecordOrFilter(false);
+        TemplateCode := QltyInspectCreationRule.GetTemplateCodeFromRecordOrFilter(false);
         UpdateFullTextRuleStringsFromFilters();
 
         exit(CurrPage.RunModal());
@@ -996,20 +996,20 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
             TempPurchaseLine.SetFilter("Location Code", LocationCodeFilter);
             TempPurchaseLine.SetFilter("Buy-from Vendor No.", VendorNoFilter);
             TempPurchaseLine.SetFilter("Purchasing Code", PurchasingCode);
-            PurchaseLineRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempPurchaseLine.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
+            PurchaseLineRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempPurchaseLine.GetView(true)), 1, MaxStrLen(TempQltyInspectCreationRule."Condition Filter"));
         end;
 
         if IsReturnReceipt then begin
             TempReturnSalesLine.SetFilter("Location Code", LocationCodeFilter);
             TempReturnSalesLine.SetFilter("Return Reason Code", ReturnReasonCode);
             TempReturnSalesLine.SetFilter("Sell-to Customer No.", CustomerNoFilter);
-            SalesReturnLineRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempReturnSalesLine.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
+            SalesReturnLineRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempReturnSalesLine.GetView(true)), 1, MaxStrLen(TempQltyInspectCreationRule."Condition Filter"));
         end;
 
         if IsTransferLine then begin
             TempTransferLine.SetFilter("Transfer-to Code", TransferToCode);
             TempTransferLine.SetFilter("Transfer-from Code", TransferFromCode);
-            TransferLineRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempTransferLine.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
+            TransferLineRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempTransferLine.GetView(true)), 1, MaxStrLen(TempQltyInspectCreationRule."Condition Filter"));
         end;
 
         if IsWarehouseReceipt then begin
@@ -1017,28 +1017,28 @@ page 20461 "Qlty. Rec. Gen. Rule Wizard"
             TempWarehouseJournalLine.SetFilter("Location Code", LocationCodeFilter);
             TempWarehouseJournalLine.SetFilter("To Zone Code", ToZoneCodeFilter);
             TempWarehouseJournalLine.SetFilter("To Bin Code", ToBinCodeFilter);
-            WarehouseJournalLineRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempWarehouseJournalLine.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
+            WarehouseJournalLineRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempWarehouseJournalLine.GetView(true)), 1, MaxStrLen(TempQltyInspectCreationRule."Condition Filter"));
         end;
 
         TempItem.SetFilter("No.", ItemNoFilter);
         TempItem.SetFilter("Item Category Code", CategoryCodeFilter);
         TempItem.SetFilter("Inventory Posting Group", InventoryPostingGroupCode);
 
-        ItemRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempItem.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Item Filter"));
+        ItemRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempItem.GetView(true)), 1, MaxStrLen(TempQltyInspectCreationRule."Item Filter"));
 
         CleanUpWhereClause();
 
-        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempReturnSalesLine.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Condition Filter") then
-            Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
+        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempReturnSalesLine.GetView(true))) > MaxStrLen(TempQltyInspectCreationRule."Condition Filter") then
+            Error(FilterLengthErr, MaxStrLen(TempQltyInspectCreationRule."Condition Filter"));
 
-        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempTransferLine.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Condition Filter") then
-            Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
+        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempTransferLine.GetView(true))) > MaxStrLen(TempQltyInspectCreationRule."Condition Filter") then
+            Error(FilterLengthErr, MaxStrLen(TempQltyInspectCreationRule."Condition Filter"));
 
-        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempWarehouseJournalLine.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Condition Filter") then
-            Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
+        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempWarehouseJournalLine.GetView(true))) > MaxStrLen(TempQltyInspectCreationRule."Condition Filter") then
+            Error(FilterLengthErr, MaxStrLen(TempQltyInspectCreationRule."Condition Filter"));
 
-        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempItem.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Item Filter") then
-            Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Item Filter"));
+        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempItem.GetView(true))) > MaxStrLen(TempQltyInspectCreationRule."Item Filter") then
+            Error(FilterLengthErr, MaxStrLen(TempQltyInspectCreationRule."Item Filter"));
     end;
 
     local procedure UpdateTableVariablesFromRecordFilters()

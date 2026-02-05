@@ -23,7 +23,7 @@ permissionset 20405 "QltyMngmnt - Edit"
     IncludedPermissionSets = "QltyMngmnt - Read";
 
     Permissions =
-        tabledata "Qlty. Inspection Gen. Rule" = IMD,
+        tabledata "Qlty. Inspect. Creation Rule" = IMD,
         tabledata "Qlty. I. Result Condit. Conf." = IMD,
         tabledata "Qlty. Inspection Result" = IMD,
         tabledata "Qlty. Lookup Code" = IMD,

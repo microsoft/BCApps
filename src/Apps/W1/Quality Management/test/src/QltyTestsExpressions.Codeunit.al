@@ -259,7 +259,7 @@ codeunit 139961 "Qlty. Tests - Expressions"
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
     begin
@@ -283,7 +283,7 @@ codeunit 139961 "Qlty. Tests - Expressions"
         // [THEN] The template code is correctly retrieved (case-insensitive)
         LibraryAssert.AreEqual(QltyInspectionHeader."Template Code", QltyExpressionMgmt.EvaluateExpressionForRecord(TemplateUppercaseTok, QltyInspectionHeader, true), 'Should find template code');
 
-        QltyInspectionGenRule.SetRange("Template Code", QltyInspectionTemplateHdr."Code");
-        QltyInspectionGenRule.DeleteAll();
+        QltyInspectCreationRule.SetRange("Template Code", QltyInspectionTemplateHdr."Code");
+        QltyInspectCreationRule.DeleteAll();
     end;
 }

@@ -723,7 +723,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         LabelQltyTest: Record "Qlty. Test";
         ProdProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -748,7 +748,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyInspectionUtility.CreateTestAndAddToTemplate(QltyInspectionTemplateHdr, LabelQltyTest."Test Value Type"::"Value Type Label", LabelQltyTest, QltyInspectionTemplateLine);
 
         // [GIVEN] Inspection generation rules are cleared and prioritized rule is created
-        QltyInspectionGenRule.DeleteAll();
+        QltyInspectCreationRule.DeleteAll();
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
 
         // [GIVEN] A production order is generated and Inspection is created
@@ -2012,7 +2012,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         OptionListMeasureQltyTest: Record "Qlty. Test";
         ProdProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
@@ -2056,7 +2056,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.Validate(Condition, 'C|D');
         ToLoadToLoadToUseAsATemplateQltyIResultConditConf.Modify();
         // [GIVEN] Inspection generation rules are cleared and prioritized rule is created
-        QltyInspectionGenRule.DeleteAll(false);
+        QltyInspectCreationRule.DeleteAll(false);
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line");
 
         // [GIVEN] A production order is generated and Inspection is created with specific template

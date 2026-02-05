@@ -41,7 +41,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     local procedure HandleOnAfterPostOutput(var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line")
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         VerifiedItemLedgerEntry: Record "Item Ledger Entry";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         Handled: Boolean;
@@ -84,10 +84,10 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             if ProdOrderRoutingLine."Next Operation No." <> '' then
                 Clear(VerifiedItemLedgerEntry);
 
-        QltyInspectionGenRule.SetRange("Production Order Trigger", QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost);
-        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if not QltyInspectionGenRule.IsEmpty() then
-            AttemptCreateInspectionPosting(ProdOrderRoutingLine, VerifiedItemLedgerEntry, ProdOrderLine, ItemJournalLine, QltyInspectionGenRule);
+        QltyInspectCreationRule.SetRange("Production Order Trigger", QltyInspectCreationRule."Production Order Trigger"::OnProductionOutputPost);
+        QltyInspectCreationRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectCreationRule."Activation Trigger"::"Manual or Automatic", QltyInspectCreationRule."Activation Trigger"::"Automatic only");
+        if not QltyInspectCreationRule.IsEmpty() then
+            AttemptCreateInspectionPosting(ProdOrderRoutingLine, VerifiedItemLedgerEntry, ProdOrderLine, ItemJournalLine, QltyInspectCreationRule);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", 'OnBeforeChangeStatusOnProdOrder', '', true, true)]
@@ -106,7 +106,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         OldProductionOrder: Record "Production Order";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Handled: Boolean;
     begin
         if not QltyManagementSetup.GetSetupRecord() then
@@ -124,10 +124,10 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         if ToProdOrder.Status <> ToProdOrder.Status::Released then
             exit;
 
-        QltyInspectionGenRule.SetRange("Production Order Trigger", QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease);
-        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if not QltyInspectionGenRule.IsEmpty() then
-            AttemptCreateInspectionReleased(ToProdOrder, QltyInspectionGenRule);
+        QltyInspectCreationRule.SetRange("Production Order Trigger", QltyInspectCreationRule."Production Order Trigger"::OnProductionOrderRelease);
+        QltyInspectCreationRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectCreationRule."Activation Trigger"::"Manual or Automatic", QltyInspectCreationRule."Activation Trigger"::"Automatic only");
+        if not QltyInspectCreationRule.IsEmpty() then
+            AttemptCreateInspectionReleased(ToProdOrder, QltyInspectCreationRule);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", 'OnAfterToProdOrderLineModify', '', true, true)]
@@ -162,7 +162,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     local procedure HandleOnAfterRefreshProdOrder(var ProductionOrder: Record "Production Order"; ErrorOccured: Boolean)
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
         if ErrorOccured then
             exit;
@@ -173,10 +173,10 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
-        QltyInspectionGenRule.SetRange("Production Order Trigger", QltyInspectionGenRule."Production Order Trigger"::OnReleasedProductionOrderRefresh);
-        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if not QltyInspectionGenRule.IsEmpty() then
-            AttemptCreateInspectionReleased(ProductionOrder, QltyInspectionGenRule);
+        QltyInspectCreationRule.SetRange("Production Order Trigger", QltyInspectCreationRule."Production Order Trigger"::OnReleasedProductionOrderRefresh);
+        QltyInspectCreationRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectCreationRule."Activation Trigger"::"Manual or Automatic", QltyInspectCreationRule."Activation Trigger"::"Automatic only");
+        if not QltyInspectCreationRule.IsEmpty() then
+            AttemptCreateInspectionReleased(ProductionOrder, QltyInspectCreationRule);
     end;
 
     /// <summary>
@@ -396,8 +396,8 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// What we can do is automatically apply them.
     /// </summary>
     /// <param name="ProductionOrder">The production order</param>
-    /// <param name="OptionalFiltersQltyInspectionGenRule">Optional generation rule filters.</param>
-    local procedure AttemptCreateInspectionReleased(var ProductionOrder: Record "Production Order"; var OptionalFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
+    /// <param name="OptionalFiltersQltyInspectCreationRule">Optional generation rule filters.</param>
+    local procedure AttemptCreateInspectionReleased(var ProductionOrder: Record "Production Order"; var OptionalFiltersQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule")
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         ProdOrderLine: Record "Prod. Order Line";
@@ -440,7 +440,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                                 TempTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
                                 TempTrackingSpecification.Insert();
 
-                                MadeInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(ProdOrderRoutingLine, TempTrackingSpecification, ProdOrderLine, ProductionOrder, false, OptionalFiltersQltyInspectionGenRule);
+                                MadeInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(ProdOrderRoutingLine, TempTrackingSpecification, ProdOrderLine, ProductionOrder, false, OptionalFiltersQltyInspectCreationRule);
 
                                 if MadeInspection then begin
                                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
@@ -449,7 +449,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                                 end;
                             until ReservationEntry.Next() = 0;
                         end else begin
-                            MadeInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(ProdOrderRoutingLine, ProdOrderLine, ProductionOrder, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
+                            MadeInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(ProdOrderRoutingLine, ProdOrderLine, ProductionOrder, DummyVariant, false, OptionalFiltersQltyInspectCreationRule);
 
                             if MadeInspection then begin
                                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
@@ -469,7 +469,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                             TempTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
                             TempTrackingSpecification.Insert();
 
-                            MadeInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(TempTrackingSpecification, ProdOrderLine, ProductionOrder, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
+                            MadeInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(TempTrackingSpecification, ProdOrderLine, ProductionOrder, DummyVariant, false, OptionalFiltersQltyInspectCreationRule);
 
                             if MadeInspection then begin
                                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
@@ -479,7 +479,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
 
                         until ReservationEntry.Next() = 0;
                     end else begin
-                        MadeInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(ProdOrderLine, ProductionOrder, DummyVariant, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
+                        MadeInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(ProdOrderLine, ProductionOrder, DummyVariant, DummyVariant, false, OptionalFiltersQltyInspectCreationRule);
                         if MadeInspection then begin
                             QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                             ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
@@ -489,7 +489,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             until ProdOrderLine.Next() = 0;
         end;
         if (not CreatedAtLeastOneInspectionForOrderLine) and (not CreatedAtLeastOneInspectionForRoutingLine) then begin
-            MadeInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(ProductionOrder, DummyVariant, DummyVariant, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
+            MadeInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(ProductionOrder, DummyVariant, DummyVariant, DummyVariant, false, OptionalFiltersQltyInspectCreationRule);
             if MadeInspection then begin
                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                 ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
@@ -508,7 +508,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// <param name="ItemLedgerEntry">The item ledger entry related to this sequence of events</param>
     /// <param name="ProdOrderLine"></param>
     /// <param name="ItemJournalLine"></param>
-    local procedure AttemptCreateInspectionPosting(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line"; var OptionalFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
+    local procedure AttemptCreateInspectionPosting(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line"; var OptionalFiltersQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule")
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
@@ -521,13 +521,13 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             exit;
 
         if (ItemLedgerEntry."Entry Type" <> ItemLedgerEntry."Entry Type"::Output) or (ItemLedgerEntry."Item No." = '') then
-            HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(ProdOrderRoutingLine, ItemJournalLine, ProdOrderLine, DummyVariant, false, OptionalFiltersQltyInspectionGenRule)
+            HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(ProdOrderRoutingLine, ItemJournalLine, ProdOrderLine, DummyVariant, false, OptionalFiltersQltyInspectCreationRule)
 
         else
             if ProdOrderRoutingLine."Operation No." <> '' then
-                HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(ItemLedgerEntry, ProdOrderRoutingLine, ItemJournalLine, ProdOrderLine, false, OptionalFiltersQltyInspectionGenRule)
+                HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(ItemLedgerEntry, ProdOrderRoutingLine, ItemJournalLine, ProdOrderLine, false, OptionalFiltersQltyInspectCreationRule)
             else
-                HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(ItemLedgerEntry, ItemJournalLine, ProdOrderLine, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
+                HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(ItemLedgerEntry, ItemJournalLine, ProdOrderLine, DummyVariant, false, OptionalFiltersQltyInspectCreationRule);
 
         if HasInspection then
             QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);

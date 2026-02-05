@@ -1884,7 +1884,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
         PurchaseHeader: Record "Purchase Header";
@@ -1910,7 +1910,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Prioritized inspection generation rule for Purchase Line created
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] Package-tracked item with no series created
         QltyInspectionUtility.CreatePackageTrackedItemWithNoSeries(Item, ToUseNoSeries);
@@ -1940,7 +1940,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyManagementSetup.Modify();
 
         // [GIVEN] Inspection generation rule deleted to prevent new inspection creation
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [WHEN] Posting the purchase document
         // [THEN] An error is raised indicating purchase is blocked by the result on the highest re-inspection
@@ -1958,7 +1958,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         SpecificQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         ReQltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -2013,7 +2013,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 3);
 
         // [GIVEN] Prioritized inspection generation rule for Assembly Header created
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Assembly Header", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Assembly Header", QltyInspectCreationRule);
 
         // [GIVEN] Custom inspection source configuration for Assembly Header to Inspection created
         QltyInspectionUtility.CreateSourceConfig(SpecificQltyInspectSourceConfig, Database::"Assembly Header", Enum::"Qlty. Target Type"::Inspection, Database::"Qlty. Inspection Header");
@@ -2100,7 +2100,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyManagementSetup.Modify();
 
         // [GIVEN] Inspection generation rule deleted to prevent new inspection creation
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [GIVEN] Original inspection also marked as finished with blocking result (most recent modified)
         QltyInspectionHeader."Result Code" := ToLoadQltyInspectionResult.Code;
@@ -2124,7 +2124,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     procedure BlockTrackingWarehouseTransaction_Putaway_HighestFinishedReinspection_ShouldError()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         ReQltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -2146,7 +2146,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         Initialize();
 
         // [GIVEN] Inspection generation rules cleared
-        QltyInspectionGenRule.DeleteAll();
+        QltyInspectCreationRule.DeleteAll();
 
         // [GIVEN] Inspection results cleared
         if not ToLoadQltyInspectionResult.IsEmpty() then
@@ -2156,7 +2156,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Prioritized inspection generation rule for Purchase Line created
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] Full WMS location with 1 zone created
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
@@ -2211,7 +2211,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     procedure BlockTrackingWarehouseTransaction_Putaway_AnyFinished_ShouldError()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         PurchaseHeader: Record "Purchase Header";
@@ -2231,7 +2231,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         Initialize();
 
         // [GIVEN] Inspection generation rules cleared
-        QltyInspectionGenRule.DeleteAll();
+        QltyInspectCreationRule.DeleteAll();
 
         // [GIVEN] Inspection results cleared
         if not ToLoadQltyInspectionResult.IsEmpty() then
@@ -2241,7 +2241,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Prioritized inspection generation rule for Purchase Line created
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] Full WMS location with 1 zone created
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
@@ -2290,7 +2290,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     procedure BlockTrackingWarehouseTransaction_InvPutaway_MostRecentFinishedModified_ShouldError()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         ReQltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -2313,7 +2313,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         Initialize();
 
         // [GIVEN] Inspection generation rules cleared
-        QltyInspectionGenRule.DeleteAll();
+        QltyInspectCreationRule.DeleteAll();
 
         // [GIVEN] Inspection results cleared
         if not ToLoadQltyInspectionResult.IsEmpty() then
@@ -2323,8 +2323,8 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Prioritized inspection generation rule for Purchase Line created (then cleared)
-        QltyInspectionGenRule.DeleteAll();
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectCreationRule.DeleteAll();
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] WMS location with bins created
         LibraryWarehouse.CreateLocationWMS(Location, true, true, false, false, false);
@@ -2392,7 +2392,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     procedure BlockTrackingWarehouseTransaction_InvMovement_HighestReinspection_ShouldError()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         ReQltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -2418,7 +2418,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         Initialize();
 
         // [GIVEN] Inspection generation rules cleared
-        QltyInspectionGenRule.DeleteAll();
+        QltyInspectCreationRule.DeleteAll();
 
         // [GIVEN] Inspection results cleared
         if not ToLoadQltyInspectionResult.IsEmpty() then
@@ -2428,7 +2428,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Prioritized inspection generation rule for Purchase Line created
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] WMS location with bins created
         LibraryWarehouse.CreateLocationWMS(Location, true, true, false, false, false);
@@ -2533,7 +2533,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     procedure BlockTrackingWarehouseTransaction_Movement_MostRecentModified_ShouldError()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         ReQltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -2564,7 +2564,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         Initialize();
 
         // [GIVEN] Inspection generation rules cleared
-        QltyInspectionGenRule.DeleteAll();
+        QltyInspectCreationRule.DeleteAll();
 
         // [GIVEN] Inspection results cleared
         if not ToLoadQltyInspectionResult.IsEmpty() then
@@ -2574,7 +2574,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Prioritized inspection generation rule for Purchase Line created
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] Full WMS location with 2 zones created
         LibraryWarehouse.CreateFullWMSLocation(Location, 2);
@@ -2783,7 +2783,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     procedure HandleNotificationActionAssignToSelf()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
@@ -2803,11 +2803,11 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryWarehouse.CreateLocation(Location);
         LibraryInventory.CreateItem(Item);
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A quality inspection is created from a purchase line for an untracked item
         QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [GIVEN] A mock notification with the inspection record ID is prepared
         MockNotification.SetData(NotificationDataInspectionRecordIdTok, Format(QltyInspectionHeader.RecordId));
@@ -2824,7 +2824,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     procedure HandleNotificationActionIgnore()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
@@ -2844,11 +2844,11 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryWarehouse.CreateLocation(Location);
         LibraryInventory.CreateItem(Item);
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A quality inspection is created from a purchase line for an untracked item
         QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [GIVEN] A mock notification with the inspection record ID is prepared
         MockNotification.SetData(NotificationDataInspectionRecordIdTok, Format(QltyInspectionHeader.RecordId()));

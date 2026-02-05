@@ -331,7 +331,7 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
         WarehouseEmployee: Record "Warehouse Employee";
         TempWarehouseJournalLine: Record "Warehouse Journal Line" temporary;
         TempItem: Record "Item" temporary;
-        TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        TempQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary;
         Zone: Record Zone;
         Bin: Record Bin;
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
@@ -579,11 +579,11 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
     local procedure AssistEditFullWhseFilter()
 
     begin
-        TempQltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
-        TempQltyInspectionGenRule."Condition Filter" := WhseRule;
+        TempQltyInspectCreationRule."Source Table No." := Database::"Warehouse Journal Line";
+        TempQltyInspectCreationRule."Condition Filter" := WhseRule;
 
-        if TempQltyInspectionGenRule.AssistEditConditionTableFilter() then begin
-            WhseRule := TempQltyInspectionGenRule."Condition Filter";
+        if TempQltyInspectCreationRule.AssistEditConditionTableFilter() then begin
+            WhseRule := TempQltyInspectCreationRule."Condition Filter";
 
             TempWarehouseJournalLine.SetView(WhseRule);
             UpdateTableVariablesFromRecordFilters();
@@ -593,9 +593,9 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
 
     local procedure AssistEditFullItemFilter()
     begin
-        TempQltyInspectionGenRule."Item Filter" := ItemRule;
-        if TempQltyInspectionGenRule.AssistEditConditionItemFilter() then begin
-            ItemRule := TempQltyInspectionGenRule."Item Filter";
+        TempQltyInspectCreationRule."Item Filter" := ItemRule;
+        if TempQltyInspectCreationRule.AssistEditConditionItemFilter() then begin
+            ItemRule := TempQltyInspectCreationRule."Item Filter";
 
             TempItem.SetView(ItemRule);
             UpdateTableVariablesFromRecordFilters();
@@ -616,21 +616,21 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
         TempWarehouseJournalLine.SetFilter("Location Code", LocationCodeFilter);
         TempWarehouseJournalLine.SetFilter("To Zone Code", ToZoneCodeFilter);
         TempWarehouseJournalLine.SetFilter("To Bin Code", ToBinCodeFilter);
-        WhseRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempWarehouseJournalLine.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
+        WhseRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempWarehouseJournalLine.GetView(true)), 1, MaxStrLen(TempQltyInspectCreationRule."Condition Filter"));
 
         TempItem.SetFilter("No.", ItemNoFilter);
         TempItem.SetFilter("Item Category Code", CategoryCodeFilter);
         TempItem.SetFilter("Inventory Posting Group", InventoryPostingGroupCode);
         TempItem.SetFilter("Vendor No.", VendorNoFilter);
-        ItemRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempItem.GetView(true)), 1, MaxStrLen(TempQltyInspectionGenRule."Item Filter"));
+        ItemRule := CopyStr(QltyFilterHelpers.CleanUpWhereClause2048(TempItem.GetView(true)), 1, MaxStrLen(TempQltyInspectCreationRule."Item Filter"));
 
         CleanUpWhereClause();
 
-        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempWarehouseJournalLine.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Condition Filter") then
-            Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Condition Filter"));
+        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempWarehouseJournalLine.GetView(true))) > MaxStrLen(TempQltyInspectCreationRule."Condition Filter") then
+            Error(FilterLengthErr, MaxStrLen(TempQltyInspectCreationRule."Condition Filter"));
 
-        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempItem.GetView(true))) > MaxStrLen(TempQltyInspectionGenRule."Item Filter") then
-            Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Item Filter"));
+        if StrLen(QltyFilterHelpers.CleanUpWhereClause2048(TempItem.GetView(true))) > MaxStrLen(TempQltyInspectCreationRule."Item Filter") then
+            Error(FilterLengthErr, MaxStrLen(TempQltyInspectCreationRule."Item Filter"));
     end;
 
     local procedure CleanUpWhereClause()
@@ -653,33 +653,33 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
 
     local procedure FinishAction();
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        ExistingQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
+        ExistingQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
-        if not QltyInspectionGenRule.Get(TempQltyInspectionGenRule.RecordId()) then begin
-            QltyInspectionGenRule.Init();
-            QltyInspectionGenRule.SetEntryNo();
-            QltyInspectionGenRule.UpdateSortOrder();
-            QltyInspectionGenRule."Source Table No." := 0;
-            QltyInspectionGenRule.Insert();
+        if not QltyInspectCreationRule.Get(TempQltyInspectCreationRule.RecordId()) then begin
+            QltyInspectCreationRule.Init();
+            QltyInspectCreationRule.SetEntryNo();
+            QltyInspectCreationRule.UpdateSortOrder();
+            QltyInspectCreationRule."Source Table No." := 0;
+            QltyInspectCreationRule.Insert();
         end;
-        QltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
-        QltyInspectionGenRule.Intent := QltyInspectionGenRule.Intent::"Warehouse Movement";
-        QltyInspectionGenRule.Validate("Template Code", TemplateCode);
-        QltyInspectionGenRule."Condition Filter" := WhseRule;
-        QltyInspectionGenRule."Item Filter" := ItemRule;
-        QltyInspectionGenRule.SetIntentAndDefaultTriggerValuesFromSetup();
-        QltyInspectionGenRule."Warehouse Movement Trigger" := QltyWarehouseTrigger;
-        QltyInspectionGenRule.Modify();
+        QltyInspectCreationRule."Source Table No." := Database::"Warehouse Journal Line";
+        QltyInspectCreationRule.Intent := QltyInspectCreationRule.Intent::"Warehouse Movement";
+        QltyInspectCreationRule.Validate("Template Code", TemplateCode);
+        QltyInspectCreationRule."Condition Filter" := WhseRule;
+        QltyInspectCreationRule."Item Filter" := ItemRule;
+        QltyInspectCreationRule.SetIntentAndDefaultTriggerValuesFromSetup();
+        QltyInspectCreationRule."Warehouse Movement Trigger" := QltyWarehouseTrigger;
+        QltyInspectCreationRule.Modify();
         QltyManagementSetup.Get();
         QltyManagementSetup."Warehouse Trigger" := QltyWarehouseTrigger;
         QltyManagementSetup.Modify(false);
 
-        ExistingQltyInspectionGenRule.SetRange("Template Code", QltyInspectionGenRule."Template Code");
-        ExistingQltyInspectionGenRule.SetRange("Source Table No.", QltyInspectionGenRule."Source Table No.");
-        ExistingQltyInspectionGenRule.SetRange("Condition Filter", QltyInspectionGenRule."Condition Filter");
-        ExistingQltyInspectionGenRule.SetRange("Item Filter", QltyInspectionGenRule."Item Filter");
-        if ExistingQltyInspectionGenRule.Count() > 1 then
+        ExistingQltyInspectCreationRule.SetRange("Template Code", QltyInspectCreationRule."Template Code");
+        ExistingQltyInspectCreationRule.SetRange("Source Table No.", QltyInspectCreationRule."Source Table No.");
+        ExistingQltyInspectCreationRule.SetRange("Condition Filter", QltyInspectCreationRule."Condition Filter");
+        ExistingQltyInspectCreationRule.SetRange("Item Filter", QltyInspectCreationRule."Item Filter");
+        if ExistingQltyInspectCreationRule.Count() > 1 then
             if not Confirm(AlreadyThereQst) then
                 Error('');
 
@@ -691,18 +691,18 @@ page 20460 "Qlty. Whse. Gen. Rule Wizard"
     /// Use this to edit an existing rule.
     /// You can also use it to start a new rule with a default template by supplying a template filter.
     /// </summary>
-    /// <param name="QltyInspectionGenRule"></param>
+    /// <param name="QltyInspectCreationRule"></param>
     /// <returns></returns>
-    internal procedure RunModalWithGenerationRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Action
+    internal procedure RunModalWithGenerationRule(var QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule"): Action
     begin
-        TempQltyInspectionGenRule := QltyInspectionGenRule;
+        TempQltyInspectCreationRule := QltyInspectCreationRule;
         Clear(TempWarehouseJournalLine);
         Clear(TempItem);
-        TempWarehouseJournalLine.SetView(TempQltyInspectionGenRule."Condition Filter");
-        TempItem.SetView(TempQltyInspectionGenRule."Item Filter");
+        TempWarehouseJournalLine.SetView(TempQltyInspectCreationRule."Condition Filter");
+        TempItem.SetView(TempQltyInspectCreationRule."Item Filter");
         UpdateTableVariablesFromRecordFilters();
 
-        TemplateCode := QltyInspectionGenRule.GetTemplateCodeFromRecordOrFilter(false);
+        TemplateCode := QltyInspectCreationRule.GetTemplateCodeFromRecordOrFilter(false);
         UpdateFullTextRuleStringsFromFilters();
 
         exit(CurrPage.RunModal());

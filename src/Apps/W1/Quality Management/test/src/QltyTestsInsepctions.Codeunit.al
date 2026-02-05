@@ -596,7 +596,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         PurchaseLine: Record "Purchase Line";
         ReservationEntry: Record "Reservation Entry";
         LotNoInformation: Record "Lot No. Information";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         Navigate: TestPage Navigate;
@@ -616,7 +616,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
 
         // [GIVEN] A quality inspection template and rule are created for purchase lines
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A quality inspection is created with the purchase line and lot tracking
         QltyInspectionUtility.CreateInspectionWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionHeader);
@@ -643,7 +643,7 @@ codeunit 139970 "Qlty. Tests - Insepctions"
         until Navigate.Next() = false;
 
         QltyInspectionTemplateHdr.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]

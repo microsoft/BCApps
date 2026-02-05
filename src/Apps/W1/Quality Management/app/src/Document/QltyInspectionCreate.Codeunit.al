@@ -96,7 +96,7 @@ codeunit 20404 "Qlty. Inspection - Create"
 
     local procedure InternalCreateInspectionWithVariantAndTemplate(ReferenceVariant: Variant; IsManualCreation: Boolean; OptionalSpecificTemplate: Code[20]; OptionalRec2Variant: Variant; OptionalRec3Variant: Variant; OptionalRec4Variant: Variant) QltyInspectionCreateStatus: Enum "Qlty. Inspection Create Status"
     var
-        TempDummyQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        TempDummyQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary;
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         TargetRecordRef: RecordRef;
     begin
@@ -106,10 +106,10 @@ codeunit 20404 "Qlty. Inspection - Create"
         if not QltyMiscHelpers.GetRecordRefFromVariant(ReferenceVariant, TargetRecordRef) then
             exit(QltyInspectionCreateStatus::"Unable to Create");
 
-        exit(InternalCreateInspectionWithSpecificTemplate(TargetRecordRef, IsManualCreation, OptionalSpecificTemplate, OptionalRec2Variant, OptionalRec3Variant, OptionalRec4Variant, TempDummyQltyInspectionGenRule));
+        exit(InternalCreateInspectionWithSpecificTemplate(TargetRecordRef, IsManualCreation, OptionalSpecificTemplate, OptionalRec2Variant, OptionalRec3Variant, OptionalRec4Variant, TempDummyQltyInspectCreationRule));
     end;
 
-    local procedure InternalCreateInspectionWithGenerationRule(ReferenceVariant: Variant; OptionalRec2Variant: Variant; OptionalRec3Variant: Variant; OptionalRec4Variant: Variant; IsManualCreation: Boolean; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary) QltyInspectionCreateStatus: Enum "Qlty. Inspection Create Status"
+    local procedure InternalCreateInspectionWithGenerationRule(ReferenceVariant: Variant; OptionalRec2Variant: Variant; OptionalRec3Variant: Variant; OptionalRec4Variant: Variant; IsManualCreation: Boolean; var TempFiltersQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary) QltyInspectionCreateStatus: Enum "Qlty. Inspection Create Status"
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         TargetRecordRef: RecordRef;
@@ -120,7 +120,7 @@ codeunit 20404 "Qlty. Inspection - Create"
         if not QltyMiscHelpers.GetRecordRefFromVariant(ReferenceVariant, TargetRecordRef) then
             exit(QltyInspectionCreateStatus::"Unable to Create");
 
-        exit(InternalCreateInspectionWithSpecificTemplate(TargetRecordRef, IsManualCreation, NoSpecificTemplateTok, OptionalRec2Variant, OptionalRec3Variant, OptionalRec4Variant, TempFiltersQltyInspectionGenRule));
+        exit(InternalCreateInspectionWithSpecificTemplate(TargetRecordRef, IsManualCreation, NoSpecificTemplateTok, OptionalRec2Variant, OptionalRec3Variant, OptionalRec4Variant, TempFiltersQltyInspectCreationRule));
     end;
 
     /// <summary>
@@ -134,7 +134,7 @@ codeunit 20404 "Qlty. Inspection - Create"
     /// 4. If fails, try OptionalRec4Variant with others as context
     /// 5. Return success if any attempt succeeds
     /// 
-    /// The TempFiltersQltyInspectionGenRule parameter allows filtering by auto inspection creation trigger
+    /// The TempFiltersQltyInspectCreationRule parameter allows filtering by auto inspection creation trigger
     /// (e.g., only create inspections configured for "On Post" or "On Ship" triggers).
     /// 
     /// Common usage: Complex scenarios with multiple related records (e.g., Header + Line + Item + Vendor).
@@ -144,9 +144,9 @@ codeunit 20404 "Qlty. Inspection - Create"
     /// <param name="OptionalRec3Variant">Third record variant; used as source context or attempted as primary</param>
     /// <param name="OptionalRec4Variant">Fourth record variant; used as source context or attempted as primary</param>
     /// <param name="IsManualCreation">True for manual creation; False for automatic/triggered creation</param>
-    /// <param name="TempFiltersQltyInspectionGenRule">Temporary record with filters to limit which generation rules apply (e.g., filter by Auto Inspection Creation Trigger)</param>
+    /// <param name="TempFiltersQltyInspectCreationRule">Temporary record with filters to limit which generation rules apply (e.g., filter by Auto Inspection Creation Trigger)</param>
     /// <returns>True if inspection was successfully created from any variant; False if all attempts failed</returns>
-    procedure CreateInspectionWithMultiVariants(OptionalRec1Variant: Variant; OptionalRec2Variant: Variant; OptionalRec3Variant: Variant; OptionalRec4Variant: Variant; IsManualCreation: Boolean; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary) HasInspection: Boolean
+    procedure CreateInspectionWithMultiVariants(OptionalRec1Variant: Variant; OptionalRec2Variant: Variant; OptionalRec3Variant: Variant; OptionalRec4Variant: Variant; IsManualCreation: Boolean; var TempFiltersQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary) HasInspection: Boolean
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         PreviousAvoidErrorState: Boolean;
@@ -159,15 +159,15 @@ codeunit 20404 "Qlty. Inspection - Create"
             LastQltyInspectionCreateStatus := LastQltyInspectionCreateStatus::Unknown;
             case ScenarioIterator of
                 1:
-                    LastQltyInspectionCreateStatus := InternalCreateInspectionWithGenerationRule(OptionalRec1Variant, OptionalRec2Variant, OptionalRec3Variant, OptionalRec4Variant, IsManualCreation, TempFiltersQltyInspectionGenRule);
+                    LastQltyInspectionCreateStatus := InternalCreateInspectionWithGenerationRule(OptionalRec1Variant, OptionalRec2Variant, OptionalRec3Variant, OptionalRec4Variant, IsManualCreation, TempFiltersQltyInspectCreationRule);
                 2:
-                    LastQltyInspectionCreateStatus := InternalCreateInspectionWithGenerationRule(OptionalRec2Variant, OptionalRec1Variant, OptionalRec3Variant, OptionalRec4Variant, IsManualCreation, TempFiltersQltyInspectionGenRule);
+                    LastQltyInspectionCreateStatus := InternalCreateInspectionWithGenerationRule(OptionalRec2Variant, OptionalRec1Variant, OptionalRec3Variant, OptionalRec4Variant, IsManualCreation, TempFiltersQltyInspectCreationRule);
                 3:
-                    LastQltyInspectionCreateStatus := InternalCreateInspectionWithGenerationRule(OptionalRec3Variant, OptionalRec1Variant, OptionalRec2Variant, OptionalRec4Variant, IsManualCreation, TempFiltersQltyInspectionGenRule);
+                    LastQltyInspectionCreateStatus := InternalCreateInspectionWithGenerationRule(OptionalRec3Variant, OptionalRec1Variant, OptionalRec2Variant, OptionalRec4Variant, IsManualCreation, TempFiltersQltyInspectCreationRule);
                 4:
                     begin
                         AvoidThrowingErrorWhenPossible := PreviousAvoidErrorState;
-                        LastQltyInspectionCreateStatus := InternalCreateInspectionWithGenerationRule(OptionalRec4Variant, OptionalRec1Variant, OptionalRec2Variant, OptionalRec3Variant, IsManualCreation, TempFiltersQltyInspectionGenRule);
+                        LastQltyInspectionCreateStatus := InternalCreateInspectionWithGenerationRule(OptionalRec4Variant, OptionalRec1Variant, OptionalRec2Variant, OptionalRec3Variant, IsManualCreation, TempFiltersQltyInspectCreationRule);
                     end;
             end;
             if LastQltyInspectionCreateStatus = LastQltyInspectionCreateStatus::Created then
@@ -251,21 +251,21 @@ codeunit 20404 "Qlty. Inspection - Create"
 
     local procedure InternalCreateInspectionWithSpecificTemplate(TargetRecordRef: RecordRef; IsManualCreation: Boolean; OptionalSpecificTemplate: Code[20]; OptionalRec2Variant: Variant; OptionalRec3Variant: Variant): Enum "Qlty. Inspection Create Status"
     var
-        TempDummyQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        TempDummyQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary;
         DummyRec4Variant: Variant;
     begin
-        exit(InternalCreateInspectionWithSpecificTemplate(TargetRecordRef, IsManualCreation, OptionalSpecificTemplate, OptionalRec2Variant, OptionalRec3Variant, DummyRec4Variant, TempDummyQltyInspectionGenRule));
+        exit(InternalCreateInspectionWithSpecificTemplate(TargetRecordRef, IsManualCreation, OptionalSpecificTemplate, OptionalRec2Variant, OptionalRec3Variant, DummyRec4Variant, TempDummyQltyInspectCreationRule));
     end;
 
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspect. Creation Rule", 'R', InherentPermissionsScope::Both)]
     [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'RIM', InherentPermissionsScope::Both)]
     [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Line", 'RIM', InherentPermissionsScope::Both)]
     [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. I. Result Condit. Conf.", 'RIM', InherentPermissionsScope::Both)]
     [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::"Qlty. Permission Mgmt.", 'X', InherentPermissionsScope::Both)]
     [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::"Qlty. Start Workflow", 'X', InherentPermissionsScope::Both)]
-    local procedure InternalCreateInspectionWithSpecificTemplate(TargetRecordRef: RecordRef; IsManualCreation: Boolean; OptionalSpecificTemplate: Code[20]; OptionalRec2Variant: Variant; OptionalRec3Variant: Variant; OptionalRec4Variant: Variant; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary) QltyInspectionCreateStatus: Enum "Qlty. Inspection Create Status"
+    local procedure InternalCreateInspectionWithSpecificTemplate(TargetRecordRef: RecordRef; IsManualCreation: Boolean; OptionalSpecificTemplate: Code[20]; OptionalRec2Variant: Variant; OptionalRec3Variant: Variant; OptionalRec4Variant: Variant; var TempFiltersQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary) QltyInspectionCreateStatus: Enum "Qlty. Inspection Create Status"
     var
-        TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        TempQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionLine: Record "Qlty. Inspection Line";
         TempSourceFieldsFilledStubInspectionBufferQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
@@ -289,7 +289,7 @@ codeunit 20404 "Qlty. Inspection - Create"
 
         Clear(LastCreatedQltyInspectionHeader);
 
-        TempQltyInspectionGenRule.CopyFilters(TempFiltersQltyInspectionGenRule);
+        TempQltyInspectCreationRule.CopyFilters(TempFiltersQltyInspectCreationRule);
 
         if IsManualCreation then
             QltyPermissionMgmt.VerifyCanCreateManualInspection()
@@ -306,24 +306,24 @@ codeunit 20404 "Qlty. Inspection - Create"
         if Handled then
             exit(QltyInspectionCreateStatus::"Unable to Create");
 
-        if TempFiltersQltyInspectionGenRule."Item Filter" <> '' then
-            RelatedItem.SetView(TempFiltersQltyInspectionGenRule."Item Filter");
+        if TempFiltersQltyInspectCreationRule."Item Filter" <> '' then
+            RelatedItem.SetView(TempFiltersQltyInspectCreationRule."Item Filter");
 
         QltyTraversal.FindRelatedItem(RelatedItem, TargetRecordRef, OptionalRec2Variant, OptionalRec3Variant, OptionalRec4Variant);
 
-        if not QltyInspecGenRuleMgmt.FindMatchingGenerationRule(IsManualCreation and (not AvoidThrowingErrorWhenPossible), IsManualCreation, TargetRecordRef, RelatedItem, OptionalSpecificTemplate, TempQltyInspectionGenRule) then
+        if not QltyInspecGenRuleMgmt.FindMatchingGenerationRule(IsManualCreation and (not AvoidThrowingErrorWhenPossible), IsManualCreation, TargetRecordRef, RelatedItem, OptionalSpecificTemplate, TempQltyInspectCreationRule) then
             if OptionalSpecificTemplate = '' then begin
                 if IsManualCreation and (not AvoidThrowingErrorWhenPossible) then
                     Error(CannotFindTemplateErr, Format(OriginalRecordId));
 
                 exit(QltyInspectionCreateStatus::"Unable to Create");
             end else begin
-                TempQltyInspectionGenRule."Template Code" := OptionalSpecificTemplate;
-                TempQltyInspectionGenRule."Source Table No." := TargetRecordRef.Number();
+                TempQltyInspectCreationRule."Template Code" := OptionalSpecificTemplate;
+                TempQltyInspectCreationRule."Source Table No." := TargetRecordRef.Number();
             end;
 
-        if (TempSourceFieldsFilledStubInspectionBufferQltyInspectionHeader."Template Code" = '') and (TempQltyInspectionGenRule."Template Code" <> '') then
-            TempSourceFieldsFilledStubInspectionBufferQltyInspectionHeader."Template Code" := TempQltyInspectionGenRule."Template Code";
+        if (TempSourceFieldsFilledStubInspectionBufferQltyInspectionHeader."Template Code" = '') and (TempQltyInspectCreationRule."Template Code" <> '') then
+            TempSourceFieldsFilledStubInspectionBufferQltyInspectionHeader."Template Code" := TempQltyInspectCreationRule."Template Code";
 
         if TargetRecordRef.Number() <> 0 then begin
             if RecordRefToBufferTriggeringRecord.RecordId() <> TargetRecordRef.RecordId() then
@@ -332,10 +332,10 @@ codeunit 20404 "Qlty. Inspection - Create"
         end else
             ApplyAllSourceFieldsToStub(TempSourceFieldsFilledStubInspectionBufferQltyInspectionHeader, RecordRefToBufferTriggeringRecord, OptionalRec2Variant, OptionalRec3Variant, OptionalRec4Variant);
 
-        if GetExistingOrCreateNewInspectionFor(TempSourceFieldsFilledStubInspectionBufferQltyInspectionHeader, TargetRecordRef, RecordRefToBufferTriggeringRecord, TempQltyInspectionGenRule, QltyInspectionHeader, IsNewlyCreatedInspection) then begin
+        if GetExistingOrCreateNewInspectionFor(TempSourceFieldsFilledStubInspectionBufferQltyInspectionHeader, TargetRecordRef, RecordRefToBufferTriggeringRecord, TempQltyInspectCreationRule, QltyInspectionHeader, IsNewlyCreatedInspection) then begin
             QltyInspectionHeader.SetIsCreating(true);
             LastCreatedQltyInspectionHeader := QltyInspectionHeader;
-            OnAfterCreateInspectionBeforeDialog(TargetRecordRef, RecordRefToBufferTriggeringRecord, IsManualCreation, OptionalSpecificTemplate, TempQltyInspectionGenRule, QltyInspectionHeader, Handled, OptionalRec2Variant, OptionalRec3Variant);
+            OnAfterCreateInspectionBeforeDialog(TargetRecordRef, RecordRefToBufferTriggeringRecord, IsManualCreation, OptionalSpecificTemplate, TempQltyInspectCreationRule, QltyInspectionHeader, Handled, OptionalRec2Variant, OptionalRec3Variant);
             if Handled then
                 exit;
 
@@ -376,7 +376,7 @@ codeunit 20404 "Qlty. Inspection - Create"
                 Error(UnableToCreateInspectionForErr, Format(OriginalRecordId));
         end;
 
-        OnAfterCreateInspectionAfterDialog(TargetRecordRef, RecordRefToBufferTriggeringRecord, IsManualCreation, OptionalSpecificTemplate, TempQltyInspectionGenRule, QltyInspectionHeader, OptionalRec2Variant, OptionalRec3Variant);
+        OnAfterCreateInspectionAfterDialog(TargetRecordRef, RecordRefToBufferTriggeringRecord, IsManualCreation, OptionalSpecificTemplate, TempQltyInspectCreationRule, QltyInspectionHeader, OptionalRec2Variant, OptionalRec3Variant);
     end;
 
     /// <summary>
@@ -428,7 +428,7 @@ codeunit 20404 "Qlty. Inspection - Create"
     /// <returns></returns>
     internal procedure FindExistingInspection(RaiseErrorIfNoRuleIsFound: Boolean; TargetRecordRef: RecordRef; Optional2RecordRef: RecordRef; Optional3RecordRef: RecordRef; Optional4RecordRef: RecordRef; var QltyInspectionHeader: Record "Qlty. Inspection Header") Result: Boolean;
     var
-        TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        TempQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary;
         RelatedItem: Record Item;
         PotentialMatchQltyInspectionHeader: Record "Qlty. Inspection Header";
         Handled: Boolean;
@@ -438,17 +438,17 @@ codeunit 20404 "Qlty. Inspection - Create"
             exit;
 
         QltyTraversal.FindRelatedItem(RelatedItem, TargetRecordRef, Optional2RecordRef, Optional3RecordRef, Optional4RecordRef);
-        if not QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, TargetRecordRef, RelatedItem, NoSpecificTemplateTok, TempQltyInspectionGenRule) then begin
+        if not QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, TargetRecordRef, RelatedItem, NoSpecificTemplateTok, TempQltyInspectCreationRule) then begin
             LogCreateInspectionProblem(TargetRecordRef, CannotFindTemplateErr, Format(TargetRecordRef.RecordId()));
             if RaiseErrorIfNoRuleIsFound and (not AvoidThrowingErrorWhenPossible) then
                 Error(CannotFindTemplateErr, Format(TargetRecordRef.RecordId()));
         end;
 
         QltyInspectionHeader.Reset();
-        TempQltyInspectionGenRule.Reset();
-        if TempQltyInspectionGenRule.FindSet() then
+        TempQltyInspectCreationRule.Reset();
+        if TempQltyInspectCreationRule.FindSet() then
             repeat
-                if FindExistingInspection(TargetRecordRef, Optional2RecordRef, Optional3RecordRef, Optional4RecordRef, TempQltyInspectionGenRule, PotentialMatchQltyInspectionHeader, true) then begin
+                if FindExistingInspection(TargetRecordRef, Optional2RecordRef, Optional3RecordRef, Optional4RecordRef, TempQltyInspectCreationRule, PotentialMatchQltyInspectionHeader, true) then begin
                     Result := true;
                     repeat
                         QltyInspectionHeader.SetRange("No.", PotentialMatchQltyInspectionHeader."No.");
@@ -457,10 +457,10 @@ codeunit 20404 "Qlty. Inspection - Create"
                             QltyInspectionHeader.Mark(true);
                     until PotentialMatchQltyInspectionHeader.Next() = 0;
                 end;
-            until TempQltyInspectionGenRule.Next() = 0
+            until TempQltyInspectCreationRule.Next() = 0
         else begin
-            Clear(TempQltyInspectionGenRule);
-            if FindExistingInspection(TargetRecordRef, Optional2RecordRef, Optional3RecordRef, Optional4RecordRef, TempQltyInspectionGenRule, PotentialMatchQltyInspectionHeader, true) then begin
+            Clear(TempQltyInspectCreationRule);
+            if FindExistingInspection(TargetRecordRef, Optional2RecordRef, Optional3RecordRef, Optional4RecordRef, TempQltyInspectCreationRule, PotentialMatchQltyInspectionHeader, true) then begin
                 Result := true;
                 repeat
                     QltyInspectionHeader.SetRange("No.", PotentialMatchQltyInspectionHeader."No.");
@@ -481,10 +481,10 @@ codeunit 20404 "Qlty. Inspection - Create"
     /// Will either find an existing open inspection, or create a new inspection.
     /// </summary>
     /// <param name="TargetRecordRef">The main target record that the inspection will be created against</param>
-    /// <param name="TempQltyInspectionGenRule">The generation rule that helped determine which template to use.</param>
+    /// <param name="TempQltyInspectCreationRule">The generation rule that helped determine which template to use.</param>
     /// <param name="QltyInspectionHeader">The created inspection</param>
     /// <returns></returns>
-    local procedure GetExistingOrCreateNewInspectionFor(var TempSourceFieldsFilledStubInspectionBufferQltyInspectionHeader: Record "Qlty. Inspection Header" temporary; TargetRecordRef: RecordRef; OriginalTriggeringRecordRef: RecordRef; TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var InspectionIsNew: Boolean) HasInspection: Boolean
+    local procedure GetExistingOrCreateNewInspectionFor(var TempSourceFieldsFilledStubInspectionBufferQltyInspectionHeader: Record "Qlty. Inspection Header" temporary; TargetRecordRef: RecordRef; OriginalTriggeringRecordRef: RecordRef; TempQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var InspectionIsNew: Boolean) HasInspection: Boolean
     var
         PrecedingQltyInspectionHeader: Record "Qlty. Inspection Header";
         NeedNewInspection: Boolean;
@@ -499,7 +499,7 @@ codeunit 20404 "Qlty. Inspection - Create"
             NeedNewInspection := true;
             HasExistingInspection := false;
         end else begin
-            HasExistingInspection := FindExistingInspectionWithStub(TempSourceFieldsFilledStubInspectionBufferQltyInspectionHeader, TempQltyInspectionGenRule, PrecedingQltyInspectionHeader, false);
+            HasExistingInspection := FindExistingInspectionWithStub(TempSourceFieldsFilledStubInspectionBufferQltyInspectionHeader, TempQltyInspectCreationRule, PrecedingQltyInspectionHeader, false);
 
             case QltyManagementSetup."Inspection Creation Option" of
                 QltyManagementSetup."Inspection Creation Option"::"Always create new inspection":
@@ -536,7 +536,7 @@ codeunit 20404 "Qlty. Inspection - Create"
                         ShouldCreateReinspection := false;
                     end;
                 else
-                    OnCustomCreateInspectionBehavior(TargetRecordRef, OriginalTriggeringRecordRef, TempQltyInspectionGenRule, HasExistingInspection, PrecedingQltyInspectionHeader, NeedNewInspection, ShouldCreateReinspection);
+                    OnCustomCreateInspectionBehavior(TargetRecordRef, OriginalTriggeringRecordRef, TempQltyInspectCreationRule, HasExistingInspection, PrecedingQltyInspectionHeader, NeedNewInspection, ShouldCreateReinspection);
             end;
         end;
         if NeedNewInspection then begin
@@ -546,7 +546,7 @@ codeunit 20404 "Qlty. Inspection - Create"
                 InitReinspectionHeader(PrecedingQltyInspectionHeader, QltyInspectionHeader);
 
             QltyInspectionHeader.TransferFields(TempSourceFieldsFilledStubInspectionBufferQltyInspectionHeader, false);
-            QltyInspectionHeader.Validate("Template Code", TempQltyInspectionGenRule."Template Code");
+            QltyInspectionHeader.Validate("Template Code", TempQltyInspectCreationRule."Template Code");
 
             QltyInspectionHeader."Source RecordId" := TargetRecordRef.RecordId();
             QltyInspectionHeader."Source Record Table No." := TargetRecordRef.Number();
@@ -628,11 +628,11 @@ codeunit 20404 "Qlty. Inspection - Create"
     /// <param name="OptionalVariant2">Must be a recordid,recordref,or record</param>
     /// <param name="OptionalVariant3">Must be a recordid,recordref,or record</param>
     /// <param name="OptionalVariant4">Must be a recordid,recordref,or record</param>
-    /// <param name="TempQltyInspectionGenRule">Must be a recordid,recordref,or record</param>
+    /// <param name="TempQltyInspectCreationRule">Must be a recordid,recordref,or record</param>
     /// <param name="PrecedingQltyInspectionHeader"></param>
     /// <param name="FindAll"></param>
     /// <returns></returns>
-    procedure FindExistingInspectionWithVariant(TargetRecordRef: RecordRef; OptionalVariant2: Variant; OptionalVariant3: Variant; OptionalVariant4: Variant; TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var PrecedingQltyInspectionHeader: Record "Qlty. Inspection Header"; FindAll: Boolean): Boolean
+    procedure FindExistingInspectionWithVariant(TargetRecordRef: RecordRef; OptionalVariant2: Variant; OptionalVariant3: Variant; OptionalVariant4: Variant; TempQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary; var PrecedingQltyInspectionHeader: Record "Qlty. Inspection Header"; FindAll: Boolean): Boolean
     var
         DataTypeManagement: Codeunit "Data Type Management";
         Optional2RecordRef: RecordRef;
@@ -642,7 +642,7 @@ codeunit 20404 "Qlty. Inspection - Create"
         if not DataTypeManagement.GetRecordRef(OptionalVariant2, Optional2RecordRef) then;
         if not DataTypeManagement.GetRecordRef(OptionalVariant3, Optional3RecordRef) then;
         if not DataTypeManagement.GetRecordRef(OptionalVariant4, Optional4RecordRef) then;
-        exit(FindExistingInspection(TargetRecordRef, Optional2RecordRef, Optional3RecordRef, Optional4RecordRef, TempQltyInspectionGenRule, PrecedingQltyInspectionHeader, FindAll));
+        exit(FindExistingInspection(TargetRecordRef, Optional2RecordRef, Optional3RecordRef, Optional4RecordRef, TempQltyInspectCreationRule, PrecedingQltyInspectionHeader, FindAll));
     end;
 
     /// <summary>
@@ -650,10 +650,10 @@ codeunit 20404 "Qlty. Inspection - Create"
     /// If there are multiple inspections finds the re-inspection.
     /// </summary>
     /// <param name="TargetRecordRef">The main target record that the inspection will be created against</param>
-    /// <param name="TempQltyInspectionGenRule">The generation rule that helped determine which template to use.</param>
+    /// <param name="TempQltyInspectCreationRule">The generation rule that helped determine which template to use.</param>
     /// <param name="PrecedingQltyInspectionHeader"></param>
     /// <returns></returns>
-    procedure FindExistingInspection(TargetRecordRef: RecordRef; Optional2RecordRef: RecordRef; Optional3RecordRef: RecordRef; Optional4RecordRef: RecordRef; TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var PrecedingQltyInspectionHeader: Record "Qlty. Inspection Header"; FindAll: Boolean): Boolean
+    procedure FindExistingInspection(TargetRecordRef: RecordRef; Optional2RecordRef: RecordRef; Optional3RecordRef: RecordRef; Optional4RecordRef: RecordRef; TempQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary; var PrecedingQltyInspectionHeader: Record "Qlty. Inspection Header"; FindAll: Boolean): Boolean
     var
         TempInStubSearchForSimilarInspectionBufferQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
     begin
@@ -663,16 +663,16 @@ codeunit 20404 "Qlty. Inspection - Create"
         PrecedingQltyInspectionHeader.Reset();
         ApplyAllSourceFieldsToStub(TempInStubSearchForSimilarInspectionBufferQltyInspectionHeader, TargetRecordRef, Optional2RecordRef, Optional3RecordRef, Optional4RecordRef);
 
-        exit(FindExistingInspectionWithStub(TempInStubSearchForSimilarInspectionBufferQltyInspectionHeader, TempQltyInspectionGenRule, PrecedingQltyInspectionHeader, FindAll));
+        exit(FindExistingInspectionWithStub(TempInStubSearchForSimilarInspectionBufferQltyInspectionHeader, TempQltyInspectCreationRule, PrecedingQltyInspectionHeader, FindAll));
     end;
 
-    local procedure FindExistingInspectionWithStub(var TempInStubSearchForSimilarInspectionBufferQltyInspectionHeader: Record "Qlty. Inspection Header" temporary; var TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var PrecedingQltyInspectionHeader: Record "Qlty. Inspection Header"; FindAll: Boolean): Boolean
+    local procedure FindExistingInspectionWithStub(var TempInStubSearchForSimilarInspectionBufferQltyInspectionHeader: Record "Qlty. Inspection Header" temporary; var TempQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary; var PrecedingQltyInspectionHeader: Record "Qlty. Inspection Header"; FindAll: Boolean): Boolean
     begin
         if not QltyManagementSetup.Get() then
             exit(false);
 
-        if (TempQltyInspectionGenRule."Template Code" <> '') and (TempInStubSearchForSimilarInspectionBufferQltyInspectionHeader."Template Code" = '') then
-            TempInStubSearchForSimilarInspectionBufferQltyInspectionHeader."Template Code" := TempQltyInspectionGenRule."Template Code";
+        if (TempQltyInspectCreationRule."Template Code" <> '') and (TempInStubSearchForSimilarInspectionBufferQltyInspectionHeader."Template Code" = '') then
+            TempInStubSearchForSimilarInspectionBufferQltyInspectionHeader."Template Code" := TempQltyInspectCreationRule."Template Code";
 
         PrecedingQltyInspectionHeader.TransferFields(TempInStubSearchForSimilarInspectionBufferQltyInspectionHeader, false);
         case QltyManagementSetup."Inspection Search Criteria" of
@@ -819,7 +819,7 @@ codeunit 20404 "Qlty. Inspection - Create"
     /// <param name="IsManualCreation">Whether this is a manual test creation or automated.</param>
     internal procedure CreateMultipleInspectionsForMarkedTrackingSpecification(var TempTrackingSpecification: Record "Tracking Specification" temporary; IsManualCreation: Boolean)
     var
-        TempNotUsedOptionalFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        TempNotUsedOptionalFiltersQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary;
         TempRecCopyOfTrackingSpecificationRecordRef: RecordRef;
     begin
         Clear(TempRecCopyOfTrackingSpecificationRecordRef);
@@ -833,21 +833,21 @@ codeunit 20404 "Qlty. Inspection - Create"
                 TempRecCopyOfTrackingSpecificationRecordRef.Insert();
             until TempTrackingSpecification.Next() = 0;
 
-        CreateMultipleInspectionsForMultipleRecords(TempRecCopyOfTrackingSpecificationRecordRef, IsManualCreation, TempNotUsedOptionalFiltersQltyInspectionGenRule);
+        CreateMultipleInspectionsForMultipleRecords(TempRecCopyOfTrackingSpecificationRecordRef, IsManualCreation, TempNotUsedOptionalFiltersQltyInspectCreationRule);
     end;
 
     internal procedure CreateMultipleInspectionsForMultipleRecords(var SetOfRecordsRecordRef: RecordRef; IsManualCreation: Boolean)
     var
-        TempDummyFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        TempDummyFiltersQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary;
     begin
-        CreateMultipleInspectionsForMultipleRecords(SetOfRecordsRecordRef, IsManualCreation, TempDummyFiltersQltyInspectionGenRule);
+        CreateMultipleInspectionsForMultipleRecords(SetOfRecordsRecordRef, IsManualCreation, TempDummyFiltersQltyInspectCreationRule);
     end;
 
-    internal procedure CreateMultipleInspectionsForMultipleRecords(var SetOfRecordsRecordRef: RecordRef; IsManualCreation: Boolean; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary)
+    internal procedure CreateMultipleInspectionsForMultipleRecords(var SetOfRecordsRecordRef: RecordRef; IsManualCreation: Boolean; var TempFiltersQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary)
     var
         CreatedQltyInspectionIds: List of [Code[20]];
     begin
-        CreateMultipleInspectionsWithoutDisplaying(SetOfRecordsRecordRef, IsManualCreation, TempFiltersQltyInspectionGenRule, CreatedQltyInspectionIds);
+        CreateMultipleInspectionsWithoutDisplaying(SetOfRecordsRecordRef, IsManualCreation, TempFiltersQltyInspectCreationRule, CreatedQltyInspectionIds);
 
         if IsManualCreation and GuiAllowed() then
             DisplayInspectionsIfConfigured(IsManualCreation, CreatedQltyInspectionIds);
@@ -895,7 +895,7 @@ codeunit 20404 "Qlty. Inspection - Create"
     /// <param name="IsManualCreation"></param>
     /// <param name="ptrecOptionalFiltersGenerationRule"></param>
     /// <param name="CreatedQltyInspectionIds"></param>
-    internal procedure CreateMultipleInspectionsWithoutDisplaying(var SetOfRecordsRecordRef: RecordRef; IsManualCreation: Boolean; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var CreatedQltyInspectionIds: List of [Code[20]])
+    internal procedure CreateMultipleInspectionsWithoutDisplaying(var SetOfRecordsRecordRef: RecordRef; IsManualCreation: Boolean; var TempFiltersQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary; var CreatedQltyInspectionIds: List of [Code[20]])
     var
         TempCopyOfSingleRecordRecordRef: RecordRef;
         ParentRecordRef: RecordRef;
@@ -915,7 +915,7 @@ codeunit 20404 "Qlty. Inspection - Create"
                 TempCopyOfSingleRecordRecordRef.Insert(false);
                 CountOfInspectionsCreatedForLine := CreateInspectionForSelfOrDirectParent(
                     TempCopyOfSingleRecordRecordRef,
-                    TempFiltersQltyInspectionGenRule,
+                    TempFiltersQltyInspectCreationRule,
                     ParentRecordRef,
                     CreatedQltyInspectionIds,
                     true,
@@ -935,7 +935,7 @@ codeunit 20404 "Qlty. Inspection - Create"
         end;
     end;
 
-    local procedure CreateInspectionForSelfOrDirectParent(var TempSelfRecordRef: RecordRef; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var FoundParentRecordRef: RecordRef; var CreatedQltyInspectionIds: List of [Code[20]]; PreventInspectionFromDisplayingEvenIfConfigured: Boolean; IsManualCreation: Boolean) InspectionCreatedCount: Integer
+    local procedure CreateInspectionForSelfOrDirectParent(var TempSelfRecordRef: RecordRef; var TempFiltersQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary; var FoundParentRecordRef: RecordRef; var CreatedQltyInspectionIds: List of [Code[20]]; PreventInspectionFromDisplayingEvenIfConfigured: Boolean; IsManualCreation: Boolean) InspectionCreatedCount: Integer
     var
         LastCreatedQltyInspectionHeader2: Record "Qlty. Inspection Header";
         Item: Record Item;
@@ -961,15 +961,15 @@ codeunit 20404 "Qlty. Inspection - Create"
         Clear(VariantEmptyOrTrackingSpecification);
         RelatedReservFilterReservationEntry.SetRange("Entry No.", -1);
 
-        if TempFiltersQltyInspectionGenRule."Item Filter" <> '' then begin
+        if TempFiltersQltyInspectCreationRule."Item Filter" <> '' then begin
             Item.FilterGroup(20);
-            Item.SetView(TempFiltersQltyInspectionGenRule."Item Filter");
+            Item.SetView(TempFiltersQltyInspectCreationRule."Item Filter");
             Item.FilterGroup(0);
         end;
 
         if QltyTraversal.FindRelatedItem(Item, ParentRecordRef, TempSelfRecordRef, VariantEmptyOrTrackingSpecification, Dummy4Variant) then begin
-            if (Item."No." <> '') and (TempFiltersQltyInspectionGenRule."Item Attribute Filter" <> '') then
-                if not QltyInspecGenRuleMgmt.DoesMatchItemAttributeFiltersOrNoFilter(TempFiltersQltyInspectionGenRule, Item) then
+            if (Item."No." <> '') and (TempFiltersQltyInspectCreationRule."Item Attribute Filter" <> '') then
+                if not QltyInspecGenRuleMgmt.DoesMatchItemAttributeFiltersOrNoFilter(TempFiltersQltyInspectCreationRule, Item) then
                     exit;
 
             if QltyItemTracking.IsItemTrackingUsed(Item."No.") then begin
@@ -1010,7 +1010,7 @@ codeunit 20404 "Qlty. Inspection - Create"
                     VariantEmptyOrTrackingSpecification := TempTrackingSpecification;
                 end;
 
-                if LocalQltyInspectionCreate.CreateInspectionWithMultiVariants(ParentRecordRef, TempSelfRecordRef, VariantEmptyOrTrackingSpecification, Dummy4Variant, IsManualCreation, TempFiltersQltyInspectionGenRule) then
+                if LocalQltyInspectionCreate.CreateInspectionWithMultiVariants(ParentRecordRef, TempSelfRecordRef, VariantEmptyOrTrackingSpecification, Dummy4Variant, IsManualCreation, TempFiltersQltyInspectCreationRule) then
                     if LocalQltyInspectionCreate.GetCreatedInspection(LastCreatedQltyInspectionHeader2) then begin
                         InspectionCreatedCount += 1;
                         if not CreatedQltyInspectionIds.Contains(LastCreatedQltyInspectionHeader2."No.") then
@@ -1018,13 +1018,13 @@ codeunit 20404 "Qlty. Inspection - Create"
                     end;
             until RelatedReservFilterReservationEntry.Next() = 0;
         end else begin
-            if TempFiltersQltyInspectionGenRule."Item Filter" <> '' then begin
+            if TempFiltersQltyInspectCreationRule."Item Filter" <> '' then begin
                 Clear(Item);
                 if QltyTraversal.FindRelatedItem(Item, ParentRecordRef, TempSelfRecordRef, VariantEmptyOrTrackingSpecification, Dummy4Variant) then
                     exit;
             end;
 
-            if LocalQltyInspectionCreate.CreateInspectionWithMultiVariants(TempSelfRecordRef, ParentRecordRef, Dummy4Variant, Dummy4Variant, IsManualCreation, TempFiltersQltyInspectionGenRule) then
+            if LocalQltyInspectionCreate.CreateInspectionWithMultiVariants(TempSelfRecordRef, ParentRecordRef, Dummy4Variant, Dummy4Variant, IsManualCreation, TempFiltersQltyInspectCreationRule) then
                 if LocalQltyInspectionCreate.GetCreatedInspection(LastCreatedQltyInspectionHeader2) then begin
                     InspectionCreatedCount += 1;
                     if not CreatedQltyInspectionIds.Contains(LastCreatedQltyInspectionHeader2."No.") then
@@ -1120,13 +1120,13 @@ codeunit 20404 "Qlty. Inspection - Create"
     /// <param name="TriggeringRecordRef">Typically the same as the target record ref. Used in complex customizations.</param>
     /// <param name="IsManualCreation">True when the inspection is being manually created and not automatically triggered</param>
     /// <param name="OptionalSpecificTemplate">When supplied refers to a specific desired template</param>
-    /// <param name="TempQltyInspectionGenRule">The generation rule that helped determine which template to use.</param>
+    /// <param name="TempQltyInspectCreationRule">The generation rule that helped determine which template to use.</param>
     /// <param name="QualityOrder">The quality inspection</param>
     /// <param name="IsHandled">Set to true to replace the default behavior, set to false to extend it and continue</param>
     /// <param name="OptionalRec2Variant">For complex automation can be additional source records</param>
     /// <param name="OptionalRec3Variant">For complex automation can be additional source records</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCreateInspectionBeforeDialog(var TargetRecordRef: RecordRef; var TriggeringRecordRef: RecordRef; var IsManualCreation: Boolean; var OptionalSpecificTemplate: Code[20]; var TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var IsHandled: Boolean; var OptionalRec2Variant: Variant; var OptionalRec3Variant: Variant)
+    local procedure OnAfterCreateInspectionBeforeDialog(var TargetRecordRef: RecordRef; var TriggeringRecordRef: RecordRef; var IsManualCreation: Boolean; var OptionalSpecificTemplate: Code[20]; var TempQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var IsHandled: Boolean; var OptionalRec2Variant: Variant; var OptionalRec3Variant: Variant)
     begin
     end;
 
@@ -1137,12 +1137,12 @@ codeunit 20404 "Qlty. Inspection - Create"
     /// <param name="TriggeringRecordRef">Typically the same as the target record ref. Used in complex customizations.</param>
     /// <param name="IsManualCreation">True when the inspection is being manually created and not automatically triggered</param>
     /// <param name="OptionalSpecificTemplate">When supplied refers to a specific desired template</param>
-    /// <param name="TempQltyInspectionGenRule">The generation rule that helped determine which template to use.</param>
+    /// <param name="TempQltyInspectCreationRule">The generation rule that helped determine which template to use.</param>
     /// <param name="QualityOrder">The quality inspection</param>
     /// <param name="OptionalRec2Variant">For complex automation can be additional source records</param>
     /// <param name="OptionalRec3Variant">For complex automation can be additional source records</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCreateInspectionAfterDialog(var TargetRecordRef: RecordRef; var TriggeringRecordRef: RecordRef; var IsManualCreation: Boolean; var OptionalSpecificTemplate: Code[20]; var TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalRec2Variant: Variant; var OptionalRec3Variant: Variant)
+    local procedure OnAfterCreateInspectionAfterDialog(var TargetRecordRef: RecordRef; var TriggeringRecordRef: RecordRef; var IsManualCreation: Boolean; var OptionalSpecificTemplate: Code[20]; var TempQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalRec2Variant: Variant; var OptionalRec3Variant: Variant)
     begin
     end;
 
@@ -1153,13 +1153,13 @@ codeunit 20404 "Qlty. Inspection - Create"
     /// </summary>
     /// <param name="TargetRecordRef">The record the inspection is being created against</param>
     /// <param name="OriginalTriggeringRecordRef">The record that triggered the inspection</param>
-    /// <param name="TempQltyInspectionGenRule">The generation rule</param>
+    /// <param name="TempQltyInspectCreationRule">The generation rule</param>
     /// <param name="HasExistingInspection">Whether it has an existing inspection</param>
     /// <param name="PrecedingQltyInspectionHeader">Optionally an existing inspection that matches</param>
     /// <param name="NeedNewInspection">Choose whether it should need a new inspection</param>
     /// <param name="ShouldCreateReinspection">Choose whether it should create a Reinspection</param>
     [IntegrationEvent(false, false)]
-    local procedure OnCustomCreateInspectionBehavior(var TargetRecordRef: RecordRef; var OriginalTriggeringRecordRef: RecordRef; var TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var HasExistingInspection: Boolean; var PrecedingQltyInspectionHeader: Record "Qlty. Inspection Header"; var NeedNewInspection: Boolean; var ShouldCreateReinspection: Boolean)
+    local procedure OnCustomCreateInspectionBehavior(var TargetRecordRef: RecordRef; var OriginalTriggeringRecordRef: RecordRef; var TempQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary; var HasExistingInspection: Boolean; var PrecedingQltyInspectionHeader: Record "Qlty. Inspection Header"; var NeedNewInspection: Boolean; var ShouldCreateReinspection: Boolean)
     begin
     end;
 

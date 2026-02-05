@@ -96,7 +96,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure Table_GetControlCaptionClass()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
     begin
@@ -113,13 +113,13 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [THEN] The method returns "Status" as the caption
         LibraryAssert.AreEqual(StatusTok, QltyInspectionUtility.GetControlCaptionClass(QltyInspectionHeader, SourceCustomTok), 'Should have returned "Status".');
 
-        QltyInspectionGenRule.DeleteAll();
+        QltyInspectCreationRule.DeleteAll();
     end;
 
     [Test]
     procedure Table_GetControlVisibleState()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
     begin
@@ -137,13 +137,13 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [THEN] The method returns true indicating the control should be visible
         LibraryAssert.IsTrue(QltyInspectionUtility.GetControlVisibleState(QltyInspectionHeader, SourceCustomTok), 'Should show Custom 1 (Status).');
 
-        QltyInspectionGenRule.DeleteAll();
+        QltyInspectCreationRule.DeleteAll();
     end;
 
     [Test]
     procedure Table_GetRelatedItem()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Location: Record Location;
         Item: Record Item;
@@ -163,7 +163,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -182,14 +182,14 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryAssert.IsTrue(QltyInspectionHeader.GetRelatedItem(FoundItem), 'Should find item.');
         LibraryAssert.AreEqual(Item."No.", FoundItem."No.", 'Should be same item.');
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
     procedure Table_ValidateAssignedUserID_AssignFromBlank()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -205,7 +205,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -213,7 +213,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] An inspection is created from purchase with untracked item
         QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [GIVEN] The inspection has no assigned user
         LibraryAssert.IsTrue(QltyInspectionHeader."Assigned User ID" = '', 'Should not have user assigned.');
@@ -230,7 +230,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         User: Record User;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -247,7 +247,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -255,7 +255,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] An inspection is created from purchase with untracked item
         QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [GIVEN] An inspection user is created if it doesn't exist
         User.SetRange("User Name", UserTok);
@@ -278,7 +278,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         User: Record User;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -295,7 +295,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -303,7 +303,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] An inspection is created from purchase with untracked item
         QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [GIVEN] An inspection user is created if it doesn't exist
         User.SetRange("User Name", UserTok);
@@ -325,7 +325,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         User: Record User;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -342,7 +342,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -350,7 +350,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] An inspection is created from purchase with untracked item
         QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [GIVEN] An inspection user is created if it doesn't exist
         User.SetRange("User Name", UserTok);
@@ -373,7 +373,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_ValidateSampleSize_SampleSizeLargerThanSourceQty()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -392,7 +392,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -411,7 +411,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_DefaultSampleSize_FromFixedQuantity()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -436,7 +436,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ConfigurationToLoadQltyInspectionTemplateHdr.Modify(false);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -452,7 +452,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_DefaultSampleSize_FromFixedQuantity_MaxesOut()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -477,7 +477,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ConfigurationToLoadQltyInspectionTemplateHdr.Modify(false);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -493,7 +493,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_DefaultSampleSize_FromPercentage()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -518,7 +518,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         ConfigurationToLoadQltyInspectionTemplateHdr.Modify(false);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -534,7 +534,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_OnDelete_CanDeleteOpenInspection()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -551,7 +551,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -559,7 +559,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         // [GIVEN] An inspection is created from purchase with untracked item
         QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [WHEN] The inspection is deleted
         QltyInspectionHeader.Delete(true);
@@ -574,7 +574,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_AssistEditTestField()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -594,7 +594,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -612,7 +612,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 10000);
         LibraryAssert.AreEqual(TestValueTxt, QltyInspectionLine."Test Value", 'Test value should match.');
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -620,7 +620,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_AssistEditLotNo()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         Item: Record Item;
         Vendor: Record Vendor;
@@ -651,7 +651,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -686,7 +686,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.AreEqual(FirstReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Should be other source lot no.');
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -694,7 +694,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_AssistEditSerialNo()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         Vendor: Record Vendor;
         ToUseNoSeries: Record "No. Series";
@@ -724,7 +724,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -755,7 +755,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.AreNotEqual(ReservationEntry."Serial No.", QltyInspectionHeader."Source Serial No.", 'Should be new source serial no.');
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -763,7 +763,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_AssistEditPackageNo()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ToUseNoSeries: Record "No. Series";
         Location: Record Location;
         Item: Record Item;
@@ -795,7 +795,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -830,7 +830,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.AreEqual(FirstReservationEntry."Package No.", QltyInspectionHeader."Source Package No.", 'Should be other source package no.');
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -838,7 +838,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_AssistEditLotNo_ChooseSingleDocument()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         Item: Record Item;
         Vendor: Record Vendor;
@@ -869,7 +869,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -902,7 +902,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.AreEqual(FirstReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Should be other source lot no.');
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -910,7 +910,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_AssistEditSerialNo_ChooseSingleDocument()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         Vendor: Record Vendor;
         ToUseNoSeries: Record "No. Series";
@@ -940,7 +940,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -971,7 +971,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.AreNotEqual(ReservationEntry."Serial No.", QltyInspectionHeader."Source Serial No.", 'Should be new source serial no.');
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -979,7 +979,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_AssistEditPackageNo_ChooseSingleDocument()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ToUseNoSeries: Record "No. Series";
         Location: Record Location;
         Item: Record Item;
@@ -1011,7 +1011,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -1044,7 +1044,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.AreEqual(FirstReservationEntry."Package No.", QltyInspectionHeader."Source Package No.", 'Should be other source package no.');
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -1052,7 +1052,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_AssistEditLotNo_ChooseFromAnyDocument()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         Item: Record Item;
         Vendor: Record Vendor;
@@ -1084,7 +1084,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -1116,7 +1116,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.AreEqual(FirstReservationEntry."Lot No.", QltyInspectionHeader."Source Lot No.", 'Should be other source lot no.');
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -1124,7 +1124,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_AssistEditSerialNo_ChooseFromAnyDocument()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
@@ -1157,7 +1157,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -1189,7 +1189,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.AreEqual(FirstReservationEntry."Serial No.", QltyInspectionHeader."Source Serial No.", 'Should be other source serial no.');
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -1197,7 +1197,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure Table_AssistEditPackageNo_ChooseFromAnyDocument()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
@@ -1230,7 +1230,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -1262,7 +1262,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         LibraryAssert.AreEqual(FirstReservationEntry."Package No.", QltyInspectionHeader."Source Package No.", 'Should be other source package no.');
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -1370,7 +1370,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
@@ -1397,7 +1397,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A template and generation rule are created for purchase lines
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -1434,7 +1434,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
@@ -1461,7 +1461,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A template and generation rule are created for purchase lines
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -1498,7 +1498,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         Item: Record Item;
         ToUseNoSeries: Record "No. Series";
@@ -1525,7 +1525,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A template and generation rule are created for purchase lines
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -1664,7 +1664,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         Location: Record Location;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -1679,7 +1679,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A generation rule is created for purchase lines
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -1704,7 +1704,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         Location: Record Location;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -1719,7 +1719,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A generation rule is created for purchase lines
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -1737,7 +1737,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         Location: Record Location;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
@@ -1754,7 +1754,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A generation rule is created for purchase lines
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location and item are created
         LibraryWarehouse.CreateLocation(Location);
@@ -1777,7 +1777,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         Location: Record Location;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
@@ -1794,7 +1794,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A generation rule is created for purchase lines
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location and item are created
         LibraryWarehouse.CreateLocation(Location);
@@ -1817,7 +1817,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         Location: Record Location;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
@@ -1834,7 +1834,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A generation rule is created for purchase lines
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location and item are created
         LibraryWarehouse.CreateLocation(Location);
@@ -1857,7 +1857,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         Location: Record Location;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
@@ -1874,7 +1874,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A generation rule is created for purchase lines
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location and item are created
         LibraryWarehouse.CreateLocation(Location);
@@ -1955,7 +1955,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Item: Record Item;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
@@ -1973,7 +1973,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A template and generation rule are created for purchase lines
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location and item are created
         LibraryWarehouse.CreateLocation(Location);
@@ -1998,7 +1998,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Item: Record Item;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         ReservationEntry: Record "Reservation Entry";
@@ -2017,7 +2017,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A template and generation rule are created for purchase lines
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -2047,7 +2047,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Item: Record Item;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         ReservationEntry: Record "Reservation Entry";
@@ -2065,7 +2065,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A template and generation rule are created for purchase lines
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -2090,7 +2090,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure InspectionPage_FinishInspection()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -2108,7 +2108,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A template and generation rule are created for purchase lines
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -2128,7 +2128,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryAssert.IsTrue(QltyInspectionHeader.Status = QltyInspectionHeader.Status::Finished, 'Inspection should be finished.');
 
         // [GIVEN] Cleanup generation rule
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -2136,7 +2136,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure InspectionPage_ReopenInspection()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -2154,7 +2154,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A template and generation rule are created for purchase lines
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -2178,14 +2178,14 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryAssert.IsTrue(QltyInspectionHeader.Status = QltyInspectionHeader.Status::Open, 'Inspection should be open.');
 
         // [GIVEN] Cleanup generation rule
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
     procedure InspectionPage_PickupInspection()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -2203,7 +2203,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A template and generation rule are created for purchase lines
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -2223,14 +2223,14 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryAssert.IsTrue(QltyInspectionHeader."Assigned User ID" = UserId(), 'Inspection should be assigned to user.');
 
         // [GIVEN] Cleanup generation rule
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
     procedure InspectionPage_UnassignInspection()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -2248,7 +2248,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] A template and generation rule are created for purchase lines
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocation(Location);
@@ -2272,7 +2272,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryAssert.IsTrue(QltyInspectionHeader."Assigned User ID" = '', 'Inspection should not be assigned to a user.');
 
         // [GIVEN] Cleanup generation rule
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -2721,15 +2721,15 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
         // [SCENARIO] ValidateProductionTrigger updates existing production rules when setup trigger changes
 
         Initialize();
 
         // [GIVEN] All existing generation rules are deleted
-        if not QltyInspectionGenRule.IsEmpty() then
-            QltyInspectionGenRule.DeleteAll();
+        if not QltyInspectCreationRule.IsEmpty() then
+            QltyInspectCreationRule.DeleteAll();
 
         // [GIVEN] Quality management setup is configured
         QltyInspectionUtility.EnsureSetupExists();
@@ -2740,9 +2740,9 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Production Order");
 
         // [GIVEN] Production rules with OnProductionOrderRelease trigger are filtered
-        QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Production);
-        QltyInspectionGenRule.SetRange("Production Order Trigger", QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease);
-        LibraryAssert.IsTrue(QltyInspectionGenRule.IsEmpty(), 'Should be no rules with trigger.');
+        QltyInspectCreationRule.SetRange(Intent, QltyInspectCreationRule.Intent::Production);
+        QltyInspectCreationRule.SetRange("Production Order Trigger", QltyInspectCreationRule."Production Order Trigger"::OnProductionOrderRelease);
+        LibraryAssert.IsTrue(QltyInspectCreationRule.IsEmpty(), 'Should be no rules with trigger.');
 
         // [GIVEN] Setup is updated to OnProductionOrderRelease trigger
         QltyManagementSetup.Get();
@@ -2750,26 +2750,26 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [GIVEN] Rules with OnProductionOrderRelease trigger are verified as still empty
-        QltyInspectionGenRule.SetRange("Production Order Trigger", QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease);
-        LibraryAssert.IsTrue(QltyInspectionGenRule.IsEmpty(), 'Should be no rules with trigger.');
+        QltyInspectCreationRule.SetRange("Production Order Trigger", QltyInspectCreationRule."Production Order Trigger"::OnProductionOrderRelease);
+        LibraryAssert.IsTrue(QltyInspectCreationRule.IsEmpty(), 'Should be no rules with trigger.');
 
         // [GIVEN] A new production rule is created
-        Clear(QltyInspectionGenRule);
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
+        Clear(QltyInspectCreationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectCreationRule);
 
         // [GIVEN] Source table is changed to Prod. Order Line
-        QltyInspectionGenRule.Validate("Source Table No.", Database::"Prod. Order Line");
-        QltyInspectionGenRule.Modify();
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Production Order Trigger" = QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease, 'Should have default trigger.');
+        QltyInspectCreationRule.Validate("Source Table No.", Database::"Prod. Order Line");
+        QltyInspectCreationRule.Modify();
+        LibraryAssert.IsTrue(QltyInspectCreationRule."Production Order Trigger" = QltyInspectCreationRule."Production Order Trigger"::OnProductionOrderRelease, 'Should have default trigger.');
 
         // [WHEN] Setup production order trigger is changed to OnProductionOutputPost
         QltyManagementSetup.Validate("Production Order Trigger", QltyManagementSetup."Production Order Trigger"::OnProductionOutputPost);
         QltyManagementSetup.Modify();
 
         // [THEN] Existing production rule is updated to new trigger
-        QltyInspectionGenRule.Reset();
-        QltyInspectionGenRule.SetRange("Production Order Trigger", QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost);
-        LibraryAssert.AreEqual(1, QltyInspectionGenRule.Count(), 'Production rule should have new production order trigger.');
+        QltyInspectCreationRule.Reset();
+        QltyInspectCreationRule.SetRange("Production Order Trigger", QltyInspectCreationRule."Production Order Trigger"::OnProductionOutputPost);
+        LibraryAssert.AreEqual(1, QltyInspectCreationRule.Count(), 'Production rule should have new production order trigger.');
     end;
 
     [Test]
@@ -2807,7 +2807,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure SetupTable_ValidateWarehouseTrigger_AddTrigger()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
     begin
         // [SCENARIO] ValidateWarehouseTrigger adds trigger to new warehouse rules when setup trigger is configured
@@ -2823,14 +2823,14 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [GIVEN] A warehouse journal line rule is created
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Journal Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Journal Line", QltyInspectCreationRule);
 
         // [WHEN] Source table is changed to Warehouse Entry
-        QltyInspectionGenRule.Validate("Source Table No.", Database::"Warehouse Entry");
-        QltyInspectionGenRule.Modify();
+        QltyInspectCreationRule.Validate("Source Table No.", Database::"Warehouse Entry");
+        QltyInspectCreationRule.Modify();
 
         // [THEN] Warehouse Movement Trigger defaults to OnWhseMovementRegister
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Warehouse Movement Trigger" = QltyInspectionGenRule."Warehouse Movement Trigger"::OnWhseMovementRegister, 'Should have default trigger value.');
+        LibraryAssert.IsTrue(QltyInspectCreationRule."Warehouse Movement Trigger" = QltyInspectCreationRule."Warehouse Movement Trigger"::OnWhseMovementRegister, 'Should have default trigger value.');
     end;
 
     [Test]
@@ -2839,7 +2839,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyManagementSetupPage: TestPage "Qlty. Management Setup";
     begin
         // [SCENARIO] ValidateWarehouseTrigger removes trigger from existing warehouse rules when trigger is set to NoTrigger
@@ -2855,9 +2855,9 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [GIVEN] A warehouse rule is created with trigger
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Journal Line", QltyInspectionGenRule);
-        QltyInspectionGenRule.Validate("Source Table No.", Database::"Warehouse Entry");
-        QltyInspectionGenRule.Modify();
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Journal Line", QltyInspectCreationRule);
+        QltyInspectCreationRule.Validate("Source Table No.", Database::"Warehouse Entry");
+        QltyInspectCreationRule.Modify();
 
         // [GIVEN] Setup page is opened
         QltyManagementSetupPage.OpenEdit();
@@ -2867,8 +2867,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetupPage.Close();
 
         // [THEN] Existing warehouse rule has trigger removed
-        QltyInspectionGenRule.Get(QltyInspectionGenRule."Entry No.");
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Warehouse Movement Trigger" = QltyInspectionGenRule."Warehouse Movement Trigger"::NoTrigger, 'Should not have trigger.');
+        QltyInspectCreationRule.Get(QltyInspectCreationRule."Entry No.");
+        LibraryAssert.IsTrue(QltyInspectCreationRule."Warehouse Movement Trigger" = QltyInspectCreationRule."Warehouse Movement Trigger"::NoTrigger, 'Should not have trigger.');
     end;
 
     [Test]
@@ -3167,22 +3167,22 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
         // [SCENARIO] ValidateWarehouseReceiveTrigger updates warehouse receive rules when setup trigger changes
 
         Initialize();
 
         // [GIVEN] All existing generation rules are deleted
-        if not QltyInspectionGenRule.IsEmpty() then
-            QltyInspectionGenRule.DeleteAll();
+        if not QltyInspectCreationRule.IsEmpty() then
+            QltyInspectCreationRule.DeleteAll();
 
         // [GIVEN] Quality management setup is configured
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A warehouse receipt line rule is created
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Receipt Line", QltyInspectionGenRule);
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Warehouse Receipt Trigger" = QltyInspectionGenRule."Warehouse Receipt Trigger"::NoTrigger, 'Should not have trigger.');
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Warehouse Receipt Line", QltyInspectCreationRule);
+        LibraryAssert.IsTrue(QltyInspectCreationRule."Warehouse Receipt Trigger" = QltyInspectCreationRule."Warehouse Receipt Trigger"::NoTrigger, 'Should not have trigger.');
 
         // [GIVEN] Setup is updated to OnWarehouseReceiptCreate trigger
         QltyManagementSetup.Get();
@@ -3190,30 +3190,30 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [GIVEN] Existing rule is retrieved and still has NoTrigger
-        QltyInspectionGenRule.Get(QltyInspectionGenRule."Entry No.");
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Warehouse Receipt Trigger" = QltyInspectionGenRule."Warehouse Receipt Trigger"::NoTrigger, 'Should not have trigger.');
+        QltyInspectCreationRule.Get(QltyInspectCreationRule."Entry No.");
+        LibraryAssert.IsTrue(QltyInspectCreationRule."Warehouse Receipt Trigger" = QltyInspectCreationRule."Warehouse Receipt Trigger"::NoTrigger, 'Should not have trigger.');
 
         // [GIVEN] A new rule is created for different source table
-        Clear(QltyInspectionGenRule);
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
+        Clear(QltyInspectCreationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectCreationRule);
 
         // [GIVEN] Source table is changed to Warehouse Receipt Line
-        QltyInspectionGenRule.Validate("Source Table No.", Database::"Warehouse Receipt Line");
-        QltyInspectionGenRule.Modify();
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Warehouse Receipt Trigger" = QltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate, 'Should have default trigger.');
+        QltyInspectCreationRule.Validate("Source Table No.", Database::"Warehouse Receipt Line");
+        QltyInspectCreationRule.Modify();
+        LibraryAssert.IsTrue(QltyInspectCreationRule."Warehouse Receipt Trigger" = QltyInspectCreationRule."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate, 'Should have default trigger.');
 
         // [WHEN] Setup trigger is changed to OnWarehouseReceiptPost
         QltyManagementSetup.Validate("Warehouse Receipt Trigger", QltyManagementSetup."Warehouse Receipt Trigger"::OnWarehouseReceiptPost);
         QltyManagementSetup.Modify();
 
         // [THEN] Existing warehouse receipt rule is updated to new trigger
-        QltyInspectionGenRule.Reset();
-        QltyInspectionGenRule.SetRange("Warehouse Receipt Trigger", QltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptPost);
-        LibraryAssert.AreEqual(1, QltyInspectionGenRule.Count(), 'Production rule should have new production order trigger value.');
+        QltyInspectCreationRule.Reset();
+        QltyInspectCreationRule.SetRange("Warehouse Receipt Trigger", QltyInspectCreationRule."Warehouse Receipt Trigger"::OnWarehouseReceiptPost);
+        LibraryAssert.AreEqual(1, QltyInspectCreationRule.Count(), 'Production rule should have new production order trigger value.');
 
         // [GIVEN] All generation rules are cleaned up
-        QltyInspectionGenRule.Reset();
-        QltyInspectionGenRule.DeleteAll();
+        QltyInspectCreationRule.Reset();
+        QltyInspectCreationRule.DeleteAll();
     end;
 
     [Test]
@@ -3222,22 +3222,22 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
         // [SCENARIO] ValidatePurchaseTrigger updates purchase rules when setup trigger changes
 
         Initialize();
 
         // [GIVEN] All existing generation rules are deleted
-        if not QltyInspectionGenRule.IsEmpty() then
-            QltyInspectionGenRule.DeleteAll();
+        if not QltyInspectCreationRule.IsEmpty() then
+            QltyInspectCreationRule.DeleteAll();
 
         // [GIVEN] Quality management setup is configured
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A purchase line rule is created with no trigger
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Purchase Order Trigger" = QltyInspectionGenRule."Purchase Order Trigger"::NoTrigger, 'Should not have trigger.');
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
+        LibraryAssert.IsTrue(QltyInspectCreationRule."Purchase Order Trigger" = QltyInspectCreationRule."Purchase Order Trigger"::NoTrigger, 'Should not have trigger.');
 
         // [GIVEN] Setup Purchase Order Trigger is set to OnPurchaseOrderPostReceive
         QltyManagementSetup.Get();
@@ -3245,30 +3245,30 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [GIVEN] Existing rule still has NoTrigger
-        QltyInspectionGenRule.Get(QltyInspectionGenRule."Entry No.");
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Purchase Order Trigger" = QltyInspectionGenRule."Purchase Order Trigger"::NoTrigger, 'Should not have trigger.');
+        QltyInspectCreationRule.Get(QltyInspectCreationRule."Entry No.");
+        LibraryAssert.IsTrue(QltyInspectCreationRule."Purchase Order Trigger" = QltyInspectCreationRule."Purchase Order Trigger"::NoTrigger, 'Should not have trigger.');
 
         // [GIVEN] A new rule is created for different source table
-        Clear(QltyInspectionGenRule);
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
+        Clear(QltyInspectCreationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectCreationRule);
 
         // [GIVEN] Source table is changed to Purchase Line
-        QltyInspectionGenRule.Validate("Source Table No.", Database::"Purchase Line");
-        QltyInspectionGenRule.Modify();
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Purchase Order Trigger" = QltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive, 'Should have default trigger.');
+        QltyInspectCreationRule.Validate("Source Table No.", Database::"Purchase Line");
+        QltyInspectCreationRule.Modify();
+        LibraryAssert.IsTrue(QltyInspectCreationRule."Purchase Order Trigger" = QltyInspectCreationRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive, 'Should have default trigger.');
 
         // [WHEN] Setup trigger is changed to NoTrigger
         QltyManagementSetup.Validate("Purchase Order Trigger", QltyManagementSetup."Purchase Order Trigger"::NoTrigger);
         QltyManagementSetup.Modify();
 
         // [THEN] All purchase rules have trigger removed
-        QltyInspectionGenRule.Reset();
-        QltyInspectionGenRule.SetRange("Purchase Order Trigger", QltyInspectionGenRule."Purchase Order Trigger"::NoTrigger);
-        LibraryAssert.AreEqual(2, QltyInspectionGenRule.Count(), 'Purchase rule should have new Purchase Order Trigger value.');
+        QltyInspectCreationRule.Reset();
+        QltyInspectCreationRule.SetRange("Purchase Order Trigger", QltyInspectCreationRule."Purchase Order Trigger"::NoTrigger);
+        LibraryAssert.AreEqual(2, QltyInspectCreationRule.Count(), 'Purchase rule should have new Purchase Order Trigger value.');
 
         // [GIVEN] All generation rules are cleaned up
-        QltyInspectionGenRule.Reset();
-        QltyInspectionGenRule.DeleteAll();
+        QltyInspectCreationRule.Reset();
+        QltyInspectCreationRule.DeleteAll();
     end;
 
     [Test]
@@ -3277,22 +3277,22 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
         // [SCENARIO] ValidateSalesReturnTrigger updates sales return rules when setup trigger changes
 
         Initialize();
 
         // [GIVEN] All existing generation rules are deleted
-        if not QltyInspectionGenRule.IsEmpty() then
-            QltyInspectionGenRule.DeleteAll();
+        if not QltyInspectCreationRule.IsEmpty() then
+            QltyInspectCreationRule.DeleteAll();
 
         // [GIVEN] Quality management setup is configured
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A sales line rule is created with no trigger
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Sales Line", QltyInspectionGenRule);
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Sales Return Trigger" = QltyInspectionGenRule."Sales Return Trigger"::NoTrigger, 'Should not have trigger.');
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Sales Line", QltyInspectCreationRule);
+        LibraryAssert.IsTrue(QltyInspectCreationRule."Sales Return Trigger" = QltyInspectCreationRule."Sales Return Trigger"::NoTrigger, 'Should not have trigger.');
 
         // [GIVEN] Setup sales return trigger is set to OnSalesReturnOrderPostReceive
         QltyManagementSetup.Get();
@@ -3300,30 +3300,30 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [GIVEN] Existing rule still has NoTrigger
-        QltyInspectionGenRule.Get(QltyInspectionGenRule."Entry No.");
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Sales Return Trigger" = QltyInspectionGenRule."Sales Return Trigger"::NoTrigger, 'Should not have trigger.');
+        QltyInspectCreationRule.Get(QltyInspectCreationRule."Entry No.");
+        LibraryAssert.IsTrue(QltyInspectCreationRule."Sales Return Trigger" = QltyInspectCreationRule."Sales Return Trigger"::NoTrigger, 'Should not have trigger.');
 
         // [GIVEN] A new rule is created for different source table
-        Clear(QltyInspectionGenRule);
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
+        Clear(QltyInspectCreationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectCreationRule);
 
         // [GIVEN] Source table is changed to Sales Line
-        QltyInspectionGenRule.Validate("Source Table No.", Database::"Sales Line");
-        QltyInspectionGenRule.Modify();
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Sales Return Trigger" = QltyInspectionGenRule."Sales Return Trigger"::OnSalesReturnOrderPostReceive, 'Should have default trigger.');
+        QltyInspectCreationRule.Validate("Source Table No.", Database::"Sales Line");
+        QltyInspectCreationRule.Modify();
+        LibraryAssert.IsTrue(QltyInspectCreationRule."Sales Return Trigger" = QltyInspectCreationRule."Sales Return Trigger"::OnSalesReturnOrderPostReceive, 'Should have default trigger.');
 
         // [WHEN] Setup trigger is changed to NoTrigger
         QltyManagementSetup.Validate("Sales Return Trigger", QltyManagementSetup."Sales Return Trigger"::NoTrigger);
         QltyManagementSetup.Modify();
 
         // [THEN] All sales return rules have trigger removed
-        QltyInspectionGenRule.Reset();
-        QltyInspectionGenRule.SetRange("Sales Return Trigger", QltyInspectionGenRule."Sales Return Trigger"::NoTrigger);
-        LibraryAssert.AreEqual(2, QltyInspectionGenRule.Count(), 'Sales Return rule should have new sales return trigger value.');
+        QltyInspectCreationRule.Reset();
+        QltyInspectCreationRule.SetRange("Sales Return Trigger", QltyInspectCreationRule."Sales Return Trigger"::NoTrigger);
+        LibraryAssert.AreEqual(2, QltyInspectCreationRule.Count(), 'Sales Return rule should have new sales return trigger value.');
 
         // [GIVEN] All generation rules are cleaned up
-        QltyInspectionGenRule.Reset();
-        QltyInspectionGenRule.DeleteAll();
+        QltyInspectCreationRule.Reset();
+        QltyInspectCreationRule.DeleteAll();
     end;
 
     [Test]
@@ -3332,22 +3332,22 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
         // [SCENARIO] ValidateTransferTrigger updates transfer rules when setup trigger changes
 
         Initialize();
 
         // [GIVEN] All existing generation rules are deleted
-        if not QltyInspectionGenRule.IsEmpty() then
-            QltyInspectionGenRule.DeleteAll();
+        if not QltyInspectCreationRule.IsEmpty() then
+            QltyInspectCreationRule.DeleteAll();
 
         // [GIVEN] Quality management setup is configured
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A transfer line rule is created with no trigger
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Transfer Line", QltyInspectionGenRule);
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Transfer Order Trigger" = QltyInspectionGenRule."Transfer Order Trigger"::NoTrigger, 'Should not have trigger.');
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Transfer Line", QltyInspectCreationRule);
+        LibraryAssert.IsTrue(QltyInspectCreationRule."Transfer Order Trigger" = QltyInspectCreationRule."Transfer Order Trigger"::NoTrigger, 'Should not have trigger.');
 
         // [GIVEN] Setup transfer order trigger is set to OnTransferOrderPostReceive
         QltyManagementSetup.Get();
@@ -3355,30 +3355,30 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [GIVEN] Existing rule still has NoTrigger
-        QltyInspectionGenRule.Get(QltyInspectionGenRule."Entry No.");
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Transfer Order Trigger" = QltyInspectionGenRule."Transfer Order Trigger"::NoTrigger, 'Should not have trigger.');
+        QltyInspectCreationRule.Get(QltyInspectCreationRule."Entry No.");
+        LibraryAssert.IsTrue(QltyInspectCreationRule."Transfer Order Trigger" = QltyInspectCreationRule."Transfer Order Trigger"::NoTrigger, 'Should not have trigger.');
 
         // [GIVEN] A new rule is created for different source table
-        Clear(QltyInspectionGenRule);
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
+        Clear(QltyInspectCreationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectCreationRule);
 
         // [GIVEN] Source table is changed to Transfer Line
-        QltyInspectionGenRule.Validate("Source Table No.", Database::"Transfer Line");
-        QltyInspectionGenRule.Modify();
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Transfer Order Trigger" = QltyInspectionGenRule."Transfer Order Trigger"::OnTransferOrderPostReceive, 'Should have default trigger.');
+        QltyInspectCreationRule.Validate("Source Table No.", Database::"Transfer Line");
+        QltyInspectCreationRule.Modify();
+        LibraryAssert.IsTrue(QltyInspectCreationRule."Transfer Order Trigger" = QltyInspectCreationRule."Transfer Order Trigger"::OnTransferOrderPostReceive, 'Should have default trigger.');
 
         // [WHEN] Setup trigger is changed to NoTrigger
         QltyManagementSetup.Validate("Transfer Order Trigger", QltyManagementSetup."Transfer Order Trigger"::NoTrigger);
         QltyManagementSetup.Modify();
 
         // [THEN] All transfer rules have trigger removed
-        QltyInspectionGenRule.Reset();
-        QltyInspectionGenRule.SetRange("Transfer Order Trigger", QltyInspectionGenRule."Transfer Order Trigger"::NoTrigger);
-        LibraryAssert.AreEqual(2, QltyInspectionGenRule.Count(), 'Transfer rule should have new transfer order trigger value.');
+        QltyInspectCreationRule.Reset();
+        QltyInspectCreationRule.SetRange("Transfer Order Trigger", QltyInspectCreationRule."Transfer Order Trigger"::NoTrigger);
+        LibraryAssert.AreEqual(2, QltyInspectCreationRule.Count(), 'Transfer rule should have new transfer order trigger value.');
 
         // [GIVEN] All generation rules are cleaned up
-        QltyInspectionGenRule.Reset();
-        QltyInspectionGenRule.DeleteAll();
+        QltyInspectCreationRule.Reset();
+        QltyInspectCreationRule.DeleteAll();
     end;
 
     [Test]
@@ -3387,22 +3387,22 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
         // [SCENARIO] ValidateAssemblyTrigger updates assembly rules when setup trigger changes
 
         Initialize();
 
         // [GIVEN] All existing generation rules are deleted
-        if not QltyInspectionGenRule.IsEmpty() then
-            QltyInspectionGenRule.DeleteAll();
+        if not QltyInspectCreationRule.IsEmpty() then
+            QltyInspectCreationRule.DeleteAll();
 
         // [GIVEN] Quality management setup is configured
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A posted assembly header rule is created with no trigger
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Posted Assembly Header", QltyInspectionGenRule);
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Assembly Trigger" = QltyInspectionGenRule."Assembly Trigger"::NoTrigger, 'Should not have trigger.');
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Posted Assembly Header", QltyInspectCreationRule);
+        LibraryAssert.IsTrue(QltyInspectCreationRule."Assembly Trigger" = QltyInspectCreationRule."Assembly Trigger"::NoTrigger, 'Should not have trigger.');
 
         // [GIVEN] Setup assembly trigger is set to OnAssemblyOutputPost
         QltyManagementSetup.Get();
@@ -3410,30 +3410,30 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [GIVEN] Existing rule still has NoTrigger
-        QltyInspectionGenRule.Get(QltyInspectionGenRule."Entry No.");
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Assembly Trigger" = QltyInspectionGenRule."Assembly Trigger"::NoTrigger, 'Should not have trigger.');
+        QltyInspectCreationRule.Get(QltyInspectCreationRule."Entry No.");
+        LibraryAssert.IsTrue(QltyInspectCreationRule."Assembly Trigger" = QltyInspectCreationRule."Assembly Trigger"::NoTrigger, 'Should not have trigger.');
 
         // [GIVEN] A new rule is created for different source table
-        Clear(QltyInspectionGenRule);
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
+        Clear(QltyInspectCreationRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectCreationRule);
 
         // [GIVEN] Source table is changed to Posted Assembly Header
-        QltyInspectionGenRule.Validate("Source Table No.", Database::"Posted Assembly Header");
-        QltyInspectionGenRule.Modify();
-        LibraryAssert.IsTrue(QltyInspectionGenRule."Assembly Trigger" = QltyInspectionGenRule."Assembly Trigger"::OnAssemblyOutputPost, 'Should have default trigger.');
+        QltyInspectCreationRule.Validate("Source Table No.", Database::"Posted Assembly Header");
+        QltyInspectCreationRule.Modify();
+        LibraryAssert.IsTrue(QltyInspectCreationRule."Assembly Trigger" = QltyInspectCreationRule."Assembly Trigger"::OnAssemblyOutputPost, 'Should have default trigger.');
 
         // [WHEN] Setup trigger is changed to NoTrigger
         QltyManagementSetup.Validate("Assembly Trigger", QltyManagementSetup."Assembly Trigger"::NoTrigger);
         QltyManagementSetup.Modify();
 
         // [THEN] All assembly rules have trigger removed
-        QltyInspectionGenRule.Reset();
-        QltyInspectionGenRule.SetRange("Assembly Trigger", QltyInspectionGenRule."Assembly Trigger"::NoTrigger);
-        LibraryAssert.AreEqual(2, QltyInspectionGenRule.Count(), 'Assembly rule should have new assembly trigger value.');
+        QltyInspectCreationRule.Reset();
+        QltyInspectCreationRule.SetRange("Assembly Trigger", QltyInspectCreationRule."Assembly Trigger"::NoTrigger);
+        LibraryAssert.AreEqual(2, QltyInspectCreationRule.Count(), 'Assembly rule should have new assembly trigger value.');
 
         // [GIVEN] All generation rules are cleaned up
-        QltyInspectionGenRule.Reset();
-        QltyInspectionGenRule.DeleteAll();
+        QltyInspectCreationRule.Reset();
+        QltyInspectCreationRule.DeleteAll();
     end;
 
     [Test]
@@ -3467,7 +3467,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure GenerationRuleTable_ValidateTemplateCode()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
         // [SCENARIO] ValidateTemplateCode successfully validates and sets the template code
 
@@ -3480,21 +3480,21 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A generation rule is initialized
-        QltyInspectionGenRule.Init();
+        QltyInspectCreationRule.Init();
 
         // [WHEN] Template Code is validated with template code
-        QltyInspectionGenRule.Validate("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
+        QltyInspectCreationRule.Validate("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
 
         // [THEN] Template code is set correctly
-        LibraryAssert.AreEqual(ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionGenRule."Template Code", 'Should be same template.');
+        LibraryAssert.AreEqual(ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectCreationRule."Template Code", 'Should be same template.');
     end;
 
     [Test]
     procedure GenerationRuleTable_UpdateSortOrder()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        LastQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        LastQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
         // [SCENARIO] UpdateSortOrder automatically assigns incremental sort order values to new rules
 
@@ -3507,34 +3507,34 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A first generation rule is initialized and inserted
-        QltyInspectionGenRule.Init();
-        QltyInspectionGenRule.Validate("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
-        QltyInspectionGenRule."Source Table No." := Database::"Purchase Line";
-        QltyInspectionGenRule.Insert(true);
+        QltyInspectCreationRule.Init();
+        QltyInspectCreationRule.Validate("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
+        QltyInspectCreationRule."Source Table No." := Database::"Purchase Line";
+        QltyInspectCreationRule.Insert(true);
 
         // [GIVEN] The last rule by sort order is found
-        LastQltyInspectionGenRule.SetCurrentKey("Sort Order");
-        LastQltyInspectionGenRule.Ascending(false);
-        LastQltyInspectionGenRule.FindFirst();
+        LastQltyInspectCreationRule.SetCurrentKey("Sort Order");
+        LastQltyInspectCreationRule.Ascending(false);
+        LastQltyInspectCreationRule.FindFirst();
 
         // [GIVEN] A second generation rule is initialized
-        Clear(QltyInspectionGenRule);
-        QltyInspectionGenRule.Init();
-        QltyInspectionGenRule.Validate("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
-        QltyInspectionGenRule."Source Table No." := Database::"Purchase Line";
+        Clear(QltyInspectCreationRule);
+        QltyInspectCreationRule.Init();
+        QltyInspectCreationRule.Validate("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
+        QltyInspectCreationRule."Source Table No." := Database::"Purchase Line";
 
         // [WHEN] The second rule is inserted with auto-numbering
-        QltyInspectionGenRule.Insert(true);
+        QltyInspectCreationRule.Insert(true);
 
         // [THEN] Sort order is 10 higher than previous rule
-        LibraryAssert.AreEqual(LastQltyInspectionGenRule."Sort Order" + 10, QltyInspectionGenRule."Sort Order", 'Should have next available sort order.');
+        LibraryAssert.AreEqual(LastQltyInspectCreationRule."Sort Order" + 10, QltyInspectCreationRule."Sort Order", 'Should have next available sort order.');
     end;
 
     [Test]
     procedure GenerationRuleTable_GetTemplateCodeFromRecordOrFilter_Record()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         TemplateCode: Code[20];
     begin
         // [SCENARIO] GetTemplateCodeFromRecordOrFilter returns template code from current record
@@ -3548,10 +3548,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for the template
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [WHEN] GetTemplateCodeFromRecordOrFilter is called with record mode (false)
-        TemplateCode := QltyInspectionGenRule.GetTemplateCodeFromRecordOrFilter(false);
+        TemplateCode := QltyInspectCreationRule.GetTemplateCodeFromRecordOrFilter(false);
 
         // [THEN] Returned template code matches template
         LibraryAssert.AreEqual(ConfigurationToLoadQltyInspectionTemplateHdr.Code, TemplateCode, 'Should be same template code.');
@@ -3561,8 +3561,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure GenerationRuleTable_GetTemplateCodeFromRecordOrFilter_Filter()
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        FilterQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
+        FilterQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         TemplateCode: Code[20];
     begin
         // [SCENARIO] GetTemplateCodeFromRecordOrFilter returns template code from filter
@@ -3576,13 +3576,13 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for the template
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A filter is set for the template code
-        FilterQltyInspectionGenRule.SetRange("Template Code", QltyInspectionGenRule."Template Code");
+        FilterQltyInspectCreationRule.SetRange("Template Code", QltyInspectCreationRule."Template Code");
 
         // [WHEN] GetTemplateCodeFromRecordOrFilter is called with filter mode (true)
-        TemplateCode := FilterQltyInspectionGenRule.GetTemplateCodeFromRecordOrFilter(true);
+        TemplateCode := FilterQltyInspectCreationRule.GetTemplateCodeFromRecordOrFilter(true);
 
         // [THEN] Returned template code matches template
         LibraryAssert.AreEqual(ConfigurationToLoadQltyInspectionTemplateHdr.Code, TemplateCode, 'Should be same template code.');
@@ -3591,7 +3591,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_Certain()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3600,78 +3600,78 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [WHEN] Source table is Warehouse Receipt Line
-        QltyInspectionGenRule."Source Table No." := Database::"Warehouse Receipt Line";
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule."Source Table No." := Database::"Warehouse Receipt Line";
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Intent is inferred as Warehouse Receipt
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::"Warehouse Receipt", 'Should return Warehouse Receipt intent.');
 
         // [WHEN] Source table is Warehouse Entry
-        QltyInspectionGenRule."Source Table No." := Database::"Warehouse Entry";
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule."Source Table No." := Database::"Warehouse Entry";
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Intent is inferred as Warehouse Movement
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::"Warehouse Movement", 'Should return Warehouse Movement intent.');
 
         // [WHEN] Source table is Purchase Line
-        QltyInspectionGenRule."Source Table No." := Database::"Purchase Line";
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule."Source Table No." := Database::"Purchase Line";
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Intent is inferred as Purchase
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Purchase, 'Should return Purchase intent.');
 
         // [WHEN] Source table is Sales Line
-        QltyInspectionGenRule."Source Table No." := Database::"Sales Line";
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule."Source Table No." := Database::"Sales Line";
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Intent is inferred as Sales Return
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::"Sales Return", 'Should return Sales Return intent.');
 
         // [WHEN] Source table is Transfer Line
-        QltyInspectionGenRule."Source Table No." := Database::"Transfer Line";
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule."Source Table No." := Database::"Transfer Line";
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Intent is inferred as Transfer
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Transfer, 'Should return Transfer intent.');
 
         // [WHEN] Source table is Transfer Receipt Line
-        QltyInspectionGenRule."Source Table No." := Database::"Transfer Receipt Line";
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule."Source Table No." := Database::"Transfer Receipt Line";
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Intent is inferred as Transfer
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Transfer, 'Should return Transfer intent.');
 
         // [WHEN] Source table is Prod. Order Routing Line
-        QltyInspectionGenRule."Source Table No." := Database::"Prod. Order Routing Line";
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule."Source Table No." := Database::"Prod. Order Routing Line";
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Intent is inferred as Production
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Production, 'Should return Production intent.');
 
         // [WHEN] Source table is Prod. Order Line
-        QltyInspectionGenRule."Source Table No." := Database::"Prod. Order Line";
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule."Source Table No." := Database::"Prod. Order Line";
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Intent is inferred as Production
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Production, 'Should return Production intent.');
 
         // [WHEN] Source table is Production Order
-        QltyInspectionGenRule."Source Table No." := Database::"Production Order";
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule."Source Table No." := Database::"Production Order";
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Intent is inferred as Production
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Production, 'Should return "Production Order intent.');
 
         // [WHEN] Source table is Posted Assembly Header
-        QltyInspectionGenRule."Source Table No." := Database::"Posted Assembly Header";
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule."Source Table No." := Database::"Posted Assembly Header";
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Intent is inferred as Assembly
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Assembly, 'Should return Assembly intent.');
 
         // [WHEN] Source table is Assembly Line
-        QltyInspectionGenRule."Source Table No." := Database::"Assembly Line";
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule."Source Table No." := Database::"Assembly Line";
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Intent is inferred as Assembly
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Assembly, 'Should return Assembly intent.');
@@ -3680,7 +3680,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemJournalLine_EntryTypeFilter_Production()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3689,11 +3689,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Item Journal Line with Entry Type filter for Output
-        QltyInspectionGenRule."Source Table No." := Database::"Item Journal Line";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterOutputTok;
+        QltyInspectCreationRule."Source Table No." := Database::"Item Journal Line";
+        QltyInspectCreationRule."Condition Filter" := ConditionFilterOutputTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Production
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Production, 'Should return Production intent.');
@@ -3702,7 +3702,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemJournalLine_OrderTypeFilter_Production()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3711,11 +3711,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Item Journal Line with Order Type filter for Production
-        QltyInspectionGenRule."Source Table No." := Database::"Item Journal Line";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterProductionTok;
+        QltyInspectCreationRule."Source Table No." := Database::"Item Journal Line";
+        QltyInspectCreationRule."Condition Filter" := ConditionFilterProductionTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Production
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Production, 'Should return Production intent.');
@@ -3724,7 +3724,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemJournalLine_DocumentTypeFilter_Purchase()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3733,11 +3733,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Item Journal Line with Document Type filter for Purchase Receipt
-        QltyInspectionGenRule."Source Table No." := Database::"Item Journal Line";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterPurchaseReceiptTok;
+        QltyInspectCreationRule."Source Table No." := Database::"Item Journal Line";
+        QltyInspectCreationRule."Condition Filter" := ConditionFilterPurchaseReceiptTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Purchase
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Purchase, 'Should return Purchase intent.');
@@ -3746,7 +3746,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemJournalLine_DocumentTypeFilter_SalesReturn()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3755,11 +3755,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Item Journal Line with Document Type filter for Sales Return Receipt
-        QltyInspectionGenRule."Source Table No." := Database::"Item Journal Line";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterSalesReturnReceiptTok;
+        QltyInspectCreationRule."Source Table No." := Database::"Item Journal Line";
+        QltyInspectCreationRule."Condition Filter" := ConditionFilterSalesReturnReceiptTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Sales Return
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::"Sales Return", 'Should return Sales Return intent.');
@@ -3768,7 +3768,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemJournalLine_DocumentTypeFilter_TransferReceipt()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3777,11 +3777,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Item Journal Line with Document Type filter for Transfer Receipt
-        QltyInspectionGenRule."Source Table No." := Database::"Item Journal Line";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterTransferReceiptTok;
+        QltyInspectCreationRule."Source Table No." := Database::"Item Journal Line";
+        QltyInspectCreationRule."Condition Filter" := ConditionFilterTransferReceiptTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Transfer
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Transfer, 'Should return Transfer intent.');
@@ -3790,7 +3790,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemJournalLine_DocumentTypeFilter_DirectTransfer()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3799,11 +3799,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Item Journal Line with Document Type filter for Direct Transfer
-        QltyInspectionGenRule."Source Table No." := Database::"Item Journal Line";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterDirectTransferTok;
+        QltyInspectCreationRule."Source Table No." := Database::"Item Journal Line";
+        QltyInspectCreationRule."Condition Filter" := ConditionFilterDirectTransferTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Transfer
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Transfer, 'Should return Transfer intent.');
@@ -3812,7 +3812,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemLedgerEntry_EntryTypeFilter_Production()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3820,11 +3820,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Item Ledger Entry with Entry Type filter for Output
-        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterOutputTok;
+        QltyInspectCreationRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectCreationRule."Condition Filter" := ConditionFilterOutputTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Production
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Production, 'Should return Production intent.');
@@ -3833,7 +3833,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemLedgerEntry_OrderTypeFilter_Production()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3841,11 +3841,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Item Ledger Entry with Order Type filter for Production
-        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterProductionTok;
+        QltyInspectCreationRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectCreationRule."Condition Filter" := ConditionFilterProductionTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Production
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Production, 'Should return Production intent.');
@@ -3854,7 +3854,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemLegerEntry_EntryTypeFilter_Purchase()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3862,11 +3862,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Item Ledger Entry with Entry Type filter for Purchase
-        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterPurchaseTok;
+        QltyInspectCreationRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectCreationRule."Condition Filter" := ConditionFilterPurchaseTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Purchase
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Purchase, 'Should return Purchase intent.');
@@ -3875,7 +3875,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemLegerEntry_DocumentTypeFilter_SalesReturn()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3883,11 +3883,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Item Ledger Entry with Entry Type filter for Sale
-        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterSaleTok;
+        QltyInspectCreationRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectCreationRule."Condition Filter" := ConditionFilterSaleTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Sales Return
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::"Sales Return", 'Should return Sales Return intent.');
@@ -3896,7 +3896,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemLegerEntry_EntryTypeFilter_TransferReceipt()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3904,11 +3904,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Item Ledger Entry with Entry Type filter for Transfer
-        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterTransferTok;
+        QltyInspectCreationRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectCreationRule."Condition Filter" := ConditionFilterTransferTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Transfer
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Transfer, 'Should return Transfer intent.');
@@ -3917,7 +3917,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemLegerEntry_DocumentTypeFilter_Assembly()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3925,11 +3925,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Item Ledger Entry with Entry Type filter for Assembly Output
-        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterAssemblyOutputTok;
+        QltyInspectCreationRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectCreationRule."Condition Filter" := ConditionFilterAssemblyOutputTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Assembly
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Assembly, 'Should return Assembly intent.');
@@ -3938,7 +3938,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_WarehouseJournalLine_WhseDocumentFilter_Receive()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3946,11 +3946,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Warehouse Journal Line with Warehouse Document Type filter for Receipt
-        QltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterWhseReceiptTok;
+        QltyInspectCreationRule."Source Table No." := Database::"Warehouse Journal Line";
+        QltyInspectCreationRule."Condition Filter" := ConditionFilterWhseReceiptTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Warehouse Receipt
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::"Warehouse Receipt", 'Should return Warehouse Receive intent.');
@@ -3959,7 +3959,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_WarehouseJournalLine_ReferenceDocumentFilter_Receive()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3967,11 +3967,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Warehouse Journal Line with Reference Document filter for Posted Receipt
-        QltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterPostedRcptTok;
+        QltyInspectCreationRule."Source Table No." := Database::"Warehouse Journal Line";
+        QltyInspectCreationRule."Condition Filter" := ConditionFilterPostedRcptTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Warehouse Receipt
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::"Warehouse Receipt", 'Should return Warehouse Receive intent.');
@@ -3980,7 +3980,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_WarehouseJournalLine_WhseDocumentTypeFilter_Move()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -3988,11 +3988,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Warehouse Journal Line with Warehouse Document Type filter for Internal Put-away
-        QltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterInternalPutAwayTok;
+        QltyInspectCreationRule."Source Table No." := Database::"Warehouse Journal Line";
+        QltyInspectCreationRule."Condition Filter" := ConditionFilterInternalPutAwayTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Warehouse Movement
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::"Warehouse Movement", 'Should return Warehouse Movement intent.');
@@ -4001,7 +4001,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [Test]
     procedure GenerationRuleTable_InferGenerationRuleIntent_WarehouseJournalLine_EntryTypeFilter_Move()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyGenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -4009,11 +4009,11 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] A generation rule for Warehouse Journal Line with Entry Type filter for Movement
-        QltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
-        QltyInspectionGenRule."Condition Filter" := ConditionFilterMovementTok;
+        QltyInspectCreationRule."Source Table No." := Database::"Warehouse Journal Line";
+        QltyInspectCreationRule."Condition Filter" := ConditionFilterMovementTok;
 
         // [WHEN] Inferring the generation rule intent
-        QltyInspectionGenRule.InferGenerationRuleIntent(QltyGenRuleIntent, Certainty);
+        QltyInspectCreationRule.InferGenerationRuleIntent(QltyGenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Warehouse Movement
         LibraryAssert.IsTrue(QltyGenRuleIntent = QltyGenRuleIntent::"Warehouse Movement", 'Should return Warehouse Movement intent.');
@@ -4023,7 +4023,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemJournalLine_OnlyTriggerInSetup_Production()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -4034,7 +4034,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A generation rule for Item Journal Line with no condition filter
-        QltyInspectionGenRule."Source Table No." := Database::"Item Journal Line";
+        QltyInspectCreationRule."Source Table No." := Database::"Item Journal Line";
 
         // [GIVEN] Setup with only production order trigger enabled
         QltyManagementSetup.Get();
@@ -4043,7 +4043,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [WHEN] Inferring the generation rule intent
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is Production with Maybe certainty
         LibraryAssert.AreEqual(GenRuleIntent::Production, GenRuleIntent, 'Should return Production intent.');
@@ -4058,7 +4058,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemLedgerEntry_OnlyTriggerInSetup_Production()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -4069,7 +4069,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A generation rule for Item Ledger Entry with no condition filter
-        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectCreationRule."Source Table No." := Database::"Item Ledger Entry";
 
         // [GIVEN] Setup with only production order trigger enabled
         QltyManagementSetup.Get();
@@ -4078,7 +4078,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [WHEN] Inferring the generation rule intent
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Production
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Production, 'Should return Production intent.');
@@ -4092,7 +4092,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure GenerationRuleTable_MultipleRangeValues()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -4103,8 +4103,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A generation rule for Item Ledger Entry
-        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := 'WHERE(Entry Type=FILTER(Output|Positive Adjmt.))';
+        QltyInspectCreationRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectCreationRule."Condition Filter" := 'WHERE(Entry Type=FILTER(Output|Positive Adjmt.))';
 
         // [GIVEN] Setup with production order trigger enabled
         QltyManagementSetup.Get();
@@ -4113,34 +4113,34 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [WHEN] Inferring intent with Output first in filter
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Production intent is returned (Output recognized)
         LibraryAssert.AreEqual(GenRuleIntent::Production, GenRuleIntent, 'Should return Production intent (first)');
 
         // [WHEN] Inferring intent with Output last in filter
-        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := 'WHERE(Entry Type=FILTER(Positive Adjmt.|Output))';
+        QltyInspectCreationRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectCreationRule."Condition Filter" := 'WHERE(Entry Type=FILTER(Positive Adjmt.|Output))';
 
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Production intent is returned (Output recognized at end)
         LibraryAssert.AreEqual(GenRuleIntent::Production, GenRuleIntent, 'Should return Production intent (last).');
 
         // [WHEN] Inferring intent without Output in filter
-        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := 'WHERE(Entry Type=FILTER(Positive Adjmt.|Purchase|Sale))';
+        QltyInspectCreationRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectCreationRule."Condition Filter" := 'WHERE(Entry Type=FILTER(Positive Adjmt.|Purchase|Sale))';
 
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Production intent is not returned
         LibraryAssert.AreNotEqual(GenRuleIntent::Production, GenRuleIntent, 'Should not be a Production intent.');
 
         // [WHEN] Inferring intent with Output in middle of filter
-        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
-        QltyInspectionGenRule."Condition Filter" := 'WHERE(Entry Type=FILTER(Positive Adjmt.|Output|Purchase|Sale))';
+        QltyInspectCreationRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectCreationRule."Condition Filter" := 'WHERE(Entry Type=FILTER(Positive Adjmt.|Output|Purchase|Sale))';
 
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] Production intent is returned (Output recognized in middle)
         LibraryAssert.AreEqual(GenRuleIntent::Production, GenRuleIntent, 'Should be a Production intent (output is in the middle.)');
@@ -4154,7 +4154,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure GenerationRuleTable_InferGenerationRuleIntent_ItemLedgerEntry_NotOnlyTriggerInSetup_Unknown()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -4165,7 +4165,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A generation rule for Item Ledger Entry with no condition filter
-        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectCreationRule."Source Table No." := Database::"Item Ledger Entry";
 
         // [GIVEN] Setup with all triggers enabled
         QltyManagementSetup.Get();
@@ -4179,7 +4179,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [WHEN] Inferring the generation rule intent
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is Unknown (ambiguous due to multiple triggers)
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::Unknown, 'Should return unknown intent.');
@@ -4193,7 +4193,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     procedure GenerationRuleTable_InferGenerationRuleIntent_WarehouseJournalLine_OnlyTriggerInSetup_WarehouseReceive()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         GenRuleIntent: Enum "Qlty. Gen. Rule Intent";
         Certainty: Enum "Qlty. Certainty";
     begin
@@ -4204,7 +4204,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A generation rule for Warehouse Journal Line with no condition filter
-        QltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
+        QltyInspectCreationRule."Source Table No." := Database::"Warehouse Journal Line";
 
         // [GIVEN] Setup with only Warehouse Receipt Trigger enabled
         QltyManagementSetup.Get();
@@ -4213,7 +4213,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyManagementSetup.Modify();
 
         // [WHEN] Inferring the generation rule intent
-        QltyInspectionGenRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
+        QltyInspectCreationRule.InferGenerationRuleIntent(GenRuleIntent, Certainty);
 
         // [THEN] The intent is correctly identified as Warehouse Receipt
         LibraryAssert.IsTrue(GenRuleIntent = GenRuleIntent::"Warehouse Receipt", 'Should return Warehouse Receive intent.');
@@ -4561,7 +4561,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
     var
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         ConfigurationToLoadQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
         // [SCENARIO] Template deletion cascades to template lines and generation rules
         Initialize();
@@ -4571,7 +4571,7 @@ codeunit 139967 "Qlty. Tests - Test Table"
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
 
         // [GIVEN] A prioritized rule is created for the template
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] Template line is verified to exist
         ConfigurationToLoadQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
@@ -4589,8 +4589,8 @@ codeunit 139967 "Qlty. Tests - Test Table"
         LibraryAssert.IsTrue(ConfigurationToLoadQltyInspectionTemplateLine.IsEmpty(), 'Template line should have been deleted.');
 
         // [THEN] Associated generation rule is deleted
-        QltyInspectionGenRule.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
-        LibraryAssert.IsTrue(QltyInspectionGenRule.IsEmpty(), 'Generation rule should have been deleted.');
+        QltyInspectCreationRule.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
+        LibraryAssert.IsTrue(QltyInspectCreationRule.IsEmpty(), 'Generation rule should have been deleted.');
     end;
 
     [Test]

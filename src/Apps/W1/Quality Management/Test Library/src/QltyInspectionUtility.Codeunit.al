@@ -182,30 +182,35 @@ codeunit 139940 "Qlty. Inspection Utility"
 
     internal procedure CreatePrioritizedRule(InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; SourceTableNo: Integer)
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty.Inspect.Creation Rule";
     begin
-        CreatePrioritizedRule(InExistingQltyInspectionTemplateHdr, SourceTableNo, QltyInspectionGenRule);
+        CreatePrioritizedRule(InExistingQltyInspectionTemplateHdr, SourceTableNo, QltyInspectCreationRule);
     end;
 
-    internal procedure CreatePrioritizedRule(var InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; SourceTableNo: Integer; var OutQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
+    internal procedure CreatePrioritizedRule(var InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; SourceTableNo: Integer; var OutQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule")
     var
-        FindLowestQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-    begin
+        FindLowestQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
+    beginInspect.Inspect.Creation Rulenternal procedure CreatePrioritizedRule(var
+                                                                                                                                                                        InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+                                                                                                                                                                        SourceTableNo: Integer;
+
+    var
+       
         if InExistingQltyInspectionTemplateHdr.Code = '' then
             CreateTemplate(InExistingQltyInspectionTemplateHdr, 0);
 
-        FindLowestQltyInspectionGenRule.ModifyAll("Activation Trigger", FindLowestQltyInspectionGenRule."Activation Trigger"::Disabled);
+        FindLowestQltyInspectCreationRule.ModifyAll("Activation Trigger", FindLowestQltyInspectCreationRule."Activation Trigger"::Disabled);
 
-        FindLowestQltyInspectionGenRule.Reset();
-        FindLowestQltyInspectionGenRule.SetCurrentKey("Sort Order");
+        FindLowestQltyInspectCreationRule.Reset();
+        FindLowestQltyInspectCreationRule.SetCurrentKey("Sort Order");
 
-        OutQltyInspectionGenRule.Init();
-        if FindLowestQltyInspectionGenRule.FindFirst() then
-            OutQltyInspectionGenRule."Sort Order" := FindLowestQltyInspectionGenRule."Sort Order" - 1;
+        OutQltyInspectCreationRule.Init();
+        if FindLowestQltyInspectCreationRule.FindFirst() then
+            OutQltyInspectCreationRule."Sort Order" := FindLowestQltyInspectCreationRule."Sort Order" - 1;
 
-        OutQltyInspectionGenRule."Template Code" := InExistingQltyInspectionTemplateHdr.Code;
-        OutQltyInspectionGenRule."Source Table No." := SourceTableNo;
-        OutQltyInspectionGenRule.Insert(true);
+        OutQltyInspectCreationRule."Template Code" := InExistingQltyInspectionTemplateHdr.Code;
+        OutQltyInspectCreationRule."Source Table No." := SourceTableNo;
+        OutQltyInspectCreationRule.Insert(true);
     end;
 
     internal procedure CreateItemJournalTemplateAndBatch(TemplateType: Enum "Item Journal Entry Type"; var OutItemJournalBatch: Record "Item Journal Batch")
@@ -753,12 +758,12 @@ codeunit 139940 "Qlty. Inspection Utility"
         Out := Out.PadLeft(PadSize, '0');
     end;
 
-    internal procedure CreateWarehouseReceiptSetup(var CreatedQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"; var OutPurchaseLine: Record "Purchase Line"; var OutReservationEntry: Record "Reservation Entry")
+    internal procedure CreateWarehouseReceiptSetup(var CreatedQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule"; var OutPurchaseLine: Record "Purchase Line"; var OutReservationEntry: Record "Reservation Entry")
     begin
-        CreateWarehouseReceiptSetup(CreatedQltyInspectionGenRule, OutPurchaseLine, OutReservationEntry, 123);
+        CreateWarehouseReceiptSetup(CreatedQltyInspectCreationRule, OutPurchaseLine, OutReservationEntry, 123);
     end;
 
-    internal procedure CreateWarehouseReceiptSetup(var CreatedQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"; var OutPurchaseLine: Record "Purchase Line"; var OutReservationEntry: Record "Reservation Entry"; Quantity: Decimal)
+    internal procedure CreateWarehouseReceiptSetup(var CreatedQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule"; var OutPurchaseLine: Record "Purchase Line"; var OutReservationEntry: Record "Reservation Entry"; Quantity: Decimal)
     var
         Item: Record Item;
         Location: Record Location;
@@ -770,18 +775,18 @@ codeunit 139940 "Qlty. Inspection Utility"
         EnsureSetupExists();
         LibraryWarehouse.CreateFullWMSLocation(Location, 1);
         CreateTemplate(QltyInspectionTemplateHdr, 1);
-        CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", CreatedQltyInspectionGenRule);
+        CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", CreatedQltyInspectCreationRule);
 
-        CreatedQltyInspectionGenRule."Purchase Order Trigger" := CreatedQltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive;
-        CreatedQltyInspectionGenRule.Modify();
+        CreatedQltyInspectCreationRule."Purchase Order Trigger" := CreatedQltyInspectCreationRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive;
+        CreatedQltyInspectCreationRule.Modify();
 
         CreateLotTrackedItem(Item);
 
         Item.SetRecFilter();
-        CreatedQltyInspectionGenRule."Item Filter" := CopyStr(Item.GetView(), 1, MaxStrLen(CreatedQltyInspectionGenRule."Item Filter"));
-        CreatedQltyInspectionGenRule."Activation Trigger" := CreatedQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic";
-        CreatedQltyInspectionGenRule."Purchase Order Trigger" := CreatedQltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive;
-        CreatedQltyInspectionGenRule.Modify();
+        CreatedQltyInspectCreationRule."Item Filter" := CopyStr(Item.GetView(), 1, MaxStrLen(CreatedQltyInspectCreationRule."Item Filter"));
+        CreatedQltyInspectCreationRule."Activation Trigger" := CreatedQltyInspectCreationRule."Activation Trigger"::"Manual or Automatic";
+        CreatedQltyInspectCreationRule."Purchase Order Trigger" := CreatedQltyInspectCreationRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive;
+        CreatedQltyInspectCreationRule.Modify();
 
         OrdQltyPurOrderGenerator.CreatePurchaseOrder(Quantity, Location, Item, PurchaseHeader, OutPurchaseLine, OutReservationEntry);
     end;
@@ -1112,7 +1117,7 @@ codeunit 139940 "Qlty. Inspection Utility"
     internal procedure CreateSourceFieldConfig(SourceConfigCode: Code[20]; FromTableNo: Integer; FromFieldNo: Integer; ToType: Enum "Qlty. Target Type"; ToTableNo: Integer;
                                                                                                                           ToFieldNo: Integer)
     var
-        QltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";
+        QltyInspectSrcFldConf: Record "Qlty. Inspect. Src. Fld. Conf.";         
     begin
         Clear(QltyInspectSrcFldConf);
         QltyInspectSrcFldConf.Init();
@@ -1268,10 +1273,10 @@ codeunit 139940 "Qlty. Inspection Utility"
     /// Wrapper for internal QltyDispNegAdjustInv.PerformDisposition (7-argument version).
     /// </summary>
     internal procedure PerformNegAdjustInvDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSourceLocationFilter: Text;
-                                                                                                                                                                      OptionalSourceBinFilter: Text;
-                                                                                                                                                                      PostingBehavior: Enum "Qlty. Item Adj. Post Behavior";
-                                                                                                                                                                      Reason: Code[10]): Boolean
-    var
+                                                                                                                                                                               OptionalSourceBinFilter: Text;
+                                                                                                                                                                               PostingBehavior: Enum "Qlty. Item Adj. Post Behavior";
+                                                                                                                                                                               Reason: Code[10]): Boolean
+    var         
         QltyDispNegAdjustInv: Codeunit "Qlty. Disp. Neg. Adjust Inv.";
     begin
         exit(QltyDispNegAdjustInv.PerformDisposition(QltyInspectionHeader, OptionalSpecificQuantity, QltyQuantityBehavior, OptionalSourceLocationFilter, OptionalSourceBinFilter, PostingBehavior, Reason));
@@ -1285,9 +1290,9 @@ codeunit 139940 "Qlty. Inspection Utility"
                                                                                                                                                               DestinationLocationCode: Code[10];
                                                                                                                                                               OptionalInTransitLocationCode: Code[10]): Boolean
     var
-        QltyDispTransfer: Codeunit "Qlty. Disp. Transfer";
-    begin
-        exit(QltyDispTransfer.PerformDisposition(QltyInspectionHeader, OptionalSpecificQuantity, QltyQuantityBehavior, OptionalSourceLocationFilter, OptionalSourceBinFilter, DestinationLocationCode, OptionalInTransitLocationCode));
+        QltyDispTransfer: Codeunit "Qlty. Disp. Transfer";         
+    begin         
+        exit(QltyDispTransfer.PerformDisposition(QltyInspectionHeader, OptionalSpecificQuantity, QltyQuantityBehavior, OptionalSourceLocationFilter, OptionalSourceBin         Filter, DestinationLocationCode, OptionalInTransitLocationCode));
     end;
 
     /// <summary>
@@ -1298,9 +1303,9 @@ codeunit 139940 "Qlty. Inspection Utility"
         QltyDispMoveAutoChoose: Codeunit "Qlty. Disp. Move Auto Choose";
     begin
         exit(QltyDispMoveAutoChoose.MoveInventory(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, UseMovement));
-    end;
-
-    /// <summary>
+    end;         
+         
+    /// <summary>         
     /// Wrapper for internal QltyDispInternalPutAway.PerformDisposition (6-argument version).
     /// </summary>
     internal procedure PerformInternalPutAwayDisposition(QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; ReleaseImmediately: Boolean; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"): Boolean
@@ -1389,12 +1394,12 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Wrapper for internal QltyInspectionGenRule.SetEntryNo.
+    /// Wrapper for internal QltyInspectCreationRule.SetEntryNo.
     /// Sets the entry number for the generation rule record.
     /// </summary>
-    internal procedure SetEntryNo(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
+    internal procedure SetEntryNo(var QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule")
     begin
-        QltyInspectionGenRule.SetEntryNo();
+        QltyInspectCreationRule.SetEntryNo();
     end;
 
     #endregion Qlty. Inspec. Gen. Rule Mgmt. Wrappers

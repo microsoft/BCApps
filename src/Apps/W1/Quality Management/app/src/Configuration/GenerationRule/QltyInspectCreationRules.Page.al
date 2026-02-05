@@ -10,12 +10,12 @@ using Microsoft.QualityManagement.Integration.Receiving;
 using Microsoft.QualityManagement.Integration.Warehouse;
 using Microsoft.QualityManagement.Setup;
 
-page 20405 "Qlty. Inspection Gen. Rules"
+page 20405 "Qlty. Inspect. Creation Rules"
 {
-    Caption = 'Quality Inspection Generation Rules';
+    Caption = 'Quality Inspection Creation Rules';
     DataCaptionExpression = GetDataCaptionExpression();
     PageType = List;
-    SourceTable = "Qlty. Inspection Gen. Rule";
+    SourceTable = "Qlty. Inspect. Creation Rule";
     PopulateAllFields = true;
     SourceTableView = sorting("Sort Order", Intent);
     UsageCategory = Lists;
@@ -206,11 +206,11 @@ page 20405 "Qlty. Inspection Gen. Rules"
 
                 trigger OnAction()
                 var
-                    NewQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+                    NewQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
                     RecQltyAsmGenRuleWizard: Page "Qlty. Asm. Gen. Rule Wizard";
                 begin
-                    NewQltyInspectionGenRule.CopyFilters(Rec);
-                    RecQltyAsmGenRuleWizard.RunModalWithGenerationRule(NewQltyInspectionGenRule);
+                    NewQltyInspectCreationRule.CopyFilters(Rec);
+                    RecQltyAsmGenRuleWizard.RunModalWithGenerationRule(NewQltyInspectCreationRule);
                     CurrPage.Update(false);
                 end;
             }
@@ -247,11 +247,11 @@ page 20405 "Qlty. Inspection Gen. Rules"
 
                 trigger OnAction()
                 var
-                    NewQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+                    NewQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
                     RecQltyProdGenRuleWizard: Page "Qlty. Prod. Gen. Rule Wizard";
                 begin
-                    NewQltyInspectionGenRule.CopyFilters(Rec);
-                    RecQltyProdGenRuleWizard.RunModalWithGenerationRule(NewQltyInspectionGenRule);
+                    NewQltyInspectCreationRule.CopyFilters(Rec);
+                    RecQltyProdGenRuleWizard.RunModalWithGenerationRule(NewQltyInspectCreationRule);
                     CurrPage.Update(false);
                 end;
             }
@@ -288,11 +288,11 @@ page 20405 "Qlty. Inspection Gen. Rules"
 
                 trigger OnAction()
                 var
-                    NewQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+                    NewQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
                     QltyRecGenRuleWizard: Page "Qlty. Rec. Gen. Rule Wizard";
                 begin
-                    NewQltyInspectionGenRule.CopyFilters(Rec);
-                    QltyRecGenRuleWizard.RunModalWithGenerationRule(NewQltyInspectionGenRule);
+                    NewQltyInspectCreationRule.CopyFilters(Rec);
+                    QltyRecGenRuleWizard.RunModalWithGenerationRule(NewQltyInspectCreationRule);
                     CurrPage.Update(false);
                 end;
             }
@@ -329,11 +329,11 @@ page 20405 "Qlty. Inspection Gen. Rules"
 
                 trigger OnAction()
                 var
-                    NewQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+                    NewQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
                     QltyWhseGenRuleWizard: Page "Qlty. Whse. Gen. Rule Wizard";
                 begin
-                    NewQltyInspectionGenRule.CopyFilters(Rec);
-                    QltyWhseGenRuleWizard.RunModalWithGenerationRule(NewQltyInspectionGenRule);
+                    NewQltyInspectCreationRule.CopyFilters(Rec);
+                    QltyWhseGenRuleWizard.RunModalWithGenerationRule(NewQltyInspectCreationRule);
                     CurrPage.Update(false);
                 end;
             }
@@ -440,8 +440,8 @@ page 20405 "Qlty. Inspection Gen. Rules"
         WhseMovementStyle: Text;
         TransferStyle: Text;
         RowStyle: Option None,Standard,StandardAccent,Strong,StrongAccent,Attention,AttentionAccent,Favorable,Unfavorable,Ambiguous,Subordinate;
-        GenerationRulesCaptionLbl: Label 'Quality Inspection Generation Rules';
-        GenerationRulesCaptionForTemplateLbl: Label 'Quality Inspection Generation Rules for %1', Comment = '%1=the template';
+        GenerationRulesCaptionLbl: Label 'Quality Inspection Creation Rules';
+        GenerationRulesCaptionForTemplateLbl: Label 'Quality Inspection Creation Rules for %1', Comment = '%1=the template';
         DefaultScheduleGroupLbl: Label 'QM', Locked = true;
 
     trigger OnInit()
@@ -612,7 +612,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
     local procedure SetTriggerColumnVisibleState()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
         ShowAssemblyTrigger := false;
         ShowProductionTrigger := false;
@@ -622,38 +622,38 @@ page 20405 "Qlty. Inspection Gen. Rules"
         ShowWarehouseReceiveTrigger := false;
         ShowWarehouseMovementTrigger := false;
 
-        QltyInspectionGenRule.CopyFilters(Rec);
-        QltyInspectionGenRule.SetLoadFields(Intent);
-        QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Assembly);
-        if not QltyInspectionGenRule.IsEmpty() then
+        QltyInspectCreationRule.CopyFilters(Rec);
+        QltyInspectCreationRule.SetLoadFields(Intent);
+        QltyInspectCreationRule.SetRange(Intent, QltyInspectCreationRule.Intent::Assembly);
+        if not QltyInspectCreationRule.IsEmpty() then
             ShowAssemblyTrigger := true;
 
-        QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Production);
-        if not QltyInspectionGenRule.IsEmpty() then
+        QltyInspectCreationRule.SetRange(Intent, QltyInspectCreationRule.Intent::Production);
+        if not QltyInspectCreationRule.IsEmpty() then
             ShowProductionTrigger := true;
 
-        QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Purchase);
-        if not QltyInspectionGenRule.IsEmpty() then
+        QltyInspectCreationRule.SetRange(Intent, QltyInspectCreationRule.Intent::Purchase);
+        if not QltyInspectCreationRule.IsEmpty() then
             ShowPurchaseTrigger := true;
 
-        QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::"Sales Return");
-        if not QltyInspectionGenRule.IsEmpty() then
+        QltyInspectCreationRule.SetRange(Intent, QltyInspectCreationRule.Intent::"Sales Return");
+        if not QltyInspectCreationRule.IsEmpty() then
             ShowSalesReturnTrigger := true;
 
-        QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Transfer);
-        if not QltyInspectionGenRule.IsEmpty() then
+        QltyInspectCreationRule.SetRange(Intent, QltyInspectCreationRule.Intent::Transfer);
+        if not QltyInspectCreationRule.IsEmpty() then
             ShowTransferTrigger := true;
 
-        QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::"Warehouse Receipt");
-        if not QltyInspectionGenRule.IsEmpty() then
+        QltyInspectCreationRule.SetRange(Intent, QltyInspectCreationRule.Intent::"Warehouse Receipt");
+        if not QltyInspectCreationRule.IsEmpty() then
             ShowWarehouseReceiveTrigger := true;
 
-        QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::"Warehouse Movement");
-        if not QltyInspectionGenRule.IsEmpty() then
+        QltyInspectCreationRule.SetRange(Intent, QltyInspectCreationRule.Intent::"Warehouse Movement");
+        if not QltyInspectCreationRule.IsEmpty() then
             ShowWarehouseMovementTrigger := true;
 
-        QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Unknown);
-        if not QltyInspectionGenRule.IsEmpty() then begin
+        QltyInspectCreationRule.SetRange(Intent, QltyInspectCreationRule.Intent::Unknown);
+        if not QltyInspectCreationRule.IsEmpty() then begin
             ShowAssemblyTrigger := true;
             ShowProductionTrigger := true;
             ShowPurchaseTrigger := true;
@@ -683,17 +683,17 @@ page 20405 "Qlty. Inspection Gen. Rules"
 
     local procedure AttemptUpdateUnknownIntents()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
-        if not QltyInspectionGenRule.WritePermission() then
+        if not QltyInspectCreationRule.WritePermission() then
             exit;
 
-        QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::Unknown);
-        if not QltyInspectionGenRule.IsEmpty() then
-            if QltyInspectionGenRule.FindSet() then
+        QltyInspectCreationRule.SetRange(Intent, QltyInspectCreationRule.Intent::Unknown);
+        if not QltyInspectCreationRule.IsEmpty() then
+            if QltyInspectCreationRule.FindSet() then
                 repeat
-                    QltyInspectionGenRule.SetIntentAndDefaultTriggerValuesFromSetup();
-                    QltyInspectionGenRule.Modify();
-                until QltyInspectionGenRule.Next() = 0;
+                    QltyInspectCreationRule.SetIntentAndDefaultTriggerValuesFromSetup();
+                    QltyInspectCreationRule.Modify();
+                until QltyInspectCreationRule.Next() = 0;
     end;
 }

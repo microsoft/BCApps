@@ -20,7 +20,7 @@ report 20412 "Qlty. Schedule Inspection"
 
     dataset
     {
-        dataitem(CurrentInspectionGenerationRule; "Qlty. Inspection Gen. Rule")
+        dataitem(CurrentInspectionGenerationRule; "Qlty. Inspect. Creation Rule")
         {
             RequestFilterFields = "Schedule Group", "Template Code", Description;
             DataItemTableView = where("Activation Trigger" = filter(<> Disabled), "Schedule Group" = filter(<> ''));
@@ -99,30 +99,30 @@ report 20412 "Qlty. Schedule Inspection"
     end;
 
     /// <summary>
-    /// This will use the generation rule, and create inspections that match the records found with that rule.
+    /// This will use the creation rule, and create inspections that match the records found with that rule.
     /// </summary>
-    /// <param name="QltyInspectionGenRule"></param>
-    procedure CreateInspectionsThatMatchRule(QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
+    /// <param name="QltyInspectCreationRule"></param>
+    procedure CreateInspectionsThatMatchRule(QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule")
     var
         QltyJobQueueManagement: Codeunit "Qlty. Job Queue Management";
         SourceRecordRef: RecordRef;
     begin
-        if QltyInspectionGenRule."Activation Trigger" = QltyInspectionGenRule."Activation Trigger"::Disabled then
+        if QltyInspectCreationRule."Activation Trigger" = QltyInspectCreationRule."Activation Trigger"::Disabled then
             exit;
 
-        if QltyInspectionGenRule."Schedule Group" = '' then
+        if QltyInspectCreationRule."Schedule Group" = '' then
             exit;
 
-        QltyJobQueueManagement.CheckIfGenerationRuleCanBeScheduled(QltyInspectionGenRule);
+        QltyJobQueueManagement.CheckIfGenerationRuleCanBeScheduled(QltyInspectCreationRule);
 
-        SourceRecordRef.Open(QltyInspectionGenRule."Source Table No.");
-        if QltyInspectionGenRule."Condition Filter" <> '' then
-            SourceRecordRef.SetView(QltyInspectionGenRule."Condition Filter");
+        SourceRecordRef.Open(QltyInspectCreationRule."Source Table No.");
+        if QltyInspectCreationRule."Condition Filter" <> '' then
+            SourceRecordRef.SetView(QltyInspectCreationRule."Condition Filter");
 
-        QltyInspectionGenRule.SetRecFilter();
-        QltyInspectionGenRule.SetRange("Schedule Group", QltyInspectionGenRule."Schedule Group");
-        QltyInspectionGenRule.SetRange("Template Code", QltyInspectionGenRule."Template Code");
+        QltyInspectCreationRule.SetRecFilter();
+        QltyInspectCreationRule.SetRange("Schedule Group", QltyInspectCreationRule."Schedule Group");
+        QltyInspectCreationRule.SetRange("Template Code", QltyInspectCreationRule."Template Code");
         if SourceRecordRef.FindSet() then
-            QltyInspectionCreate.CreateMultipleInspectionsWithoutDisplaying(SourceRecordRef, GuiAllowed(), QltyInspectionGenRule, CreatedQltyInspectionIds);
+            QltyInspectionCreate.CreateMultipleInspectionsWithoutDisplaying(SourceRecordRef, GuiAllowed(), QltyInspectCreationRule, CreatedQltyInspectionIds);
     end;
 }
