@@ -181,7 +181,7 @@ table 20403 "Qlty. Inspection Template Line"
     /// Validates the expression formula.
     /// </summary>
     /// <param name="QltyInspectionTemplateLine"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateExpressionFormula(var QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line")
     begin

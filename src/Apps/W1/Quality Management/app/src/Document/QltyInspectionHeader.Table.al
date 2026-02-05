@@ -727,14 +727,14 @@ table 20405 "Qlty. Inspection Header"
     procedure UpdateResultFromLines()
     var
         QltyInspectionLine: Record "Qlty. Inspection Line";
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
         QltyInspectionLine.SetRange("Inspection No.", Rec."No.");
         QltyInspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
         QltyInspectionLine.SetFilter("Test Value Type", '<>%1', QltyInspectionLine."Test Value Type"::"Value Type Label");
         QltyInspectionLine.SetCurrentKey("Evaluation Sequence");
-        OnBeforeFindLineUpdateResultFromLines(Rec, QltyInspectionLine, Handled);
-        if Handled then
+        OnBeforeFindLineUpdateResultFromLines(Rec, QltyInspectionLine, IsHandled);
+        if IsHandled then
             exit;
 
         QltyInspectionLine.SetRange("Failure State", QltyInspectionLine."Failure State"::"Failed from Acceptable Quality Level");
@@ -809,7 +809,7 @@ table 20405 "Qlty. Inspection Header"
     var
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
         Proceed: Boolean;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
         QltyPermissionMgmt.VerifyCanReopenInspection();
         if HasMoreRecentReinspection() then
@@ -823,8 +823,8 @@ table 20405 "Qlty. Inspection Header"
 
             if Proceed then begin
                 IsChangingStatus := true;
-                OnBeforeReopenInspection(Rec, Handled);
-                if Handled then
+                OnBeforeReopenInspection(Rec, IsHandled);
+                if IsHandled then
                     exit;
 
                 Rec.Validate(Status, Rec.Status::Open);
@@ -849,7 +849,7 @@ table 20405 "Qlty. Inspection Header"
     var
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
         Proceed: Boolean;
-        Handled: Boolean;
+        IsHandled: Boolean;
         SourceDetails: Text;
     begin
         QltyPermissionMgmt.VerifyCanFinishInspection();
@@ -865,8 +865,8 @@ table 20405 "Qlty. Inspection Header"
 
             if Proceed then begin
                 IsChangingStatus := true;
-                OnBeforeFinishInspection(Rec, Handled);
-                if Handled then
+                OnBeforeFinishInspection(Rec, IsHandled);
+                if IsHandled then
                     exit;
 
                 Rec.Validate(Status, Rec.Status::Finished);
@@ -1312,10 +1312,10 @@ table 20405 "Qlty. Inspection Header"
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         TargetRecordRef: RecordRef;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnBeforeSetRecordFiltersToFindInspectionFor(Rec, ErrorIfMissingFilter, RecordVariant, UseItem, UseTracking, UseDocument, Handled);
-        if Handled then
+        OnBeforeSetRecordFiltersToFindInspectionFor(Rec, ErrorIfMissingFilter, RecordVariant, UseItem, UseTracking, UseDocument, IsHandled);
+        if IsHandled then
             exit;
 
         if not QltyMiscHelpers.GetRecordRefFromVariant(RecordVariant, TargetRecordRef) then
@@ -1692,9 +1692,9 @@ table 20405 "Qlty. Inspection Header"
     /// <param name="UseItem"></param>
     /// <param name="UseTracking"></param>
     /// <param name="UseDocument"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeSetRecordFiltersToFindInspectionFor(var QltyInspectionHeader: Record "Qlty. Inspection Header"; ErrorIfMissingFilter: Boolean; RecordVariant: Variant; UseItem: Boolean; UseTracking: Boolean; var UseDocument: Boolean; var Handled: Boolean)
+    local procedure OnBeforeSetRecordFiltersToFindInspectionFor(var QltyInspectionHeader: Record "Qlty. Inspection Header"; ErrorIfMissingFilter: Boolean; RecordVariant: Variant; UseItem: Boolean; UseTracking: Boolean; var UseDocument: Boolean; var IsHandled: Boolean)
     begin
     end;
 
@@ -1734,9 +1734,9 @@ table 20405 "Qlty. Inspection Header"
     /// OnBeforeReopenInspection is called before an inspection is Reopened.
     /// </summary>
     /// <param name="QltyInspectionHeader">The quality Inspection involved</param>
-    /// <param name="Handled">Set to true to replace the default behavior</param>
+    /// <param name="IsHandled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeReopenInspection(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
+    local procedure OnBeforeReopenInspection(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var IsHandled: Boolean)
     begin
     end;
 
@@ -1744,9 +1744,9 @@ table 20405 "Qlty. Inspection Header"
     /// OnBeforeFinishInspection is called before an inspection is finished.
     /// </summary>
     /// <param name="QltyInspectionHeader">The quality Inspection involved</param>
-    /// <param name="Handled">Set to true to replace the default behavior</param>
+    /// <param name="IsHandled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeFinishInspection(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var Handled: Boolean)
+    local procedure OnBeforeFinishInspection(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var IsHandled: Boolean)
     begin
     end;
 
@@ -1771,9 +1771,9 @@ table 20405 "Qlty. Inspection Header"
     /// </summary>
     /// <param name="QltyInspectionHeader">The quality Inspection involved</param>
     /// <param name="QltyInspectionLine"></param>
-    /// <param name="Handled">Set to true to replace the default behavior</param>
+    /// <param name="IsHandled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeFindLineUpdateResultFromLines(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyInspectionLine: Record "Qlty. Inspection Line"; var Handled: Boolean)
+    local procedure OnBeforeFindLineUpdateResultFromLines(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyInspectionLine: Record "Qlty. Inspection Line"; var IsHandled: Boolean)
     begin
     end;
 }

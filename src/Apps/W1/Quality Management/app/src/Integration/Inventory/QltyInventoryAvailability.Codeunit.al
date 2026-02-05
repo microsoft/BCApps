@@ -383,14 +383,14 @@ codeunit 20445 "Qlty. Inventory Availability"
         TempExistingInventoryBinContent: Record "Bin Content" temporary;
         MultipleBins: Boolean;
         SkipBinContent: Boolean;
-        Handled: Boolean;
+        IsHandled: Boolean;
         BufferEntryCounter: Integer;
     begin
         TempQuantityQltyDispositionBuffer.Reset();
         TempQuantityQltyDispositionBuffer.DeleteAll();
 
-        OnBeforePopulateBinContentBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityQltyDispositionBuffer, TempExistingInventoryBinContent, Handled);
-        if Handled then
+        OnBeforePopulateBinContentBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityQltyDispositionBuffer, TempExistingInventoryBinContent, IsHandled);
+        if IsHandled then
             exit;
 
         if TempInstructionQltyDispositionBuffer."Quantity Behavior" = TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Item Tracked Quantity" then
@@ -456,7 +456,7 @@ codeunit 20445 "Qlty. Inventory Availability"
     end;
 
     [IntegrationEvent(false, false)]
-    procedure OnBeforePopulateBinContentBuffer(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempQuantityQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempExistingInventoryBinContent: Record "Bin Content" temporary; var Handled: Boolean)
+    procedure OnBeforePopulateBinContentBuffer(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempQuantityQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TempExistingInventoryBinContent: Record "Bin Content" temporary; var IsHandled: Boolean)
     begin
     end;
 

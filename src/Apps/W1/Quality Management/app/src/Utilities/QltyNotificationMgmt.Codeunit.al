@@ -565,10 +565,10 @@ codeunit 20437 "Qlty. Notification Mgmt."
     var
         ActionMessage: Text;
         ActionProcedureCallback: Text;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnBeforeCreateActionNotification(NotificationToShow, CurrentMessage, AvailableOptions, Handled);
-        if Handled then
+        OnBeforeCreateActionNotification(NotificationToShow, CurrentMessage, AvailableOptions, IsHandled);
+        if IsHandled then
             exit;
 
         NotificationToShow.Message(CurrentMessage);
@@ -661,9 +661,9 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// <param name="NotificationToShow"></param>
     /// <param name="CurrentMessage"></param>
     /// <param name="Options"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateActionNotification(var NotificationToShow: Notification; var CurrentMessage: Text; var AvailableOptions: Dictionary of [Text, Text]; var Handled: Boolean)
+    local procedure OnBeforeCreateActionNotification(var NotificationToShow: Notification; var CurrentMessage: Text; var AvailableOptions: Dictionary of [Text, Text]; var IsHandled: Boolean)
     begin
     end;
 }

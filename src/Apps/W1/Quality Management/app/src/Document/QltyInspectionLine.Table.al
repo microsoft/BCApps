@@ -110,13 +110,13 @@ table 20406 "Qlty. Inspection Line"
             trigger OnValidate()
             var
                 QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-                Handled: Boolean;
+                IsHandled: Boolean;
             begin
                 QltyInspectionTemplateLine.Get(Rec."Template Code", Rec."Template Line No.");
                 ValidateTestValue();
                 Rec."Numeric Value" := 0;
-                OnBeforeEvaluateNumericTestValue(Rec, Handled);
-                if not Handled then
+                OnBeforeEvaluateNumericTestValue(Rec, IsHandled);
+                if not IsHandled then
                     if Evaluate(Rec."Numeric Value", Rec."Test Value") then;
 
                 SetLargeText(Rec."Test Value", false, true);
@@ -553,9 +553,9 @@ table 20406 "Qlty. Inspection Line"
     /// Provides an opportunity to modify the evaluation of the Numeric Test Value from the Test Value.
     /// </summary>
     /// <param name="QltyInspectionLine">Qlty. Inspection Line</param>
-    /// <param name="Handled">Provides an opportunity to replace the default behavior</param>
+    /// <param name="IsHandled">Provides an opportunity to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeEvaluateNumericTestValue(var QltyInspectionLine: Record "Qlty. Inspection Line"; var Handled: Boolean)
+    local procedure OnBeforeEvaluateNumericTestValue(var QltyInspectionLine: Record "Qlty. Inspection Line"; var IsHandled: Boolean)
     begin
     end;
 }
