@@ -1475,6 +1475,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         TaxTotalTaxSchemeID: Text;
         TransactionCurrencyTaxAmount: Text;
         TransCurrTaxAmtCurrencyID: Text;
+        ActualTaxableAmount: Decimal;
     begin
         // Setup
         Initialize();
@@ -1518,7 +1519,8 @@ codeunit 139235 "PEPPOL30 Management Tests"
           TaxTotalTaxSchemeID);
 
         // Verify
-        Assert.AreEqual(Format(TempVATAmtLine."VAT Base", 0, 9), TaxableAmount, 'TaxableAmount has unexpected value.');
+        Evaluate(ActualTaxableAmount, TaxableAmount);
+        Assert.AreEqual(TempVATAmtLine."VAT Base", ActualTaxableAmount, 'TaxableAmount has unexpected value.');
         Assert.AreEqual(LibraryERM.GetLCYCode(), TaxAmountCurrencyID, 'TaxAmountCurrencyID has unexpected value.');
         Assert.AreEqual(Format(TempVATAmtLine."VAT Amount", 0, 9), SubtotalTaxAmount, 'SubtotalTaxAmount has unexpected value.');
         Assert.AreEqual(LibraryERM.GetLCYCode(), TaxSubtotalCurrencyID, 'TaxSubtotalCurrencyID has unexpected value.');

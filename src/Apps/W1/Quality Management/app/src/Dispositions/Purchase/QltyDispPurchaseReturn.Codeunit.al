@@ -242,10 +242,10 @@ codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
     /// </summary>
     /// <param name="QltyInspectionHeader">Quality Inspection</param>
     /// <param name="TempInstructionQltyDispositionBuffer">The instruction</param>
-    /// <param name="prbDidSomething">Provides an opportunity to replace the default boolean success/fail of if it worked.</param>
+    /// <param name="DidSomething">Provides an opportunity to replace the default boolean success/fail of if it worked.</param>
     /// <param name="IsHandled">Provides an opportunity to replace the default behavior</param>
     [IntegrationEvent(false, false)]
-    procedure OnBeforeProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var prbDidSomething: Boolean; var IsHandled: Boolean)
+    procedure OnBeforeProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var DidSomething: Boolean; var IsHandled: Boolean)
     begin
     end;
 
@@ -255,9 +255,9 @@ codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
     /// <param name="QltyInspectionHeader">Quality Inspection</param>
     /// <param name="TempInstructionQltyDispositionBuffer">The instruction</param>
     /// <param name="CreatedReturnOrderPurchaseHeader">The created purchase return order</param>
-    /// <param name="prbDidSomething">Provides an opportunity to replace the default boolean success/fail of if it worked.</param>
+    /// <param name="DidSomething">Provides an opportunity to replace the default boolean success/fail of if it worked.</param>
     [IntegrationEvent(false, false)]
-    procedure OnAfterProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var CreatedReturnOrderPurchaseHeader: Record "Purchase Header"; var prbDidSomething: Boolean)
+    procedure OnAfterProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var CreatedReturnOrderPurchaseHeader: Record "Purchase Header"; var DidSomething: Boolean)
     begin
     end;
 

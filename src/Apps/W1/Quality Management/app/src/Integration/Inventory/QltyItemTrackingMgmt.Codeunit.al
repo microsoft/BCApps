@@ -301,7 +301,7 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="LocationCode"></param>
     /// <returns></returns>   
-    procedure GetExpirationDate(QltyInspectionHeader: Record "Qlty. Inspection Header"; LocationCode: Code[10]) ExpirationDate: Date
+    internal procedure GetExpirationDate(QltyInspectionHeader: Record "Qlty. Inspection Header"; LocationCode: Code[10]) ExpirationDate: Date
     begin
         exit(GetExpirationDate(
                 LocationCode,
@@ -349,7 +349,7 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     /// <param name="ItemNo"></param>
     /// <param name="ItemTrackingCode"></param>
     /// <returns></returns>
-    procedure GetItemTrackingCode(ItemNo: Code[20]; var ItemTrackingCode: Record "Item Tracking Code"): Boolean
+    internal procedure GetItemTrackingCode(ItemNo: Code[20]; var ItemTrackingCode: Record "Item Tracking Code"): Boolean
     var
         Item: Record Item;
     begin
@@ -496,7 +496,7 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     /// <param name="PackageNo"></param>
     /// <param name="ExpirationDate"></param>
     /// <param name="ChangeQty"></param>
-    procedure CreatePurchaseReturnReservationEntries(PurchPurchaseLine: Record "Purchase Line"; SerialNo: Code[50]; LotNo: Code[50]; PackageNo: Code[50]; ExpirationDate: Date; ChangeQty: Decimal)
+    internal procedure CreatePurchaseReturnReservationEntries(PurchPurchaseLine: Record "Purchase Line"; SerialNo: Code[50]; LotNo: Code[50]; PackageNo: Code[50]; ExpirationDate: Date; ChangeQty: Decimal)
     var
         ReservationEntry: Record "Reservation Entry";
         Item: Record Item;
@@ -592,7 +592,7 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     /// <param name="TempQuantityToActQltyDispositionBuffer"></param>
     /// <param name="WarehouseJournalLine"></param>
     /// <param name="WhseItemTrackingLine"></param>
-    procedure CreateWarehouseJournalLineReservationEntry(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line")
+    internal procedure CreateWarehouseJournalLineReservationEntry(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line")
     var
         ExpirationDate: Date;
         IsHandled: Boolean;

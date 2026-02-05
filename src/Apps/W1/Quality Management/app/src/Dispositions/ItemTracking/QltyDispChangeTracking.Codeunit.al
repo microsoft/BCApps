@@ -174,7 +174,7 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
     /// Occurs before change tracking has taken place, allowing the opportunity to extend or replace the functionality.
     /// </summary>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var prbChanged: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var Changed: Boolean; var IsHandled: Boolean)
     begin
     end;
 
@@ -182,7 +182,7 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
     /// Occurs after change tracking has taken place.
     /// </summary>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var prbChanged: Boolean)
+    local procedure OnAfterProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var Changed: Boolean)
     begin
     end;
 

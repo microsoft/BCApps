@@ -45,7 +45,7 @@ codeunit 20445 "Qlty. Inventory Availability"
     /// <param name="QltyInspectionHeader">Record "Qlty. Inspection Header".</param>
     /// <param name="TempBinContent">Temporary var Record "Bin Content".   Multiple bin locations could be available.</param>
     /// <returns>Return variable of type Boolean.</returns>
-    procedure GetCurrentLocationOfTrackedInventory(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBinContent: Record "Bin Content" temporary): Boolean
+    internal procedure GetCurrentLocationOfTrackedInventory(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBinContent: Record "Bin Content" temporary): Boolean
     begin
         if (QltyInspectionHeader."Source Lot No." = '') and (QltyInspectionHeader."Source Serial No." = '') and (QltyInspectionHeader."Source Package No." = '') then
             exit(false);
@@ -126,7 +126,7 @@ codeunit 20445 "Qlty. Inventory Availability"
         end;
     end;
 
-    procedure GetFromDetailsFromInspectionSource(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempToMoveBinContent: Record "Bin Content" temporary)
+    internal procedure GetFromDetailsFromInspectionSource(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempToMoveBinContent: Record "Bin Content" temporary)
     var
         RecordRefToSearch: RecordRef;
         NullForComparison: RecordId;
@@ -356,7 +356,7 @@ codeunit 20445 "Qlty. Inventory Availability"
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="QuantityBehavior"></param>
     /// <returns>either the pass quantity or fail quantity.</returns>
-    procedure GetPassOrFailSamplesCount(var QltyInspectionHeader: Record "Qlty. Inspection Header"; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior") PassOrFailQuantity: Decimal
+    internal procedure GetPassOrFailSamplesCount(var QltyInspectionHeader: Record "Qlty. Inspection Header"; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior") PassOrFailQuantity: Decimal
     begin
         case QltyQuantityBehavior of
             QltyQuantityBehavior::"Passed Quantity":
