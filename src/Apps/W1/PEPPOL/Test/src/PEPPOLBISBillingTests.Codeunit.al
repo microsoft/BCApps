@@ -7,6 +7,7 @@ namespace Microsoft.Peppol.Test;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Registration;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Attachment;
@@ -1555,6 +1556,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         ServiceCreditMemoHeader: Record "Service Cr.Memo Header";
         ServiceInvLine: Record "Service Invoice Line";
         ServiceCrMemoHeader: Record "Service Cr.Memo Line";
+        VATRegistrationNoFormat: Record "VAT Registration No. Format";
     begin
         LibrarySetupStorage.Restore();
         LibraryTestInitialize.OnTestInitialize(Codeunit::"PEPPOL BIS BillingTests");
@@ -1564,6 +1566,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         ServiceCreditMemoHeader.DeleteAll();
         ServiceInvLine.DeleteAll();
         ServiceCrMemoHeader.DeleteAll();
+        VATRegistrationNoFormat.DeleteAll();
 
         if not CompanyInfo.Get() then
             CompanyInfo.Insert();
@@ -1579,7 +1582,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
 
         if not IsInitialized then begin
             LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"PEPPOL BIS BillingTests");
-            
+
             if CompanyInfo."VAT Registration No." = '' then
                 CompanyInfo."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo(CompanyInfo."Country/Region Code");
             CompanyInfo.Validate("Use GLN in Electronic Document", true);
@@ -1601,11 +1604,11 @@ codeunit 139236 "PEPPOL BIS BillingTests"
             LibrarySetupStorage.Save(DATABASE::"Company Information");
             LibrarySetupStorage.Save(DATABASE::"General Ledger Setup");
 
-            ConfigureVATPostingSetup();
-
             IsInitialized := true;
             LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"PEPPOL BIS BillingTests");
         end;
+
+        ConfigureVATPostingSetup();
     end;
 
     local procedure AddCustPEPPOLIdentifier(CustNo: Code[20])
