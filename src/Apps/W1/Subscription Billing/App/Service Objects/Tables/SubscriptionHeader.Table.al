@@ -979,6 +979,7 @@ table 8057 "Subscription Header"
         if not ServiceCommitment.IsEmpty() then
             Error(CannotDeleteBecauseServiceCommitmentExistsErr, "No.", ServiceCommitment.TableCaption);
 
+        ServiceCommitment.SetRange("Subscription Contract No.");
         ServiceCommitment.DeleteAll(true);
 
         ServiceCommitmentArchive.SetRange("Subscription Header No.", Rec."No.");
