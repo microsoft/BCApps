@@ -1,0 +1,29 @@
+{
+  "id": "f3d8a1b7-4c92-4e6f-b5a0-9d7e2c8f1a64",
+  "name": "Text Search Language",
+  "publisher": "Microsoft",
+  "brief": "Configure optimized text search language settings for improved full-text search performance.",
+  "description": "This module provides functionality to configure the optimized text search language for Business Central. Users can select a language to optimize full-text search indexing, which improves search performance and relevance for that language. Changing the language triggers a re-indexing process.",
+  "version": "28.0.0.0",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2103698",
+  "url": "https://go.microsoft.com/fwlink/?linkid=724011",
+  "logo": "",
+  "dependencies": [
+    
+  ],
+  "internalsVisibleTo": [
+ 
+  ],
+  "screenshots": [],
+  "platform": "28.0.0.0",
+  "idRanges": [
+    {
+      "from": 9234,
+      "to": 9235
+    }
+  ],
+  "target": "OnPrem",
+  "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/"
+}
