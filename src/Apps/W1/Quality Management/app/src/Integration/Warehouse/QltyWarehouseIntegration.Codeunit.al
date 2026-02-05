@@ -21,7 +21,7 @@ codeunit 20438 "Qlty. - Warehouse Integration"
     local procedure HandleOnAfterInsertWhseEntry(var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line")
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
         if (WarehouseEntry."Entry Type" <> WarehouseEntry."Entry Type"::Movement) or (WarehouseEntry.Quantity <= 0) then
             exit;
@@ -29,13 +29,13 @@ codeunit 20438 "Qlty. - Warehouse Integration"
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
-        QltyInspectionGenRule.SetRange("Warehouse Movement Trigger", QltyInspectionGenRule."Warehouse Movement Trigger"::OnWhseMovementRegister);
-        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if not QltyInspectionGenRule.IsEmpty() then
-            AttemptCreateInspectionWithWhseJournalLine(WarehouseEntry, WarehouseJournalLine, QltyInspectionGenRule);
+        QltyInspectCreationRule.SetRange("Warehouse Movement Trigger", QltyInspectCreationRule."Warehouse Movement Trigger"::OnWhseMovementRegister);
+        QltyInspectCreationRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectCreationRule."Activation Trigger"::"Manual or Automatic", QltyInspectCreationRule."Activation Trigger"::"Automatic only");
+        if not QltyInspectCreationRule.IsEmpty() then
+            AttemptCreateInspectionWithWhseJournalLine(WarehouseEntry, WarehouseJournalLine, QltyInspectCreationRule);
     end;
 
-    local procedure AttemptCreateInspectionWithWhseJournalLine(var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line"; var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
+    local procedure AttemptCreateInspectionWithWhseJournalLine(var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line"; var QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule")
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempTrackingSpecification: Record "Tracking Specification" temporary;
@@ -63,13 +63,13 @@ codeunit 20438 "Qlty. - Warehouse Integration"
         TempTrackingSpecification.Reset();
         if TempTrackingSpecification.FindSet() then
             repeat
-                if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseEntry, WarehouseJournalLine, TempTrackingSpecification, DummyVariant, false, QltyInspectionGenRule) then begin
+                if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseEntry, WarehouseJournalLine, TempTrackingSpecification, DummyVariant, false, QltyInspectCreationRule) then begin
                     HasInspection := true;
                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                 end;
             until TempTrackingSpecification.Next() = 0
         else
-            if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseEntry, WarehouseJournalLine, DummyVariant, DummyVariant, false, QltyInspectionGenRule) then begin
+            if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseEntry, WarehouseJournalLine, DummyVariant, DummyVariant, false, QltyInspectCreationRule) then begin
                 HasInspection := true;
                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
             end;

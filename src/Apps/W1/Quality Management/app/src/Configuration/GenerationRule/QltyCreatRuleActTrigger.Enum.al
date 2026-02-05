@@ -5,11 +5,11 @@
 namespace Microsoft.QualityManagement.Configuration.GenerationRule;
 
 /// <summary>
-/// Generation Rule Activation Trigger.
+/// Creation Rule Activation Trigger.
 /// </summary>
-enum 20459 "Qlty. Gen. Rule Act. Trigger"
+enum 20459 "Qlty. Creat. Rule Act. Trigger"
 {
-    Caption = 'Quality Inspection Generation Rule Activation Trigger';
+    Caption = 'Quality Inspection Creation Rule Activation Trigger';
     Extensible = false;
 
     value(0; "Manual or Automatic")

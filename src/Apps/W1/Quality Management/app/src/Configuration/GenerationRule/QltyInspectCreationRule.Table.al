@@ -27,13 +27,13 @@ using Microsoft.Warehouse.Ledger;
 using System.Reflection;
 
 /// <summary>
-/// A Quality Inspection generation rule defines when you want to ask a set of questions or other data that you want to collect that is defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template that it finds, based on the sort order.
+/// A Quality Inspection creation rule defines when you want to ask a set of questions or other data that you want to collect that is defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template that it finds, based on the sort order.
 /// </summary>
-table 20404 "Qlty. Inspection Gen. Rule"
+table 20404 "Qlty. Inspect. Creation Rule"
 {
-    Caption = 'Quality Inspection Generation Rule';
-    DrillDownPageId = "Qlty. Inspection Gen. Rules";
-    LookupPageId = "Qlty. Inspection Gen. Rules";
+    Caption = 'Quality Inspection Creation Rule';
+    DrillDownPageId = "Qlty. Inspect. Creation Rules";
+    LookupPageId = "Qlty. Inspect. Creation Rules";
     DataClassification = CustomerContent;
 
     fields
@@ -135,7 +135,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
             Caption = 'Attribute Filter';
             ToolTip = 'Specifies the item attribute specific criteria for defining when to use this template.';
         }
-        field(21; "Activation Trigger"; Enum "Qlty. Gen. Rule Act. Trigger")
+        field(21; "Activation Trigger"; Enum "Qlty. Creat. Rule Act. Trigger")
         {
             Caption = 'Activation Trigger';
             InitValue = "Manual or Automatic";
@@ -289,25 +289,25 @@ table 20404 "Qlty. Inspection Gen. Rule"
 
     internal procedure SetEntryNo()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
         if Rec."Entry No." = 0 then begin
-            QltyInspectionGenRule.SetCurrentKey("Entry No.");
-            QltyInspectionGenRule.SetLoadFields("Entry No.");
-            if QltyInspectionGenRule.FindLast() then;
-            Rec."Entry No." := QltyInspectionGenRule."Entry No." + 1;
+            QltyInspectCreationRule.SetCurrentKey("Entry No.");
+            QltyInspectCreationRule.SetLoadFields("Entry No.");
+            if QltyInspectCreationRule.FindLast() then;
+            Rec."Entry No." := QltyInspectCreationRule."Entry No." + 1;
         end;
     end;
 
     internal procedure UpdateSortOrder()
     var
-        FindHighestQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        FindHighestQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
         if (Rec."Sort Order" = 0) or (Rec."Sort Order" = 1) then begin
-            FindHighestQltyInspectionGenRule.SetCurrentKey("Sort Order");
-            FindHighestQltyInspectionGenRule.Ascending(false);
-            if FindHighestQltyInspectionGenRule.FindFirst() then;
-            Rec."Sort Order" := FindHighestQltyInspectionGenRule."Sort Order" + 10;
+            FindHighestQltyInspectCreationRule.SetCurrentKey("Sort Order");
+            FindHighestQltyInspectCreationRule.Ascending(false);
+            if FindHighestQltyInspectCreationRule.FindFirst() then;
+            Rec."Sort Order" := FindHighestQltyInspectCreationRule."Sort Order" + 10;
         end;
     end;
 

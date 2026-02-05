@@ -3042,7 +3042,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
     [Test]
     procedure ItemTrackingDetailsAreNotPopulatedOnTestForNonTrackingItem()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Location: Record Location;
         LotTrackedItem: Record Item;
@@ -3061,12 +3061,12 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] The generation rule is set to trigger on purchase order receive and automatic only
-        QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::"Automatic only";
-        QltyInspectionGenRule."Purchase Order Trigger" := QltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive;
-        QltyInspectionGenRule.Modify();
+        QltyInspectCreationRule."Activation Trigger" := QltyInspectCreationRule."Activation Trigger"::"Automatic only";
+        QltyInspectCreationRule."Purchase Order Trigger" := QltyInspectCreationRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive;
+        QltyInspectCreationRule.Modify();
 
         // [GIVEN] A location is created
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
@@ -3096,7 +3096,7 @@ codeunit 139971 "Qlty. Tests - Item Tracking"
         LibraryAssert.AreEqual(NonTrackingItem."No.", QltyInspectionHeader."Source Item No.", 'Should be same item.');
         LibraryAssert.IsTrue(QltyInspectionHeader."Source Lot No." = '', 'Lot No. should not be populated.');
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     local procedure Initialize()

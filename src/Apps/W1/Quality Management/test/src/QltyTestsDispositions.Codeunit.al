@@ -73,7 +73,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     procedure PurchaseReturnFullLotAdvLocation()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         AdvWhseLocation: Record Location;
         Item: Record Item;
         Vendor: Record Vendor;
@@ -108,7 +108,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryAssert.AreEqual(PurOrdPurchaseLine."Quantity (Base)", PurOrdPurchaseLine."Qty. Received (Base)", 'Purchase Order was not fully received.');
 
         // [GIVEN] A quality inspection template and generation rule are created for the purchase line
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
         // [GIVEN] A quality inspection is created with purchase line and tracking
         QltyInspectionUtility.CreateInspectionWithPurchaseLineAndTracking(PurOrdPurchaseLine, PurOrdReservationEntry, QltyInspectionHeader);
 
@@ -123,7 +123,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [WHEN] Purchase return disposition is performed with item tracked quantity behavior
         QltyInspectionUtility.PerformPurchaseReturnDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Item Tracked Quantity", SpecificQty, '', '', Reason, CreditMemo, TempTrackedPurRtnBufferPurchaseHeader);
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [THEN] The inspection assertions verify the purchase return order was created correctly
         VerifyInspectionAssertions(100, QltyInspectionHeader, TempTrackedPurRtnBufferPurchaseHeader, PurOrderPurchaseHeader, PurOrdPurchaseLine, CreditMemo, Item."No.", AdvWhseLocation.Code, Reason);
@@ -133,7 +133,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     procedure PurchaseReturnLotTrackedAdvLocation()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         AdvWhseLocation: Record Location;
         Item: Record Item;
         Vendor: Record Vendor;
@@ -172,7 +172,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryAssert.AreEqual(PurOrdPurchaseLine."Qty. Received (Base)", PurOrdPurchaseLine."Quantity (Base)", 'Purchase Order was not fully received.');
 
         // [GIVEN] A quality inspection template and generation rule are created
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
         // [GIVEN] A quality inspection is created with sample, pass, and fail quantities
         QltyInspectionUtility.CreateInspectionWithPurchaseLineAndTracking(PurOrdPurchaseLine, PurOrdReservationEntry, QltyInspectionHeader);
         QltyInspectionHeader."Sample Size" := 5;
@@ -188,7 +188,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] A specific quantity is set for testing
         SpecificQty := 9;
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [WHEN] Purchase return disposition is performed with sample quantity behavior
         QltyInspectionUtility.PerformPurchaseReturnDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Sample Quantity", SpecificQty, '', '', Reason, CreditMemo, TempSamplePurRtnBufferPurchaseHeader);
@@ -215,7 +215,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     procedure PurchaseReturnLotTrackedAdvLocation_MultipleBins()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         AdvWhseLocation: Record Location;
         ReclassWhseItemWarehouseJournalTemplate: Record "Warehouse Journal Template";
         ReclassWarehouseJournalBatch: Record "Warehouse Journal Batch";
@@ -258,7 +258,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryAssert.AreEqual(PurOrdPurchaseLine."Qty. Received (Base)", PurOrdPurchaseLine."Quantity (Base)", 'Purchase Order was not fully received.');
 
         // [GIVEN] A quality inspection template and generation rule are created
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
         // [GIVEN] A quality inspection is created with sample, pass, and fail quantities
         QltyInspectionUtility.CreateInspectionWithPurchaseLineAndTracking(PurOrdPurchaseLine, PurOrdReservationEntry, QltyInspectionHeader);
         QltyInspectionHeader."Sample Size" := 5;
@@ -319,7 +319,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         BinContent.SetRange("Item No.", Item."No.");
         LibraryAssert.AreEqual(2, BinContent.Count(), 'Test setup failed. Two bins should have a quantity of 50 each of the item.');
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [WHEN] Purchase return disposition is performed with item tracked quantity behavior
         QltyInspectionUtility.PerformPurchaseReturnDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Item Tracked Quantity", SpecificQty, '', '', Reason, CreditMemo, TempSamplePurRtnBufferPurchaseHeader);
@@ -334,7 +334,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     procedure PurchaseReturnFullPackageAdvLocation()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         AdvWhseLocation: Record Location;
         Item: Record Item;
         PackageNoSeries: Record "No. Series";
@@ -376,7 +376,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryAssert.AreEqual(PurOrdPurchaseLine."Quantity (Base)", PurOrdPurchaseLine."Qty. Received (Base)", 'Purchase Order was not fully received.');
 
         // [GIVEN] A quality inspection template and generation rule are created
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
         // [GIVEN] A quality inspection is created with purchase line and tracking
         QltyInspectionUtility.CreateInspectionWithPurchaseLineAndTracking(PurOrdPurchaseLine, PurOrdReservationEntry, QltyInspectionHeader);
 
@@ -388,7 +388,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] A specific quantity is set for return
         SpecificQty := 9;
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [WHEN] Purchase return disposition is performed with item tracked quantity behavior
         QltyInspectionUtility.PerformPurchaseReturnDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Item Tracked Quantity", SpecificQty, '', '', Reason, CreditMemo, TempTrackedPurRtnBufferPurchaseHeader);
@@ -400,7 +400,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     procedure PurchaseReturnPackageTrackedAdvLocation()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         AdvWhseLocation: Record Location;
         Item: Record Item;
         PackageNoSeries: Record "No. Series";
@@ -445,7 +445,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryAssert.AreEqual(PurOrdPurchaseLine."Qty. Received (Base)", PurOrdPurchaseLine."Quantity (Base)", 'Purchase Order was not fully received.');
 
         // [GIVEN] A quality inspection template and generation rule are created
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
         // [GIVEN] A quality inspection is created with sample, pass, and fail quantities
         QltyInspectionUtility.CreateInspectionWithPurchaseLineAndTracking(PurOrdPurchaseLine, PurOrdReservationEntry, QltyInspectionHeader);
         QltyInspectionHeader."Sample Size" := 5;
@@ -461,7 +461,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] A specific quantity is set for testing
         SpecificQty := 9;
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [WHEN] Purchase return disposition is performed with sample quantity behavior
         QltyInspectionUtility.PerformPurchaseReturnDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Sample Quantity", SpecificQty, '', '', Reason, CreditMemo, TempSamplePurRtnBufferPurchaseHeader);
@@ -488,7 +488,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     procedure PurchaseReturnUntrackedBasicLocation()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         BasicLocation: Record Location;
         Item: Record Item;
         Vendor: Record Vendor;
@@ -529,7 +529,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryAssert.AreEqual(PurOrdPurchaseLine."Qty. Received (Base)", PurOrdPurchaseLine."Quantity (Base)", 'Purchase Order was not fully received.');
 
         // [GIVEN] A quality inspection template and generation rule are created
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
         // [GIVEN] A quality inspection is created with sample, pass, and fail quantities
         QltyInspectionUtility.CreateInspectionWithPurchaseLine(PurOrdPurchaseLine, QltyInspectionTemplateHdr.Code, QltyInspectionHeader);
         QltyInspectionHeader."Sample Size" := 5;
@@ -545,7 +545,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] A specific quantity is set for testing
         SpecificQty := 9;
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [WHEN] Purchase return disposition is performed with sample quantity behavior
         QltyInspectionUtility.PerformPurchaseReturnDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Sample Quantity", SpecificQty, '', '', Reason, CreditMemo, TempSamplePurRtnBufferPurchaseHeader);
@@ -572,7 +572,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     procedure PurchaseReturn_Unreceived_ShouldErr()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         BasicLocation: Record Location;
         Item: Record Item;
         Vendor: Record Vendor;
@@ -605,7 +605,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyPurOrderGenerator.CreatePurchaseOrder(100, BasicLocation, Item, Vendor, '', PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
 
         // [GIVEN] A quality inspection template and generation rule are created
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
         // [GIVEN] A quality inspection is created with sample, pass, and fail quantities
         QltyInspectionUtility.CreateInspectionWithPurchaseLine(PurOrdPurchaseLine, QltyInspectionTemplateHdr.Code, QltyInspectionHeader);
         QltyInspectionHeader."Sample Size" := 5;
@@ -621,7 +621,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] A specific quantity is set for testing
         SpecificQty := 9;
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [WHEN] Purchase return disposition is attempted on an unreceived purchase order
         asserterror QltyInspectionUtility.PerformPurchaseReturnDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Sample Quantity", SpecificQty, '', '', Reason, CreditMemo, TempDummyPurchaseHeader);
@@ -633,7 +633,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     procedure PurchaseReturn_NoInventoryFound_ShouldExit()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         BasicLocation: Record Location;
         FilterLocation: Record Location;
         Item: Record Item;
@@ -670,7 +670,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyPurOrderGenerator.CreatePurchaseOrder(100, BasicLocation, Item, Vendor, '', PurOrderPurchaseHeader, PurOrdPurchaseLine, DummyReservationEntry);
 
         // [GIVEN] A quality inspection template and generation rule are created
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
         // [GIVEN] A quality inspection is created with sample, pass, and fail quantities
         QltyInspectionUtility.CreateInspectionWithPurchaseLine(PurOrdPurchaseLine, QltyInspectionTemplateHdr.Code, QltyInspectionHeader);
         QltyInspectionHeader."Sample Size" := 5;
@@ -686,7 +686,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] Specific quantity is set to 0
         SpecificQty := 0;
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [GIVEN] The initial count of purchase return orders is recorded
         ReturnOrderPurchaseHeader.SetRange("Document Type", ReturnOrderPurchaseHeader."Document Type"::"Return Order");
@@ -991,7 +991,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -1011,7 +1011,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] Quality management setup is initialized and an inspection template and rule are created
         QltyInspectionUtility.EnsureSetupExists();
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
 
         // [GIVEN] A warehouse location with bins but without directed put-away is created
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
@@ -1048,7 +1048,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup."Item Journal Batch Name" := ItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [WHEN] Negative adjustment disposition is performed with specific quantity
         LibraryAssert.IsTrue(QltyInspectionUtility.PerformNegAdjustInvDisposition(QltyInspectionHeader, 50, TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity", '', '', QltyItemAdjPostBehavior::"Prepare only", ReasonCode.Code), 'Should have created negative adjustment');
@@ -1073,7 +1073,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Item: Record Item;
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         WarehouseEntry: Record "Warehouse Entry";
@@ -1132,7 +1132,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [WHEN] Negative adjustment disposition is performed with specific quantity
         LibraryAssert.IsTrue(QltyInspectionUtility.PerformNegAdjustInvDisposition(QltyInspectionHeader, 50, TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity", '', '', QltyItemAdjPostBehavior::"Prepare only", ReasonCode.Code), 'Should have created negative adjustment');
 
-        QltyInspectionGenRule.DeleteAll();
+        QltyInspectCreationRule.DeleteAll();
         WarehouseJournalBatch.Delete();
         WarehouseJournalTemplate.Delete();
 
@@ -1153,7 +1153,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Item: Record Item;
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         PurOrdReservationEntry: Record "Reservation Entry";
@@ -1250,7 +1250,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [WHEN] Negative adjustment disposition is performed for item tracked quantity
         LibraryAssert.IsTrue(QltyInspectionUtility.PerformNegAdjustInvDisposition(QltyInspectionHeader, 0, TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Item Tracked Quantity", '', '', QltyItemAdjPostBehavior::"Prepare only", ReasonCode.Code), 'Should have created negative adjustment');
 
-        QltyInspectionGenRule.DeleteAll();
+        QltyInspectCreationRule.DeleteAll();
         ReclassWarehouseJournalBatch.Delete();
         ReclassWarehouseJournalTemplate.Delete();
         WarehouseJournalBatch.Delete();
@@ -1274,7 +1274,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Item: Record Item;
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         PurOrdReservationEntry: Record "Reservation Entry";
@@ -1294,7 +1294,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] Quality management setup is initialized and an inspection template is created for purchase lines
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A warehouse location with bins is created (non-directed)
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
@@ -1334,7 +1334,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [WHEN] Negative adjustment disposition is performed and posted with specific quantity
         LibraryAssert.IsTrue(QltyInspectionUtility.PerformNegAdjustInvDisposition(QltyInspectionHeader, 50, TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity", '', '', QltyItemAdjPostBehavior::Post, ReasonCode.Code), 'Should have posted negative adjustment');
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
         ItemJournalBatch.Delete();
         ItemJournalTemplate.Delete();
 
@@ -1355,7 +1355,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Item: Record Item;
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         PurOrdReservationEntry: Record "Reservation Entry";
@@ -1414,7 +1414,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [WHEN] Negative adjustment disposition is performed and registered with specific quantity
         LibraryAssert.IsTrue(QltyInspectionUtility.PerformNegAdjustInvDisposition(QltyInspectionHeader, 50, TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity", '', '', QltyItemAdjPostBehavior::Post, ReasonCode.Code), 'Should have registered negative adjustment');
 
-        QltyInspectionGenRule.DeleteAll();
+        QltyInspectCreationRule.DeleteAll();
         WarehouseJournalBatch.Delete();
         WarehouseJournalTemplate.Delete();
 
@@ -1432,7 +1432,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     procedure CreateNegativeAdjustmentWithTrackedQty_Untracked_ShouldErr()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
@@ -1448,7 +1448,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] Quality management setup is initialized and an inspection template is created for warehouse entries
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectCreationRule);
 
         // [GIVEN] A full warehouse management location with directed put-away is created
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
@@ -1469,7 +1469,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WarehouseEntry.FindFirst();
         QltyInspectionUtility.CreateInspectionWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [WHEN] Negative adjustment disposition is performed with Item Tracked Quantity behavior on untracked item
         asserterror QltyInspectionUtility.PerformNegAdjustInvDisposition(QltyInspectionHeader, 50, TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Item Tracked Quantity", '', '', QltyItemAdjPostBehavior::Post, '');
@@ -1482,7 +1482,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     procedure CreateNegativeAdjustment_NoInventoryFound_ShouldExit()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Location: Record Location;
         FilterLocation: Record Location;
@@ -1502,7 +1502,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] Quality management setup is initialized and an inspection template is created for purchase lines
         QltyInspectionUtility.EnsureSetupExists();
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
 
         // [GIVEN] A full warehouse management location and a separate filter location are created
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
@@ -1536,7 +1536,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [THEN] No adjustment journal line is created
         LibraryAssert.IsTrue(WarehouseJournalLine.IsEmpty(), 'No adjustment line should have been created');
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
         WarehouseJournalBatch.Delete();
         WarehouseJournalTemplate.Delete();
     end;
@@ -1546,7 +1546,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
@@ -1562,7 +1562,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] Quality management setup is initialized and an inspection template is created for purchase lines
         QltyInspectionUtility.EnsureSetupExists();
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
 
         // [GIVEN] A warehouse location with bins is created (non-directed)
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
@@ -1584,7 +1584,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] A quality inspection is created with the purchase line
         QltyInspectionUtility.CreateInspectionWithPurchaseLine(PurchaseLine, QltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [GIVEN] The Item Journal Batch Name is cleared from quality management setup
         QltyManagementSetup.Get();
@@ -1603,7 +1603,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
@@ -1619,7 +1619,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] Quality management setup is initialized and an inspection template is created for warehouse entries
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectCreationRule);
 
         // [GIVEN] A full warehouse management location with directed put-away is created
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
@@ -1640,7 +1640,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WarehouseEntry.FindFirst();
         QltyInspectionUtility.CreateInspectionWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [GIVEN] The warehouse Item Journal Batch Name is cleared from quality management setup
         QltyManagementSetup.Get();
@@ -1659,7 +1659,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
@@ -1677,7 +1677,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionUtility.EnsureSetupExists();
         // [GIVEN] An inspection template and generation rule for purchase lines are created
         // [GIVEN] An inspection template and generation rule for purchase lines are created
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
 
         // [GIVEN] A location with bins is created
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
@@ -1710,7 +1710,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Modify();
 
         // [GIVEN] The inspection generation rule and journal batch are then deleted to trigger the error condition
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
         ItemJournalBatch.Delete();
 
         // [WHEN] Negative adjustment disposition is attempted
@@ -1723,7 +1723,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     procedure CreateNegativeAdjustment_Directed_CantFindBatch_ShouldErr()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Location: Record Location;
         Item: Record Item;
@@ -1741,7 +1741,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionUtility.EnsureSetupExists();
         // [GIVEN] An inspection template and generation rule for purchase lines
         // [GIVEN] An inspection template and generation rule for purchase lines
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
 
         // [GIVEN] A full WMS location is created
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
@@ -1768,7 +1768,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Modify();
 
         // [GIVEN] The inspection generation rule and journal batch are then deleted to trigger the error condition
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
         WarehouseJournalBatch.Delete();
 
         // [WHEN] Negative adjustment disposition is performed
@@ -3315,7 +3315,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassWarehouseJournalWhseItemTrackingLine: Record "Whse. Item Tracking Line";
         WarehouseEntry: Record "Warehouse Entry";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         Item: Record Item;
         LotNoSeries: Record "No. Series";
@@ -3343,7 +3343,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup."Warehouse Trigger" := QltyManagementSetup."Warehouse Trigger"::NoTrigger;
 
         // [GIVEN] Inspection template and rule for purchase lines are created
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
 
         // [GIVEN] Reclassification warehouse journal template and batch are created
         LibraryWarehouse.CreateWhseJournalTemplate(ReclassWhseItemWarehouseJournalTemplate, ReclassWhseItemWarehouseJournalTemplate.Type::Reclassification);
@@ -3622,7 +3622,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         ReservationEntry: Record "Reservation Entry";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         WarehouseEntry: Record "Warehouse Entry";
@@ -3639,7 +3639,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A prioritized quality inspection rule is created for warehouse entries
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectCreationRule);
 
         // [GIVEN] A full WMS location with directed pick and put is created
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
@@ -3693,14 +3693,14 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         WarehouseJournalTemplate.Delete();
         WarehouseJournalBatch.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
     procedure ChangeLotDisposition_NoInventoryFound_ShouldExit()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Location: Record Location;
         FilterLocation: Record Location;
@@ -3720,7 +3720,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] Quality management setup and inspection generation rule are initialized
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A full WMS location and a filter location are created
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
@@ -3760,7 +3760,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WarehouseJournalLine.SetRange("Journal Batch Name", WarehouseJournalBatch.Name);
         LibraryAssert.IsTrue(WarehouseJournalLine.IsEmpty(), 'No adjustment line should have been created');
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
         WarehouseJournalBatch.Delete();
         WarehouseJournalTemplate.Delete();
     end;
@@ -3768,7 +3768,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     [Test]
     procedure ChangeLotDisposition_NoTracking_ShouldErr()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Location: Record Location;
         Item: Record Item;
@@ -3783,7 +3783,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] Quality management setup and inspection generation rule are initialized
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A full WMS location is created
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
@@ -3802,7 +3802,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)" := 6;
         TempInstructionQltyDispositionBuffer."Quantity Behavior" := TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [WHEN] Disposition is attempted without new tracking information
         asserterror QltyDispChangeTracking.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer);
@@ -3814,7 +3814,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     procedure ChangeLotDisposition_NoBatch_Directed_ShouldErr()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Location: Record Location;
         Item: Record Item;
@@ -3830,7 +3830,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] Quality management setup is initialized with empty bin warehouse move batch name
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
         QltyManagementSetup.Get();
         QltyManagementSetup."Whse. Reclass. Batch Name" := '';
         QltyManagementSetup.Modify();
@@ -3855,7 +3855,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."Quantity Behavior" := TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
         TempInstructionQltyDispositionBuffer."New Lot No." := NoSeries.GetNextNo(Item."Lot Nos.");
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [WHEN] Lot disposition is attempted without configured reclassification batch
         asserterror QltyDispChangeTracking.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer);
@@ -3867,7 +3867,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     procedure ChangeLotDisposition_NoBatch_NonDirected_ShouldErr()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Location: Record Location;
         Bin: Record Bin;
@@ -3884,7 +3884,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] Quality management setup is initialized with empty Item Reclass. Batch Name
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
         QltyManagementSetup.Get();
         QltyManagementSetup."Item Reclass. Batch Name" := '';
         QltyManagementSetup.Modify();
@@ -3916,7 +3916,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."Quantity Behavior" := TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
         TempInstructionQltyDispositionBuffer."New Lot No." := NoSeries.GetNextNo(Item."Lot Nos.");
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [WHEN] Lot disposition is attempted without configured bin move batch
         asserterror QltyDispChangeTracking.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer);
@@ -3930,7 +3930,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Location: Record Location;
         DestinationLocation: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -3944,7 +3944,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] Quality management setup and inspection generation rule are initialized
         QltyInspectionUtility.EnsureSetupExists();
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
 
         // [GIVEN] A non-directed location with bins is created
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
@@ -3970,7 +3970,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] A quality inspection is created with the purchase line
         QltyInspectionUtility.CreateInspectionWithPurchaseLine(PurchaseLine, QltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [WHEN] Transfer disposition is performed for 50 units to the destination location
         LibraryAssert.IsTrue(QltyInspectionUtility.PerformTransferDisposition(QltyInspectionHeader, 50, TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity", '', '', DestinationLocation.Code, ''), 'Should have created transfer.');
@@ -4000,7 +4000,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Location: Record Location;
         DestinationLocation: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -4015,7 +4015,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] Quality management setup and inspection generation rule are initialized
         QltyInspectionUtility.EnsureSetupExists();
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
 
         // [GIVEN] A non-directed source location with bins is created
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
@@ -4041,7 +4041,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] A quality inspection is created with the purchase line
         QltyInspectionUtility.CreateInspectionWithPurchaseLine(PurchaseLine, QltyInspectionTemplateHdr.Code, QltyInspectionHeader);
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [WHEN] Transfer disposition is performed for 50 units to create a direct transfer
         LibraryAssert.IsTrue(QltyInspectionUtility.PerformTransferDisposition(QltyInspectionHeader, 50, TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity", '', '', DestinationLocation.Code, ''), 'Should have created transfer.');
@@ -4078,7 +4078,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         InTransitLocation: Record Location;
         TransferRoute: Record "Transfer Route";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Vendor: Record Vendor;
         Item: Record Item;
         ItemVariant: Record "Item Variant";
@@ -4095,7 +4095,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] Quality management setup and inspection generation rule are initialized
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A non-directed location with bins, destination location, and in-transit location are created
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
@@ -4130,7 +4130,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] A quality inspection is created with purchase line and tracking
         QltyInspectionUtility.CreateInspectionWithPurchaseLineAndTracking(PurchaseLine, ReservationEntry, QltyInspectionHeader);
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [WHEN] Transfer disposition is performed for 50 units to destination location with in-transit route
         LibraryAssert.IsTrue(QltyInspectionUtility.PerformTransferDisposition(QltyInspectionHeader, 50, TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity", '', '', DestinationLocation.Code, ''), 'Should have created transfer.');
@@ -4173,7 +4173,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         InTransitLocation: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Item: Record Item;
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         ReservationEntry: Record "Reservation Entry";
@@ -4187,7 +4187,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] Quality management setup and inspection generation rule for warehouse entry are initialized
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectCreationRule);
 
         // [GIVEN] A full WMS location with directed pick and put-away is created
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
@@ -4213,7 +4213,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WarehouseEntry.FindFirst();
         QltyInspectionUtility.CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry, ReservationEntry, QltyInspectionHeader);
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [WHEN] Transfer disposition is performed for 50 units to destination location with in-transit location
         LibraryAssert.IsTrue(QltyInspectionUtility.PerformTransferDisposition(QltyInspectionHeader, 50, TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity", '', '', DestinationLocation.Code, InTransitLocation.Code), 'Should have created transfer.');
@@ -4254,7 +4254,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         InTransitLocation: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Item: Record Item;
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         ReservationEntry: Record "Reservation Entry";
@@ -4274,7 +4274,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A directed warehouse location, destination location, and in-transit location are created
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectCreationRule);
 
         // [GIVEN] Directed, destination, and in-transit locations are configured
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
@@ -4341,7 +4341,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         BinContent.SetRange("Location Code", Location.Code);
         BinContent.SetRange("Item No.", Item."No.");
         LibraryAssert.AreEqual(2, BinContent.Count(), 'Test setup failed. Two bins should have a quantity of 50 each of the item.');
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [WHEN] Perform disposition to create transfer order with item tracked quantity
         LibraryAssert.IsTrue(QltyInspectionUtility.PerformTransferDisposition(QltyInspectionHeader, 0, TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Item Tracked Quantity", '', '', DestinationLocation.Code, InTransitLocation.Code), 'Should have created transfer.');
@@ -4382,7 +4382,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         FilterLocation: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Item: Record Item;
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         WarehouseEntry: Record "Warehouse Entry";
@@ -4395,7 +4395,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A directed warehouse location, destination location, and filter location are created
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectCreationRule);
 
         // [GIVEN] Directed warehouse location is created with bins
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
@@ -4420,7 +4420,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WarehouseEntry.FindFirst();
         QltyInspectionUtility.CreateInspectionWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [WHEN] Perform disposition is called with a location filter that does not match the inventory location
         LibraryAssert.IsFalse(QltyInspectionUtility.PerformTransferDisposition(QltyInspectionHeader, 50,
@@ -4448,7 +4448,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ReclassWhseItemWarehouseJournalTemplate: Record "Warehouse Journal Template";
         ReclassWarehouseJournalBatch: Record "Warehouse Journal Batch";
         ReclassWarehouseJournalLine: Record "Warehouse Journal Line";
@@ -4466,7 +4466,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A full WMS location with warehouse reclassification batch configured
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectCreationRule);
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
         QltyManagementSetup.Get();
         LibraryWarehouse.CreateWhseJournalTemplate(ReclassWhseItemWarehouseJournalTemplate, ReclassWhseItemWarehouseJournalTemplate.Type::Reclassification);
@@ -4519,7 +4519,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassWarehouseJournalLine.Delete();
         ReclassWarehouseJournalBatch.Delete();
         ReclassWhseItemWarehouseJournalTemplate.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -4527,7 +4527,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ReclassWhseItemWarehouseJournalTemplate: Record "Warehouse Journal Template";
         ReclassWarehouseJournalBatch: Record "Warehouse Journal Batch";
         ReclassWarehouseJournalLine: Record "Warehouse Journal Line";
@@ -4545,7 +4545,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A full WMS location with warehouse reclassification batch configured
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectCreationRule);
 
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
 
@@ -4608,7 +4608,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassWarehouseJournalLine.Delete();
         ReclassWarehouseJournalBatch.Delete();
         ReclassWhseItemWarehouseJournalTemplate.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -4616,7 +4616,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ReclassWhseItemWarehouseJournalTemplate: Record "Warehouse Journal Template";
         ReclassWarehouseJournalBatch: Record "Warehouse Journal Batch";
         ReclassWarehouseJournalLine: Record "Warehouse Journal Line";
@@ -4634,7 +4634,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A full WMS location with warehouse reclassification batch configured
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectCreationRule);
 
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
 
@@ -4697,7 +4697,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassWarehouseJournalLine.Delete();
         ReclassWarehouseJournalBatch.Delete();
         ReclassWhseItemWarehouseJournalTemplate.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -4705,7 +4705,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ReclassWhseItemWarehouseJournalTemplate: Record "Warehouse Journal Template";
         ReclassWarehouseJournalBatch: Record "Warehouse Journal Batch";
         ReclassWarehouseJournalLine: Record "Warehouse Journal Line";
@@ -4723,7 +4723,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A full WMS location with warehouse reclassification batch configured
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectCreationRule);
 
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
 
@@ -4786,7 +4786,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassWarehouseJournalLine.Delete();
         ReclassWarehouseJournalBatch.Delete();
         ReclassWhseItemWarehouseJournalTemplate.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -4794,7 +4794,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ReclassWhseItemWarehouseJournalTemplate: Record "Warehouse Journal Template";
         ReclassWarehouseJournalBatch: Record "Warehouse Journal Batch";
         Location: Record Location;
@@ -4812,7 +4812,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A directed warehouse location with warehouse reclassification batch configured
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectCreationRule);
 
         // [GIVEN] Directed warehouse location is created with bins
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
@@ -4868,7 +4868,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         ReclassWarehouseJournalBatch.Delete();
         ReclassWhseItemWarehouseJournalTemplate.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -4876,7 +4876,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ReclassWhseItemWarehouseJournalTemplate: Record "Warehouse Journal Template";
         ReclassWarehouseJournalBatch: Record "Warehouse Journal Batch";
         ReclassWarehouseJournalLine: Record "Warehouse Journal Line";
@@ -4898,7 +4898,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A full WMS location with warehouse reclassification batch configured
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectCreationRule);
 
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
 
@@ -4987,7 +4987,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         ReclassWarehouseJournalBatch.Delete();
         ReclassWhseItemWarehouseJournalTemplate.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -4995,7 +4995,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ReclassWhseItemWarehouseJournalTemplate: Record "Warehouse Journal Template";
         ReclassWarehouseJournalBatch: Record "Warehouse Journal Batch";
         ReclassWarehouseJournalLine: Record "Warehouse Journal Line";
@@ -5015,7 +5015,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] A full WMS location with warehouse reclassification batch configured
         QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectCreationRule);
 
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
 
@@ -5073,7 +5073,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         ReclassWarehouseJournalBatch.Delete();
         ReclassWhseItemWarehouseJournalTemplate.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -5081,7 +5081,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ReclassItemJournalTemplate: Record "Item Journal Template";
         ReclassItemJournalBatch: Record "Item Journal Batch";
         ReclassItemJournalLine: Record "Item Journal Line";
@@ -5098,7 +5098,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A non-directed location with item reclassification batch configured and bins created
         QltyInspectionUtility.EnsureSetupExists();
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
 
         QltyManagementSetup.Get();
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
@@ -5153,7 +5153,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassItemJournalLine.Delete();
         ReclassItemJournalBatch.Delete();
         ReclassItemJournalTemplate.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -5161,7 +5161,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ReclassItemJournalTemplate: Record "Item Journal Template";
         ReclassItemJournalBatch: Record "Item Journal Batch";
         ReclassItemJournalLine: Record "Item Journal Line";
@@ -5178,7 +5178,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A non-directed location with item reclassification batch configured and bins created
         QltyInspectionUtility.EnsureSetupExists();
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
 
         QltyManagementSetup.Get();
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
@@ -5238,7 +5238,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassItemJournalLine.Delete();
         ReclassItemJournalBatch.Delete();
         ReclassItemJournalTemplate.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -5246,7 +5246,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ReclassItemJournalTemplate: Record "Item Journal Template";
         ReclassItemJournalBatch: Record "Item Journal Batch";
         ReclassItemJournalLine: Record "Item Journal Line";
@@ -5263,7 +5263,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A non-directed location with item reclassification batch configured and bins created
         QltyInspectionUtility.EnsureSetupExists();
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
 
         QltyManagementSetup.Get();
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
@@ -5324,7 +5324,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassItemJournalLine.Delete();
         ReclassItemJournalBatch.Delete();
         ReclassItemJournalTemplate.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -5332,7 +5332,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ReclassItemJournalTemplate: Record "Item Journal Template";
         ReclassItemJournalBatch: Record "Item Journal Batch";
         ReclassItemJournalLine: Record "Item Journal Line";
@@ -5349,7 +5349,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A non-directed location with item reclassification batch configured and bins created
         QltyInspectionUtility.EnsureSetupExists();
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
 
         QltyManagementSetup.Get();
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
@@ -5410,7 +5410,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassItemJournalLine.Delete();
         ReclassItemJournalBatch.Delete();
         ReclassItemJournalTemplate.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -5418,7 +5418,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ReclassItemJournalTemplate: Record "Item Journal Template";
         ReclassItemJournalBatch: Record "Item Journal Batch";
         Location: Record Location;
@@ -5435,7 +5435,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A non-directed location with item reclassification batch configured and bins created
         QltyInspectionUtility.EnsureSetupExists();
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
 
         // [GIVEN] Item reclassification journal template and batch are configured in setup
         QltyManagementSetup.Get();
@@ -5492,7 +5492,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         ReclassItemJournalBatch.Delete();
         ReclassItemJournalTemplate.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -5500,7 +5500,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ReclassItemJournalTemplate: Record "Item Journal Template";
         ReclassItemJournalBatch: Record "Item Journal Batch";
         ReclassItemJournalLine: Record "Item Journal Line";
@@ -5521,7 +5521,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A non-directed location with item reclassification batch configured and bins created
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         QltyManagementSetup.Get();
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
@@ -5605,7 +5605,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         ReclassItemJournalBatch.Delete();
         ReclassItemJournalTemplate.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -5613,7 +5613,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ReclassItemJournalTemplate: Record "Item Journal Template";
         ReclassItemJournalBatch: Record "Item Journal Batch";
         ReclassItemJournalLine: Record "Item Journal Line";
@@ -5632,7 +5632,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] A non-directed location with item reclassification batch configured and bins created
         QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         QltyManagementSetup.Get();
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
@@ -5688,7 +5688,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         ReclassItemJournalBatch.Delete();
         ReclassItemJournalTemplate.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -5742,7 +5742,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ReclassWhseItemWarehouseJournalTemplate: Record "Warehouse Journal Template";
         ReclassWarehouseJournalBatch: Record "Warehouse Journal Batch";
         ReclassWarehouseJournalLine: Record "Warehouse Journal Line";
@@ -5761,7 +5761,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A directed warehouse location is configured with warehouse reclassification batch
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectCreationRule);
 
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
 
@@ -5815,7 +5815,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         ReclassWarehouseJournalBatch.Delete();
         ReclassWhseItemWarehouseJournalTemplate.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -5823,7 +5823,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ReclassItemJournalTemplate: Record "Item Journal Template";
         ReclassItemJournalBatch: Record "Item Journal Batch";
         ReclassItemJournalLine: Record "Item Journal Line";
@@ -5841,7 +5841,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A non-directed location is configured with item reclassification batch
         QltyInspectionUtility.EnsureSetupExists();
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
 
         QltyManagementSetup.Get();
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
@@ -5896,7 +5896,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         ReclassItemJournalBatch.Delete();
         ReclassItemJournalTemplate.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -5904,7 +5904,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         WhseWorksheetTemplate: Record "Whse. Worksheet Template";
         WhseWorksheetName: Record "Whse. Worksheet Name";
         WhseWorksheetLine: Record "Whse. Worksheet Line";
@@ -5923,7 +5923,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A directed warehouse location is configured with movement worksheet template and name
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectCreationRule);
 
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
 
@@ -5994,7 +5994,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WhseWorksheetLine.Delete();
         WhseWorksheetName.Delete();
         WhseWorksheetTemplate.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -6002,7 +6002,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ReclassWhseItemWarehouseJournalTemplate: Record "Warehouse Journal Template";
         ReclassWarehouseJournalBatch: Record "Warehouse Journal Batch";
         ReclassWarehouseJournalLine: Record "Warehouse Journal Line";
@@ -6029,7 +6029,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A directed warehouse location is configured with movement worksheet template and name
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectCreationRule);
 
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
 
@@ -6141,7 +6141,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WhseWorksheetTemplate.Delete();
         ReclassWarehouseJournalBatch.Delete();
         ReclassWhseItemWarehouseJournalTemplate.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -6149,7 +6149,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         WhseWorksheetTemplate: Record "Whse. Worksheet Template";
         WhseWorksheetName: Record "Whse. Worksheet Name";
         WhseWorksheetLine: Record "Whse. Worksheet Line";
@@ -6167,7 +6167,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A directed warehouse location is configured with movement worksheet template and name
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectCreationRule);
 
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
 
@@ -6211,7 +6211,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."Quantity Behavior" := TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
         TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::"Prepare only";
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [WHEN] Disposition action is performed
         asserterror QltyDispMoveWorksheet.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer);
@@ -6227,7 +6227,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         IntMovementNoSeries: Record "No. Series";
         IntMovementNoSeriesLine: Record "No. Series Line";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
@@ -6242,7 +6242,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A non-directed location with bins is configured and internal movement number series is set up
         QltyInspectionUtility.EnsureSetupExists();
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
 
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
 
@@ -6296,7 +6296,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryAssert.AreEqual(Bin.Code, InternalMovementLine."To Bin Code", 'Should have correct requested to bin code');
         LibraryAssert.AreEqual(50, InternalMovementLine.Quantity, 'Should have correct requested quantity.');
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -6306,7 +6306,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         IntMovementNoSeries: Record "No. Series";
         IntMovementNoSeriesLine: Record "No. Series Line";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ReclassItemJournalTemplate: Record "Item Journal Template";
         ReclassItemJournalBatch: Record "Item Journal Batch";
         ReclassItemJournalLine: Record "Item Journal Line";
@@ -6328,7 +6328,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A non-directed location with bins is configured and internal movement number series is set up
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
 
@@ -6421,7 +6421,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         ReclassItemJournalBatch.Delete();
         ReclassItemJournalTemplate.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -6429,7 +6429,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ReclassWhseItemWarehouseJournalTemplate: Record "Warehouse Journal Template";
         ReclassWarehouseJournalBatch: Record "Warehouse Journal Batch";
         ReclassWarehouseJournalLine: Record "Warehouse Journal Line";
@@ -6446,7 +6446,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A directed warehouse location with warehouse reclassification batch configured
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectCreationRule);
 
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
 
@@ -6503,7 +6503,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassWarehouseJournalLine.Delete();
         ReclassWarehouseJournalBatch.Delete();
         ReclassWhseItemWarehouseJournalTemplate.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -6511,7 +6511,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         WhseWorksheetTemplate: Record "Whse. Worksheet Template";
         WhseWorksheetName: Record "Whse. Worksheet Name";
         WhseWorksheetLine: Record "Whse. Worksheet Line";
@@ -6529,7 +6529,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A directed warehouse location with movement worksheet template and name configured
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectCreationRule);
 
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
 
@@ -6600,7 +6600,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WhseWorksheetLine.Delete();
         WhseWorksheetName.Delete();
         WhseWorksheetTemplate.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -6608,7 +6608,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ReclassItemJournalTemplate: Record "Item Journal Template";
         ReclassItemJournalBatch: Record "Item Journal Batch";
         ReclassItemJournalLine: Record "Item Journal Line";
@@ -6624,7 +6624,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A non-directed location with item reclassification batch configured and bins created
         QltyInspectionUtility.EnsureSetupExists();
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
 
         QltyManagementSetup.Get();
         LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
@@ -6679,7 +6679,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassItemJournalLine.Delete();
         ReclassItemJournalBatch.Delete();
         ReclassItemJournalTemplate.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -6689,7 +6689,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         IntMovementNoSeries: Record "No. Series";
         IntMovementNoSeriesLine: Record "No. Series Line";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
@@ -6703,7 +6703,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A non-directed location with bins and internal movement number series configured
         QltyInspectionUtility.EnsureSetupExists();
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
 
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
 
@@ -6757,14 +6757,14 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryAssert.AreEqual(Bin.Code, InternalMovementLine."To Bin Code", 'Should have correct requested to bin code');
         LibraryAssert.AreEqual(50, InternalMovementLine.Quantity, 'Should have correct requested quantity.');
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
     procedure AutoChooseMoveInventory_NoNewLocationOrBin_ShouldError()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
@@ -6777,7 +6777,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A directed warehouse location with a quality inspection
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectCreationRule);
 
         // [GIVEN] A directed warehouse location is created with bins
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
@@ -6809,14 +6809,14 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [THEN] An error is raised indicating there is nothing to move to
         LibraryAssert.ExpectedError(StrSubstNo(ThereIsNothingToMoveToErr, QltyInspectionHeader.GetFriendlyIdentifier()));
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
     procedure AutoChooseMoveInventory_Directed_NewLocation_ShouldError()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         SecondLocation: Record Location;
         Item: Record Item;
@@ -6830,7 +6830,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A directed warehouse location with a quality inspection
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectCreationRule);
 
         // [GIVEN] A directed warehouse location is created with bins
         LibraryWarehouse.CreateFullWMSLocation(Location, 3);
@@ -6866,7 +6866,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [THEN] An error is raised indicating that bins cannot be changed between locations for directed pick and put
         LibraryAssert.ExpectedError(StrSubstNo(UnableToChangeBinsBetweenLocationsBecauseDirectedPickAndPutErr, QltyInspectionHeader."No.", Location.Code, SecondLocation.Code));
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
@@ -6874,7 +6874,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         ReclassItemJournalTemplate: Record "Item Journal Template";
         ReclassItemJournalBatch: Record "Item Journal Batch";
         ReclassItemJournalLine: Record "Item Journal Line";
@@ -6891,7 +6891,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A non-directed location with item reclassification batch configured and bins created
         QltyInspectionUtility.EnsureSetupExists();
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
 
         // [GIVEN] Item reclassification journal template and batch are configured
         QltyManagementSetup.Get();
@@ -6950,14 +6950,14 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         ReclassItemJournalBatch.Delete();
         ReclassItemJournalTemplate.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
     procedure InternalPutaway_PerformDisposition()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
@@ -6973,7 +6973,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A directed warehouse location with warehouse number series configured
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectCreationRule);
 
         // [GIVEN] Warehouse setup has number series configured
         LibraryWarehouse.NoSeriesSetup(WarehouseSetup);
@@ -7015,7 +7015,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     procedure WarehousePutaway_PerformDisposition()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Location: Record Location;
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
@@ -7031,7 +7031,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A directed warehouse location with warehouse number series configured
         QltyInspectionUtility.EnsureSetupExists();
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectCreationRule);
 
         // [GIVEN] Warehouse setup has number series configured
         LibraryWarehouse.NoSeriesSetup(WarehouseSetup);
@@ -7078,7 +7078,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     var
         Location: Record Location;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         Item: Record Item;
         Vendor: Record Vendor;
         PurchaseHeader: Record "Purchase Header";
@@ -7095,7 +7095,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] Quality management setup with template and generation rule for purchase lines are configured
         QltyInspectionUtility.EnsureSetupExists();
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] A location, item, vendor, and purchase order with purchase line are created
         LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, false);
@@ -7128,7 +7128,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [WHEN] The quantity buffer is populated using inventory availability logic
         QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityQltyDispositionBuffer);
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
         QltyInspectionTemplateHdr.Delete();
 
         TempQuantityQltyDispositionBuffer.Reset();
@@ -7142,7 +7142,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     [Test]
     procedure PostItemJournalForNegativeAdjustmentCreatedFromTest()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Location: Record Location;
         Item: Record Item;
@@ -7165,12 +7165,12 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] A prioritized rule is created for Purchase Line
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [GIVEN] The generation rule is set to trigger on purchase order receive and automatic only
-        QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::"Automatic only";
-        QltyInspectionGenRule."Purchase Order Trigger" := QltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive;
-        QltyInspectionGenRule.Modify();
+        QltyInspectCreationRule."Activation Trigger" := QltyInspectCreationRule."Activation Trigger"::"Automatic only";
+        QltyInspectCreationRule."Purchase Order Trigger" := QltyInspectCreationRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive;
+        QltyInspectCreationRule.Modify();
 
         // [GIVEN] An item journal template and batch are created for adjustments
         LibraryInventory.CreateItemJournalTemplateByType(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
@@ -7212,14 +7212,14 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         ItemJournalBatch.Delete();
         ItemJournalTemplate.Delete();
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
     end;
 
     [Test]
     procedure PurchaseReturnSerialTrackedAdvLocation()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         AdvWhseLocation: Record Location;
         Item: Record Item;
         Vendor: Record Vendor;
@@ -7255,7 +7255,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryAssert.AreEqual(PurOrdPurchaseLine."Qty. Received (Base)", PurOrdPurchaseLine."Quantity (Base)", 'Purchase Order was not fully received.');
 
         // [GIVEN] A quality inspection template and generation rule are created
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectCreationRule);
         // [GIVEN] A quality inspection is created with purchase line and tracking
         QltyInspectionUtility.CreateInspectionWithPurchaseLineAndTracking(PurOrdPurchaseLine, PurOrdReservationEntry, QltyInspectionHeader);
 
@@ -7267,7 +7267,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] A specific quantity is set for return
         SpecificQty := 3;
 
-        QltyInspectionGenRule.Delete();
+        QltyInspectCreationRule.Delete();
 
         // [WHEN] Purchase return disposition is performed with item tracked quantity behavior
         QltyInspectionUtility.PerformPurchaseReturnDisposition(QltyInspectionHeader, Enum::"Qlty. Quantity Behavior"::"Item Tracked Quantity", SpecificQty, '', '', Reason, CreditMemo, TempTrackedPurRtnBufferPurchaseHeader);
@@ -7305,12 +7305,12 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
     local procedure EnsureInspectionTemplateAndRuleForPurchaseLineExist(var OutQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.")
     var
-        PrioritizedQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        PrioritizedQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(OutQltyInspectionTemplateHdr, PrioritizedQltyInspectionGenRule);
+        EnsureInspectionTemplateAndRuleForPurchaseLineExist(OutQltyInspectionTemplateHdr, PrioritizedQltyInspectCreationRule);
     end;
 
-    local procedure EnsureInspectionTemplateAndRuleForPurchaseLineExist(var OutQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; var PrioritizedQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
+    local procedure EnsureInspectionTemplateAndRuleForPurchaseLineExist(var OutQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; var PrioritizedQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule")
     var
         SpecificQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         QltyInspectionUtility2: Codeunit "Qlty. Inspection Utility";
@@ -7322,7 +7322,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         if OutQltyInspectionTemplateHdr.Code = '' then
             QltyInspectionUtility2.CreateTemplate(OutQltyInspectionTemplateHdr, 3);
 
-        QltyInspectionUtility2.CreatePrioritizedRule(OutQltyInspectionTemplateHdr, Database::"Purchase Line", PrioritizedQltyInspectionGenRule);
+        QltyInspectionUtility2.CreatePrioritizedRule(OutQltyInspectionTemplateHdr, Database::"Purchase Line", PrioritizedQltyInspectCreationRule);
     end;
 
     local procedure VerifyInspectionAssertions(BaseQty: Decimal; QltyInspectionHeader: Record "Qlty. Inspection Header"; PurReturnPurchaseHeader: Record "Purchase Header"; PurOrderPurchaseHeader: Record "Purchase Header"; PurPurchaseLine: Record "Purchase Line"; CreditMemo: Code[35]; ItemNo: Code[20]; Location: Code[10]; Reason: Code[35])

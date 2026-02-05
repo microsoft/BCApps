@@ -247,22 +247,22 @@ report 20400 "Qlty. Create Inspection"
     /// <param name="QltyInspectionTemplateCode">Code[20]. The quality inspection template code to default to.</param>
     procedure InitializeReportParameters(QltyInspectionTemplateCode: Code[20])
     var
-        TempCompatibleQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        TempCompatibleQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary;
     begin
         QltInspectionTemplateToCreate := QltyInspectionTemplateCode;
         OnAfterInitializeCreateInspectionReportParameters(QltInspectionTemplateToCreate, SourceTable, CustomFilter, Target, TargetRecordRef, TempQltyInspectionHeader);
 
         if (QltyInspectionTemplateCode <> '') and (SourceTable = '') then begin
             QltyInspectSourceConfig.Reset();
-            if QltyInspecGenRuleMgmt.FindAllCompatibleGenerationRules(QltInspectionTemplateToCreate, TempCompatibleQltyInspectionGenRule) then begin
+            if QltyInspecGenRuleMgmt.FindAllCompatibleGenerationRules(QltInspectionTemplateToCreate, TempCompatibleQltyInspectCreationRule) then begin
                 QltyInspectSourceConfig.SetRange("To Type", QltyInspectSourceConfig."To Type"::Inspection);
                 QltyInspectSourceConfig.SetRange(Enabled, true);
-                if TempCompatibleQltyInspectionGenRule.FindSet() then
+                if TempCompatibleQltyInspectCreationRule.FindSet() then
                     repeat
-                        QltyInspectSourceConfig.SetRange("From Table No.", TempCompatibleQltyInspectionGenRule."Source Table No.");
+                        QltyInspectSourceConfig.SetRange("From Table No.", TempCompatibleQltyInspectCreationRule."Source Table No.");
                         if QltyInspectSourceConfig.FindFirst() then
                             SourceTable := QltyInspectSourceConfig.Code;
-                    until (TempCompatibleQltyInspectionGenRule.Next() = 0) or (SourceTable <> '');
+                    until (TempCompatibleQltyInspectCreationRule.Next() = 0) or (SourceTable <> '');
 
                 if SourceTable = '' then begin
                     QltyInspectSourceConfig.Reset();

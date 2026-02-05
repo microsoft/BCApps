@@ -27,7 +27,7 @@ codeunit 20411 "Qlty. Receiving Integration"
 {
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        ApplicableReceivingQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        ApplicableReceivingQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnAfterPurchRcptLineInsert', '', true, true)]
     local procedure HandleOnAfterPurchRcptLineInsert(PurchaseLine: Record "Purchase Line"; var PurchRcptLine: Record "Purch. Rcpt. Line"; ItemLedgShptEntryNo: Integer; WhseShip: Boolean; WhseReceive: Boolean; CommitIsSupressed: Boolean; PurchInvHeader: Record "Purch. Inv. Header"; var TempTrackingSpecification: Record "Tracking Specification" temporary; PurchRcptHeader: Record "Purch. Rcpt. Header"; TempWhseRcptHeader: Record "Warehouse Receipt Header"; xPurchLine: Record "Purchase Line"; var TempPurchLineGlobal: Record "Purchase Line" temporary)
@@ -45,10 +45,10 @@ codeunit 20411 "Qlty. Receiving Integration"
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
-        ApplicableReceivingQltyInspectionGenRule.Reset();
-        ApplicableReceivingQltyInspectionGenRule.SetRange("Purchase Order Trigger", ApplicableReceivingQltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive);
-        ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if ApplicableReceivingQltyInspectionGenRule.IsEmpty() then
+        ApplicableReceivingQltyInspectCreationRule.Reset();
+        ApplicableReceivingQltyInspectCreationRule.SetRange("Purchase Order Trigger", ApplicableReceivingQltyInspectCreationRule."Purchase Order Trigger"::OnPurchaseOrderPostReceive);
+        ApplicableReceivingQltyInspectCreationRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectCreationRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectCreationRule."Activation Trigger"::"Automatic only");
+        if ApplicableReceivingQltyInspectCreationRule.IsEmpty() then
             exit;
         if PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.") then;
 
@@ -62,13 +62,13 @@ codeunit 20411 "Qlty. Receiving Integration"
         ExpectedCountOfInspections := TempTrackingSpecification.Count();
         if ExpectedCountOfInspections = 0 then begin
             ExpectedCountOfInspections := 1;
-            if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then begin
+            if not ApplicableReceivingQltyInspectCreationRule.IsEmpty() then begin
                 TempSingleBufferTrackingSpecification.Init();
                 TempSingleBufferTrackingSpecification.Insert(false);
                 AttemptCreateInspectionWithPurchaseLineAndTracking(PurchaseLine, PurchaseHeader, TempSingleBufferTrackingSpecification);
             end
         end else
-            if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then
+            if not ApplicableReceivingQltyInspectCreationRule.IsEmpty() then
                 if TempTrackingSpecification.FindSet() then
                     repeat
                         Clear(TempSingleBufferTrackingSpecification);
@@ -95,10 +95,10 @@ codeunit 20411 "Qlty. Receiving Integration"
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
-        ApplicableReceivingQltyInspectionGenRule.Reset();
-        ApplicableReceivingQltyInspectionGenRule.SetRange("Warehouse Receipt Trigger", ApplicableReceivingQltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptPost);
-        ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then
+        ApplicableReceivingQltyInspectCreationRule.Reset();
+        ApplicableReceivingQltyInspectCreationRule.SetRange("Warehouse Receipt Trigger", ApplicableReceivingQltyInspectCreationRule."Warehouse Receipt Trigger"::OnWarehouseReceiptPost);
+        ApplicableReceivingQltyInspectCreationRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectCreationRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectCreationRule."Activation Trigger"::"Automatic only");
+        if not ApplicableReceivingQltyInspectCreationRule.IsEmpty() then
             AttemptCreateInspectionWithWhseJournalLine(WarehouseJournalLine, PostedWhseReceiptHeader);
     end;
 
@@ -113,10 +113,10 @@ codeunit 20411 "Qlty. Receiving Integration"
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
-        ApplicableReceivingQltyInspectionGenRule.Reset();
-        ApplicableReceivingQltyInspectionGenRule.SetRange("Warehouse Receipt Trigger", ApplicableReceivingQltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate);
-        ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then begin
+        ApplicableReceivingQltyInspectCreationRule.Reset();
+        ApplicableReceivingQltyInspectCreationRule.SetRange("Warehouse Receipt Trigger", ApplicableReceivingQltyInspectCreationRule."Warehouse Receipt Trigger"::OnWarehouseReceiptCreate);
+        ApplicableReceivingQltyInspectCreationRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectCreationRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectCreationRule."Activation Trigger"::"Automatic only");
+        if not ApplicableReceivingQltyInspectCreationRule.IsEmpty() then begin
             OptionalSource := PurchaseLine;
             AttemptCreateInspectionWithReceiptLine(WarehouseReceiptLine, WarehouseReceiptHeader, OptionalSource);
         end;
@@ -127,7 +127,7 @@ codeunit 20411 "Qlty. Receiving Integration"
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempTrackingSpecification: Record "Tracking Specification" temporary;
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         QltyWarehouseIntegration: Codeunit "Qlty. - Warehouse Integration";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         Handled: Boolean;
@@ -144,9 +144,9 @@ codeunit 20411 "Qlty. Receiving Integration"
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
-        QltyInspectionGenRule.SetRange("Sales Return Trigger", QltyInspectionGenRule."Sales Return Trigger"::OnSalesReturnOrderPostReceive);
-        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if not QltyInspectionGenRule.IsEmpty() then begin
+        QltyInspectCreationRule.SetRange("Sales Return Trigger", QltyInspectCreationRule."Sales Return Trigger"::OnSalesReturnOrderPostReceive);
+        QltyInspectCreationRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectCreationRule."Activation Trigger"::"Manual or Automatic", QltyInspectCreationRule."Activation Trigger"::"Automatic only");
+        if not QltyInspectCreationRule.IsEmpty() then begin
             SourceVariant := SalesLine;
             QltyWarehouseIntegration.CollectSourceItemTracking(SourceVariant, TempTrackingSpecification);
             OnBeforeSalesReturnCreateInspectionWithSalesLine(SalesHeader, SalesLine, TempItemLedgEntryNotInvoiced, TempTrackingSpecification, Handled);
@@ -156,13 +156,13 @@ codeunit 20411 "Qlty. Receiving Integration"
             TempTrackingSpecification.Reset();
             if TempTrackingSpecification.FindSet() then
                 repeat
-                    if QltyInspectionCreate.CreateInspectionWithMultiVariants(SalesLine, TempTrackingSpecification, DummyVariant, DummyVariant, false, QltyInspectionGenRule) then begin
+                    if QltyInspectionCreate.CreateInspectionWithMultiVariants(SalesLine, TempTrackingSpecification, DummyVariant, DummyVariant, false, QltyInspectCreationRule) then begin
                         HasInspection := true;
                         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                     end;
                 until TempTrackingSpecification.Next() = 0
             else
-                if QltyInspectionCreate.CreateInspectionWithMultiVariants(SalesLine, DummyVariant, DummyVariant, DummyVariant, false, QltyInspectionGenRule) then begin
+                if QltyInspectionCreate.CreateInspectionWithMultiVariants(SalesLine, DummyVariant, DummyVariant, DummyVariant, false, QltyInspectCreationRule) then begin
                     HasInspection := true;
                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                 end;
@@ -182,10 +182,10 @@ codeunit 20411 "Qlty. Receiving Integration"
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
-        ApplicableReceivingQltyInspectionGenRule.Reset();
-        ApplicableReceivingQltyInspectionGenRule.SetRange("Transfer Order Trigger", ApplicableReceivingQltyInspectionGenRule."Transfer Order Trigger"::OnTransferOrderPostReceive);
-        ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then
+        ApplicableReceivingQltyInspectCreationRule.Reset();
+        ApplicableReceivingQltyInspectCreationRule.SetRange("Transfer Order Trigger", ApplicableReceivingQltyInspectCreationRule."Transfer Order Trigger"::OnTransferOrderPostReceive);
+        ApplicableReceivingQltyInspectCreationRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectCreationRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectCreationRule."Activation Trigger"::"Automatic only");
+        if not ApplicableReceivingQltyInspectCreationRule.IsEmpty() then
             AttemptCreateInspectionWithReceiveTransferLine(TransLine, UnusedTransTransferReceiptHeader, DirectTransHeader);
     end;
 
@@ -200,10 +200,10 @@ codeunit 20411 "Qlty. Receiving Integration"
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
-        ApplicableReceivingQltyInspectionGenRule.Reset();
-        ApplicableReceivingQltyInspectionGenRule.SetRange("Transfer Order Trigger", ApplicableReceivingQltyInspectionGenRule."Transfer Order Trigger"::OnTransferOrderPostReceive);
-        ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then
+        ApplicableReceivingQltyInspectCreationRule.Reset();
+        ApplicableReceivingQltyInspectCreationRule.SetRange("Transfer Order Trigger", ApplicableReceivingQltyInspectCreationRule."Transfer Order Trigger"::OnTransferOrderPostReceive);
+        ApplicableReceivingQltyInspectCreationRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectCreationRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectCreationRule."Activation Trigger"::"Automatic only");
+        if not ApplicableReceivingQltyInspectCreationRule.IsEmpty() then
             AttemptCreateInspectionWithReceiveTransferLine(TransLine, TransferReceiptHeader, UnusedDirectTransHeader);
     end;
 
@@ -221,10 +221,10 @@ codeunit 20411 "Qlty. Receiving Integration"
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
-        ApplicableReceivingQltyInspectionGenRule.Reset();
-        ApplicableReceivingQltyInspectionGenRule.SetRange("Purchase Order Trigger", ApplicableReceivingQltyInspectionGenRule."Purchase Order Trigger"::OnPurchaseOrderRelease);
-        ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if ApplicableReceivingQltyInspectionGenRule.IsEmpty() then
+        ApplicableReceivingQltyInspectCreationRule.Reset();
+        ApplicableReceivingQltyInspectCreationRule.SetRange("Purchase Order Trigger", ApplicableReceivingQltyInspectCreationRule."Purchase Order Trigger"::OnPurchaseOrderRelease);
+        ApplicableReceivingQltyInspectCreationRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectCreationRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectCreationRule."Activation Trigger"::"Automatic only");
+        if ApplicableReceivingQltyInspectCreationRule.IsEmpty() then
             exit;
 
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
@@ -262,7 +262,7 @@ codeunit 20411 "Qlty. Receiving Integration"
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempTrackingSpecification: Record "Tracking Specification" temporary;
-        TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        TempQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary;
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyWarehouseIntegration: Codeunit "Qlty. - Warehouse Integration";
         Handled: Boolean;
@@ -278,16 +278,16 @@ codeunit 20411 "Qlty. Receiving Integration"
         TempTrackingSpecification.Reset();
         if TempTrackingSpecification.FindSet() then
             repeat
-                TempQltyInspectionGenRule.DeleteAll();
-                TempQltyInspectionGenRule.CopyFilters(ApplicableReceivingQltyInspectionGenRule);
-                if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseReceiptLine, OptionalSourceLineVariant, WarehouseReceiptHeader, TempTrackingSpecification, false, TempQltyInspectionGenRule) then begin
+                TempQltyInspectCreationRule.DeleteAll();
+                TempQltyInspectCreationRule.CopyFilters(ApplicableReceivingQltyInspectCreationRule);
+                if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseReceiptLine, OptionalSourceLineVariant, WarehouseReceiptHeader, TempTrackingSpecification, false, TempQltyInspectCreationRule) then begin
                     HasInspection := true;
                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                 end;
             until TempTrackingSpecification.Next() = 0
         else begin
-            TempQltyInspectionGenRule.CopyFilters(ApplicableReceivingQltyInspectionGenRule);
-            if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseReceiptLine, OptionalSourceLineVariant, WarehouseReceiptHeader, DummyVariant, false, TempQltyInspectionGenRule) then begin
+            TempQltyInspectCreationRule.CopyFilters(ApplicableReceivingQltyInspectCreationRule);
+            if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseReceiptLine, OptionalSourceLineVariant, WarehouseReceiptHeader, DummyVariant, false, TempQltyInspectCreationRule) then begin
                 HasInspection := true;
                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
             end;
@@ -300,7 +300,7 @@ codeunit 20411 "Qlty. Receiving Integration"
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempTrackingSpecification: Record "Tracking Specification" temporary;
-        TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        TempQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary;
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyWarehouseIntegration: Codeunit "Qlty. - Warehouse Integration";
         OptionalSourceRecordVariant: Variant;
@@ -318,16 +318,16 @@ codeunit 20411 "Qlty. Receiving Integration"
         TempTrackingSpecification.Reset();
         if TempTrackingSpecification.FindSet() then
             repeat
-                TempQltyInspectionGenRule.DeleteAll();
-                TempQltyInspectionGenRule.CopyFilters(ApplicableReceivingQltyInspectionGenRule);
-                if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseJournalLine, OptionalSourceRecordVariant, PostedWhseReceiptHeader, TempTrackingSpecification, false, TempQltyInspectionGenRule) then begin
+                TempQltyInspectCreationRule.DeleteAll();
+                TempQltyInspectCreationRule.CopyFilters(ApplicableReceivingQltyInspectCreationRule);
+                if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseJournalLine, OptionalSourceRecordVariant, PostedWhseReceiptHeader, TempTrackingSpecification, false, TempQltyInspectCreationRule) then begin
                     HasInspection := true;
                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                 end;
             until TempTrackingSpecification.Next() = 0
         else begin
-            TempQltyInspectionGenRule.CopyFilters(ApplicableReceivingQltyInspectionGenRule);
-            if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseJournalLine, OptionalSourceRecordVariant, PostedWhseReceiptHeader, DummyVariant, false, TempQltyInspectionGenRule) then begin
+            TempQltyInspectCreationRule.CopyFilters(ApplicableReceivingQltyInspectCreationRule);
+            if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseJournalLine, OptionalSourceRecordVariant, PostedWhseReceiptHeader, DummyVariant, false, TempQltyInspectCreationRule) then begin
                 HasInspection := true;
                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
             end;
@@ -339,7 +339,7 @@ codeunit 20411 "Qlty. Receiving Integration"
     local procedure AttemptCreateInspectionWithPurchaseLineAndTracking(var PurchaseLine: Record "Purchase Line"; var PurchaseHeader: Record "Purchase Header"; var TempTrackingSpecification: Record "Tracking Specification" temporary)
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
-        TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        TempQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary;
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         Handled: Boolean;
         HasInspection: Boolean;
@@ -349,8 +349,8 @@ codeunit 20411 "Qlty. Receiving Integration"
         if Handled then
             exit;
 
-        TempQltyInspectionGenRule.CopyFilters(ApplicableReceivingQltyInspectionGenRule);
-        HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(PurchaseLine, PurchaseHeader, TempTrackingSpecification, DummyVariant, false, TempQltyInspectionGenRule);
+        TempQltyInspectCreationRule.CopyFilters(ApplicableReceivingQltyInspectCreationRule);
+        HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(PurchaseLine, PurchaseHeader, TempTrackingSpecification, DummyVariant, false, TempQltyInspectCreationRule);
         if HasInspection then
             QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
 
@@ -361,7 +361,7 @@ codeunit 20411 "Qlty. Receiving Integration"
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempTrackingSpecification: Record "Tracking Specification" temporary;
-        TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        TempQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary;
         QltyWarehouseIntegration: Codeunit "Qlty. - Warehouse Integration";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         Handled: Boolean;
@@ -377,24 +377,24 @@ codeunit 20411 "Qlty. Receiving Integration"
         TempTrackingSpecification.Reset();
         if TempTrackingSpecification.FindSet() then
             repeat
-                TempQltyInspectionGenRule.DeleteAll();
-                TempQltyInspectionGenRule.CopyFilters(ApplicableReceivingQltyInspectionGenRule);
+                TempQltyInspectCreationRule.DeleteAll();
+                TempQltyInspectCreationRule.CopyFilters(ApplicableReceivingQltyInspectCreationRule);
                 if OptionalTransferReceiptHeader."No." <> '' then
-                    HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(TransTransferLine, OptionalTransferReceiptHeader, TempTrackingSpecification, OptionalDirectTransHeader, false, TempQltyInspectionGenRule);
+                    HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(TransTransferLine, OptionalTransferReceiptHeader, TempTrackingSpecification, OptionalDirectTransHeader, false, TempQltyInspectCreationRule);
 
                 if OptionalDirectTransHeader."No." <> '' then
-                    HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(TransTransferLine, OptionalDirectTransHeader, TempTrackingSpecification, OptionalTransferReceiptHeader, false, TempQltyInspectionGenRule);
+                    HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(TransTransferLine, OptionalDirectTransHeader, TempTrackingSpecification, OptionalTransferReceiptHeader, false, TempQltyInspectCreationRule);
 
                 if HasInspection then
                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
             until TempTrackingSpecification.Next() = 0
         else begin
-            TempQltyInspectionGenRule.CopyFilters(ApplicableReceivingQltyInspectionGenRule);
+            TempQltyInspectCreationRule.CopyFilters(ApplicableReceivingQltyInspectCreationRule);
             if OptionalTransferReceiptHeader."No." <> '' then
-                HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(TransTransferLine, OptionalTransferReceiptHeader, OptionalDirectTransHeader, TempTrackingSpecification, false, TempQltyInspectionGenRule);
+                HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(TransTransferLine, OptionalTransferReceiptHeader, OptionalDirectTransHeader, TempTrackingSpecification, false, TempQltyInspectCreationRule);
 
             if OptionalDirectTransHeader."No." <> '' then
-                HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(TransTransferLine, OptionalDirectTransHeader, OptionalTransferReceiptHeader, TempTrackingSpecification, false, TempQltyInspectionGenRule);
+                HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(TransTransferLine, OptionalDirectTransHeader, OptionalTransferReceiptHeader, TempTrackingSpecification, false, TempQltyInspectCreationRule);
 
             if HasInspection then
                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);

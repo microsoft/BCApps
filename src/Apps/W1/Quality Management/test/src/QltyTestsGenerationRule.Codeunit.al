@@ -33,7 +33,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     [Test]
     procedure ActivationTriggerFindGenerationRule_ManualOnly_ManualRuleSearch()
     var
-        TempOutQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        TempOutQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Item: Record Item;
         PurchaseLineRecordRef: RecordRef;
@@ -44,19 +44,19 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A generation rule with Manual only activation trigger is created
-        DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Gen. Rule Act. Trigger"::"Manual only");
+        DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Creat. Rule Act. Trigger"::"Manual only");
 
         // [WHEN] A manual rule search is performed for Purchase Line
         PurchaseLineRecordRef.Open(Database::"Purchase Line");
 
         // [THEN] The generation rule is found
-        LibraryAssert.IsTrue(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, true, PurchaseLineRecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should find generation rule');
+        LibraryAssert.IsTrue(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, true, PurchaseLineRecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectCreationRule), 'Should find generation rule');
     end;
 
     [Test]
     procedure ActivationTriggerFindGenerationRule_ManualOnly_AutoRuleSearch()
     var
-        TempOutQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        TempOutQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Item: Record Item;
         PurchaseLineRecordRef: RecordRef;
@@ -67,19 +67,19 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A generation rule with Manual only activation trigger is created
-        DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Gen. Rule Act. Trigger"::"Manual only");
+        DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Creat. Rule Act. Trigger"::"Manual only");
 
         // [WHEN] An automatic rule search is performed for Purchase Line
         PurchaseLineRecordRef.Open(Database::"Purchase Line");
 
         // [THEN] The generation rule is not found
-        LibraryAssert.IsFalse(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, false, PurchaseLineRecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should not find generation rule');
+        LibraryAssert.IsFalse(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, false, PurchaseLineRecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectCreationRule), 'Should not find generation rule');
     end;
 
     [Test]
     procedure ActivationTriggerFindGenerationRule_AutoOnly_AutoRuleSearch()
     var
-        TempOutQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        TempOutQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Item: Record Item;
         RecordRef: RecordRef;
@@ -90,19 +90,19 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A generation rule with Automatic only activation trigger is created
-        DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Gen. Rule Act. Trigger"::"Automatic only");
+        DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Creat. Rule Act. Trigger"::"Automatic only");
 
         // [WHEN] An automatic rule search is performed for Purchase Line
         RecordRef.Open(Database::"Purchase Line");
 
         // [THEN] The generation rule is found
-        LibraryAssert.IsTrue(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, false, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should find generation rule');
+        LibraryAssert.IsTrue(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, false, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectCreationRule), 'Should find generation rule');
     end;
 
     [Test]
     procedure ActivationTriggerFindGenerationRule_AutoOnly_ManualRuleSearch()
     var
-        TempOutQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        TempOutQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Item: Record Item;
         RecordRef: RecordRef;
@@ -113,19 +113,19 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A generation rule with Automatic only activation trigger is created
-        DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Gen. Rule Act. Trigger"::"Automatic only");
+        DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Creat. Rule Act. Trigger"::"Automatic only");
 
         // [WHEN] A manual rule search is performed for Purchase Line
         RecordRef.Open(Database::"Purchase Line");
 
         // [THEN] The generation rule is not found
-        LibraryAssert.IsFalse(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, true, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should not find generation rule');
+        LibraryAssert.IsFalse(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, true, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectCreationRule), 'Should not find generation rule');
     end;
 
     [Test]
     procedure ActivationTriggerFindGenerationRule_ManualAndAuto_AutoRuleSearch()
     var
-        TempOutQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        TempOutQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Item: Record Item;
         RecordRef: RecordRef;
@@ -136,19 +136,19 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A generation rule with Manual or Automatic activation trigger is created
-        DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Gen. Rule Act. Trigger"::"Manual or Automatic");
+        DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Creat. Rule Act. Trigger"::"Manual or Automatic");
 
         // [WHEN] An automatic rule search is performed for Purchase Line
         RecordRef.Open(Database::"Purchase Line");
 
         // [THEN] The generation rule is found
-        LibraryAssert.IsTrue(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, false, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should find generation rule');
+        LibraryAssert.IsTrue(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, false, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectCreationRule), 'Should find generation rule');
     end;
 
     [Test]
     procedure ActivationTriggerFindGenerationRule_ManualAndAuto_ManualRuleSearch()
     var
-        TempOutQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        TempOutQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Item: Record Item;
         RecordRef: RecordRef;
@@ -159,19 +159,19 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A generation rule with Manual or Automatic activation trigger is created
-        DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Gen. Rule Act. Trigger"::"Manual or Automatic");
+        DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Creat. Rule Act. Trigger"::"Manual or Automatic");
 
         // [WHEN] A manual rule search is performed for Purchase Line
         RecordRef.Open(Database::"Purchase Line");
 
         // [THEN] The generation rule is found
-        LibraryAssert.IsTrue(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, true, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should find generation rule');
+        LibraryAssert.IsTrue(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, true, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectCreationRule), 'Should find generation rule');
     end;
 
     [Test]
     procedure ActivationTriggerFindGenerationRule_Disabled_ManualRuleSearch()
     var
-        TempOutQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        TempOutQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Item: Record Item;
         RecordRef: RecordRef;
@@ -182,23 +182,23 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A generation rule with Disabled activation trigger is created
-        DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Gen. Rule Act. Trigger"::Disabled);
+        DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Creat. Rule Act. Trigger"::Disabled);
 
         // [WHEN] A manual rule search is performed for Purchase Line
         RecordRef.Open(Database::"Purchase Line");
 
         // [THEN] The generation rule is not found
-        LibraryAssert.IsFalse(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, true, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should not find generation rule');
+        LibraryAssert.IsFalse(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, true, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectCreationRule), 'Should not find generation rule');
     end;
 
     [Test]
     procedure ActivationTriggerFindGenerationRule_Disabled_AutoRuleSearch()
     var
-        TempOutQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        TempOutQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Item: Record Item;
         RecordRef: RecordRef;
-        GenRuleActivTrigger: Enum "Qlty. Gen. Rule Act. Trigger";
+        GenRuleActivTrigger: Enum "Qlty. Creat. Rule Act. Trigger";
     begin
         // [SCENARIO] Verify that a generation rule with Disabled activation trigger is not found when performing an automatic rule search
 
@@ -212,14 +212,14 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         RecordRef.Open(Database::"Purchase Line");
 
         // [THEN] The generation rule is not found
-        LibraryAssert.IsFalse(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, false, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should not find generation rule');
+        LibraryAssert.IsFalse(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, false, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectCreationRule), 'Should not find generation rule');
     end;
 
     [Test]
     procedure FindGenerationRule_ItemFilter()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        TempOutQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
+        TempOutQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Item: Record Item;
         LibraryInventory: Codeunit "Library - Inventory";
@@ -234,25 +234,25 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A generation rule with Manual or Automatic activation trigger is created
-        DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Gen. Rule Act. Trigger"::"Manual or Automatic");
+        DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Creat. Rule Act. Trigger"::"Manual or Automatic");
 
         // [GIVEN] The generation rule is updated with an item filter
-        QltyInspectionGenRule.FindFirst();
-        QltyInspectionGenRule."Item Filter" := StrSubstNo(ItemFilterTok, Item."No.");
-        QltyInspectionGenRule.Modify();
+        QltyInspectCreationRule.FindFirst();
+        QltyInspectCreationRule."Item Filter" := StrSubstNo(ItemFilterTok, Item."No.");
+        QltyInspectCreationRule.Modify();
 
         // [WHEN] A manual rule search is performed for Purchase Line with the item
         RecordRef.Open(Database::"Purchase Line");
 
         // [THEN] The generation rule is found
-        LibraryAssert.IsTrue(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, true, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should find generation rule');
+        LibraryAssert.IsTrue(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, true, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectCreationRule), 'Should find generation rule');
     end;
 
     [Test]
     procedure FindGenerationRule_ItemAttributeFilter()
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        TempOutQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
+        TempOutQltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule" temporary;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         Item: Record Item;
         ItemAttribute: Record "Item Attribute";
@@ -271,18 +271,18 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A generation rule with Manual or Automatic activation trigger is created
-        DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Gen. Rule Act. Trigger"::"Manual or Automatic");
+        DeleteAllAndCreateOneGenerationRule(QltyInspectionTemplateHdr.Code, Enum::"Qlty. Creat. Rule Act. Trigger"::"Manual or Automatic");
 
         // [GIVEN] The generation rule is updated with an item attribute filter
-        QltyInspectionGenRule.FindFirst();
-        QltyInspectionGenRule."Item Attribute Filter" := (StrSubstNo(ItemAttributeFilterTok, ItemAttribute.Name));
-        QltyInspectionGenRule.Modify();
+        QltyInspectCreationRule.FindFirst();
+        QltyInspectCreationRule."Item Attribute Filter" := (StrSubstNo(ItemAttributeFilterTok, ItemAttribute.Name));
+        QltyInspectCreationRule.Modify();
 
         // [WHEN] A manual rule search is performed for Purchase Line with the item
         RecordRef.Open(Database::"Purchase Line");
 
         // [THEN] The generation rule is found
-        LibraryAssert.IsTrue(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, true, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectionGenRule), 'Should find generation rule');
+        LibraryAssert.IsTrue(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(false, true, RecordRef, Item, QltyInspectionTemplateHdr.Code, TempOutQltyInspectCreationRule), 'Should find generation rule');
     end;
 
     [Test]
@@ -307,7 +307,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     var
         Customer: Record Customer;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         SpecificQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         RecordRef: RecordRef;
     begin
@@ -322,7 +322,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A prioritized generation rule for Customer table is created
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::Customer, QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::Customer, QltyInspectCreationRule);
 
         // [WHEN] Filters are set to applicable templates without source configuration
         RecordRef.GetTable(Customer);
@@ -336,7 +336,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     procedure SetFilterToApplicableTemplates()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
         SpecificQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
         RecordRef: RecordRef;
         Filter: Text;
@@ -350,7 +350,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] A prioritized generation rule for Purchase Line table is created
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectCreationRule);
 
         // [WHEN] Filters are set to applicable templates
         QltyInspectionUtility.SetFilterToApplicableTemplates(QltyInspectionTemplateHdr.Code, SpecificQltyInspectSourceConfig);
@@ -385,17 +385,17 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         LibraryAssert.IsTrue(Filters.Contains(Format(Database::"Purchase Line")), 'Should contain table no.');
     end;
 
-    local procedure DeleteAllAndCreateOneGenerationRule(TemplateCode: Code[20]; ActivationTrigger: Enum "Qlty. Gen. Rule Act. Trigger")
+    local procedure DeleteAllAndCreateOneGenerationRule(TemplateCode: Code[20]; ActivationTrigger: Enum "Qlty. Creat. Rule Act. Trigger")
     var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectCreationRule: Record "Qlty. Inspect. Creation Rule";
     begin
-        QltyInspectionGenRule.DeleteAll();
-        QltyInspectionGenRule.Init();
-        QltyInspectionUtility.SetEntryNo(QltyInspectionGenRule);
-        QltyInspectionGenRule.Insert();
-        QltyInspectionGenRule."Source Table No." := Database::"Purchase Line";
-        QltyInspectionGenRule."Template Code" := TemplateCode;
-        QltyInspectionGenRule."Activation Trigger" := ActivationTrigger;
-        QltyInspectionGenRule.Modify();
+        QltyInspectCreationRule.DeleteAll();
+        QltyInspectCreationRule.Init();
+        QltyInspectionUtility.SetEntryNo(QltyInspectCreationRule);
+        QltyInspectCreationRule.Insert();
+        QltyInspectCreationRule."Source Table No." := Database::"Purchase Line";
+        QltyInspectCreationRule."Template Code" := TemplateCode;
+        QltyInspectCreationRule."Activation Trigger" := ActivationTrigger;
+        QltyInspectCreationRule.Modify();
     end;
 }

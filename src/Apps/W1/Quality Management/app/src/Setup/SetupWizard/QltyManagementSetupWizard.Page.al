@@ -269,7 +269,7 @@ page 20438 "Qlty. Management Setup Wizard"
 
                         trigger OnDrillDown()
                         begin
-                            Page.RunModal(Page::"Qlty. Inspection Gen. Rules");
+                            Page.RunModal(Page::"Qlty. Inspect. Creation Rules");
                         end;
                     }
                 }
