@@ -19,6 +19,7 @@ codeunit 139799 "E-Doc. Helper Test"
     var
         Assert: Codeunit "Assert";
         LibraryEDoc: Codeunit "Library - E-Document";
+        LibraryLowerPermission: Codeunit "Library - Lower Permissions";
 
     trigger OnRun()
     begin
@@ -64,6 +65,7 @@ codeunit 139799 "E-Doc. Helper Test"
         EDocErrorHelper: Codeunit "E-Document Error Helper";
         TestParticipantId: Text[200];
     begin
+        LibraryLowerPermission.SetOutsideO365Scope();
         // [SCENARIO] Validation should succeed when a matching Company Service Participant exists
         // [GIVEN] An E-Document with a Receiving Company Id
         TestParticipantId := '0208:1234567890';
@@ -92,8 +94,8 @@ codeunit 139799 "E-Doc. Helper Test"
         Assert.IsFalse(EDocErrorHelper.HasErrors(EDocument), 'No errors should be logged when Service Participant matches');
 
         // Cleanup
-        ServiceParticipant.Delete(true);
-        EDocument.Delete(true);
+        ServiceParticipant.Delete();
+        EDocument.Delete();
     end;
 
     [Test]
@@ -105,6 +107,7 @@ codeunit 139799 "E-Doc. Helper Test"
         EDocumentImportHelper: Codeunit "E-Document Import Helper";
         EDocErrorHelper: Codeunit "E-Document Error Helper";
     begin
+        LibraryLowerPermission.SetOutsideO365Scope();
         // [SCENARIO] Validation should fall back to VAT/GLN matching when no Service Participant exists
         // [GIVEN] An E-Document with a Receiving Company Id that doesn't match any Service Participant
         // [GIVEN] But has matching VAT Registration No.
@@ -127,6 +130,6 @@ codeunit 139799 "E-Doc. Helper Test"
         Assert.IsFalse(EDocErrorHelper.HasErrors(EDocument), 'No errors should be logged when VAT Registration No. matches');
 
         // Cleanup
-        EDocument.Delete(true);
+        EDocument.Delete();
     end;
 }
